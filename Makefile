@@ -20,6 +20,14 @@ SRC := \
 setup:
 	@echo "[setup] dev helpers are optional; runtime stays dependency-free."
 
+
+.PHONY: baseline-report
+baseline-report: build
+	@echo "[bench] running harness..."
+	@bash scripts/run_benchmark.sh
+	@echo "[report] generating BASELINE.md..."
+	@python3 scripts/make_baseline_md.py
+
 build: $(BIN)
 $(BIN): $(SRC)
 	@mkdir -p $(BUILD)
