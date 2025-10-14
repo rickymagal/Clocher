@@ -1,15 +1,12 @@
 /**
  * @file ie_api.c
- * @brief Minimal FP32 decode path with runtime kernel dispatch and a pthread pool.
+ * @brief FP32 decode path with runtime kernel dispatch and a pthread pool.
  *
  * Responsibilities:
- *  - Engine lifecycle (create/destroy).
- *  - Tokenization & prompt prefill.
- *  - Decode loop: embed → GEMV (Wxh/Whh/Woh) → bias → tanh → logits → argmax.
- *  - Per-token latency ring (p50/p95) and metrics snapshot.
- *
- * This file intentionally keeps the math simple and deterministic so we can
- * build a reproducible CPU baseline and measure improvements from step 4+.
+ *  - Engine lifecycle (create/destroy)
+ *  - Tokenization & prompt prefill
+ *  - Decode loop: embed → GEMV (Wxh/Whh/Woh) → bias → tanh → logits → argmax
+ *  - Per-token latency ring (p50/p95) and metrics snapshot
  */
 
 #include <stdlib.h>
@@ -37,9 +34,9 @@ static double now_s(void) {
 }
 
 /**
- * @brief xorshift32 pseudo-random number generator step.
+ * @brief xorshift32 PRNG step.
  *
- * @param state Pointer to internal PRNG state (updated in place).
+ * @param state Pointer to PRNG state (updated).
  * @return Next 32-bit pseudo-random value.
  */
 static inline uint32_t xorshift32(uint32_t *state) {
@@ -52,11 +49,11 @@ static inline uint32_t xorshift32(uint32_t *state) {
 }
 
 /**
- * @brief Generate a uniform random float in [-scale, +scale].
+ * @brief Generate uniform float in [-scale, +scale].
  *
  * @param state PRNG state.
- * @param scale Half-range of the uniform distribution (must be > 0).
- * @return Random float in [-scale, +scale].
+ * @param scale Half-range of uniform distribution.
+ * @return Random float.
  */
 static float frand_uniform(uint32_t *state, float scale) {
   uint32_t r = xorshift32(state);
@@ -65,19 +62,19 @@ static float frand_uniform(uint32_t *state, float scale) {
 }
 
 /**
- * @brief Zero a float vector (set all elements to 0.0f).
+ * @brief Zero a vector of length @p n.
  *
- * @param v Vector pointer (may be NULL if @p n == 0).
- * @param n Number of elements to set.
+ * @param v Vector pointer.
+ * @param n Number of elements.
  */
 static void vec_clear(float *v, size_t n) {
   for (size_t i = 0; i < n; ++i) v[i] = 0.0f;
 }
 
 /**
- * @brief Add a bias vector elementwise (y[i] += b[i]).
+ * @brief Add bias vector elementwise.
  *
- * @param y Destination vector to be incremented.
+ * @param y Output vector to be incremented.
  * @param b Bias vector.
  * @param n Number of elements.
  */
@@ -86,26 +83,23 @@ static void vec_add_bias(float *y, const float *b, size_t n) {
 }
 
 /**
- * @brief Argmax over a float vector.
+ * @brief Argmax index of a float vector.
  *
  * @param v Input vector.
  * @param n Number of elements.
- * @return Index of the largest element (first max on ties).
+ * @return Index of maximum value.
  */
 static int argmax(const float *v, size_t n) {
-  size_t idx = 0;
-  float best = v[0];
-  for (size_t i = 1; i < n; ++i) {
-    if (v[i] > best) { best = v[i]; idx = i; }
-  }
+  size_t idx = 0; float best = v[0];
+  for (size_t i = 1; i < n; ++i) { if (v[i] > best) { best = v[i]; idx = i; } }
   return (int)idx;
 }
 
 /**
- * @brief Copy values into @p dst and sort ascending (insertion sort).
+ * @brief Copy and sort (ascending) using insertion sort.
  *
  * @param dst Destination buffer (size >= n).
- * @param src Source buffer with n values.
+ * @param src Source buffer (size >= n).
  * @param n   Number of elements.
  */
 static void copy_and_sort(double *dst, const double *src, size_t n) {
@@ -113,18 +107,18 @@ static void copy_and_sort(double *dst, const double *src, size_t n) {
   for (size_t i = 1; i < n; ++i) {
     double key = dst[i];
     size_t j = i;
-    while (j > 0 && dst[j - 1] > key) { dst[j] = dst[j - 1]; --j; }
-    dst[j] = key;
+    while (j > 0 && dst[j-1] > key) { dst[j]=dst[j-1]; --j; }
+    dst[j]=key;
   }
 }
 
 /**
- * @brief Return approximate percentile from a sorted array.
+ * @brief Percentile from a sorted array.
  *
- * @param vals Sorted values (ascending).
+ * @param vals Sorted values.
  * @param n    Number of elements.
- * @param p    Percentile in [0,1], e.g., 0.50 for p50.
- * @return Value at the requested percentile (nearest index).
+ * @param p    Percentile in [0,1].
+ * @return Percentile value.
  */
 static double percentile(const double *vals, size_t n, double p) {
   if (n == 0) return 0.0;
@@ -132,17 +126,15 @@ static double percentile(const double *vals, size_t n, double p) {
   return vals[idx];
 }
 
-/**
- * @brief Opaque engine state (internal fields).
- */
+/** @brief Internal engine state. */
 typedef struct ie_engine {
   /* model sizes */
-  uint32_t H;             /**< Hidden size. */
-  uint32_t V;             /**< Logit/vocab size (simulated). */
+  uint32_t H;                    /**< Hidden size. */
+  uint32_t V;                    /**< Logit/vocab size (simulated). */
 
   /* parameters */
-  float *Wxh, *Whh, *Woh; /**< Weight matrices. */
-  float *bh, *bo;         /**< Bias vectors. */
+  float *Wxh, *Whh, *Woh;        /**< Weight matrices. */
+  float *bh, *bo;                /**< Bias vectors. */
 
   /* temporaries */
   float *h, *x, *tmp, *logits;
@@ -159,71 +151,56 @@ typedef struct ie_engine {
   /* rng */
   uint32_t rng;
 
-  /* optimizations (step 4) */
-  ie_threadpool_t *tp;    /**< Thread pool (NULL = single-thread). */
-  int fast_tanh;          /**< Non-zero to enable fast tanh approximation. */
+  /* optimizations */
+  ie_threadpool_t *tp;           /**< Thread pool (NULL = single-thread). */
+  int fast_tanh;                 /**< Non-zero => use fast tanh approximation. */
+  size_t grainsize_hint;         /**< Informational grainsize (unused by partition). */
 } ie_engine;
 
 /**
- * @brief Allocate all parameter and workspace buffers.
+ * @brief Allocate engine parameters and workspace.
  *
  * @param e Engine pointer.
  * @return 0 on success; -1 on allocation failure.
  */
 static int alloc_params(ie_engine *e) {
   size_t H = e->H, V = e->V;
-  e->Wxh    = (float*)malloc(H * H * sizeof(float));
-  e->Whh    = (float*)malloc(H * H * sizeof(float));
-  e->Woh    = (float*)malloc(V * H * sizeof(float));
-  e->bh     = (float*)malloc(H * sizeof(float));
-  e->bo     = (float*)malloc(V * sizeof(float));
-  e->h      = (float*)malloc(H * sizeof(float));
-  e->x      = (float*)malloc(H * sizeof(float));
-  e->tmp    = (float*)malloc(H * sizeof(float));
-  e->logits = (float*)malloc(V * sizeof(float));
-  return (!e->Wxh || !e->Whh || !e->Woh || !e->bh || !e->bo ||
-          !e->h || !e->x || !e->tmp || !e->logits) ? -1 : 0;
+  e->Wxh=(float*)malloc(H*H*sizeof(float)); e->Whh=(float*)malloc(H*H*sizeof(float));
+  e->Woh=(float*)malloc(V*H*sizeof(float)); e->bh =(float*)malloc(H*sizeof(float));
+  e->bo =(float*)malloc(V*sizeof(float));
+  e->h  =(float*)malloc(H*sizeof(float));   e->x  =(float*)malloc(H*sizeof(float));
+  e->tmp=(float*)malloc(H*sizeof(float));   e->logits=(float*)malloc(V*sizeof(float));
+  return (!e->Wxh||!e->Whh||!e->Woh||!e->bh||!e->bo||!e->h||!e->x||!e->tmp||!e->logits)?-1:0;
 }
 
 /**
- * @brief Free all parameter and workspace buffers.
+ * @brief Free engine parameters and workspace.
  *
  * @param e Engine pointer (must be valid).
  */
-static void free_params(ie_engine *e) {
+static void free_params(ie_engine *e){
   free(e->Wxh); free(e->Whh); free(e->Woh);
   free(e->bh);  free(e->bo);
   free(e->h);   free(e->x);   free(e->tmp); free(e->logits);
 }
 
 /**
- * @brief Initialize parameters procedurally with a deterministic seed.
- *
- * We avoid model file dependencies by synthesizing weights from a fixed seed
- * (influenced by the binary size just to vary across datasets).
+ * @brief Initialize parameters procedurally for a deterministic baseline.
  *
  * @param e Engine pointer.
  */
 static void init_params_procedural(ie_engine *e) {
   e->rng = 0xC0FFEEu ^ (uint32_t)(e->weights.bin_size_bytes % 104729u);
-  const float sH = 1.0f / 32.0f;
-  const float sV = 1.0f / 64.0f;
-
-  for (size_t i = 0; i < (size_t)e->H * e->H; ++i) {
-    e->Wxh[i] = frand_uniform(&e->rng, sH);
-    e->Whh[i] = frand_uniform(&e->rng, sH);
-  }
-  for (size_t i = 0; i < (size_t)e->V * e->H; ++i) {
-    e->Woh[i] = frand_uniform(&e->rng, sV);
-  }
-  for (size_t i = 0; i < e->H; ++i) e->bh[i] = frand_uniform(&e->rng, sH);
-  for (size_t i = 0; i < e->V; ++i) e->bo[i] = frand_uniform(&e->rng, sV);
-
+  const float sH = 1.0f/32.0f, sV = 1.0f/64.0f;
+  for (size_t i=0;i<(size_t)e->H*e->H;++i){ e->Wxh[i]=frand_uniform(&e->rng,sH); e->Whh[i]=frand_uniform(&e->rng,sH); }
+  for (size_t i=0;i<(size_t)e->V*e->H;++i){ e->Woh[i]=frand_uniform(&e->rng,sV); }
+  for (size_t i=0;i<e->H;++i) e->bh[i]=frand_uniform(&e->rng,sH);
+  for (size_t i=0;i<e->V;++i) e->bo[i]=frand_uniform(&e->rng,sV);
   vec_clear(e->h, e->H);
 }
 
 /**
- * @brief Produce a deterministic H-dimensional embedding from a token id.
+ * @brief Produce a deterministic H-dim embedding from a token id.
  *
  * @param tok Token id.
  * @param x   Output buffer of length H.
@@ -234,23 +211,15 @@ static void embed_token(uint32_t tok, float *x, size_t H) {
   for (size_t i = 0; i < H; ++i) {
     s ^= (s << 13); s ^= (s >> 17); s ^= (s << 5);
     float t = (float)(s & 0xFFFFu) / 65536.0f;
-    x[i] = (t * 2.0f - 1.0f) + 0.1f * sinf((float)(i + (tok % 31)) * 0.07f);
+    x[i] = (t*2.0f - 1.0f) + 0.1f * sinf((float)(i + (tok % 31)) * 0.07f);
   }
 }
 
-/**
- * @brief GEMV shard context for row splitting.
- */
-typedef struct {
-  const float *W; /**< Base of weight matrix (row-major). */
-  const float *x; /**< Input vector. */
-  float *y;       /**< Output vector (one value per row). */
-  size_t rows;    /**< Number of rows to process. */
-  size_t cols;    /**< Number of columns per row. */
-} gemv_ctx_t;
+/** @brief GEMV shard context for row splitting. */
+typedef struct { const float *W; const float *x; float *y; size_t rows, cols; } gemv_ctx_t;
 
 /**
- * @brief Range task that calls GEMV on a contiguous row block.
+ * @brief Worker shard for GEMV (row-major contiguous block).
  *
  * @param ctx   Pointer to #gemv_ctx_t.
  * @param begin First row index (inclusive).
@@ -265,47 +234,42 @@ static void shard_gemv(void *ctx, size_t begin, size_t end) {
 /**
  * @brief Parallel GEMV over rows using the thread pool.
  *
- * @param tp    Thread pool (NULL = single-thread).
+ * @param tp    Thread pool (NULL => single-thread).
  * @param W     Row-major weights.
  * @param x     Input vector.
  * @param y     Output vector.
  * @param rows  Number of rows.
  * @param cols  Number of columns.
+ * @param gs    Grainsize hint (currently unused by contiguous partition).
  */
 static void gemv_parallel(ie_threadpool_t *tp,
-                          const float *W, const float *x, float *y,
-                          size_t rows, size_t cols) {
-  gemv_ctx_t c = { W, x, y, rows, cols };
-  ie_tp_parallel_for(tp, rows, shard_gemv, &c, 0);
+                          const float *W,const float *x,float *y,
+                          size_t rows,size_t cols,size_t gs){
+  (void)gs;
+  gemv_ctx_t c={W,x,y,rows,cols};
+  ie_tp_parallel_for(tp, rows, shard_gemv, &c, gs);
 }
 
 /**
  * @brief Execute a single decode step and return the next token id.
  *
- * The step performs:
- *   tmp = Wxh * x(prev)        (GEMV)
- *   h   = Whh * h + tmp + bh   (GEMV + bias)
- *   h   = tanh(h)              (vector nonlinearity)
- *   logits = Woh * h + bo      (GEMV + bias)
- *   next = argmax(logits)
- *
  * @param e           Engine pointer.
  * @param prev_token  Previous token id (for embedding).
- * @return Next token id in [1000, 1000+65535].
+ * @return Next token id.
  */
 static uint32_t decode_step(ie_engine *e, uint32_t prev_token) {
   embed_token(prev_token, e->x, e->H);
 
   /* tmp = Wxh * x */
-  gemv_parallel(e->tp, e->Wxh, e->x, e->tmp, e->H, e->H);
+  gemv_parallel(e->tp, e->Wxh, e->x, e->tmp, e->H, e->H, e->grainsize_hint);
 
   /* h = Whh * h + tmp + bh; tanh */
-  gemv_parallel(e->tp, e->Whh, e->h, e->h, e->H, e->H);
-  for (size_t i = 0; i < e->H; ++i) e->h[i] += e->tmp[i] + e->bh[i];
+  gemv_parallel(e->tp, e->Whh, e->h, e->h, e->H, e->H, e->grainsize_hint);
+  for (size_t i=0;i<e->H;++i) e->h[i]+=e->tmp[i]+e->bh[i];
   ie_vec_tanh_f32(e->h, e->H, e->fast_tanh);
 
   /* logits = Woh * h + bo */
-  gemv_parallel(e->tp, e->Woh, e->h, e->logits, e->V, e->H);
+  gemv_parallel(e->tp, e->Woh, e->h, e->logits, e->V, e->H, e->grainsize_hint);
   vec_add_bias(e->logits, e->bo, e->V);
 
   int idx = argmax(e->logits, e->V);
@@ -315,57 +279,39 @@ static uint32_t decode_step(ie_engine *e, uint32_t prev_token) {
 /**
  * @brief Create an inference engine instance.
  *
- * Behavior:
- *  - Detects CPU features and installs best kernels (AVX2 if available).
- *  - By default uses **single-thread** execution (stable for tests/CI).
- *    To enable threading, set `params->threads > 1`.
- *
- * @param p    Optional parameters (paths, precision, threads, affinity).
- * @param out  Output handle to the created engine.
+ * @param p    Optional parameters (may be NULL for defaults).
+ * @param out  Output engine handle (must not be NULL).
  * @return IE_OK on success; error code otherwise.
  */
 ie_status_t ie_engine_create(const ie_engine_params_t *p, ie_engine_t **out) {
   if (!out) return IE_ERR_INVALID_ARGUMENT;
+  ie_engine *e = (ie_engine*)calloc(1,sizeof(*e)); if(!e) return IE_ERR_INTERNAL;
 
-  ie_engine *e = (ie_engine*)calloc(1, sizeof(*e));
-  if (!e) return IE_ERR_INTERNAL;
+  e->H=256; e->V=1024;
 
-  /* Default sizes for the baseline model shape. */
-  e->H = 256;
-  e->V = 1024;
-
-  /* Load (relaxed) metadata and vocab (both optional in baseline). */
   const char *json = p ? p->shape_json_path : NULL;
   const char *bin  = p ? p->weights_path    : NULL;
   if (ie_weights_open(json ? json : "models/gpt-oss-20b/model.ie.json",
                       bin  ? bin  : "models/gpt-oss-20b/model.ie.bin",
-                      &e->weights) != 0) {
-    memset(&e->weights, 0, sizeof(e->weights));
-  }
+                      &e->weights) != 0) { memset(&e->weights,0,sizeof(e->weights)); }
   (void)ie_vocab_load(p && p->vocab_path ? p->vocab_path : "models/gpt-oss-20b/vocab.json", &e->vocab);
 
-  /* Allocate and initialize parameters. */
-  if (alloc_params(e) != 0) { free(e); return IE_ERR_INTERNAL; }
+  if (alloc_params(e)!=0){ free(e); return IE_ERR_INTERNAL; }
   init_params_procedural(e);
 
-  /* Install best kernels based on runtime features. */
   ie_cpu_features_t feat; ie_cpu_detect(&feat);
   const int want_avx2 = 1;
   ie_kernels_install((want_avx2 && feat.avx2) ? 1 : 0);
 
-  /* Create thread pool:
-     - Default: single-thread (n=1) to maximize stability in CI/tests.
-     - If caller requests threads>1, we honor it. */
   unsigned nth = (p && p->threads > 0) ? p->threads : 1u;
   const char *aff = (p && p->affinity) ? p->affinity : "auto";
   e->tp = (nth > 1u) ? ie_tp_create(nth, aff) : NULL;
 
-  /* Toggle fast tanh for reduced precision modes (kept 0 for pure fp32). */
   e->fast_tanh = (p && p->precision &&
-                  (strcmp(p->precision, "bf16") == 0 || strcmp(p->precision, "fp16") == 0))
-                  ? 1 : 0;
+                  (strcmp(p->precision,"bf16")==0 || strcmp(p->precision,"fp16")==0)) ? 1 : 0;
 
-  /* Metrics init. */
+  e->grainsize_hint = (p ? (size_t)p->grainsize : 0u);
+
   e->tokens_generated_total = 0;
   e->tok_lat_count = 0;
 
@@ -389,17 +335,13 @@ void ie_engine_destroy(ie_engine_t *h) {
 }
 
 /**
- * @brief Generate up to @p max_new_tokens tokens from a text @p prompt.
- *
- * The function records per-token latencies into a ring (up to 4096 tokens)
- * for later percentile computation in ::ie_engine_metrics.
+ * @brief Generate tokens from a prompt.
  *
  * @param h               Engine handle.
- * @param prompt          UTF-8 input string (may be NULL/empty).
+ * @param prompt          UTF-8 string (may be NULL/empty).
  * @param max_new_tokens  Number of tokens to generate.
- * @param out_tokens      Output buffer (length >= max_new_tokens). May be NULL
- *                        iff @p max_new_tokens == 0.
- * @param out_count       Number of tokens actually generated.
+ * @param out_tokens      Output buffer (NULL iff max_new_tokens==0).
+ * @param out_count       Receives number of tokens generated.
  * @return IE_OK on success; error code otherwise.
  */
 ie_status_t ie_engine_generate(ie_engine_t *h,
@@ -408,12 +350,10 @@ ie_status_t ie_engine_generate(ie_engine_t *h,
                                uint32_t *out_tokens,
                                uint32_t *out_count) {
   if (!h || !out_count) return IE_ERR_INVALID_ARGUMENT;
-  /* Allow out_tokens == NULL iff max_new_tokens == 0 */
   if (max_new_tokens > 0 && !out_tokens) return IE_ERR_INVALID_ARGUMENT;
 
   ie_engine *e = (ie_engine*)h;
 
-  /* Prefill from prompt. */
   uint32_t needed = 0;
   if (ie_tok_encode(&e->vocab, prompt ? prompt : "", NULL, &needed) != 0)
     return IE_ERR_INVALID_ARGUMENT;
@@ -429,7 +369,6 @@ ie_status_t ie_engine_generate(ie_engine_t *h,
     for (uint32_t i = 0; i < got; ++i) { (void)decode_step(e, prompt_ids[i]); }
   }
 
-  /* Decode loop. */
   const uint32_t n = max_new_tokens;
   if (n == 0) {
     if (prompt_ids) free(prompt_ids);
@@ -447,7 +386,7 @@ ie_status_t ie_engine_generate(ie_engine_t *h,
     prev = next_id;
 
     const double tok_ms = (t1 - t0) * 1000.0;
-    if (e->tok_lat_count < sizeof(e->tok_lat_ms_ring) / sizeof(e->tok_lat_ms_ring[0])) {
+    if (e->tok_lat_count < sizeof(e->tok_lat_ms_ring)/sizeof(e->tok_lat_ms_ring[0])) {
       e->tok_lat_ms_ring[e->tok_lat_count++] = tok_ms;
     }
   }
@@ -459,13 +398,10 @@ ie_status_t ie_engine_generate(ie_engine_t *h,
 }
 
 /**
- * @brief Snapshot performance metrics accumulated by the engine.
- *
- * Computes p50/p95 from the per-token latency ring. `tps_true` is computed
- * as 1000 / p50_ms, serving as a conservative throughput proxy.
+ * @brief Compute a metrics snapshot (p50/p95, tps_true, kv stats).
  *
  * @param h   Engine handle.
- * @param out Output metrics structure to fill.
+ * @param out Output metrics pointer to fill.
  * @return IE_OK on success; error code otherwise.
  */
 ie_status_t ie_engine_metrics(const ie_engine_t *h, ie_metrics_t *out) {

@@ -1,103 +1,122 @@
 /**
  * @file ie_api.h
- * @brief Public C API for the Inference Engine core (baseline FP32 path).
- *
- * @defgroup IE_API Inference Engine C API
- * @brief Public entry points for engine lifecycle, generation, and metrics.
- * @{
+ * @brief Public C API for the inference engine (parameters, run, metrics).
  */
-#ifndef IE_API_H
-#define IE_API_H
+#ifndef IE_API_H_
+#define IE_API_H_
 
 #include <stddef.h>
 #include <stdint.h>
-#include "ie_metrics.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/** @brief Opaque engine handle. */
+/** @brief Status codes returned by engine functions. */
+typedef enum ie_status {
+  IE_OK = 0,                 /**< Success. */
+  IE_ERR_INVALID_ARGUMENT=1, /**< A parameter was invalid. */
+  IE_ERR_INTERNAL=2          /**< Internal error (allocation, etc.). */
+} ie_status_t;
+
+/** @brief Forward-declared opaque engine handle. */
 typedef struct ie_engine ie_engine_t;
 
 /**
- * @brief Return codes for API functions.
+ * @brief Engine creation parameters (borrowed strings; no ownership taken).
  */
-typedef enum {
-  IE_OK = 0,                 /**< Operation completed successfully. */
-  IE_ERR_INVALID_ARGUMENT=1, /**< One or more arguments are invalid (NULL, out of range, etc.). */
-  IE_ERR_IO = 2,             /**< I/O error while accessing model/vocab files. */
-  IE_ERR_UNSUPPORTED = 3,    /**< Requested feature/precision is not supported in the current build. */
-  IE_ERR_INTERNAL = 255      /**< Internal error (e.g., allocation failure). */
-} ie_status_t;
+typedef struct ie_engine_params {
+  /** Optional: path to JSON with model shape metadata. */
+  const char *shape_json_path;
+  /** Optional: path to weights binary. */
+  const char *weights_path;
+  /** Optional: path to vocab JSON. */
+  const char *vocab_path;
 
-/**
- * @brief Engine creation parameters.
- *
- * All string pointers may be NULL; sensible defaults will be used in the baseline build.
- */
-typedef struct {
-  const char *weights_path;     /**< Path to model.ie.bin (IEBIN v1). May be NULL. */
-  const char *shape_json_path;  /**< Path to model.ie.json (IEBIN v1). May be NULL. */
-  const char *vocab_path;       /**< Path to vocab.json. May be NULL. */
-  uint32_t    threads;          /**< 0 = auto (unused in baseline). */
-  const char *affinity;         /**< "auto"|"compact"|"scatter"|cpu list (unused in baseline). */
-  const char *precision;        /**< "fp32"|"bf16"|"int8w" (baseline uses "fp32"). */
+  /** Number of threads (0 = engine decides; engine defaults to 1 for stability). */
+  uint32_t threads;
+
+  /** Precision hint: "fp32" (default), "bf16", "fp16". */
+  const char *precision;
+
+  /**
+   * Affinity hint ("auto"|"compact"|"scatter").
+   * Effective on Linux only and only when CPU affinity is enabled at runtime
+   * via the environment variable IE_TP_USE_AFFINITY=1.
+   */
+  const char *affinity;
+
+  /**
+   * Grainsize hint for future block-splitting. Currently informational only;
+   * the contiguous partition does not use it.
+   */
+  uint32_t grainsize;
+
+  /**
+   * NUMA mode string for documentation/CLI consistency ("compact", "interleave",
+   * or "node:X"). Implementation in this baseline is provided by the external
+   * scripts/set_numa.sh helper and not enforced inside the engine.
+   */
+  const char *numa_mode;
 } ie_engine_params_t;
 
+/** @brief Metrics snapshot returned by the engine. */
+typedef struct ie_metrics {
+  double tps_true;            /**< Approximate true tokens/sec (from p50). */
+  double latency_p50_ms;      /**< Per-token latency p50 in milliseconds. */
+  double latency_p95_ms;      /**< Per-token latency p95 in milliseconds. */
+  size_t rss_peak_mb;         /**< Peak resident set size in megabytes. */
+  unsigned long long kv_hits;   /**< Simulated KV cache hits. */
+  unsigned long long kv_misses; /**< Simulated KV cache misses. */
+} ie_metrics_t;
+
 /**
- * @brief Create a new engine instance.
+ * @brief Create an inference engine instance.
  *
- * @param[in]  p       Optional pointer to initialization parameters (may be NULL).
- * @param[out] out     Output pointer for the created engine handle.
+ * @param p    Optional parameters; may be NULL for defaults.
+ * @param out  Output engine handle. Must not be NULL.
  * @return IE_OK on success; error code otherwise.
- *
- * @note The engine owns all internal resources. Destroy it via ::ie_engine_destroy.
  */
 ie_status_t ie_engine_create(const ie_engine_params_t *p, ie_engine_t **out);
 
 /**
- * @brief Destroy an engine instance and release all associated resources.
+ * @brief Destroy an inference engine instance and release resources.
  *
- * @param[in,out] e Engine handle to destroy (NULL is allowed and is a no-op).
+ * @param h Engine handle (NULL allowed; no-op).
  */
-void ie_engine_destroy(ie_engine_t *e);
+void ie_engine_destroy(ie_engine_t *h);
 
 /**
- * @brief Generate tokens for a given prompt.
+ * @brief Generate up to @p max_new_tokens tokens from @p prompt.
  *
- * Performs a prompt prefill, then decodes up to @p max_new_tokens tokens.
+ * If @p max_new_tokens == 0, @p out_tokens may be NULL and the function
+ * returns immediately with @p *out_count set to 0.
  *
- * @param[in]  e               Engine handle created by ::ie_engine_create.
- * @param[in]  prompt          UTF-8 input string (may be NULL to indicate empty).
- * @param[in]  max_new_tokens  Maximum number of tokens to generate (0 allowed).
- * @param[out] out_tokens      Caller-allocated buffer to receive token IDs
- *                             (must have capacity for @p max_new_tokens).
- * @param[out] out_count       Number of tokens actually generated.
+ * @param h               Engine handle.
+ * @param prompt          UTF-8 input string (may be NULL/empty).
+ * @param max_new_tokens  Number of tokens requested.
+ * @param out_tokens      Output buffer (length >= max_new_tokens). May be NULL
+ *                        iff @p max_new_tokens == 0.
+ * @param out_count       Receives number of tokens actually generated.
  * @return IE_OK on success; error code otherwise.
- *
- * @warning The caller owns @p out_tokens and must ensure it is large enough.
  */
-ie_status_t ie_engine_generate(ie_engine_t *e,
+ie_status_t ie_engine_generate(ie_engine_t *h,
                                const char *prompt,
                                uint32_t max_new_tokens,
                                uint32_t *out_tokens,
                                uint32_t *out_count);
 
 /**
- * @brief Snapshot engine metrics accumulated during the most recent run.
+ * @brief Snapshot performance metrics accumulated by the engine.
  *
- * @param[in]  e    Engine handle.
- * @param[out] out  Filled with metrics such as p50/p95 latency and TPS estimate.
+ * @param h   Engine handle.
+ * @param out Output metrics pointer to fill. Must not be NULL.
  * @return IE_OK on success; error code otherwise.
- *
- * @note The harness computes "true TPS" using end-to-end wall time; the engine’s
- *       @ref ie_metrics_t::tps_true field is derived from per-token p50.
  */
-ie_status_t ie_engine_metrics(const ie_engine_t *e, ie_metrics_t *out);
+ie_status_t ie_engine_metrics(const ie_engine_t *h, ie_metrics_t *out);
 
 #ifdef __cplusplus
 }
 #endif
-/** @} */ /* end of IE_API */
-#endif /* IE_API_H */
+
+#endif /* IE_API_H_ */

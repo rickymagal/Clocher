@@ -1,73 +1,62 @@
 /**
  * @file ie_threadpool.h
- * @brief Minimal pthread-based thread pool with a blocking parallel_for API.
- *
- * The pool implements a deterministic split of an index range [0, n)
- * across workers using a fixed grain size. Affinity is best-effort on Linux
- * (compact or scatter); on other OSes the hints are ignored.
+ * @brief Minimal pthread-based thread pool API (blocking parallel_for).
  */
+#ifndef IE_THREADPOOL_H_
+#define IE_THREADPOOL_H_
 
-#ifndef IE_THREADPOOL_H
-#define IE_THREADPOOL_H
-
-#include <stddef.h>
 #include <stdbool.h>
+#include <stddef.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/**
- * @brief Opaque thread pool handle.
- *
- * Instances are created with ::ie_tp_create and destroyed with ::ie_tp_destroy.
- */
+/** @brief Opaque thread pool type. */
 typedef struct ie_threadpool ie_threadpool_t;
 
 /**
- * @brief Function signature for processing a half-open range [begin, end).
+ * @brief Range task callback type.
  *
- * The implementation must be side-effect free with respect to other shards
- * of the same task (i.e., parallel-safe) and should not block indefinitely.
+ * The function must process indices in [begin, end).
  *
- * @param[in,out] ctx   User context pointer supplied to ::ie_tp_parallel_for.
- * @param[in]     begin First index in the range (inclusive).
- * @param[in]     end   One past the last index (exclusive).
+ * @param ctx   Opaque user context pointer.
+ * @param begin Start index (inclusive).
+ * @param end   End index (exclusive).
  */
 typedef void (*ie_range_task_fn)(void *ctx, size_t begin, size_t end);
 
 /**
- * @brief Create a new thread pool.
+ * @brief Create a thread pool with @p nthreads workers.
  *
- * @param[in] nthreads  Number of worker threads. Use `0` for "auto" (nproc).
- * @param[in] affinity  Affinity hint: `"auto"`, `"compact"`, or `"scatter"`.
- *                      Non-Linux platforms ignore this hint.
- * @return A pointer to the pool, or `NULL` on allocation failure.
+ * Affinity is a best-effort hint effective on Linux only and only when
+ * the environment variable IE_TP_USE_AFFINITY=1 is set at runtime.
+ *
+ * @param nthreads Number of threads (>=1). 0 = auto-detect (clamped to >=1).
+ * @param affinity Hint string: "auto", "compact", or "scatter".
+ * @return Pointer to a new thread pool or NULL on failure.
  */
 ie_threadpool_t* ie_tp_create(unsigned nthreads, const char *affinity);
 
 /**
- * @brief Destroy a previously created thread pool.
+ * @brief Destroy a thread pool and join all workers.
  *
- * Waits for all workers to exit before returning. Passing `NULL` is a no-op.
- *
- * @param[in,out] tp  Pool handle (may be NULL).
+ * @param tp Thread pool handle (NULL allowed; no-op).
  */
 void ie_tp_destroy(ie_threadpool_t *tp);
 
 /**
- * @brief Execute a parallel for over the range [0, n).
+ * @brief Execute a blocking parallel-for over [0, n).
  *
- * The range is split across the pool's workers using @p grainsize
- * (or an auto value if @p grainsize is `0`). If @p tp is `NULL` or the range
- * is trivial, the function runs the task single-threaded.
+ * The current baseline performs a deterministic contiguous partition across
+ * threads; @p grainsize is informational only for now.
  *
- * @param[in,out] tp        Pool handle (NULL for single-thread fallback).
- * @param[in]     n         Number of elements in the range.
- * @param[in]     fn        Task callback to execute on each shard.
- * @param[in,out] ctx       User context passed to @p fn.
- * @param[in]     grainsize Minimum shard size (0 = auto).
- * @return `true` on success, `false` if @p fn is NULL.
+ * @param tp        Thread pool (may be NULL => single-thread).
+ * @param n         Total range length.
+ * @param fn        User callback (must not be NULL).
+ * @param ctx       Opaque user context.
+ * @param grainsize Informational grainsize hint (currently unused).
+ * @return true on success; false on invalid arguments.
  */
 bool ie_tp_parallel_for(ie_threadpool_t *tp,
                         size_t n,
@@ -79,4 +68,4 @@ bool ie_tp_parallel_for(ie_threadpool_t *tp,
 }
 #endif
 
-#endif /* IE_THREADPOOL_H */
+#endif /* IE_THREADPOOL_H_ */

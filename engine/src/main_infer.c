@@ -1,13 +1,13 @@
 /**
  * @file main_infer.c
- * @brief Minimal CLI for the inference engine with JSON metrics output.
+ * @brief CLI for the inference engine with JSON metrics output.
  *
  * Features:
- *  - Flags: --prompt, --max-new, --threads, --precision, --affinity, --help
- *  - Also accepts a single positional PROMPT if --prompt is not provided
- *  - Rejects unknown flags with non-zero exit and usage to stderr
- *  - Honors --max-new 0 (prints tokens_generated: 0)
- *  - Emits tokens array in the JSON (used by determinism tests)
+ *  - Flags: --prompt, --max-new, --threads, --precision, --affinity, --grainsize, --numa, --help
+ *  - Also accepts a single positional PROMPT if --prompt is not provided.
+ *  - Rejects unknown flags with non-zero exit and usage to stderr.
+ *  - Honors --max-new 0 (prints tokens_generated: 0).
+ *  - Emits tokens array in the JSON (used by determinism tests).
  */
 
 #include <stdio.h>
@@ -38,25 +38,24 @@ static void print_usage(FILE *f) {
   fprintf(f,
     "Usage: inference-engine [--prompt TEXT] [--max-new N]\n"
     "                        [--threads N] [--precision fp32|bf16|fp16]\n"
-    "                        [--affinity auto|compact|scatter] [--help]\n"
-    "        inference-engine TEXT                # positional prompt\n"
+    "                        [--affinity auto|compact|scatter]\n"
+    "                        [--grainsize K] [--numa compact|interleave|node:X]\n"
+    "                        [--help]\n"
+    "       inference-engine TEXT   # positional prompt\n"
     "\n"
     "Examples:\n"
     "  inference-engine --prompt \"hello\" --max-new 8\n"
-    "  inference-engine --prompt \"lorem\" --max-new 16 --threads 2 --precision bf16\n"
-    "  inference-engine \"test prompt\"\n"
+    "  inference-engine \"test prompt\" --max-new 16 --threads 2 --precision bf16\n"
+    "  IE_TP_USE_AFFINITY=1 inference-engine --prompt hi --threads 8 --affinity compact\n"
   );
 }
 
 /**
- * @brief Simple flag parser (no getopt dependency).
- *
- * Recognized flags are consumed from argv; unknown flags cause error.
- * If --prompt is not provided, a single positional TEXT is accepted as prompt.
+ * @brief Parse CLI flags into engine parameters and prompt/max_new.
  *
  * @param argc        Argument count.
  * @param argv        Argument vector.
- * @param p           Engine parameter struct to fill.
+ * @param p           Output engine parameters (filled with defaults first).
  * @param prompt_out  Receives prompt pointer (owned by argv; do not free).
  * @param max_new_out Receives max-new value (default 16).
  * @return 0 on success; non-zero on invalid usage.
@@ -68,11 +67,12 @@ static int parse_flags(int argc, char **argv,
   const char *prompt = NULL;
   uint32_t max_new = 16;
 
-  /* Defaults */
   memset(p, 0, sizeof(*p));
-  p->threads = 0;                 /* 0 => engine decides (engine defaults to 1 thread) */
+  p->threads   = 0;       /* engine will default to 1 for stability */
   p->precision = "fp32";
-  p->affinity = "auto";
+  p->affinity  = "auto";
+  p->grainsize = 0;
+  p->numa_mode = NULL;
 
   for (int i = 1; i < argc; ++i) {
     const char *arg = argv[i];
@@ -108,26 +108,27 @@ static int parse_flags(int argc, char **argv,
         return -1;
       }
       p->affinity = val;
+    } else if (strcmp(arg, "--grainsize") == 0) {
+      if (i + 1 >= argc) { fprintf(stderr, "error: --grainsize requires a value\n"); return -1; }
+      long v = strtol(argv[++i], NULL, 10);
+      if (v < 0) { fprintf(stderr, "error: --grainsize must be >= 0\n"); return -1; }
+      p->grainsize = (uint32_t)v;
+    } else if (strcmp(arg, "--numa") == 0) {
+      if (i + 1 >= argc) { fprintf(stderr, "error: --numa requires a value\n"); return -1; }
+      p->numa_mode = argv[++i]; /* Documentation only in this baseline. */
     } else if (arg[0] == '-') {
-      /* Unknown flag => error */
       fprintf(stderr, "error: unknown flag: %s\n\n", arg);
       print_usage(stderr);
       return -1;
     } else {
-      /* Positional: accept as prompt if none set yet */
-      if (prompt == NULL) {
-        prompt = arg;
-      } else {
-        fprintf(stderr, "error: unexpected positional arg: %s\n\n", arg);
-        print_usage(stderr);
-        return -1;
-      }
+      if (prompt == NULL) prompt = arg; /* positional prompt */
+      else { fprintf(stderr, "error: unexpected positional arg: %s\n\n", arg); print_usage(stderr); return -1; }
     }
   }
 
-  if (prompt == NULL) prompt = ""; /* default empty prompt */
+  if (prompt == NULL) prompt = "";
 
-  *prompt_out = prompt;
+  *prompt_out  = prompt;
   *max_new_out = max_new;
   return 0;
 }
@@ -185,7 +186,7 @@ int main(int argc, char **argv) {
     return 6;
   }
 
-  /* Print JSON result (with tokens array). NOTE: spaces after ':' to match tests. */
+  /* JSON with spaces after ':' to match tests. */
   fputs("{", stdout);
   fprintf(stdout, "\"tokens_generated\": %u", (unsigned)out_count);
 
