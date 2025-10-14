@@ -16,7 +16,7 @@ import sys
 import subprocess
 import time
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timezone
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -63,8 +63,8 @@ def main() -> int:
         print(f"[error] {e}", file=sys.stderr)
         return 1
 
-    # Output directory
-    ts = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+    # Output directory (timezone-aware UTC)
+    ts = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
     out_dir = REPORTS_DIR / ts
     out_dir.mkdir(parents=True, exist_ok=True)
     csv_path = out_dir / "samples.csv"

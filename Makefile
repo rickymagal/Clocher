@@ -4,8 +4,16 @@ CFLAGS   ?= -std=c11 -O3 -Wall -Wextra -Werror -pedantic
 LDFLAGS  ?= -lpthread
 BUILD    ?= build
 BIN      ?= $(BUILD)/inference-engine
-SRC      := engine/src/main_infer.c engine/src/ie_api.c engine/src/ie_tensor.c engine/src/util_logging.c engine/src/util_metrics.c
 INC      := -Iengine/include
+
+SRC := \
+  engine/src/main_infer.c \
+  engine/src/ie_api.c \
+  engine/src/ie_tensor.c \
+  engine/src/util_logging.c \
+  engine/src/util_metrics.c \
+  engine/src/io/weights.c \
+  engine/src/io/tokenizer.c
 
 .PHONY: setup build build-release test bench profile fmt lint docs clean
 
@@ -24,6 +32,8 @@ test: build
 	@echo "[test] C unit tests"
 	$(CC) $(CFLAGS) $(INC) tests/c/test_tensor.c engine/src/ie_tensor.c engine/src/util_logging.c -o $(BUILD)/test_tensor $(LDFLAGS) && $(BUILD)/test_tensor
 	$(CC) $(CFLAGS) $(INC) tests/c/test_api.c engine/src/ie_api.c engine/src/ie_tensor.c engine/src/util_logging.c engine/src/util_metrics.c -o $(BUILD)/test_api $(LDFLAGS) && $(BUILD)/test_api
+	$(CC) $(CFLAGS) $(INC) tests/c/test_weights.c engine/src/io/weights.c -o $(BUILD)/test_weights $(LDFLAGS) && $(BUILD)/test_weights
+	$(CC) $(CFLAGS) $(INC) tests/c/test_tokenizer.c engine/src/io/tokenizer.c -o $(BUILD)/test_tokenizer $(LDFLAGS) && $(BUILD)/test_tokenizer
 	@echo "[test] Python tests"
 	python3 -m unittest discover -s tests/python -p 'test_*.py' -v
 
