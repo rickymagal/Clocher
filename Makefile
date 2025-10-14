@@ -18,9 +18,11 @@ SRC_CORE := \
   engine/src/opt/cpu_features.c \
   engine/src/opt/thread_pool.c \
   engine/src/opt/pretranspose.c \
+  engine/src/opt/numa_probe.c \
   engine/src/kernels/gemv_generic.c \
   engine/src/kernels/gemv_avx2.c \
-  engine/src/math/fast_tanh.c
+  engine/src/math/fast_tanh.c \
+  engine/src/math/floatx.c
 
 # CLI entry point
 SRC_MAIN := engine/src/main_infer.c
@@ -51,7 +53,7 @@ test: build
 	$(CC) $(CFLAGS) $(INC) tests/c/test_tokenizer.c engine/src/io/tokenizer.c -o $(BUILD)/test_tokenizer $(LDFLAGS) && $(BUILD)/test_tokenizer
 	$(CC) $(CFLAGS) $(INC) tests/c/test_kernels.c engine/src/kernels/gemv_generic.c engine/src/kernels/gemv_avx2.c -o $(BUILD)/test_kernels $(LDFLAGS) && $(BUILD)/test_kernels
 	$(CC) $(CFLAGS) $(INC) tests/c/test_threadpool.c engine/src/opt/thread_pool.c -o $(BUILD)/test_threadpool $(LDFLAGS) && $(BUILD)/test_threadpool
-	# extras step 4
+	# extras step 4+
 	$(CC) $(CFLAGS) $(INC) tests/c/test_math.c engine/src/math/fast_tanh.c -o $(BUILD)/test_math $(LDFLAGS) && $(BUILD)/test_math
 	$(CC) $(CFLAGS) $(INC) tests/c/test_cpu_features.c engine/src/opt/cpu_features.c -o $(BUILD)/test_cpu_features $(LDFLAGS) && $(BUILD)/test_cpu_features
 	@echo "[test] Python tests"
@@ -61,11 +63,11 @@ test: build
 bench: build
 	@bash scripts/run_benchmark.sh
 
-# --- perf/Flamegraph (uses scripts/profile_flamegraph.sh) ---
+# --- perf/Flamegraph ---
 profile: build
 	@scripts/profile_flamegraph.sh $(BIN) "profiling prompt with 64+ tokens"
 
-# --- format & lint (best-effort; optional tools) ---
+# --- format & lint ---
 fmt:
 	@command -v clang-format >/dev/null 2>&1 && clang-format -i $$(find engine -name '*.c' -o -name '*.h') || echo "clang-format not installed"
 
@@ -73,7 +75,7 @@ lint:
 	@echo "[lint] warnings-as-errors enabled by default"
 	@command -v clang-tidy >/dev/null 2>&1 && clang-tidy $$(find engine/src -name '*.c') -- $(CFLAGS) $(INC) || echo "clang-tidy not installed"
 
-# --- docs placeholders ---
+# --- docs ---
 docs:
 	@echo "[docs] Final narrative emitted at project end (README/report)."
 
@@ -82,6 +84,6 @@ docs-doxygen:
 	doxygen docs/Doxyfile
 	@echo "HTML docs under docs/doxygen/html/index.html"
 
-# --- clean artifacts ---
+# --- clean ---
 clean:
 	rm -rf $(BUILD) benchmarks/reports/* perf.data* flamegraph.svg out.perf script.stacks callgrind.out.* callgrind.stacks

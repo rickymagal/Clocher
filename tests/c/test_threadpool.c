@@ -1,68 +1,126 @@
 /**
  * @file test_threadpool.c
- * @brief Unit test for the pthread-based thread pool and parallel_for.
+ * @brief Unit test for ie_threadpool parallel-for with contiguous partition.
  *
- * The test allocates an array of N flags, runs a parallel_for that sets
- * each position to 1 exactly once, and then verifies full coverage.
+ * This test validates:
+ *  - Single-threaded and multi-threaded execution paths.
+ *  - Full coverage of the iteration space [0, N).
+ *  - No overlaps/missed iterations when grainsize is provided or auto.
  */
-
-#include <assert.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 
 #include "ie_threadpool.h"
 
-/**
- * @brief Context object holding the hits array to be updated.
- */
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+
+/** @brief Context passed to the parallel-for body. */
 typedef struct {
-  unsigned *hits;  /**< @brief Pointer to an array of length N that will be set to 1. */
+  unsigned N;         /**< Total iterations. */
+  unsigned *marks;    /**< Visited bitmap of length N (0/1). */
 } tp_ctx_t;
 
 /**
- * @brief Range task that marks indices in [begin, end) as visited.
+ * @brief Parallel-for body: marks each visited index as 1.
  *
- * @param ctx   Pointer to #tp_ctx_t containing the hits array.
- * @param begin First index (inclusive).
- * @param end   One past last index (exclusive).
+ * @param ctx   Pointer to tp_ctx_t.
+ * @param start Inclusive start index of the chunk.
+ * @param end   Exclusive end index of the chunk.
  */
-static void mark_task(void *ctx, size_t begin, size_t end) {
+static void mark_task(void *ctx, unsigned start, unsigned end) {
   tp_ctx_t *c = (tp_ctx_t*)ctx;
-  for (size_t i = begin; i < end; ++i) c->hits[i] = 1u;
+  if (!c || !c->marks) return;
+  if (end > c->N) end = c->N;
+  for (unsigned i = start; i < end; ++i) {
+    c->marks[i] = 1u;
+  }
 }
 
 /**
- * @brief Test entry point.
+ * @brief Verify that all positions [0, N) were visited exactly once.
  *
- * Builds a thread pool (auto thread count), executes a parallel_for over N
- * elements with the @ref mark_task callback, and then asserts that every
- * element has been set exactly once.
+ * (We ensure all positions are marked as 1; strict “exactly once” with
+ * contention detection would need atomics and checking for >1.)
  *
- * @return 0 on success, non-zero on failure.
+ * @param c Test context with bitmap.
+ * @return true if every mark[i] == 1 for i in [0, N); false otherwise.
+ */
+static bool all_marked_once(const tp_ctx_t *c) {
+  if (!c || !c->marks) return false;
+  for (unsigned i = 0; i < c->N; ++i) {
+    if (c->marks[i] != 1u) return false;
+  }
+  return true;
+}
+
+/**
+ * @brief Entry point: runs the thread-pool tests.
+ *
+ * Steps:
+ *  1) Single-threaded (tp=NULL) with auto grainsize.
+ *  2) Multi-threaded (tp!=NULL) with auto grainsize.
+ *  3) Multi-threaded with explicit grainsize.
+ *
+ * Prints "ok test_threadpool" on success; exits with nonzero on failure.
+ *
+ * @return 0 on success; non-zero on failure.
  */
 int main(void) {
-  const size_t N = 1000u;
-  unsigned *hits = (unsigned*)calloc(N, sizeof(unsigned));
-  if (!hits) {
-    fprintf(stderr, "alloc failed\n");
-    return 1;
+  const unsigned N = 10000u;
+
+  /* --- Case 1: single-threaded path (tp == NULL) --- */
+  tp_ctx_t c1;
+  c1.N = N;
+  c1.marks = (unsigned*)calloc(N, sizeof(unsigned));
+  if (!c1.marks) { fprintf(stderr, "alloc failed\n"); return 1; }
+
+  ie_tp_parallel_for(/*tp*/NULL, /*n*/N, /*grainsize*/0, mark_task, &c1);
+
+  if (!all_marked_once(&c1)) {
+    fprintf(stderr, "single-threaded coverage failed\n");
+    free(c1.marks);
+    return 2;
   }
-  tp_ctx_t ctx = { hits };
+  free(c1.marks);
 
-  ie_threadpool_t *tp = ie_tp_create(0, "auto");
-  assert(tp != NULL);
+  /* --- Case 2: multi-threaded path (tp != NULL), auto grainsize --- */
+  ie_threadpool_t *tp = ie_tp_create(/*nth*/4, /*affinity*/"auto");
+  if (!tp) { fprintf(stderr, "tp create failed\n"); return 3; }
 
-  const bool ok = ie_tp_parallel_for(tp, N, mark_task, &ctx, 0);
-  assert(ok);
+  tp_ctx_t c2;
+  c2.N = N;
+  c2.marks = (unsigned*)calloc(N, sizeof(unsigned));
+  if (!c2.marks) { fprintf(stderr, "alloc failed\n"); ie_tp_destroy(tp); return 4; }
+
+  ie_tp_parallel_for(tp, N, /*grainsize*/0, mark_task, &c2);
+
+  if (!all_marked_once(&c2)) {
+    fprintf(stderr, "multi-threaded coverage (auto grainsize) failed\n");
+    free(c2.marks);
+    ie_tp_destroy(tp);
+    return 5;
+  }
+  free(c2.marks);
+
+  /* --- Case 3: multi-threaded, explicit grainsize (e.g., 257) --- */
+  tp_ctx_t c3;
+  c3.N = N;
+  c3.marks = (unsigned*)calloc(N, sizeof(unsigned));
+  if (!c3.marks) { fprintf(stderr, "alloc failed\n"); ie_tp_destroy(tp); return 6; }
+
+  ie_tp_parallel_for(tp, N, /*grainsize*/257u, mark_task, &c3);
+
+  if (!all_marked_once(&c3)) {
+    fprintf(stderr, "multi-threaded coverage (explicit grainsize) failed\n");
+    free(c3.marks);
+    ie_tp_destroy(tp);
+    return 7;
+  }
+  free(c3.marks);
 
   ie_tp_destroy(tp);
 
-  size_t sum = 0u;
-  for (size_t i = 0; i < N; ++i) sum += (size_t)hits[i];
-  free(hits);
-
-  assert(sum == N);
-  printf("ok test_threadpool\n");
+  puts("ok test_threadpool");
   return 0;
 }

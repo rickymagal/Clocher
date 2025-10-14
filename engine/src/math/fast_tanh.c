@@ -1,69 +1,103 @@
 /**
  * @file fast_tanh.c
- * @brief Scalar/vector tanh implementations, including a fast approximation.
+ * @brief Fast tanh approximation (scalar and vector forms) with strict [-1, 1] clamping.
  *
- * This module exposes:
- *  - ie_fast_tanhf(x): a fast tanh approximation suitable for inference paths.
- *  - ie_vec_tanh_f32(v, n, fast): vector tanh (in-place), choosing between the
- *    standard libm tanhf() and the fast approximation.
- *
- * The fast approximation uses a clipped polynomial/rational form that provides
- * a good latency/accuracy trade-off for activation-like usage. For very large
- * magnitudes the result is saturated by the clamp prior to evaluation.
+ * The scalar uses a cheap rational approximation for moderate |x| and early
+ * saturation for large |x|. Vector helpers call the scalar per element to
+ * keep the implementation simple and portable; SIMD paths can be added later.
  */
+
+#include "ie_math.h"
 
 #include <math.h>
 #include <stddef.h>
-#include "ie_math.h"
 
 /**
- * @brief Fast scalar tanh approximation with input clamp.
+ * @brief Fast approximation of hyperbolic tangent with hard clamping.
  *
- * The approximation follows a clipped rational form that reduces the need for
- * libm while preserving monotonicity and the odd symmetry of tanh:
+ * For large |x| we short-circuit to +/-1.0f. For moderate |x| we use a
+ * small rational function that gives a smooth S-curve:
  *
- *   Let z = clamp(x, -3, +3).
- *   Use r(z) = z * (27 + z*z) / (27 + 9*z*z).
+ *     tanh(x) ≈ x * (27 + x^2) / (27 + 9 x^2)
  *
- * The clamp limits error growth on large |x| where tanh(x) ~ ±1 anyway.
+ * Finally, the result is clamped to [-1, 1] to guarantee range correctness.
  *
  * @param x Input value.
- * @return Approximated tanh(x).
+ * @return Approximated tanh(x) in [-1.0f, 1.0f].
  */
 float ie_fast_tanhf(float x) {
-  /* Clamp to reduce error in tails and keep polynomial stable */
-  float z = x;
-  if (z > 3.0f)  z = 3.0f;
-  if (z < -3.0f) z = -3.0f;
+  /* Early clamp for large magnitude to avoid overflow and extra work. */
+  if (x > 5.0f)  return 1.0f;
+  if (x < -5.0f) return -1.0f;
 
-  /* Odd rational approximation: z * (27 + z^2) / (27 + 9 z^2) */
-  const float z2 = z * z;
-  const float num = z * (27.0f + z2);
-  const float den = 27.0f + 9.0f * z2;
-  return num / den;
+  /* Rational approximation (cheap and monotonic on [-3,3]) */
+  const float x2  = x * x;
+  const float num = x * (27.0f + x2);
+  const float den = 27.0f + 9.0f * x2;
+  float y = num / den;
+
+  /* Safety clamp for strict range compliance. */
+  if (y > 1.0f)  y = 1.0f;
+  if (y < -1.0f) y = -1.0f;
+  return y;
 }
 
 /**
- * @brief In-place vector tanh for float32.
+ * @brief In-place vector tanh on a contiguous array (legacy API).
  *
- * When @p fast_tanh is non-zero, this function applies the fast approximation
- * ie_fast_tanhf() element-wise. Otherwise it falls back to the standard tanhf()
- * from libm for full accuracy.
+ * If @p fast_tanh != 0, uses #ie_fast_tanhf; otherwise uses libm `tanhf`.
+ * Output values are clamped to [-1, 1] in both modes to satisfy strict bounds.
  *
- * @param v         Pointer to the input/output vector (length @p n).
- * @param n         Number of elements in the vector.
- * @param fast_tanh Non-zero to use the fast approximation; zero to use tanhf().
+ * @param v         Pointer to the vector (length @p n). Modified in-place.
+ * @param n         Number of elements in @p v.
+ * @param fast_tanh Non-zero to use the fast approximation; 0 to use libm.
  */
 void ie_vec_tanh_f32(float *v, size_t n, int fast_tanh) {
   if (!v || n == 0) return;
-
   if (fast_tanh) {
     for (size_t i = 0; i < n; ++i) {
       v[i] = ie_fast_tanhf(v[i]);
     }
   } else {
     for (size_t i = 0; i < n; ++i) {
-      v[i] = tanhf(v[i]);
+      float y = tanhf(v[i]);
+      if (y > 1.0f)  y = 1.0f;
+      if (y < -1.0f) y = -1.0f;
+      v[i] = y;
     }
+  }
+}
+
+/**
+ * @brief Out-of-place vector tanh on a contiguous array (fast approximation).
+ *
+ * @param x    Pointer to input array (length @p n).
+ * @param out  Pointer to output array (length @p n).
+ * @param n    Number of elements.
+ */
+void ie_vec_tanh_f32_out(const float *x, float *out, size_t n) {
+  if (!x || !out || n == 0) return;
+  for (size_t i = 0; i < n; ++i) {
+    out[i] = ie_fast_tanhf(x[i]);
+  }
+}
+
+/**
+ * @brief Out-of-place vector tanh on strided arrays (fast approximation).
+ *
+ * Computes for i in [0, n): out[i*out_stride] = tanh(x[i*x_stride]).
+ *
+ * @param x          Pointer to input array.
+ * @param x_stride   Stride (in elements) between consecutive inputs.
+ * @param out        Pointer to output array.
+ * @param out_stride Stride (in elements) between consecutive outputs.
+ * @param n          Number of elements to process.
+ */
+void ie_vec_tanh_f32_strided(const float *x, size_t x_stride,
+                             float *out, size_t out_stride,
+                             size_t n) {
+  if (!x || !out || n == 0) return;
+  for (size_t i = 0; i < n; ++i) {
+    out[i * out_stride] = ie_fast_tanhf(x[i * x_stride]);
   }
 }

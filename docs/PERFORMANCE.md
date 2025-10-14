@@ -4,20 +4,16 @@ This document records policies and reproduction guidance for CPU performance.
 All content is generated in English by this script.
 
 ## Current Profile (baseline FP32)
-- Experiment timestamp: **2025-10-14 17:14 UTC**
+- Experiment timestamp: **2025-10-14 19:34 UTC**
 - Prompt/runner: `benchmarks/prompts.jsonl` via `benchmarks/harness.py`
 
 ### Metrics (latest report)
-- **Avg True TPS (harness)**: **6534.23** tok/s
-- **p50**: **0.173** ms | **p95**: **0.231** ms
+- **Avg True TPS (harness)**: **6643.16** tok/s
+- **p50**: **0.160** ms | **p95**: **0.201** ms
 - **Total tokens**: **160** | **samples**: **10**
 
 ### Hot Paths (flamegraph)
-- `ie_gemv_f32_generic` — **85.6%**
-- `ie_engine_create` — **10.4%**
-- `[unknown]` — **4.0%**
-
-> Flamegraph: `../flamegraph.svg`
+- N/A (generate `flamegraph.svg` and `script.stacks` with `scripts/profile_flamegraph.sh`)
 
 ## Next Optimizations
 - **GEMV**: AVX2/AVX-512 micro-kernels, blocking and FMA epilogues.
@@ -33,4 +29,4 @@ All content is generated in English by this script.
 ## Evolution Table
 | Build/tag | Precision | Threads | Avg True TPS | p50 (ms) | p95 (ms) | Notes |
 |-----------|:---------:|:-------:|-------------:|---------:|---------:|:------|
-| baseline  | fp32      | auto    | 6534.23 | 0.173 | 0.231 | Initial baseline |
+| baseline  | fp32      | auto    | 6643.16 | 0.160 | 0.201 | Initial baseline |
