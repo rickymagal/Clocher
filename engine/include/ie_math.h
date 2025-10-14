@@ -1,13 +1,9 @@
 /**
  * @file ie_math.h
- * @brief Math helper routines and fast approximations.
- *
- * These helpers provide drop-in scalar/vector math operations that can
- * be tuned for accuracy vs. speed at runtime.
+ * @brief Math helpers (vector/scalar tanh).
  */
-
-#ifndef IE_MATH_H
-#define IE_MATH_H
+#ifndef IE_MATH_H_
+#define IE_MATH_H_
 
 #include <stddef.h>
 
@@ -16,20 +12,24 @@ extern "C" {
 #endif
 
 /**
- * @brief Apply hyperbolic tangent to a FP32 vector (in-place).
+ * @brief Vector tanh on float data (fp32).
  *
- * When @p fast is `0`, the function uses `tanhf` from libm for full accuracy.
- * When @p fast is non-zero, it uses a polynomial approximation that trades
- * tiny accuracy for speed (suitable when precision is reduced, e.g., bf16/fp16).
- *
- * @param[in,out] v    Vector pointer (length @p n).
- * @param[in]     n    Number of elements.
- * @param[in]     fast Non-zero to use the fast approximation, 0 for libm.
+ * @param v         Pointer to input/output vector (in-place).
+ * @param n         Number of elements.
+ * @param fast_tanh Non-zero to use a fast approximation; zero to use tanhf().
  */
-void ie_vec_tanh_f32(float *v, size_t n, int fast);
+void ie_vec_tanh_f32(float *v, size_t n, int fast_tanh);
+
+/**
+ * @brief Fast scalar tanh approximation used in fused loops.
+ *
+ * @param x Input value.
+ * @return tanh(x) approximated by a polynomial/rational form.
+ */
+float ie_fast_tanhf(float x);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* IE_MATH_H */
+#endif /* IE_MATH_H_ */

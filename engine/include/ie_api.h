@@ -58,6 +58,15 @@ typedef struct ie_engine_params {
    * scripts/set_numa.sh helper and not enforced inside the engine.
    */
   const char *numa_mode;
+
+  /**
+   * Pretranspose policy for weight layouts: accepted values are
+   * "none" (default), "woh", "wxh", or "all".
+   * - "woh": pretranspose and block Woh (VxH) for GEMV y=Wo*h
+   * - "wxh": pretranspose and block Wxh (HxH) for GEMV tmp=Wxh*x
+   * - "all": apply to both Wxh and Woh
+   */
+  const char *pretranspose;
 } ie_engine_params_t;
 
 /** @brief Metrics snapshot returned by the engine. */

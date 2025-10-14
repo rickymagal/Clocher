@@ -1,9 +1,16 @@
 /**
  * @file gemv_avx2.c
- * @brief AVX2/FMA-optimized GEMV (FP32). No-ops if not compiled with __AVX2__.
+ * @brief AVX2-accelerated GEMV (stub selects generic if AVX2 not compiled).
+ *
+ * Note: For brevity and portability, the current file reuses the generic
+ * implementation unless AVX2 is explicitly enabled at build time with proper
+ * intrinsics. The interface already supports epilogue bias and blocked-K.
  */
-
 #include "ie_kernels.h"
+
+#include <stddef.h>
+
+extern void ie_kernels_install(int use_avx2);
 
 #if defined(__AVX2__)
   #include <immintrin.h>

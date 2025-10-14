@@ -1,67 +1,71 @@
 /**
  * @file gemv_generic.c
- * @brief Generic C fallback implementation for FP32 row-major GEMV.
+ * @brief Portable C GEMV with optional column-blocking and epilogue bias.
  */
-
 #include "ie_kernels.h"
 
-/** @brief Function pointer to the active GEMV implementation. */
-static void (*g_ie_gemv_impl)(const float*, const float*, float*, size_t, size_t) = NULL;
+#include <stddef.h>
+#include <string.h>
+
+/** @brief Installed function pointer for GEMV (generic by default). */
+static void (*s_gemv_f32)(const float*, const float*, float*, size_t, size_t, const float*, size_t) = NULL;
 
 /**
- * @brief Generic row-major GEMV implementation: y = W * x
+ * @brief Generic C implementation: GEMV with optional blocked-K and bias epilogue.
  *
- * @param W    Row-major weights of shape [rows x cols].
- * @param x    Input vector of length cols.
- * @param y    Output vector of length rows.
- * @param rows Number of rows (outputs).
- * @param cols Number of columns (inputs).
+ * @param W     Pointer to weights (row-major or blocked-K).
+ * @param x     Input vector (length cols).
+ * @param y     Output vector (length rows).
+ * @param rows  Number of rows.
+ * @param cols  Number of columns.
+ * @param bias  Optional bias (length rows), may be NULL.
+ * @param blk_k Column block size; 0 means plain row-major (no blocking).
  */
-static void ie_gemv_f32_generic(const float *W, const float *x, float *y,
-                                size_t rows, size_t cols) {
+static void gemv_generic_impl(const float *W, const float *x, float *y,
+                              size_t rows, size_t cols,
+                              const float *bias, size_t blk_k) {
+  const size_t BK = (blk_k > 0 ? blk_k : cols);
+
   for (size_t r = 0; r < rows; ++r) {
+    const float *wrow = W + r * cols; /* blocked row is still contiguous */
     float acc = 0.0f;
-    const float *w = W + r * cols;
-    for (size_t c = 0; c < cols; ++c) acc += w[c] * x[c];
+
+    size_t kofs = 0;
+    for (size_t k0 = 0; k0 < cols; k0 += BK) {
+      const size_t klen = (k0 + BK <= cols) ? BK : (cols - k0);
+      const float *wblk = wrow + kofs;
+      const float *xblk = x + k0;
+      for (size_t k = 0; k < klen; ++k) acc += wblk[k] * xblk[k];
+      kofs += klen;
+    }
+    if (bias) acc += bias[r];
     y[r] = acc;
   }
 }
 
 /**
- * @brief Public dispatcher: call the currently installed GEMV kernel.
+ * @brief Install best kernels (generic fallback).
  *
- * Falls back to the generic implementation if no kernel has been installed.
+ * @param use_avx2 Non-zero to prefer AVX2 if available (handled in gemv_avx2.c).
  */
-void ie_gemv_f32(const float *W, const float *x, float *y, size_t rows, size_t cols) {
-  if (!g_ie_gemv_impl) g_ie_gemv_impl = ie_gemv_f32_generic;
-  g_ie_gemv_impl(W, x, y, rows, cols);
+void ie_kernels_install(int use_avx2) {
+  (void)use_avx2;
+  s_gemv_f32 = gemv_generic_impl;
 }
 
 /**
- * @brief Install a new GEMV implementation into the global dispatch pointer.
+ * @brief Dispatch GEMV to the installed kernel.
  *
- * @param pfn  Non-NULL function pointer for GEMV.
+ * @param W     Weights pointer.
+ * @param x     Input vector.
+ * @param y     Output vector.
+ * @param rows  Rows.
+ * @param cols  Cols.
+ * @param bias  Optional bias vector (may be NULL).
+ * @param blk_k Column-block size for blocked layout; 0 for plain row-major.
  */
-static void ie_gemv_install(void (*pfn)(const float*, const float*, float*, size_t, size_t)) {
-  if (pfn) g_ie_gemv_impl = pfn;
-}
-
-/**
- * @brief External installer for AVX2 kernels (defined in gemv_avx2.c).
- *
- * @param setter Callback to set the GEMV function pointer.
- */
-void ie_kernels_install_avx2(void (*setter)(void (*)(const float*, const float*, float*, size_t, size_t)));
-
-/**
- * @brief Install the best available kernel set according to runtime flags.
- *
- * @param enable_avx2  When non-zero, attempt to install AVX2 kernels.
- */
-void ie_kernels_install(int enable_avx2) {
-  if (enable_avx2) {
-    ie_kernels_install_avx2(ie_gemv_install);
-  } else {
-    g_ie_gemv_impl = ie_gemv_f32_generic;
-  }
+void ie_gemv_f32(const float *W, const float *x, float *y,
+                 size_t rows, size_t cols,
+                 const float *bias, size_t blk_k) {
+  s_gemv_f32(W, x, y, rows, cols, bias, blk_k);
 }

@@ -1,14 +1,9 @@
 /**
  * @file ie_kernels.h
- * @brief CPU kernels and runtime dispatch interface.
- *
- * The module exposes a stable function name for GEMV (ie_gemv_f32) and
- * a one-time installer (ie_kernels_install) that selects the best available
- * implementation (e.g., AVX2) according to runtime checks.
+ * @brief Kernel dispatch points (generic/AVX2) for GEMV and vector ops.
  */
-
-#ifndef IE_KERNELS_H
-#define IE_KERNELS_H
+#ifndef IE_KERNELS_H_
+#define IE_KERNELS_H_
 
 #include <stddef.h>
 
@@ -17,37 +12,51 @@ extern "C" {
 #endif
 
 /**
- * @brief Row-major GEMV (FP32): y = W[rows x cols] * x[cols].
+ * @brief Install the best available CPU kernels at runtime.
  *
- * The active implementation (generic or AVX2) is selected via
- * ::ie_kernels_install at engine creation time.
- *
- * @param[in]  W     Row-major weight matrix of shape [rows x cols].
- * @param[in]  x     Input vector of length @p cols.
- * @param[out] y     Output vector of length @p rows.
- * @param[in]  rows  Number of rows (outputs).
- * @param[in]  cols  Number of columns (inputs).
+ * @param use_avx2 Non-zero to select AVX2-optimized paths where available.
  */
-void ie_gemv_f32(const float *W,
-                 const float *x,
-                 float *y,
-                 size_t rows,
-                 size_t cols);
+void ie_kernels_install(int use_avx2);
 
 /**
- * @brief Install the best available kernel set for this process.
+ * @brief GEMV: y[r] = dot(W[r, :], x) [+ bias[r]] for r in [0, rows).
  *
- * Call this **once** at startup (e.g., during engine creation) after
- * detecting CPU features. If @p enable_avx2 is non-zero and the binary was
- * compiled with AVX2 support, the dispatcher will switch to the AVX2 kernel.
- * Otherwise, it falls back to the generic C implementation.
+ * The function chooses the best implementation (AVX2 or generic) selected by
+ * ie_kernels_install(). The @p bias pointer may be NULL to skip epilogue bias.
  *
- * @param[in] enable_avx2  Non-zero to enable AVX2 path when available.
+ * @param W     Pointer to weights in row-major layout or pretransposed-blocked
+ *              layout accepted by the active kernel (see `ie_layout.h`).
+ * @param x     Pointer to input vector of length @p cols.
+ * @param y     Pointer to output vector of length @p rows.
+ * @param rows  Number of rows to process.
+ * @param cols  Number of columns per row.
+ * @param bias  Optional pointer to bias vector of length @p rows; may be NULL.
+ * @param blk_k Column-block size if @p W is in blocked-K layout; pass 0 for
+ *              plain row-major (kernel will treat as unblocked).
  */
-void ie_kernels_install(int enable_avx2);
+void ie_gemv_f32(const float *W, const float *x, float *y,
+                 size_t rows, size_t cols,
+                 const float *bias, size_t blk_k);
+
+/**
+ * @brief Vector tanh on float data (fp32).
+ *
+ * @param v         Pointer to input/output vector (in-place).
+ * @param n         Number of elements.
+ * @param fast_tanh Non-zero to use a fast approximation; zero to use tanhf().
+ */
+void ie_vec_tanh_f32(float *v, size_t n, int fast_tanh);
+
+/**
+ * @brief Fast scalar tanh approximation (used for fused bias+tanh paths).
+ *
+ * @param x Input value.
+ * @return tanh(x) approximated with a polynomial/rational form.
+ */
+float ie_fast_tanhf(float x);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* IE_KERNELS_H */
+#endif /* IE_KERNELS_H_ */

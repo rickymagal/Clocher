@@ -17,6 +17,7 @@ SRC_CORE := \
   engine/src/io/tokenizer.c \
   engine/src/opt/cpu_features.c \
   engine/src/opt/thread_pool.c \
+  engine/src/opt/pretranspose.c \
   engine/src/kernels/gemv_generic.c \
   engine/src/kernels/gemv_avx2.c \
   engine/src/math/fast_tanh.c
@@ -50,7 +51,7 @@ test: build
 	$(CC) $(CFLAGS) $(INC) tests/c/test_tokenizer.c engine/src/io/tokenizer.c -o $(BUILD)/test_tokenizer $(LDFLAGS) && $(BUILD)/test_tokenizer
 	$(CC) $(CFLAGS) $(INC) tests/c/test_kernels.c engine/src/kernels/gemv_generic.c engine/src/kernels/gemv_avx2.c -o $(BUILD)/test_kernels $(LDFLAGS) && $(BUILD)/test_kernels
 	$(CC) $(CFLAGS) $(INC) tests/c/test_threadpool.c engine/src/opt/thread_pool.c -o $(BUILD)/test_threadpool $(LDFLAGS) && $(BUILD)/test_threadpool
-	# extras de step 4
+	# extras step 4
 	$(CC) $(CFLAGS) $(INC) tests/c/test_math.c engine/src/math/fast_tanh.c -o $(BUILD)/test_math $(LDFLAGS) && $(BUILD)/test_math
 	$(CC) $(CFLAGS) $(INC) tests/c/test_cpu_features.c engine/src/opt/cpu_features.c -o $(BUILD)/test_cpu_features $(LDFLAGS) && $(BUILD)/test_cpu_features
 	@echo "[test] Python tests"
@@ -84,28 +85,3 @@ docs-doxygen:
 # --- clean artifacts ---
 clean:
 	rm -rf $(BUILD) benchmarks/reports/* perf.data* flamegraph.svg out.perf script.stacks callgrind.out.* callgrind.stacks
-
-# ============================================================
-# Step 3 helpers: microbench + perf-report + baseline-report
-# ============================================================
-
-# Standalone microbenchmark for GEMV/tanh/embed (builds and runs)
-microbench: build
-	@mkdir -p $(BUILD)
-	$(CC) $(CFLAGS) $(INC) benchmarks/src/microbench_gemv.c -o $(BUILD)/microbench_gemv $(LDFLAGS)
-	@echo "[run] microbench (H=256 V=1024 iters=200)"
-	@$(BUILD)/microbench_gemv 256 1024 200
-
-# Full profiling pipeline: flamegraph + PERFORMANCE.md
-perf-report: build
-	@echo "[profile] generating flamegraph..."
-	@scripts/profile_flamegraph.sh $(BIN) "profiling prompt with 64+ tokens"
-	@echo "[report] updating PERFORMANCE.md..."
-	@python3 scripts/update_performance_md.py
-
-# Full baseline report: bench + BASELINE.md
-baseline-report: build
-	@echo "[bench] running harness..."
-	@bash scripts/run_benchmark.sh
-	@echo "[report] generating BASELINE.md..."
-	@python3 scripts/make_baseline_md.py
