@@ -7,26 +7,33 @@ BUILD    ?= build
 BIN      ?= $(BUILD)/inference-engine
 INC      := -Iengine/include
 
-SRC := \
-  engine/src/main_infer.c \
+# Core sources (NO main here)
+SRC_CORE := \
   engine/src/ie_api.c \
   engine/src/ie_tensor.c \
   engine/src/util_logging.c \
   engine/src/util_metrics.c \
   engine/src/io/weights.c \
-  engine/src/io/tokenizer.c
+  engine/src/io/tokenizer.c \
+  engine/src/opt/cpu_features.c \
+  engine/src/opt/thread_pool.c \
+  engine/src/kernels/gemv_generic.c \
+  engine/src/kernels/gemv_avx2.c \
+  engine/src/math/fast_tanh.c
+
+# CLI entry point
+SRC_MAIN := engine/src/main_infer.c
 
 .PHONY: setup build build-release test bench profile fmt lint docs docs-doxygen clean \
         microbench perf-report baseline-report
 
-# --- setup (optional dev helpers) ---
 setup:
 	@echo "[setup] dev helpers are optional; runtime stays dependency-free."
 
 # --- build binaries ---
 build: $(BIN)
 
-$(BIN): $(SRC)
+$(BIN): $(SRC_MAIN) $(SRC_CORE)
 	@mkdir -p $(BUILD)
 	$(CC) $(CFLAGS) $(INC) $^ -o $@ $(LDFLAGS)
 
@@ -37,9 +44,15 @@ build-release: build
 test: build
 	@echo "[test] C unit tests"
 	$(CC) $(CFLAGS) $(INC) tests/c/test_tensor.c engine/src/ie_tensor.c engine/src/util_logging.c -o $(BUILD)/test_tensor $(LDFLAGS) && $(BUILD)/test_tensor
-	$(CC) $(CFLAGS) $(INC) tests/c/test_api.c engine/src/ie_api.c engine/src/ie_tensor.c engine/src/util_logging.c engine/src/util_metrics.c engine/src/io/weights.c engine/src/io/tokenizer.c -o $(BUILD)/test_api $(LDFLAGS) && $(BUILD)/test_api
+	# DO NOT link main_infer.c here
+	$(CC) $(CFLAGS) $(INC) tests/c/test_api.c $(SRC_CORE) -o $(BUILD)/test_api $(LDFLAGS) && $(BUILD)/test_api
 	$(CC) $(CFLAGS) $(INC) tests/c/test_weights.c engine/src/io/weights.c -o $(BUILD)/test_weights $(LDFLAGS) && $(BUILD)/test_weights
 	$(CC) $(CFLAGS) $(INC) tests/c/test_tokenizer.c engine/src/io/tokenizer.c -o $(BUILD)/test_tokenizer $(LDFLAGS) && $(BUILD)/test_tokenizer
+	$(CC) $(CFLAGS) $(INC) tests/c/test_kernels.c engine/src/kernels/gemv_generic.c engine/src/kernels/gemv_avx2.c -o $(BUILD)/test_kernels $(LDFLAGS) && $(BUILD)/test_kernels
+	$(CC) $(CFLAGS) $(INC) tests/c/test_threadpool.c engine/src/opt/thread_pool.c -o $(BUILD)/test_threadpool $(LDFLAGS) && $(BUILD)/test_threadpool
+	# extras de step 4
+	$(CC) $(CFLAGS) $(INC) tests/c/test_math.c engine/src/math/fast_tanh.c -o $(BUILD)/test_math $(LDFLAGS) && $(BUILD)/test_math
+	$(CC) $(CFLAGS) $(INC) tests/c/test_cpu_features.c engine/src/opt/cpu_features.c -o $(BUILD)/test_cpu_features $(LDFLAGS) && $(BUILD)/test_cpu_features
 	@echo "[test] Python tests"
 	python3 -m unittest discover -s tests/python -p 'test_*.py' -v
 
@@ -95,4 +108,4 @@ baseline-report: build
 	@echo "[bench] running harness..."
 	@bash scripts/run_benchmark.sh
 	@echo "[report] generating BASELINE.md..."
-	@python3 scripts/make_baseline_md.py > benchmarks/reports/BASELINE.md
+	@python3 scripts/make_baseline_md.py
