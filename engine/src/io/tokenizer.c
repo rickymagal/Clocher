@@ -2,11 +2,11 @@
  * @file tokenizer.c
  * @brief Minimal tokenizer loader + whitespace tokenization fallback.
  *
- * Baseline:
+ * Baseline behavior:
  *  - Reads vocab.json if present; extracts "vocab_size" (optional).
  *  - Encoding: split on ASCII whitespace; map each token to a stable pseudo-ID
- *    via FNV-1a hash folded to 16 bits and offset to avoid clashing with special IDs.
- *  - Decoding: produce "T<ID>" sequence separated by spaces.
+ *    via FNV-1a hash folded to 16 bits and offset to [1000, 1000+65535].
+ *  - Decoding: produce "T<ID>" sequences separated by spaces.
  */
 
 #include <stdio.h>
@@ -15,8 +15,12 @@
 #include <ctype.h>
 #include "ie_io.h"
 
-/* ---- helpers ------------------------------------------------------------ */
-
+/* ---------- helpers ---------- */
+/**
+ * @brief Check if a file exists (regular open test).
+ * @param p Path to file.
+ * @return Non-zero if file can be opened; 0 otherwise.
+ */
 static int file_exists(const char *p) {
   FILE *f = fopen(p, "rb");
   if (!f) return 0;
@@ -24,6 +28,13 @@ static int file_exists(const char *p) {
   return 1;
 }
 
+/**
+ * @brief Read entire file into a NUL-terminated buffer.
+ * @param p        Path to file.
+ * @param out_buf  *out receives malloc'ed buffer (caller frees).
+ * @param out_len  *out receives length (excluding NUL).
+ * @return 0 on success; -1 on failure.
+ */
 static int read_all_text(const char *p, char **out_buf, size_t *out_len) {
   *out_buf = NULL; *out_len = 0;
   FILE *f = fopen(p, "rb");
@@ -42,6 +53,13 @@ static int read_all_text(const char *p, char **out_buf, size_t *out_len) {
   return 0;
 }
 
+/**
+ * @brief Naively scan an integer value following a JSON key.
+ * @param json    JSON text.
+ * @param key     Key string (e.g., "\"vocab_size\"").
+ * @param out_val Output integer.
+ * @return 0 on success; -1 otherwise.
+ */
 static int scan_json_key_int(const char *json, const char *key, int *out_val) {
   const char *k = strstr(json, key);
   if (!k) return -1;
@@ -56,7 +74,12 @@ static int scan_json_key_int(const char *json, const char *key, int *out_val) {
   *out_val = v; return 0;
 }
 
-/* simple FNV-1a 32-bit, then fold to 16 bits */
+/**
+ * @brief FNV-1a 32-bit, folded to 16 bits, offset by 1000 to avoid special IDs.
+ * @param s Pointer to token bytes.
+ * @param n Length in bytes.
+ * @return Deterministic token id in [1000, 1000+65535].
+ */
 static uint32_t hash_token(const char *s, size_t n) {
   uint32_t h = 2166136261u;
   for (size_t i = 0; i < n; ++i) {
@@ -67,8 +90,7 @@ static uint32_t hash_token(const char *s, size_t n) {
   return 1000u + (folded & 0xFFFFu);
 }
 
-/* ---- public API --------------------------------------------------------- */
-
+/* ---------- public API ---------- */
 int ie_vocab_load(const char *vocab_path, ie_vocab_t *out) {
   if (!out) return -1;
   memset(out, 0, sizeof(*out));

@@ -4,7 +4,7 @@
  *
  * Baseline goals:
  *  - Verify that model.ie.json exists and contains "version" and "dtype" keys
- *    (very relaxed JSON scanning; no 3rd-party parser).
+ *    (relaxed JSON scanning; no 3rd-party parser).
  *  - Record model.ie.bin size if present (0 allowed for placeholder).
  *  - Fill ie_weights_t for engine initialization.
  *
@@ -19,19 +19,35 @@
 
 #include "ie_io.h"
 
-/* ---- tiny helpers ------------------------------------------------------- */
-
+/* ---------- helpers ---------- */
+/**
+ * @brief Test whether a path refers to an existing regular file.
+ * @param p Path (UTF-8).
+ * @return Non-zero if exists and is regular; 0 otherwise.
+ */
 static int file_exists(const char *p) {
   struct stat st;
   return (p && stat(p, &st) == 0 && S_ISREG(st.st_mode));
 }
 
+/**
+ * @brief Return file size in bytes, or 0 on error.
+ * @param p Path.
+ * @return Size in bytes or 0.
+ */
 static uint64_t file_size(const char *p) {
   struct stat st;
   if (!p || stat(p, &st) != 0) return 0;
   return (uint64_t)st.st_size;
 }
 
+/**
+ * @brief Read entire file into a NUL-terminated buffer.
+ * @param p        Path to file.
+ * @param out_buf  *out receives malloc'ed buffer (caller frees).
+ * @param out_len  *out receives length (excluding NUL).
+ * @return 0 on success, -1 on failure.
+ */
 static int read_all_text(const char *p, char **out_buf, size_t *out_len) {
   *out_buf = NULL; *out_len = 0;
   FILE *f = fopen(p, "rb");
@@ -50,8 +66,14 @@ static int read_all_text(const char *p, char **out_buf, size_t *out_len) {
   return 0;
 }
 
+/**
+ * @brief Naively scan an integer value following a JSON key.
+ * @param json    JSON text.
+ * @param key     Key string (e.g., "\"version\"").
+ * @param out_val Out integer.
+ * @return 0 on success; -1 if key/value not found.
+ */
 static int scan_json_key_int(const char *json, const char *key, int *out_val) {
-  /* naive: find "<key>" then a colon and parse an integer */
   const char *k = strstr(json, key);
   if (!k) return -1;
   const char *c = strchr(k, ':');
@@ -65,8 +87,15 @@ static int scan_json_key_int(const char *json, const char *key, int *out_val) {
   *out_val = v; return 0;
 }
 
+/**
+ * @brief Naively scan a string value following a JSON key.
+ * @param json JSON text.
+ * @param key  Key string (e.g., "\"dtype\"").
+ * @param out  Output buffer for value (no quotes), NUL-terminated.
+ * @param cap  Capacity of @p out.
+ * @return 0 on success; -1 on failure.
+ */
 static int scan_json_key_string(const char *json, const char *key, char *out, size_t cap) {
-  /* naive: find "<key>" then first quoted string after colon */
   const char *k = strstr(json, key);
   if (!k) return -1;
   const char *c = strchr(k, ':');
@@ -81,8 +110,7 @@ static int scan_json_key_string(const char *json, const char *key, char *out, si
   return 0;
 }
 
-/* ---- public API --------------------------------------------------------- */
-
+/* ---------- public API ---------- */
 int ie_weights_open(const char *json_path,
                     const char *bin_path,
                     ie_weights_t *out) {
@@ -96,7 +124,6 @@ int ie_weights_open(const char *json_path,
     strncpy(out->weights_path, bin_path, sizeof(out->weights_path)-1);
     out->bin_size_bytes = file_size(bin_path);
   } else {
-    /* allow empty bin in baseline */
     strncpy(out->weights_path, bin_path ? bin_path : "", sizeof(out->weights_path)-1);
     out->bin_size_bytes = 0;
   }
@@ -106,11 +133,9 @@ int ie_weights_open(const char *json_path,
     return -1;
   }
 
-  /* defaults */
   out->version = 1;
   strncpy(out->dtype, "fp32", sizeof(out->dtype)-1);
 
-  /* try to parse */
   (void)scan_json_key_int(buf, "\"version\"", &out->version);
   (void)scan_json_key_string(buf, "\"dtype\"", out->dtype, sizeof(out->dtype));
 
@@ -119,5 +144,5 @@ int ie_weights_open(const char *json_path,
 }
 
 void ie_weights_close(ie_weights_t *w) {
-  (void)w; /* nothing to release in baseline */
+  (void)w; /* no resources to free in baseline */
 }

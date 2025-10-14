@@ -1,6 +1,6 @@
 /*
  * @file main_infer.c
- * @brief CLI entrypoint. Emits one JSON line with metrics.
+ * @brief CLI entrypoint: creates the engine, runs a generation, prints JSON metrics.
  *
  * Usage:
  *   ./build/inference-engine "Your prompt here"
@@ -14,7 +14,13 @@
 #include <time.h>        /* C11 timespec_get */
 #include "ie_api.h"
 
-/* Print a single JSON object with run metrics to stdout. */
+/**
+ * @brief Print a single JSON object with run metrics to stdout.
+ *
+ * @param tokens Number of tokens generated in this run.
+ * @param wall_s End-to-end wall time in seconds for the run (prompt excluded).
+ * @param m Snapshot of engine metrics (p50/p95, tps estimate, etc.).
+ */
 static void print_json_metrics(unsigned tokens, double wall_s, const ie_metrics_t *m) {
   printf("{\"tokens_generated\":%u,\"wall_time_s\":%.6f,"
          "\"tps_true\":%.6f,\"latency_p50_ms\":%.3f,\"latency_p95_ms\":%.3f,"
@@ -23,13 +29,26 @@ static void print_json_metrics(unsigned tokens, double wall_s, const ie_metrics_
          m->rss_peak_mb, (unsigned long long)m->kv_hits, (unsigned long long)m->kv_misses);
 }
 
-/* Portable monotonic-ish timestamp in seconds using C11 timespec_get. */
+/**
+ * @brief Portable timestamp in seconds using C11 timespec_get.
+ *
+ * @return Current time in seconds (monotonic-ish UTC-based).
+ */
 static double now_s(void) {
   struct timespec ts;
   timespec_get(&ts, TIME_UTC);
   return (double)ts.tv_sec + (double)ts.tv_nsec / 1e9;
 }
 
+/**
+ * @brief CLI main entry point.
+ *
+ * Creates the engine, runs a single generation, prints a JSON metrics line.
+ *
+ * @param argc Argument count.
+ * @param argv Argument vector (argv[1] may hold the prompt).
+ * @return 0 on success; non-zero on failure.
+ */
 int main(int argc, char **argv) {
   const char *prompt = (argc > 1) ? argv[1] : "Hello,";
   const uint32_t max_new = 16;
