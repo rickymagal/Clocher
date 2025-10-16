@@ -1,12 +1,12 @@
 # Performance Notes
 
-_Last updated: **2025-10-16 17:21:16 UTC**_
+_Last updated: **2025-10-16 20:19:30 UTC**_
 
 ## Summary (latest run)
-- Reports directory: `/home/ricky/Desktop/inference-engine/benchmarks/reports/20251016_172115`
-- TPS (true): **7261.883**
-- Latency p50: **0.137 ms**
-- Latency p95: **0.146 ms**
+- Reports directory: `(no reports found)`
+- TPS (true): **n/a**
+- Latency p50: **n/a ms**
+- Latency p95: **n/a ms**
 
 ## Run parameters
 - Threads: **12**
