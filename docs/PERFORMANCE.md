@@ -1,32 +1,31 @@
-# PERFORMANCE
+# Performance Notes
 
-This document records policies and reproduction guidance for CPU performance.
-All content is generated in English by this script.
+_Last updated: **2025-10-16 17:21:16 UTC**_
 
-## Current Profile (baseline FP32)
-- Experiment timestamp: **2025-10-14 19:34 UTC**
-- Prompt/runner: `benchmarks/prompts.jsonl` via `benchmarks/harness.py`
+## Summary (latest run)
+- Reports directory: `/home/ricky/Desktop/inference-engine/benchmarks/reports/20251016_172115`
+- TPS (true): **7261.883**
+- Latency p50: **0.137 ms**
+- Latency p95: **0.146 ms**
 
-### Metrics (latest report)
-- **Avg True TPS (harness)**: **6643.16** tok/s
-- **p50**: **0.160** ms | **p95**: **0.201** ms
-- **Total tokens**: **160** | **samples**: **10**
+## Run parameters
+- Threads: **12**
+- Precision: **fp32**
+- Pretranspose: **none**
+- Affinity policy (CLI): **auto**
+- Affinity env toggle (`IE_TP_USE_AFFINITY`): **disabled**
+- Detected CPU features: **avx2, fma, sse4.2**
 
-### Hot Paths (flamegraph)
-- N/A (generate `flamegraph.svg` and `script.stacks` with `scripts/profile_flamegraph.sh`)
+## Profiling Artifacts
+- `flamegraph.svg`: **present**
+- `perf.data`: **present**
 
-## Next Optimizations
-- **GEMV**: AVX2/AVX-512 micro-kernels, blocking and FMA epilogues.
-- **Threading/NUMA**: contiguous row sharding + CPU pinning (compact/scatter).
-- **tanh**: polynomial/LUT approximation for faster nonlinearities.
-- **Embedding**: avoid `sinf` or precompute token-dependent patterns.
+## Hot Paths (annotated)
+- GEMV (`ie_gemv_f32`): AVX2 microkernel if available; otherwise generic path.
+- Activation (`tanh` fast path): clamped polynomial/table approximation.
+- Thread pool scheduling: contiguous shard with grainsize control and optional pinning.
 
-## Reproduction & Policies
-- **Threads**: `--threads N` (default 1 for stable CI).
-- **CPU Affinity (Linux)**: enable per run with `IE_TP_USE_AFFINITY=1` and choose `--affinity {auto,compact,scatter}`.
-- **NUMA (Linux)**: use `scripts/set_numa.sh {compact|interleave|node:X} -- <CMD>` (external helper; engine remains runtime-only).
-
-## Evolution Table
-| Build/tag | Precision | Threads | Avg True TPS | p50 (ms) | p95 (ms) | Notes |
-|-----------|:---------:|:-------:|-------------:|---------:|---------:|:------|
-| baseline  | fp32      | auto    | 6643.16 | 0.160 | 0.201 | Initial baseline |
+## Next optimization actions
+- Validate NUMA policy impacts using `scripts/set_numa.sh` (`interleave|node:X|strict`).
+- Explore epilogue fusion (bias + activation) in GEMV output.
+- Extend blocked-K packing and prefetch distances based on flamegraph evidence.

@@ -1,0 +1,39 @@
+{
+  "title": "Clocher Inference",
+  "timezone": "browser",
+  "panels": [
+    {
+      "type": "stat",
+      "title": "TPS (true)",
+      "targets": [{ "expr": "clocher_tps_true" }],
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] } },
+      "gridPos": { "x": 0, "y": 0, "w": 8, "h": 6 }
+    },
+    {
+      "type": "graph",
+      "title": "Latency p50 / p95 (ms)",
+      "targets": [
+        { "expr": "clocher_latency_p50_ms" },
+        { "expr": "clocher_latency_p95_ms" }
+      ],
+      "gridPos": { "x": 8, "y": 0, "w": 16, "h": 6 }
+    },
+    {
+      "type": "graph",
+      "title": "RSS Peak (MB)",
+      "targets": [{ "expr": "clocher_rss_peak_mb" }],
+      "gridPos": { "x": 0, "y": 6, "w": 12, "h": 6 }
+    },
+    {
+      "type": "graph",
+      "title": "KV hits / misses",
+      "targets": [
+        { "expr": "clocher_kv_hits" },
+        { "expr": "clocher_kv_misses" }
+      ],
+      "gridPos": { "x": 12, "y": 6, "w": 12, "h": 6 }
+    }
+  ],
+  "schemaVersion": 38,
+  "version": 1
+}
