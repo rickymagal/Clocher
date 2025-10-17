@@ -1,29 +1,24 @@
 # Performance Notes
 
-_Last updated: **2025-10-17 16:15:17 UTC**_
+_Last updated: **2025-10-17 18:27:45 UTC**_
 
 ## Summary (latest run)
-- Reports directory: `(no reports found)`
-- TPS (true): **3111.501**
-- Latency p50: **0.321 ms**
-- Latency p95: **0.450 ms**
+- Reports directory: `benchmarks/reports/20251017_182252`
+- TPS (true): **n/a**
+- Latency p50: **n/a**
+- Latency p95: **n/a**
 
 ## Run parameters
-- Threads: **12**
+- Threads: **4**
 - Precision: **fp32**
 - Pretranspose: **none**
-- Device: **cpu**
-- Batch: **1**
-- Prefetch: **auto**
-- Warmup: **0**
-- Prompts file: **n/a**
-- Affinity policy (CLI): **auto**
-- Affinity env toggle (`IE_TP_USE_AFFINITY`): **disabled**
-- Detected CPU features: **avx2, fma, sse4.2**
+- Affinity policy (CLI): **n/a**
+- Affinity env toggle (`IE_TP_USE_AFFINITY`): **n/a**
+- Detected CPU features: **n/a**
 
 ## Profiling Artifacts
-- `flamegraph.svg`: **present**
-- `perf.data`: **present**
+- `flamegraph.svg`: **absent**
+- `perf.data`: **absent**
 
 ## Hot Paths (annotated)
 - GEMV (`ie_gemv_f32`): AVX2 microkernel if available; otherwise generic path.

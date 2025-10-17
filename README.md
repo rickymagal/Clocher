@@ -219,3 +219,12 @@ All C functions (public and internal TUs) are documented with Doxygen-style comm
 - Extras: GPU/iGPU variant (CUDA/oneAPI), INT4 exploration, Prometheus/Grafana dashboard.
 
 ---
+## Updates — 2025-10-17
+
+- **CLI flags added:** `--prompts-file PATH`, `--batch N`, `--prefetch on|off|auto`, `--warmup N`.
+- **Examples:**
+  - `inference-engine --prompts-file benchmarks/prompts_10.txt --batch 32 --max-new 8 --prefetch on --warmup 8`
+  - `inference-engine --prompt "hello" --max-new 16 --threads 4 --precision fp32`
+- **Stable JSON output:** ensure exact field formatting used by the test harness (e.g., `"tokens_generated": 0` with a space after the colon).
+- **Batcher integration:** asynchronous prefetch + tokenization with order guarantees; micro-batch views from a ring buffer.
+- **Bench & perf:** `make bench` uses prompts file and batching; `make perf-report` autodetects FlameGraph tools or accepts `STACKCOLLAPSE`/`FLAMEGRAPH` env overrides.

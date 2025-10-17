@@ -37,7 +37,8 @@ SRC_MAIN := engine/src/main_infer.c
 .PHONY: setup build build-release test bench profile fmt lint docs docs-doxygen clean \
         microbench perf-report baseline-report \
         monitoring-up monitoring-down metrics-exporter \
-        ptq-calibrate ptq-from-hf ptq-from-torch ptq-from-bin
+        ptq-calibrate ptq-from-hf ptq-from-torch ptq-from-bin \
+        bench-direct
 # =================================================
 
 setup:
@@ -72,7 +73,27 @@ test: build
 
 # -------- benchmark harness --------
 bench: build
-	@bash scripts/run_benchmark.sh
+	@BENCH_PROMPTS="$(if $(BENCH_PROMPTS),$(BENCH_PROMPTS),benchmarks/prompts.txt)" \
+	  BENCH_BATCH="$(if $(BENCH_BATCH),$(BENCH_BATCH),32)" \
+	  BENCH_WARMUP="$(if $(BENCH_WARMUP),$(BENCH_WARMUP),4)" \
+	  BENCH_PREFETCH="$(if $(BENCH_PREFETCH),$(BENCH_PREFETCH),on)" \
+	  bash scripts/run_benchmark.sh
+
+# Quick direct bench without the shell harness (optional)
+bench-direct: build
+	@set -e; \
+	PF="$(if $(BENCH_PROMPTS),$(BENCH_PROMPTS),benchmarks/prompts.txt)"; \
+	BATCH="$(if $(BENCH_BATCH),$(BENCH_BATCH),32)"; \
+	WARM="$(if $(BENCH_WARMUP),$(BENCH_WARMUP),4)"; \
+	PREF="$(if $(BENCH_PREFETCH),$(BENCH_PREFETCH),on)"; \
+	if [ -f $$PF ]; then \
+	  $(BIN) --prompts-file $$PF --batch $$BATCH --max-new 8 --prefetch $$PREF --warmup $$WARM | \
+	    python3 -c 'import sys,json; print(json.loads(sys.stdin.read())["tokens_generated"])' >/dev/null; \
+	else \
+	  $(BIN) --prompt "bench-default" --max-new 8 --prefetch $$PREF --warmup $$WARM | \
+	    python3 -c 'import sys,json; print(json.loads(sys.stdin.read())["tokens_generated"])' >/dev/null; \
+	fi; \
+	echo "[bench-direct] OK"
 
 # -------- perf/Flamegraph --------
 profile: build

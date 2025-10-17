@@ -47,3 +47,15 @@
 - Makefile orchestrates build, test, bench, profile, docs.
 - Doxygen for C API reference.
 - `perf + FlameGraph` → `flamegraph.svg` and `PERFORMANCE.md`.
+## Updates — 2025-10-17
+
+### I/O Batching and Prefetch
+- Introduced a multi-worker **prefetch + tokenization batcher** feeding a ring buffer.
+- **Order preservation:** despite parallel tokenization, items are consumed in input order via indexed enqueue and contiguous micro-batch views.
+- **Backpressure:** producer blocks when the ring is full; consumer signals on advance; micro-batch size is tunable.
+- **Failure semantics:** tokenization status is carried per item; consumers free payloads on advance.
+
+### CLI & Pipeline Integration
+- New CLI knobs: `--prompts-file`, `--batch`, `--prefetch`, `--warmup`.
+- Warmup performs a small generation before timed runs to stabilize caches.
+- JSON output is a single stable line for automation with predictable field names and spacing.

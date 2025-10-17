@@ -25,3 +25,9 @@ We need deterministic, portable, zero-dependency CPU performance. Upstream runti
 - Complete AVX2 GEMV microkernel integration behind runtime gating.
 - Validate scaling of thread-pool and NUMA effects with flamegraph evidence.
 - Compare accuracy/latency impact of fast `tanh` vs libm baseline.
+## Updates — 2025-10-17
+
+- **Batching impact:** amortizes tokenizer and scheduling overhead; reduces per-prompt latency variance for short prompts.
+- **Prefetch policy:** `auto` maps to enabled when `--prompts-file` is provided; otherwise conservative for single-prompt runs.
+- **Profiling workflow:** `make perf-report` records with `perf` and renders with FlameGraph; supports `ROUNDS`, `MAX_NEW`, `FREQ`, and `CALLGRAPH` envs.
+- **Limits observed:** if `perf.data` is empty, increase `ROUNDS/MAX_NEW/FREQ` or adjust kernel `perf_event_paranoid`.
