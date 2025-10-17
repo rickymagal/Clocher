@@ -1,20 +1,18 @@
 # Performance Notes
 
-_Last updated: **2025-10-17 18:27:45 UTC**_
+_Last updated: **2025-10-17 23:12:05 UTC**_
 
 ## Summary (latest run)
-- Reports directory: `benchmarks/reports/20251017_182252`
-- TPS (true): **n/a**
-- Latency p50: **n/a**
-- Latency p95: **n/a**
+- Reports directory: `/home/ricky/Desktop/inference-engine/benchmarks/reports/20251017_231204`
+- TPS (true): **15016.424**
+- Latency p50: **0.067**
+- Latency p95: **0.067**
 
 ## Run parameters
 - Threads: **4**
 - Precision: **fp32**
 - Pretranspose: **none**
-- Affinity policy (CLI): **n/a**
-- Affinity env toggle (`IE_TP_USE_AFFINITY`): **n/a**
-- Detected CPU features: **n/a**
+- Affinity policy (CLI): **auto**
 
 ## Profiling Artifacts
 - `flamegraph.svg`: **absent**

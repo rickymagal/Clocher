@@ -1,82 +1,107 @@
 #!/usr/bin/env bash
-# scripts/profile_flamegraph.sh — minimal, env-first FlameGraph driver
+# Perf → stackcollapse → flamegraph, placed under benchmarks/reports/<stamp>/
 set -euo pipefail
 
 BIN="${1:-build/inference-engine}"
-PROMPT="${2:-profiling prompt with 64+ tokens}"
+LABEL="${2:-profiling run}"
 
-# ---- required external tools (env can point to non-exec .pl; we wrap with perl) ----
-SC_PATH="${STACKCOLLAPSE:-}"
-FG_PATH="${FLAMEGRAPH:-}"
-
-if [[ -z "$SC_PATH" || ! -e "$SC_PATH" ]]; then
-  # try PATH fallbacks
-  SC_PATH="$(command -v stackcollapse-perf.pl || command -v stackcollapse-perf || true)"
-fi
-if [[ -z "$FG_PATH" || ! -e "$FG_PATH" ]]; then
-  FG_PATH="$(command -v flamegraph.pl || command -v flamegraph || true)"
-fi
-
-[[ -n "$SC_PATH" && -e "$SC_PATH" ]] || { echo "error: FlameGraph stackcollapse utility not found."; exit 3; }
-[[ -n "$FG_PATH" && -e "$FG_PATH" ]] || { echo "error: FlameGraph renderer not found."; exit 3; }
-
-SC_CMD=( perl "$SC_PATH" ); [[ -x "$SC_PATH" ]] && SC_CMD=( "$SC_PATH" )
-FG_CMD=( perl "$FG_PATH" ); [[ -x "$FG_PATH" ]] && FG_CMD=( "$FG_PATH" )
-
-# ---- knobs (env overridable) ----
-ROUNDS="${ROUNDS:-60}"
+# Workload knobs
+PROMPTS_FILE="${PROMPTS_FILE:-benchmarks/prompts_10.txt}"
+BATCH="${BATCH:-16}"
+WARMUP="${WARMUP:-8}"
+PREFETCH_RAW="${PREFETCH:-auto}"
 MAX_NEW="${MAX_NEW:-65536}"
+THREADS="${THREADS:-4}"
+PRECISION="${PRECISION:-fp32}"
+PRETRANSPOSE="${PRETRANSPOSE:-none}"
+AFFINITY="${AFFINITY:-auto}"
+
+# Perf knobs
+ROUNDS="${ROUNDS:-120}"
 FREQ="${FREQ:-1200}"
-CALLGRAPH="${CALLGRAPH:-fp}"   # fp|dwarf
+CALLGRAPH="${CALLGRAPH:-fp}"   # fp|dwarf|lbr (if supported)
 
-# Optional CLI hints via env
-ENGINE_CLI=()
-[[ -n "${THREADS:-}"      ]] && ENGINE_CLI+=( --threads "$THREADS" )
-[[ -n "${PRECISION:-}"    ]] && ENGINE_CLI+=( --precision "$PRECISION" )
-[[ -n "${PRETRANSPOSE:-}" ]] && ENGINE_CLI+=( --pretranspose "$PRETRANSPOSE" )
-[[ -n "${AFFINITY:-}"     ]] && ENGINE_CLI+=( --affinity "$AFFINITY" )
-[[ -n "${PREFETCH:-}"     ]] && ENGINE_CLI+=( --prefetch "$PREFETCH" )
-[[ -n "${WARMUP:-}"       ]] && ENGINE_CLI+=( --warmup "$WARMUP" )
-[[ -n "${BATCH:-}"        ]] && ENGINE_CLI+=( --batch "$BATCH" )
+# Tool discovery
+STACKCOLLAPSE="${STACKCOLLAPSE:-}"
+FLAMEGRAPH="${FLAMEGRAPH:-}"
 
-if [[ -n "${PROMPTS_FILE:-}" && -f "${PROMPTS_FILE}" ]]; then
-  ENGINE_CLI+=( --prompts-file "$PROMPTS_FILE" )
-else
-  ENGINE_CLI+=( --prompt "$PROMPT" )
+if [[ -z "${STACKCOLLAPSE}" ]]; then
+  for c in scripts/FlameGraph/stackcollapse-perf.pl /usr/bin/stackcollapse-perf.pl /usr/bin/stackcollapse-perf; do
+    [[ -x "$c" ]] && STACKCOLLAPSE="$c" && break
+  done
 fi
-ENGINE_CLI+=( --max-new "$MAX_NEW" )
-
-[[ -x "$BIN" ]] || { echo "error: $BIN not executable"; exit 2; }
-command -v perf >/dev/null 2>&1 || { echo "error: perf not found"; exit 2; }
-
-echo "[profile] generating flamegraph..."
-echo "[tools] stackcollapse: ${SC_CMD[*]}"
-echo "[tools] flamegraph   : ${FG_CMD[*]}"
-rm -f perf.data script.stacks flamegraph.svg
-
-record_once () {
-  perf record --append -o perf.data -F "$FREQ" --call-graph "$CALLGRAPH" -- \
-    "$BIN" "${ENGINE_CLI[@]}" >/dev/null 2>&1 || true
-}
-
-for ((i=1;i<=ROUNDS;i++)); do record_once; done
-
-if [[ ! -s perf.data && "$CALLGRAPH" == "dwarf" ]]; then
-  echo "[fallback] empty with dwarf; retrying fp..."
-  CALLGRAPH="fp"
-  for ((i=1;i<=ROUNDS;i++)); do record_once; done
-fi
-
-if [[ ! -s perf.data ]]; then
-  echo "[fallback] escalating to sudo perf…"
-  for ((i=1;i<=ROUNDS;i++)); do
-    sudo perf record --append -o perf.data -F "$FREQ" --call-graph "$CALLGRAPH" -- \
-      "$BIN" "${ENGINE_CLI[@]}" >/dev/null 2>&1 || true
+if [[ -z "${FLAMEGRAPH}" ]]; then
+  for c in scripts/FlameGraph/flamegraph.pl /usr/bin/flamegraph.pl /usr/bin/flamegraph; do
+    [[ -x "$c" ]] && FLAMEGRAPH="$c" && break
   done
 fi
 
-[[ -s perf.data ]] || { echo "ERROR: perf.data is empty"; exit 5; }
+echo "[profile] generating flamegraph..."
+if [[ ! -x "${STACKCOLLAPSE:-/nope}" || ! -x "${FLAMEGRAPH:-/nope}" ]]; then
+  echo "error: FlameGraph utilities not found." >&2
+  echo "       STACKCOLLAPSE='${STACKCOLLAPSE:-unset}' FLAMEGRAPH='${FLAMEGRAPH:-unset}'" >&2
+  exit 3
+fi
+echo "[tools] stackcollapse: ${STACKCOLLAPSE}"
+echo "[tools] flamegraph   : ${FLAMEGRAPH}"
 
-perf script | "${SC_CMD[@]}" > script.stacks
-"${FG_CMD[@]}" script.stacks > flamegraph.svg
-echo "[ok] flamegraph.svg"
+# Normalize prefetch for new CLI
+norm="$(printf '%s' "$PREFETCH_RAW" | tr '[:upper:]' '[:lower:]')"
+case "$norm" in
+  0|off)   PREFETCH="off" ;;
+  1|on)    PREFETCH="on"  ;;
+  2|auto|autotune) PREFETCH="auto" ;;
+  *)       PREFETCH="auto" ;;
+esac
+
+STAMP="$(date +%Y%m%d_%H%M%S)"
+OUTDIR="benchmarks/reports/${STAMP}"
+mkdir -p "$OUTDIR"
+
+# Ensure frame pointers help: suggest but do not enforce
+if [[ -n "${CFLAGS:-}" && "${CFLAGS}" != *"-fno-omit-frame-pointer"* ]]; then
+  echo "[warn] consider compiling with -fno-omit-frame-pointer for better fp callgraphs" >&2
+fi
+
+# Compose command once
+base_cmd=( "$BIN" --max-new "$MAX_NEW" --threads "$THREADS"
+           --precision "$PRECISION" --affinity "$AFFINITY"
+           --prefetch "$PREFETCH" --warmup "$WARMUP" )
+if [[ -f "$PROMPTS_FILE" ]]; then
+  base_cmd+=( --prompts-file "$PROMPTS_FILE" --batch "$BATCH" )
+else
+  base_cmd+=( --prompt "$LABEL" )
+fi
+
+# Record multiple iterations in a single perf session
+echo "[info] perf record (rounds=${ROUNDS}, freq=${FREQ}Hz, callgraph=${CALLGRAPH})…"
+perf_cmd=( perf record -F "$FREQ" --call-graph="$CALLGRAPH" -o perf.data -- )
+# shellcheck disable=SC2016
+driver=( bash -c 'for i in $(seq 1 '"$ROUNDS"'); do "$@" >/dev/null || exit 1; done' -- )
+"${perf_cmd[@]}" "${driver[@]}" "${base_cmd[@]}"
+
+# Convert → SVG
+perf script | "$STACKCOLLAPSE" | "$FLAMEGRAPH" > flamegraph.svg || {
+  echo "ERROR: stack collapse/flamegraph failed." >&2
+  exit 5
+}
+
+# Stash artifacts
+mv -f perf.data "$OUTDIR"/perf.data
+mv -f flamegraph.svg "$OUTDIR"/flamegraph.svg
+
+# Write params.json for docs
+cat >"$OUTDIR/params.json" <<JSON
+{
+  "threads": ${THREADS},
+  "precision": "${PRECISION}",
+  "pretranspose": "${PRETRANSPOSE}",
+  "affinity": "${AFFINITY}",
+  "batch": ${BATCH},
+  "prefetch": "${PREFETCH}",
+  "warmup": ${WARMUP},
+  "max_new": ${MAX_NEW}
+}
+JSON
+
+echo "[ok] report dir: ${OUTDIR}"

@@ -2,6 +2,13 @@
 # =================================================
 # Full Makefile with all targets used so far.
 
+SHELL := /usr/bin/bash
+
+# Export env so VAR=… make perf-report reaches the script.
+# (Without this, your STACKCOLLAPSE/FLAMEGRAPH etc. were not visible.)
+.EXPORT_ALL_VARIABLES:
+export STACKCOLLAPSE FLAMEGRAPH PROMPTS_FILE BATCH PREFETCH WARMUP THREADS PRECISION PRETRANSPOSE ROUNDS MAX_NEW FREQ CALLGRAPH
+
 # -------- toolchain --------
 CC       ?= gcc
 CFLAGS   ?= -std=c11 -O3 -Wall -Wextra -Werror -pedantic
@@ -97,11 +104,11 @@ bench-direct: build
 
 # -------- perf/Flamegraph --------
 profile: build
-	@scripts/profile_flamegraph.sh $(BIN) "profiling prompt with 64+ tokens"
+	@bash ./scripts/profile_flamegraph.sh $(BIN) "profiling prompt with 64+ tokens"
 
 perf-report: build
 	@echo "[profile] generating flamegraph..."
-	@scripts/profile_flamegraph.sh $(BIN) "profiling prompt with 64+ tokens"
+	@bash ./scripts/profile_flamegraph.sh $(BIN) "profiling prompt with 64+ tokens"
 	@echo "[report] updating docs/PERFORMANCE.md..."
 	@python3 scripts/update_performance_md.py
 
