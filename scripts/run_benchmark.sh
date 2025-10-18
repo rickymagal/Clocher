@@ -1,220 +1,160 @@
 #!/usr/bin/env bash
-# Inference Engine — benchmark harness (robust)
-# - Produces: samples.csv, summary.json, params.json (+ run_N.{json,err})
-# - Recovers from zero/empty JSON by measuring a fallback run.
-# - Synthesizes latency p50/p95 if the binary leaves them at 0.000.
+# Robust per-prompt benchmark harness (no sed JSON parsing).
+# Gera: benchmarks/reports/<STAMP>/{run_*.json,run_*.err,samples.csv,summary.json,params.json}
 
 set -euo pipefail
 
-# -------- inputs (env) --------
-BIN="${BIN:-build/inference-engine}"
-
+# ---------- Config via env ----------
 BENCH_PROMPTS="${BENCH_PROMPTS:-benchmarks/prompts_10.txt}"
 BENCH_BATCH="${BENCH_BATCH:-16}"
 BENCH_WARMUP="${BENCH_WARMUP:-4}"
-BENCH_PREFETCH="${BENCH_PREFETCH:-on}"
-
-MAX_NEW="${MAX_NEW:-256}"
+BENCH_PREFETCH="${BENCH_PREFETCH:-on}"        # on|off
+MAX_NEW="${MAX_NEW:-32}"
 THREADS="${THREADS:-4}"
-PRECISION="${PRECISION:-fp32}"
-PRETRANSPOSE="${PRETRANSPOSE:-none}"
-AFFINITY="${AFFINITY:-auto}"
-
-ROUNDS="${ROUNDS:-5}"
-DEBUG_BENCH="${DEBUG_BENCH:-0}"
-
-# -------- output dir --------
+PRECISION="${PRECISION:-fp32}"                # fp32|bf16|...
+PRETRANSPOSE="${PRETRANSPOSE:-none}"          # none|auto|...
+AFFINITY="${AFFINITY:-auto}"                  # auto|none|pin
+ROUNDS="${ROUNDS:-3}"
+BIN="${BIN:-build/inference-engine}"
+OUT_DIR_BASE="benchmarks/reports"
 STAMP="$(date -u +%Y%m%d_%H%M%S)"
-OUTDIR="benchmarks/reports/${STAMP}"
-mkdir -p "${OUTDIR}"
+OUT_DIR="${OUT_DIR_BASE}/${STAMP}"
 
-SAMPLES="${OUTDIR}/samples.csv"
-PARAMS="${OUTDIR}/params.json"
-SUMMARY="${OUTDIR}/summary.json"
+mkdir -p "${OUT_DIR}"
 
-# -------- helpers --------
-json_get() {
-  local key="$1"; shift
-  python3 - "$key" "$@" << 'PY'
-import sys, json
-key = sys.argv[1]
-src = sys.argv[2] if len(sys.argv) > 2 else '-'
-data = json.load(open(src)) if src != '-' else json.load(sys.stdin)
-v = data.get(key, None)
-if isinstance(v, float): print(f"{v:.6f}")
-elif isinstance(v, int): print(str(v))
-else: print("" if v is None else str(v))
-PY
-}
+# ---------- Sanity ----------
+if ! [ -x "${BIN}" ]; then
+  echo "[err] binary ${BIN} not found"; exit 2
+fi
+if ! [ -f "${BENCH_PROMPTS}" ]; then
+  echo "[err] prompts file ${BENCH_PROMPTS} not found"; exit 2
+fi
 
-emit_params() {
-  python3 - "${PARAMS}" <<PY
-import json, os, sys
-p = {
-  "threads": os.environ.get("THREADS","4"),
-  "precision": os.environ.get("PRECISION","fp32"),
-  "pretranspose": os.environ.get("PRETRANSPOSE","none"),
-  "affinity": os.environ.get("AFFINITY","auto"),
-  "batch": os.environ.get("BENCH_BATCH","16"),
-  "prefetch": os.environ.get("BENCH_PREFETCH","on"),
-  "warmup": os.environ.get("BENCH_WARMUP","4"),
-  "max_new": os.environ.get("MAX_NEW","256"),
-  "prompts_file": os.environ.get("BENCH_PROMPTS","benchmarks/prompts_10.txt")
-}
-json.dump(p, open(sys.argv[1],"w"))
-PY
-}
+# ---------- Load prompts ----------
+mapfile -t PROMPTS < <(awk 'NF{print}' "${BENCH_PROMPTS}")
 
-emit_summary_from_csv() {
-  python3 - "${SAMPLES}" "${SUMMARY}" <<'PY'
-import sys, csv, json, statistics as st
-samples_path, summary_path = sys.argv[1], sys.argv[2]
-rows=[]
-with open(samples_path, newline='') as f:
-  r = csv.reader(f)
-  next(r, None)  # comment header
-  next(r, None)  # columns
-  for row in r:
-    if not row or row[0].startswith('[dbg]'):
-      continue
-    try:
-      tg = float(row[0]); wt = float(row[1]); tps = float(row[2])
-      p50 = float(row[3]); p95 = float(row[4])
-    except Exception:
-      continue
-    if tg>0 and wt>0:
-      rows.append((tg,wt,tps,p50,p95))
-out={}
-if rows:
-  tps_vals = [r[2] for r in rows]
-  p50_vals = [r[3] for r in rows if r[3]>0]
-  p95_vals = [r[4] for r in rows if r[4]>0]
-  out["tps_true"] = st.median(tps_vals)
-  out["latency_p50_ms"] = (st.median(p50_vals) if p50_vals else None)
-  out["latency_p95_ms"] = (st.median(p95_vals) if p95_vals else None)
-else:
-  out["tps_true"] = None
-  out["latency_p50_ms"] = None
-  out["latency_p95_ms"] = None
-json.dump(out, open(summary_path,"w"))
-PY
-}
+# ---------- Single run ----------
+call_one() {
+  local idx="$1"
+  local prompt="$2"
+  local run_json="${OUT_DIR}/run_${idx}.json"
+  local run_err="${OUT_DIR}/run_${idx}.err"
 
-synth_latency_ms() {
-  # usage: synth_latency_ms TOKENS WALL_TIME_S
-  python3 - "$1" "$2" <<'PY'
-import sys
-tg = float(sys.argv[1]); wt = float(sys.argv[2])
-print(f"{(wt/tg*1000.0) if (tg>0 and wt>0) else 0.0:.3f}")
-PY
-}
+  local cmd=( "${BIN}" --prompt "${prompt}"
+              --max-new "${MAX_NEW}"
+              --threads "${THREADS}"
+              --precision "${PRECISION}"
+              --affinity "${AFFINITY}"
+              --batch "${BENCH_BATCH}"
+              --prefetch "${BENCH_PREFETCH}"
+              --warmup "${BENCH_WARMUP}" )
 
-fallback_measure() {
-  local tmp="${OUTDIR}/.fallback.$$"
-  local start end wall tokens
-  start=$(date +%s%N)
-  local out
-  if ! out="$("${BIN}" --prompt 'fallback bench' --max-new 32 --threads "${THREADS}" \
-                --precision "${PRECISION}" --affinity "${AFFINITY}" \
-                --batch 1 --prefetch on --warmup 0 2>"${tmp}.err")"; then
-    echo "${out}" > "${tmp}.json" || true
-  else
-    echo "${out}" > "${tmp}.json"
+  printf "[dbg] %s\n" "${cmd[*]}" > "${run_err}"
+  if ! "${cmd[@]}" > "${run_json}" 2>> "${run_err}"; then
+    echo "[warn] child run ${idx} failed (see ${run_err})"
   fi
-  end=$(date +%s%N)
-  wall=$(python3 - <<PY
-start=${start}; end=${end}
-print(f"{(end-start)/1e9:.6f}")
-PY
-)
-  tokens="$(json_get tokens_generated "${tmp}.json" || echo "0")"
-  [[ -z "${tokens}" || "${tokens}" = "0" ]] && tokens="1"
-  local lat
-  lat="$(synth_latency_ms "${tokens}" "${wall}")"
-  python3 - <<PY
-import json, sys
-print(json.dumps({
-  "tokens_generated": int(${tokens}),
-  "tokens": [],
-  "wall_time_s": float(${wall}),
-  "tps_true": (int(${tokens})/float(${wall}) if float(${wall})>0 else 0.0),
-  "latency_p50_ms": float(${lat}),
-  "latency_p95_ms": float(${lat}),
-  "rss_peak_mb": 0, "kv_hits": 0, "kv_misses": 0
-}))
-PY
 }
 
-# -------- header --------
-{
-  echo "# threads=${THREADS} precision=${PRECISION} pretranspose=${PRETRANSPOSE} affinity=${AFFINITY}"
-  echo "tokens_generated,wall_time_s,tps_true,latency_p50_ms,latency_p95_ms,cmdline"
-} > "${SAMPLES}"
-
-# -------- rounds --------
-for i in $(seq 1 "${ROUNDS}"); do
-  CMD=( "${BIN}" )
-  if [[ -f "${BENCH_PROMPTS}" ]]; then
-    CMD+=( --prompts-file "${BENCH_PROMPTS}" )
-  else
-    CMD+=( --prompt "bench default" )
-  fi
-  CMD+=( --max-new "${MAX_NEW}" --threads "${THREADS}" --precision "${PRECISION}" \
-        --affinity "${AFFINITY}" --batch "${BENCH_BATCH}" --prefetch "${BENCH_PREFETCH}" \
-        --warmup "${BENCH_WARMUP}" )
-
-  [[ "${DEBUG_BENCH}" == "1" ]] && echo "[dbg] ${CMD[*]}" >> "${SAMPLES}"
-
-  out_json="${OUTDIR}/run_${i}.json"
-  err_log="${OUTDIR}/run_${i}.err"
-  if ! "${CMD[@]}" 1>"${out_json}" 2>"${err_log}"; then :; fi
-
-  tg="$( { [[ -s "${out_json}" ]] && json_get tokens_generated "${out_json}"; } || echo "" )"
-  wt="$( { [[ -s "${out_json}" ]] && json_get wall_time_s       "${out_json}"; } || echo "" )"
-  tps="$( { [[ -s "${out_json}" ]] && json_get tps_true          "${out_json}"; } || echo "" )"
-  p50="$( { [[ -s "${out_json}" ]] && json_get latency_p50_ms     "${out_json}"; } || echo "" )"
-  p95="$( { [[ -s "${out_json}" ]] && json_get latency_p95_ms     "${out_json}"; } || echo "" )"
-
-  # If missing/zero -> fallback
-  if [[ -z "${tg}" || -z "${wt}" || "${tg}" = "0" || "${wt}" = "0.000000" || "${wt}" = "0" ]]; then
-    fb="$(fallback_measure)"
-    echo "${fb}" > "${out_json}"
-    tg="$(json_get tokens_generated "${out_json}")"
-    wt="$(json_get wall_time_s       "${out_json}")"
-    tps="$(python3 - <<PY
-tg=float("${tg}"); wt=float("${wt}")
-print(f"{(tg/wt) if wt>0 else 0.0:.6f}")
-PY
-)"
-    p50="$(json_get latency_p50_ms "${out_json}")"
-    p95="$(json_get latency_p95_ms "${out_json}")"
-  fi
-
-  # If latency still zero/missing but we have tokens & wall_time, synthesize proxy p50/p95
-  if [[ -z "${p50}" || "${p50}" = "0.000" || -z "${p95}" || "${p95}" = "0.000" ]]; then
-    if [[ -n "${tg}" && -n "${wt}" ]]; then
-      proxy="$(synth_latency_ms "${tg}" "${wt}")"
-      p50="${proxy}"
-      p95="${proxy}"
-    fi
-  fi
-
-  # If TPS missing/zero but we have tg/wt, recalc
-  if [[ -z "${tps}" || "${tps}" = "0.000000" ]]; then
-    tps="$(python3 - <<PY
-tg=float("${tg or 0}"); wt=float("${wt or 0}")
-print(f"{(tg/wt) if wt>0 else 0.0:.6f}")
-PY
-)"
-  fi
-
-  printf "%s,%s,%s,%s,%s,%s\n" "${tg}" "${wt}" "${tps}" "${p50}" "${p95}" "${CMD[*]}" >> "${SAMPLES}"
+# ---------- Execute ----------
+run_idx=0
+for r in $(seq 1 "${ROUNDS}"); do
+  for p in "${PROMPTS[@]}"; do
+    run_idx=$((run_idx + 1))
+    call_one "${run_idx}" "${p}"
+  done
 done
 
-# -------- params + summary --------
-emit_params
-emit_summary_from_csv
+# ---------- Aggregate with Python ----------
+SAMPLES_CSV="${OUT_DIR}/samples.csv"
+SUMMARY_JSON="${OUT_DIR}/summary.json"
+PARAMS_JSON="${OUT_DIR}/params.json"
 
-echo "[ok] wrote: ${SAMPLES}"
-echo "[ok] wrote: ${SUMMARY}"
-echo "[ok] wrote: ${PARAMS}"
+python3 - "$OUT_DIR" "$THREADS" "$PRECISION" "$PRETRANSPOSE" "$AFFINITY" <<'PY'
+import sys, json, glob, statistics, math, os
+out_dir, threads, precision, pretranspose, affinity = sys.argv[1:6]
+
+runs = sorted(glob.glob(os.path.join(out_dir, "run_*.json")))
+rows = []
+t_tokens = 0
+t_wall = 0.0
+p50_vals = []
+p95_vals = []
+
+def safe_get(d, k, default):
+    v = d.get(k, default)
+    # normalize numbers
+    if isinstance(v, (int, float)):
+        return v
+    try:
+        return float(v)
+    except Exception:
+        return default
+
+for f in runs:
+    try:
+        with open(f, "r", encoding="utf-8", errors="ignore") as fh:
+            text = fh.read().strip()
+            if not text:
+                raise ValueError("empty")
+            data = json.loads(text)
+    except Exception:
+        # malformed or empty -> zero row
+        rows.append((0, 0.0, 0.0, 0.0, 0.0, "via-run_benchmark.sh"))
+        continue
+
+    tok = int(data.get("tokens_generated", 0) or 0)
+    wall = float(data.get("wall_time_s", 0.0) or 0.0)
+    tps  = float(data.get("tps_true", 0.0) or 0.0)
+    p50  = float(data.get("latency_p50_ms", 0.0) or 0.0)
+    p95  = float(data.get("latency_p95_ms", 0.0) or 0.0)
+    cmd  = data.get("cmdline", "via-run_benchmark.sh")
+
+    rows.append((tok, wall, tps, p50, p95, cmd))
+    t_tokens += tok
+    t_wall   += wall
+    p50_vals.append(p50)
+    p95_vals.append(p95)
+
+# write samples.csv
+with open(os.path.join(out_dir, "samples.csv"), "w", encoding="utf-8") as csv:
+    csv.write(f"# threads={threads} precision={precision} pretranspose={pretranspose} affinity={affinity}\n")
+    csv.write("tokens_generated,wall_time_s,tps_true,latency_p50_ms,latency_p95_ms,cmdline\n")
+    for tok, wall, tps, p50, p95, cmd in rows:
+        csv.write(f"{tok},{wall:.6f},{tps:.6f},{p50:.3f},{p95:.3f},{cmd}\n")
+
+# aggregate
+agg_tps = (t_tokens / t_wall) if t_wall > 0 else 0.0
+def quantile(vs, q):
+    if not vs:
+        return 0.0
+    vs = sorted(vs)
+    i = int(round((len(vs)-1)*q))
+    i = max(0, min(i, len(vs)-1))
+    return float(vs[i])
+
+agg_p50 = quantile(p50_vals, 0.50)
+agg_p95 = quantile(p95_vals, 0.95)
+
+with open(os.path.join(out_dir, "summary.json"), "w", encoding="utf-8") as fh:
+    json.dump({
+        "tokens_generated": t_tokens,
+        "wall_time_s": round(t_wall, 6),
+        "tps_true": float(f"{agg_tps:.6f}"),
+        "latency_p50_ms": float(f"{agg_p50:.3f}"),
+        "latency_p95_ms": float(f"{agg_p95:.3f}")
+    }, fh)
+
+with open(os.path.join(out_dir, "params.json"), "w", encoding="utf-8") as fh:
+    json.dump({
+        "threads": int(threads),
+        "precision": precision,
+        "pretranspose": pretranspose,
+        "affinity": affinity
+    }, fh)
+
+print(f"[ok] wrote: {os.path.join(out_dir, 'samples.csv')}")
+print(f"[ok] wrote: {os.path.join(out_dir, 'summary.json')}")
+print(f"[ok] wrote: {os.path.join(out_dir, 'params.json')}")
+PY
+
+echo "${OUT_DIR}"

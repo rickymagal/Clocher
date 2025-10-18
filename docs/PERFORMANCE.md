@@ -1,12 +1,12 @@
 # Performance Notes
 
-_Last updated: **2025-10-17 23:12:05 UTC**_
+_Last updated: **2025-10-17 23:57:44 UTC**_
 
 ## Summary (latest run)
-- Reports directory: `/home/ricky/Desktop/inference-engine/benchmarks/reports/20251017_231204`
-- TPS (true): **15016.424**
-- Latency p50: **0.067**
-- Latency p95: **0.067**
+- Reports directory: `/home/ricky/Desktop/inference-engine/benchmarks/reports/20251017_235743`
+- TPS (true): **426666.667**
+- Latency p50: **0.002**
+- Latency p95: **0.005**
 
 ## Run parameters
 - Threads: **4**
@@ -15,8 +15,8 @@ _Last updated: **2025-10-17 23:12:05 UTC**_
 - Affinity policy (CLI): **auto**
 
 ## Profiling Artifacts
-- `flamegraph.svg`: **absent**
-- `perf.data`: **absent**
+- `flamegraph.svg`: **present**
+- `perf.data`: **present**
 
 ## Hot Paths (annotated)
 - GEMV (`ie_gemv_f32`): AVX2 microkernel if available; otherwise generic path.

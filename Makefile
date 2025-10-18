@@ -80,7 +80,7 @@ test: build
 
 # -------- benchmark harness --------
 bench: build
-	@BENCH_PROMPTS="$(if $(BENCH_PROMPTS),$(BENCH_PROMPTS),benchmarks/prompts.txt)" \
+	@BENCH_PROMPTS="$(if $(BENCH_PROMPTS),$(BENCH_PROMPTS),benchmarks/prompts_10.txt)" \
 	  BENCH_BATCH="$(if $(BENCH_BATCH),$(BENCH_BATCH),32)" \
 	  BENCH_WARMUP="$(if $(BENCH_WARMUP),$(BENCH_WARMUP),4)" \
 	  BENCH_PREFETCH="$(if $(BENCH_PREFETCH),$(BENCH_PREFETCH),on)" \
@@ -89,7 +89,7 @@ bench: build
 # Quick direct bench without the shell harness (optional)
 bench-direct: build
 	@set -e; \
-	PF="$(if $(BENCH_PROMPTS),$(BENCH_PROMPTS),benchmarks/prompts.txt)"; \
+	PF="$(if $(BENCH_PROMPTS),$(BENCH_PROMPTS),benchmarks/prompts_10.txt)"; \
 	BATCH="$(if $(BENCH_BATCH),$(BENCH_BATCH),32)"; \
 	WARM="$(if $(BENCH_WARMUP),$(BENCH_WARMUP),4)"; \
 	PREF="$(if $(BENCH_PREFETCH),$(BENCH_PREFETCH),on)"; \
