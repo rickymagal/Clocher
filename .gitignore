@@ -38,6 +38,18 @@ __pycache__/
 .venv/
 venv/
 .env/
+.env.*
+
+# Notebooks (if any)
+*.ipynb
+.ipynb_checkpoints/
+
+# Coverage & test artifacts
+.coverage
+htmlcov/
+.tox/
+.mypy_cache/
+.pytype/
 
 # ===== Benchmarks & profiling outputs =====
 benchmarks/reports/*
@@ -48,14 +60,29 @@ perf.data*
 out.perf
 flamegraph.svg
 
-# ===== Models (IEBIN v1) =====
-# Keep metadata and vocab JSONs; ignore big binary weights by default.
-models/**/*.bin
-models/**/SHA256SUMS
-# Allow JSON and vocab files and directory placeholders
-!models/**/
-!models/**/*.json
+# Optional local FlameGraph symlinks/scripts (avoid committing system-specific links)
+scripts/FlameGraph/flamegraph.pl
+scripts/FlameGraph/stackcollapse-perf.pl
+
+# ===== Models (IEBIN v1 and raw HF dumps) =====
+# Keep the directory structure and small JSON metadata (IEBIN + vocab),
+# ignore large weight blobs and raw checkpoints/shards.
+models/**/
 !models/**/.gitkeep
+# IEBIN weights (usually huge)
+models/**/*.bin
+# HF raw formats
+models/**/*.safetensors
+models/**/model.safetensors.index.json
+models/**/pytorch_model.bin
+models/**/pytorch_model.bin.index.json
+models/**/*.ckpt
+models/**/*.pt
+models/**/*.onnx
+models/**/SHA256SUMS
+# Allow IEBIN metadata & vocab (small JSONs)
+!models/**/model.ie.json
+!models/**/vocab.json
 
 # ===== Logs & temporary files =====
 *.log
@@ -64,8 +91,11 @@ tmp/
 cache/
 *.bak
 
+# Core dumps
+core
+core.*
+
 # ===== Docker / Containers (optional) =====
 .dist/
 .docker/
 docker-cache/
-

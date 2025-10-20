@@ -1,22 +1,43 @@
 # Performance Notes
 
-_Last updated: **2025-10-17 23:57:44 UTC**_
+_Last updated: **2025-10-20 19:24:18 UTC**_
 
-## Summary (latest run)
-- Reports directory: `/home/ricky/Desktop/inference-engine/benchmarks/reports/20251017_235743`
-- TPS (true): **426666.667**
-- Latency p50: **0.002**
-- Latency p95: **0.005**
+## Summary (latest benchmark)
+- Source: `strict` (scripts/true_tps_strict.sh)
+- Runs: **1**
+- Tokens (total): **1280**
+- Wall time (s): **17.874463**
+- TPS (true): **71.611**
 
 ## Run parameters
-- Threads: **4**
-- Precision: **fp32**
-- Pretranspose: **none**
-- Affinity policy (CLI): **auto**
+- Threads: ****
+- Precision: ****
+- Pretranspose: ****
+- Batch: ****
+- Prefetch: ****
+- Max new tokens: ****
+- Target seconds: ****
+- Prompts file: ****
+- Affinity policy (CLI): ****
+- IE_BYTES_PER_TOKEN: ****
+- IE_STRIDE_BYTES: ****
+- IE_VERIFY_TOUCH: ****
+
+## System & Model Info
+- CPU: **12th Gen Intel(R) Core(TM) i5-12450H**
+- Logical cores: **12**
+- RAM (MemTotal): **7.5 GB**
+- OS: **Fedora Linux 42 (KDE Plasma Desktop Edition)**
+- Kernel: **6.16.9-200.fc42.x86_64**
+- Model dir: `/home/ricky/Desktop/inference-engine/models/gpt-oss-20b`
+- model.ie.json: `/home/ricky/Desktop/inference-engine/models/gpt-oss-20b/model.ie.json` (126.8 KB, mtime 2025-10-20T16:51:11.780555+00:00)
+- model.ie.bin: `/home/ricky/Desktop/inference-engine/models/gpt-oss-20b/model.ie.bin` (77.3 GB, mtime 2025-10-20T16:51:08.307661+00:00)
+- vocab.json: `/home/ricky/Desktop/inference-engine/models/gpt-oss-20b/vocab.json`
+- Dtype: **float32**; Tensors: **664**
 
 ## Profiling Artifacts
-- `flamegraph.svg`: **present**
-- `perf.data`: **present**
+- `flamegraph.svg`: **missing**
+- `perf.data`: **missing**
 
 ## Hot Paths (annotated)
 - GEMV (`ie_gemv_f32`): AVX2 microkernel if available; otherwise generic path.
@@ -24,6 +45,6 @@ _Last updated: **2025-10-17 23:57:44 UTC**_
 - Thread pool scheduling: contiguous shard with grainsize control and optional pinning.
 
 ## Next optimization actions
-- Validate NUMA policy impacts using `scripts/set_numa.sh` (`interleave|node:X|strict`).
-- Explore epilogue fusion (bias + activation) in GEMV output.
-- Extend blocked-K packing and prefetch distances based on flamegraph evidence.
+- Validate NUMA policy using `scripts/set_numa.sh` (`interleave|node:X|strict`).
+- Explore epilogue fusion (bias + activation) on GEMV output.
+- Extend blocked-K packing and tune prefetch distances based on the flamegraph.
