@@ -40,11 +40,11 @@ venv/
 .env/
 .env.*
 
-# Notebooks (if any)
+# Notebooks
 *.ipynb
 .ipynb_checkpoints/
 
-# Coverage & test artifacts
+# Coverage & type-check
 .coverage
 htmlcov/
 .tox/
@@ -64,25 +64,19 @@ flamegraph.svg
 scripts/FlameGraph/flamegraph.pl
 scripts/FlameGraph/stackcollapse-perf.pl
 
-# ===== Models (IEBIN v1 and raw HF dumps) =====
-# Keep the directory structure and small JSON metadata (IEBIN + vocab),
-# ignore large weight blobs and raw checkpoints/shards.
-models/**/
-!models/**/.gitkeep
-# IEBIN weights (usually huge)
-models/**/*.bin
-# HF raw formats
-models/**/*.safetensors
-models/**/model.safetensors.index.json
-models/**/pytorch_model.bin
-models/**/pytorch_model.bin.index.json
-models/**/*.ckpt
-models/**/*.pt
-models/**/*.onnx
-models/**/SHA256SUMS
-# Allow IEBIN metadata & vocab (small JSONs)
+# ===== Models (track small metadata, ignore ONLY the big local model) =====
+# Keep model directories & small JSONs everywhere
+!models/**/
 !models/**/model.ie.json
 !models/**/vocab.json
+!models/**/.gitkeep
+
+# Ignore ONLY the large weights for the 20B repo-local model
+models/gpt-oss-20b/model.ie.bin
+models/gpt-oss-20b/model.ie.bin.*
+
+# (Optional) ignore local raw HF dump used to build the 20B IEBIN (huge)
+models/neox20b_raw/**
 
 # ===== Logs & temporary files =====
 *.log

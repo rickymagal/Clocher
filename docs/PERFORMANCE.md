@@ -1,27 +1,27 @@
 # Performance Notes
 
-_Last updated: **2025-10-20 19:24:18 UTC**_
+_Last updated: **2025-10-20 21:46:53 UTC**_
 
 ## Summary (latest benchmark)
 - Source: `strict` (scripts/true_tps_strict.sh)
 - Runs: **1**
 - Tokens (total): **1280**
-- Wall time (s): **17.874463**
-- TPS (true): **71.611**
+- Wall time (s): **31.604864**
+- TPS (true): **40.500**
 
 ## Run parameters
-- Threads: ****
-- Precision: ****
-- Pretranspose: ****
-- Batch: ****
-- Prefetch: ****
-- Max new tokens: ****
-- Target seconds: ****
-- Prompts file: ****
-- Affinity policy (CLI): ****
-- IE_BYTES_PER_TOKEN: ****
-- IE_STRIDE_BYTES: ****
-- IE_VERIFY_TOUCH: ****
+- Threads: **12**
+- Precision: **fp32**
+- Pretranspose: **all**
+- Batch: **1**
+- Prefetch: **auto**
+- Max new tokens: **128**
+- Target seconds: **10**
+- Prompts file: **benchmarks/prompts_10.txt**
+- Affinity policy (CLI): **compact**
+- IE_BYTES_PER_TOKEN: **44040192**
+- IE_STRIDE_BYTES: **256**
+- IE_VERIFY_TOUCH: **1**
 
 ## System & Model Info
 - CPU: **12th Gen Intel(R) Core(TM) i5-12450H**

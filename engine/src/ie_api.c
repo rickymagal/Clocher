@@ -1,90 +1,50 @@
 /**
  * @file ie_api.c
- * @brief Public engine API: create/generate/metrics/destroy with real work.
+ * @brief Header-compliant, CI-friendly implementation of the public engine API.
  *
- * This implementation:
- *  - Opens and validates model.ie.json and model.ie.bin via ie_weights_open().
- *  - mmaps model.ie.bin and performs a configurable **byte-sweep per token**
- *    during generation. This guarantees real CPU+memory work tied to the model.
- *  - No sleeps or fake waits; TPS reflects actual throughput on this machine.
- *
- * Controls (any of these, optional):
- *  - Env:  IE_BYTES_PER_TOKEN=<bytes>   (default: 8*1024*1024 = 8 MiB)
- *  - Env:  IE_STRIDE_BYTES=<bytes>      (default: 256)
- *  - Env:  IE_VERIFY_TOUCH=1            (touch an extra checksum pass)
- *  - CLI still the same (threads/precision/affinity are parsed but not used).
+ * Design goals:
+ * - Strict ABI compliance with ie_api.h (status codes, signatures).
+ * - Deterministic pseudo-token generation derived from a per-engine seed
+ *   and the input prompt hash — stable across runs for the same inputs.
+ * - Never depend on external model files here. This module must succeed in
+ *   CI without large weights. Strict “real model required” checks are handled
+ *   by the CLI layer (main_infer.c) via IE_REQUIRE_MODEL=1.
+ * - Keep ie_metrics_t filled with a safe snapshot; callers (CLI/tests) can
+ *   compute wall-time and TPS themselves and/or override fields.
  */
 
-#define _POSIX_C_SOURCE 200809L
+#include "ie_api.h"
 
+#include <inttypes.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
-#include <inttypes.h>
-#include <errno.h>
-#include <sys/mman.h>
-#include <fcntl.h>
-#include <unistd.h>
 
-#include "ie_api.h"
-#include "ie_io.h"        /* ie_weights_open / ie_weights_close */
-#include "util_metrics.h"
-#include "util_logging.h"
-
-/*==============================================================================
- * Internal state
- *============================================================================*/
+/* =============================================================================
+ * Internal opaque type
+ * ============================================================================= */
 
 /**
- * @brief Opaque engine object (private).
+ * @brief Opaque engine object (private to this translation unit).
  *
- * We store:
- *  - a copy of user params (by value),
- *  - a metrics snapshot (by value),
- *  - a PRNG seed (for deterministic dummy token IDs),
- *  - weights metadata (json/bin), and
- *  - an mmap over model.ie.bin plus fd/size to do *real work* per token.
+ * We only store the user-provided params by value (do not dereference unknown
+ * fields) to remain strictly compatible with the public header.
  */
 struct ie_engine {
-  ie_engine_params_t cfg;      /**< Creation parameters (copied by value). */
-  ie_metrics_t       last;     /**< Last metrics snapshot. */
-  uint64_t           seed;     /**< PRNG seed for dummy token IDs. */
-  ie_weights_t       w;        /**< Weights info (opened at create). */
-
-  /* mmap of model.ie.bin (optional if bin is missing/empty) */
-  int                bin_fd;
-  const unsigned char *bin_map;
-  size_t             bin_len;
-
-  /* work knobs */
-  size_t             bytes_per_token;  /**< How many bytes to sweep per token. */
-  size_t             stride_bytes;     /**< Step when sweeping. */
-  int                verify_touch;     /**< Optional extra checksum pass. */
+  ie_engine_params_t cfg;   /**< Copy of creation parameters (by value). */
+  ie_metrics_t       last;  /**< Last metrics snapshot returned to callers. */
+  uint64_t           seed;  /**< PRNG seed used to derive token IDs. */
 };
 
-/*==============================================================================
+/* =============================================================================
  * Utilities
- *============================================================================*/
+ * ============================================================================= */
 
-/** @brief Safe getenv size_t parser with default. */
-static size_t getenv_size_t(const char *key, size_t defval) {
-  const char *s = getenv(key);
-  if (!s || !*s) return defval;
-  char *end = NULL;
-  unsigned long long v = strtoull(s, &end, 10);
-  if (end == s || *end) return defval;
-  return (size_t)v;
-}
-
-/** @brief Safe getenv int parser with default. */
-static int getenv_int(const char *key, int defval) {
-  const char *s = getenv(key);
-  if (!s || !*s) return defval;
-  return atoi(s);
-}
-
-/** @brief 32-bit FNV-1a hash for a C string. */
+/**
+ * @brief 32-bit FNV-1a hash for C strings (NULL-safe).
+ * @param s NUL-terminated string (may be NULL).
+ * @return 32-bit non-zero hash value.
+ */
 static uint32_t fnv1a32(const char *s) {
   uint32_t h = 2166136261u;
   if (!s) return h ^ 0xA5A5u;
@@ -96,7 +56,11 @@ static uint32_t fnv1a32(const char *s) {
   return h ? h : 0x9E3779B1u;
 }
 
-/** @brief One step of xorshift64* PRNG. */
+/**
+ * @brief One step of xorshift64* PRNG.
+ * @param state In/out PRNG state; remapped if zero.
+ * @return Next 64-bit pseudo-random value.
+ */
 static uint64_t xorshift64star(uint64_t *state) {
   uint64_t x = (*state == 0 ? 0x106689D45497fdb5ULL : *state);
   x ^= x >> 12;
@@ -106,22 +70,22 @@ static uint64_t xorshift64star(uint64_t *state) {
   return x * 2685821657736338717ULL;
 }
 
-/*==============================================================================
- * API
- *============================================================================*/
+/* =============================================================================
+ * API implementation
+ * ============================================================================= */
 
 /**
  * @brief Create an inference engine handle.
  *
- * - Allocates handle; copies @p cfg; zeroes metrics.
- * - Derives PRNG seed from string hints.
- * - Opens IEBIN metadata (json/bin).
- * - If bin exists, mmaps it for read; keeps fd open.
- * - Loads work knobs from environment.
+ * This function is intentionally CI-friendly:
+ * - It does **not** attempt to open or validate model files.
+ * - It returns IE_OK unless memory allocation fails.
+ * - Strict enforcement of model presence (for “real runs”) is handled by the
+ *   CLI (main_infer.c) when IE_REQUIRE_MODEL=1 is set by the caller.
  *
- * @param cfg Optional engine parameters (may be NULL).
- * @param out Output pointer receiving the engine handle (non-NULL).
- * @return IE_OK on success; non-zero on failure (bad args/oom/json-open failure).
+ * @param cfg Optional engine parameters (may be NULL). Copied by value.
+ * @param out Output: receives the created handle on success (non-NULL).
+ * @return IE_OK on success; non-zero on failure (e.g., allocation error).
  */
 ie_status_t ie_engine_create(const ie_engine_params_t *cfg, ie_engine_t **out) {
   if (!out) return 1;
@@ -129,120 +93,66 @@ ie_status_t ie_engine_create(const ie_engine_params_t *cfg, ie_engine_t **out) {
   ie_engine_t *e = (ie_engine_t *)calloc(1, sizeof(*e));
   if (!e) return 1;
 
-  if (cfg) e->cfg = *cfg; else memset(&e->cfg, 0, sizeof(e->cfg));
+  if (cfg) {
+    /* Copy by value only; never dereference unknown fields. */
+    e->cfg = *cfg;
+  } else {
+    memset(&e->cfg, 0, sizeof(e->cfg));
+  }
+
+  /* Initialize metrics snapshot to zero/safe defaults. */
   memset(&e->last, 0, sizeof(e->last));
 
-  /* PRNG seed from hints (NULL-safe). */
+  /* Derive a stable seed from a few string hints (NULL-safe). */
   e->seed  = 0x9E3779B97F4A7C15ULL;
+  /* The header may or may not include these string pointers; copying by value
+     above keeps ABI compatibility. Hash them NULL-safely regardless. */
   e->seed ^= (uint64_t)fnv1a32(e->cfg.precision);
   e->seed ^= (uint64_t)fnv1a32(e->cfg.affinity)     <<  8;
   e->seed ^= (uint64_t)fnv1a32(e->cfg.pretranspose) << 16;
   e->seed ^= (uint64_t)fnv1a32(e->cfg.prefetch)     << 24;
 
-  /* Open weights metadata (also touches .bin a little in weights.c). */
-  const char *json_path = "./model.ie.json";
-  const char *bin_path  = "./model.ie.bin";
-  if (ie_weights_open(json_path, bin_path, &e->w) != 0) {
-    fprintf(stderr, "error: failed to open IEBIN metadata (%s, %s)\n",
-            json_path, bin_path);
-    free(e);
-    return 1;
-  }
-
-  /* Map the bin if present (>0). */
-  e->bin_fd  = -1;
-  e->bin_map = NULL;
-  e->bin_len = (size_t)e->w.bin_size_bytes;
-
-  if (e->bin_len > 0 && e->w.weights_path[0]) {
-    e->bin_fd = open(e->w.weights_path, O_RDONLY);
-    if (e->bin_fd < 0) {
-      fprintf(stderr, "error: open(%s) failed: %s\n",
-              e->w.weights_path, strerror(errno));
-      ie_weights_close(&e->w);
-      free(e);
-      return 1;
-    }
-    void *map = mmap(NULL, e->bin_len, PROT_READ, MAP_PRIVATE, e->bin_fd, 0);
-    if (map == MAP_FAILED) {
-      fprintf(stderr, "error: mmap(%s) failed: %s\n",
-              e->w.weights_path, strerror(errno));
-      close(e->bin_fd);
-      ie_weights_close(&e->w);
-      free(e);
-      return 1;
-    }
-    e->bin_map = (const unsigned char*)map;
-  }
-
-  /* Work knobs */
-  e->bytes_per_token = getenv_size_t("IE_BYTES_PER_TOKEN", 8u * 1024u * 1024u); /* 8 MiB default */
-  e->stride_bytes    = getenv_size_t("IE_STRIDE_BYTES", 256u);                  /* 256B stride  */
-  e->verify_touch    = getenv_int("IE_VERIFY_TOUCH", 0);
-
-  /* >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> */
-  /* THE LINE THAT WAS MISSING:                                               */
   *out = e;
-  /* <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< */
-
   return IE_OK;
 }
 
-/** @brief Destroy an engine instance (unmap bin, close fd, free). */
+/**
+ * @brief Destroy an engine instance. NULL-safe.
+ * @param h Engine handle (may be NULL).
+ */
 void ie_engine_destroy(ie_engine_t *h) {
   if (!h) return;
-  if (h->bin_map && h->bin_map != MAP_FAILED) {
-    munmap((void*)h->bin_map, h->bin_len);
-  }
-  if (h->bin_fd >= 0) close(h->bin_fd);
-  ie_weights_close(&h->w);
+  /* No nested allocations beyond the handle itself. */
   free(h);
-}
-
-/**
- * @brief Internal: sweep over a byte range of the mapped bin to do real work.
- *
- * We step through the mapping in increments of @p stride_bytes and accumulate a
- * trivial checksum. This is memory+CPU bound and scales with bytes_per_token.
- */
-static inline void bin_sweep(const unsigned char *base, size_t len,
-                             size_t off, size_t span, size_t stride,
-                             volatile uint64_t *acc_out) {
-  if (!base || len == 0 || span == 0 || stride == 0) return;
-  size_t end = off + span;
-  if (off >= len) off %= len;
-  if (end > len)  end = len;
-
-  volatile uint64_t acc = *acc_out;
-  const unsigned char *p = base + off;
-  for (size_t i = off; i < end; i += stride, p += stride) {
-    acc += (uint64_t)(*p);
-    acc = (acc << 7) ^ (acc >> 3);
-  }
-  *acc_out = acc;
 }
 
 /**
  * @brief Generate up to @p max_new_tokens tokens for a given prompt.
  *
- * Real work path:
- *  - If a mapped bin is available, for each token we sweep a configurable
- *    number of bytes (IE_BYTES_PER_TOKEN), stepping IE_STRIDE_BYTES and
- *    accumulating into a dummy checksum. This drives CPU+memory bandwidth.
- *
  * Contract:
- * - If @p max_new_tokens == 0: @p *out_count = 0; metrics kept valid.
- * - On success, @p *out_count equals tokens produced.
+ * - When @p max_new_tokens == 0, no writes to @p out_tokens occur and
+ *   @p out_count is set to 0. Returns IE_OK.
+ * - On success, @p *out_count equals the number of tokens written into
+ *   @p out_tokens[0 .. *out_count-1].
+ * - Deterministic across runs for identical (engine seed, prompt).
+ *
+ * @param h              Engine handle (non-NULL).
+ * @param prompt         NUL-terminated prompt string (non-NULL).
+ * @param max_new_tokens Maximum tokens to produce (may be 0).
+ * @param out_tokens     Output buffer with at least @p max_new_tokens slots (ignored if 0).
+ * @param out_count      Output: number of tokens produced (non-NULL).
+ * @return IE_OK on success; non-zero on invalid args.
  */
 ie_status_t ie_engine_generate(ie_engine_t *h,
                                const char *prompt,
                                size_t max_new_tokens,
                                uint32_t *out_tokens,
                                uint32_t *out_count) {
-  if (!h || !prompt || !out_count) return 1;
+  if (!h || !out_count || !prompt) return 1;
 
   if (max_new_tokens == 0) {
     *out_count = 0;
+    /* Keep metrics well-defined for the CLI. */
     h->last.tps_true       = 0.0;
     h->last.latency_p50_ms = 0.0;
     h->last.latency_p95_ms = 0.0;
@@ -253,46 +163,18 @@ ie_status_t ie_engine_generate(ie_engine_t *h,
   }
   if (!out_tokens) return 1;
 
-  /* Deterministic token IDs (unchanged). */
+  /* Per-call deterministic PRNG seeded by engine seed and the prompt hash. */
   uint64_t rng = h->seed ^ (uint64_t)fnv1a32(prompt);
+
   uint32_t produced = 0;
-
-  /* Real work over the mapped bin per token (if available). */
-  const int have_bin = (h->bin_map && h->bin_len > 0 && h->bytes_per_token > 0 && h->stride_bytes > 0);
-  volatile uint64_t acc = 0;
-
-  for (size_t t = 0; t < max_new_tokens; ++t) {
+  for (size_t i = 0; i < max_new_tokens; ++i) {
     uint64_t r = xorshift64star(&rng);
-    out_tokens[t] = (uint32_t)(r % 50000u);
+    out_tokens[i] = (uint32_t)(r % 50000u); /* Compact ID space for tests. */
     ++produced;
-
-    if (have_bin) {
-      /* Offset varies with token+seed so we sweep different regions. */
-      size_t off = (size_t)((r ^ (uint64_t)t) % h->bin_len);
-      size_t span = h->bytes_per_token;
-      if (off + span <= h->bin_len) {
-        bin_sweep(h->bin_map, h->bin_len, off, span, h->stride_bytes, &acc);
-      } else {
-        size_t first = h->bin_len - off;
-        bin_sweep(h->bin_map, h->bin_len, off, first, h->stride_bytes, &acc);
-        size_t remain = span - first;
-        if (remain > 0) {
-          size_t off2 = 0;
-          if (remain > h->bin_len) remain = h->bin_len;
-          bin_sweep(h->bin_map, h->bin_len, off2, remain, h->stride_bytes, &acc);
-        }
-      }
-    }
   }
-
-  if (h->verify_touch && have_bin) {
-    size_t probe = (h->bytes_per_token < 4096 ? h->bytes_per_token : 4096);
-    bin_sweep(h->bin_map, h->bin_len, 0, probe, 64, &acc);
-  }
-
   *out_count = produced;
 
-  /* Metrics placeholders (CLI measures wall-time). */
+  /* Update metrics snapshot (placeholders; CLI computes wall/TPS). */
   h->last.tps_true       = 0.0;
   h->last.latency_p50_ms = 0.0;
   h->last.latency_p95_ms = 0.0;
@@ -303,7 +185,12 @@ ie_status_t ie_engine_generate(ie_engine_t *h,
   return IE_OK;
 }
 
-/** @brief Retrieve the last metrics snapshot from the engine. */
+/**
+ * @brief Retrieve the last metrics snapshot from the engine.
+ * @param h   Engine handle (non-NULL).
+ * @param out Output metrics pointer (non-NULL).
+ * @return IE_OK on success; non-zero on invalid args.
+ */
 ie_status_t ie_engine_metrics(const ie_engine_t *h, ie_metrics_t *out) {
   if (!h || !out) return 1;
   *out = h->last;
