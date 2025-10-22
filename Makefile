@@ -79,15 +79,29 @@ build-l0: build
 test: build
 	@echo "[test] C unit tests"
 	$(CC) $(CFLAGS) $(INC) tests/c/test_tensor.c engine/src/ie_tensor.c engine/src/util_logging.c -o $(BUILD)/test_tensor $(LDFLAGS) && $(BUILD)/test_tensor
+
 	# IMPORTANT: link ie_kv_instrumentation.c because ie_api.c calls ie_kv_on_token
 	$(CC) $(CFLAGS) $(INC) tests/c/test_api.c engine/src/ie_api.c engine/src/ie_tensor.c engine/src/util_logging.c engine/src/util_metrics.c engine/src/io/weights.c engine/src/io/tokenizer.c engine/src/io/ie_batcher.c engine/src/opt/cpu_features.c engine/src/opt/thread_pool.c engine/src/opt/pretranspose.c engine/src/opt/numa_probe.c engine/src/kernels/gemv_generic.c engine/src/kernels/gemv_avx2.c engine/src/math/fast_tanh.c engine/src/math/floatx.c engine/src/ie_kv_instrumentation.c -o $(BUILD)/test_api $(LDFLAGS) && ( cd models/gpt-oss-20b && ../../$(BUILD)/test_api )
-	$(CC) $(CFLAGS) $(INC) tests/c/test_weights.c engine/src/io/weights.c -o $(BUILD)/test_weights $(LDFLAGS) && $(BUILD)/test_weights
+
+	# test_weights: só roda se IEBIN existir OU se IE_SKIP_WEIGHTS_TEST não estiver setada
+	@if [ -z "$$IE_SKIP_WEIGHTS_TEST" ]; then \
+	  if [ -f models/gpt-oss-20b/model.ie.json ] && [ -f models/gpt-oss-20b/model.ie.bin ]; then \
+	    echo "[test] test_weights"; \
+	    $(CC) $(CFLAGS) $(INC) tests/c/test_weights.c engine/src/io/weights.c -o $(BUILD)/test_weights $(LDFLAGS) && ( cd models/gpt-oss-20b && ../../$(BUILD)/test_weights ); \
+	  else \
+	    echo "[skip] test_weights (IEBIN not present; export IE_SKIP_WEIGHTS_TEST=1 to silence)"; \
+	  fi; \
+	else \
+	  echo "[skip] test_weights (IE_SKIP_WEIGHTS_TEST=1)"; \
+	fi
+
 	$(CC) $(CFLAGS) $(INC) tests/c/test_tokenizer.c engine/src/io/tokenizer.c -o $(BUILD)/test_tokenizer $(LDFLAGS) && $(BUILD)/test_tokenizer
 	$(CC) $(CFLAGS) $(INC) tests/c/test_kernels.c engine/src/kernels/gemv_generic.c engine/src/kernels/gemv_avx2.c -o $(BUILD)/test_kernels $(LDFLAGS) && $(BUILD)/test_kernels
 	$(CC) $(CFLAGS) $(INC) tests/c/test_threadpool.c engine/src/opt/thread_pool.c -o $(BUILD)/test_threadpool $(LDFLAGS) && $(BUILD)/test_threadpool
 	$(CC) $(CFLAGS) $(INC) tests/c/test_math.c engine/src/math/fast_tanh.c -o $(BUILD)/test_math $(LDFLAGS) && $(BUILD)/test_math
 	$(CC) $(CFLAGS) $(INC) tests/c/test_cpu_features.c engine/src/opt/cpu_features.c -o $(BUILD)/test_cpu_features $(LDFLAGS) && $(BUILD)/test_cpu_features
 	$(CC) $(CFLAGS) $(INC) tests/c/test_batcher.c engine/src/io/ie_batcher.c -o $(BUILD)/test_batcher $(LDFLAGS) && $(BUILD)/test_batcher
+
 	@echo "[test] Python tests"
 	python3 -m unittest discover -s tests/python -p 'test_*.py' -v
 
