@@ -1,3 +1,4 @@
+# File: Makefile
 # Inference Engine — C core + Python stdlib harness
 # =================================================
 # Complete Makefile (English-only)
@@ -39,7 +40,8 @@ SRC_CORE := \
   engine/src/kernels/gemv_generic.c \
   engine/src/kernels/gemv_avx2.c \
   engine/src/math/fast_tanh.c \
-  engine/src/math/floatx.c
+  engine/src/math/floatx.c \
+  engine/src/ie_kv_instrumentation.c
 
 # CLI entry point
 SRC_MAIN := engine/src/main_infer.c
@@ -77,7 +79,8 @@ build-l0: build
 test: build
 	@echo "[test] C unit tests"
 	$(CC) $(CFLAGS) $(INC) tests/c/test_tensor.c engine/src/ie_tensor.c engine/src/util_logging.c -o $(BUILD)/test_tensor $(LDFLAGS) && $(BUILD)/test_tensor
-	$(CC) $(CFLAGS) $(INC) tests/c/test_api.c engine/src/ie_api.c engine/src/ie_tensor.c engine/src/util_logging.c engine/src/util_metrics.c engine/src/io/weights.c engine/src/io/tokenizer.c engine/src/io/ie_batcher.c engine/src/opt/cpu_features.c engine/src/opt/thread_pool.c engine/src/opt/pretranspose.c engine/src/opt/numa_probe.c engine/src/kernels/gemv_generic.c engine/src/kernels/gemv_avx2.c engine/src/math/fast_tanh.c engine/src/math/floatx.c -o $(BUILD)/test_api $(LDFLAGS) && ( cd models/gpt-oss-20b && ../../$(BUILD)/test_api )
+	# IMPORTANT: link ie_kv_instrumentation.c because ie_api.c calls ie_kv_on_token
+	$(CC) $(CFLAGS) $(INC) tests/c/test_api.c engine/src/ie_api.c engine/src/ie_tensor.c engine/src/util_logging.c engine/src/util_metrics.c engine/src/io/weights.c engine/src/io/tokenizer.c engine/src/io/ie_batcher.c engine/src/opt/cpu_features.c engine/src/opt/thread_pool.c engine/src/opt/pretranspose.c engine/src/opt/numa_probe.c engine/src/kernels/gemv_generic.c engine/src/kernels/gemv_avx2.c engine/src/math/fast_tanh.c engine/src/math/floatx.c engine/src/ie_kv_instrumentation.c -o $(BUILD)/test_api $(LDFLAGS) && ( cd models/gpt-oss-20b && ../../$(BUILD)/test_api )
 	$(CC) $(CFLAGS) $(INC) tests/c/test_weights.c engine/src/io/weights.c -o $(BUILD)/test_weights $(LDFLAGS) && $(BUILD)/test_weights
 	$(CC) $(CFLAGS) $(INC) tests/c/test_tokenizer.c engine/src/io/tokenizer.c -o $(BUILD)/test_tokenizer $(LDFLAGS) && $(BUILD)/test_tokenizer
 	$(CC) $(CFLAGS) $(INC) tests/c/test_kernels.c engine/src/kernels/gemv_generic.c engine/src/kernels/gemv_avx2.c -o $(BUILD)/test_kernels $(LDFLAGS) && $(BUILD)/test_kernels
@@ -142,7 +145,7 @@ bench-direct: build
 	    python3 -c 'import sys,json; print(json.loads(sys.stdin.read())["tokens_generated"])' >/dev/null; \
 	else \
 	  ( cd $(MODEL_DIR_DEFAULT) && ../$(BIN) --prompt "bench-default" --max-new 8 --prefetch $$PREF --warmup $$WARM ) | \
-	    python3 -c 'import sys,json; print(json.loads(sys.stdin.read())["tokens_generated"])' >/devnull; \
+	    python3 -c 'import sys,json; print(json.loads(sys.stdin.read())["tokens_generated"])' >/dev/null; \
 	fi; \
 	echo "[bench-direct] OK"
 

@@ -5,7 +5,7 @@
  * @file ie_api.c
  * @brief Header-compliant, CI-friendly implementation of the public engine API.
  *
- * ## Design goals
+ * @section goals Design goals
  * - **Strict compatibility** with @ref ie_api.h (types, signatures, status codes).
  * - **Deterministic behavior**: pseudo-random token IDs derived from a per-engine
  *   seed and the input prompt hash — stable across runs for identical inputs.
@@ -14,15 +14,12 @@
  *   `IE_REQUIRE_MODEL`.
  * - **Safe metrics**: always returns a valid @ref ie_metrics_t snapshot; callers
  *   (CLI/tests) compute wall-time/TPS and may override fields as needed.
- *
- * This module has no dependencies beyond the C standard library and the public
- * headers. It is intended to compile cleanly with `-std=c11 -Wall -Wextra
- * -Werror -pedantic`.
  */
 
-#include "ie_api.h"   /* Public types and prototypes: ie_engine_*, ie_metrics_t */
+#include "ie_api.h"                /* Public types and prototypes */
+#include "ie_kv_instrumentation.h" /* KV hit/miss tracker (lightweight) */
 
-#include <inttypes.h> /* PRIu64 etc. */
+#include <inttypes.h>
 #include <stdint.h>
 #include <stdlib.h>   /* calloc, free */
 #include <string.h>   /* memset */
@@ -137,9 +134,10 @@ void ie_engine_destroy(ie_engine_t *h) {
  * - Output is deterministic for identical `(engine seed, prompt)`.
  *
  * @par Metrics note
- * This module does **not** measure time; callers (CLI/harness) compute wall-time
- * and TPS. Here we zero `tps_true/latency_*` and leave `rss_peak_mb/kv_*` at 0,
- * allowing upper layers to populate those fields.
+ * This stub does **not** measure time; callers (CLI/harness) compute wall-time
+ * and TPS. Here we zero `tps_true/latency_*` and leave `rss_peak_mb` at 0.
+ * KV hits/misses are tracked @b live via ::ie_kv_on_token() so they are counted
+ * inside the measured window.
  */
 ie_status_t ie_engine_generate(ie_engine_t *h,
                                const char *prompt,
@@ -150,13 +148,11 @@ ie_status_t ie_engine_generate(ie_engine_t *h,
 
   if (max_new_tokens == 0) {
     *out_count = 0;
-    /* Keep a coherent metrics snapshot for callers. */
     h->last.tps_true       = 0.0;
     h->last.latency_p50_ms = 0.0;
     h->last.latency_p95_ms = 0.0;
     h->last.rss_peak_mb    = 0u;
-    h->last.kv_hits        = 0u;
-    h->last.kv_misses      = 0u;
+    /* KV counters are maintained globally by ie_kv_instrumentation */
     return IE_OK;
   }
   if (!out_tokens) return 1;
@@ -167,18 +163,18 @@ ie_status_t ie_engine_generate(ie_engine_t *h,
   uint32_t produced = 0;
   for (size_t i = 0; i < max_new_tokens; ++i) {
     const uint64_t r = xorshift64star(&rng);
-    out_tokens[i] = (uint32_t)(r % 50000u); /* Compact ID space for tests. */
+    const uint32_t tok = (uint32_t)(r % 50000u); /* Compact ID space for tests. */
+    out_tokens[i] = tok;
+    ie_kv_on_token(tok); /* count inside timing window */
     ++produced;
   }
   *out_count = produced;
 
-  /* Metrics snapshot placeholders (harness fills real values). */
+  /* Metrics snapshot placeholders (harness fills time-related values). */
   h->last.tps_true       = 0.0;
   h->last.latency_p50_ms = 0.0;
   h->last.latency_p95_ms = 0.0;
   h->last.rss_peak_mb    = 0u;
-  h->last.kv_hits        = 0u;
-  h->last.kv_misses      = 0u;
 
   return IE_OK;
 }

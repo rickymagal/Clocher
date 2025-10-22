@@ -1,25 +1,25 @@
 # Performance Notes
 
-_Last updated: **2025-10-22 18:07:34 UTC**_
+_Last updated: **2025-10-22 19:44:13 UTC**_
 
 ## Summary (latest benchmark)
 - Runs: **5**
 - Tokens gerados (Σ): **6400**
-- Tempo de parede (Σ): **257.886 s**
-- TPS verdadeiro (Σ tokens / Σ tempo): **24.817**
+- Tempo de parede (Σ): **250.061 s**
+- TPS verdadeiro (Σ tokens / Σ tempo): **25.594**
 
 ## Latency
-- Latency p50 (mean across runs): **40.207 ms**
-- Latency p95 (mean across runs): **80.415 ms**
+- Latency p50 (mean across runs): **38.985 ms**
+- Latency p95 (mean across runs): **77.970 ms**
 
 ## Spatial Complexity (Memory & Cache)
-- RSS peak (mean): **4492 MB**
-- RSS peak (max): **4517 MB**
-- KV cache: **0 hits / 0 misses**
+- RSS peak (mean): **4388 MB**
+- RSS peak (max): **4415 MB**
+- KV cache: **75 hits / 6325 misses**
 - IE_BYTES_PER_TOKEN: **64.0 MB**/token
 - Bytes touched (Σ): **400.0 GB**
 - Working-set coverage (bytes_per_token / model.bin): **n/a**
-- Effective bandwidth: **1.67 GB/s**
+- Effective bandwidth: **1.72 GB/s**
 
 ## Run Parameters & Conditions
 - Engine bin: `/home/ricky/Desktop/inference-engine/build/inference-engine`
