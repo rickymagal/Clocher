@@ -1,53 +1,180 @@
 name: ci
+
 on:
   push:
     branches: [ main, master, develop, '**' ]
   pull_request:
     branches: [ main, master, develop, '**' ]
 
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  build-test:
+  build-test-bench:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         cc: [gcc, clang]
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      # Optional: enforce English-only sources (no Portuguese, no non-ASCII)
+      - name: Enforce English-only
+        run: |
+          chmod +x tools/check_english_only.sh || true
+          if [ -x tools/check_english_only.sh ]; then
+            tools/check_english_only.sh
+          else
+            echo "[info] tools/check_english_only.sh not found; skipping language guard."
+          fi
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
+      - name: Install Doxygen (for docs)
+        run: sudo apt-get update && sudo apt-get install -y doxygen graphviz
+
+      - name: Prepare lightweight prompts and model stubs (CI-safe)
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          # Ensure reports dir exists
+          mkdir -p benchmarks/reports
+
+          # Pick whichever prompts file exists in the repo
+          PROMPTS_FILE=""
+          if [ -f benchmarks/prompts_10..txt ]; then
+            PROMPTS_FILE="benchmarks/prompts_10..txt"
+          elif [ -f benchmarks/prompts_10.txt ]; then
+            PROMPTS_FILE="benchmarks/prompts_10.txt"
+          else
+            # Create a tiny fallback prompts file
+            PROMPTS_FILE="benchmarks/prompts_10.txt"
+            printf "hello world\nanother prompt\n" > "$PROMPTS_FILE"
+          fi
+          echo "PROMPTS_FILE=$PROMPTS_FILE" >> $GITHUB_ENV
+
+          # Create a tiny, CI-safe model directory to satisfy tests
+          # (IE_REQUIRE_MODEL will be 0 during CI; loader should tolerate stubs).
+          mkdir -p models/gpt-oss-20b
+          # Minimal placeholder files (small size to avoid heavy artifacts)
+          : > models/gpt-oss-20b/model.ie.bin
+          cat > models/gpt-oss-20b/model.ie.json <<'JSON'
+          {
+            "format": "IEBINv1",
+            "dtype": "fp32",
+            "tensors": [],
+            "meta": { "note": "CI placeholder (no real weights)" }
+          }
+          JSON
+          # Common tokenizer placeholders
+          : > models/gpt-oss-20b/tokenizer.json
+          : > models/gpt-oss-20b/vocab.json
+          : > models/gpt-oss-20b/merges.txt
+
       - name: Build
-        run: CC=${{ matrix.cc }} make build
-
-      - name: Run tests
-        run: CC=${{ matrix.cc }} make test
-
-      # >>> Bench em modo CI/stub: sem tocar model.bin e com PROMPTS explícito
-      - name: Smoke bench (stub mode)
         env:
-          # NÃO exija model.bin/json no CI
+          CC: ${{ matrix.cc }}
+        run: |
+          make build
+
+      - name: Run tests (CI-safe, no heavy model required)
+        env:
+          CC: ${{ matrix.cc }}
+          IE_REQUIRE_MODEL: "0"        # do not require a real 80GB model in CI
+        run: |
+          make test
+
+      - name: Smoke bench (strict JSON update)
+        env:
+          CC: ${{ matrix.cc }}
           IE_REQUIRE_MODEL: "0"
-          # Não simular pressão de memória no CI
+          IE_VERIFY_TOUCH: "0"
           IE_BYTES_PER_TOKEN: "0"
           IE_STRIDE_BYTES: "256"
-          IE_VERIFY_TOUCH: "0"
-          # Use o arquivo que EXISTE no seu repo (note o nome com duas falhas)
-          PROMPTS: "benchmarks/prompts_10..txt"
         run: |
-          CC=${{ matrix.cc }} make bench
+          # Use the prompts file discovered earlier
+          make bench PROMPTS="${{ env.PROMPTS_FILE }}"
 
-      # Artefatos: binário + relatórios (não falhar se não existirem)
-      - name: Upload artifacts
+      - name: Build docs with Doxygen (publishable)
+        run: |
+          # Generate a Doxyfile if missing, then tweak a few basics
+          if [ ! -f docs/Doxyfile ]; then
+            mkdir -p docs
+            doxygen -g docs/Doxyfile
+          fi
+          # Keep output under docs/doxygen to match Pages path
+          sed -i 's|^OUTPUT_DIRECTORY .*|OUTPUT_DIRECTORY = docs/doxygen|' docs/Doxyfile
+          sed -i 's|^GENERATE_HTML .*|GENERATE_HTML = YES|' docs/Doxyfile
+          sed -i 's|^RECURSIVE .*|RECURSIVE = YES|' docs/Doxyfile
+          sed -i 's|^PROJECT_NAME .*|PROJECT_NAME = "Clocher Inference Engine"|' docs/Doxyfile
+          doxygen docs/Doxyfile || (echo "[warn] doxygen warnings occurred" && true)
+
+      - name: Upload build & reports artifacts
         uses: actions/upload-artifact@v4
         with:
           name: ie-artifacts-${{ matrix.cc }}
           path: |
             build/inference-engine
-            build/strict_latest.json
             benchmarks/reports/**
-            docs/PERFORMANCE.md
-          if-no-files-found: ignore
+            docs/doxygen/**
+
+  deploy-pages:
+    needs: [build-test-bench]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'  # only publish on branch pushes
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download docs artifact from one matrix leg
+        uses: actions/download-artifact@v4
+        with:
+          name: ie-artifacts-gcc
+          path: _site
+
+      # If the gcc leg didn't run (edge case), try clang artifact
+      - name: Fallback: download clang artifact if needed
+        if: ${{ !hashFiles('_site/**') }}
+        uses: actions/download-artifact@v4
+        with:
+          name: ie-artifacts-clang
+          path: _site
+
+      - name: Prepare Pages content
+        run: |
+          set -euo pipefail
+          # Prefer Doxygen HTML (docs/doxygen/html). If missing, create a tiny index.
+          if [ -d "_site/docs/doxygen/html" ]; then
+            mkdir -p public
+            rsync -a "_site/docs/doxygen/html/" public/
+          else
+            mkdir -p public
+            cat > public/index.html <<'HTML'
+            <!doctype html>
+            <meta charset="utf-8">
+            <title>Clocher Inference Engine — Docs</title>
+            <h1>Clocher Inference Engine — Documentation</h1>
+            <p>Doxygen output not found in this build. Check CI logs.</p>
+            HTML
+          fi
+
+      - name: Upload GitHub Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: public
+
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v4
