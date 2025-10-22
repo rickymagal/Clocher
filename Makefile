@@ -83,7 +83,6 @@ test: build
 	# IMPORTANT: link ie_kv_instrumentation.c because ie_api.c calls ie_kv_on_token
 	$(CC) $(CFLAGS) $(INC) tests/c/test_api.c engine/src/ie_api.c engine/src/ie_tensor.c engine/src/util_logging.c engine/src/util_metrics.c engine/src/io/weights.c engine/src/io/tokenizer.c engine/src/io/ie_batcher.c engine/src/opt/cpu_features.c engine/src/opt/thread_pool.c engine/src/opt/pretranspose.c engine/src/opt/numa_probe.c engine/src/kernels/gemv_generic.c engine/src/kernels/gemv_avx2.c engine/src/math/fast_tanh.c engine/src/math/floatx.c engine/src/ie_kv_instrumentation.c -o $(BUILD)/test_api $(LDFLAGS) && ( cd models/gpt-oss-20b && ../../$(BUILD)/test_api )
 
-	# test_weights: só roda se IEBIN existir OU se IE_SKIP_WEIGHTS_TEST não estiver setada
 	@if [ -z "$$IE_SKIP_WEIGHTS_TEST" ]; then \
 	  if [ -f models/gpt-oss-20b/model.ie.json ] && [ -f models/gpt-oss-20b/model.ie.bin ]; then \
 	    echo "[test] test_weights"; \
