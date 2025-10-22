@@ -1,24 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-"""
-update_performance_md.py (robusto)
-
-Uso:
-  python3 scripts/update_performance_md.py --strict-json benchmarks/reports/fp32_latest.json
-  (também aceita summary_latest.json; se houver runs válidos, atualiza assim mesmo)
-
-O script:
-- Varre o arquivo passado e tenta dar json.loads linha a linha.
-- Considera um "run" qualquer objeto com pelo menos:
-    tokens_generated (int), wall_time_s (float)
-  Campos opcionais (se existirem) melhoram as métricas:
-    tps_true, latency_p50_ms, latency_p95_ms, rss_peak_mb, kv_hits, kv_misses
-- Se achar um objeto-resumo {"runs": N, ...}, usa como fallback para totals.
-- Lê variáveis de ambiente para parâmetros de execução se o log não as trouxer.
-- Atualiza seções específicas dentro de docs/PERFORMANCE.md.
-"""
-
 import argparse
 import json
 import os
@@ -53,7 +35,6 @@ def parse_json_lines(p: Path):
                 obj = json.loads(line)
                 objs.append(obj)
             except Exception:
-                # algumas linhas podem ser prints/ruído; ignorar
                 continue
     return objs
 
@@ -68,12 +49,11 @@ def collect_runs(objs):
     return runs, summary_obj
 
 def read_env_or(defaults: dict):
-    # pega tudo relevante do ambiente; se não tiver, cai no default
+
     get = os.environ.get
     env = {}
     for k,v in defaults.items():
         env[k] = get(k, v)
-    # normalizações numéricas
     for k in ["THREADS","BATCH","MAX_NEW","IE_REQUIRE_MODEL","IE_BYTES_PER_TOKEN","IE_STRIDE_BYTES","IE_VERIFY_TOUCH"]:
         if env.get(k) in (None, "", "****"):
             continue
@@ -84,7 +64,7 @@ def read_env_or(defaults: dict):
     return env
 
 def parse_size_from_md(md_text):
-    # tenta achar linha do model.ie.bin: "(77.3 GB, mtime ...)"
+
     m = re.search(r"model\.ie\.bin:.*\(([\d\.]+)\s*(KB|MB|GB|TB)\b", md_text)
     if not m:
         return None
@@ -129,7 +109,7 @@ def patch_section(md, header, lines):
     block = f"## {header}\n" + "\n".join(lines) + "\n"
     if pattern.search(md):
         return pattern.sub(block, md)
-    # não achou; apenda no fim
+
     return md.rstrip() + "\n\n" + block
 
 def main():
@@ -145,15 +125,12 @@ def main():
     objs = parse_json_lines(rpt_path)
     runs, summary = collect_runs(objs)
 
-    # fallback: se não houver runs, mas houver summary, tenta usar
     if not runs and summary and isinstance(summary, dict):
-        # sintetiza um run “agregado” suficiente para preencher TPS etc.
         tokens_total = int(summary.get("tokens_generated", 0))
         wall_total = float(summary.get("wall_time_s", 0.0))
         tps_true = float(summary.get("tps_true", tokens_total / wall_total if wall_total > 0 else 0.0))
         runs_count = int(summary.get("runs", 0))
         if runs_count > 0:
-            # cria N runs artificiais iguais (ok para médias)
             for _ in range(runs_count):
                 runs.append({
                     "tokens_generated": tokens_total / runs_count if runs_count else 0,
@@ -166,7 +143,6 @@ def main():
                     "kv_misses": int(summary.get("kv_misses", 0)),
                 })
 
-    # Se ainda não há runs, não tem o que resumir.
     if not runs:
         print("[warn] strict JSON has zero tokens; leaving PERFORMANCE.md unchanged")
         sys.exit(0)
@@ -194,7 +170,6 @@ def main():
     rss_mean = mean(rss_list) if rss_list else None
     rss_max  = max(rss_list) if rss_list else None
 
-    # ---- env/params (pega do ambiente agora; se não tiver, deixa texto claro)
     env = read_env_or({
         "ENGINE_BIN": "",
         "PROMPTS": "",
@@ -211,7 +186,6 @@ def main():
         "IE_VERIFY_TOUCH": "****",
     })
 
-    # ---- bytes tocados e bandwidth
     bpt = env.get("IE_BYTES_PER_TOKEN")
     if isinstance(bpt, str):
         try:
@@ -221,16 +195,15 @@ def main():
     bytes_touched = (tokens_total * bpt) if (bpt and isinstance(bpt, int)) else 0
     bw_bytes_per_s = (bytes_touched / wall_total) if wall_total > 0 else 0.0
 
-    # ---- coverage (usa tamanho do model.bin já presente no MD)
+
     md_old = load_md()
     model_bin_bytes = parse_size_from_md(md_old)
     coverage = ( (bpt / model_bin_bytes) * 100.0 ) if (bpt and model_bin_bytes and model_bin_bytes > 0) else None
 
-    # ---- montar seções
+
     from datetime import datetime, timezone
     now_utc = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S %Z")
 
-    # Atualiza a linha “Last updated”
     md = re.sub(
         r"_Last updated: \*\*.*?\*\*_",
         f"_Last updated: **{now_utc}**_",
@@ -286,7 +259,6 @@ def main():
 
     write_md(md)
 
-    # também escrever/atualizar um summary_latest.json compatível
     summary_out = {
         "runs": len(runs),
         "tokens_generated": tokens_total,
