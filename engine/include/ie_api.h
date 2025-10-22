@@ -8,7 +8,7 @@
  * @file ie_api.h
  * @brief Public C API for the inference engine (minimal surface used by CLI/tests).
  *
- * The API is intentionally small. Fields like @ref ie_engine_params_t::precision
+ * The API is intentionally small. Fields like ::ie_engine_params_t::precision
  * exist for compatibility with tests; engines may ignore hints they do not need.
  */
 
@@ -45,8 +45,8 @@ typedef struct ie_engine ie_engine_t;
 /**
  * @brief Metrics snapshot returned by the engine.
  *
- * Only fields used by CLI/tests are exposed here. The caller must zero-init
- * instances before calling @ref ie_engine_metrics for forward compatibility.
+ * Only fields used by CLI/tests are exposed here. The caller should zero-init
+ * instances before calling ::ie_engine_metrics for forward compatibility.
  */
 typedef struct ie_metrics {
   double   tps_true;        /**< True tokens/s across the last run (or 0). */
@@ -58,14 +58,14 @@ typedef struct ie_metrics {
 } ie_metrics_t;
 
 /* -------------------------------------------------------------------------- */
-/* Engine parameters                                                           */
+/* Engine parameters                                                          */
 /* -------------------------------------------------------------------------- */
 
 /**
  * @brief Engine creation parameters (all optional hints).
  *
  * Leave fields zero/NULL to use engine defaults. Unknown hints are ignored.
- * The @ref precision field exists for compatibility with tests that set it.
+ * The ::precision field exists for compatibility with tests that set it.
  */
 typedef struct ie_engine_params {
   int        threads;         /**< Requested worker threads; `<=0` means auto. */
@@ -78,14 +78,13 @@ typedef struct ie_engine_params {
 } ie_engine_params_t;
 
 /* -------------------------------------------------------------------------- */
-/* API                                                                         */
+/* API                                                                        */
 /* -------------------------------------------------------------------------- */
 
 /**
  * @brief Create a new engine instance.
  *
- * The engine copies or internally references the provided parameters. Unknown
- * hints are ignored. On success, @p *out is set to a valid handle.
+ * The engine copies the provided parameters by value. Unknown hints are ignored.
  *
  * @param[in]  p    Optional parameters (may be `NULL` for defaults).
  * @param[out] out  Output engine handle; must be non-`NULL`.
@@ -117,11 +116,11 @@ ie_status_t ie_engine_generate(ie_engine_t *h,
 /**
  * @brief Snapshot engine metrics into @p out.
  *
- * The caller must zero-initialize @p out before calling to preserve
+ * The caller should zero-initialize @p out before calling to preserve
  * forward compatibility.
  *
  * @param[in]  h    Engine handle (const).
- * @param[out] out  Output struct; must be non-`NULL` and zero-initialized.
+ * @param[out] out  Output struct; must be non-`NULL`.
  * @retval IE_OK          on success.
  * @retval non-zero       on failure (invalid args, etc).
  */

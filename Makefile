@@ -9,6 +9,8 @@ SHELL := /usr/bin/bash
 export STACKCOLLAPSE FLAMEGRAPH PROMPTS_FILE BATCH PREFETCH WARMUP THREADS PRECISION PRETRANSPOSE ROUNDS MAX_NEW FREQ CALLGRAPH
 export ENGINE_BIN MODEL MODEL_DIR PROMPTS RUNS WARMUP THREADS AFFINITY BATCH PREFETCH PRETRANSPOSE WARMUP_TOKENS REPORT_ROOT PUSHGATEWAY_URL MAX_NEW
 export TARGET_SECONDS IE_BYTES_PER_TOKEN IE_STRIDE_BYTES IE_VERIFY_TOUCH
+# NEW: device metadata (safe no-ops for current CPU-only tree)
+export DEVICE GPU_ID
 
 # -------- toolchain ----------------------------------------------------------
 CC       ?= gcc
@@ -43,7 +45,8 @@ SRC_CORE := \
 SRC_MAIN := engine/src/main_infer.c
 
 # =================================================
-.PHONY: setup build build-release test bench bench-direct profile perf-report baseline-report \
+.PHONY: setup build build-release build-cuda build-l0 \
+        test bench bench-direct profile perf-report baseline-report \
         fmt lint docs docs-doxygen clean microbench \
         monitoring-up monitoring-down metrics-exporter \
         ptq-calibrate ptq-from-hf ptq-from-torch ptq-from-bin \
@@ -63,6 +66,13 @@ $(BIN): $(SRC_MAIN) $(SRC_CORE)
 build-release: CFLAGS += -DNDEBUG
 build-release: build
 
+# NEW: placeholder GPU targets (do not change your current build)
+build-cuda: build
+	@echo "[info] build-cuda: current tree is CPU-only; integrate nvcc later."
+
+build-l0: build
+	@echo "[info] build-l0: current tree is CPU-only; integrate Level Zero later."
+
 # -------- tests --------------------------------------------------------------
 test: build
 	@echo "[test] C unit tests"
@@ -79,34 +89,46 @@ test: build
 	python3 -m unittest discover -s tests/python -p 'test_*.py' -v
 
 # -------- benchmark (shell harness) ------------------------------------------
-# Default model directory in this repo: models/gpt-oss-20b
+# IMPORTANT: You MUST pass PROMPTS explicitly. No autodetection.
+# Example:
+#   make bench PROMPTS=benchmarks/prompts_10..txt
 bench: build
-	@MODEL_DIR="$(if $(MODEL_DIR),$(MODEL_DIR),$(MODEL_DIR_DEFAULT))" \
-	  MODEL="$(if $(MODEL),$(MODEL),$(MODEL_DIR))" \
-	  PROMPTS="$(if $(PROMPTS),$(PROMPTS),benchmarks/prompts_10.txt)" \
-	  RUNS="$(if $(RUNS),$(RUNS),3)" \
-	  WARMUP="$(if $(WARMUP),$(WARMUP),1)" \
-	  THREADS="$(if $(THREADS),$(THREADS),$(shell nproc))" \
-	  PRECISION="$(if $(PRECISION),$(PRECISION),fp32)" \
-	  BATCH="$(if $(BATCH),$(BATCH),1)" \
-	  PREFETCH="$(if $(PREFETCH),$(PREFETCH),auto)" \
-	  PRETRANSPOSE="$(if $(PRETRANSPOSE),$(PRETRANSPOSE),all)" \
-	  WARMUP_TOKENS="$(if $(WARMUP_TOKENS),$(WARMUP_TOKENS),64)" \
-	  AFFINITY="$(if $(AFFINITY),$(AFFINITY),auto)" \
-	  MAX_NEW="$(if $(MAX_NEW),$(MAX_NEW),128)" \
-	  TARGET_SECONDS="$(if $(TARGET_SECONDS),$(TARGET_SECONDS),10)" \
-	  ENGINE_BIN="$(BIN)" \
-	  IE_BYTES_PER_TOKEN="$(if $(IE_BYTES_PER_TOKEN),$(IE_BYTES_PER_TOKEN),0)" \
-	  IE_STRIDE_BYTES="$(if $(IE_STRIDE_BYTES),$(IE_STRIDE_BYTES),64)" \
-	  IE_VERIFY_TOUCH="$(if $(IE_VERIFY_TOUCH),$(IE_VERIFY_TOUCH),0)" \
-	  bash -lc '\
-	    mkdir -p $(BUILD) benchmarks/reports; \
-	    echo "[bench] strict run (true TPS)…"; \
-	    out=$$(ENGINE_BIN="$$ENGINE_BIN" MODEL_DIR="$$MODEL_DIR" PROMPTS="$$PROMPTS" THREADS="$$THREADS" PRECISION="$$PRECISION" AFFINITY="$$AFFINITY" PRETRANSPOSE="$$PRETRANSPOSE" BATCH="$$BATCH" PREFETCH="$$PREFETCH" MAX_NEW="$$MAX_NEW" TARGET_SECONDS="$$TARGET_SECONDS" IE_BYTES_PER_TOKEN="$$IE_BYTES_PER_TOKEN" IE_STRIDE_BYTES="$$IE_STRIDE_BYTES" IE_VERIFY_TOUCH="$$IE_VERIFY_TOUCH" scripts/true_tps_strict.sh); \
-	    echo "$$out" | tee $(BUILD)/strict_latest.json; \
-	    echo "[bench] updating docs/PERFORMANCE.md (strict)…"; \
-	    python3 scripts/update_performance_md.py --strict-json $(BUILD)/strict_latest.json || { echo "[warn] strict run failed: strict run did not yield JSON."; echo "$$out"; }; \
-	  '
+	@# Require PROMPTS
+	@if [ -z "$$PROMPTS" ]; then echo "ERROR: PROMPTS must be set (e.g., PROMPTS=benchmarks/prompts_10..txt)"; exit 2; fi
+	@if [ ! -f "$$PROMPTS" ]; then echo "ERROR: PROMPTS '$$PROMPTS' not found"; exit 2; fi
+	@if [ ! -x "$(BIN)" ]; then echo "ERROR: engine binary '$(BIN)' not found or not executable"; exit 2; fi
+	@MDIR="$${MODEL:-$${MODEL_DIR:-$(MODEL_DIR_DEFAULT)}}"; \
+	if [ ! -d "$$MDIR" ]; then echo "ERROR: model dir '$$MDIR' not found"; exit 2; fi; \
+	ABS_BIN="$$(realpath -m $(BIN))"; \
+	ABS_PROMPTS="$$(realpath -m "$$PROMPTS")"; \
+	THREADS_VAL="$${THREADS:-$$(nproc)}"; \
+	PRECISION_VAL="$${PRECISION:-fp32}"; \
+	BATCH_VAL="$${BATCH:-1}"; \
+	PREFETCH_VAL="$${PREFETCH:-auto}"; \
+	PRETRANS_VAL="$${PRETRANSPOSE:-all}"; \
+	AFFINITY_VAL="$${AFFINITY:-auto}"; \
+	MAX_NEW_VAL="$${MAX_NEW:-128}"; \
+	IE_REQ_VAL="$${IE_REQUIRE_MODEL:-1}"; \
+	IE_BPT_VAL="$${IE_BYTES_PER_TOKEN:-67108864}"; \
+	IE_STRIDE_VAL="$${IE_STRIDE_BYTES:-256}"; \
+	IE_TOUCH_VAL="$${IE_VERIFY_TOUCH:-1}"; \
+	echo "[bench] using PROMPTS=$$ABS_PROMPTS"; \
+	echo "[bench] strict run (true TPS)…"; \
+	ENGINE_BIN="$$ABS_BIN" MODEL_DIR="$$MDIR" PROMPTS="$$ABS_PROMPTS" \
+	THREADS="$$THREADS_VAL" PRECISION="$$PRECISION_VAL" BATCH="$$BATCH_VAL" \
+	PREFETCH="$$PREFETCH_VAL" PRETRANSPOSE="$$PRETRANS_VAL" AFFINITY="$$AFFINITY_VAL" \
+	MAX_NEW="$$MAX_NEW_VAL" \
+	IE_REQUIRE_MODEL="$$IE_REQ_VAL" IE_BYTES_PER_TOKEN="$$IE_BPT_VAL" \
+	IE_STRIDE_BYTES="$$IE_STRIDE_VAL" IE_VERIFY_TOUCH="$$IE_TOUCH_VAL" \
+	bash scripts/true_tps_strict.sh | tee $(BUILD)/strict_latest.json; \
+	echo "[bench] updating docs/PERFORMANCE.md (strict)…"; \
+	ENGINE_BIN="$$ABS_BIN" PROMPTS="$$ABS_PROMPTS" \
+	THREADS="$$THREADS_VAL" PRECISION="$$PRECISION_VAL" BATCH="$$BATCH_VAL" \
+	PREFETCH="$$PREFETCH_VAL" PRETRANSPOSE="$$PRETRANS_VAL" AFFINITY="$$AFFINITY_VAL" \
+	MAX_NEW="$$MAX_NEW_VAL" \
+	IE_REQUIRE_MODEL="$$IE_REQ_VAL" IE_BYTES_PER_TOKEN="$$IE_BPT_VAL" \
+	IE_STRIDE_BYTES="$$IE_STRIDE_VAL" IE_VERIFY_TOUCH="$$IE_TOUCH_VAL" \
+	python3 scripts/update_performance_md.py --strict-json $(BUILD)/strict_latest.json
 
 # -------- benchmark without harness (quick check) ----------------------------
 bench-direct: build
@@ -116,11 +138,11 @@ bench-direct: build
 	WARM="$(if $(BENCH_WARMUP),$(BENCH_WARMUP),4)"; \
 	PREF="$(if $(BENCH_PREFETCH),$(BENCH_PREFETCH),on)"; \
 	if [ -f $$PF ]; then \
-	  ( cd $(MODEL_DIR_DEFAULT) && ../$(BIN) --prompts-file "../$$PF" --batch $$BATCH --max-new 8 --prefetch $$PREF --warmup $$WARM ) | \
+	  ( cd $(MODEL_DIR_DEFAULT) && ../$(BIN) --prompts-file "$$(realpath -m "$$PF")" --batch $$BATCH --max-new 8 --prefetch $$PREF --warmup $$WARM ) | \
 	    python3 -c 'import sys,json; print(json.loads(sys.stdin.read())["tokens_generated"])' >/dev/null; \
 	else \
 	  ( cd $(MODEL_DIR_DEFAULT) && ../$(BIN) --prompt "bench-default" --max-new 8 --prefetch $$PREF --warmup $$WARM ) | \
-	    python3 -c 'import sys,json; print(json.loads(sys.stdin.read())["tokens_generated"])' >/dev/null; \
+	    python3 -c 'import sys,json; print(json.loads(sys.stdin.read())["tokens_generated"])' >/devnull; \
 	fi; \
 	echo "[bench-direct] OK"
 
@@ -135,12 +157,10 @@ perf-report: build
 	MDROOT="$$(pwd)"; \
 	MODELDIR="models/gpt-oss-20b"; \
 	cd "$$MODELDIR"; \
-	# Só gera flamegraph se perf + stackcollapse + flamegraph.pl existirem
 	if command -v perf >/dev/null 2>&1 && \
 	   { [ -x "$${STACKCOLLAPSE:-/usr/bin/stackcollapse-perf.pl}" ] || [ -f "$${STACKCOLLAPSE:-/usr/bin/stackcollapse-perf.pl}" ]; } && \
 	   [ -f "$${FLAMEGRAPH:-/usr/bin/flamegraph.pl}" ]; then \
 	  echo "[profile] generating flamegraph..."; \
-	  PERF_ROUNDS="$${FREQ:-120}"; \
 	  perf record -F 1200 -g -- ../$(BIN) --prompt "profiling-64-tokens" --max-new 64 >/dev/null 2>&1 || true; \
 	  perf script | "$${STACKCOLLAPSE:-/usr/bin/stackcollapse-perf.pl}" > out.perf || true; \
 	  perl "$${FLAMEGRAPH:-/usr/bin/flamegraph.pl}" out.perf > "$$MDROOT/flamegraph.svg" || true; \
@@ -156,12 +176,11 @@ perf-report: build
 	THREADS="$(if $(THREADS),$(THREADS),$(shell nproc))" PRECISION="$(if $(PRECISION),$(PRECISION),fp32)" \
 	AFFINITY="$(if $(AFFINITY),$(AFFINITY),auto)" PRETRANSPOSE="$(if $(PRETRANSPOSE),$(PRETRANSPOSE),all)" \
 	BATCH="$(if $(BATCH),$(BATCH),1)" PREFETCH="$(if $(PREFETCH),$(PREFETCH),auto)" \
-	MAX_NEW="$(if $(MAX_NEW),$(MAX_NEW),128)" TARGET_SECONDS="$(if $(TARGET_SECONDS),$(TARGET_SECONDS),10)" \
+	MAX_NEW="$(if $(MAX_NEW),$(MAX_NEW),128)" \
 	bash scripts/true_tps_strict.sh | tee /tmp/ie_strict.json
 
 	@echo "[bench] updating docs/PERFORMANCE.md (strict)…"
 	@python3 scripts/update_performance_md.py --strict-json /tmp/ie_strict.json || true
-
 
 baseline-report: build
 	@echo "[bench] running harness..."
@@ -308,7 +327,7 @@ perf_cpu_int8: build
 	RUNS="$(if $(RUNS),$(RUNS),3)" \
 	WARMUP="$(if $(WARMUP),$(WARMUP),1)" \
 	THREADS="$(if $(THREADS),$(THREADS),$(shell nproc))" \
-	PRECISION="int8" \
+	PRECISION="$(if $(PRECISION),$(PRECISION),int8)" \
 	BATCH="$(if $(BATCH),$(BATCH),1)" \
 	PREFETCH="$(if $(PREFETCH),$(PREFETCH),auto)" \
 	PRETRANSPOSE="$(if $(PRETRANSPOSE),$(PRETRANSPOSE),all)" \

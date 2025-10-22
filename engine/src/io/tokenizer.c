@@ -1,173 +1,272 @@
 /**
  * @file tokenizer.c
- * @brief Minimal tokenizer loader + whitespace tokenization fallback.
+ * @brief Minimal, dependency-free tokenizer used by tests and the CLI harness.
  *
- * Baseline behavior:
- *  - Reads vocab.json if present; extracts "vocab_size" (optional).
- *  - Encoding: split on ASCII whitespace; map each token to a stable pseudo-ID
- *    via FNV-1a hash folded to 16 bits and offset to [1000, 1000+65535].
- *  - Decoding: produce "T<ID>" sequences separated by spaces.
+ * @details
+ * This module provides a tiny public API declared in @ref ie_io.h:
+ *  - @ref ie_vocab_load : Load a vocabulary file or fall back to a stub.
+ *  - @ref ie_tok_encode : Encode a UTF-8 string into token IDs.
+ *  - @ref ie_tok_decode : Convert token IDs back into printable placeholders.
+ *
+ * ## Design goals
+ * - **Deterministic** behavior for CI and unit tests.
+ * - **No third-party dependencies**; standard C library only.
+ * - **Whitespace tokenization**: contiguous whitespace collapses to a single
+ *   separator. Thus `"hello world  from   engine"` yields 4 tokens.
+ * - **Stable IDs**: IDs are produced by hashing each token with a fixed
+ *   32-bit FNV-1a variant and then clamping to a positive 31-bit range.
+ *
+ * This is intentionally not a real BPE/WordPiece tokenizer; its purpose is to
+ * keep tests green and provide a lightweight harness without extra artifacts.
  */
 
+#define _POSIX_C_SOURCE 200809L
+
+#include <ctype.h>      /* isspace */
+#include <errno.h>
+#include <stdint.h>
 #include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
-#include <ctype.h>
+#include <string.h>
+
 #include "ie_io.h"
 
-/* ---------- helpers ---------- */
+/* ========================================================================== */
+/* Internal helpers (file-local)                                              */
+/* ========================================================================== */
+
 /**
- * @brief Check if a file exists (regular open test).
- * @param p Path to file.
- * @return Non-zero if file can be opened; 0 otherwise.
+ * @brief Return 1 if @p c is ASCII whitespace, 0 otherwise.
+ *
+ * @param c Character byte (unsigned).
+ * @return 1 if whitespace, 0 otherwise.
  */
-static int file_exists(const char *p) {
-  FILE *f = fopen(p, "rb");
-  if (!f) return 0;
-  fclose(f);
-  return 1;
+static int is_space_byte(unsigned char c) {
+  return isspace((int)c) ? 1 : 0;
 }
 
 /**
- * @brief Read entire file into a NUL-terminated buffer.
- * @param p        Path to file.
- * @param out_buf  *out receives malloc'ed buffer (caller frees).
- * @param out_len  *out receives length (excluding NUL).
- * @return 0 on success; -1 on failure.
+ * @brief Compute 32-bit FNV-1a hash for a memory region.
+ *
+ * @details
+ * Produces a stable ID for each token. The returned value is in the full
+ * 32-bit range; callers may clamp to 31-bit positive domain as needed.
+ *
+ * @param ptr Pointer to bytes.
+ * @param len Number of bytes.
+ * @return 32-bit hash value.
  */
-static int read_all_text(const char *p, char **out_buf, size_t *out_len) {
-  *out_buf = NULL; *out_len = 0;
-  FILE *f = fopen(p, "rb");
-  if (!f) return -1;
-  if (fseek(f, 0, SEEK_END) != 0) { fclose(f); return -1; }
-  long n = ftell(f);
-  if (n < 0) { fclose(f); return -1; }
-  if (fseek(f, 0, SEEK_SET) != 0) { fclose(f); return -1; }
-  char *buf = (char*)malloc((size_t)n + 1);
-  if (!buf) { fclose(f); return -1; }
-  size_t rd = fread(buf, 1, (size_t)n, f);
-  fclose(f);
-  if (rd != (size_t)n) { free(buf); return -1; }
-  buf[n] = '\0';
-  *out_buf = buf; *out_len = (size_t)n;
-  return 0;
-}
-
-/**
- * @brief Naively scan an integer value following a JSON key.
- * @param json    JSON text.
- * @param key     Key string (e.g., "\"vocab_size\"").
- * @param out_val Output integer.
- * @return 0 on success; -1 otherwise.
- */
-static int scan_json_key_int(const char *json, const char *key, int *out_val) {
-  const char *k = strstr(json, key);
-  if (!k) return -1;
-  const char *c = strchr(k, ':');
-  if (!c) return -1;
-  int v = 0; int got = 0;
-  while (*++c) {
-    if (*c >= '0' && *c <= '9') { v = v*10 + (*c - '0'); got = 1; }
-    else if (got) break;
+static uint32_t fnv1a_32(const void *ptr, size_t len) {
+  const uint8_t *p = (const uint8_t*)ptr;
+  uint32_t h = 2166136261u;           /* offset basis */
+  for (size_t i = 0; i < len; ++i) {
+    h ^= (uint32_t)p[i];
+    h *= 16777619u;                   /* FNV prime */
   }
-  if (!got) return -1;
-  *out_val = v; return 0;
+  return h;
 }
 
 /**
- * @brief FNV-1a 32-bit, folded to 16 bits, offset by 1000 to avoid special IDs.
- * @param s Pointer to token bytes.
- * @param n Length in bytes.
- * @return Deterministic token id in [1000, 1000+65535].
+ * @brief Clamp an unsigned 32-bit value into a positive 31-bit ID space.
+ *
+ * @param x Arbitrary 32-bit value.
+ * @return Value in the range [1, 0x7FFFFFFF].
  */
-static uint32_t hash_token(const char *s, size_t n) {
-  uint32_t h = 2166136261u;
-  for (size_t i = 0; i < n; ++i) {
-    h ^= (unsigned char)s[i];
-    h *= 16777619u;
-  }
-  uint32_t folded = (h >> 16) ^ (h & 0xFFFFu);
-  return 1000u + (folded & 0xFFFFu);
+static uint32_t clamp_to_pos31(uint32_t x) {
+  uint32_t y = x & 0x7FFFFFFFu;
+  return (y == 0u) ? 1u : y;
 }
 
-/* ---------- public API ---------- */
+/* ========================================================================== */
+/* Public API: Vocabulary                                                     */
+/* ========================================================================== */
+
+/**
+ * @brief Load a vocabulary file or default to a stub.
+ *
+ * @details
+ * The implementation accepts any readable file but only attempts to detect
+ * a simple JSON-like `"vocabSize": <int>` field. If the file is missing or
+ * unparsable, a small stub vocab is returned to keep execution deterministic.
+ *
+ * @param vocab_path Path to a vocabulary file (may be NULL).
+ * @param out Output vocabulary (written on success).
+ * @retval 0  on success (including stub fallback).
+ * @retval -1 on invalid arguments (e.g., @p out is NULL).
+ */
 int ie_vocab_load(const char *vocab_path, ie_vocab_t *out) {
   if (!out) return -1;
-  memset(out, 0, sizeof(*out));
-  if (vocab_path) {
-    strncpy(out->vocab_path, vocab_path, sizeof(out->vocab_path)-1);
-  }
-  out->vocab_size = 0;
 
-  if (vocab_path && file_exists(vocab_path)) {
-    char *buf = NULL; size_t n = 0;
-    if (read_all_text(vocab_path, &buf, &n) == 0) {
-      (void)scan_json_key_int(buf, "\"vocab_size\"", &out->vocab_size);
-      free(buf);
+  /* Default stub value if anything goes wrong. */
+  out->vocab_size = 50000;
+
+  if (!vocab_path || !*vocab_path) {
+    return 0;
+  }
+
+  FILE *f = fopen(vocab_path, "rb");
+  if (!f) {
+    /* Keep stub; report success to remain permissive. */
+    return 0;
+  }
+
+  /* Read a small prefix to try and find "vocabSize". */
+  char buf[4096];
+  size_t n = fread(buf, 1, sizeof(buf)-1, f);
+  fclose(f);
+  buf[n] = '\0';
+
+  /* Very relaxed scan for a number after "vocabSize". */
+  const char *key = "vocabSize";
+  char *hit = strstr(buf, key);
+  if (hit) {
+    /* Move to the first digit after key. */
+    char *p = hit + (int)strlen(key);
+    while (*p && (*p == ' ' || *p == '\t' || *p == '"' || *p == '\'' || *p == ':' )) ++p;
+    long val = 0;
+    if (sscanf(p, "%ld", &val) == 1 && val > 0 && val < 100000000L) {
+      out->vocab_size = (int)val;
     }
   }
-  if (out->vocab_size <= 0) out->vocab_size = 256; /* safe fallback */
   return 0;
 }
 
 void ie_vocab_free(ie_vocab_t *v) {
-  (void)v; /* nothing to release in baseline */
-}
-
-int ie_tok_encode(const ie_vocab_t *v,
-                  const char *utf8,
-                  uint32_t *out_ids,
-                  uint32_t *out_count) {
   (void)v;
-  if (!utf8 || !out_count) return -1;
-
-  /* first pass: count tokens */
-  unsigned count = 0;
-  const char *p = utf8;
-  while (*p) {
-    while (*p && isspace((unsigned char)*p)) p++;
-    if (!*p) break;
-    const char *start = p;
-    while (*p && !isspace((unsigned char)*p)) p++;
-    (void)start;
-    count++;
-  }
-
-  if (!out_ids) { *out_count = count; return 0; }
-
-  /* second pass: emit ids */
-  p = utf8;
-  unsigned idx = 0;
-  while (*p && idx < count) {
-    while (*p && isspace((unsigned char)*p)) p++;
-    if (!*p) break;
-    const char *start = p;
-    while (*p && !isspace((unsigned char)*p)) p++;
-    const size_t len = (size_t)(p - start);
-    out_ids[idx++] = hash_token(start, len);
-  }
-
-  *out_count = idx;
-  return 0;
 }
 
+/* ========================================================================== */
+/* Public API: Encode/Decode                                                  */
+/* ========================================================================== */
+
+/**
+ * @brief Encode UTF-8 text with whitespace tokenization and hashed IDs.
+ *
+ * @details
+ * Tokenization rule: split on **one or more** whitespace characters (ASCII).
+ * Consecutive whitespace collapses to a single separator, producing no empty
+ * tokens. For example, `"hello  world"` yields 2 tokens.
+ *
+ * **Size-only mode:** pass `ids == NULL` to receive the required length in
+ * `*out_count` without writing IDs.
+ *
+ * @param v         Loaded vocabulary descriptor (only `vocab_size` is used).
+ * @param text      NUL-terminated UTF-8 string. Must not be NULL.
+ * @param ids       Output buffer of length `*out_count` (or NULL for size query).
+ * @param out_count In: capacity of `ids` when `ids != NULL`.  
+ *                  Out: number of tokens written (or needed).
+ * @retval 0    on success.
+ * @retval -1   on invalid arguments.
+ * @retval -2   if provided capacity is insufficient to hold all tokens.
+ */
+int ie_tok_encode(const ie_vocab_t *v,
+                  const char *text,
+                  uint32_t *ids,
+                  uint32_t *out_count) {
+  (void)v; /* vocab_size is not required for hashing but reserved for future use */
+  if (!text || !out_count) return -1;
+
+  const unsigned char *s = (const unsigned char*)text;
+  uint32_t needed = 0;
+
+  /* First pass: count tokens. */
+  size_t i = 0;
+  const size_t L = strlen(text);
+  while (i < L) {
+    /* Skip leading whitespace between tokens. */
+    while (i < L && is_space_byte(s[i])) ++i;
+    if (i >= L) break;
+
+    /* Start of token. */
+    size_t start = i;
+    while (i < L && !is_space_byte(s[i])) ++i;
+    size_t tok_len = i - start;
+    if (tok_len > 0) {
+      ++needed;
+    }
+  }
+
+  if (!ids) {
+    *out_count = needed;
+    return 0;
+  }
+
+  /* Second pass: produce IDs; respect capacity in *out_count. */
+  uint32_t cap = *out_count;
+  uint32_t wrote = 0;
+  i = 0;
+  while (i < L && wrote < cap) {
+    while (i < L && is_space_byte(s[i])) ++i;
+    if (i >= L) break;
+    size_t start = i;
+    while (i < L && !is_space_byte(s[i])) ++i;
+    size_t tok_len = i - start;
+    if (tok_len > 0) {
+      uint32_t h = fnv1a_32(s + start, tok_len);
+      ids[wrote++] = clamp_to_pos31(h);
+    }
+  }
+
+  *out_count = wrote;
+  /* If capacity was insufficient, signal failure. Tests pre-size correctly. */
+  return (wrote == needed) ? 0 : -2;
+}
+
+/**
+ * @brief Decode token IDs to a simple, deterministic placeholder string.
+ *
+ * @details
+ * Format: `"T<ID0> T<ID1> ... T<IDn>"` (space-separated). This is sufficient
+ * for unit-test invariants that check spacing and a predictable prefix.
+ *
+ * @param v       Loaded vocabulary (unused but reserved).
+ * @param ids     Array of token IDs.
+ * @param count   Number of IDs.
+ * @param out     Output buffer for the textual form.
+ * @param out_sz  Capacity of @p out in bytes.
+ * @retval 0    on success.
+ * @retval -1   on invalid arguments (e.g., NULL @p out or zero @p out_sz).
+ * @retval -2   if @p out is too small to hold the formatted string.
+ */
 int ie_tok_decode(const ie_vocab_t *v,
                   const uint32_t *ids,
                   uint32_t count,
-                  char *out_utf8,
-                  size_t out_capacity) {
+                  char *out,
+                  size_t out_sz) {
   (void)v;
-  if (!ids || !out_utf8 || out_capacity == 0) return -1;
-  size_t used = 0;
-  for (uint32_t i = 0; i < count; ++i) {
-    char buf[32];
-    int n = snprintf(buf, sizeof(buf), "T%u", ids[i]);
-    if (n <= 0) return -1;
-    if (used + (size_t)n + (i ? 1u : 0u) + 1u > out_capacity) return -1;
-    if (i) out_utf8[used++] = ' ';
-    memcpy(out_utf8 + used, buf, (size_t)n);
-    used += (size_t)n;
+  if (!out || out_sz == 0) return -1;
+
+  /* Handle empty sequence. */
+  if (!ids || count == 0) {
+    if (out_sz > 0) out[0] = '\0';
+    return 0;
   }
-  out_utf8[used] = '\0';
+
+  /* Conservative sizing: worst case "T4294967295 " per token + NUL. */
+  const size_t worst_per = sizeof("T4294967295 ") - 1; /* 12 bytes */
+  size_t worst = (size_t)count * worst_per + 1;
+  if (out_sz < worst) {
+    /* Strict contract for tests: return error if too small. */
+    return -2;
+  }
+
+  char *p = out;
+  size_t rem = out_sz;
+
+  for (uint32_t i = 0; i < count; ++i) {
+    int n = (i == 0)
+      ? snprintf(p, rem, "T%u", ids[i])
+      : snprintf(p, rem, " T%u", ids[i]);
+
+    if (n < 0 || (size_t)n >= rem) {
+      return -2;
+    }
+    p   += (size_t)n;
+    rem -= (size_t)n;
+  }
+
+  /* Ensure NUL-termination. */
+  if (rem == 0) return -2;
+  *p = '\0';
   return 0;
 }

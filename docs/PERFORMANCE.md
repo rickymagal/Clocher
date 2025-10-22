@@ -1,25 +1,38 @@
 # Performance Notes
 
-_Last updated: **2025-10-20 21:46:53 UTC**_
+_Last updated: **2025-10-22 18:07:34 UTC**_
 
 ## Summary (latest benchmark)
-- Source: `strict` (scripts/true_tps_strict.sh)
-- Runs: **1**
-- Tokens (total): **1280**
-- Wall time (s): **31.604864**
-- TPS (true): **40.500**
+- Runs: **5**
+- Tokens gerados (Σ): **6400**
+- Tempo de parede (Σ): **257.886 s**
+- TPS verdadeiro (Σ tokens / Σ tempo): **24.817**
 
-## Run parameters
+## Latency
+- Latency p50 (mean across runs): **40.207 ms**
+- Latency p95 (mean across runs): **80.415 ms**
+
+## Spatial Complexity (Memory & Cache)
+- RSS peak (mean): **4492 MB**
+- RSS peak (max): **4517 MB**
+- KV cache: **0 hits / 0 misses**
+- IE_BYTES_PER_TOKEN: **64.0 MB**/token
+- Bytes touched (Σ): **400.0 GB**
+- Working-set coverage (bytes_per_token / model.bin): **n/a**
+- Effective bandwidth: **1.67 GB/s**
+
+## Run Parameters & Conditions
+- Engine bin: `/home/ricky/Desktop/inference-engine/build/inference-engine`
+- Prompts file: `/home/ricky/Desktop/inference-engine/benchmarks/prompts_10..txt`
 - Threads: **12**
 - Precision: **fp32**
-- Pretranspose: **all**
 - Batch: **1**
 - Prefetch: **auto**
+- Pretranspose: **all**
+- Affinity: **auto**
 - Max new tokens: **128**
-- Target seconds: **10**
-- Prompts file: **benchmarks/prompts_10.txt**
-- Affinity policy (CLI): **compact**
-- IE_BYTES_PER_TOKEN: **44040192**
+- IE_REQUIRE_MODEL: **1**
+- IE_BYTES_PER_TOKEN: **67108864**
 - IE_STRIDE_BYTES: **256**
 - IE_VERIFY_TOUCH: **1**
 
@@ -28,23 +41,9 @@ _Last updated: **2025-10-20 21:46:53 UTC**_
 - Logical cores: **12**
 - RAM (MemTotal): **7.5 GB**
 - OS: **Fedora Linux 42 (KDE Plasma Desktop Edition)**
-- Kernel: **6.16.9-200.fc42.x86_64**
-- Model dir: `/home/ricky/Desktop/inference-engine/models/gpt-oss-20b`
-- model.ie.json: `/home/ricky/Desktop/inference-engine/models/gpt-oss-20b/model.ie.json` (126.8 KB, mtime 2025-10-20T16:51:11.780555+00:00)
-- model.ie.bin: `/home/ricky/Desktop/inference-engine/models/gpt-oss-20b/model.ie.bin` (77.3 GB, mtime 2025-10-20T16:51:08.307661+00:00)
-- vocab.json: `/home/ricky/Desktop/inference-engine/models/gpt-oss-20b/vocab.json`
-- Dtype: **float32**; Tensors: **664**
-
-## Profiling Artifacts
-- `flamegraph.svg`: **missing**
-- `perf.data`: **missing**
-
-## Hot Paths (annotated)
-- GEMV (`ie_gemv_f32`): AVX2 microkernel if available; otherwise generic path.
-- Activation (`tanh` fast path): clamped polynomial/table approximation.
-- Thread pool scheduling: contiguous shard with grainsize control and optional pinning.
-
-## Next optimization actions
-- Validate NUMA policy using `scripts/set_numa.sh` (`interleave|node:X|strict`).
-- Explore epilogue fusion (bias + activation) on GEMV output.
-- Extend blocked-K packing and tune prefetch distances based on the flamegraph.
+- Kernel: **6.16.9-200.fc42.x86_64-x86_64**
+- Git commit: **d86fd2a DIRTY**
+- Model dir: `unknown`
+- model.ie.json: `unknown` (n/a)
+- model.ie.bin: `unknown` (n/a)
+- Dtype: **unknown**; Tensors: **0**

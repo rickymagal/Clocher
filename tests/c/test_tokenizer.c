@@ -1,23 +1,23 @@
 /**
  * @file test_tokenizer.c
- * @brief Unit tests for the tokenizer (whitespace + hashed IDs).
- *
- * Validates that the vocabulary can be loaded (or defaulted),
- * that encoding produces the expected number of tokens,
- * and that decoding returns a placeholder textual form.
+ * @brief Unit tests for the tokenizer (size query, encode, decode invariants).
  */
 
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>   /* malloc, free */
+#include <stdint.h>   /* uint32_t     */
 #include "ie_io.h"
 
 /**
  * @brief Program entrypoint for tokenizer tests.
  *
- * Loads the vocab (stub permitted), encodes a sample string, checks size-only and
- * full encode paths, decodes the sequence, and ensures output invariants hold.
+ * Steps:
+ * 1) Load vocab (file present or stub).
+ * 2) Encode with size-only query to get the required buffer length.
+ * 3) Encode into a real buffer and verify counts.
+ * 4) Decode and check formatting invariants (starts with 'T', space count).
  *
  * @return 0 on success.
  */
@@ -36,7 +36,7 @@ int main(void) {
   /* Full encode */
   uint32_t *ids = (uint32_t*)malloc(sizeof(uint32_t) * needed);
   assert(ids != NULL);
-  uint32_t got = 0;
+  uint32_t got = needed; /* capacity in, count out */
   assert(ie_tok_encode(&v, txt, ids, &got) == 0);
   assert(got == needed);
 
@@ -46,13 +46,13 @@ int main(void) {
 
   /* Sanity: decoding starts with a "T" token placeholder and contains spaces between tokens */
   assert(strncmp(buf, "T", 1) == 0);
+
   /* There should be exactly (needed - 1) spaces */
   unsigned spaces = 0;
   for (const char *p = buf; *p; ++p) if (*p == ' ') ++spaces;
   assert(spaces == (needed > 0 ? needed - 1 : 0));
 
   free(ids);
-  ie_vocab_free(&v);
 
   printf("ok test_tokenizer\n");
   return 0;

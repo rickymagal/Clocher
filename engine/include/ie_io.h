@@ -1,148 +1,231 @@
 /**
  * @file ie_io.h
- * @brief Model weights loader (IEBIN v1) and tokenizer (minimal).
+ * @brief Minimal public I/O interfaces: IEBIN v1 loader and tokenizer stubs.
  *
- * @defgroup IE_IO Model I/O and Tokenization
- * @brief Lightweight utilities for loading model metadata and encoding text.
- * @{
+ * @details
+ * This header exposes two small subsystems used by the CLI and tests:
+ *
+ * 1) **IEBIN v1 weights loader** — opens `model.ie.json`, resolves
+ *    `model.ie.bin`, captures basic metadata, and provides a light touch/read
+ *    check. See @ref ie_weights_open and @ref ie_weights_touch.
+ *
+ * 2) **Tokenizer (stub)** — tiny, dependency-free tokenizer API used by tests
+ *    and by the engine’s harness. The reference implementation in
+ *    @ref tokenizer.c supports a whitespace splitter with hashed-token
+ *    placeholders. Its purpose is to keep CI green and avoid large third-party
+ *    dependencies. See @ref ie_vocab_load, @ref ie_tok_encode and
+ *    @ref ie_tok_decode.
+ *
+ * The goal is a stable, warning-free C interface that works with `-Werror`.
  */
 
-#ifndef IE_IO_H
-#define IE_IO_H
+#ifndef IE_IO_H_
+#define IE_IO_H_
 
-#include <stddef.h>
-#include <stdint.h>
+/* POSIX feature request: needed for some libc prototypes (e.g., pread) in impls. */
+#ifndef _POSIX_C_SOURCE
+#define _POSIX_C_SOURCE 200809L
+#endif
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+#include <stddef.h>  /* size_t */
+#include <stdint.h>  /* uint32_t */
+
+/* ========================================================================== */
+/* Status codes                                                               */
+/* ========================================================================== */
+
 /**
- * @brief In-memory handle for IEBIN v1 model metadata.
+ * @enum ie_io_status_e
+ * @brief Status codes for I/O helpers.
  *
- * This handle stores only light metadata required by the baseline engine:
- * - resolved paths to the JSON index and weights binary,
- * - the size of the weights binary (if present),
- * - a simple "version" integer and textual "dtype".
- *
- * The baseline loader does not mmap or materialize tensors. Those features
- * can be added in later steps without changing this public structure.
+ * @var IE_IO_OK
+ * Success.
+ * @var IE_IO_ERR_ARGS
+ * Invalid arguments.
+ * @var IE_IO_ERR_JSON
+ * Failed to read/parse JSON metadata.
+ * @var IE_IO_ERR_BIN_UNSPEC
+ * JSON missing `bin` key and no override provided.
+ * @var IE_IO_ERR_STAT
+ * Failed to stat the weights file.
+ * @var IE_IO_ERR_OPEN
+ * Failed to open the weights file.
+ * @var IE_IO_ERR_READ
+ * Failed to read the weights file.
  */
-typedef struct {
-  char     weights_path[512];  /**< Resolved path to model.ie.bin (may be empty). */
-  char     json_path[512];     /**< Resolved path to model.ie.json. */
-  uint64_t bin_size_bytes;     /**< Size of model.ie.bin in bytes (0 allowed). */
-  int      version;            /**< Metadata version (default 1). */
-  char     dtype[16];          /**< "fp32"|"bf16"|"int8w" (default "fp32"). */
+typedef enum ie_io_status_e {
+  IE_IO_OK = 0,
+  IE_IO_ERR_ARGS = -1,
+  IE_IO_ERR_JSON = -2,
+  IE_IO_ERR_BIN_UNSPEC = -3,
+  IE_IO_ERR_STAT = -4,
+  IE_IO_ERR_OPEN = -5,
+  IE_IO_ERR_READ = -6
+} ie_io_status_t;
+
+/* ========================================================================== */
+/* Weights (IEBIN v1)                                                         */
+/* ========================================================================== */
+
+/**
+ * @struct ie_weights_s
+ * @brief In-memory descriptor for IEBIN v1 metadata and resolved paths.
+ *
+ * @details
+ * Instances are trivially copyable; no owned heap pointers are stored here.
+ * Use @ref ie_weights_open to fill, and @ref ie_weights_close for symmetry.
+ */
+typedef struct ie_weights_s {
+  /* ---- JSON header ---- */
+  int      version;                 /**< Parsed header `version` (>=1). */
+  char     dtype[16];               /**< Parsed header `dtype` (e.g., "float32"). */
+
+  /* ---- Resolved locations ---- */
+  char     json_path[512];          /**< Path to the JSON metadata actually opened. */
+  char     weights_path[512];       /**< Resolved path to the weights binary. */
+
+  /* ---- Binary info ---- */
+  size_t   bin_size_bytes;          /**< Size of `weights_path` in bytes. */
+
+  /* ---- Bookkeeping ---- */
+  int      loaded;                  /**< Non-zero if open succeeded. */
 } ie_weights_t;
 
 /**
- * @brief Open IEBIN v1 model metadata.
+ * @brief Open and parse IEBIN v1 metadata and resolve the weights path.
  *
- * This function performs **lightweight** validation and metadata extraction:
- * - Verifies that @p json_path exists and is a regular file.
- * - Records @p bin_path (if provided) and its file size (0 if absent).
- * - Parses @c "version" (integer) and @c "dtype" (string) via a relaxed scan.
- *
- * No heavy parsing or memory mapping is performed by this baseline routine.
- *
- * @param[in]  json_path  Path to @c model.ie.json (required, must exist).
- * @param[in]  bin_path   Path to @c model.ie.bin (optional; may be NULL or missing).
- * @param[out] out        Populated weights handle (must be non-NULL).
- * @return 0 on success; non-zero on failure (e.g., JSON missing/unreadable).
+ * @param json_path Path to `model.ie.json` (must be readable).
+ * @param bin_path  Optional override path for the binary (`model.ie.bin`);
+ *                  if NULL, the JSON `bin` field is used.
+ * @param out       Output descriptor; the function zero-initializes it on entry.
+ * @retval IE_IO_OK            on success.
+ * @retval IE_IO_ERR_ARGS      if arguments are invalid.
+ * @retval IE_IO_ERR_JSON      if JSON cannot be read/parsed.
+ * @retval IE_IO_ERR_BIN_UNSPEC if a weights path cannot be determined.
+ * @retval IE_IO_ERR_STAT      if the binary cannot be `stat()`-ed.
  */
-int ie_weights_open(const char *json_path,
-                    const char *bin_path,
-                    ie_weights_t *out);
+int ie_weights_open(const char *json_path, const char *bin_path, ie_weights_t *out);
 
 /**
- * @brief Close a weights handle.
+ * @brief Touch the weights binary to verify readability (and optionally warm caches).
  *
- * The baseline implementation is a no-op (kept for symmetry and to allow
- * future extensions that may allocate resources, e.g., mmaps).
+ * @details
+ * Performs a small positional read at offset 0 and at the end of file (if large
+ * enough). Intended as a fast sanity check during startup or tests. The
+ * implementation may be a no-op if the platform lacks `pread`.
  *
- * @param[in,out] w Weights handle (may be NULL).
+ * @param w Opened weights descriptor (must come from @ref ie_weights_open).
+ * @retval IE_IO_OK        on success (binary considered readable).
+ * @retval IE_IO_ERR_ARGS  on invalid arguments or unopened descriptor.
+ * @retval IE_IO_ERR_OPEN  if the binary cannot be opened.
+ * @retval IE_IO_ERR_READ  if the binary cannot be read.
+ */
+int ie_weights_touch(const ie_weights_t *w);
+
+/**
+ * @brief Close weights resources (currently a no-op; reserved for future use).
+ *
+ * @param w Weights descriptor previously opened with @ref ie_weights_open.
  */
 void ie_weights_close(ie_weights_t *w);
 
+/* ========================================================================== */
+/* Tokenizer (stub API used by tests and harness)                              */
+/* ========================================================================== */
+
 /**
- * @brief Tokenizer vocabulary descriptor (baseline).
+ * @struct ie_vocab_s
+ * @brief Lightweight vocabulary descriptor.
  *
- * The baseline tokenizer keeps only the resolved path and a parsed/assumed
- * vocabulary size. Real tokenization logic can evolve independently.
+ * @details
+ * The reference implementation accepts either a JSON-like file or a simple text
+ * list; when absent, it falls back to a stub vocabulary with a positive
+ * `vocab_size`. Internal fields are intentionally omitted to keep the public
+ * surface small.
  */
-typedef struct {
-  char vocab_path[512]; /**< Resolved path to vocab.json (may be empty). */
-  int  vocab_size;      /**< Parsed from JSON if present; defaults to 256. */
+typedef struct ie_vocab_s {
+  int vocab_size;       /**< Number of entries; stub sets this to a positive value. */
+  /* Internal fields are intentionally omitted to keep the public surface small. */
 } ie_vocab_t;
 
 /**
- * @brief Load a vocabulary file.
+ * @brief Load a vocabulary from @p vocab_path (or default to a stub).
  *
- * Attempts to read @p vocab_path and parse a @c "vocab_size" field. If the
- * file is absent or the field is missing, a safe default value is used.
+ * @details
+ * Implementations should never fail hard: for reproducible CI, returning a small
+ * stub vocab is valid. The function attempts to parse a `vocabSize` integer if a
+ * JSON-like file is provided; otherwise a default size is used.
  *
- * The exact tokenization scheme is intentionally left simple in the baseline.
- *
- * @param[in]  vocab_path  Path to @c vocab.json (may be NULL or missing).
- * @param[out] out         Populated vocabulary handle (must be non-NULL).
- * @return 0 on success; non-zero on failure.
+ * @param vocab_path Path to a vocab file (e.g., `vocab.json`); may be NULL.
+ * @param out        Output vocabulary (written on success).
+ * @retval 0 on success (including stub fallback).
+ * @retval negative on unrecoverable failure (e.g., @p out is NULL).
  */
 int ie_vocab_load(const char *vocab_path, ie_vocab_t *out);
 
 /**
- * @brief Free resources held by a vocabulary handle.
+ * @brief Encode UTF-8 text into token IDs (whitespace split, hashed IDs).
  *
- * The baseline implementation is a no-op, provided for API symmetry and to
- * permit future implementations that allocate resources.
+ * @details
+ * **Size-only mode:** pass `ids == NULL` to compute the required length in
+ * `*out_count` without writing token data.
  *
- * @param[in,out] v Vocabulary handle (may be NULL).
- */
-void ie_vocab_free(ie_vocab_t *v);
-
-/**
- * @brief Encode UTF-8 text into token IDs (baseline placeholder).
- *
- * Baseline behavior:
- *  - Split on ASCII whitespace.
- *  - Hash each token deterministically (FNV-1a folded to 16 bits) and offset to
- *    the ID range @c [1000, 1000+65535].
- *
- * If @p out_ids is NULL, the function sets @p *out_count to the required
- * capacity and returns 0 without writing IDs.
- *
- * @param[in]  v          Loaded vocabulary handle (only @ref ie_vocab_t::vocab_size is used).
- * @param[in]  utf8       UTF-8 input text (may be NULL to indicate empty).
- * @param[out] out_ids    Buffer for token IDs or NULL for size query.
- * @param[out] out_count  On success, number of IDs written (or required capacity if @p out_ids is NULL).
- * @return 0 on success; non-zero on failure (invalid args).
+ * @param v         Loaded vocabulary.
+ * @param text      NUL-terminated UTF-8 text.
+ * @param ids       Output buffer of length `*out_count` (or NULL for size query).
+ * @param out_count In: capacity of `ids` when `ids != NULL`.  
+ *                  Out: number of tokens written (or needed).
+ * @retval 0    on success.
+ * @retval -1   on invalid arguments.
+ * @retval -2   if provided capacity is insufficient to hold all tokens.
  */
 int ie_tok_encode(const ie_vocab_t *v,
-                  const char *utf8,
-                  uint32_t *out_ids,
+                  const char *text,
+                  uint32_t *ids,
                   uint32_t *out_count);
 
 /**
- * @brief Decode token IDs into a placeholder string (baseline).
+ * @brief Decode token IDs into a printable placeholder string.
  *
- * Baseline format emits a space-separated sequence @c "T<ID>" for each token.
+ * @details
+ * Implementations may produce a stable, testing-friendly textual form rather
+ * than true detokenization. The reference implementation returns
+ * `"T<ID0> T<ID1> ..."` into @p out.
  *
- * @param[in]  v             Vocabulary handle (unused in baseline).
- * @param[in]  ids           Array of token IDs.
- * @param[in]  count         Number of IDs.
- * @param[out] out_utf8      Output buffer for UTF-8 text.
- * @param[in]  out_capacity  Capacity of @p out_utf8 in bytes.
- * @return 0 on success; non-zero if the buffer is too small or on invalid args.
+ * @param v       Loaded vocabulary.
+ * @param ids     Array of token IDs.
+ * @param count   Number of IDs (elements in @p ids).
+ * @param out     Output character buffer (NUL-terminated on success).
+ * @param out_sz  Capacity of @p out in bytes.
+ * @retval 0    on success.
+ * @retval -1   on invalid arguments or zero-sized buffer.
+ * @retval -2   if @p out is too small to hold the formatted sequence.
  */
 int ie_tok_decode(const ie_vocab_t *v,
                   const uint32_t *ids,
                   uint32_t count,
-                  char *out_utf8,
-                  size_t out_capacity);
+                  char *out,
+                  size_t out_sz);
 
+
+/**
+ * @brief Release resources held by a vocabulary.
+ *
+ * @details
+ * The current tokenizer implementation does not heap-allocate inside
+ * @ref ie_vocab_t, so this function is a no-op. It exists for symmetry and
+ * forward compatibility if the tokenizer later gains owned resources.
+ *
+ * @param v Vocabulary pointer (may be NULL; no-op).
+ */
+void ie_vocab_free(ie_vocab_t *v);
+  
 #ifdef __cplusplus
-}
+} /* extern "C" */
 #endif
-/** @} */ /* end of IE_IO */
 
-#endif /* IE_IO_H */
+#endif /* IE_IO_H_ */

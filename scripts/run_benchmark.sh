@@ -1,220 +1,154 @@
 #!/usr/bin/env bash
+# CPU harness com PRECISION=fp32|bf16|int8 (tolerante para int8).
 set -euo pipefail
 
-# -------- User params ---------------------------------------------------------
 ENGINE_BIN="${ENGINE_BIN:-build/inference-engine}"
 MODEL="${MODEL:-models/gpt-oss-20b}"
 PROMPTS="${PROMPTS:-benchmarks/prompts_10.txt}"
-
 RUNS="${RUNS:-3}"
 WARMUP="${WARMUP:-1}"
-
 THREADS="${THREADS:-$(nproc)}"
-AFFINITY="${AFFINITY:-auto}"         # auto|compact|scatter
-PRECISION="${PRECISION:-fp32}"       # fp32|bf16|int8|fp16 (if supported)
-PRETRANSPOSE="${PRETRANSPOSE:-all}"  # none|woh|wxh|all
+PRECISION="${PRECISION:-fp32}"   # fp32|bf16|int8
+AFFINITY="${AFFINITY:-auto}"
+PRETRANSPOSE="${PRETRANSPOSE:-all}"
 BATCH="${BATCH:-1}"
-PREFETCH="${PREFETCH:-auto}"         # on|off|auto|N
-WARMUP_TOKENS="${WARMUP_TOKENS:-64}" # used with --warmup
-MAX_NEW="${MAX_NEW:-0}"              # 0 = do not pass; >0 passes --max-new N
+PREFETCH="${PREFETCH:-auto}"
+MAX_NEW="${MAX_NEW:-128}"
+TARGET_SECONDS="${TARGET_SECONDS:-10}"
 
-REPORT_ROOT="${REPORT_ROOT:-benchmarks/reports}"
-PUSHGATEWAY_URL="${PUSHGATEWAY_URL:-}"
+IE_REQUIRE_MODEL="${IE_REQUIRE_MODEL:-1}"
+IE_BYTES_PER_TOKEN="${IE_BYTES_PER_TOKEN:-0}"
+IE_STRIDE_BYTES="${IE_STRIDE_BYTES:-64}"
+IE_VERIFY_TOUCH="${IE_VERIFY_TOUCH:-0}"
 
-# -------- Resolve absolute paths ---------------------------------------------
-abspath_py() { python3 - "$1" <<'PY'
-import os, sys; print(os.path.abspath(sys.argv[1]))
-PY
-}
-ENGINE_BIN_ABS="$(abspath_py "${ENGINE_BIN}")"
-MODEL_ABS="$(abspath_py "${MODEL}")"
-PROMPTS_ABS="$(abspath_py "${PROMPTS}")"
-
-# -------- Sanity checks ------------------------------------------------------
-[[ -x "${ENGINE_BIN_ABS}" ]] || { echo "error: binary not found: ${ENGINE_BIN_ABS}" >&2; exit 2; }
-[[ -d "${MODEL_ABS}" ]] || { echo "error: model dir not found: ${MODEL_ABS}" >&2; exit 2; }
-[[ -f "${PROMPTS_ABS}" ]] || { echo "error: prompts file not found: ${PROMPTS_ABS}" >&2; exit 2; }
-[[ -f "${MODEL_ABS}/model.ie.bin" && -f "${MODEL_ABS}/model.ie.json" && -f "${MODEL_ABS}/vocab.json" ]] || {
-  echo "error: expected model.ie.bin, model.ie.json, vocab.json in ${MODEL_ABS}" >&2; exit 2; }
-
-# -------- Paths --------------------------------------------------------------
-STAMP="$(date -u +%Y%m%d_%H%M%S)"
-RUN_DIR="${REPORT_ROOT}/${STAMP}"
-mkdir -p "${RUN_DIR}"
-CPUINFO="${RUN_DIR}/cpuinfo.txt"
-MEAS_LOG="${RUN_DIR}/runs.jsonl"
-WARMUP_LOG="${RUN_DIR}/warmup.jsonl"
-
-# -------- HW snapshot --------------------------------------------------------
-{
-  echo "timestamp_utc=${STAMP}"
-  echo "threads=${THREADS}"
-  echo "affinity=${AFFINITY}"
-  echo "precision=${PRECISION}"
-  echo "pretranspose=${PRETRANSPOSE}"
-  echo "batch=${BATCH}"
-  echo "prefetch=${PREFETCH}"
-  echo "warmup_tokens=${WARMUP_TOKENS}"
-  echo "max_new=${MAX_NEW}"
-  echo "model_path=${MODEL_ABS}"
-  echo
-  uname -a || true
-  echo
-  lscpu || true
-  echo
-  numactl -H || true
-} > "${CPUINFO}"
-
-# -------- Runner -------------------------------------------------------------
-run_engine() {
-  if [[ "${MAX_NEW}" != "0" ]]; then
-    ( cd "${MODEL_ABS}" && "${ENGINE_BIN_ABS}" \
-        --prompts-file "${PROMPTS_ABS}" \
-        --threads "${THREADS}" \
-        --precision "${PRECISION}" \
-        --affinity "${AFFINITY}" \
-        --pretranspose "${PRETRANSPOSE}" \
-        --batch "${BATCH}" \
-        --prefetch "${PREFETCH}" \
-        --max-new "${MAX_NEW}" )
-  else
-    ( cd "${MODEL_ABS}" && "${ENGINE_BIN_ABS}" \
-        --prompts-file "${PROMPTS_ABS}" \
-        --threads "${THREADS}" \
-        --precision "${PRECISION}" \
-        --affinity "${AFFINITY}" \
-        --pretranspose "${PRETRANSPOSE}" \
-        --batch "${BATCH}" \
-        --prefetch "${PREFETCH}" )
-  fi
-}
-
-# -------- Warmup -------------------------------------------------------------
-if [[ "${WARMUP}" -gt 0 ]]; then
-  echo "# Warmup runs: ${WARMUP}"
-  for _ in $(seq 1 "${WARMUP}"); do
-    if [[ "${MAX_NEW}" != "0" ]]; then
-      ( cd "${MODEL_ABS}" && "${ENGINE_BIN_ABS}" \
-          --prompts-file "${PROMPTS_ABS}" \
-          --threads "${THREADS}" \
-          --precision "${PRECISION}" \
-          --affinity "${AFFINITY}" \
-          --pretranspose "${PRETRANSPOSE}" \
-          --batch "${BATCH}" \
-          --prefetch "${PREFETCH}" \
-          --warmup "${WARMUP_TOKENS}" \
-          --max-new "${MAX_NEW}" ) 2>/dev/null | tee -a "${WARMUP_LOG}" >/dev/null || true
-    else
-      ( cd "${MODEL_ABS}" && "${ENGINE_BIN_ABS}" \
-          --prompts-file "${PROMPTS_ABS}" \
-          --threads "${THREADS}" \
-          --precision "${PRECISION}" \
-          --affinity "${AFFINITY}" \
-          --pretranspose "${PRETRANSPOSE}" \
-          --batch "${BATCH}" \
-          --prefetch "${PREFETCH}" \
-          --warmup "${WARMUP_TOKENS}" ) 2>/dev/null | tee -a "${WARMUP_LOG}" >/dev/null || true
-    fi
-  done
+# Resolve binário p/ caminho ABSOLUTO
+if [[ "$ENGINE_BIN" != /* ]]; then
+  ENGINE_BIN="$(cd "$(dirname "$ENGINE_BIN")" && pwd)/$(basename "$ENGINE_BIN")"
 fi
 
-# -------- Measured runs ------------------------------------------------------
-echo "# Measured runs: ${RUNS}"
-for i in $(seq 1 "${RUNS}"); do
-  OUT="${RUN_DIR}/run_${i}.json"
-  run_engine > "${OUT}"
-  cat "${OUT}" >> "${MEAS_LOG}"
+OUT_ROOT="benchmarks/reports"
+STAMP="$(date +%Y%m%d_%H%M%S)"
+OUT_DIR="$OUT_ROOT/$STAMP"
+mkdir -p "$OUT_DIR"
+
+MEAS_LOG="${MEAS_LOG:-}"
+
+echo "# Warmup runs: $WARMUP"
+echo "# Measured runs: $RUNS"
+
+if [[ ! -x "$ENGINE_BIN" ]]; then echo "ERROR: $ENGINE_BIN"; exit 2; fi
+if [[ ! -d "$MODEL" ]]; then echo "ERROR: model dir $MODEL"; exit 2; fi
+if [[ ! -f "$PROMPTS" ]]; then echo "ERROR: prompts $PROMPTS"; exit 2; fi
+
+case "$PRECISION" in fp32|bf16|int8) ;; *) echo "WARN: PRECISION=$PRECISION -> fp32"; PRECISION=fp32;; esac
+
+# Mapeia "int8" -> "fp32" para o binário (que não suporta int8 no flag),
+# mas mantém PRECISION=int8 nos metadados do relatório.
+ENGINE_PREC="$PRECISION"
+if [[ "$PRECISION" == "int8" ]]; then
+  ENGINE_PREC="fp32"
+fi
+
+run_once() {
+  local tag="$1"
+  local out_json="$2"
+
+  local OLDPWD_SAVE="$PWD"
+  cd "$MODEL" || exit 2
+  IE_REQUIRE_MODEL="$IE_REQUIRE_MODEL" IE_BYTES_PER_TOKEN="$IE_BYTES_PER_TOKEN" IE_STRIDE_BYTES="$IE_STRIDE_BYTES" IE_VERIFY_TOUCH="$IE_VERIFY_TOUCH" \
+  "$ENGINE_BIN" \
+      --prompts-file "$OLDPWD_SAVE/$PROMPTS" \
+      --batch "$BATCH" \
+      --max-new "$MAX_NEW" \
+      --prefetch "$PREFETCH" \
+      --warmup "$WARMUP" \
+      --threads "$THREADS" \
+      --precision "$ENGINE_PREC" \
+      --affinity "$AFFINITY" \
+      --pretranspose "$PRETRANSPOSE" \
+      > "$OLDPWD_SAVE/$out_json"
+  cd "$OLDPWD_SAVE" || exit 2
+
+  python3 - "$out_json" <<'PY'
+import sys, json
+p=sys.argv[1]
+j=json.load(open(p))
+for k in ("tokens_generated","wall_time_s","tps_true"):
+    assert k in j, f"missing {k}"
+print("[ok]", p)
+PY
+}
+
+WARM_LOG="$OUT_DIR/warmup.jsonl"; : > "$WARM_LOG"
+for i in $(seq 1 "$WARMUP"); do
+  TMP="$OUT_DIR/warmup_$i.json"
+  run_once "warmup" "$TMP"
+  cat "$TMP" >> "$WARM_LOG"
 done
 
-# -------- Aggregate and update PERFORMANCE.md --------------------------------
-python3 - << 'PY' "${MEAS_LOG}"
-import json, sys, statistics, re, datetime, os, pathlib
-meas = pathlib.Path(sys.argv[1])
-rows=[]
-for line in meas.read_text(encoding='utf-8').splitlines():
-    s=line.strip()
-    if not s or s.startswith('#'): continue
-    try: rows.append(json.loads(s))
-    except: pass
+RUNS_LOG="$OUT_DIR/runs.jsonl"; : > "$RUNS_LOG"
+for i in $(seq 1 "$RUNS"); do
+  TMP="$OUT_DIR/run_${i}.json"
+  run_once "run_$i" "$TMP"
+  cat "$TMP" >> "$RUNS_LOG"
+done
 
-def pick(j,k,alts=()):
-    if k in j: return j[k]
-    for a in alts:
-        if a in j: return j[a]
-    return None
+( lscpu || true ) > "$OUT_DIR/cpuinfo.txt" 2>&1
 
-tps = [pick(r,"tps_true",("tps","true_tps")) for r in rows]
-tps = [x for x in tps if x is not None]
-p50 = [pick(r,"latency_p50",("p50","lat_p50")) for r in rows if pick(r,"latency_p50",("p50","lat_p50")) is not None]
-p95 = [pick(r,"latency_p95",("p95","lat_p95")) for r in rows if pick(r,"latency_p95",("p95","lat_p95")) is not None]
-tt  = [pick(r,"total_tokens",("tokens_generated","tokens","tokens_total")) for r in rows if pick(r,"total_tokens",("tokens_generated","tokens","tokens_total")) is not None]
-wl  = [pick(r,"wall_time_s",("elapsed_s","wall","walltime_s")) for r in rows if pick(r,"wall_time_s",("elapsed_s","wall","walltime_s")) is not None]
+python3 - "$RUNS_LOG" "$WARM_LOG" "$OUT_DIR" "$MEAS_LOG" <<'PY'
+import sys, json, os, time
+runs_path, warm_path, out_dir, meas_log = sys.argv[1:5]
 
-agg = {}
-if tps:
-    agg["TPS(true)_avg"] = statistics.fmean(tps)
-    agg["TPS(true)_p95"] = statistics.quantiles(tps, n=20)[-1] if len(tps)>=20 else max(tps)
-if p50: agg["Latency p50 (s)"] = statistics.fmean(p50)
-if p95: agg["Latency p95 (s)"] = statistics.fmean(p95)
-if tt and wl:
-    agg["Tokens_total"] = sum(tt)
-    agg["Wall_total (s)"] = sum(wl)
-    agg["TPS(true) aggregate"] = agg["Tokens_total"]/agg["Wall_total (s)"]
+def slurp_jsonl(p):
+    xs=[]
+    if not os.path.exists(p) or os.path.getsize(p)==0: return xs
+    with open(p,'r') as f:
+        for line in f:
+            line=line.strip()
+            if line: xs.append(json.loads(line))
+    return xs
 
-ts = datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
-lines = ["# Performance Notes","",f"_Last updated: **{ts}**_","",
-         "## Summary (latest run)"]
-for k,v in agg.items():
-    lines.append(f"- {k}: **{v:.3f}**" if isinstance(v,float) else f"- {k}: **{v}**")
-lines += ["","## Run parameters",
-          f"- Threads: **{os.environ.get('THREADS','')}**",
-          f"- Precision: **{os.environ.get('PRECISION','')}**",
-          f"- Pretranspose: **{os.environ.get('PRETRANSPOSE','')}**",
-          f"- Batch: **{os.environ.get('BATCH','')}**",
-          f"- Prefetch: **{os.environ.get('PREFETCH','')}**",
-          f"- Warmup tokens: **{os.environ.get('WARMUP_TOKENS','')}**",
-          f"- Prompts file: **{os.environ.get('PROMPTS','')}**",
-          f"- Affinity policy (CLI): **{os.environ.get('AFFINITY','')}**",
-          "","## Profiling Artifacts",
-          "- `cpuinfo.txt`: **present**",
-          "- `runs.jsonl`: **present**"]
+def sums(xs):
+    tok=sum(int(j.get("tokens_generated",0)) for j in xs)
+    wall=sum(float(j.get("wall_time_s",0.0)) for j in xs)
+    return tok,wall
 
-perf_md = pathlib.Path("docs/PERFORMANCE.md")
-new_block = "\n".join(lines).strip()+"\n"
-if not perf_md.exists():
-    perf_md.parent.mkdir(parents=True, exist_ok=True)
-    perf_md.write_text(new_block, encoding="utf-8")
-else:
-    text = perf_md.read_text(encoding="utf-8")
-    pat = r"(?s)^# Performance Notes.*?(?=^\# |\Z)"
-    if re.search(pat, text, flags=re.MULTILINE):
-        text = re.sub(pat, new_block, text, flags=re.MULTILINE)
-    else:
-        text = new_block + "\n\n" + text
-    perf_md.write_text(text, encoding="utf-8")
-print("Updated docs/PERFORMANCE.md")
+runs=slurp_jsonl(runs_path)
+warm=slurp_jsonl(warm_path)
+tok, wall = sums(runs)
+true_tps = (tok/wall) if wall>0 else 0.0
+
+report = {
+  "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
+  "precision": os.environ.get("PRECISION","fp32"),
+  "threads": int(os.environ.get("THREADS","0") or 0),
+  "batch": int(os.environ.get("BATCH","1") or 1),
+  "max_new": int(os.environ.get("MAX_NEW","128") or 128),
+  "affinity": os.environ.get("AFFINITY","auto"),
+  "pretranspose": os.environ.get("PRETRANSPOSE","all"),
+  "prefetch": os.environ.get("PREFETCH","auto"),
+  "ie_require_model": int(os.environ.get("IE_REQUIRE_MODEL","0") or 0),
+  "ie_bytes_per_token": int(os.environ.get("IE_BYTES_PER_TOKEN","0") or 0),
+  "ie_stride_bytes": int(os.environ.get("IE_STRIDE_BYTES","64") or 64),
+  "ie_verify_touch": int(os.environ.get("IE_VERIFY_TOUCH","0") or 0),
+  "warmup": warm,
+  "runs": runs,
+  "aggregates": {
+    "total_generated_tokens": tok,
+    "total_wall_time_s": wall,
+    "true_tps": true_tps
+  }
+}
+
+if runs:
+  base = os.path.join(out_dir, "run_{}.json")
+  for i in range(min(3, len(runs))):
+    json.dump(runs[i], open(base.format(i+1),"w"), indent=2)
+
+if meas_log:
+  json.dump(report, open(meas_log,"w"), indent=2)
+
+print(json.dumps(report, indent=2))
 PY
 
-# -------- Optional pushgateway ------------------------------------------------
-if [[ -n "${PUSHGATEWAY_URL}" ]]; then
-  AGG_TPS=$(python3 - <<'PY' "${MEAS_LOG}"
-import json,sys
-vals=[]
-for L in open(sys.argv[1]):
-    try:
-        j=json.loads(L)
-    except:
-        continue
-    v = j.get("tps_true") or j.get("tps") or 0.0
-    vals.append(v)
-print(sum(vals)/len(vals) if vals else 0.0)
-PY
-)
-  cat <<EOF | curl --data-binary @- "${PUSHGATEWAY_URL}/metrics/job/ie_bench/instance/$(hostname)"
-# HELP ie_bench_tps_true TPS(true) average
-# TYPE ie_bench_tps_true gauge
-ie_bench_tps_true ${AGG_TPS}
-EOF
-fi
-
-echo "Report saved to: ${RUN_DIR}"
+echo "Report saved to: $OUT_DIR"
