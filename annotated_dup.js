@@ -1,0 +1,27 @@
+var annotated_dup =
+[
+    [ "cli_extras", "structcli__extras.html", "structcli__extras" ],
+    [ "cpu_impl", "structcpu__impl.html", "structcpu__impl" ],
+    [ "cuda_impl", "structcuda__impl.html", "structcuda__impl" ],
+    [ "ie_batcher", "structie__batcher.html", "structie__batcher" ],
+    [ "ie_batcher_item_t", "structie__batcher__item__t.html", "structie__batcher__item__t" ],
+    [ "ie_batcher_view", "structie__batcher__view.html", "structie__batcher__view" ],
+    [ "ie_cli_extras", "structie__cli__extras.html", "structie__cli__extras" ],
+    [ "ie_cpu_features_t", "structie__cpu__features__t.html", "structie__cpu__features__t" ],
+    [ "ie_device", "structie__device.html", "structie__device" ],
+    [ "ie_device_caps", "structie__device__caps.html", "structie__device__caps" ],
+    [ "ie_device_vtbl", "structie__device__vtbl.html", "structie__device__vtbl" ],
+    [ "ie_engine", "structie__engine.html", "structie__engine" ],
+    [ "ie_engine_params", "structie__engine__params.html", "structie__engine__params" ],
+    [ "ie_f32_vec_t", "structie__f32__vec__t.html", "structie__f32__vec__t" ],
+    [ "ie_kv_state_t", "structie__kv__state__t.html", "structie__kv__state__t" ],
+    [ "ie_metrics", "structie__metrics.html", "structie__metrics" ],
+    [ "ie_metrics_t", "structie__metrics__t.html", "structie__metrics__t" ],
+    [ "ie_task_arg_t", "structie__task__arg__t.html", "structie__task__arg__t" ],
+    [ "ie_threadpool", "structie__threadpool.html", "structie__threadpool" ],
+    [ "ie_vocab_s", "structie__vocab__s.html", "structie__vocab__s" ],
+    [ "ie_wblocked_desc", "structie__wblocked__desc.html", "structie__wblocked__desc" ],
+    [ "ie_weights_s", "structie__weights__s.html", "structie__weights__s" ],
+    [ "ie_worker_arg_t", "structie__worker__arg__t.html", "structie__worker__arg__t" ],
+    [ "ze_impl", "structze__impl.html", "structze__impl" ]
+];

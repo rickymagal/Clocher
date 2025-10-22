@@ -1,0 +1,8 @@
+var searchData=
+[
+  ['c11_20core_20python_20stdlib_20harness_0',['Clocher — CPU LLM Inference Baseline (C11 core + Python stdlib harness)',['../index.html',1,'']]],
+  ['clocher_20—_20cpu_20llm_20inference_20baseline_20c11_20core_20python_20stdlib_20harness_1',['Clocher — CPU LLM Inference Baseline (C11 core + Python stdlib harness)',['../index.html',1,'']]],
+  ['core_20python_20stdlib_20harness_2',['Clocher — CPU LLM Inference Baseline (C11 core + Python stdlib harness)',['../index.html',1,'']]],
+  ['cpu_20baseline_3',['CPU baseline',['../md_docs_2adr-00060-optimization-path.html',1,'ADR-0006 — Optimization path selection (CPU baseline)'],['../md_docs_2DESIGN.html',1,'Design (CPU baseline)']]],
+  ['cpu_20llm_20inference_20baseline_20c11_20core_20python_20stdlib_20harness_4',['Clocher — CPU LLM Inference Baseline (C11 core + Python stdlib harness)',['../index.html',1,'']]]
+];
