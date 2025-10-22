@@ -26,13 +26,28 @@ jobs:
       - name: Run tests
         run: CC=${{ matrix.cc }} make test
 
-      - name: Smoke bench
-        run: CC=${{ matrix.cc }} make bench
+      # >>> Bench em modo CI/stub: sem tocar model.bin e com PROMPTS explícito
+      - name: Smoke bench (stub mode)
+        env:
+          # NÃO exija model.bin/json no CI
+          IE_REQUIRE_MODEL: "0"
+          # Não simular pressão de memória no CI
+          IE_BYTES_PER_TOKEN: "0"
+          IE_STRIDE_BYTES: "256"
+          IE_VERIFY_TOUCH: "0"
+          # Use o arquivo que EXISTE no seu repo (note o nome com duas falhas)
+          PROMPTS: "benchmarks/prompts_10..txt"
+        run: |
+          CC=${{ matrix.cc }} make bench
 
+      # Artefatos: binário + relatórios (não falhar se não existirem)
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: ie-artifacts-${{ matrix.cc }}
           path: |
             build/inference-engine
+            build/strict_latest.json
             benchmarks/reports/**
+            docs/PERFORMANCE.md
+          if-no-files-found: ignore
