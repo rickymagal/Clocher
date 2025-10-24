@@ -40,11 +40,31 @@
 #include "ie_api.h"                 /* engine API + ie_metrics_t */
 #include "ie_io.h"                  /* IEBIN loader */
 #include "ie_kv_instrumentation.h"  /* KV round helpers (begin/finish/on_token) */
-#include "util_metrics.h"           /* KV counters + RSS sampler */
+#include "util_metrics.h"           /* KV & RSS helpers */
 #include "util_logging.h"           /* optional logging macros */
 
 #ifndef UNUSED
 #  define UNUSED(x) (void)(x)
+#endif
+
+/* Provide string defaults locally to avoid depending on external macros. */
+#ifndef IE_PREC_FP32
+#  define IE_PREC_FP32 "fp32"
+#endif
+#ifndef IE_PREC_BF16
+#  define IE_PREC_BF16 "bf16"
+#endif
+#ifndef IE_PREC_FP16
+#  define IE_PREC_FP16 "fp16"
+#endif
+#ifndef IE_PREC_INT8W
+#  define IE_PREC_INT8W "int8w"
+#endif
+#ifndef IE_PREC_INT4W
+#  define IE_PREC_INT4W "int4w"
+#endif
+#ifndef IE_PREC_INT4
+#  define IE_PREC_INT4 "int4"
 #endif
 
 /* -------------------------------------------------------------------------- */
@@ -157,7 +177,7 @@ typedef struct cli_extras {
   cli_precision_t    prec;          /**< Float precision hint (fp32/bf16/fp16). */
   const char        *affinity;      /**< "auto" | "compact" | "scatter". */
   cli_pretranspose_t pretx;         /**< Pretranspose policy. */
-  const char        *device;        /**< "auto" | "cpu" | "cuda" | "ze" (hint only). */
+  const char        *device;        /**< "auto" | "cpu" | "cuda" | "ze" (no-op hint). */
 
   /* Harness/compat */
   const char        *prompts_file;  /**< Path to prompts file (one per line). */
@@ -173,7 +193,7 @@ typedef struct cli_extras {
   const char        *model_bin;     /**< Optional explicit model BIN path. */
 
   /* Raw precision label passed to engine (includes int8w/int4/int4w). */
-  const char        *precision_label;     /**< e.g. "fp32"|"bf16"|"fp16"|"int8w"|"int4w" (or "int4"). */
+  const char        *precision_label;   /**< e.g. "fp32"|"bf16"|"fp16"|"int8w"|"int4w". */
   int                precision_from_flag; /**< 1 if set via --precision, else 0 to allow env override. */
 } cli_extras_t;
 
@@ -223,7 +243,7 @@ static void cli_extras_defaults(cli_extras_t *e) {
   e->model_dir      = NULL;
   e->model_json     = NULL;
   e->model_bin      = NULL;
-  e->precision_label = IE_PREC_FP32;
+  e->precision_label = IE_PREC_FP32; /* "fp32" */
   e->precision_from_flag = 0;
 }
 
@@ -281,11 +301,11 @@ static int parse_flags(int argc, char **argv, cli_extras_t *out) {
     else if (!strcmp(a,"--precision"))   {
       if (++i>=argc) { usage(); return -1; }
       const char *m = argv[i];
-      if (ascii_ieq(m, IE_PREC_FP32)) out->prec=CLI_PREC_FP32, out->precision_label=IE_PREC_FP32, out->precision_from_flag=1;
+      if      (ascii_ieq(m, IE_PREC_FP32)) out->prec=CLI_PREC_FP32, out->precision_label=IE_PREC_FP32, out->precision_from_flag=1;
       else if (ascii_ieq(m, IE_PREC_BF16)) out->prec=CLI_PREC_BF16, out->precision_label=IE_PREC_BF16, out->precision_from_flag=1;
       else if (ascii_ieq(m, IE_PREC_FP16)) out->prec=CLI_PREC_FP16, out->precision_label=IE_PREC_FP16, out->precision_from_flag=1;
       else if (ascii_ieq(m, IE_PREC_INT8W)) { out->precision_label = IE_PREC_INT8W; out->precision_from_flag=1; }
-      else if (ascii_ieq(m, IE_PREC_INT4W) || ascii_ieq(m, "int4")) { out->precision_label = IE_PREC_INT4W; out->precision_from_flag=1; }
+      else if (ascii_ieq(m, IE_PREC_INT4W) || ascii_ieq(m, IE_PREC_INT4)) { out->precision_label = IE_PREC_INT4W; out->precision_from_flag=1; }
       else { fprintf(stderr,"error: unknown precision '%s'\n", m); return -1; }
     }
     else if (!strcmp(a,"--affinity"))    { if (++i>=argc) { usage(); return -1; } out->affinity = argv[i]; }
@@ -296,7 +316,7 @@ static int parse_flags(int argc, char **argv, cli_extras_t *out) {
       else if(!strcmp(p,"all")) out->pretx=CLI_PRETX_ALL;
       else { fprintf(stderr,"error: unknown pretranspose '%s'\n", p); return -1; }
     }
-    else if (!strcmp(a,"--device"))      { if (++i>=argc) { usage(); return -1; } out->device = argv[i]; /* accepted; hint only */ }
+    else if (!strcmp(a,"--device"))      { if (++i>=argc) { usage(); return -1; } out->device = argv[i]; /* accepted; no-op hint */ }
     else if (!strcmp(a,"--model-dir"))   { if (++i>=argc) { usage(); return -1; } out->model_dir = argv[i]; }
     else if (!strcmp(a,"--model-json"))  { if (++i>=argc) { usage(); return -1; } out->model_json = argv[i]; }
     else if (!strcmp(a,"--model-bin"))   { if (++i>=argc) { usage(); return -1; } out->model_bin  = argv[i]; }
@@ -364,35 +384,38 @@ static int read_first_nonempty_line(const char *path, char *buf, size_t bufsz) {
  *  - `rss_peak_mb`
  *  - `kv_hits`, `kv_misses`
  *
- * @param n_tok     Number of tokens generated (Σ across rounds if applicable).
- * @param tokens    Pointer to tokens (may be NULL to print an empty array).
- * @param wall_s_in Wall-clock seconds for the measured window.
- * @param m_in      Pointer to metrics snapshot (may be NULL).
+ * @param n_tok         Number of tokens generated.
+ * @param tokens        Pointer to tokens (may be NULL to print an empty array).
+ * @param wall_s_in     Wall-clock seconds for the measured window.
+ * @param kv_hits       KV hits to report.
+ * @param kv_misses     KV misses to report.
+ * @param rss_peak_mb   Peak RSS in MiB to report.
  */
 static void print_json_result(uint32_t n_tok,
                               const uint32_t *tokens,
                               double wall_s_in,
-                              const ie_metrics_t *m_in) {
+                              uint64_t kv_hits,
+                              uint64_t kv_misses,
+                              uint32_t rss_peak_mb) {
   const double WALL_MIN = 3e-4; /* 0.0003 s */
   double wall_s = wall_s_in;
   if (wall_s > 0.0 && wall_s < WALL_MIN) wall_s = WALL_MIN;
 
-  double tps_local = (wall_s > 0.0) ? ((double)n_tok / wall_s) : 0.0;
-  double tps = (m_in && m_in->tps_true > 0.0) ? m_in->tps_true : tps_local;
+  /* True TPS: by definition in this tool, it's n_tok / wall-time */
+  const double tps_true = (wall_s > 0.0) ? ((double)n_tok / wall_s) : 0.0;
 
-  double p50 = (m_in ? m_in->latency_p50_ms : 0.0);
-  double p95 = (m_in ? m_in->latency_p95_ms : 0.0);
-  if ((p50 <= 0.0 || p95 <= 0.0) && n_tok > 0 && wall_s > 0.0) {
+  /* Simple latency proxies if caller didn't compute them elsewhere. */
+  double p50 = 0.0, p95 = 0.0;
+  if (n_tok > 0 && wall_s > 0.0) {
     double per_tok_ms = (wall_s * 1000.0) / (double)n_tok;
-    const double LAT_MIN_MS = 0.001;
-    if (per_tok_ms < LAT_MIN_MS) per_tok_ms = LAT_MIN_MS;
+    if (per_tok_ms < 0.001) per_tok_ms = 0.001;
     p50 = per_tok_ms;
     p95 = per_tok_ms * 2.0;
   }
 
   fprintf(stdout, "{\"tokens_generated\": %u,", (unsigned)n_tok);
 
-  /* tokens array: empty when tokens==NULL to avoid large prints or OOB. */
+  /* tokens array: empty when tokens==NULL to avoid huge prints. */
   fputs("\"tokens\":[", stdout);
   if (tokens && n_tok > 0) {
     for (uint32_t i = 0; i < n_tok; ++i) {
@@ -411,12 +434,12 @@ static void print_json_result(uint32_t n_tok,
       "\"kv_hits\": %llu,"
       "\"kv_misses\": %llu}\n",
       wall_s,
-      tps,
+      tps_true,
       p50,
       p95,
-      (unsigned)(m_in ? m_in->rss_peak_mb : 0u),
-      (unsigned long long)(m_in ? m_in->kv_hits   : 0ULL),
-      (unsigned long long)(m_in ? m_in->kv_misses : 0ULL));
+      (unsigned)rss_peak_mb,
+      (unsigned long long)kv_hits,
+      (unsigned long long)kv_misses);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -466,7 +489,7 @@ int main(int argc, char **argv) {
   if (!opt.precision_from_flag) {
     const char *envp = env_str("IE_PRECISION",
                       env_str("PRECISION", IE_PREC_FP32));
-    if (ascii_ieq(envp, IE_PREC_INT4W) || ascii_ieq(envp, "int4"))
+    if      (ascii_ieq(envp, IE_PREC_INT4W) || ascii_ieq(envp, IE_PREC_INT4))
       opt.precision_label = IE_PREC_INT4W;
     else if (ascii_ieq(envp, IE_PREC_INT8W))
       opt.precision_label = IE_PREC_INT8W;
@@ -489,7 +512,7 @@ int main(int argc, char **argv) {
   if (!opt.prompt && !opt.prompts_file) {
     /* Graceful empty run: print a valid JSON skeleton for tests. */
     ie_metrics_t mm; memset(&mm, 0, sizeof(mm));
-    print_json_result(0, NULL, 0.0, &mm);
+    print_json_result(0, NULL, 0.0, 0, 0, 0);
     return 0;
   }
 
@@ -547,10 +570,7 @@ int main(int argc, char **argv) {
   }
 
   /* -------------------- token output buffer -------------------- */
-  /**
-   * Allocate a non-NULL buffer so `ie_engine_generate()` never sees NULL.
-   * Even if `max_new == 0`, we give it a 1-element buffer.
-   */
+  /* Always allocate a buffer so ie_engine_generate() never sees NULL. */
   uint32_t *tokens = NULL;
   size_t cap = (opt.max_new > 0 ? opt.max_new : 0);
   size_t cap_alloc = (cap > 0 ? cap : 1);
@@ -642,18 +662,29 @@ int main(int argc, char **argv) {
   uint64_t kv_hits_round = 0, kv_miss_round = 0;
   ie_kv_finish_round(total_tokens_this_round, &kv_hits_round, &kv_miss_round);
 
+  /* Snapshot engine-side metrics if available (kept in sync with API). */
   ie_metrics_t m; memset(&m, 0, sizeof(m));
   (void)ie_engine_metrics(engine, &m);
-  m.kv_hits   = kv_hits_round;
-  m.kv_misses = kv_miss_round;
+  /* Prefer the round counters if non-zero (bench semantics). */
+  if (kv_hits_round || kv_miss_round) {
+    m.kv_hits   = kv_hits_round;
+    m.kv_misses = kv_miss_round;
+  }
 
-  /* Fill RSS using the current util_metrics.h signature (pointer in/out). */
-  (void)ie_metrics_sample_rss_peak(&m);
+  /* Sample RSS peak outside timing window. */
+  uint32_t rss_mib = ie_metrics_sample_rss_peak();
+  m.rss_peak_mb = rss_mib; /* ok even if the field is present or ignored otherwise */
 
   /* -------------------- print JSON & teardown ------------------------------ */
   /* Only print tokens array when it is a single-run, non-aggregate case. */
   const uint32_t *tokens_to_print = (opt.aggregate || opt.rounds > 1) ? NULL : tokens;
-  print_json_result(tokens_generated_total, tokens_to_print, t1 - t0, &m);
+
+  print_json_result(tokens_generated_total,
+                    tokens_to_print,
+                    (t1 - t0),
+                    m.kv_hits,
+                    m.kv_misses,
+                    rss_mib);
 
   free(tokens);
   if (map && map != MAP_FAILED) munmap(map, map_len);

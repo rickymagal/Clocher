@@ -1,93 +1,99 @@
-/* ========================================================================== */
-/* File: engine/src/util_metrics.c                                            */
-/* ========================================================================== */
 /**
  * @file util_metrics.c
- * @brief Runtime metrics utilities: KV-cache counters and peak RSS sampling.
+ * @brief Implementation of runtime metrics (KV counters + RSS sampling).
  *
- * This module implements the public API declared in @ref ie_metrics.h:
- *  - Process-wide accumulators for KV-cache hits/misses using C11 atomics.
- *  - A best-effort routine to sample **peak** process RSS and return it as
- *    MiB (rounded up) for stable reporting in benchmarks.
+ * @details
+ * This module backs the helpers declared in @ref util_metrics.h:
+ *  - Process-wide accumulators for KV hits/misses using C11 atomics.
+ *  - A best-effort function that samples the process peak RSS in MiB.
  *
- * ## Platform notes (units and data sources)
- * - **Linux**
- *   - `getrusage(RUSAGE_SELF).ru_maxrss` → **KiB**, *peak*.
- *   - `/proc/self/status` → `VmHWM:` → **kB**, *peak* (alternative source).
- *   - `/proc/self/statm` → resident pages × page size → **bytes**, *current*
- *     (last-resort; not a peak, only used if other sources fail).
- * - **macOS**
- *   - `getrusage(...).ru_maxrss` → **bytes**, *peak*.
- * - **Other POSIX-like systems**
- *   - `getrusage(...).ru_maxrss` units are OS-dependent; this module
- *     conservatively interprets them as KiB.
- *
- * All conversions normalize to **MiB** and use **ceil** rounding to avoid
- * reporting “0 MB” for small-but-non-zero peaks.
+ * Environment:
+ *  - Set `IE_DEBUG_RSS=1` to log which source (VmHWM/VmRSS/smaps_rollup/
+ *    getrusage/mach) was used and its raw units before conversion.
  */
 
-#include "ie_metrics.h"
+#include "util_metrics.h"
 
 #include <stdatomic.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+#include <errno.h>
+#include <stdlib.h>
+#include <stdarg.h>
 
+#include "util_metrics.h"
+
+#ifndef _POSIX_C_SOURCE
+#define _POSIX_C_SOURCE 200809L
+#endif
+#include <strings.h>  /* strcasecmp */
+
+
+/* Platform headers for RSS sampling */
 #if defined(__linux__)
   #include <sys/resource.h>
   #include <unistd.h>
-#elif defined(__APPLE__) || defined(__MACH__)
+#elif defined(__APPLE__)
   #include <sys/resource.h>
+  #include <mach/mach.h>
 #else
   #include <sys/resource.h>
 #endif
 
 /* -------------------------------------------------------------------------- */
-/* Internal helpers                                                           */
+/* Globals: KV accumulators (process-wide)                                     */
+/* -------------------------------------------------------------------------- */
+
+static _Atomic uint64_t g_kv_hits = 0;
+static _Atomic uint64_t g_kv_miss = 0;
+
+/* -------------------------------------------------------------------------- */
+/* Small helpers                                                               */
 /* -------------------------------------------------------------------------- */
 
 /**
- * @brief Convert KiB to MiB, rounding up.
- * @param kib Value in kibibytes.
- * @return Value in mebibytes (ceil).
+ * @brief Return 1 if the env var @p name is a truthy flag (1,true,yes,on).
  */
-static inline unsigned kib_to_mib_ceil(uint64_t kib) {
-  return (unsigned)((kib + 1023u) / 1024u);
+static int env_flag(const char *name) {
+  const char *s = getenv(name);
+  if (!s || !*s) return 0;
+  return (!strcasecmp(s, "1") || !strcasecmp(s, "true") ||
+          !strcasecmp(s, "yes") || !strcasecmp(s, "on"));
 }
 
 /**
- * @brief Convert bytes to MiB, rounding up.
- * @param bytes Value in bytes.
- * @return Value in mebibytes (ceil).
+ * @brief Debug print controlled by `IE_DEBUG_RSS=1`.
  */
-static inline unsigned bytes_to_mib_ceil(uint64_t bytes) {
-  const uint64_t mask = (1u << 20) - 1u; /* 1 MiB - 1 */
-  return (unsigned)((bytes + mask) >> 20);
+static void dbg(const char *fmt, ...) {
+  if (!env_flag("IE_DEBUG_RSS")) return;
+  va_list ap;
+  va_start(ap, fmt);
+  vfprintf(stderr, fmt, ap);
+  va_end(ap);
 }
 
 /**
- * @brief Parse integer value (kB) from a `/proc/self/status` style line.
- *
- * Expected formats (whitespace varies):
- * - `"VmHWM:\t  123456 kB"`
- * - `"VmRSS:\t  654321 kB"`
- *
- * @param line   NUL-terminated input line.
- * @param key    Key prefix to match (e.g., `"VmHWM:"`).
- * @param out_kb Receives the parsed value in kB on success.
- * @return 1 on success, 0 otherwise.
+ * @brief Round up kB to MiB (ceil), clamped to 32-bit.
  */
-static int parse_status_kb_line(const char *line, const char *key, uint64_t *out_kb) {
+static uint32_t kib_to_mib_ceil(uint64_t kib) {
+  if (kib == 0) return 0u;
+  /* ceil(kib/1024) = (kib + 1023) >> 10 */
+  uint64_t mib = (kib + 1023u) >> 10;
+  return (mib > 0xFFFFFFFFu) ? 0xFFFFFFFFu : (uint32_t)mib;
+}
+
+/**
+ * @brief Parse integer kB from a "Key:   12345 kB" style line.
+ */
+static int parse_status_kb_line(const char* line, const char* key, uint64_t* out_kb) {
   if (!line || !key || !out_kb) return 0;
-
-  const size_t klen = strlen(key);
+  size_t klen = strlen(key);
   if (strncmp(line, key, klen) != 0) return 0;
 
-  /* Skip whitespace after the key */
-  const char *p = line + klen;
+  const char* p = line + klen;
   while (*p == ' ' || *p == '\t') ++p;
 
-  /* Parse number */
   uint64_t val = 0;
   int matched = 0;
   while (*p >= '0' && *p <= '9') {
@@ -97,150 +103,70 @@ static int parse_status_kb_line(const char *line, const char *key, uint64_t *out
   }
   if (!matched) return 0;
 
-  /* Optional whitespace then optional "kB" unit (ignored) */
-  *out_kb = val;
+  *out_kb = val; /* procfs reports kB */
   return 1;
 }
 
+/**
+ * @brief Grep one numeric (kB) key from a procfs text file.
+ *
+ * @param path File path (e.g., "/proc/self/status").
+ * @param key  Key to match, e.g., "VmHWM:" or "VmRSS:" or "Rss:".
+ * @param out_kb Receives parsed value (kB) on success.
+ * @return 0 on success, -ENOENT if not found, negative errno otherwise.
+ */
+static int read_proc_kb_single(const char *path, const char *key, uint64_t *out_kb) {
 #if defined(__linux__)
-/**
- * @brief Linux-only: obtain peak RSS in KiB via multiple strategies.
- *
- * Preference order:
- *  1. `getrusage(...).ru_maxrss` (KiB, **peak**).
- *  2. `/proc/self/status` → `VmHWM:` (kB, **peak**).
- *  3. `/proc/self/statm` (current RSS only; last resort).
- *
- * @param out_kib Receives the peak RSS in KiB on success.
- * @return 1 on success, 0 otherwise.
- */
-static int linux_rss_peak_kib(uint64_t *out_kib) {
-  if (!out_kib) return 0;
-
-  /* 1) getrusage: ru_maxrss in KiB on Linux */
-  {
-    struct rusage ru;
-    if (getrusage(RUSAGE_SELF, &ru) == 0) {
-      uint64_t kib = (uint64_t)ru.ru_maxrss; /* KiB */
-      if (kib > 0) { *out_kib = kib; return 1; }
-    }
-  }
-
-  /* 2) /proc/self/status → VmHWM (kB, peak) */
-  {
-    FILE *f = fopen("/proc/self/status", "r");
-    if (f) {
-      char buf[512];
-      while (fgets(buf, sizeof(buf), f)) {
-        uint64_t kb = 0;
-        if (parse_status_kb_line(buf, "VmHWM:", &kb)) {
-          fclose(f);
-          *out_kib = kb; /* treat kB ≈ KiB for our purposes */
-          return 1;
-        }
-      }
+  FILE *f = fopen(path, "r");
+  if (!f) return -errno ? -errno : -1;
+  char buf[512];
+  while (fgets(buf, sizeof buf, f)) {
+    uint64_t kb = 0;
+    if (parse_status_kb_line(buf, key, &kb)) {
       fclose(f);
+      *out_kb = kb;
+      return 0;
     }
   }
-
-  /* 3) /proc/self/statm (CURRENT RSS; not peak) as last resort */
-  {
-    FILE *f = fopen("/proc/self/statm", "r");
-    if (f) {
-      unsigned long pages_total = 0, pages_resident = 0;
-      if (fscanf(f, "%lu %lu", &pages_total, &pages_resident) == 2) {
-        long page_sz = sysconf(_SC_PAGESIZE);
-        fclose(f);
-        if (page_sz > 0) {
-          uint64_t bytes = (uint64_t)pages_resident * (uint64_t)page_sz;
-          *out_kib = bytes >> 10; /* bytes → KiB */
-          return 1;
-        }
-      } else {
-        fclose(f);
-      }
-    }
-  }
-
-  return 0;
-}
-#endif /* __linux__ */
-
-/* -------------------------------------------------------------------------- */
-/* Global accumulators (process-wide)                                         */
-/* -------------------------------------------------------------------------- */
-
-/** @brief Process-wide KV hit counter. */
-static _Atomic uint64_t g_kv_hits = 0;
-/** @brief Process-wide KV miss counter. */
-static _Atomic uint64_t g_kv_miss = 0;
-
-/* -------------------------------------------------------------------------- */
-/* Public API                                                                 */
-/* -------------------------------------------------------------------------- */
-
-#ifdef __cplusplus
-extern "C" {
+  fclose(f);
+  return -ENOENT;
+#else
+  (void)path; (void)key; (void)out_kb;
+  return -ENOSYS;
 #endif
+}
 
-/**
- * @brief Reset the process-wide KV hit/miss counters to zero.
- *
- * Thread-safety: uses relaxed C11 atomics.
- */
+/* -------------------------------------------------------------------------- */
+/* KV counters API                                                             */
+/* -------------------------------------------------------------------------- */
+
 void ie_metrics_reset(void) {
   atomic_store_explicit(&g_kv_hits, 0, memory_order_relaxed);
   atomic_store_explicit(&g_kv_miss, 0, memory_order_relaxed);
 }
 
-/**
- * @brief Add @p n to the global KV **hit** counter.
- * @param n Increment amount; no-op if zero.
- */
 void ie_metrics_add_kv_hit(uint64_t n) {
   if (!n) return;
   (void)atomic_fetch_add_explicit(&g_kv_hits, n, memory_order_relaxed);
 }
 
-/**
- * @brief Add @p n to the global KV **miss** counter.
- * @param n Increment amount; no-op if zero.
- */
 void ie_metrics_add_kv_miss(uint64_t n) {
   if (!n) return;
   (void)atomic_fetch_add_explicit(&g_kv_miss, n, memory_order_relaxed);
 }
 
-/**
- * @brief Add to both KV counters in a single call.
- * @param hits   Increment for the hit counter (may be 0).
- * @param misses Increment for the miss counter (may be 0).
- */
 void ie_metrics_add_kv(uint64_t hits, uint64_t misses) {
-  if (hits)   (void)atomic_fetch_add_explicit(&g_kv_hits,  hits,   memory_order_relaxed);
+  if (hits)   (void)atomic_fetch_add_explicit(&g_kv_hits, hits,  memory_order_relaxed);
   if (misses) (void)atomic_fetch_add_explicit(&g_kv_miss, misses, memory_order_relaxed);
 }
 
-/**
- * @brief Snapshot the current KV counters into @p out, optionally resetting.
- *
- * On return:
- *  - `out->kv_hits`   receives the current hit count.
- *  - `out->kv_misses` receives the current miss count.
- *  - `out->rsvd0`     is set to 0.
- *
- * @param out         Output structure (must not be `NULL`).
- * @param reset_after If non-zero, counters are reset to zero after snapshot.
- */
-void ie_metrics_snapshot(ie_metrics_t *out, int reset_after) {
+void ie_metrics_snapshot(ie_metrics_t* out, int reset_after) {
   if (!out) return;
-
   const uint64_t hits = atomic_load_explicit(&g_kv_hits, memory_order_relaxed);
   const uint64_t miss = atomic_load_explicit(&g_kv_miss, memory_order_relaxed);
 
   out->kv_hits   = hits;
   out->kv_misses = miss;
-  out->rsvd0     = 0;
 
   if (reset_after) {
     atomic_store_explicit(&g_kv_hits, 0, memory_order_relaxed);
@@ -248,57 +174,114 @@ void ie_metrics_snapshot(ie_metrics_t *out, int reset_after) {
   }
 }
 
-/**
- * @brief Sample **peak** RSS and return it in MiB (ceil).
- *
- * This routine should be called **outside** the timed benchmark window
- * (the caller controls where it’s invoked).
- *
- * Platform behavior:
- *  - **Linux**: prefer `getrusage()` (KiB, peak), fall back to
- *    `/proc/self/status` `VmHWM:` (kB, peak), then `/proc/self/statm`
- *    (current RSS only) as a last resort.
- *  - **macOS**: use `getrusage()` (bytes, peak).
- *  - **Other**: best-effort `getrusage()` assuming KiB.
- *
- * @return Peak RSS in MiB (rounded up), or 0 if unavailable.
- */
+/* -------------------------------------------------------------------------- */
+/* RSS peak sampler                                                            */
+/* -------------------------------------------------------------------------- */
+
 uint32_t ie_metrics_sample_rss_peak(void) {
+  uint32_t best_mib = 0;
+
 #if defined(__linux__)
-  uint64_t kib = 0;
-  if (linux_rss_peak_kib(&kib)) {
-    return (uint32_t)kib_to_mib_ceil(kib);
-  }
-  return 0u;
-
-#elif defined(__APPLE__) || defined(__MACH__)
+  /* 1) Prefer VmHWM (kB) — process peak resident set size. */
   {
-    struct rusage ru;
-    if (getrusage(RUSAGE_SELF, &ru) == 0) {
-      /* macOS: ru_maxrss is BYTES */
-      const uint64_t bytes = (uint64_t)ru.ru_maxrss;
-      return (uint32_t)bytes_to_mib_ceil(bytes);
+    uint64_t kb = 0;
+    int rc = read_proc_kb_single("/proc/self/status", "VmHWM:", &kb);
+    if (rc == 0) {
+      uint32_t mib = kib_to_mib_ceil(kb);
+      if (mib > best_mib) best_mib = mib;
+      dbg("[RSS] VmHWM: %llu kB -> %u MiB\n",
+          (unsigned long long)kb, mib);
+    } else {
+      dbg("[RSS] VmHWM not found (rc=%d)\n", rc);
     }
   }
-  return 0u;
 
+  /* 2) Fallback: current VmRSS (kB) as lower bound if HWM is unavailable. */
+  if (best_mib == 0) {
+    uint64_t kb = 0;
+    int rc = read_proc_kb_single("/proc/self/status", "VmRSS:", &kb);
+    if (rc == 0) {
+      uint32_t mib = kib_to_mib_ceil(kb);
+      if (mib > best_mib) best_mib = mib;
+      dbg("[RSS] VmRSS: %llu kB -> %u MiB\n",
+          (unsigned long long)kb, mib);
+    } else {
+      dbg("[RSS] VmRSS not found (rc=%d)\n", rc);
+    }
+  }
+
+  /* 3) Try smaps_rollup Rss: (kB) — often more accurate with mmaps. */
+  if (best_mib == 0) {
+    uint64_t kb = 0;
+    int rc = read_proc_kb_single("/proc/self/smaps_rollup", "Rss:", &kb);
+    if (rc == 0) {
+      uint32_t mib = kib_to_mib_ceil(kb);
+      if (mib > best_mib) best_mib = mib;
+      dbg("[RSS] smaps_rollup Rss: %llu kB -> %u MiB\n",
+          (unsigned long long)kb, mib);
+    } else {
+      dbg("[RSS] smaps_rollup Rss not found (rc=%d)\n", rc);
+    }
+  }
+
+  /* 4) Final fallback: getrusage (Linux ru_maxrss is kB). */
+  if (best_mib == 0) {
+    struct rusage ru;
+    if (getrusage(RUSAGE_SELF, &ru) == 0) {
+      uint64_t kb = (uint64_t)ru.ru_maxrss;
+      uint32_t mib = kib_to_mib_ceil(kb);
+      if (mib > best_mib) best_mib = mib;
+      dbg("[RSS] getrusage ru_maxrss: %llu kB -> %u MiB\n",
+          (unsigned long long)kb, mib);
+    } else {
+      dbg("[RSS] getrusage failed: errno=%d\n", errno);
+    }
+  }
+
+#elif defined(__APPLE__)
+  /* macOS primary: mach_task_basic_info (bytes). */
+  {
+    mach_task_basic_info info;
+    mach_msg_type_number_t count = MACH_TASK_BASIC_INFO_COUNT;
+    kern_return_t kr = task_info(mach_task_self(), MACH_TASK_BASIC_INFO,
+                                 (task_info_t)&info, &count);
+    if (kr == KERN_SUCCESS) {
+      /* resident_size_max is peak if supported; otherwise 0. */
+      uint64_t bytes = (uint64_t)info.resident_size_max;
+      if (bytes == 0) bytes = (uint64_t)info.resident_size; /* at least current */
+      uint32_t mib = (uint32_t)((bytes + (1024u*1024u - 1)) / (1024u*1024u));
+      if (mib > best_mib) best_mib = mib;
+      dbg("[RSS] mach_task_basic_info: %llu bytes -> %u MiB\n",
+          (unsigned long long)bytes, mib);
+    } else {
+      dbg("[RSS] mach task_info failed: kr=%d\n", (int)kr);
+    }
+  }
+
+  /* Fallback: getrusage (on macOS ru_maxrss is bytes). */
+  if (best_mib == 0) {
+    struct rusage ru;
+    if (getrusage(RUSAGE_SELF, &ru) == 0) {
+      uint64_t bytes = (uint64_t)ru.ru_maxrss;
+      uint32_t mib = (uint32_t)((bytes + (1024u*1024u - 1)) / (1024u*1024u));
+      if (mib > best_mib) best_mib = mib;
+      dbg("[RSS] getrusage ru_maxrss(bytes): %llu -> %u MiB\n",
+          (unsigned long long)bytes, mib);
+    }
+  }
 #else
-  /* Other platforms: conservative assumption ru_maxrss is KiB. */
+  /* Other OS: try getrusage and assume kB (conservative). */
   {
     struct rusage ru;
     if (getrusage(RUSAGE_SELF, &ru) == 0) {
-      const uint64_t kib = (uint64_t)ru.ru_maxrss;
-      return (uint32_t)kib_to_mib_ceil(kib);
+      uint64_t kb = (uint64_t)ru.ru_maxrss;
+      uint32_t mib = kib_to_mib_ceil(kb);
+      if (mib > best_mib) best_mib = mib;
+      dbg("[RSS] generic getrusage ru_maxrss: %llu kB -> %u MiB\n",
+          (unsigned long long)kb, mib);
     }
   }
-  return 0u;
 #endif
+
+  return best_mib;
 }
-
-#ifdef __cplusplus
-} /* extern "C" */
-#endif
-
-/* ========================================================================== */
-/* End of file                                                                */
-/* ========================================================================== */
