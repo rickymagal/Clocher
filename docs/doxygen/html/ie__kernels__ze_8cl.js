@@ -1,25 +1,9 @@
 var ie__kernels__ze_8cl =
 [
     [ "IE_WG_TILE", "ie__kernels__ze_8cl.html#a23d302f7ef21814172c805270ac90730", null ],
-    [ "__attribute__", "ie__kernels__ze_8cl.html#ae2ef05e9795e8e5d3eebe7e8c15e5a81", null ],
-    [ "barrier", "ie__kernels__ze_8cl.html#a3e38c79e12e7a582014f8b0664301d74", null ],
-    [ "for", "ie__kernels__ze_8cl.html#af9d091f76ee32433ba4b7a33e2e38ab5", null ],
-    [ "for", "ie__kernels__ze_8cl.html#a7761b4b705dd138cfe1b7b0e69992334", null ],
+    [ "gemv_bias_act_f32", "ie__kernels__ze_8cl.html#a32d59e346c85a4b1dccb8448d0748d9e", null ],
+    [ "gemv_rowwise_f32", "ie__kernels__ze_8cl.html#a1aeaae590abe44f0392b55f435c39cf7", null ],
     [ "ie_apply_activation", "ie__kernels__ze_8cl.html#ac201a9ea4df331010c34a2c99cb2be56", null ],
-    [ "if", "ie__kernels__ze_8cl.html#abe3c8c061ae8aafff6f6b7dfb9a2477d", null ],
-    [ "if", "ie__kernels__ze_8cl.html#a19dfb80c9cf48bd6c4d3647fc34f723a", null ],
     [ "pack_w_blockedk_f32", "ie__kernels__ze_8cl.html#a9eabeb874d4fef74c860c96689a6fc44", null ],
-    [ "vec_tanh_f32", "ie__kernels__ze_8cl.html#a2261b0a1b8943ff014f3796d4d10d454", null ],
-    [ "acc", "ie__kernels__ze_8cl.html#ae7a59aea3ae02e7c3c40b93e77208b3a", null ],
-    [ "act", "ie__kernels__ze_8cl.html#ac8f2ae6794c6c329fe6562487f7826ac", null ],
-    [ "alpha", "ie__kernels__ze_8cl.html#a1ed7c041b95733adcb91c850c327801a", null ],
-    [ "beta", "ie__kernels__ze_8cl.html#adff94f6593498005c7fdbb1094908bcd", null ],
-    [ "bias", "ie__kernels__ze_8cl.html#a6e7f44009791b41b64f365b59236e3a1", null ],
-    [ "buf", "ie__kernels__ze_8cl.html#a2fc07fdd1b60b645c24a35bc0c75ed7f", null ],
-    [ "cols", "ie__kernels__ze_8cl.html#af942f0573963b9e5aaa312bb99574c86", null ],
-    [ "ldW", "ie__kernels__ze_8cl.html#a8670fee560ed3b5cc952b89bed537616", null ],
-    [ "lr", "ie__kernels__ze_8cl.html#a2ccfed46dfdf3d57f0ea8757a88a3ba6", null ],
-    [ "rows", "ie__kernels__ze_8cl.html#a35363449221d3f91c1cbb04818f843d9", null ],
-    [ "x", "ie__kernels__ze_8cl.html#ad48b386850d1d2a5a51515ad676993a0", null ],
-    [ "y", "ie__kernels__ze_8cl.html#aea3d67a4afbcc9232ebb1f337b451966", null ]
+    [ "vec_tanh_f32", "ie__kernels__ze_8cl.html#a2261b0a1b8943ff014f3796d4d10d454", null ]
 ];

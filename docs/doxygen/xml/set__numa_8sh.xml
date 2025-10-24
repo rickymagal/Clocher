@@ -1,0 +1,51 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="set__numa_8sh" kind="file" language="C++">
+    <compoundname>set_numa.sh</compoundname>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline><highlight class="normal">#!/usr/bin/env<sp/>bash</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>NUMA<sp/>helper<sp/>for<sp/>running<sp/>the<sp/>inference<sp/>engine<sp/>with<sp/>a<sp/>chosen<sp/>policy.</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Usage:</highlight></codeline>
+<codeline><highlight class="normal">#<sp/><sp/><sp/>scripts/set_numa.sh<sp/>compact<sp/><sp/><sp/>--<sp/>&lt;cmd&gt;<sp/>[args...]</highlight></codeline>
+<codeline><highlight class="normal">#<sp/><sp/><sp/>scripts/set_numa.sh<sp/>interleave<sp/>--<sp/>&lt;cmd&gt;<sp/>[args...]</highlight></codeline>
+<codeline><highlight class="normal">#<sp/><sp/><sp/>scripts/set_numa.sh<sp/>node:0<sp/><sp/><sp/><sp/>--<sp/>&lt;cmd&gt;<sp/>[args...]</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">set<sp/>-euo<sp/>pipefail</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">MODE=&quot;${1:-compact}&quot;</highlight></codeline>
+<codeline><highlight class="normal">shift<sp/>||<sp/>true</highlight></codeline>
+<codeline><highlight class="normal">if<sp/>[[<sp/>&quot;${1:-}&quot;<sp/>!=<sp/>&quot;--&quot;<sp/>]];<sp/>then</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>echo<sp/>&quot;usage:<sp/>$0<sp/>{compact|interleave|node:X}<sp/>--<sp/>&lt;command&gt;<sp/>[args...]&quot;<sp/>&gt;&amp;2</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>exit<sp/>2</highlight></codeline>
+<codeline><highlight class="normal">fi</highlight></codeline>
+<codeline><highlight class="normal">shift</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">if<sp/>!<sp/>command<sp/>-v<sp/>numactl<sp/>&gt;/dev/null<sp/>2&gt;&amp;1;<sp/>then</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>echo<sp/>&quot;[warn]<sp/>numactl<sp/>not<sp/>found;<sp/>running<sp/>without<sp/>NUMA<sp/>policy.&quot;<sp/>&gt;&amp;2</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>exec<sp/>&quot;$@&quot;</highlight></codeline>
+<codeline><highlight class="normal">fi</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">case<sp/>&quot;$MODE&quot;<sp/>in</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>compact|auto)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>exec<sp/>numactl<sp/>--cpunodebind=0<sp/>--membind=0<sp/>&quot;$@&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>;;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>interleave)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>exec<sp/>numactl<sp/>--interleave=all<sp/>&quot;$@&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>;;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>node:*)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>NODE=&quot;${MODE#node:}&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>exec<sp/>numactl<sp/>--cpunodebind=&quot;${NODE}&quot;<sp/>--membind=&quot;${NODE}&quot;<sp/>&quot;$@&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>;;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>*)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>echo<sp/>&quot;invalid<sp/>NUMA<sp/>mode:<sp/>$MODE&quot;<sp/>&gt;&amp;2</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>exit<sp/>2</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>;;</highlight></codeline>
+<codeline><highlight class="normal">esac</highlight></codeline>
+    </programlisting>
+    <location file="scripts/set_numa.sh"/>
+  </compounddef>
+</doxygen>

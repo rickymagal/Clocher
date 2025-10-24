@@ -1,0 +1,45 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="md_docs_2DECISIONS" kind="page">
+    <compoundname>md_docs_2DECISIONS</compoundname>
+    <title>Architectural Decision Records</title>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><anchor id="md_docs_2DECISIONS_1autotoc_md33"/></para>
+<para><bold>Last updated:</bold> 2025-10-24 21:00:48 UTC</para>
+<para><itemizedlist>
+<listitem><para><bold>ADR-0001 (2025-10-13)</bold>: Core in C11, zero third-party runtime; Python stdlib harness.</para>
+</listitem><listitem><para><bold>ADR-0002 (2025-10-13)</bold>: IEBIN v1 weights: <computeroutput>model.ie.json</computeroutput> + <computeroutput>model.ie.bin</computeroutput> + <computeroutput>vocab.json</computeroutput> (mmap-friendly).</para>
+</listitem><listitem><para><bold>ADR-0003 (2025-10-13)</bold>: Baseline = FP32 naive path; TPS = generated_tokens / wall_time.</para>
+</listitem><listitem><para><bold>ADR-0006 (2025-10-14)</bold>: Optimization path selection (CPU baseline) — AVX2 microkernels, thread-pool with affinity, fast math, layout packing. See <computeroutput><ref refid="adr-00060-optimization-path_8md" kindref="compound">adr-00060-optimization-path.md</ref></computeroutput>.</para>
+</listitem><listitem><para><bold>ADR-0010 (2025-10-16)</bold>: INT8 PTQ min-max (per-tensor/per-row) with calibration script and accuracy budget gate (cosine ≥ threshold).</para>
+</listitem><listitem><para><bold>ADR-0011 (2025-10-24)</bold>: Drop Level Zero from default benchmarking; GPU bench is CUDA-only; CPU/GPU share a unified reporting pipeline.</para>
+</listitem></itemizedlist>
+</para>
+<para><hruler/>
+</para>
+<sect1 id="md_docs_2DECISIONS_1autotoc_md35">
+<title><bold>ADR-0013 (2025-10-24): Adopt INT4 weight-only PTQ &amp; manifest-guided packing</bold></title><para><bold>Context.</bold> The engine is primarily <bold>memory-bandwidth bound</bold> at inference time. Even with blocked‑K packing and prefetch, large models remain limited by weight fetch. INT8 provided a 2× compression; we want a <bold>denser format</bold> while preserving a simple compute path.</para>
+<para><bold>Decision.</bold><itemizedlist>
+<listitem><para>Introduce <bold>INT4 weight‑only</bold> quantization with:<itemizedlist>
+<listitem><para><bold>Nibble packing</bold> (2 weights/byte) and <bold>per‑row (or group) scales</bold>.</para>
+</listitem><listitem><para>A repository‑wide <bold>manifest</bold> (<computeroutput>q4_manifest.json</computeroutput>) describing which tensors are INT4 and how to dequantize them.</para>
+</listitem><listitem><para>CLI/runtime selection via <computeroutput>IE_PRECISION=int4w</computeroutput> (or <computeroutput>--precision int4w</computeroutput>).</para>
+</listitem></itemizedlist>
+</para>
+</listitem><listitem><para>Keep activations in floating point; accumulation stays FP32 for numerical stability.</para>
+</listitem></itemizedlist>
+</para>
+<para><bold>Consequences.</bold><itemizedlist>
+<listitem><para><bold>4× smaller weights</bold> → lower bandwidth → higher effective TPS under work‑touch or real inference.</para>
+</listitem><listitem><para>Slight accuracy cost, controlled by calibration. PTQ scripts expose gates (cosine/task‑level) to accept/reject a manifest.</para>
+</listitem><listitem><para>Kernel changes are incremental: dequant scale application in the matmul inner loop; packing integrates with existing pretranspose caches.</para>
+</listitem></itemizedlist>
+</para>
+<para><bold>Status.</bold> Accepted. Implemented across CPU and CUDA builds; scripts support end‑to‑end HF→IEBIN packing with <computeroutput>--q4-map</computeroutput>. </para>
+</sect1>
+    </detaileddescription>
+    <location file="docs/DECISIONS.md"/>
+  </compounddef>
+</doxygen>

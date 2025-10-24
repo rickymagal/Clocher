@@ -1,0 +1,379 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="namespaceptq__calib" kind="namespace" language="Python">
+    <compoundname>ptq_calib</compoundname>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="namespaceptq__calib_1a3c61645c84bf45ea46988b90da7eacf2" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>np.ndarray</type>
+        <definition> np.ndarray ptq_calib.load_f32_matrix</definition>
+        <argsstring>(str path, int rows, int cols)</argsstring>
+        <name>load_f32_matrix</name>
+        <qualifiedname>ptq_calib.load_f32_matrix</qualifiedname>
+        <param>
+          <type>str</type>
+          <declname>path</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>rows</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>cols</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Load a row-major float32 matrix from a flat .bin file.
+
+Parameters
+----------
+path : str
+    Path to the .bin file containing raw float32 data.
+rows : int
+    Number of rows in the matrix.
+cols : int
+    Number of columns in the matrix.
+
+Returns
+-------
+np.ndarray
+    Array of shape (rows, cols), dtype float32.
+
+Raises
+------
+ValueError
+    If the file size does not match rows*cols*4 bytes.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="benchmarks/ptq_calib.py" line="53" column="1" bodyfile="benchmarks/ptq_calib.py" bodystart="53" bodyend="89"/>
+        <referencedby refid="namespaceptq__calib_1a8c5f80e88cff2f08011a13e1a7b9ea6e" compoundref="ptq__calib_8py" startline="266" endline="374">main</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespaceptq__calib_1a0ff53d4b3af1bcce6cc9aa70c71ad741" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>None</type>
+        <definition> None ptq_calib.save_binary</definition>
+        <argsstring>(str path, np.ndarray array)</argsstring>
+        <name>save_binary</name>
+        <qualifiedname>ptq_calib.save_binary</qualifiedname>
+        <param>
+          <type>str</type>
+          <declname>path</declname>
+        </param>
+        <param>
+          <type>np.ndarray</type>
+          <declname>array</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Save a contiguous numpy array to a binary file.
+
+Parameters
+----------
+path : str
+    Output file path.
+array : np.ndarray
+    Array to write. The function writes bytes as-is (no header).
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="benchmarks/ptq_calib.py" line="90" column="1" bodyfile="benchmarks/ptq_calib.py" bodystart="90" bodyend="105"/>
+        <referencedby refid="namespaceptq__calib_1a8c5f80e88cff2f08011a13e1a7b9ea6e" compoundref="ptq__calib_8py" startline="266" endline="374">main</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespaceptq__calib_1af0f830db41d66b7dc2d9462dfc37133c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>np.ndarray</type>
+        <definition> np.ndarray ptq_calib.compute_scales</definition>
+        <argsstring>(np.ndarray W, int wbits, str mode, float eps=1e-12)</argsstring>
+        <name>compute_scales</name>
+        <qualifiedname>ptq_calib.compute_scales</qualifiedname>
+        <param>
+          <type>np.ndarray</type>
+          <declname>W</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>wbits</declname>
+        </param>
+        <param>
+          <type>str</type>
+          <declname>mode</declname>
+        </param>
+        <param>
+          <type>float</type>
+          <declname>eps</declname>
+          <defval>1e-12</defval>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Compute symmetric quantization scales for weight-only PTQ.
+
+Parameters
+----------
+W : np.ndarray
+    Weight matrix, shape (rows, cols), dtype float32.
+wbits : int
+    Bit-width (8 or 4).
+mode : str
+    &apos;per_row&apos; or &apos;per_tensor&apos;.
+eps : float
+    Small constant to avoid division by zero.
+
+Returns
+-------
+np.ndarray
+    Scales as float32. Shape (rows,) for per_row, or (1,) for per_tensor.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="benchmarks/ptq_calib.py" line="106" column="1" bodyfile="benchmarks/ptq_calib.py" bodystart="108" bodyend="141"/>
+        <referencedby refid="namespaceptq__calib_1a8c5f80e88cff2f08011a13e1a7b9ea6e" compoundref="ptq__calib_8py" startline="266" endline="374">main</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespaceptq__calib_1a6855dfc7d067ff09439e3ea0902bbd25" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>Tuple[np.ndarray, np.ndarray]</type>
+        <definition> Tuple[np.ndarray, np.ndarray] ptq_calib.quantize_int8</definition>
+        <argsstring>(np.ndarray W, np.ndarray scales, str mode)</argsstring>
+        <name>quantize_int8</name>
+        <qualifiedname>ptq_calib.quantize_int8</qualifiedname>
+        <param>
+          <type>np.ndarray</type>
+          <declname>W</declname>
+        </param>
+        <param>
+          <type>np.ndarray</type>
+          <declname>scales</declname>
+        </param>
+        <param>
+          <type>str</type>
+          <declname>mode</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Quantize to INT8 with symmetric zero-point (z=0), range [-127, 127].
+
+Parameters
+----------
+W : np.ndarray
+    Float32 weights.
+scales : np.ndarray
+    Scales computed by compute_scales.
+mode : str
+    &apos;per_row&apos; or &apos;per_tensor&apos;.
+
+Returns
+-------
+(Q, W_hat)
+    Q is int8 array, same shape as W.
+    W_hat is float32 dequantized reconstruction.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="benchmarks/ptq_calib.py" line="142" column="1" bodyfile="benchmarks/ptq_calib.py" bodystart="142" bodyend="170"/>
+        <referencedby refid="namespaceptq__calib_1a8c5f80e88cff2f08011a13e1a7b9ea6e" compoundref="ptq__calib_8py" startline="266" endline="374">main</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespaceptq__calib_1aa6020564afa3bb98f636c4a2bcfe7f25" prot="protected" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bytes</type>
+        <definition> bytes ptq_calib._pack_row_int4_signed</definition>
+        <argsstring>(np.ndarray q_row)</argsstring>
+        <name>_pack_row_int4_signed</name>
+        <qualifiedname>ptq_calib._pack_row_int4_signed</qualifiedname>
+        <param>
+          <type>np.ndarray</type>
+          <declname>q_row</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Pack a single int8 row (values in [-8..7]) into int4 bytes.
+
+Low nibble holds column j (even), high nibble holds column j+1 (odd).
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="benchmarks/ptq_calib.py" line="171" column="1" bodyfile="benchmarks/ptq_calib.py" bodystart="171" bodyend="188"/>
+        <referencedby refid="namespaceptq__calib_1a15c1ec510d143c4356e29ed8922e51bc" compoundref="ptq__calib_8py" startline="191" endline="229">quantize_int4_packed</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespaceptq__calib_1a15c1ec510d143c4356e29ed8922e51bc" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>Tuple[bytes, np.ndarray]</type>
+        <definition> Tuple[bytes, np.ndarray] ptq_calib.quantize_int4_packed</definition>
+        <argsstring>(np.ndarray W, np.ndarray scales, str mode)</argsstring>
+        <name>quantize_int4_packed</name>
+        <qualifiedname>ptq_calib.quantize_int4_packed</qualifiedname>
+        <param>
+          <type>np.ndarray</type>
+          <declname>W</declname>
+        </param>
+        <param>
+          <type>np.ndarray</type>
+          <declname>scales</declname>
+        </param>
+        <param>
+          <type>str</type>
+          <declname>mode</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Quantize to signed INT4 (two&apos;s complement, range [-8..7]) and pack.
+
+Parameters
+----------
+W : np.ndarray
+    Float32 weights.
+scales : np.ndarray
+    Scales computed by compute_scales.
+mode : str
+    &apos;per_row&apos; or &apos;per_tensor&apos;.
+
+Returns
+-------
+(packed_bytes, W_hat)
+    packed_bytes: bytes object containing row-major packed int4
+    W_hat: float32 dequantized reconstruction (for metrics)
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="benchmarks/ptq_calib.py" line="189" column="1" bodyfile="benchmarks/ptq_calib.py" bodystart="191" bodyend="229"/>
+        <references refid="namespaceptq__calib_1aa6020564afa3bb98f636c4a2bcfe7f25" compoundref="ptq__calib_8py" startline="171" endline="188">_pack_row_int4_signed</references>
+        <referencedby refid="namespaceptq__calib_1a8c5f80e88cff2f08011a13e1a7b9ea6e" compoundref="ptq__calib_8py" startline="266" endline="374">main</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespaceptq__calib_1a9805c5526e7e404510096d4c348247e1" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>float</type>
+        <definition> float ptq_calib.avg_row_cosine</definition>
+        <argsstring>(np.ndarray a, np.ndarray b, float eps=1e-12)</argsstring>
+        <name>avg_row_cosine</name>
+        <qualifiedname>ptq_calib.avg_row_cosine</qualifiedname>
+        <param>
+          <type>np.ndarray</type>
+          <declname>a</declname>
+        </param>
+        <param>
+          <type>np.ndarray</type>
+          <declname>b</declname>
+        </param>
+        <param>
+          <type>float</type>
+          <declname>eps</declname>
+          <defval>1e-12</defval>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Compute the average row-wise cosine similarity between two matrices.
+
+Parameters
+----------
+a, b : np.ndarray
+    Float32 matrices with the same shape.
+eps : float
+    Numerical stability epsilon.
+
+Returns
+-------
+float
+    Average cosine similarity in [0, 1].
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="benchmarks/ptq_calib.py" line="230" column="1" bodyfile="benchmarks/ptq_calib.py" bodystart="230" bodyend="256"/>
+        <referencedby refid="namespaceptq__calib_1a8c5f80e88cff2f08011a13e1a7b9ea6e" compoundref="ptq__calib_8py" startline="266" endline="374">main</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespaceptq__calib_1a8091bc9c066240fc12d193762c5c17f6" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>float</type>
+        <definition> float ptq_calib.mse</definition>
+        <argsstring>(np.ndarray a, np.ndarray b)</argsstring>
+        <name>mse</name>
+        <qualifiedname>ptq_calib.mse</qualifiedname>
+        <param>
+          <type>np.ndarray</type>
+          <declname>a</declname>
+        </param>
+        <param>
+          <type>np.ndarray</type>
+          <declname>b</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><verbatim>Mean squared error between two matrices.
+</verbatim> </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="benchmarks/ptq_calib.py" line="257" column="1" bodyfile="benchmarks/ptq_calib.py" bodystart="257" bodyend="265"/>
+        <referencedby refid="namespaceptq__calib_1a8c5f80e88cff2f08011a13e1a7b9ea6e" compoundref="ptq__calib_8py" startline="266" endline="374">main</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespaceptq__calib_1a8c5f80e88cff2f08011a13e1a7b9ea6e" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>None</type>
+        <definition> None ptq_calib.main</definition>
+        <argsstring>()</argsstring>
+        <name>main</name>
+        <qualifiedname>ptq_calib.main</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="benchmarks/ptq_calib.py" line="266" column="1" bodyfile="benchmarks/ptq_calib.py" bodystart="266" bodyend="374"/>
+        <references refid="namespaceptq__calib_1a9805c5526e7e404510096d4c348247e1" compoundref="ptq__calib_8py" startline="230" endline="256">avg_row_cosine</references>
+        <references refid="namespaceptq__calib_1af0f830db41d66b7dc2d9462dfc37133c" compoundref="ptq__calib_8py" startline="108" endline="141">compute_scales</references>
+        <references refid="namespaceptq__calib_1a3c61645c84bf45ea46988b90da7eacf2" compoundref="ptq__calib_8py" startline="53" endline="89">load_f32_matrix</references>
+        <references refid="namespaceptq__calib_1a8c5f80e88cff2f08011a13e1a7b9ea6e" compoundref="ptq__calib_8py" startline="266" endline="374">main</references>
+        <references refid="namespaceptq__calib_1a8091bc9c066240fc12d193762c5c17f6" compoundref="ptq__calib_8py" startline="257" endline="265">mse</references>
+        <references refid="namespaceptq__calib_1a15c1ec510d143c4356e29ed8922e51bc" compoundref="ptq__calib_8py" startline="191" endline="229">quantize_int4_packed</references>
+        <references refid="namespaceptq__calib_1a6855dfc7d067ff09439e3ea0902bbd25" compoundref="ptq__calib_8py" startline="142" endline="170">quantize_int8</references>
+        <references refid="namespaceptq__calib_1a0ff53d4b3af1bcce6cc9aa70c71ad741" compoundref="ptq__calib_8py" startline="90" endline="105">save_binary</references>
+        <referencedby refid="namespaceptq__calib_1a8c5f80e88cff2f08011a13e1a7b9ea6e" compoundref="ptq__calib_8py" startline="266" endline="374">main</referencedby>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Post-Training Quantization (weight-only) calibrator.
+
+Reads a row-major FP32 weight matrix (W in R^{rows x cols}) from a .bin file,
+computes symmetric scales and quantizes weights to INT8 or INT4 (weight-only),
+then writes compact artifacts:
+
+Outputs (for OUT_PREFIX = &lt;prefix&gt;):
+  - &lt;prefix&gt;.meta.json              # metadata with shapes, files, metrics
+  - &lt;prefix&gt;.scale.f16.bin|.f32.bin # per-row or per-tensor scales
+  - &lt;prefix&gt;.int8.w.bin             # row-major int8 weights (if --wbits=8)
+  - &lt;prefix&gt;.int4.w.bin             # row-major 4-bit packed weights (if --wbits=4)
+
+Packing (INT4):
+  - Signed 4-bit values in two&apos;s complement, range [-8..7]
+  - Two values packed per byte: low nibble = column j (even), high nibble = j+1
+  - Row-major order; each row occupies ceil(cols/2) bytes
+
+Scale modes:
+  - per_row: one scale per row (default, recommended for GEMV)
+  - per_tensor: one scale for the entire tensor
+
+Metrics:
+  - Average row-wise cosine similarity between W and dequantized(W_q)
+  - Global mean squared error
+
+A JSON snippet you can paste into `model.ie.json` is printed as:
+  [iebin-json] {...}
+
+Example:
+  python3 benchmarks/ptq_calib.py \
+      --weights out/qproj.f32.bin --rows 4096 --cols 4096 \
+      --mode per_row --wbits 4 --out-prefix out/qproj_q4 \
+      --scale-dtype fp16
+</verbatim> </para>
+    </detaileddescription>
+    <location file="benchmarks/ptq_calib.py" line="1" column="1"/>
+  </compounddef>
+</doxygen>

@@ -1,15 +1,12 @@
 var searchData=
 [
-  ['unused_0',['UNUSED',['../main__infer_8c.html#a86d500a34c624c2cae56bc25a31b12f3',1,'main_infer.c']]],
-  ['updates_20—_202025_2010_2017_1',['Updates — 2025 10 17',['../index.html#autotoc_md48',1,'Updates — 2025-10-17'],['../md_docs_2DESIGN.html#autotoc_md65',1,'Updates — 2025-10-17'],['../md_docs_2adr-00060-optimization-path.html#autotoc_md79',1,'Updates — 2025-10-17'],['../md_docs_2DECISIONS.html#autotoc_md83',1,'Updates — 2025-10-17']]],
-  ['updates_20—_202025_2010_2024_2000_3a42_3a21_20utc_2',['Updates — 2025 10 24 00:42:21 UTC',['../index.html#autotoc_md50',1,'Updates — 2025-10-24 00:42:21 UTC'],['../md_docs_2adr-00060-optimization-path.html#autotoc_md81',1,'Updates — 2025-10-24 00:42:21 UTC'],['../md_docs_2DECISIONS.html#autotoc_md85',1,'Updates — 2025-10-24 00:42:21 UTC']]],
-  ['usage_3',['usage',['../index.html#autotoc_md27',1,'CLI usage'],['../main__infer_8c.html#ad96d407a911fbb914fa8e4cfbf2faf0f',1,'usage():&#160;main_infer.c']]],
-  ['use_5faffinity_4',['use_affinity',['../structie__threadpool.html#ac1aab334f9b4baf6aac73f151438f7bd',1,'ie_threadpool::use_affinity'],['../structie__task__arg__t.html#a9d90ceaa82f746983034dd7bc034bc26',1,'ie_task_arg_t::use_affinity']]],
-  ['user_5fctx_5',['user_ctx',['../structie__batcher.html#ac168939e040aad22b182fef1a908fdb2',1,'ie_batcher']]],
-  ['utc_6',['UTC',['../md_docs_2DESIGN.html#autotoc_md69',1,'GPU integration &amp; performance reporting — 2025-10-24 00:42:21 UTC'],['../index.html#autotoc_md50',1,'Updates — 2025-10-24 00:42:21 UTC'],['../md_docs_2adr-00060-optimization-path.html#autotoc_md81',1,'Updates — 2025-10-24 00:42:21 UTC'],['../md_docs_2DECISIONS.html#autotoc_md85',1,'Updates — 2025-10-24 00:42:21 UTC']]],
-  ['util_5flogging_2ec_7',['util_logging.c',['../util__logging_8c.html',1,'']]],
-  ['util_5flogging_2eh_8',['util_logging.h',['../util__logging_8h.html',1,'']]],
-  ['util_5fmetrics_2ec_9',['util_metrics.c',['../util__metrics_8c.html',1,'']]],
-  ['util_5fmetrics_2eh_10',['util_metrics.h',['../util__metrics_8h.html',1,'']]],
-  ['utilities_11',['Tensor Utilities',['../group__IE__TENSOR.html',1,'']]]
+  ['v1_0',['Model format (IEBIN v1)',['../index.html#autotoc_md50',1,'']]],
+  ['v1_20weights_20loader_1',['IEBIN v1 Weights Loader',['../group__ie__io__weights.html',1,'']]],
+  ['vec_5fallclose_2',['vec_allclose',['../test__kernels_8c.html#a717bb0a59e17d86f4d2bfd483cbefdf7',1,'test_kernels.c']]],
+  ['vec_5ftanh_3',['vec_tanh',['../microbench__gemv_8c.html#a5ad63b621cb6206300427b7af31c3146',1,'microbench_gemv.c']]],
+  ['vec_5ftanh_5ff32_4',['vec_tanh_f32',['../ie__kernels__ze_8cl.html#a2261b0a1b8943ff014f3796d4d10d454',1,'ie_kernels_ze.cl']]],
+  ['verbosity_5',['verbosity',['../namespacetest__cli.html#aac5e24a93f9d205872853c83cd5d0c1a',1,'test_cli.verbosity'],['../namespacetest__cli__error__paths.html#aa1dd6e2cf5e546f1f2c57999edf1053a',1,'test_cli_error_paths.verbosity'],['../namespacetest__cli__flags.html#a2181284b87916d7718a5609b9bca2a8d',1,'test_cli_flags.verbosity'],['../namespacetest__determinism.html#a2ac3362f6af39b657c3a6ed37ef4df65',1,'test_determinism.verbosity'],['../namespacetest__harness.html#abe133296ca5ec1fcb012b0876b519c8f',1,'test_harness.verbosity'],['../namespacetest__harness__more.html#a74ab445de4a31c21844116f15e1ab435',1,'test_harness_more.verbosity'],['../namespacetest__metrics__ring.html#a108e3dd9994df50b5fb85b9a99e8b5ff',1,'test_metrics_ring.verbosity'],['../namespacetest__ptq__calib__pipeline.html#a2adff5a67303aabe3ec5523cb2d0993b',1,'test_ptq_calib_pipeline.verbosity']]],
+  ['version_6',['version',['../structie__weights__s.html#ae12c1b3b426321f6ba604f0a89673315',1,'ie_weights_s']]],
+  ['vocab_5fsize_7',['vocab_size',['../structie__vocab__s.html#a794049c93aac2c2c4b8e12c673db5296',1,'ie_vocab_s']]],
+  ['vt_8',['vt',['../structie__device.html#aeff992a5f5e1b29e4648d630565b6c71',1,'ie_device']]]
 ];

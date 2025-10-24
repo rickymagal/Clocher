@@ -1,0 +1,75 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="true__tps__strict_8sh" kind="file" language="C++">
+    <compoundname>true_tps_strict.sh</compoundname>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline><highlight class="normal">#<sp/>File:<sp/>scripts/true_tps_strict.sh</highlight></codeline>
+<codeline><highlight class="normal">#!/usr/bin/env<sp/>bash</highlight></codeline>
+<codeline><highlight class="normal">set<sp/>-euo<sp/>pipefail</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Required<sp/>env:</highlight></codeline>
+<codeline><highlight class="normal">#<sp/><sp/><sp/>ENGINE_BIN,<sp/>DEVICE,<sp/>MODEL_DIR,<sp/>PROMPTS</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Optional<sp/>env<sp/>(with<sp/>defaults):</highlight></codeline>
+<codeline><highlight class="normal">#<sp/><sp/><sp/>THREADS,<sp/>PRECISION,<sp/>BATCH,<sp/>PREFETCH,<sp/>PRETRANSPOSE,<sp/>AFFINITY,<sp/>MAX_NEW</highlight></codeline>
+<codeline><highlight class="normal">#<sp/><sp/><sp/>IE_REQUIRE_MODEL,<sp/>IE_BYTES_PER_TOKEN,<sp/>IE_STRIDE_BYTES,<sp/>IE_VERIFY_TOUCH</highlight></codeline>
+<codeline><highlight class="normal">#<sp/><sp/><sp/>RUNS,<sp/>ROUNDS,<sp/>PUSHGATEWAY_URL,<sp/>REPORT_ROOT</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">:<sp/>&quot;${ENGINE_BIN:?set<sp/>ENGINE_BIN=/abs/path/to/engine}&quot;</highlight></codeline>
+<codeline><highlight class="normal">:<sp/>&quot;${DEVICE:?set<sp/>DEVICE=cpu|cuda}&quot;</highlight></codeline>
+<codeline><highlight class="normal">:<sp/>&quot;${MODEL_DIR:?set<sp/>MODEL_DIR=/abs/path/to/model}&quot;</highlight></codeline>
+<codeline><highlight class="normal">:<sp/>&quot;${PROMPTS:?set<sp/>PROMPTS=/abs/path/to/prompts.txt}&quot;</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">THREADS=&quot;${THREADS:-$(nproc)}&quot;</highlight></codeline>
+<codeline><highlight class="normal">PRECISION=&quot;${PRECISION:-fp32}&quot;</highlight></codeline>
+<codeline><highlight class="normal">BATCH=&quot;${BATCH:-1}&quot;</highlight></codeline>
+<codeline><highlight class="normal">PREFETCH=&quot;${PREFETCH:-auto}&quot;</highlight></codeline>
+<codeline><highlight class="normal">PRETRANSPOSE=&quot;${PRETRANSPOSE:-all}&quot;</highlight></codeline>
+<codeline><highlight class="normal">AFFINITY=&quot;${AFFINITY:-auto}&quot;</highlight></codeline>
+<codeline><highlight class="normal">MAX_NEW=&quot;${MAX_NEW:-128}&quot;</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">IE_REQUIRE_MODEL=&quot;${IE_REQUIRE_MODEL:-1}&quot;</highlight></codeline>
+<codeline><highlight class="normal">IE_BYTES_PER_TOKEN=&quot;${IE_BYTES_PER_TOKEN:-67108864}&quot;</highlight></codeline>
+<codeline><highlight class="normal">IE_STRIDE_BYTES=&quot;${IE_STRIDE_BYTES:-256}&quot;</highlight></codeline>
+<codeline><highlight class="normal">IE_VERIFY_TOUCH=&quot;${IE_VERIFY_TOUCH:-1}&quot;</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">RUNS=&quot;${RUNS:-3}&quot;</highlight></codeline>
+<codeline><highlight class="normal">ROUNDS=&quot;${ROUNDS:-$RUNS}&quot;</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Precision<sp/>passthrough<sp/>(accepts<sp/>int4)</highlight></codeline>
+<codeline><highlight class="normal">case<sp/>&quot;${PRECISION}&quot;<sp/>in</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>fp32|bf16|int8|int4)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>CLI_PREC=&quot;${PRECISION}&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>;;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>*)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>CLI_PREC=&quot;fp32&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>echo<sp/>&quot;WARN:<sp/>unknown<sp/>PRECISION<sp/>&apos;${PRECISION}&apos;,<sp/>defaulting<sp/>CLI<sp/>to<sp/>fp32&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>;;</highlight></codeline>
+<codeline><highlight class="normal">esac</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">CMD=(</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>&quot;${ENGINE_BIN}&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>--device<sp/>&quot;${DEVICE}&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>--model-dir<sp/>&quot;${MODEL_DIR}&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>--prompts-file<sp/>&quot;${PROMPTS}&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>--threads<sp/>&quot;${THREADS}&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>--precision<sp/>&quot;${CLI_PREC}&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>--batch<sp/>&quot;${BATCH}&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>--prefetch<sp/>&quot;${PREFETCH}&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>--pretranspose<sp/>&quot;${PRETRANSPOSE}&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>--affinity<sp/>&quot;${AFFINITY}&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>--max-new<sp/>&quot;${MAX_NEW}&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>--rounds<sp/>&quot;${ROUNDS}&quot;</highlight></codeline>
+<codeline><highlight class="normal">)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">export<sp/>IE_REQUIRE_MODEL<sp/>IE_BYTES_PER_TOKEN<sp/>IE_STRIDE_BYTES<sp/>IE_VERIFY_TOUCH</highlight></codeline>
+<codeline><highlight class="normal">export<sp/>PUSHGATEWAY_URL<sp/>REPORT_ROOT</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">exec<sp/>&quot;${CMD[@]}&quot;</highlight></codeline>
+    </programlisting>
+    <location file="scripts/true_tps_strict.sh"/>
+  </compounddef>
+</doxygen>

@@ -27,9 +27,9 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">Inference Engine (Clocher)<span id="projectnumber">&#160;0.1</span>
+   <div id="projectname">Inference Engine (Clocher)<span id="projectnumber">&#160;0.2</span>
    </div>
-   <div id="projectbrief">C11 CPU inference baseline with strict metrics &amp; harness</div>
+   <div id="projectbrief">C11 CPU/GPU inference baseline with strict metrics &amp; harness</div>
   </td>
  </tr>
  </tbody>
@@ -100,29 +100,35 @@ $(function(){initNavTree('md_docs_2DECISIONS.html',''); initResizable(true); });
   <div class="headertitle"><div class="title">Architectural Decision Records</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md82"></a></p>
+<div class="textblock"><p><a class="anchor" id="autotoc_md33"></a></p>
+<p><b>Last updated:</b> 2025-10-24 21:00:48 UTC</p>
 <ul>
 <li><b>ADR-0001 (2025-10-13)</b>: Core in C11, zero third-party runtime; Python stdlib harness.</li>
 <li><b>ADR-0002 (2025-10-13)</b>: IEBIN v1 weights: <code>model.ie.json</code> + <code>model.ie.bin</code> + <code>vocab.json</code> (mmap-friendly).</li>
 <li><b>ADR-0003 (2025-10-13)</b>: Baseline = FP32 naive path; TPS = generated_tokens / wall_time.</li>
 <li><b>ADR-0006 (2025-10-14)</b>: Optimization path selection (CPU baseline) — AVX2 microkernels, thread-pool with affinity, fast math, layout packing. See <code><a class="el" href="adr-00060-optimization-path_8md.html">adr-00060-optimization-path.md</a></code>.</li>
-<li><b>ADR-0010 (2025-10-16)</b>: INT8 PTQ min-max (per-tensor/per-row) with calibration script and accuracy budget gate (cosine ≥ threshold). </li>
-</ul>
-<h1><a class="anchor" id="autotoc_md83"></a>
-Updates — 2025-10-17</h1>
-<ul>
-<li><b>Adopted CLI batching/prefetch/warmup:</b> opted for simple on/off/auto prefetch policy and numeric <code>--batch</code> for micro-batching.</li>
-<li><b>Preserve input order in batcher:</b> required by tests and determinism; implemented ring index discipline.</li>
-<li><b>JSON formatting stability:</b> kept strict spacing for <code>"tokens_generated": N</code> to match tests.</li>
-<li><b>Perf tooling detection:</b> <code>make perf-report</code> now accepts environment hints (<code>STACKCOLLAPSE</code>, <code>FLAMEGRAPH</code>) and emits actionable guidance if tools are missing.</li>
+<li><b>ADR-0010 (2025-10-16)</b>: INT8 PTQ min-max (per-tensor/per-row) with calibration script and accuracy budget gate (cosine ≥ threshold).</li>
+<li><b>ADR-0011 (2025-10-24)</b>: Drop Level Zero from default benchmarking; GPU bench is CUDA-only; CPU/GPU share a unified reporting pipeline.</li>
 </ul>
 <hr  />
-<h1><a class="anchor" id="autotoc_md85"></a>
-Updates — 2025-10-24 00:42:21 UTC</h1>
-<ul>
-<li><b>ADR-0011:</b> Drop Level Zero from default benchmarking; <b>GPU bench is CUDA-only</b>. Level Zero support can remain in-tree behind its own build flag but is <b>not</b> exercised by the standard workflow.</li>
-<li><b>ADR-0012:</b> Consolidate performance reporting: <b>update only the last 3 runs per device</b> (CPU/GPU) and keep a single <code>docs/PERFORMANCE.md</code> with a <b>Best true TPS</b> banner across devices. </li>
+<h1><a class="anchor" id="autotoc_md35"></a>
+<b>ADR-0013 (2025-10-24): Adopt INT4 weight-only PTQ &amp; manifest-guided packing</b></h1>
+<p><b>Context.</b> The engine is primarily <b>memory-bandwidth bound</b> at inference time. Even with blocked‑K packing and prefetch, large models remain limited by weight fetch. INT8 provided a 2× compression; we want a <b>denser format</b> while preserving a simple compute path.</p>
+<p><b>Decision.</b></p><ul>
+<li>Introduce <b>INT4 weight‑only</b> quantization with:<ul>
+<li><b>Nibble packing</b> (2 weights/byte) and <b>per‑row (or group) scales</b>.</li>
+<li>A repository‑wide <b>manifest</b> (<code>q4_manifest.json</code>) describing which tensors are INT4 and how to dequantize them.</li>
+<li>CLI/runtime selection via <code>IE_PRECISION=int4w</code> (or <code>--precision int4w</code>).</li>
 </ul>
+</li>
+<li>Keep activations in floating point; accumulation stays FP32 for numerical stability.</li>
+</ul>
+<p><b>Consequences.</b></p><ul>
+<li><b>4× smaller weights</b> → lower bandwidth → higher effective TPS under work‑touch or real inference.</li>
+<li>Slight accuracy cost, controlled by calibration. PTQ scripts expose gates (cosine/task‑level) to accept/reject a manifest.</li>
+<li>Kernel changes are incremental: dequant scale application in the matmul inner loop; packing integrates with existing pretranspose caches.</li>
+</ul>
+<p><b>Status.</b> Accepted. Implemented across CPU and CUDA builds; scripts support end‑to‑end HF→IEBIN packing with <code>--q4-map</code>. </p>
 </div></div><!-- contents -->
 </div><!-- PageDoc -->
 </div><!-- doc-content -->

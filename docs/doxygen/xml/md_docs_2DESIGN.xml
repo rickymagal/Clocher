@@ -1,0 +1,107 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="md_docs_2DESIGN" kind="page">
+    <compoundname>md_docs_2DESIGN</compoundname>
+    <title>Design (CPU baseline + INT4 path)</title>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><anchor id="md_docs_2DESIGN_1autotoc_md16"/></para>
+<para>This document describes the hot path, API boundaries, and precision modes. <linebreak/>
+ <bold>Last updated:</bold> 2025-10-24 21:00:48 UTC</para>
+<sect1 id="md_docs_2DESIGN_1autotoc_md17">
+<title>Process and boundaries</title><para><itemizedlist>
+<listitem><para>Single binary <computeroutput>inference-engine</computeroutput>: create → generate → collect metrics → destroy.</para>
+</listitem><listitem><para>CLI prints exactly one JSON line per run so the Python harness can ingest results.</para>
+</listitem><listitem><para>No third‑party runtime dependencies; only <computeroutput>pthread</computeroutput> and <computeroutput>libm</computeroutput> (and CUDA for the GPU build).</para>
+</listitem></itemizedlist>
+</para>
+</sect1>
+<sect1 id="md_docs_2DESIGN_1autotoc_md18">
+<title>API surface (high level)</title><para><itemizedlist>
+<listitem><para><computeroutput>ie_engine_create(cfg)</computeroutput> → initializes state (weights, buffers, thread‑pool).</para>
+</listitem><listitem><para><computeroutput>ie_engine_generate(prompt, max_new, params)</computeroutput> → produces tokens and updates metrics rings.</para>
+</listitem><listitem><para><computeroutput>ie_engine_metrics(out)</computeroutput> → returns latency p50/p95, true TPS, <bold>RSS peak</bold>, KV hits/misses.</para>
+</listitem><listitem><para><computeroutput><ref refid="ie__api_8h_1a8a724f7097b3e19da8d7dd97fba4415e" kindref="member">ie_engine_destroy()</ref></computeroutput> → frees all resources.</para>
+</listitem></itemizedlist>
+</para>
+</sect1>
+<sect1 id="md_docs_2DESIGN_1autotoc_md19">
+<title>Hot path layout</title><para><itemizedlist>
+<listitem><para>GEMV microkernel:<itemizedlist>
+<listitem><para>Generic scalar reference implementation.</para>
+</listitem><listitem><para>AVX2/FMA path with light prefetch and blocked‑K packing.</para>
+</listitem></itemizedlist>
+</para>
+</listitem><listitem><para>Activation:<itemizedlist>
+<listitem><para><computeroutput>tanh</computeroutput> fast path with clamp (accuracy‑bounded), vector helper.</para>
+</listitem><listitem><para>Optional fused bias + activation to reduce memory traffic.</para>
+</listitem></itemizedlist>
+</para>
+</listitem></itemizedlist>
+</para>
+</sect1>
+<sect1 id="md_docs_2DESIGN_1autotoc_md20">
+<title>Precision modes</title><sect2 id="md_docs_2DESIGN_1autotoc_md21">
+<title>Floating point</title><para><itemizedlist>
+<listitem><para>FP32 baseline, optional BF16/FP16 round‑trip (accumulate FP32).</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+<sect2 id="md_docs_2DESIGN_1autotoc_md22">
+<title>INT8 PTQ (reference)</title><para><itemizedlist>
+<listitem><para>Per‑tensor/per‑row scales (min‑max); (de)quant helpers; task gate in scripts.</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+<sect2 id="md_docs_2DESIGN_1autotoc_md23">
+<title><bold>NEW — INT4 PTQ (weight‑only)</bold></title><para><itemizedlist>
+<listitem><para><bold>Format</bold>: weights are <bold>nibble‑packed</bold> (2 values per byte). Each row (or group) carries a scale (and optional zero‑point if affine).</para>
+</listitem><listitem><para><bold>Packing</bold>: INT4 packing integrates with the existing <bold>pretranspose / blocked‑K</bold> pipeline. Packing order: float → (optional) pretranspose → quantize to int4 → pack.</para>
+</listitem><listitem><para><bold>Dequantization</bold>: fused in the matmul path; scale is broadcast per row (or group) to recover FP32 accumulators.</para>
+</listitem><listitem><para><bold>Manifests</bold>: a <computeroutput>q4_manifest.json</computeroutput> enumerates which tensors use INT4 and their scale metadata. <computeroutput><ref refid="hf__to__iebin_8py" kindref="compound">scripts/hf_to_iebin.py</ref></computeroutput> consumes this manifest via <computeroutput>--q4-map</computeroutput> to emit <computeroutput>model.ie.bin</computeroutput>/<computeroutput>.json</computeroutput>.</para>
+</listitem><listitem><para><bold>Selection</bold>: at runtime choose <computeroutput>IE_PRECISION=int4w</computeroutput> (or <computeroutput>--precision int4w</computeroutput>), leaving activations in float. This is <bold>bandwidth‑oriented</bold> and preserves compute simplicity.</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+</sect1>
+<sect1 id="md_docs_2DESIGN_1autotoc_md24">
+<title>Threading model</title><para><itemizedlist>
+<listitem><para>Fixed thread‑pool over <computeroutput>pthread</computeroutput>, contiguous sharding, grainsize control.</para>
+</listitem><listitem><para>Affinity (Linux): <computeroutput>IE_TP_USE_AFFINITY=1</computeroutput> enables <computeroutput>auto|compact|scatter</computeroutput>.</para>
+</listitem><listitem><para>NUMA:<itemizedlist>
+<listitem><para><computeroutput><ref refid="set__numa_8sh" kindref="compound">scripts/set_numa.sh</ref></computeroutput> can set OS policy (<computeroutput>interleave|node:X|strict</computeroutput>).</para>
+</listitem><listitem><para>In‑repo probe reads <computeroutput>/sys/devices/system/node/online</computeroutput> to annotate reports.</para>
+</listitem></itemizedlist>
+</para>
+</listitem></itemizedlist>
+</para>
+</sect1>
+<sect1 id="md_docs_2DESIGN_1autotoc_md25">
+<title>Layout and caching</title><para><itemizedlist>
+<listitem><para>Blocked‑K packing with optional on‑disk caching (content‑addressed by shape + block size).</para>
+</listitem><listitem><para>CLI flag <computeroutput>--pretranspose</computeroutput> controls packing scope (<computeroutput>none|woh|wxh|all</computeroutput>). INT4 can be cached per layout variant.</para>
+</listitem></itemizedlist>
+</para>
+</sect1>
+<sect1 id="md_docs_2DESIGN_1autotoc_md26">
+<title>Metrics</title><para><itemizedlist>
+<listitem><para>Per‑token latency ring (p50/p95).</para>
+</listitem><listitem><para>True TPS (<computeroutput>generated_tokens / wall_time_s</computeroutput>).</para>
+</listitem><listitem><para><bold>Peak RSS</bold> (Linux <computeroutput>/proc/self/status:VmHWM</computeroutput> → MiB; fallback <computeroutput>getrusage</computeroutput>).</para>
+</listitem><listitem><para>KV hits/misses counter stubs aggregated per round.</para>
+</listitem></itemizedlist>
+</para>
+</sect1>
+<sect1 id="md_docs_2DESIGN_1autotoc_md27">
+<title>GPU integration (CUDA path)</title><para><itemizedlist>
+<listitem><para>Device layer: <computeroutput><ref refid="ie__device__cuda_8cu" kindref="compound">engine/src/devices/ie_device_cuda.cu</ref></computeroutput>, kernels in <computeroutput><ref refid="ie__kernels__cuda_8cu" kindref="compound">engine/src/kernels/ie_kernels_cuda.cu</ref></computeroutput>.</para>
+</listitem><listitem><para>Build: <computeroutput>make build-cuda</computeroutput> → <computeroutput>build/inference-engine.cuda</computeroutput>.</para>
+</listitem><listitem><para>INT4 weight‑only support mirrors the CPU path; packing and scales are shared in <computeroutput>model.ie.json</computeroutput>. </para>
+</listitem></itemizedlist>
+</para>
+</sect1>
+    </detaileddescription>
+    <location file="docs/DESIGN.md"/>
+  </compounddef>
+</doxygen>

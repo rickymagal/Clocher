@@ -1,0 +1,74 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="DESIGN_8md" kind="file" language="Markdown">
+    <compoundname>DESIGN.md</compoundname>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline><highlight class="normal">#<sp/>Design<sp/>(CPU<sp/>baseline<sp/>+<sp/>INT4<sp/>path)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">This<sp/>document<sp/>describes<sp/>the<sp/>hot<sp/>path,<sp/>API<sp/>boundaries,<sp/>and<sp/>precision<sp/>modes.<sp/><sp/></highlight></codeline>
+<codeline><highlight class="normal">**Last<sp/>updated:**<sp/>2025-10-24<sp/>21:00:48<sp/>UTC</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Process<sp/>and<sp/>boundaries</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Single<sp/>binary<sp/>`inference-engine`:<sp/>create<sp/>→<sp/>generate<sp/>→<sp/>collect<sp/>metrics<sp/>→<sp/>destroy.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>CLI<sp/>prints<sp/>exactly<sp/>one<sp/>JSON<sp/>line<sp/>per<sp/>run<sp/>so<sp/>the<sp/>Python<sp/>harness<sp/>can<sp/>ingest<sp/>results.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>No<sp/>third‑party<sp/>runtime<sp/>dependencies;<sp/>only<sp/>`pthread`<sp/>and<sp/>`libm`<sp/>(and<sp/>CUDA<sp/>for<sp/>the<sp/>GPU<sp/>build).</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>API<sp/>surface<sp/>(high<sp/>level)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`ie_engine_create(cfg)`<sp/>→<sp/>initializes<sp/>state<sp/>(weights,<sp/>buffers,<sp/>thread‑pool).</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`ie_engine_generate(prompt,<sp/>max_new,<sp/>params)`<sp/>→<sp/>produces<sp/>tokens<sp/>and<sp/>updates<sp/>metrics<sp/>rings.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`ie_engine_metrics(out)`<sp/>→<sp/>returns<sp/>latency<sp/>p50/p95,<sp/>true<sp/>TPS,<sp/>**RSS<sp/>peak**,<sp/>KV<sp/>hits/misses.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`ie_engine_destroy()`<sp/>→<sp/>frees<sp/>all<sp/>resources.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Hot<sp/>path<sp/>layout</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>GEMV<sp/>microkernel:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Generic<sp/>scalar<sp/>reference<sp/>implementation.</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>AVX2/FMA<sp/>path<sp/>with<sp/>light<sp/>prefetch<sp/>and<sp/>blocked‑K<sp/>packing.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Activation:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>`tanh`<sp/>fast<sp/>path<sp/>with<sp/>clamp<sp/>(accuracy‑bounded),<sp/>vector<sp/>helper.</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Optional<sp/>fused<sp/>bias<sp/>+<sp/>activation<sp/>to<sp/>reduce<sp/>memory<sp/>traffic.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Precision<sp/>modes</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Floating<sp/>point</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>FP32<sp/>baseline,<sp/>optional<sp/>BF16/FP16<sp/>round‑trip<sp/>(accumulate<sp/>FP32).</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>INT8<sp/>PTQ<sp/>(reference)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Per‑tensor/per‑row<sp/>scales<sp/>(min‑max);<sp/>(de)quant<sp/>helpers;<sp/>task<sp/>gate<sp/>in<sp/>scripts.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>**NEW<sp/>—<sp/>INT4<sp/>PTQ<sp/>(weight‑only)**</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Format**:<sp/>weights<sp/>are<sp/>**nibble‑packed**<sp/>(2<sp/>values<sp/>per<sp/>byte).<sp/>Each<sp/>row<sp/>(or<sp/>group)<sp/>carries<sp/>a<sp/>scale<sp/>(and<sp/>optional<sp/>zero‑point<sp/>if<sp/>affine).</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Packing**:<sp/>INT4<sp/>packing<sp/>integrates<sp/>with<sp/>the<sp/>existing<sp/>**pretranspose<sp/>/<sp/>blocked‑K**<sp/>pipeline.<sp/>Packing<sp/>order:<sp/>float<sp/>→<sp/>(optional)<sp/>pretranspose<sp/>→<sp/>quantize<sp/>to<sp/>int4<sp/>→<sp/>pack.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Dequantization**:<sp/>fused<sp/>in<sp/>the<sp/>matmul<sp/>path;<sp/>scale<sp/>is<sp/>broadcast<sp/>per<sp/>row<sp/>(or<sp/>group)<sp/>to<sp/>recover<sp/>FP32<sp/>accumulators.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Manifests**:<sp/>a<sp/>`q4_manifest.json`<sp/>enumerates<sp/>which<sp/>tensors<sp/>use<sp/>INT4<sp/>and<sp/>their<sp/>scale<sp/>metadata.<sp/>`scripts/hf_to_iebin.py`<sp/>consumes<sp/>this<sp/>manifest<sp/>via<sp/>`--q4-map`<sp/>to<sp/>emit<sp/>`model.ie.bin`/`.json`.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Selection**:<sp/>at<sp/>runtime<sp/>choose<sp/>`IE_PRECISION=int4w`<sp/>(or<sp/>`--precision<sp/>int4w`),<sp/>leaving<sp/>activations<sp/>in<sp/>float.<sp/>This<sp/>is<sp/>**bandwidth‑oriented**<sp/>and<sp/>preserves<sp/>compute<sp/>simplicity.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Threading<sp/>model</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Fixed<sp/>thread‑pool<sp/>over<sp/>`pthread`,<sp/>contiguous<sp/>sharding,<sp/>grainsize<sp/>control.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Affinity<sp/>(Linux):<sp/>`IE_TP_USE_AFFINITY=1`<sp/>enables<sp/>`auto|compact|scatter`.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>NUMA:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>`scripts/set_numa.sh`<sp/>can<sp/>set<sp/>OS<sp/>policy<sp/>(`interleave|node:X|strict`).</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>In‑repo<sp/>probe<sp/>reads<sp/>`/sys/devices/system/node/online`<sp/>to<sp/>annotate<sp/>reports.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Layout<sp/>and<sp/>caching</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Blocked‑K<sp/>packing<sp/>with<sp/>optional<sp/>on‑disk<sp/>caching<sp/>(content‑addressed<sp/>by<sp/>shape<sp/>+<sp/>block<sp/>size).</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>CLI<sp/>flag<sp/>`--pretranspose`<sp/>controls<sp/>packing<sp/>scope<sp/>(`none|woh|wxh|all`).<sp/>INT4<sp/>can<sp/>be<sp/>cached<sp/>per<sp/>layout<sp/>variant.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Metrics</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Per‑token<sp/>latency<sp/>ring<sp/>(p50/p95).</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>True<sp/>TPS<sp/>(`generated_tokens<sp/>/<sp/>wall_time_s`).</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Peak<sp/>RSS**<sp/>(Linux<sp/>`/proc/self/status:VmHWM`<sp/>→<sp/>MiB;<sp/>fallback<sp/>`getrusage`).</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>KV<sp/>hits/misses<sp/>counter<sp/>stubs<sp/>aggregated<sp/>per<sp/>round.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>GPU<sp/>integration<sp/>(CUDA<sp/>path)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Device<sp/>layer:<sp/>`engine/src/devices/ie_device_cuda.cu`,<sp/>kernels<sp/>in<sp/>`engine/src/kernels/ie_kernels_cuda.cu`.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Build:<sp/>`make<sp/>build-cuda`<sp/>→<sp/>`build/inference-engine.cuda`.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>INT4<sp/>weight‑only<sp/>support<sp/>mirrors<sp/>the<sp/>CPU<sp/>path;<sp/>packing<sp/>and<sp/>scales<sp/>are<sp/>shared<sp/>in<sp/>`model.ie.json`.</highlight></codeline>
+<codeline></codeline>
+    </programlisting>
+    <location file="docs/DESIGN.md"/>
+  </compounddef>
+</doxygen>

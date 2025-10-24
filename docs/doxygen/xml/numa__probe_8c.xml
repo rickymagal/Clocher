@@ -1,0 +1,165 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="numa__probe_8c" kind="file" language="C++">
+    <compoundname>numa_probe.c</compoundname>
+    <includes refid="ie__numa_8h" local="yes">ie_numa.h</includes>
+    <includes local="no">stdio.h</includes>
+    <includes local="no">stdlib.h</includes>
+    <incdepgraph>
+      <node id="2">
+        <label>ie_numa.h</label>
+        <link refid="ie__numa_8h"/>
+      </node>
+      <node id="1">
+        <label>engine/src/opt/numa_probe.c</label>
+        <link refid="numa__probe_8c"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="3" relation="include">
+        </childnode>
+        <childnode refid="4" relation="include">
+        </childnode>
+      </node>
+      <node id="3">
+        <label>stdio.h</label>
+      </node>
+      <node id="4">
+        <label>stdlib.h</label>
+      </node>
+    </incdepgraph>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="numa__probe_8c_1ae133a664672ab3e678d0d229a477d17b" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>static int parse_range_list</definition>
+        <argsstring>(const char *s)</argsstring>
+        <name>parse_range_list</name>
+        <param>
+          <type>const char *</type>
+          <declname>s</declname>
+        </param>
+        <briefdescription>
+<para>Parse a CPU/NUMA node range-list and return <computeroutput>(max_id + 1)</computeroutput>. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>The input is expected to be a NUL-terminated ASCII string containing one or more comma-separated ranges. Each range is either a single integer <computeroutput>N</computeroutput> or a closed interval <computeroutput>A-B</computeroutput> where <computeroutput>A</computeroutput> and <computeroutput>B</computeroutput> are non-negative integers and <computeroutput>A &lt;= B</computeroutput>. Examples:<itemizedlist>
+<listitem><para>&quot;0&quot; -&gt; returns 1</para>
+</listitem><listitem><para>&quot;0-1&quot; -&gt; returns 2</para>
+</listitem><listitem><para>&quot;0-3,8-9&quot; -&gt; returns 10 (since max id is 9)</para>
+</listitem></itemizedlist>
+</para>
+<para>If the string cannot be parsed, the function returns <computeroutput>max_id + 1</computeroutput> for any successfully parsed ranges encountered before the error. If no valid range is found at all, the return value will be 1 (as <computeroutput>max_id</computeroutput> starts at 0).</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>s</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>NUL-terminated range-list string to parse. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para><computeroutput>(max_id + 1)</computeroutput> where <computeroutput>max_id</computeroutput> is the largest parsed id; at least 1. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/src/opt/numa_probe.c" line="38" column="12" bodyfile="engine/src/opt/numa_probe.c" bodystart="38" bodyend="67"/>
+        <referencedby refid="ie__numa_8h_1a973de21424f504f3050bac89ab24b122" compoundref="numa__probe_8c" startline="78" endline="95">ie_numa_detect_nodes</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="numa__probe_8c_1a973de21424f504f3050bac89ab24b122" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int ie_numa_detect_nodes</definition>
+        <argsstring>(void)</argsstring>
+        <name>ie_numa_detect_nodes</name>
+        <param>
+          <type>void</type>
+        </param>
+        <briefdescription>
+<para>Detect the number of NUMA nodes. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Detect the number of NUMA nodes available on the system.</para>
+<para>On Linux, this reads <computeroutput>/sys/devices/system/node/online</computeroutput> and parses its contents using <ref refid="numa__probe_8c_1ae133a664672ab3e678d0d229a477d17b" kindref="member">parse_range_list()</ref>. If the file cannot be read or is empty, the function returns 1. On non-Linux systems, this function always returns 1.</para>
+<para><simplesect kind="return"><para>Detected NUMA node count (&gt;= 1). Returns 1 on error or non-Linux OS. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/src/opt/numa_probe.c" line="78" column="5" bodyfile="engine/src/opt/numa_probe.c" bodystart="78" bodyend="95"/>
+        <references refid="numa__probe_8c_1ae133a664672ab3e678d0d229a477d17b" compoundref="numa__probe_8c" startline="38" endline="67">parse_range_list</references>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para>Detect NUMA nodes via sysfs without linking libnuma. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>This implementation reads <computeroutput>/sys/devices/system/node/online</computeroutput> on Linux and parses range-lists such as:<itemizedlist>
+<listitem><para>&quot;0&quot;</para>
+</listitem><listitem><para>&quot;0-1&quot;</para>
+</listitem><listitem><para>&quot;0-3,8-9&quot; to infer a conservative node count as <computeroutput>max_id + 1</computeroutput>.</para>
+</listitem></itemizedlist>
+</para>
+<para>On non-Linux platforms (or on failure), it returns 1. </para>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="normal"></highlight></codeline>
+<codeline lineno="14"><highlight class="normal"></highlight></codeline>
+<codeline lineno="15"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;<ref refid="ie__numa_8h" kindref="compound">ie_numa.h</ref>&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="16"><highlight class="normal"></highlight></codeline>
+<codeline lineno="17"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stdio.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="18"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stdlib.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="19"><highlight class="normal"></highlight></codeline>
+<codeline lineno="38" refid="numa__probe_8c_1ae133a664672ab3e678d0d229a477d17b" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="numa__probe_8c_1ae133a664672ab3e678d0d229a477d17b" kindref="member">parse_range_list</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*s)<sp/>{</highlight></codeline>
+<codeline lineno="39"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>max_id<sp/>=<sp/>0;</highlight></codeline>
+<codeline lineno="40"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*p<sp/>=<sp/>s;</highlight></codeline>
+<codeline lineno="41"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">while</highlight><highlight class="normal"><sp/>(*p)<sp/>{</highlight></codeline>
+<codeline lineno="42"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>a<sp/>=<sp/>0,<sp/>b<sp/>=<sp/>0;</highlight></codeline>
+<codeline lineno="43"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*end<sp/>=<sp/>NULL;</highlight></codeline>
+<codeline lineno="44"><highlight class="normal"></highlight></codeline>
+<codeline lineno="45"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">/*<sp/>Parse<sp/>the<sp/>start<sp/>of<sp/>the<sp/>range<sp/>(A)<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="46"><highlight class="normal"><sp/><sp/><sp/><sp/>a<sp/>=<sp/>(int)strtol(p,<sp/>&amp;end,<sp/>10);</highlight></codeline>
+<codeline lineno="47"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(end<sp/>==<sp/>p)<sp/></highlight><highlight class="keywordflow">break</highlight><highlight class="normal">;<sp/></highlight><highlight class="comment">/*<sp/>no<sp/>progress<sp/>-&gt;<sp/>stop<sp/>parsing<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="48"><highlight class="normal"><sp/><sp/><sp/><sp/>p<sp/>=<sp/>end;</highlight></codeline>
+<codeline lineno="49"><highlight class="normal"></highlight></codeline>
+<codeline lineno="50"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">/*<sp/>Optional<sp/>hyphen<sp/>indicates<sp/>a<sp/>closed<sp/>interval<sp/>A-B<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="51"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(*p<sp/>==<sp/></highlight><highlight class="charliteral">&apos;-&apos;</highlight><highlight class="normal">)<sp/>{</highlight></codeline>
+<codeline lineno="52"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>++p;</highlight></codeline>
+<codeline lineno="53"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>b<sp/>=<sp/>(int)strtol(p,<sp/>&amp;end,<sp/>10);</highlight></codeline>
+<codeline lineno="54"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(end<sp/>==<sp/>p)<sp/></highlight><highlight class="keywordflow">break</highlight><highlight class="normal">;<sp/></highlight><highlight class="comment">/*<sp/>malformed,<sp/>stop<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="55"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>p<sp/>=<sp/>end;</highlight></codeline>
+<codeline lineno="56"><highlight class="normal"><sp/><sp/><sp/><sp/>}<sp/></highlight><highlight class="keywordflow">else</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="57"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>b<sp/>=<sp/>a;<sp/></highlight><highlight class="comment">/*<sp/>single<sp/>value<sp/>range<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="58"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="59"><highlight class="normal"></highlight></codeline>
+<codeline lineno="60"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">/*<sp/>Track<sp/>the<sp/>maximum<sp/>id<sp/>encountered<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="61"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(b<sp/>&gt;<sp/>max_id)<sp/>max_id<sp/>=<sp/>b;</highlight></codeline>
+<codeline lineno="62"><highlight class="normal"></highlight></codeline>
+<codeline lineno="63"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">/*<sp/>Optional<sp/>comma<sp/>separates<sp/>ranges<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="64"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(*p<sp/>==<sp/></highlight><highlight class="charliteral">&apos;,&apos;</highlight><highlight class="normal">)<sp/>++p;</highlight></codeline>
+<codeline lineno="65"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="66"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>max_id<sp/>+<sp/>1;</highlight></codeline>
+<codeline lineno="67"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="68"><highlight class="normal"></highlight></codeline>
+<codeline lineno="78" refid="ie__numa_8h_1a973de21424f504f3050bac89ab24b122" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="numa__probe_8c_1a973de21424f504f3050bac89ab24b122" kindref="member">ie_numa_detect_nodes</ref>(</highlight><highlight class="keywordtype">void</highlight><highlight class="normal">)<sp/>{</highlight></codeline>
+<codeline lineno="79"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__linux__</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="80"><highlight class="normal"><sp/><sp/>FILE<sp/>*f<sp/>=<sp/>fopen(</highlight><highlight class="stringliteral">&quot;/sys/devices/system/node/online&quot;</highlight><highlight class="normal">,<sp/></highlight><highlight class="stringliteral">&quot;r&quot;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="81"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!f)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>1;</highlight></codeline>
+<codeline lineno="82"><highlight class="normal"></highlight></codeline>
+<codeline lineno="83"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>buf[256]<sp/>=<sp/>{0};</highlight></codeline>
+<codeline lineno="84"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>n<sp/>=<sp/>fread(buf,<sp/>1,<sp/></highlight><highlight class="keyword">sizeof</highlight><highlight class="normal">(buf)<sp/>-<sp/>1,<sp/>f);</highlight></codeline>
+<codeline lineno="85"><highlight class="normal"><sp/><sp/>fclose(f);</highlight></codeline>
+<codeline lineno="86"><highlight class="normal"></highlight></codeline>
+<codeline lineno="87"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(n<sp/>==<sp/>0)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>1;</highlight></codeline>
+<codeline lineno="88"><highlight class="normal"><sp/><sp/>buf[n]<sp/>=<sp/></highlight><highlight class="charliteral">&apos;\0&apos;</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="89"><highlight class="normal"></highlight></codeline>
+<codeline lineno="90"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>nodes<sp/>=<sp/><ref refid="numa__probe_8c_1ae133a664672ab3e678d0d229a477d17b" kindref="member">parse_range_list</ref>(buf);</highlight></codeline>
+<codeline lineno="91"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>nodes<sp/>&gt;<sp/>0<sp/>?<sp/>nodes<sp/>:<sp/>1;</highlight></codeline>
+<codeline lineno="92"><highlight class="normal"></highlight><highlight class="preprocessor">#else</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="93"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>1;</highlight></codeline>
+<codeline lineno="94"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="95"><highlight class="normal">}</highlight></codeline>
+    </programlisting>
+    <location file="engine/src/opt/numa_probe.c"/>
+  </compounddef>
+</doxygen>

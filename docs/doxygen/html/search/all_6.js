@@ -1,18 +1,16 @@
 var searchData=
 [
-  ['acc_0',['acc',['../ie__kernels__ze_8cl.html#ae7a59aea3ae02e7c3c40b93e77208b3a',1,'ie_kernels_ze.cl']]],
-  ['act_1',['act',['../ie__kernels__ze_8cl.html#ac8f2ae6794c6c329fe6562487f7826ac',1,'ie_kernels_ze.cl']]],
-  ['adr_200006_20—_20optimization_20path_20selection_20cpu_20baseline_2',['ADR-0006 — Optimization path selection (CPU baseline)',['../md_docs_2adr-00060-optimization-path.html',1,'']]],
-  ['adr_2d00060_2doptimization_2dpath_2emd_3',['adr-00060-optimization-path.md',['../adr-00060-optimization-path_8md.html',1,'']]],
-  ['affinity_4',['affinity',['../structie__engine__params.html#a66599574f8a4b8ed7cd7132fc1c0e051',1,'ie_engine_params::affinity'],['../structcli__extras.html#a313d0562dfb63a6350db5c84128fc074',1,'cli_extras::affinity'],['../structie__threadpool.html#ab30ff46e0f8992c0c9fceea8c336a4a0',1,'ie_threadpool::affinity'],['../structie__task__arg__t.html#a3392b3ce65fc59698bec0d92ec94ba31',1,'ie_task_arg_t::affinity']]],
-  ['aggregate_5',['aggregate',['../structcli__extras.html#a4e233e0c7d76b4fb4338d7460a552707',1,'cli_extras']]],
-  ['alpha_6',['alpha',['../ie__kernels__ze_8cl.html#a1ed7c041b95733adcb91c850c327801a',1,'ie_kernels_ze.cl']]],
-  ['and_20boundaries_7',['Process and boundaries',['../md_docs_2DESIGN.html#autotoc_md57',1,'']]],
-  ['and_20caching_8',['Layout and caching',['../md_docs_2DESIGN.html#autotoc_md61',1,'']]],
-  ['and_20intent_9',['Model and intent',['../ie__kv__instrumentation_8h.html#autotoc_md6',1,'']]],
-  ['and_20prefetch_10',['I/O Batching and Prefetch',['../md_docs_2DESIGN.html#autotoc_md66',1,'']]],
-  ['api_20surface_20high_20level_11',['API surface (high level)',['../md_docs_2DESIGN.html#autotoc_md58',1,'']]],
-  ['architectural_20decision_20records_12',['Architectural Decision Records',['../md_docs_2DECISIONS.html',1,'']]],
-  ['are_20provided_13',['How kernels are provided',['..//home/ricky/Desktop/Clocher/engine/src/kernels/ze/ie_kernel_ze.cpp#autotoc_md14',1,'']]],
-  ['avx2_14',['avx2',['../structie__cpu__features__t.html#a126cd9fec9b1e9ec0a746ab0a28e7251',1,'ie_cpu_features_t']]]
+  ['backend_0',['Level Zero (oneAPI) GPU backend',['../group__IE__GPU__ZE.html',1,'']]],
+  ['bad_5ffloat3_1',['bad_float3',['../int4__ptq_8c.html#adac55944e6da576f6745a6ad26c4cb79',1,'int4_ptq.c']]],
+  ['baseline_20int4_20path_2',['Design (CPU baseline + INT4 path)',['../md_docs_2DESIGN.html',1,'']]],
+  ['baseline_20safe_20defaults_3',['Kernel policy (baseline, safe defaults)',['../ie__kernels__cuda_8cu.html#autotoc_md62',1,'']]],
+  ['batch_4',['batch',['../structie__cli__extras.html#a6d65ced667b70b4eaac6543425c6949c',1,'ie_cli_extras::batch'],['../structcli__extras.html#a4af612c719a80234b4e753bc559f358c',1,'cli_extras::batch']]],
+  ['bench_2etoml_5',['bench.toml',['../bench_8toml.html',1,'']]],
+  ['benchmark_6',['benchmark',['../md_docs_2PERFORMANCE.html#autotoc_md4',1,'CPU — Summary (latest benchmark)'],['../md_docs_2PERFORMANCE.html#autotoc_md8',1,'GPU — Summary (latest benchmark)']]],
+  ['bin_7',['BIN',['../namespacetest__cli__error__paths.html#a9e965922d2fbb4003a0524232d17f8c6',1,'test_cli_error_paths.BIN'],['../namespacetest__cli__flags.html#a79fa2e0d5e94f1508875d643dcfa6430',1,'test_cli_flags.BIN'],['../namespacetest__determinism.html#affcb5fa9fb60dcc0bc9a1898f1a646b2',1,'test_determinism.BIN'],['../namespacetest__metrics__ring.html#a8363ca5e02a8a38b989e9b1959d99148',1,'test_metrics_ring.BIN']]],
+  ['bin_5fpath_8',['bin_path',['../classtest__cli_1_1CLITests.html#a2f5fec3618a03998cf9023e80784845b',1,'test_cli.CLITests.bin_path'],['../classtest__harness_1_1HarnessTests.html#a9f8c8174f3487e8fa0d6b79cff5fb4a1',1,'test_harness.HarnessTests.bin_path']]],
+  ['bin_5fsize_5fbytes_9',['bin_size_bytes',['../structie__weights__s.html#a19f9137cca00113908b495a70769805e',1,'ie_weights_s']]],
+  ['blk_5fk_10',['blk_k',['../structie__wblocked__desc.html#aecbe9b5f97e69baf611e6b01a0b6b699',1,'ie_wblocked_desc']]],
+  ['body_11',['body',['../structie__task__arg__t.html#a1d5b2ad9724bb08fba602b3cb4ad28e8',1,'ie_task_arg_t']]],
+  ['boundaries_12',['Process and boundaries',['../md_docs_2DESIGN.html#autotoc_md17',1,'']]]
 ];

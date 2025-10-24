@@ -1,0 +1,471 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="ie__batcher_8h" kind="file" language="C++">
+    <compoundname>ie_batcher.h</compoundname>
+    <includes local="no">stddef.h</includes>
+    <includes local="no">stdint.h</includes>
+    <includedby refid="ie__batcher_8c" local="yes">engine/src/io/ie_batcher.c</includedby>
+    <includedby refid="test__batcher_8c" local="yes">tests/c/test_batcher.c</includedby>
+    <incdepgraph>
+      <node id="1">
+        <label>engine/include/ie_batcher.h</label>
+        <link refid="ie__batcher_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="3" relation="include">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>stddef.h</label>
+      </node>
+      <node id="3">
+        <label>stdint.h</label>
+      </node>
+    </incdepgraph>
+    <invincdepgraph>
+      <node id="1">
+        <label>engine/include/ie_batcher.h</label>
+        <link refid="ie__batcher_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="3" relation="include">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>engine/src/io/ie_batcher.c</label>
+        <link refid="ie__batcher_8c"/>
+      </node>
+      <node id="3">
+        <label>tests/c/test_batcher.c</label>
+        <link refid="test__batcher_8c"/>
+      </node>
+    </invincdepgraph>
+    <innerclass refid="structie__batcher__item__t" prot="public">ie_batcher_item_t</innerclass>
+    <innerclass refid="structie__batcher__view" prot="public">ie_batcher_view</innerclass>
+    <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="ie__batcher_8h_1a95ad6e20e6851edda314f06421b90b0f" prot="public" static="no">
+        <type>struct <ref refid="structie__batcher__view" kindref="compound">ie_batcher_view</ref></type>
+        <definition>typedef struct ie_batcher_view ie_batcher_view_t</definition>
+        <argsstring></argsstring>
+        <name>ie_batcher_view_t</name>
+        <briefdescription>
+<para>Microbatch view returned by <ref refid="ie__batcher_8h_1a6dfb3b0fad4a7c1271d86da06649236f" kindref="member">ie_batcher_get</ref>. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>The view points <emphasis>into</emphasis> the batcher&apos;s ring; do not free or retain the pointers beyond the call to <ref refid="ie__batcher_8h_1a32c4149e9889f52a2eb339131ecc38dc" kindref="member">ie_batcher_advance</ref>. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/ie_batcher.h" line="45" column="19"/>
+      </memberdef>
+      <memberdef kind="typedef" id="ie__batcher_8h_1a23fde82b750e5e9b50ab7007f35cf042" prot="public" static="no">
+        <type>struct <ref refid="structie__batcher" kindref="compound">ie_batcher</ref></type>
+        <definition>typedef struct ie_batcher ie_batcher_t</definition>
+        <argsstring></argsstring>
+        <name>ie_batcher_t</name>
+        <briefdescription>
+<para>Opaque batcher handle. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/ie_batcher.h" line="50" column="25" bodyfile="engine/include/ie_batcher.h" bodystart="50" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="typedef" id="ie__batcher_8h_1ac560ca29a3e380a92c75ed941f2bfdbe" prot="public" static="no">
+        <type>int(*</type>
+        <definition>typedef int(* ie_batcher_tokenize_fn) (const char *prompt, uint32_t **out_ids, size_t *out_n, void *user_ctx)</definition>
+        <argsstring>)(const char *prompt, uint32_t **out_ids, size_t *out_n, void *user_ctx)</argsstring>
+        <name>ie_batcher_tokenize_fn</name>
+        <briefdescription>
+<para>Tokenizer callback signature used by the batcher workers. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>The implementation must allocate <computeroutput>*out_ids</computeroutput> (e.g., via <computeroutput>malloc</computeroutput>) and set <computeroutput>*out_n</computeroutput>. The batcher takes ownership of <computeroutput>*out_ids</computeroutput> after enqueue.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>prompt</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Zero-terminated input string to tokenize. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>out_ids</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Output: allocated array of token IDs. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>out_n</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Output: number of IDs in <computeroutput>*out_ids</computeroutput>. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>user_ctx</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Opaque pointer passed through from <ref refid="ie__batcher_8h_1ab201d312c4f0fa59e31e99e221bd71f6" kindref="member">ie_batcher_create</ref>. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>int 0 on success, non-zero on failure. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/ie_batcher.h" line="64" column="9" bodyfile="engine/include/ie_batcher.h" bodystart="64" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="ie__batcher_8h_1ab201d312c4f0fa59e31e99e221bd71f6" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="ie__batcher_8h_1a23fde82b750e5e9b50ab7007f35cf042" kindref="member">ie_batcher_t</ref> *</type>
+        <definition>ie_batcher_t * ie_batcher_create</definition>
+        <argsstring>(const char **prompts, size_t n_prompts, size_t microbatch, size_t queue_capacity, unsigned n_workers, ie_batcher_tokenize_fn tokenize_cb, void *user_ctx)</argsstring>
+        <name>ie_batcher_create</name>
+        <param>
+          <type>const char **</type>
+          <declname>prompts</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>n_prompts</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>microbatch</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>queue_capacity</declname>
+        </param>
+        <param>
+          <type>unsigned</type>
+          <declname>n_workers</declname>
+        </param>
+        <param>
+          <type><ref refid="ie__batcher_8h_1ac560ca29a3e380a92c75ed941f2bfdbe" kindref="member">ie_batcher_tokenize_fn</ref></type>
+          <declname>tokenize_cb</declname>
+        </param>
+        <param>
+          <type>void *</type>
+          <declname>user_ctx</declname>
+        </param>
+        <briefdescription>
+<para>Create a new asynchronous tokenizer batcher. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Spawns up to <computeroutput>n_workers</computeroutput> threads that prefetch and tokenize prompts into a bounded ring buffer. The consumer should call <ref refid="ie__batcher_8h_1a6dfb3b0fad4a7c1271d86da06649236f" kindref="member">ie_batcher_get</ref> followed by <ref refid="ie__batcher_8h_1a32c4149e9889f52a2eb339131ecc38dc" kindref="member">ie_batcher_advance</ref> in a loop until the stream is drained.</para>
+<para>Defaults:<itemizedlist>
+<listitem><para>If <computeroutput>microbatch</computeroutput> == 0, it is treated as 1.</para>
+</listitem><listitem><para>If <computeroutput>queue_capacity</computeroutput> == 0, it is treated as max(microbatch, 8).</para>
+</listitem><listitem><para>If <computeroutput>n_workers</computeroutput> == 0, it is treated as 1.</para>
+</listitem></itemizedlist>
+</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>prompts</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Array of input UTF-8 prompt strings (not owned; must outlive the batcher). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>n_prompts</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of prompts in <computeroutput>prompts</computeroutput>. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>microbatch</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Maximum items returned per view. Use 0 for default. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>queue_capacity</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Ring capacity in items. Use 0 for default. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>n_workers</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of tokenizer worker threads. Use 0 for default. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>tokenize_cb</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>User tokenizer callback (must not be NULL). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>user_ctx</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Opaque pointer forwarded to <computeroutput>tokenize_cb</computeroutput>; may be NULL. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>ie_batcher_t* Handle on success, or NULL on allocation/spawn error. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/ie_batcher.h" line="90" column="14" bodyfile="engine/src/io/ie_batcher.c" bodystart="171" bodyend="215" declfile="engine/include/ie_batcher.h" declline="90" declcolumn="14"/>
+        <references refid="structie__batcher_1ac2f4af97d8d4f160c54add4793beae00" compoundref="ie__batcher_8c" startline="38">ie_batcher::cap</references>
+        <references refid="structie__batcher_1a599d1e40ff4b757a3811f6494e07ea63" compoundref="ie__batcher_8c" startline="50">ie_batcher::cv_not_empty</references>
+        <references refid="structie__batcher_1a87540ee2e8097ba46efe82af0ce1d3c5" compoundref="ie__batcher_8c" startline="49">ie_batcher::cv_not_full</references>
+        <references refid="structie__batcher_1a6634ddc5b22f958c4a965030d33ea01d" compoundref="ie__batcher_8c" startline="62">ie_batcher::microbatch</references>
+        <references refid="structie__batcher_1af9832623e01b36b40b66f1807c150053" compoundref="ie__batcher_8c" startline="48">ie_batcher::mu</references>
+        <references refid="structie__batcher_1a66273bd78b7aa9abc1bbc175b9e9d567" compoundref="ie__batcher_8c" startline="34">ie_batcher::n_prompts</references>
+        <references refid="structie__batcher_1a239b1f5bb428b7f4510c36afa720047d" compoundref="ie__batcher_8c" startline="53">ie_batcher::n_workers</references>
+        <references refid="structie__batcher_1aae1727714bdd5df07625bd6c6099db09" compoundref="ie__batcher_8c" startline="33">ie_batcher::prompts</references>
+        <references refid="structie__batcher_1a862ac941b8747e72ad52afb521f4969f" compoundref="ie__batcher_8c" startline="37">ie_batcher::ring</references>
+        <references refid="structie__batcher_1a00a6e55bc22a6b6fdda4d5f164ea7759" compoundref="ie__batcher_8c" startline="54">ie_batcher::threads</references>
+        <references refid="structie__batcher_1a206c1683ca1028598ab358c226900796" compoundref="ie__batcher_8c" startline="58">ie_batcher::tokenize</references>
+        <references refid="structie__batcher_1ac168939e040aad22b182fef1a908fdb2" compoundref="ie__batcher_8c" startline="59">ie_batcher::user_ctx</references>
+        <references refid="ie__batcher_8c_1ab50c928126740940413626fd7ab7ce72" compoundref="ie__batcher_8c" startline="144" endline="165">worker_main</references>
+        <references refid="ie__batcher_8c_1a981c4f4b5894b549eb0b2f0358810c67" compoundref="ie__batcher_8c" startline="75" endline="75">xcalloc</references>
+        <referencedby refid="test__batcher_8c_1a840a5fb06d03045c6f4e645ed682b7ad" compoundref="test__batcher_8c" startline="60" endline="98">test_basic_prefetch_and_order</referencedby>
+        <referencedby refid="test__batcher_8c_1acebcf748df4676af1488302913dcc33e" compoundref="test__batcher_8c" startline="136" endline="151">test_partial_teardown</referencedby>
+        <referencedby refid="test__batcher_8c_1ae1015c7a7a149612ed323d43e7c93a0c" compoundref="test__batcher_8c" startline="105" endline="128">test_wrap_and_view_limits</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="ie__batcher_8h_1a6dfb3b0fad4a7c1271d86da06649236f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int ie_batcher_get</definition>
+        <argsstring>(ie_batcher_t *b, ie_batcher_view_t *out_view)</argsstring>
+        <name>ie_batcher_get</name>
+        <param>
+          <type><ref refid="ie__batcher_8h_1a23fde82b750e5e9b50ab7007f35cf042" kindref="member">ie_batcher_t</ref> *</type>
+          <declname>b</declname>
+        </param>
+        <param>
+          <type><ref refid="ie__batcher_8h_1a95ad6e20e6851edda314f06421b90b0f" kindref="member">ie_batcher_view_t</ref> *</type>
+          <declname>out_view</declname>
+        </param>
+        <briefdescription>
+<para>Obtain a contiguous slice of ready items without copying. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>If no items are ready but production is still in progress, this function blocks until an item is available (or the batcher is stopping).</para>
+<para>When this function returns 0, the stream is drained; <computeroutput>out_view-&gt;done</computeroutput> will be set to 1 and <computeroutput>out_view-&gt;items</computeroutput> will be NULL.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>b</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Batcher handle (non-NULL). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>out_view</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Output view describing a contiguous span of items. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>int 1 if a non-empty view was produced; 0 if the stream is drained. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/ie_batcher.h" line="111" column="5" bodyfile="engine/src/io/ie_batcher.c" bodystart="217" bodyend="248" declfile="engine/include/ie_batcher.h" declline="111" declcolumn="5"/>
+        <references refid="structie__batcher_1ac2f4af97d8d4f160c54add4793beae00" compoundref="ie__batcher_8c" startline="38">ie_batcher::cap</references>
+        <references refid="structie__batcher__view_1a2efe82b85f967469f6f22777eb739f2d" compoundref="ie__batcher_8h" startline="43">ie_batcher_view::count</references>
+        <references refid="structie__batcher_1a599d1e40ff4b757a3811f6494e07ea63" compoundref="ie__batcher_8c" startline="50">ie_batcher::cv_not_empty</references>
+        <references refid="structie__batcher__view_1acc236db8ff60ecd7bf003b5e3c2f29e8" compoundref="ie__batcher_8h" startline="44">ie_batcher_view::done</references>
+        <references refid="structie__batcher__view_1a209b9ec614bb4622c1bb58e2e3a9e979" compoundref="ie__batcher_8h" startline="42">ie_batcher_view::items</references>
+        <references refid="structie__batcher_1a6634ddc5b22f958c4a965030d33ea01d" compoundref="ie__batcher_8c" startline="62">ie_batcher::microbatch</references>
+        <references refid="structie__batcher_1af9832623e01b36b40b66f1807c150053" compoundref="ie__batcher_8c" startline="48">ie_batcher::mu</references>
+        <references refid="structie__batcher_1a5da8fcc389db0f782f507b934397f13c" compoundref="ie__batcher_8c" startline="45">ie_batcher::producer_done</references>
+        <references refid="structie__batcher_1afc91dc7b95574b4fd89796fdf65473e3" compoundref="ie__batcher_8c" startline="39">ie_batcher::r</references>
+        <references refid="structie__batcher_1a862ac941b8747e72ad52afb521f4969f" compoundref="ie__batcher_8c" startline="37">ie_batcher::ring</references>
+        <references refid="structie__batcher_1af3eb137ebe601d71c94b345d9d7e97a0" compoundref="ie__batcher_8c" startline="41">ie_batcher::size</references>
+        <references refid="structie__batcher_1a242cb22d24bf957c272419a23f8de079" compoundref="ie__batcher_8c" startline="55">ie_batcher::stop</references>
+        <referencedby refid="test__batcher_8c_1a840a5fb06d03045c6f4e645ed682b7ad" compoundref="test__batcher_8c" startline="60" endline="98">test_basic_prefetch_and_order</referencedby>
+        <referencedby refid="test__batcher_8c_1acebcf748df4676af1488302913dcc33e" compoundref="test__batcher_8c" startline="136" endline="151">test_partial_teardown</referencedby>
+        <referencedby refid="test__batcher_8c_1ae1015c7a7a149612ed323d43e7c93a0c" compoundref="test__batcher_8c" startline="105" endline="128">test_wrap_and_view_limits</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="ie__batcher_8h_1a32c4149e9889f52a2eb339131ecc38dc" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ie_batcher_advance</definition>
+        <argsstring>(ie_batcher_t *b, size_t n_consumed)</argsstring>
+        <name>ie_batcher_advance</name>
+        <param>
+          <type><ref refid="ie__batcher_8h_1a23fde82b750e5e9b50ab7007f35cf042" kindref="member">ie_batcher_t</ref> *</type>
+          <declname>b</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>n_consumed</declname>
+        </param>
+        <briefdescription>
+<para>Release items previously returned by <ref refid="ie__batcher_8h_1a6dfb3b0fad4a7c1271d86da06649236f" kindref="member">ie_batcher_get</ref>. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Frees payloads and advances the ring read pointer, then signals producers that space is available.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>b</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Batcher handle (non-NULL). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>n_consumed</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of items to release; must not exceed the last view count. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/ie_batcher.h" line="122" column="6" bodyfile="engine/src/io/ie_batcher.c" bodystart="250" bodyend="265" declfile="engine/include/ie_batcher.h" declline="122" declcolumn="6"/>
+        <references refid="structie__batcher_1ac2f4af97d8d4f160c54add4793beae00" compoundref="ie__batcher_8c" startline="38">ie_batcher::cap</references>
+        <references refid="ie__batcher_8c_1a6b929aafa08b7ff2b55984965517f8cc" compoundref="ie__batcher_8c" startline="81" endline="88">clear_item</references>
+        <references refid="structie__batcher_1a87540ee2e8097ba46efe82af0ce1d3c5" compoundref="ie__batcher_8c" startline="49">ie_batcher::cv_not_full</references>
+        <references refid="structie__batcher_1af9832623e01b36b40b66f1807c150053" compoundref="ie__batcher_8c" startline="48">ie_batcher::mu</references>
+        <references refid="structie__batcher_1afc91dc7b95574b4fd89796fdf65473e3" compoundref="ie__batcher_8c" startline="39">ie_batcher::r</references>
+        <references refid="structie__batcher_1a862ac941b8747e72ad52afb521f4969f" compoundref="ie__batcher_8c" startline="37">ie_batcher::ring</references>
+        <references refid="structie__batcher_1af3eb137ebe601d71c94b345d9d7e97a0" compoundref="ie__batcher_8c" startline="41">ie_batcher::size</references>
+        <referencedby refid="test__batcher_8c_1a840a5fb06d03045c6f4e645ed682b7ad" compoundref="test__batcher_8c" startline="60" endline="98">test_basic_prefetch_and_order</referencedby>
+        <referencedby refid="test__batcher_8c_1ae1015c7a7a149612ed323d43e7c93a0c" compoundref="test__batcher_8c" startline="105" endline="128">test_wrap_and_view_limits</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="ie__batcher_8h_1a606dcb56c138607d9b0d77948d8b48b9" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ie_batcher_destroy</definition>
+        <argsstring>(ie_batcher_t *b)</argsstring>
+        <name>ie_batcher_destroy</name>
+        <param>
+          <type><ref refid="ie__batcher_8h_1a23fde82b750e5e9b50ab7007f35cf042" kindref="member">ie_batcher_t</ref> *</type>
+          <declname>b</declname>
+        </param>
+        <briefdescription>
+<para>Destroy a batcher, joining workers and freeing all resources. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Safe to call with NULL.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>b</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Batcher handle (may be NULL). </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/ie_batcher.h" line="131" column="6" bodyfile="engine/src/io/ie_batcher.c" bodystart="267" bodyend="290" declfile="engine/include/ie_batcher.h" declline="131" declcolumn="6"/>
+        <references refid="structie__batcher_1ac2f4af97d8d4f160c54add4793beae00" compoundref="ie__batcher_8c" startline="38">ie_batcher::cap</references>
+        <references refid="ie__batcher_8c_1a6b929aafa08b7ff2b55984965517f8cc" compoundref="ie__batcher_8c" startline="81" endline="88">clear_item</references>
+        <references refid="structie__batcher_1a599d1e40ff4b757a3811f6494e07ea63" compoundref="ie__batcher_8c" startline="50">ie_batcher::cv_not_empty</references>
+        <references refid="structie__batcher_1a87540ee2e8097ba46efe82af0ce1d3c5" compoundref="ie__batcher_8c" startline="49">ie_batcher::cv_not_full</references>
+        <references refid="structie__batcher_1af9832623e01b36b40b66f1807c150053" compoundref="ie__batcher_8c" startline="48">ie_batcher::mu</references>
+        <references refid="structie__batcher_1a239b1f5bb428b7f4510c36afa720047d" compoundref="ie__batcher_8c" startline="53">ie_batcher::n_workers</references>
+        <references refid="structie__batcher_1a862ac941b8747e72ad52afb521f4969f" compoundref="ie__batcher_8c" startline="37">ie_batcher::ring</references>
+        <references refid="structie__batcher_1a242cb22d24bf957c272419a23f8de079" compoundref="ie__batcher_8c" startline="55">ie_batcher::stop</references>
+        <references refid="structie__batcher_1a00a6e55bc22a6b6fdda4d5f164ea7759" compoundref="ie__batcher_8c" startline="54">ie_batcher::threads</references>
+        <referencedby refid="test__batcher_8c_1a840a5fb06d03045c6f4e645ed682b7ad" compoundref="test__batcher_8c" startline="60" endline="98">test_basic_prefetch_and_order</referencedby>
+        <referencedby refid="test__batcher_8c_1acebcf748df4676af1488302913dcc33e" compoundref="test__batcher_8c" startline="136" endline="151">test_partial_teardown</referencedby>
+        <referencedby refid="test__batcher_8c_1ae1015c7a7a149612ed323d43e7c93a0c" compoundref="test__batcher_8c" startline="105" endline="128">test_wrap_and_view_limits</referencedby>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para>Public API for asynchronous prompt prefetch + tokenization batcher. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>The batcher asynchronously tokenizes input prompts on background worker threads and enqueues results in a bounded ring buffer. The consumer reads <emphasis>contiguous microbatches</emphasis> (views) directly from the ring without copying, then advances to release those items.</para>
+<para>Ownership:<itemizedlist>
+<listitem><para>The tokenizer callback must allocate <computeroutput>*out_ids</computeroutput> for each item.</para>
+</listitem><listitem><para>The batcher takes ownership on enqueue and frees payloads on advance. </para>
+</listitem></itemizedlist>
+</para>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="normal"></highlight></codeline>
+<codeline lineno="14"><highlight class="normal"></highlight></codeline>
+<codeline lineno="15"><highlight class="normal"></highlight><highlight class="preprocessor">#ifndef<sp/>IE_BATCHER_H</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="16"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>IE_BATCHER_H</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="17"><highlight class="normal"></highlight></codeline>
+<codeline lineno="18"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stddef.h&gt;</highlight><highlight class="normal"><sp/><sp/><sp/></highlight><highlight class="comment">/*<sp/>size_t<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="19"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stdint.h&gt;</highlight><highlight class="normal"><sp/><sp/><sp/></highlight><highlight class="comment">/*<sp/>uint32_t<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="20"><highlight class="normal"></highlight></codeline>
+<codeline lineno="21"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="22"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/></highlight><highlight class="stringliteral">&quot;C&quot;</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="23"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="24"><highlight class="normal"></highlight></codeline>
+<codeline lineno="28" refid="structie__batcher__item__t" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal">{</highlight></codeline>
+<codeline lineno="29" refid="structie__batcher__item__t_1a29bbd077e2e4a2c0e8fad18a2a8ae7cd" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*<ref refid="structie__batcher__item__t_1a29bbd077e2e4a2c0e8fad18a2a8ae7cd" kindref="member">prompt</ref>;<sp/><sp/><sp/></highlight></codeline>
+<codeline lineno="30" refid="structie__batcher__item__t_1a3e5c291bf7f461870e8f25d1834ef408" refkind="member"><highlight class="normal"><sp/><sp/>uint32_t<sp/>*<ref refid="structie__batcher__item__t_1a3e5c291bf7f461870e8f25d1834ef408" kindref="member">ids</ref>;<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight></codeline>
+<codeline lineno="31" refid="structie__batcher__item__t_1a6fa5aa6d85ddca6b90125464f1332626" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/><ref refid="structie__batcher__item__t_1a6fa5aa6d85ddca6b90125464f1332626" kindref="member">n_ids</ref>;<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight></codeline>
+<codeline lineno="32" refid="structie__batcher__item__t_1a0415c395810297f906e8a6757d9ad425" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="structie__batcher__item__t_1a0415c395810297f906e8a6757d9ad425" kindref="member">status</ref>;<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight></codeline>
+<codeline lineno="33"><highlight class="normal">}<sp/><ref refid="structie__batcher__item__t" kindref="compound">ie_batcher_item_t</ref>;</highlight></codeline>
+<codeline lineno="34"><highlight class="normal"></highlight></codeline>
+<codeline lineno="41" refid="structie__batcher__view" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structie__batcher__view" kindref="compound">ie_batcher_view</ref><sp/>{</highlight></codeline>
+<codeline lineno="42" refid="structie__batcher__view_1a209b9ec614bb4622c1bb58e2e3a9e979" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="structie__batcher__item__t" kindref="compound">ie_batcher_item_t</ref><sp/>*<ref refid="structie__batcher__view_1a209b9ec614bb4622c1bb58e2e3a9e979" kindref="member">items</ref>;<sp/></highlight></codeline>
+<codeline lineno="43" refid="structie__batcher__view_1a2efe82b85f967469f6f22777eb739f2d" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/><ref refid="structie__batcher__view_1a2efe82b85f967469f6f22777eb739f2d" kindref="member">count</ref>;<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight></codeline>
+<codeline lineno="44" refid="structie__batcher__view_1acc236db8ff60ecd7bf003b5e3c2f29e8" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="structie__batcher__view_1acc236db8ff60ecd7bf003b5e3c2f29e8" kindref="member">done</ref>;<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight></codeline>
+<codeline lineno="45" refid="ie__batcher_8h_1a95ad6e20e6851edda314f06421b90b0f" refkind="member"><highlight class="normal">}<sp/><ref refid="ie__batcher_8h_1a95ad6e20e6851edda314f06421b90b0f" kindref="member">ie_batcher_view_t</ref>;</highlight></codeline>
+<codeline lineno="46"><highlight class="normal"></highlight></codeline>
+<codeline lineno="50" refid="ie__batcher_8h_1a23fde82b750e5e9b50ab7007f35cf042" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structie__batcher" kindref="compound">ie_batcher</ref><sp/><ref refid="ie__batcher_8h_1a23fde82b750e5e9b50ab7007f35cf042" kindref="member">ie_batcher_t</ref>;</highlight></codeline>
+<codeline lineno="51"><highlight class="normal"></highlight></codeline>
+<codeline lineno="64" refid="ie__batcher_8h_1ac560ca29a3e380a92c75ed941f2bfdbe" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/>int<sp/>(*<ref refid="ie__batcher_8h_1ac560ca29a3e380a92c75ed941f2bfdbe" kindref="member">ie_batcher_tokenize_fn</ref>)(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*prompt,</highlight></codeline>
+<codeline lineno="65"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>uint32_t<sp/>**out_ids,</highlight></codeline>
+<codeline lineno="66"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>*out_n,</highlight></codeline>
+<codeline lineno="67"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*<ref refid="structie__batcher_1ac168939e040aad22b182fef1a908fdb2" kindref="member">user_ctx</ref>);</highlight></codeline>
+<codeline lineno="68"><highlight class="normal"></highlight></codeline>
+<codeline lineno="90"><highlight class="normal"><ref refid="ie__batcher_8h_1a23fde82b750e5e9b50ab7007f35cf042" kindref="member">ie_batcher_t</ref><sp/>*<ref refid="ie__batcher_8h_1ab201d312c4f0fa59e31e99e221bd71f6" kindref="member">ie_batcher_create</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>**<ref refid="structie__batcher_1aae1727714bdd5df07625bd6c6099db09" kindref="member">prompts</ref>,</highlight></codeline>
+<codeline lineno="91"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/><ref refid="structie__batcher_1a66273bd78b7aa9abc1bbc175b9e9d567" kindref="member">n_prompts</ref>,</highlight></codeline>
+<codeline lineno="92"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/><ref refid="structie__batcher_1a6634ddc5b22f958c4a965030d33ea01d" kindref="member">microbatch</ref>,</highlight></codeline>
+<codeline lineno="93"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>queue_capacity,</highlight></codeline>
+<codeline lineno="94"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">unsigned</highlight><highlight class="normal"><sp/><ref refid="structie__batcher_1a239b1f5bb428b7f4510c36afa720047d" kindref="member">n_workers</ref>,</highlight></codeline>
+<codeline lineno="95"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="ie__batcher_8h_1ac560ca29a3e380a92c75ed941f2bfdbe" kindref="member">ie_batcher_tokenize_fn</ref><sp/>tokenize_cb,</highlight></codeline>
+<codeline lineno="96"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*<ref refid="structie__batcher_1ac168939e040aad22b182fef1a908fdb2" kindref="member">user_ctx</ref>);</highlight></codeline>
+<codeline lineno="97"><highlight class="normal"></highlight></codeline>
+<codeline lineno="111"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="ie__batcher_8h_1a6dfb3b0fad4a7c1271d86da06649236f" kindref="member">ie_batcher_get</ref>(<ref refid="ie__batcher_8h_1a23fde82b750e5e9b50ab7007f35cf042" kindref="member">ie_batcher_t</ref><sp/>*b,<sp/><ref refid="ie__batcher_8h_1a95ad6e20e6851edda314f06421b90b0f" kindref="member">ie_batcher_view_t</ref><sp/>*out_view);</highlight></codeline>
+<codeline lineno="112"><highlight class="normal"></highlight></codeline>
+<codeline lineno="122"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="ie__batcher_8h_1a32c4149e9889f52a2eb339131ecc38dc" kindref="member">ie_batcher_advance</ref>(<ref refid="ie__batcher_8h_1a23fde82b750e5e9b50ab7007f35cf042" kindref="member">ie_batcher_t</ref><sp/>*b,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>n_consumed);</highlight></codeline>
+<codeline lineno="123"><highlight class="normal"></highlight></codeline>
+<codeline lineno="131"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="ie__batcher_8h_1a606dcb56c138607d9b0d77948d8b48b9" kindref="member">ie_batcher_destroy</ref>(<ref refid="ie__batcher_8h_1a23fde82b750e5e9b50ab7007f35cf042" kindref="member">ie_batcher_t</ref><sp/>*b);</highlight></codeline>
+<codeline lineno="132"><highlight class="normal"></highlight></codeline>
+<codeline lineno="133"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="134"><highlight class="normal">}<sp/></highlight><highlight class="comment">/*<sp/>extern<sp/>&quot;C&quot;<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="135"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="136"><highlight class="normal"></highlight></codeline>
+<codeline lineno="137"><highlight class="normal"></highlight><highlight class="preprocessor">#endif<sp/></highlight><highlight class="comment">/*<sp/>IE_BATCHER_H<sp/>*/</highlight><highlight class="preprocessor"></highlight></codeline>
+    </programlisting>
+    <location file="engine/include/ie_batcher.h"/>
+  </compounddef>
+</doxygen>

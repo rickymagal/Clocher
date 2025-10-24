@@ -1,4 +1,4 @@
 var gemv__avx2_8c =
 [
-    [ "__attribute__", "gemv__avx2_8c.html#a10b6d8f580e16b56c1d2109f3d39000d", null ]
+    [ "ie_gemv_f32_avx2_impl", "gemv__avx2_8c.html#a63b484c2984caeed7dfc9b5002444f57", null ]
 ];

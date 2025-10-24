@@ -27,9 +27,9 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">Inference Engine (Clocher)<span id="projectnumber">&#160;0.1</span>
+   <div id="projectname">Inference Engine (Clocher)<span id="projectnumber">&#160;0.2</span>
    </div>
-   <div id="projectbrief">C11 CPU inference baseline with strict metrics &amp; harness</div>
+   <div id="projectbrief">C11 CPU/GPU inference baseline with strict metrics &amp; harness</div>
   </td>
  </tr>
  </tbody>
@@ -114,14 +114,14 @@ $(function(){initNavTree('floatx_8c_source.html',''); initResizable(true); });
 <div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span>  <span class="keywordflow">if</span> (!in || !out || n == 0) <span class="keywordflow">return</span>;</div>
 <div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span>  <span class="keywordflow">for</span> (<span class="keywordtype">size_t</span> i = 0; i &lt; n; ++i) {</div>
 <div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span>    <span class="keyword">union </span>{ <span class="keywordtype">float</span> f; uint32_t u; } v = { .f = in[i] };</div>
-<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span>    uint32_t <a class="code hl_variable" href="ie__kernels__ze_8cl.html#ad48b386850d1d2a5a51515ad676993a0">x</a> = v.u;</div>
+<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span>    uint32_t x = v.u;</div>
 <div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span> </div>
 <div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span>    <span class="comment">/* Round-to-nearest-even on the lower 16 bits. */</span></div>
-<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span>    uint32_t lsb = (<a class="code hl_variable" href="ie__kernels__ze_8cl.html#ad48b386850d1d2a5a51515ad676993a0">x</a> &gt;&gt; 16) &amp; 1u;</div>
+<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span>    uint32_t lsb = (x &gt;&gt; 16) &amp; 1u;</div>
 <div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>    uint32_t rounding_bias = 0x7FFFu + lsb;</div>
-<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span>    <a class="code hl_variable" href="ie__kernels__ze_8cl.html#ad48b386850d1d2a5a51515ad676993a0">x</a> += rounding_bias;</div>
+<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span>    x += rounding_bias;</div>
 <div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span> </div>
-<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span>    out[i] = (uint16_t)(<a class="code hl_variable" href="ie__kernels__ze_8cl.html#ad48b386850d1d2a5a51515ad676993a0">x</a> &gt;&gt; 16);</div>
+<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span>    out[i] = (uint16_t)(x &gt;&gt; 16);</div>
 <div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span>  }</div>
 <div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span>}</div>
 </div>
@@ -147,11 +147,11 @@ $(function(){initNavTree('floatx_8c_source.html',''); initResizable(true); });
 <div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span> </div>
 <div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span>  <span class="keywordflow">for</span> (<span class="keywordtype">size_t</span> i = 0; i &lt; n; ++i) {</div>
 <div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span>    <span class="keyword">union </span>{ <span class="keywordtype">float</span> f; uint32_t u; } v = { .f = in[i] };</div>
-<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>    uint32_t <a class="code hl_variable" href="ie__kernels__ze_8cl.html#ad48b386850d1d2a5a51515ad676993a0">x</a> = v.u;</div>
+<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>    uint32_t x = v.u;</div>
 <div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span> </div>
-<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span>    uint32_t sign = (<a class="code hl_variable" href="ie__kernels__ze_8cl.html#ad48b386850d1d2a5a51515ad676993a0">x</a> &gt;&gt; 31) &amp; 0x1u;</div>
-<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span>    int32_t  exp  = (int32_t)((<a class="code hl_variable" href="ie__kernels__ze_8cl.html#ad48b386850d1d2a5a51515ad676993a0">x</a> &gt;&gt; 23) &amp; 0xFFu) - 127;   <span class="comment">/* unbiased exp */</span></div>
-<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span>    uint32_t frac = <a class="code hl_variable" href="ie__kernels__ze_8cl.html#ad48b386850d1d2a5a51515ad676993a0">x</a> &amp; 0x7FFFFFu;                        <span class="comment">/* 23 bits */</span></div>
+<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span>    uint32_t sign = (x &gt;&gt; 31) &amp; 0x1u;</div>
+<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span>    int32_t  exp  = (int32_t)((x &gt;&gt; 23) &amp; 0xFFu) - 127;   <span class="comment">/* unbiased exp */</span></div>
+<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span>    uint32_t frac = x &amp; 0x7FFFFFu;                        <span class="comment">/* 23 bits */</span></div>
 <div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span> </div>
 <div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span>    uint16_t h;</div>
 <div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span>    <span class="keywordflow">if</span> (exp == 128) { <span class="comment">/* Inf / NaN */</span></div>
@@ -238,7 +238,6 @@ $(function(){initNavTree('floatx_8c_source.html',''); initResizable(true); });
 <div class="ttc" id="afloatx_8c_html_a51e5457de6cbdf1472fa106bc3be98de"><div class="ttname"><a href="floatx_8c.html#a51e5457de6cbdf1472fa106bc3be98de">ie_bf16_to_fp32</a></div><div class="ttdeci">void ie_bf16_to_fp32(const uint16_t *in, float *out, size_t n)</div><div class="ttdoc">Convert BF16 → FP32.</div><div class="ttdef"><b>Definition</b> <a href="#l00042">floatx.c:42</a></div></div>
 <div class="ttc" id="afloatx_8c_html_ad5abc69b1882aaf3a03faf76ddf4cb28"><div class="ttname"><a href="floatx_8c.html#ad5abc69b1882aaf3a03faf76ddf4cb28">ie_fp16_to_fp32</a></div><div class="ttdeci">void ie_fp16_to_fp32(const uint16_t *in, float *out, size_t n)</div><div class="ttdoc">Convert FP16 (IEEE 754 half) → FP32.</div><div class="ttdef"><b>Definition</b> <a href="#l00120">floatx.c:120</a></div></div>
 <div class="ttc" id="aie__floatx_8h_html"><div class="ttname"><a href="ie__floatx_8h.html">ie_floatx.h</a></div><div class="ttdoc">FP32↔BF16/FP16 conversion helpers (vector forms).</div></div>
-<div class="ttc" id="aie__kernels__ze_8cl_html_ad48b386850d1d2a5a51515ad676993a0"><div class="ttname"><a href="ie__kernels__ze_8cl.html#ad48b386850d1d2a5a51515ad676993a0">x</a></div><div class="ttdeci">__kernel __global const float *restrict x</div><div class="ttdef"><b>Definition</b> <a href="ie__kernels__ze_8cl_source.html#l00068">ie_kernels_ze.cl:68</a></div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->

@@ -1,0 +1,50 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="md_docs_2adr-00060-optimization-path" kind="page">
+    <compoundname>md_docs_2adr-00060-optimization-path</compoundname>
+    <title>ADR-00060 — Optimization Path Selection (updated for INT4)</title>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><anchor id="md_docs_2adr-00060-optimization-path_1autotoc_md0"/></para>
+<para><bold>Status:</bold> Accepted • <bold>Last updated:</bold> 2025-10-24 21:00:48 UTC</para>
+<sect1 id="md_docs_2adr-00060-optimization-path_1autotoc_md2">
+<title>Problem</title><para>We need a portable CPU baseline with predictable performance and a clear path to exploit memory locality and bandwidth while keeping the code simple and testable.</para>
+</sect1>
+<sect1 id="md_docs_2adr-00060-optimization-path_1autotoc_md3">
+<title>Decision</title><para><itemizedlist>
+<listitem><para>Keep a single binary with <bold>FP32 baseline</bold> and optional precision switches: BF16/FP16 (accumulate FP32), INT8 PTQ, and <bold>INT4 weight‑only (INT4W)</bold>.</para>
+</listitem><listitem><para>Maintain <bold>blocked‑K packing</bold> and optional <bold>pretranspose</bold> for cache locality.</para>
+</listitem><listitem><para>Threading via a fixed <computeroutput>pthread</computeroutput> pool with optional affinity and NUMA hints.</para>
+</listitem></itemizedlist>
+</para>
+</sect1>
+<sect1 id="md_docs_2adr-00060-optimization-path_1autotoc_md6">
+<title>INT4W specifics (new)</title><para><itemizedlist>
+<listitem><para><bold>When to use</bold>: memory‑bound regimes (large models, small batches) where weight bandwidth dominates. Select with <computeroutput>IE_PRECISION=int4w</computeroutput> or <computeroutput>--precision int4w</computeroutput>.</para>
+</listitem><listitem><para><bold>How it works</bold>:<itemizedlist>
+<listitem><para>PTQ scripts derive a <computeroutput>q4_manifest.json</computeroutput> (per‑tensor entry with packing metadata and scales).</para>
+</listitem><listitem><para><computeroutput><ref refid="hf__to__iebin_8py" kindref="compound">scripts/hf_to_iebin.py</ref> --q4-map …</computeroutput> consumes the manifest and packs <computeroutput>model.ie.bin</computeroutput> accordingly.</para>
+</listitem><listitem><para>Kernels fuse <bold>dequant(scale × int4)</bold> into the matmul path; accumulation remains FP32.</para>
+</listitem></itemizedlist>
+</para>
+</listitem><listitem><para><bold>Interplay with pretranspose</bold>: quantization occurs after any offline layout transform intended for locality; manifests capture the final layout to keep IO deterministic.</para>
+</listitem><listitem><para><bold>Quality gate</bold>: manifests are accepted only if a calibration threshold (cosine or task metric) is met; the threshold is repo‑configurable in the PTQ helpers.</para>
+</listitem></itemizedlist>
+</para>
+</sect1>
+<sect1 id="md_docs_2adr-00060-optimization-path_1autotoc_md9">
+<title>Rationale</title><para>INT4W yields <bold>4× compression</bold> over FP32 and <bold>2× over INT8</bold>, unlocking higher tokens/s on bandwidth‑limited hardware with minimal additional complexity.</para>
+</sect1>
+<sect1 id="md_docs_2adr-00060-optimization-path_1autotoc_md11">
+<title>Consequences</title><para><itemizedlist>
+<listitem><para>Slight accuracy loss bounded by the calibration gate.</para>
+</listitem><listitem><para>Simplified runtime: no activation quantization; scales live with the packed weights and are broadcast during compute.</para>
+</listitem><listitem><para>Uniform harness &amp; docs: packing is explicit and reproducible via scripts and environment flags. </para>
+</listitem></itemizedlist>
+</para>
+</sect1>
+    </detaileddescription>
+    <location file="docs/adr-00060-optimization-path.md"/>
+  </compounddef>
+</doxygen>

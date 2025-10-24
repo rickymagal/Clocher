@@ -1,52 +1,73 @@
-# Doxyfile for Inference Engine / Clocher (C11 core + Python harness)
+# Doxyfile for Inference Engine / Clocher — generate EVERYTHING
 # Compatible with Doxygen 1.13.x
 
 # -----------------------------------------------------------------------------
 # Project
 # -----------------------------------------------------------------------------
 PROJECT_NAME             = "Inference Engine (Clocher)"
-PROJECT_BRIEF            = "C11 CPU inference baseline with strict metrics & harness"
-PROJECT_NUMBER           = 0.1
+PROJECT_BRIEF            = "C11 CPU/GPU inference baseline with strict metrics & harness"
+PROJECT_NUMBER           = 0.2
 OUTPUT_DIRECTORY         = docs/doxygen
 CREATE_SUBDIRS           = NO
 ALLOW_UNICODE_NAMES      = YES
 OUTPUT_LANGUAGE          = English
 OPTIMIZE_OUTPUT_FOR_C    = YES
-# If you want “first sentence = brief” style:
 JAVADOC_AUTOBRIEF        = YES
 MULTILINE_CPP_IS_BRIEF   = YES
-
-# Use the root README as the main page
 USE_MDFILE_AS_MAINPAGE   = README.md
 
 # -----------------------------------------------------------------------------
-# Input
+# Input (scan the repo, but exclude heavy/non-source dirs)
 # -----------------------------------------------------------------------------
-INPUT                    = engine/include \
-                           engine/src \
-                           README.md \
-                           docs/DESIGN.md \
-                           docs/adr-00060-optimization-path.md \
-                           docs/DECISIONS.md
+INPUT                    = .
 RECURSIVE                = YES
 EXCLUDE_SYMLINKS         = YES
-# Exclude build artifacts and generated HTML to avoid re-parsing outputs
-EXCLUDE                  = build \
-                           docs/doxygen/html
-FILE_PATTERNS            = *.h \
-                           *.c \
-                           *.cpp \
-                           *.cu \
-                           *.cl \
-                           *.md
-# Map CUDA and OpenCL sources to known languages for parsing
-EXTENSION_MAPPING        = cu=C++ cl=C
 
-# Optionally strip leading paths in source listings for cleaner file names
+# Avoid huge binary/model/report trees & generated HTML
+EXCLUDE                  = \
+  build \
+  models \
+  benchmarks/reports \
+  docs/doxygen/html \
+  .git \
+  .venv \
+  venv \
+  __pycache__
+
+# Ignore large binary-like files while still scanning tree
+EXCLUDE_PATTERNS         = \
+  *.bin \
+  *.pt \
+  *.safetensors \
+  *.ie.bin \
+  */__pycache__/* \
+  *.png \
+  *.jpg \
+  *.jpeg \
+  *.gif \
+  *.svg
+
+FILE_PATTERNS            = \
+  *.h \
+  *.hpp \
+  *.c \
+  *.cc \
+  *.cpp \
+  *.cu \
+  *.cl \
+  *.py \
+  *.md \
+  *.toml \
+  *.sh
+
+# Map CUDA/OpenCL/Python to known parsers
+EXTENSION_MAPPING        = cu=C++ cl=C py=Python
+
+# Source path cleanup in listings
 STRIP_FROM_PATH          = .
 
 # -----------------------------------------------------------------------------
-# Parsing / Extraction
+# Parsing / Extraction (everything on)
 # -----------------------------------------------------------------------------
 EXTRACT_ALL              = YES
 EXTRACT_PRIVATE          = YES
@@ -56,11 +77,16 @@ EXTRACT_ANON_NSPACES     = YES
 HIDE_UNDOC_MEMBERS       = NO
 HIDE_UNDOC_CLASSES       = NO
 SORT_MEMBER_DOCS         = YES
+# Show code with hyperlinks to defs/refs
 SOURCE_BROWSER           = YES
-INLINE_SOURCES           = NO
+INLINE_SOURCES           = YES
 REFERENCED_BY_RELATION   = YES
 REFERENCES_RELATION      = YES
 VERBATIM_HEADERS         = YES
+SHOW_GROUPED_MEMB_INC    = YES
+SHOW_USED_FILES          = YES
+SHOW_FILES               = YES
+FULL_PATH_NAMES          = YES
 
 # -----------------------------------------------------------------------------
 # Preprocessor
@@ -69,6 +95,19 @@ ENABLE_PREPROCESSING     = YES
 MACRO_EXPANSION          = YES
 EXPAND_ONLY_PREDEF       = NO
 SKIP_FUNCTION_MACROS     = YES
+
+# Common portability/attribute shims so parsing doesn't choke
+PREDEFINED               = \
+  __attribute__(x)= \
+  __declspec(x)= \
+  IE_PUBLIC= \
+  IE_INTERNAL= \
+  IE_PREC_FP32="fp32" \
+  IE_PREC_BF16="bf16" \
+  IE_PREC_FP16="fp16" \
+  IE_PREC_INT8W="int8w" \
+  IE_PREC_INT4W="int4w" \
+  IE_PREC_INT4="int4"
 
 # -----------------------------------------------------------------------------
 # Warnings
@@ -87,7 +126,7 @@ HTML_OUTPUT              = html
 GENERATE_TREEVIEW        = YES
 DISABLE_INDEX            = NO
 FULL_SIDEBAR             = YES
-# If your Markdown uses tables/diagrams with MathJax, enable below:
+SEARCHENGINE             = YES
 # USE_MATHJAX            = YES
 
 # -----------------------------------------------------------------------------
@@ -96,14 +135,37 @@ FULL_SIDEBAR             = YES
 HAVE_DOT                 = YES
 DOT_IMAGE_FORMAT         = svg
 CLASS_DIAGRAMS           = YES
-CALL_GRAPH               = NO
-CALLER_GRAPH             = NO
+CALL_GRAPH               = YES
+CALLER_GRAPH             = YES
 DOT_TRANSPARENT          = YES
-# For large graphs you can cap nodes:
-# DOT_GRAPH_MAX_NODES    = 64
+DOT_GRAPH_MAX_NODES      = 64
+UML_LOOK                 = YES
+INTERACTIVE_SVG          = YES
 
 # -----------------------------------------------------------------------------
-# LaTeX/XML (disabled for speed)
+# Output formats (enable XML for downstream tooling)
 # -----------------------------------------------------------------------------
 GENERATE_LATEX           = NO
-GENERATE_XML             = NO
+GENERATE_RTF             = NO
+GENERATE_XML             = YES
+XML_OUTPUT               = xml
+XML_PROGRAMLISTING       = YES
+
+# -----------------------------------------------------------------------------
+# Markdown / extras
+# -----------------------------------------------------------------------------
+MARKDOWN_SUPPORT         = YES
+AUTOLINK_SUPPORT         = YES
+TAB_SIZE                 = 2
+
+# -----------------------------------------------------------------------------
+# Index / toc
+# -----------------------------------------------------------------------------
+ALPHABETICAL_INDEX       = YES
+GENERATE_INDEX           = YES
+
+# -----------------------------------------------------------------------------
+# Misc performance knobs (safe defaults)
+# -----------------------------------------------------------------------------
+DOT_NUM_THREADS          = 0
+NUM_PROC_THREADS         = 0

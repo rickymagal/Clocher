@@ -1,5 +1,4 @@
 var searchData=
 [
-  ['3_20policy_0',['Reporting pipeline (last-3 policy)',['../md_docs_2DESIGN.html#autotoc_md71',1,'']]],
-  ['3_20runs_2064_20mb_20token_1',['Quickstart (3 runs, 64 MB / token)',['../index.html#autotoc_md52',1,'']]]
+  ['_3a_20adopt_20int4_20weight_20only_20ptq_20manifest_20guided_20packing_20strong_0',['&lt;strong&gt;ADR-0013 (2025-10-24): Adopt INT4 weight-only PTQ &amp; manifest-guided packing&lt;/strong&gt;',['../md_docs_2DECISIONS.html#autotoc_md35',1,'']]]
 ];

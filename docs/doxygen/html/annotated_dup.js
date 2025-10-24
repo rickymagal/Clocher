@@ -1,6 +1,34 @@
 var annotated_dup =
 [
+    [ "metrics_exporter", "namespacemetrics__exporter.html", [
+      [ "Handler", "classmetrics__exporter_1_1Handler.html", "classmetrics__exporter_1_1Handler" ]
+    ] ],
+    [ "test_cli", "namespacetest__cli.html", [
+      [ "CLITests", "classtest__cli_1_1CLITests.html", "classtest__cli_1_1CLITests" ]
+    ] ],
+    [ "test_cli_error_paths", "namespacetest__cli__error__paths.html", [
+      [ "CLIErrorPathsTests", "classtest__cli__error__paths_1_1CLIErrorPathsTests.html", "classtest__cli__error__paths_1_1CLIErrorPathsTests" ]
+    ] ],
+    [ "test_cli_flags", "namespacetest__cli__flags.html", [
+      [ "CLIFeatureFlagsTests", "classtest__cli__flags_1_1CLIFeatureFlagsTests.html", "classtest__cli__flags_1_1CLIFeatureFlagsTests" ]
+    ] ],
+    [ "test_determinism", "namespacetest__determinism.html", [
+      [ "DeterminismTests", "classtest__determinism_1_1DeterminismTests.html", "classtest__determinism_1_1DeterminismTests" ]
+    ] ],
+    [ "test_harness", "namespacetest__harness.html", [
+      [ "HarnessTests", "classtest__harness_1_1HarnessTests.html", "classtest__harness_1_1HarnessTests" ]
+    ] ],
+    [ "test_harness_more", "namespacetest__harness__more.html", [
+      [ "HarnessMoreTests", "classtest__harness__more_1_1HarnessMoreTests.html", "classtest__harness__more_1_1HarnessMoreTests" ]
+    ] ],
+    [ "test_metrics_ring", "namespacetest__metrics__ring.html", [
+      [ "MetricsRingTests", "classtest__metrics__ring_1_1MetricsRingTests.html", "classtest__metrics__ring_1_1MetricsRingTests" ]
+    ] ],
+    [ "test_ptq_calib_pipeline", "namespacetest__ptq__calib__pipeline.html", [
+      [ "PTQCalibPipelineTests", "classtest__ptq__calib__pipeline_1_1PTQCalibPipelineTests.html", "classtest__ptq__calib__pipeline_1_1PTQCalibPipelineTests" ]
+    ] ],
     [ "cli_extras", "structcli__extras.html", "structcli__extras" ],
+    [ "cli_extras_t", "structcli__extras__t.html", null ],
     [ "cpu_impl", "structcpu__impl.html", "structcpu__impl" ],
     [ "cuda_impl", "structcuda__impl.html", "structcuda__impl" ],
     [ "ie_batcher", "structie__batcher.html", "structie__batcher" ],
@@ -14,6 +42,7 @@ var annotated_dup =
     [ "ie_engine", "structie__engine.html", "structie__engine" ],
     [ "ie_engine_params", "structie__engine__params.html", "structie__engine__params" ],
     [ "ie_f32_vec_t", "structie__f32__vec__t.html", "structie__f32__vec__t" ],
+    [ "ie_int4_quant_meta", "structie__int4__quant__meta.html", "structie__int4__quant__meta" ],
     [ "ie_kv_state_t", "structie__kv__state__t.html", "structie__kv__state__t" ],
     [ "ie_metrics", "structie__metrics.html", "structie__metrics" ],
     [ "ie_metrics_t", "structie__metrics__t.html", "structie__metrics__t" ],
@@ -23,5 +52,6 @@ var annotated_dup =
     [ "ie_wblocked_desc", "structie__wblocked__desc.html", "structie__wblocked__desc" ],
     [ "ie_weights_s", "structie__weights__s.html", "structie__weights__s" ],
     [ "ie_worker_arg_t", "structie__worker__arg__t.html", "structie__worker__arg__t" ],
+    [ "tp_ctx_t", "structtp__ctx__t.html", "structtp__ctx__t" ],
     [ "ze_impl", "structze__impl.html", "structze__impl" ]
 ];

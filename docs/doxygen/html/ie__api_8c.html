@@ -27,9 +27,9 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">Inference Engine (Clocher)<span id="projectnumber">&#160;0.1</span>
+   <div id="projectname">Inference Engine (Clocher)<span id="projectnumber">&#160;0.2</span>
    </div>
-   <div id="projectbrief">C11 CPU inference baseline with strict metrics &amp; harness</div>
+   <div id="projectbrief">C11 CPU/GPU inference baseline with strict metrics &amp; harness</div>
   </td>
  </tr>
  </tbody>
@@ -108,6 +108,7 @@ $(function(){initNavTree('ie__api_8c.html',''); initResizable(true); });
 <a href="#details">More...</a></p>
 <div class="textblock"><code>#include &quot;<a class="el" href="ie__api_8h_source.html">ie_api.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="ie__kv__instrumentation_8h_source.html">ie_kv_instrumentation.h</a>&quot;</code><br />
+<code>#include &lt;ctype.h&gt;</code><br />
 <code>#include &lt;inttypes.h&gt;</code><br />
 <code>#include &lt;stdint.h&gt;</code><br />
 <code>#include &lt;stdlib.h&gt;</code><br />
@@ -115,7 +116,7 @@ $(function(){initNavTree('ie__api_8c.html',''); initResizable(true); });
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for ie_api.c:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ie__api_8c__incl.svg" width="634" height="190"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="ie__api_8c__incl.svg" width="100%" height="442"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
 </div>
 </div>
 <p><a href="ie__api_8c_source.html">Go to the source code of this file.</a></p>
@@ -128,6 +129,9 @@ Data Structures</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
+<tr class="memitem:a72ab94aafe7740f1343d317daa89ca15" id="r_a72ab94aafe7740f1343d317daa89ca15"><td class="memItemLeft" align="right" valign="top">static int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a72ab94aafe7740f1343d317daa89ca15">ascii_ieq</a> (const char *a, const char *b)</td></tr>
+<tr class="memdesc:a72ab94aafe7740f1343d317daa89ca15"><td class="mdescLeft">&#160;</td><td class="mdescRight">Case-insensitive ASCII string equality check (NULL-safe).  <br /></td></tr>
+<tr class="separator:a72ab94aafe7740f1343d317daa89ca15"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aee4ab6bebc1781cfbfe821e0e89d8823" id="r_aee4ab6bebc1781cfbfe821e0e89d8823"><td class="memItemLeft" align="right" valign="top">static uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aee4ab6bebc1781cfbfe821e0e89d8823">fnv1a32</a> (const char *s)</td></tr>
 <tr class="memdesc:aee4ab6bebc1781cfbfe821e0e89d8823"><td class="mdescLeft">&#160;</td><td class="mdescRight">32-bit FNV-1a hash for C strings (NULL-safe).  <br /></td></tr>
 <tr class="separator:aee4ab6bebc1781cfbfe821e0e89d8823"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -150,18 +154,67 @@ Functions</h2></td></tr>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>CI-friendly implementation of the public Inference Engine API. </p>
 <p>This translation unit implements the minimal, header-compliant behavior defined in <a class="el" href="ie__api_8h.html">ie_api.h</a>. It keeps the core simple and deterministic so all unit tests and CLI smoke tests pass without requiring external GPU drivers or model files. The CLI layer (see <a class="el" href="main__infer_8c.html">main_infer.c</a>) enforces "real model
-required" gating via the environment/config when desired.</p>
-<h1><a class="anchor" id="design"></a>
-Design goals</h1>
-<ul>
-<li><b>Strict compatibility</b> with <a class="el" href="ie__api_8h.html">ie_api.h</a> (types, signatures, status).</li>
-<li><b>Deterministic output</b> for identical inputs to keep CI stable.</li>
-<li><b>Safe metrics</b>: always return a valid <a class="el" href="structie__metrics__t.html">ie_metrics_t</a> snapshot; the harness fills timing/throughput fields measured externally.</li>
-<li><b>No device coupling here</b>: GPU backends are compiled and linked by the build system, but this file does not declare device enums nor write to non-existent fields in <a class="el" href="structie__metrics__t.html">ie_metrics_t</a>. </li>
-</ul>
+required" gating via the environment/config when desired. </p>
 
 <p class="definition">Definition in file <a class="el" href="ie__api_8c_source.html">ie_api.c</a>.</p>
 </div><h2 class="groupheader">Function Documentation</h2>
+<a id="a72ab94aafe7740f1343d317daa89ca15" name="a72ab94aafe7740f1343d317daa89ca15"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a72ab94aafe7740f1343d317daa89ca15">&#9670;&#160;</a></span>ascii_ieq()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static int ascii_ieq </td>
+          <td>(</td>
+          <td class="paramtype">const char *</td>          <td class="paramname"><span class="paramname"><em>a</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *</td>          <td class="paramname"><span class="paramname"><em>b</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Case-insensitive ASCII string equality check (NULL-safe). </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">a</td><td>First string (may be NULL). </td></tr>
+    <tr><td class="paramname">b</td><td>Second string (may be NULL). </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>1 if equal ignoring ASCII case; 0 otherwise. </dd></dl>
+
+<p class="definition">Definition at line <a class="el" href="ie__api_8c_source.html#l00051">51</a> of file <a class="el" href="ie__api_8c_source.html">ie_api.c</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">   51</span>                                                   {</div>
+<div class="line"><span class="lineno">   52</span>  <span class="keywordflow">if</span> (!a || !b) <span class="keywordflow">return</span> 0;</div>
+<div class="line"><span class="lineno">   53</span>  <span class="keywordflow">for</span> (;; ++a, ++b) {</div>
+<div class="line"><span class="lineno">   54</span>    <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> ca = (<span class="keywordtype">unsigned</span> char)*a;</div>
+<div class="line"><span class="lineno">   55</span>    <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> cb = (<span class="keywordtype">unsigned</span> char)*b;</div>
+<div class="line"><span class="lineno">   56</span>    <span class="keywordflow">if</span> (tolower(ca) != tolower(cb)) <span class="keywordflow">return</span> 0;</div>
+<div class="line"><span class="lineno">   57</span>    <span class="keywordflow">if</span> (ca == <span class="charliteral">&#39;\0&#39;</span>) <span class="keywordflow">return</span> 1;</div>
+<div class="line"><span class="lineno">   58</span>  }</div>
+<div class="line"><span class="lineno">   59</span>}</div>
+</div><!-- fragment -->
+<p class="reference">Referenced by <a class="el" href="ie__api_8c_source.html#l00106">ie_engine_create()</a>.</p>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="ie__api_8c_a72ab94aafe7740f1343d317daa89ca15_icgraph.svg" width="372" height="91"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
 <a id="aee4ab6bebc1781cfbfe821e0e89d8823" name="aee4ab6bebc1781cfbfe821e0e89d8823"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aee4ab6bebc1781cfbfe821e0e89d8823">&#9670;&#160;</a></span>fnv1a32()</h2>
 
@@ -194,9 +247,24 @@ Design goals</h1>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Non-zero 32-bit hash value (remapped if the result would be 0). </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="ie__api_8c_source.html#l00056">56</a> of file <a class="el" href="ie__api_8c_source.html">ie_api.c</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="ie__api_8c_source.html#l00096">ie_engine_create()</a>, and <a class="el" href="ie__api_8c_source.html#l00150">ie_engine_generate()</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ie__api_8c_source.html#l00067">67</a> of file <a class="el" href="ie__api_8c_source.html">ie_api.c</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">   67</span>                                       {</div>
+<div class="line"><span class="lineno">   68</span>  uint32_t h = 2166136261u;</div>
+<div class="line"><span class="lineno">   69</span>  <span class="keywordflow">if</span> (!s) <span class="keywordflow">return</span> h ^ 0xA5A5u;</div>
+<div class="line"><span class="lineno">   70</span>  <span class="keyword">const</span> <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> *p = (<span class="keyword">const</span> <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> *)s;</div>
+<div class="line"><span class="lineno">   71</span>  <span class="keywordflow">while</span> (*p) {</div>
+<div class="line"><span class="lineno">   72</span>    h ^= (uint32_t)(*p++);</div>
+<div class="line"><span class="lineno">   73</span>    h *= 16777619u;</div>
+<div class="line"><span class="lineno">   74</span>  }</div>
+<div class="line"><span class="lineno">   75</span>  <span class="keywordflow">return</span> h ? h : 0x9E3779B1u;</div>
+<div class="line"><span class="lineno">   76</span>}</div>
+</div><!-- fragment -->
+<p class="reference">Referenced by <a class="el" href="ie__api_8c_source.html#l00106">ie_engine_create()</a>, and <a class="el" href="ie__api_8c_source.html#l00152">ie_engine_generate()</a>.</p>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="ie__api_8c_aee4ab6bebc1781cfbfe821e0e89d8823_icgraph.svg" width="386" height="91"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
 
 </div>
 </div>
@@ -221,7 +289,7 @@ Design goals</h1>
 
 <p>Create a new engine instance.    </p>
 <p>Create a new engine instance.</p>
-<p>The engine copies the provided parameters by value. Unknown hints are ignored.</p>
+<p>The engine copies provided parameters by value. Unknown hints are ignored.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">p</td><td>Optional parameters (may be <code>NULL</code> for defaults). </td></tr>
@@ -238,21 +306,74 @@ Design goals</h1>
 </dl>
 <p>Create a new engine instance.</p>
 <p>CI-friendly behavior:</p><ul>
-<li>Does <b>not</b> open or validate model files.</li>
+<li>Does not open or validate model files.</li>
 <li>Fails only on allocation/invalid-argument errors.</li>
-<li>“Model required” is enforced by the CLI when <code>IE_REQUIRE_MODEL=1</code> (outside of this module).   </li>
+<li>“Model required” is enforced by the CLI when IE_REQUIRE_MODEL=1.   </li>
 </ul>
 <p>CI-friendly behavior:</p><ul>
-<li>Does <b>not</b> open or validate model files.</li>
+<li>Does not open or validate model files.</li>
 <li>Fails only on allocation/invalid-argument errors.</li>
-<li>“Model required” is enforced by the CLI when <code>IE_REQUIRE_MODEL=1</code> (outside of this module). </li>
+<li>“Model required” is enforced by the CLI when IE_REQUIRE_MODEL=1. </li>
 </ul>
 
-<p class="definition">Definition at line <a class="el" href="ie__api_8c_source.html#l00096">96</a> of file <a class="el" href="ie__api_8c_source.html">ie_api.c</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ie__api_8c_source.html#l00106">106</a> of file <a class="el" href="ie__api_8c_source.html">ie_api.c</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">  106</span>                                                                             {</div>
+<div class="line"><span class="lineno">  107</span>  <span class="keywordflow">if</span> (!out) <span class="keywordflow">return</span> 1; <span class="comment">/* generic error */</span></div>
+<div class="line"><span class="lineno">  108</span> </div>
+<div class="line"><span class="lineno">  109</span>  <a class="code hl_typedef" href="ie__api_8h.html#a2339b3d8d0ba3c2aff4d4ee7d912ab96">ie_engine_t</a> *e = (<a class="code hl_typedef" href="ie__api_8h.html#a2339b3d8d0ba3c2aff4d4ee7d912ab96">ie_engine_t</a> *)calloc(1, <span class="keyword">sizeof</span>(*e));</div>
+<div class="line"><span class="lineno">  110</span>  <span class="keywordflow">if</span> (!e) <span class="keywordflow">return</span> 1;</div>
+<div class="line"><span class="lineno">  111</span> </div>
+<div class="line"><span class="lineno">  112</span>  <span class="keywordflow">if</span> (p) {</div>
+<div class="line"><span class="lineno">  113</span>    e-&gt;<a class="code hl_variable" href="structie__engine.html#a7ae7f7efbee346d04370ee09f5f6cd68">cfg</a> = *p; <span class="comment">/* copy-by-value */</span></div>
+<div class="line"><span class="lineno">  114</span>  } <span class="keywordflow">else</span> {</div>
+<div class="line"><span class="lineno">  115</span>    memset(&amp;e-&gt;<a class="code hl_variable" href="structie__engine.html#a7ae7f7efbee346d04370ee09f5f6cd68">cfg</a>, 0, <span class="keyword">sizeof</span>(e-&gt;<a class="code hl_variable" href="structie__engine.html#a7ae7f7efbee346d04370ee09f5f6cd68">cfg</a>));</div>
+<div class="line"><span class="lineno">  116</span>  }</div>
+<div class="line"><span class="lineno">  117</span> </div>
+<div class="line"><span class="lineno">  118</span>  <span class="comment">/* Safe defaults for metrics. */</span></div>
+<div class="line"><span class="lineno">  119</span>  memset(&amp;e-&gt;<a class="code hl_variable" href="structie__engine.html#aac6bf09043eb30698b226cbac9a5903b">last</a>, 0, <span class="keyword">sizeof</span>(e-&gt;<a class="code hl_variable" href="structie__engine.html#aac6bf09043eb30698b226cbac9a5903b">last</a>));</div>
+<div class="line"><span class="lineno">  120</span> </div>
+<div class="line"><span class="lineno">  121</span>  <span class="comment">/* Derive a stable seed from a few string hints (all are NULL-safe). */</span></div>
+<div class="line"><span class="lineno">  122</span>  e-&gt;<a class="code hl_variable" href="structie__engine.html#a39645576c844465466e51883ccb5ca34">seed</a>  = 0x9E3779B97F4A7C15ULL;</div>
+<div class="line"><span class="lineno">  123</span>  e-&gt;<a class="code hl_variable" href="structie__engine.html#a39645576c844465466e51883ccb5ca34">seed</a> ^= (uint64_t)<a class="code hl_function" href="#aee4ab6bebc1781cfbfe821e0e89d8823">fnv1a32</a>(e-&gt;<a class="code hl_variable" href="structie__engine.html#a7ae7f7efbee346d04370ee09f5f6cd68">cfg</a>.<a class="code hl_variable" href="structie__engine__params.html#a92b02bad12cb4e8173728311c00960b7">precision</a>);</div>
+<div class="line"><span class="lineno">  124</span>  e-&gt;<a class="code hl_variable" href="structie__engine.html#a39645576c844465466e51883ccb5ca34">seed</a> ^= (uint64_t)<a class="code hl_function" href="#aee4ab6bebc1781cfbfe821e0e89d8823">fnv1a32</a>(e-&gt;<a class="code hl_variable" href="structie__engine.html#a7ae7f7efbee346d04370ee09f5f6cd68">cfg</a>.<a class="code hl_variable" href="structie__engine__params.html#a66599574f8a4b8ed7cd7132fc1c0e051">affinity</a>)     &lt;&lt;  8;</div>
+<div class="line"><span class="lineno">  125</span>  e-&gt;<a class="code hl_variable" href="structie__engine.html#a39645576c844465466e51883ccb5ca34">seed</a> ^= (uint64_t)<a class="code hl_function" href="#aee4ab6bebc1781cfbfe821e0e89d8823">fnv1a32</a>(e-&gt;<a class="code hl_variable" href="structie__engine.html#a7ae7f7efbee346d04370ee09f5f6cd68">cfg</a>.<a class="code hl_variable" href="structie__engine__params.html#a992270ba61612b2acb319aed5cbfca13">pretranspose</a>) &lt;&lt; 16;</div>
+<div class="line"><span class="lineno">  126</span>  e-&gt;<a class="code hl_variable" href="structie__engine.html#a39645576c844465466e51883ccb5ca34">seed</a> ^= (uint64_t)<a class="code hl_function" href="#aee4ab6bebc1781cfbfe821e0e89d8823">fnv1a32</a>(e-&gt;<a class="code hl_variable" href="structie__engine.html#a7ae7f7efbee346d04370ee09f5f6cd68">cfg</a>.<a class="code hl_variable" href="structie__engine__params.html#a34f965300425f8c1115b2408a4adc04a">prefetch</a>)     &lt;&lt; 24;</div>
+<div class="line"><span class="lineno">  127</span> </div>
+<div class="line"><span class="lineno">  128</span>  <span class="comment">/* Recognize &quot;int4w&quot; and the CLI alias &quot;int4&quot;. */</span></div>
+<div class="line"><span class="lineno">  129</span>  e-&gt;<a class="code hl_variable" href="structie__engine.html#a85ec8e92466a0e14370e003ad3af6a68">uses_weight_int4</a> = (<a class="code hl_function" href="#a72ab94aafe7740f1343d317daa89ca15">ascii_ieq</a>(e-&gt;<a class="code hl_variable" href="structie__engine.html#a7ae7f7efbee346d04370ee09f5f6cd68">cfg</a>.<a class="code hl_variable" href="structie__engine__params.html#a92b02bad12cb4e8173728311c00960b7">precision</a>, <a class="code hl_define" href="ie__api_8h.html#a59927f17b60d23df0f20dacdaa1d97d5">IE_PREC_INT4W</a>) ||</div>
+<div class="line"><span class="lineno">  130</span>                         <a class="code hl_function" href="#a72ab94aafe7740f1343d317daa89ca15">ascii_ieq</a>(e-&gt;<a class="code hl_variable" href="structie__engine.html#a7ae7f7efbee346d04370ee09f5f6cd68">cfg</a>.<a class="code hl_variable" href="structie__engine__params.html#a92b02bad12cb4e8173728311c00960b7">precision</a>, <a class="code hl_define" href="ie__api_8h.html#add4934bbdd3dc2bf4e3ab8438b0d7757">IE_PREC_INT4</a>)) ? 1 : 0;</div>
+<div class="line"><span class="lineno">  131</span> </div>
+<div class="line"><span class="lineno">  132</span>  *out = e;</div>
+<div class="line"><span class="lineno">  133</span>  <span class="keywordflow">return</span> <a class="code hl_define" href="ie__api_8h.html#afe55386d31dcd43a7accd42d844d59d1">IE_OK</a>;</div>
+<div class="line"><span class="lineno">  134</span>}</div>
+<div class="ttc" id="aie__api_8c_html_a72ab94aafe7740f1343d317daa89ca15"><div class="ttname"><a href="#a72ab94aafe7740f1343d317daa89ca15">ascii_ieq</a></div><div class="ttdeci">static int ascii_ieq(const char *a, const char *b)</div><div class="ttdoc">Case-insensitive ASCII string equality check (NULL-safe).</div><div class="ttdef"><b>Definition</b> <a href="ie__api_8c_source.html#l00051">ie_api.c:51</a></div></div>
+<div class="ttc" id="aie__api_8c_html_aee4ab6bebc1781cfbfe821e0e89d8823"><div class="ttname"><a href="#aee4ab6bebc1781cfbfe821e0e89d8823">fnv1a32</a></div><div class="ttdeci">static uint32_t fnv1a32(const char *s)</div><div class="ttdoc">32-bit FNV-1a hash for C strings (NULL-safe).</div><div class="ttdef"><b>Definition</b> <a href="ie__api_8c_source.html#l00067">ie_api.c:67</a></div></div>
+<div class="ttc" id="aie__api_8h_html_a2339b3d8d0ba3c2aff4d4ee7d912ab96"><div class="ttname"><a href="ie__api_8h.html#a2339b3d8d0ba3c2aff4d4ee7d912ab96">ie_engine_t</a></div><div class="ttdeci">struct ie_engine ie_engine_t</div><div class="ttdef"><b>Definition</b> <a href="ie__api_8h_source.html#l00072">ie_api.h:72</a></div></div>
+<div class="ttc" id="aie__api_8h_html_a59927f17b60d23df0f20dacdaa1d97d5"><div class="ttname"><a href="ie__api_8h.html#a59927f17b60d23df0f20dacdaa1d97d5">IE_PREC_INT4W</a></div><div class="ttdeci">#define IE_PREC_INT4W</div><div class="ttdoc">Label for weight-only INT4 precision hint (&quot;int4w&quot;).</div><div class="ttdef"><b>Definition</b> <a href="ie__api_8h_source.html#l00060">ie_api.h:60</a></div></div>
+<div class="ttc" id="aie__api_8h_html_add4934bbdd3dc2bf4e3ab8438b0d7757"><div class="ttname"><a href="ie__api_8h.html#add4934bbdd3dc2bf4e3ab8438b0d7757">IE_PREC_INT4</a></div><div class="ttdeci">#define IE_PREC_INT4</div><div class="ttdoc">Convenience alias accepted by the CLI; normalized to &quot;int4w&quot;.</div><div class="ttdef"><b>Definition</b> <a href="ie__api_8h_source.html#l00062">ie_api.h:62</a></div></div>
+<div class="ttc" id="aie__api_8h_html_afe55386d31dcd43a7accd42d844d59d1"><div class="ttname"><a href="ie__api_8h.html#afe55386d31dcd43a7accd42d844d59d1">IE_OK</a></div><div class="ttdeci">#define IE_OK</div><div class="ttdoc">Success (used by unit tests that assert IE_OK).</div><div class="ttdef"><b>Definition</b> <a href="ie__api_8h_source.html#l00044">ie_api.h:44</a></div></div>
+<div class="ttc" id="astructie__engine__params_html_a34f965300425f8c1115b2408a4adc04a"><div class="ttname"><a href="structie__engine__params.html#a34f965300425f8c1115b2408a4adc04a">ie_engine_params::prefetch</a></div><div class="ttdeci">const char * prefetch</div><div class="ttdoc">&quot;off&quot; | &quot;on&quot; | &quot;auto&quot; | &quot;0|1|2&quot; (hint).</div><div class="ttdef"><b>Definition</b> <a href="ie__api_8h_source.html#l00114">ie_api.h:114</a></div></div>
+<div class="ttc" id="astructie__engine__params_html_a66599574f8a4b8ed7cd7132fc1c0e051"><div class="ttname"><a href="structie__engine__params.html#a66599574f8a4b8ed7cd7132fc1c0e051">ie_engine_params::affinity</a></div><div class="ttdeci">const char * affinity</div><div class="ttdoc">&quot;auto&quot; | &quot;compact&quot; | &quot;scatter&quot; (hint).</div><div class="ttdef"><b>Definition</b> <a href="ie__api_8h_source.html#l00112">ie_api.h:112</a></div></div>
+<div class="ttc" id="astructie__engine__params_html_a92b02bad12cb4e8173728311c00960b7"><div class="ttname"><a href="structie__engine__params.html#a92b02bad12cb4e8173728311c00960b7">ie_engine_params::precision</a></div><div class="ttdeci">const char * precision</div><div class="ttdoc">e.g.</div><div class="ttdef"><b>Definition</b> <a href="ie__api_8h_source.html#l00117">ie_api.h:117</a></div></div>
+<div class="ttc" id="astructie__engine__params_html_a992270ba61612b2acb319aed5cbfca13"><div class="ttname"><a href="structie__engine__params.html#a992270ba61612b2acb319aed5cbfca13">ie_engine_params::pretranspose</a></div><div class="ttdeci">const char * pretranspose</div><div class="ttdoc">&quot;none&quot; | &quot;woh&quot; | &quot;wxh&quot; | &quot;all&quot; (hint).</div><div class="ttdef"><b>Definition</b> <a href="ie__api_8h_source.html#l00113">ie_api.h:113</a></div></div>
+<div class="ttc" id="astructie__engine_html_a39645576c844465466e51883ccb5ca34"><div class="ttname"><a href="structie__engine.html#a39645576c844465466e51883ccb5ca34">ie_engine::seed</a></div><div class="ttdeci">uint64_t seed</div><div class="ttdoc">PRNG seed used to derive token IDs.</div><div class="ttdef"><b>Definition</b> <a href="ie__api_8c_source.html#l00036">ie_api.c:36</a></div></div>
+<div class="ttc" id="astructie__engine_html_a7ae7f7efbee346d04370ee09f5f6cd68"><div class="ttname"><a href="structie__engine.html#a7ae7f7efbee346d04370ee09f5f6cd68">ie_engine::cfg</a></div><div class="ttdeci">ie_engine_params_t cfg</div><div class="ttdoc">Creation parameters (by value).</div><div class="ttdef"><b>Definition</b> <a href="ie__api_8c_source.html#l00034">ie_api.c:34</a></div></div>
+<div class="ttc" id="astructie__engine_html_a85ec8e92466a0e14370e003ad3af6a68"><div class="ttname"><a href="structie__engine.html#a85ec8e92466a0e14370e003ad3af6a68">ie_engine::uses_weight_int4</a></div><div class="ttdeci">int uses_weight_int4</div><div class="ttdoc">1 if precision hint == &quot;int4w|int4&quot;.</div><div class="ttdef"><b>Definition</b> <a href="ie__api_8c_source.html#l00037">ie_api.c:37</a></div></div>
+<div class="ttc" id="astructie__engine_html_aac6bf09043eb30698b226cbac9a5903b"><div class="ttname"><a href="structie__engine.html#aac6bf09043eb30698b226cbac9a5903b">ie_engine::last</a></div><div class="ttdeci">ie_metrics_t last</div><div class="ttdoc">Last metrics snapshot returned to callers.</div><div class="ttdef"><b>Definition</b> <a href="ie__api_8c_source.html#l00035">ie_api.c:35</a></div></div>
+</div><!-- fragment -->
+<p class="reference">References <a class="el" href="ie__api_8h_source.html#l00112">ie_engine_params::affinity</a>, <a class="el" href="ie__api_8c_source.html#l00051">ascii_ieq()</a>, <a class="el" href="ie__api_8c_source.html#l00034">ie_engine::cfg</a>, <a class="el" href="ie__api_8c_source.html#l00067">fnv1a32()</a>, <a class="el" href="ie__api_8h_source.html#l00044">IE_OK</a>, <a class="el" href="ie__api_8h_source.html#l00062">IE_PREC_INT4</a>, <a class="el" href="ie__api_8h_source.html#l00060">IE_PREC_INT4W</a>, <a class="el" href="ie__api_8c_source.html#l00035">ie_engine::last</a>, <a class="el" href="ie__api_8h_source.html#l00117">ie_engine_params::precision</a>, <a class="el" href="ie__api_8h_source.html#l00114">ie_engine_params::prefetch</a>, <a class="el" href="ie__api_8h_source.html#l00113">ie_engine_params::pretranspose</a>, <a class="el" href="ie__api_8c_source.html#l00036">ie_engine::seed</a>, and <a class="el" href="ie__api_8c_source.html#l00037">ie_engine::uses_weight_int4</a>.</p>
 
-<p class="reference">References <a class="el" href="ie__api_8h_source.html#l00072">ie_engine_params::affinity</a>, <a class="el" href="ie__api_8c_source.html#l00042">ie_engine::cfg</a>, <a class="el" href="ie__api_8c_source.html#l00056">fnv1a32()</a>, <a class="el" href="ie__api_8h_source.html#l00031">IE_OK</a>, <a class="el" href="ie__api_8c_source.html#l00043">ie_engine::last</a>, <a class="el" href="ie__api_8h_source.html#l00077">ie_engine_params::precision</a>, <a class="el" href="ie__api_8h_source.html#l00074">ie_engine_params::prefetch</a>, <a class="el" href="ie__api_8h_source.html#l00073">ie_engine_params::pretranspose</a>, and <a class="el" href="ie__api_8c_source.html#l00044">ie_engine::seed</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="main__infer_8c_source.html#l00241">main()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="main__infer_8c_source.html#l00474">main()</a>, and <a class="el" href="test__api_8c_source.html#l00021">main()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="ie__api_8c_a29d800407f90ba6b44385725da64f27d_cgraph.svg" width="270" height="91"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="ie__api_8c_a29d800407f90ba6b44385725da64f27d_icgraph.svg" width="246" height="91"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
 
 </div>
 </div>
@@ -280,12 +401,19 @@ Design goals</h1>
   </dd>
 </dl>
 <p>Destroy an engine and free its resources.</p>
-<p>Frees the opaque handle. There are no nested allocations in this module, so a raw <code>free()</code> is sufficient.   </p>
-<p>Frees the opaque handle. There are no nested allocations in this module, so a raw <code>free()</code> is sufficient. </p>
 
-<p class="definition">Definition at line <a class="el" href="ie__api_8c_source.html#l00130">130</a> of file <a class="el" href="ie__api_8c_source.html">ie_api.c</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="main__infer_8c_source.html#l00241">main()</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ie__api_8c_source.html#l00139">139</a> of file <a class="el" href="ie__api_8c_source.html">ie_api.c</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">  139</span>                                       {</div>
+<div class="line"><span class="lineno">  140</span>  <span class="keywordflow">if</span> (!h) <span class="keywordflow">return</span>;</div>
+<div class="line"><span class="lineno">  141</span>  free(h);</div>
+<div class="line"><span class="lineno">  142</span>}</div>
+</div><!-- fragment -->
+<p class="reference">Referenced by <a class="el" href="main__infer_8c_source.html#l00474">main()</a>, and <a class="el" href="test__api_8c_source.html#l00021">main()</a>.</p>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="ie__api_8c_a8a724f7097b3e19da8d7dd97fba4415e_icgraph.svg" width="254" height="91"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
 
 </div>
 </div>
@@ -345,25 +473,69 @@ Design goals</h1>
 </dl>
 <p>Generate up to <code class="param">max_new_tokens</code> from <code class="param">prompt</code>.</p>
 <dl class="section user"><dt>Write contract</dt><dd><ul>
-<li>If <code>max_new_tokens == 0</code>, nothing is written to <code>out_tokens</code> and <code>*out_count</code> is set to 0; returns <code>IE_OK</code>.</li>
+<li>If <code>max_new_tokens == 0</code>, nothing is written and <code>*out_count</code> becomes 0.</li>
 <li>On success, <code>*out_count</code> equals the number of tokens produced (≤ max).</li>
-<li>Output is deterministic for identical <code>(engine seed, prompt)</code>.</li>
+<li>Output is deterministic for identical <code>(engine seed, prompt)</code>.   </li>
 </ul>
 </dd></dl>
-<dl class="section user"><dt>Metrics note</dt><dd>This module does <b>not</b> measure time; callers (CLI/harness) compute wall-time and TPS. Here we zero timing-related fields and leave <code>rss_peak_mb</code> at 0. KV hits/misses are tracked <b>live</b> via <a class="el" href="ie__kv__instrumentation_8h.html#a27b3df57a37a25798490912b1e92d716" title="Report a produced token to the KV tracker.">ie_kv_on_token()</a> so they are counted inside the measured window.   </dd></dl>
 <dl class="section user"><dt>Write contract</dt><dd><ul>
-<li>If <code>max_new_tokens == 0</code>, nothing is written to <code>out_tokens</code> and <code>*out_count</code> is set to 0; returns <code>IE_OK</code>.</li>
+<li>If <code>max_new_tokens == 0</code>, nothing is written and <code>*out_count</code> becomes 0.</li>
 <li>On success, <code>*out_count</code> equals the number of tokens produced (≤ max).</li>
-<li>Output is deterministic for identical <code>(engine seed, prompt)</code>.</li>
+<li>Output is deterministic for identical <code>(engine seed, prompt)</code>. </li>
 </ul>
 </dd></dl>
-<dl class="section user"><dt>Metrics note</dt><dd>This module does <b>not</b> measure time; callers (CLI/harness) compute wall-time and TPS. Here we zero timing-related fields and leave <code>rss_peak_mb</code> at 0. KV hits/misses are tracked <b>live</b> via <a class="el" href="ie__kv__instrumentation_8h.html#a27b3df57a37a25798490912b1e92d716" title="Report a produced token to the KV tracker.">ie_kv_on_token()</a> so they are counted inside the measured window. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="ie__api_8c_source.html#l00150">150</a> of file <a class="el" href="ie__api_8c_source.html">ie_api.c</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ie__api_8c_source.html#l00152">152</a> of file <a class="el" href="ie__api_8c_source.html">ie_api.c</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">  156</span>                                                    {</div>
+<div class="line"><span class="lineno">  157</span>  <span class="keywordflow">if</span> (!h || !out_count || !prompt) <span class="keywordflow">return</span> 1;</div>
+<div class="line"><span class="lineno">  158</span> </div>
+<div class="line"><span class="lineno">  159</span>  <span class="keywordflow">if</span> (max_new_tokens == 0) {</div>
+<div class="line"><span class="lineno">  160</span>    *out_count = 0;</div>
+<div class="line"><span class="lineno">  161</span>    h-&gt;<a class="code hl_variable" href="structie__engine.html#aac6bf09043eb30698b226cbac9a5903b">last</a>.tps_true       = 0.0;</div>
+<div class="line"><span class="lineno">  162</span>    h-&gt;<a class="code hl_variable" href="structie__engine.html#aac6bf09043eb30698b226cbac9a5903b">last</a>.latency_p50_ms = 0.0;</div>
+<div class="line"><span class="lineno">  163</span>    h-&gt;<a class="code hl_variable" href="structie__engine.html#aac6bf09043eb30698b226cbac9a5903b">last</a>.latency_p95_ms = 0.0;</div>
+<div class="line"><span class="lineno">  164</span>    h-&gt;<a class="code hl_variable" href="structie__engine.html#aac6bf09043eb30698b226cbac9a5903b">last</a>.rss_peak_mb    = 0u;</div>
+<div class="line"><span class="lineno">  165</span>    <span class="keywordflow">return</span> <a class="code hl_define" href="ie__api_8h.html#afe55386d31dcd43a7accd42d844d59d1">IE_OK</a>;</div>
+<div class="line"><span class="lineno">  166</span>  }</div>
+<div class="line"><span class="lineno">  167</span>  <span class="keywordflow">if</span> (!out_tokens) <span class="keywordflow">return</span> 1;</div>
+<div class="line"><span class="lineno">  168</span> </div>
+<div class="line"><span class="lineno">  169</span>  <span class="comment">/* Per-call deterministic PRNG seeded by engine seed XOR prompt hash. */</span></div>
+<div class="line"><span class="lineno">  170</span>  uint64_t rng = h-&gt;<a class="code hl_variable" href="structie__engine.html#a39645576c844465466e51883ccb5ca34">seed</a> ^ (uint64_t)<a class="code hl_function" href="#aee4ab6bebc1781cfbfe821e0e89d8823">fnv1a32</a>(prompt);</div>
+<div class="line"><span class="lineno">  171</span> </div>
+<div class="line"><span class="lineno">  172</span>  uint32_t produced = 0;</div>
+<div class="line"><span class="lineno">  173</span>  <span class="keywordflow">for</span> (<span class="keywordtype">size_t</span> i = 0; i &lt; max_new_tokens; ++i) {</div>
+<div class="line"><span class="lineno">  174</span>    <span class="keyword">const</span> uint64_t r   = <a class="code hl_function" href="#a22d32f0b2752f3aa310c127054b03e22">xorshift64star</a>(&amp;rng);</div>
+<div class="line"><span class="lineno">  175</span>    <span class="keyword">const</span> uint32_t tok = (uint32_t)(r % 50000u); <span class="comment">/* Compact ID space for tests. */</span></div>
+<div class="line"><span class="lineno">  176</span>    out_tokens[i] = tok;</div>
+<div class="line"><span class="lineno">  177</span>    <a class="code hl_function" href="ie__kv__instrumentation_8h.html#a27b3df57a37a25798490912b1e92d716">ie_kv_on_token</a>(tok); <span class="comment">/* counted inside timing window */</span></div>
+<div class="line"><span class="lineno">  178</span>    ++produced;</div>
+<div class="line"><span class="lineno">  179</span>  }</div>
+<div class="line"><span class="lineno">  180</span>  *out_count = produced;</div>
+<div class="line"><span class="lineno">  181</span> </div>
+<div class="line"><span class="lineno">  182</span>  <span class="comment">/* Placeholders (harness fills time-related values). */</span></div>
+<div class="line"><span class="lineno">  183</span>  h-&gt;<a class="code hl_variable" href="structie__engine.html#aac6bf09043eb30698b226cbac9a5903b">last</a>.tps_true       = 0.0;</div>
+<div class="line"><span class="lineno">  184</span>  h-&gt;<a class="code hl_variable" href="structie__engine.html#aac6bf09043eb30698b226cbac9a5903b">last</a>.latency_p50_ms = 0.0;</div>
+<div class="line"><span class="lineno">  185</span>  h-&gt;<a class="code hl_variable" href="structie__engine.html#aac6bf09043eb30698b226cbac9a5903b">last</a>.latency_p95_ms = 0.0;</div>
+<div class="line"><span class="lineno">  186</span>  h-&gt;<a class="code hl_variable" href="structie__engine.html#aac6bf09043eb30698b226cbac9a5903b">last</a>.rss_peak_mb    = 0u;</div>
+<div class="line"><span class="lineno">  187</span> </div>
+<div class="line"><span class="lineno">  188</span>  <span class="keywordflow">return</span> <a class="code hl_define" href="ie__api_8h.html#afe55386d31dcd43a7accd42d844d59d1">IE_OK</a>;</div>
+<div class="line"><span class="lineno">  189</span>}</div>
+<div class="ttc" id="aie__api_8c_html_a22d32f0b2752f3aa310c127054b03e22"><div class="ttname"><a href="#a22d32f0b2752f3aa310c127054b03e22">xorshift64star</a></div><div class="ttdeci">static uint64_t xorshift64star(uint64_t *state)</div><div class="ttdoc">One step of a xorshift64* PRNG (period ≈ 2^64-1).</div><div class="ttdef"><b>Definition</b> <a href="ie__api_8c_source.html#l00084">ie_api.c:84</a></div></div>
+<div class="ttc" id="aie__kv__instrumentation_8h_html_a27b3df57a37a25798490912b1e92d716"><div class="ttname"><a href="ie__kv__instrumentation_8h.html#a27b3df57a37a25798490912b1e92d716">ie_kv_on_token</a></div><div class="ttdeci">void ie_kv_on_token(uint32_t token)</div><div class="ttdoc">Report a produced token to the KV tracker.</div><div class="ttdef"><b>Definition</b> <a href="ie__kv__instrumentation_8c_source.html#l00113">ie_kv_instrumentation.c:113</a></div></div>
+</div><!-- fragment -->
+<p class="reference">References <a class="el" href="ie__api_8c_source.html#l00067">fnv1a32()</a>, <a class="el" href="ie__kv__instrumentation_8c_source.html#l00113">ie_kv_on_token()</a>, <a class="el" href="ie__api_8h_source.html#l00044">IE_OK</a>, <a class="el" href="ie__api_8c_source.html#l00035">ie_engine::last</a>, <a class="el" href="ie__api_8c_source.html#l00036">ie_engine::seed</a>, and <a class="el" href="ie__api_8c_source.html#l00084">xorshift64star()</a>.</p>
 
-<p class="reference">References <a class="el" href="ie__api_8c_source.html#l00056">fnv1a32()</a>, <a class="el" href="ie__kv__instrumentation_8c_source.html#l00113">ie_kv_on_token()</a>, <a class="el" href="ie__api_8h_source.html#l00031">IE_OK</a>, <a class="el" href="ie__api_8c_source.html#l00043">ie_engine::last</a>, <a class="el" href="ie__api_8c_source.html#l00044">ie_engine::seed</a>, and <a class="el" href="ie__api_8c_source.html#l00073">xorshift64star()</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="main__infer_8c_source.html#l00241">main()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="main__infer_8c_source.html#l00474">main()</a>, and <a class="el" href="test__api_8c_source.html#l00021">main()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="ie__api_8c_a21ab40e22d9192fe353ad6640610a01d_cgraph.svg" width="488" height="143"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="ie__api_8c_a21ab40e22d9192fe353ad6640610a01d_icgraph.svg" width="263" height="91"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
 
 </div>
 </div>
@@ -404,15 +576,22 @@ Design goals</h1>
   </dd>
 </dl>
 <p>Snapshot engine metrics into <code class="param">out</code>.</p>
-<dl class="section note"><dt>Note</dt><dd>Callers should <b>zero-initialize</b> <code>*out</code> before calling to preserve forward compatibility (as documented in the header).   </dd>
-<dd>
-Callers should <b>zero-initialize</b> <code>*out</code> before calling to preserve forward compatibility (as documented in the header). </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="ie__api_8c_source.html#l00195">195</a> of file <a class="el" href="ie__api_8c_source.html">ie_api.c</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ie__api_8c_source.html#l00194">194</a> of file <a class="el" href="ie__api_8c_source.html">ie_api.c</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">  194</span>                                                                       {</div>
+<div class="line"><span class="lineno">  195</span>  <span class="keywordflow">if</span> (!h || !out) <span class="keywordflow">return</span> 1;</div>
+<div class="line"><span class="lineno">  196</span>  *out = h-&gt;<a class="code hl_variable" href="structie__engine.html#aac6bf09043eb30698b226cbac9a5903b">last</a>;</div>
+<div class="line"><span class="lineno">  197</span>  <span class="keywordflow">return</span> <a class="code hl_define" href="ie__api_8h.html#afe55386d31dcd43a7accd42d844d59d1">IE_OK</a>;</div>
+<div class="line"><span class="lineno">  198</span>}</div>
+</div><!-- fragment -->
+<p class="reference">References <a class="el" href="ie__api_8h_source.html#l00044">IE_OK</a>, and <a class="el" href="ie__api_8c_source.html#l00035">ie_engine::last</a>.</p>
 
-<p class="reference">References <a class="el" href="ie__api_8h_source.html#l00031">IE_OK</a>, and <a class="el" href="ie__api_8c_source.html#l00043">ie_engine::last</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="main__infer_8c_source.html#l00241">main()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="main__infer_8c_source.html#l00474">main()</a>, and <a class="el" href="test__api_8c_source.html#l00021">main()</a>.</p>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="ie__api_8c_ac1c4268d66d8a840276e0a72c9ace902_icgraph.svg" width="254" height="91"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
 
 </div>
 </div>
@@ -448,11 +627,22 @@ Callers should <b>zero-initialize</b> <code>*out</code> before calling to preser
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Next 64-bit pseudo-random value. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="ie__api_8c_source.html#l00073">73</a> of file <a class="el" href="ie__api_8c_source.html">ie_api.c</a>.</p>
-
-<p class="reference">References <a class="el" href="ie__kernels__ze_8cl_source.html#l00068">x</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="ie__api_8c_source.html#l00150">ie_engine_generate()</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ie__api_8c_source.html#l00084">84</a> of file <a class="el" href="ie__api_8c_source.html">ie_api.c</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">   84</span>                                                {</div>
+<div class="line"><span class="lineno">   85</span>  uint64_t x = (*state == 0 ? 0x106689D45497fdb5ULL : *state);</div>
+<div class="line"><span class="lineno">   86</span>  x ^= x &gt;&gt; 12;</div>
+<div class="line"><span class="lineno">   87</span>  x ^= x &lt;&lt; 25;</div>
+<div class="line"><span class="lineno">   88</span>  x ^= x &gt;&gt; 27;</div>
+<div class="line"><span class="lineno">   89</span>  *state = x;</div>
+<div class="line"><span class="lineno">   90</span>  <span class="keywordflow">return</span> x * 2685821657736338717ULL;</div>
+<div class="line"><span class="lineno">   91</span>}</div>
+</div><!-- fragment -->
+<p class="reference">Referenced by <a class="el" href="ie__api_8c_source.html#l00152">ie_engine_generate()</a>.</p>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="ie__api_8c_a22d32f0b2752f3aa310c127054b03e22_icgraph.svg" width="422" height="91"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
 
 </div>
 </div>

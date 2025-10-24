@@ -1,0 +1,44 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="DECISIONS_8md" kind="file" language="Markdown">
+    <compoundname>DECISIONS.md</compoundname>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline><highlight class="normal">#<sp/>Architectural<sp/>Decision<sp/>Records</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Last<sp/>updated:**<sp/>2025-10-24<sp/>21:00:48<sp/>UTC</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>**ADR-0001<sp/>(2025-10-13)**:<sp/>Core<sp/>in<sp/>C11,<sp/>zero<sp/>third-party<sp/>runtime;<sp/>Python<sp/>stdlib<sp/>harness.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**ADR-0002<sp/>(2025-10-13)**:<sp/>IEBIN<sp/>v1<sp/>weights:<sp/>`model.ie.json`<sp/>+<sp/>`model.ie.bin`<sp/>+<sp/>`vocab.json`<sp/>(mmap-friendly).</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**ADR-0003<sp/>(2025-10-13)**:<sp/>Baseline<sp/>=<sp/>FP32<sp/>naive<sp/>path;<sp/>TPS<sp/>=<sp/>generated_tokens<sp/>/<sp/>wall_time.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**ADR-0006<sp/>(2025-10-14)**:<sp/>Optimization<sp/>path<sp/>selection<sp/>(CPU<sp/>baseline)<sp/>—<sp/>AVX2<sp/>microkernels,<sp/>thread-pool<sp/>with<sp/>affinity,<sp/>fast<sp/>math,<sp/>layout<sp/>packing.<sp/>See<sp/>`adr-00060-optimization-path.md`.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**ADR-0010<sp/>(2025-10-16)**:<sp/>INT8<sp/>PTQ<sp/>min-max<sp/>(per-tensor/per-row)<sp/>with<sp/>calibration<sp/>script<sp/>and<sp/>accuracy<sp/>budget<sp/>gate<sp/>(cosine<sp/>≥<sp/>threshold).</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**ADR-0011<sp/>(2025-10-24)**:<sp/>Drop<sp/>Level<sp/>Zero<sp/>from<sp/>default<sp/>benchmarking;<sp/>GPU<sp/>bench<sp/>is<sp/>CUDA-only;<sp/>CPU/GPU<sp/>share<sp/>a<sp/>unified<sp/>reporting<sp/>pipeline.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">---</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>**ADR-0013<sp/>(2025-10-24):<sp/>Adopt<sp/>INT4<sp/>weight-only<sp/>PTQ<sp/>&amp;<sp/>manifest-guided<sp/>packing**</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Context.**<sp/>The<sp/>engine<sp/>is<sp/>primarily<sp/>**memory-bandwidth<sp/>bound**<sp/>at<sp/>inference<sp/>time.<sp/>Even<sp/>with<sp/>blocked‑K<sp/>packing<sp/>and<sp/>prefetch,<sp/>large<sp/>models<sp/>remain<sp/>limited<sp/>by<sp/>weight<sp/>fetch.<sp/>INT8<sp/>provided<sp/>a<sp/>2×<sp/>compression;<sp/>we<sp/>want<sp/>a<sp/>**denser<sp/>format**<sp/>while<sp/>preserving<sp/>a<sp/>simple<sp/>compute<sp/>path.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Decision.**</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Introduce<sp/>**INT4<sp/>weight‑only**<sp/>quantization<sp/>with:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>**Nibble<sp/>packing**<sp/>(2<sp/>weights/byte)<sp/>and<sp/>**per‑row<sp/>(or<sp/>group)<sp/>scales**.</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>A<sp/>repository‑wide<sp/>**manifest**<sp/>(`q4_manifest.json`)<sp/>describing<sp/>which<sp/>tensors<sp/>are<sp/>INT4<sp/>and<sp/>how<sp/>to<sp/>dequantize<sp/>them.</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>CLI/runtime<sp/>selection<sp/>via<sp/>`IE_PRECISION=int4w`<sp/>(or<sp/>`--precision<sp/>int4w`).</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Keep<sp/>activations<sp/>in<sp/>floating<sp/>point;<sp/>accumulation<sp/>stays<sp/>FP32<sp/>for<sp/>numerical<sp/>stability.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Consequences.**</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**4×<sp/>smaller<sp/>weights**<sp/>→<sp/>lower<sp/>bandwidth<sp/>→<sp/>higher<sp/>effective<sp/>TPS<sp/>under<sp/>work‑touch<sp/>or<sp/>real<sp/>inference.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Slight<sp/>accuracy<sp/>cost,<sp/>controlled<sp/>by<sp/>calibration.<sp/>PTQ<sp/>scripts<sp/>expose<sp/>gates<sp/>(cosine/task‑level)<sp/>to<sp/>accept/reject<sp/>a<sp/>manifest.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Kernel<sp/>changes<sp/>are<sp/>incremental:<sp/>dequant<sp/>scale<sp/>application<sp/>in<sp/>the<sp/>matmul<sp/>inner<sp/>loop;<sp/>packing<sp/>integrates<sp/>with<sp/>existing<sp/>pretranspose<sp/>caches.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Status.**<sp/>Accepted.<sp/>Implemented<sp/>across<sp/>CPU<sp/>and<sp/>CUDA<sp/>builds;<sp/>scripts<sp/>support<sp/>end‑to‑end<sp/>HF→IEBIN<sp/>packing<sp/>with<sp/>`--q4-map`.</highlight></codeline>
+<codeline></codeline>
+    </programlisting>
+    <location file="docs/DECISIONS.md"/>
+  </compounddef>
+</doxygen>

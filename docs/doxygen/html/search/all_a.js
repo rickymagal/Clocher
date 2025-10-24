@@ -1,11 +1,15 @@
 var searchData=
 [
-  ['end_0',['end',['../structie__task__arg__t.html#a68e089a47b157f9398b8059269d6b95d',1,'ie_task_arg_t']]],
-  ['enqueue_5fitem_1',['enqueue_item',['../ie__batcher_8c.html#a9475e6883ae67815581f9573b97d2148',1,'ie_batcher.c']]],
-  ['ensure_5fmodule_5fready_2',['ensure_module_ready',['../ie__kernel__ze_8cpp.html#a46e8c280257654db04216d6acbefa0af',1,'ie_kernel_ze.cpp']]],
-  ['ensure_5fze_5fready_3',['ensure_ze_ready',['../ie__kernel__ze_8cpp.html#a88fa59032491ae8cb4c70d153fef5bb0',1,'ie_kernel_ze.cpp']]],
-  ['env_5flong_4',['env_long',['../main__infer_8c.html#a9675b1f5b8b73e24233f92cb11e31f6a',1,'main_infer.c']]],
-  ['env_5fsize_5',['env_size',['../ie__kv__instrumentation_8c.html#a886abd7a4ad752897b4469e29cc344e3',1,'ie_kv_instrumentation.c']]],
-  ['error_20model_6',['Error model',['../ie__kernels__cuda_8h.html#autotoc_md4',1,'Error model'],['..//home/ricky/Desktop/Clocher/engine/src/kernels/ze/ie_kernel_ze.cpp#autotoc_md16',1,'Error model']]],
-  ['example_7',['Example',['../index.html#autotoc_md28',1,'']]]
+  ['fast_5ftanh_2ec_0',['fast_tanh.c',['../fast__tanh_8c.html',1,'']]],
+  ['fill_5fmatrix_1',['fill_matrix',['../test__kernels_8c.html#ad556a17d3bf13267f9bbdf5a3ae63784',1,'test_kernels.c']]],
+  ['fill_5fvector_2',['fill_vector',['../test__kernels_8c.html#af2adbc5a2d06d3fde32de9e00526ec02',1,'test_kernels.c']]],
+  ['find_5fcheckpoint_3',['find_checkpoint',['../namespaceptq__from__hf.html#aff4e5ceded2fc089de036435b5d6ba25',1,'ptq_from_hf']]],
+  ['find_5fshards_4',['find_shards',['../namespacehf__to__iebin.html#a6b3ccdffd4934259e8dd69e94e340e5d',1,'hf_to_iebin']]],
+  ['floating_20point_5',['Floating point',['../md_docs_2DESIGN.html#autotoc_md21',1,'']]],
+  ['floatx_2ec_6',['floatx.c',['../floatx_8c.html',1,'']]],
+  ['fma_7',['fma',['../structie__cpu__features__t.html#ab186c528f9355396127156bf6e6ab099',1,'ie_cpu_features_t']]],
+  ['fnv1a32_8',['fnv1a32',['../ie__api_8c.html#aee4ab6bebc1781cfbfe821e0e89d8823',1,'ie_api.c']]],
+  ['fnv1a_5f32_9',['fnv1a_32',['../tokenizer_8c.html#ab65f36294d9d8ee9d8b027673b01de30',1,'tokenizer.c']]],
+  ['for_20int4_10',['ADR-00060 — Optimization Path Selection (updated for INT4)',['../md_docs_2adr-00060-optimization-path.html',1,'']]],
+  ['format_20iebin_20v1_11',['Model format (IEBIN v1)',['../index.html#autotoc_md50',1,'']]]
 ];

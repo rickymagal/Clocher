@@ -27,9 +27,9 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">Inference Engine (Clocher)<span id="projectnumber">&#160;0.1</span>
+   <div id="projectname">Inference Engine (Clocher)<span id="projectnumber">&#160;0.2</span>
    </div>
-   <div id="projectbrief">C11 CPU inference baseline with strict metrics &amp; harness</div>
+   <div id="projectbrief">C11 CPU/GPU inference baseline with strict metrics &amp; harness</div>
   </td>
  </tr>
  </tbody>
@@ -98,6 +98,7 @@ $(function(){initNavTree('weights_8c.html',''); initResizable(true); });
 
 <div class="header">
   <div class="summary">
+<a href="#nested-classes">Data Structures</a> &#124;
 <a href="#define-members">Macros</a> &#124;
 <a href="#func-members">Functions</a>  </div>
   <div class="headertitle"><div class="title">weights.c File Reference</div></div>
@@ -107,22 +108,30 @@ $(function(){initNavTree('weights_8c.html',''); initResizable(true); });
 <p>Implementation of the IEBIN v1 loader with relaxed JSON parsing.  
 <a href="#details">More...</a></p>
 <div class="textblock"><code>#include &quot;<a class="el" href="ie__io_8h_source.html">ie_io.h</a>&quot;</code><br />
-<code>#include &lt;stdio.h&gt;</code><br />
-<code>#include &lt;string.h&gt;</code><br />
-<code>#include &lt;stdlib.h&gt;</code><br />
+<code>#include &quot;<a class="el" href="ie__quant__int4_8h_source.html">ie_quant_int4.h</a>&quot;</code><br />
+<code>#include &lt;ctype.h&gt;</code><br />
 <code>#include &lt;errno.h&gt;</code><br />
-<code>#include &lt;sys/types.h&gt;</code><br />
-<code>#include &lt;sys/stat.h&gt;</code><br />
 <code>#include &lt;fcntl.h&gt;</code><br />
+<code>#include &lt;stdio.h&gt;</code><br />
+<code>#include &lt;stdlib.h&gt;</code><br />
+<code>#include &lt;string.h&gt;</code><br />
+<code>#include &lt;sys/stat.h&gt;</code><br />
+<code>#include &lt;sys/types.h&gt;</code><br />
 <code>#include &lt;unistd.h&gt;</code><br />
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for weights.c:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="weights_8c__incl.svg" width="907" height="190"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="weights_8c__incl.svg" width="100%" height="442"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
 </div>
 </div>
 <p><a href="weights_8c_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
+Data Structures</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structie__int4__quant__meta.html">ie_int4_quant_meta</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Minimal metadata extracted from <code>"quant": { ... }</code> for INT4 weights.  <a href="structie__int4__quant__meta.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="define-members" name="define-members"></a>
 Macros</h2></td></tr>
 <tr class="memitem:a3024ccd4a9af5109d24e6c57565d74a1" id="r_a3024ccd4a9af5109d24e6c57565d74a1"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a3024ccd4a9af5109d24e6c57565d74a1">_POSIX_C_SOURCE</a>&#160;&#160;&#160;200809L</td></tr>
@@ -136,35 +145,54 @@ Functions</h2></td></tr>
 <tr class="separator:a7415d89bc8bd657819e06ac0fc53da95"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7bb1dd9958b072fc5d1a80373cc074ff" id="r_a7bb1dd9958b072fc5d1a80373cc074ff"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a7bb1dd9958b072fc5d1a80373cc074ff">join_path</a> (char *out, size_t outsz, const char *dir, const char *file)</td></tr>
 <tr class="separator:a7bb1dd9958b072fc5d1a80373cc074ff"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7d467c1ab0baceed9b0fdad7b5a8accf" id="r_a7d467c1ab0baceed9b0fdad7b5a8accf"><td class="memItemLeft" align="right" valign="top">static int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a7d467c1ab0baceed9b0fdad7b5a8accf">read_all_text</a> (const char *path, char **<a class="el" href="ie__kernels__ze_8cl.html#a2fc07fdd1b60b645c24a35bc0c75ed7f">buf</a>, size_t *len_out)</td></tr>
+<tr class="memitem:a7d467c1ab0baceed9b0fdad7b5a8accf" id="r_a7d467c1ab0baceed9b0fdad7b5a8accf"><td class="memItemLeft" align="right" valign="top">static int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a7d467c1ab0baceed9b0fdad7b5a8accf">read_all_text</a> (const char *path, char **buf, size_t *len_out)</td></tr>
 <tr class="separator:a7d467c1ab0baceed9b0fdad7b5a8accf"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5c6ba72035c0c5110c91879350c8647f" id="r_a5c6ba72035c0c5110c91879350c8647f"><td class="memItemLeft" align="right" valign="top">static int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a5c6ba72035c0c5110c91879350c8647f">scan_json_key_int</a> (const char *json, const char *key, int *out_val)</td></tr>
 <tr class="separator:a5c6ba72035c0c5110c91879350c8647f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3c438658d11f74ba4af8273c7e390311" id="r_a3c438658d11f74ba4af8273c7e390311"><td class="memItemLeft" align="right" valign="top">static int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a3c438658d11f74ba4af8273c7e390311">scan_json_key_string</a> (const char *json, const char *key, char *dst, size_t dstsz)</td></tr>
 <tr class="separator:a3c438658d11f74ba4af8273c7e390311"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aabb19f4a5e5385962c6db57f611bb785" id="r_aabb19f4a5e5385962c6db57f611bb785"><td class="memItemLeft" align="right" valign="top">static ssize_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aabb19f4a5e5385962c6db57f611bb785">ie_pread</a> (int fd, void *<a class="el" href="ie__kernels__ze_8cl.html#a2fc07fdd1b60b645c24a35bc0c75ed7f">buf</a>, size_t count, off_t offset)</td></tr>
+<tr class="memitem:a853d256b28c7e6c404c035fc1a16a454" id="r_a853d256b28c7e6c404c035fc1a16a454"><td class="memItemLeft" align="right" valign="top">static int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a853d256b28c7e6c404c035fc1a16a454">scan_json_object_range</a> (const char *json, const char *key, const char **out_begin, const char **out_end)</td></tr>
+<tr class="separator:a853d256b28c7e6c404c035fc1a16a454"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a110cc679cd45b43c11f22ba749bd0ea3" id="r_a110cc679cd45b43c11f22ba749bd0ea3"><td class="memItemLeft" align="right" valign="top">static int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a110cc679cd45b43c11f22ba749bd0ea3">scan_json_key_string_in_range</a> (const char *begin, const char *end, const char *key, char *dst, size_t dstsz)</td></tr>
+<tr class="separator:a110cc679cd45b43c11f22ba749bd0ea3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aabb19f4a5e5385962c6db57f611bb785" id="r_aabb19f4a5e5385962c6db57f611bb785"><td class="memItemLeft" align="right" valign="top">static ssize_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aabb19f4a5e5385962c6db57f611bb785">ie_pread</a> (int fd, void *buf, size_t count, off_t offset)</td></tr>
 <tr class="separator:aabb19f4a5e5385962c6db57f611bb785"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a522dac028ee37aae1307ffdb6d65ec1d" id="r_a522dac028ee37aae1307ffdb6d65ec1d"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a522dac028ee37aae1307ffdb6d65ec1d">ie_weights_open</a> (const char *json_path, const char *bin_path, <a class="el" href="ie__io_8h.html#af68ad3cdc2eb244fe4feed94372d7806">ie_weights_t</a> *out)</td></tr>
-<tr class="memdesc:a522dac028ee37aae1307ffdb6d65ec1d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Open and parse IEBIN v1 metadata and resolve the weights path.  <br /></td></tr>
-<tr class="separator:a522dac028ee37aae1307ffdb6d65ec1d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a095d7f59c4cba2b530bac039bca8b7a9" id="r_a095d7f59c4cba2b530bac039bca8b7a9"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a095d7f59c4cba2b530bac039bca8b7a9">ie_weights_touch</a> (const <a class="el" href="ie__io_8h.html#af68ad3cdc2eb244fe4feed94372d7806">ie_weights_t</a> *w)</td></tr>
-<tr class="memdesc:a095d7f59c4cba2b530bac039bca8b7a9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Touch the weights binary to verify readability (and optionally warm caches).  <br /></td></tr>
-<tr class="separator:a095d7f59c4cba2b530bac039bca8b7a9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a06c2b7e35d1f82a11e4605e23a1976f5" id="r_a06c2b7e35d1f82a11e4605e23a1976f5"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a06c2b7e35d1f82a11e4605e23a1976f5">ie_weights_close</a> (<a class="el" href="ie__io_8h.html#af68ad3cdc2eb244fe4feed94372d7806">ie_weights_t</a> *w)</td></tr>
-<tr class="memdesc:a06c2b7e35d1f82a11e4605e23a1976f5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Close weights resources (currently a no-op; reserved for future use).  <br /></td></tr>
-<tr class="separator:a06c2b7e35d1f82a11e4605e23a1976f5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a72ab94aafe7740f1343d317daa89ca15" id="r_a72ab94aafe7740f1343d317daa89ca15"><td class="memItemLeft" align="right" valign="top">static int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a72ab94aafe7740f1343d317daa89ca15">ascii_ieq</a> (const char *a, const char *b)</td></tr>
+<tr class="separator:a72ab94aafe7740f1343d317daa89ca15"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga522dac028ee37aae1307ffdb6d65ec1d" id="r_ga522dac028ee37aae1307ffdb6d65ec1d"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__ie__io__weights.html#ga522dac028ee37aae1307ffdb6d65ec1d">ie_weights_open</a> (const char *json_path, const char *bin_path, <a class="el" href="group__ie__io__weights.html#gaf68ad3cdc2eb244fe4feed94372d7806">ie_weights_t</a> *out)</td></tr>
+<tr class="memdesc:ga522dac028ee37aae1307ffdb6d65ec1d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Open and parse IEBIN v1 metadata and resolve the weights path.     <br /></td></tr>
+<tr class="separator:ga522dac028ee37aae1307ffdb6d65ec1d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga095d7f59c4cba2b530bac039bca8b7a9" id="r_ga095d7f59c4cba2b530bac039bca8b7a9"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__ie__io__weights.html#ga095d7f59c4cba2b530bac039bca8b7a9">ie_weights_touch</a> (const <a class="el" href="group__ie__io__weights.html#gaf68ad3cdc2eb244fe4feed94372d7806">ie_weights_t</a> *w)</td></tr>
+<tr class="memdesc:ga095d7f59c4cba2b530bac039bca8b7a9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Touch the weights binary to verify readability (and optionally warm caches).     <br /></td></tr>
+<tr class="separator:ga095d7f59c4cba2b530bac039bca8b7a9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga06c2b7e35d1f82a11e4605e23a1976f5" id="r_ga06c2b7e35d1f82a11e4605e23a1976f5"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__ie__io__weights.html#ga06c2b7e35d1f82a11e4605e23a1976f5">ie_weights_close</a> (<a class="el" href="group__ie__io__weights.html#gaf68ad3cdc2eb244fe4feed94372d7806">ie_weights_t</a> *w)</td></tr>
+<tr class="memdesc:ga06c2b7e35d1f82a11e4605e23a1976f5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Close weights resources (currently a no-op; reserved for future use).     <br /></td></tr>
+<tr class="separator:ga06c2b7e35d1f82a11e4605e23a1976f5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1c8fc195c7c1f4e503920578dbaf1d02" id="r_a1c8fc195c7c1f4e503920578dbaf1d02"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a1c8fc195c7c1f4e503920578dbaf1d02">ie_weights_read_int4_meta</a> (const char *json_path, struct <a class="el" href="structie__int4__quant__meta.html">ie_int4_quant_meta</a> *out_meta)</td></tr>
+<tr class="memdesc:a1c8fc195c7c1f4e503920578dbaf1d02"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read INT4 quantization metadata from an IEBIN v1 JSON header.  <br /></td></tr>
+<tr class="separator:a1c8fc195c7c1f4e503920578dbaf1d02"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab5498f6122af51af9b673e87a4049d19" id="r_ab5498f6122af51af9b673e87a4049d19"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab5498f6122af51af9b673e87a4049d19">ie_weights_decode_int4</a> (const char *packed_path, const char *scales_path, size_t rows, size_t cols, int per_row, float *dst)</td></tr>
+<tr class="memdesc:ab5498f6122af51af9b673e87a4049d19"><td class="mdescLeft">&#160;</td><td class="mdescRight">Dequantize a packed INT4 weight blob into a float32 matrix.  <br /></td></tr>
+<tr class="separator:ab5498f6122af51af9b673e87a4049d19"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Implementation of the IEBIN v1 loader with relaxed JSON parsing. </p>
-<h2><a class="anchor" id="autotoc_md11"></a>
+<h2><a class="anchor" id="autotoc_md45"></a>
 Design Goals</h2>
 <ul>
-<li><b>Zero third-party dependencies</b>: plain C, no JSON libraries.</li>
-<li><b>Resilient scanning</b>: tolerate extra whitespace and fields.</li>
-<li><b>Safety with -Werror</b>: no unsafe formatting, careful bounds checking.</li>
-<li><b>Clarity</b>: straight-line code with explicit pre/post-conditions.</li>
+<li>Zero third-party dependencies (plain C, no JSON libraries).</li>
+<li>Resilient scanning (tolerate extra whitespace/fields).</li>
+<li>Safety with -Werror (no unsafe formatting, careful bounds checking).</li>
+<li>Clarity (straight-line code with explicit pre/post-conditions).</li>
 </ul>
-<p>The loader extracts a minimal header from <code>model.ie.json</code> and resolves the path to <code>model.ie.bin</code>. It also exposes a small <a class="el" href="ie__io_8h.html#a095d7f59c4cba2b530bac039bca8b7a9">ie_weights_touch()</a> routine to validate OS-level readability and optionally warm caches. </p>
+<p>This module extracts minimal header info from <code>model.ie.json</code> and resolves the path to <code>model.ie.bin</code>. It also exposes a small <a class="el" href="group__ie__io__weights.html#ga095d7f59c4cba2b530bac039bca8b7a9">ie_weights_touch()</a> routine to validate OS-level readability and optionally warm caches.</p>
+<h3><a class="anchor" id="autotoc_md46"></a>
+INT4 weight-only helpers (exploratory)</h3>
+<p>Additional helpers are provided to discover and decode INT4 weight-only metadata from the JSON header and to dequantize packed INT4 blobs into float32 matrices. These helpers are not part of the public <code><a class="el" href="ie__io_8h.html" title="Public I/O interfaces: IEBIN v1 loader and lightweight tokenizer.">ie_io.h</a></code> API yet; they are provided here to enable incremental integration without changing headers:</p><ul>
+<li><a class="el" href="#a1c8fc195c7c1f4e503920578dbaf1d02" title="Read INT4 quantization metadata from an IEBIN v1 JSON header.">ie_weights_read_int4_meta</a></li>
+<li><a class="el" href="#ab5498f6122af51af9b673e87a4049d19" title="Dequantize a packed INT4 weight blob into a float32 matrix.">ie_weights_decode_int4</a></li>
+</ul>
+<p>The decoding helpers depend on <code><a class="el" href="ie__quant__int4_8h.html" title="Public API for 4-bit (INT4) weight-only post-training quantization.">ie_quant_int4.h</a></code> for packing rules and dequantization routines. </p>
 
 <p class="definition">Definition in file <a class="el" href="weights_8c_source.html">weights.c</a>.</p>
 </div><h2 class="groupheader">Macro Definition Documentation</h2>
@@ -180,11 +208,57 @@ Design Goals</h2>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="weights_8c_source.html#l00018">18</a> of file <a class="el" href="weights_8c_source.html">weights.c</a>.</p>
+<p class="definition">Definition at line <a class="el" href="weights_8c_source.html#l00032">32</a> of file <a class="el" href="weights_8c_source.html">weights.c</a>.</p>
 
 </div>
 </div>
 <h2 class="groupheader">Function Documentation</h2>
+<a id="a72ab94aafe7740f1343d317daa89ca15" name="a72ab94aafe7740f1343d317daa89ca15"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a72ab94aafe7740f1343d317daa89ca15">&#9670;&#160;</a></span>ascii_ieq()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static int ascii_ieq </td>
+          <td>(</td>
+          <td class="paramtype">const char *</td>          <td class="paramname"><span class="paramname"><em>a</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *</td>          <td class="paramname"><span class="paramname"><em>b</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="weights_8c_source.html#l00310">310</a> of file <a class="el" href="weights_8c_source.html">weights.c</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">  310</span>                                                   {</div>
+<div class="line"><span class="lineno">  311</span>  <span class="keywordflow">if</span> (!a || !b) <span class="keywordflow">return</span> 0;</div>
+<div class="line"><span class="lineno">  312</span>  <span class="keywordflow">while</span> (*a &amp;&amp; *b) {</div>
+<div class="line"><span class="lineno">  313</span>    <span class="keywordflow">if</span> ((<span class="keywordtype">unsigned</span> <span class="keywordtype">char</span>)tolower(*a) != (<span class="keywordtype">unsigned</span> <span class="keywordtype">char</span>)tolower(*b)) <span class="keywordflow">return</span> 0;</div>
+<div class="line"><span class="lineno">  314</span>    ++a; ++b;</div>
+<div class="line"><span class="lineno">  315</span>  }</div>
+<div class="line"><span class="lineno">  316</span>  <span class="keywordflow">return</span> *a == <span class="charliteral">&#39;\0&#39;</span> &amp;&amp; *b == <span class="charliteral">&#39;\0&#39;</span>;</div>
+<div class="line"><span class="lineno">  317</span>}</div>
+</div><!-- fragment -->
+<p class="reference">Referenced by <a class="el" href="weights_8c_source.html#l00439">ie_weights_read_int4_meta()</a>.</p>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="weights_8c_a72ab94aafe7740f1343d317daa89ca15_icgraph.svg" width="338" height="39"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
 <a id="ae3307b59271742c37862abf0b9698d23" name="ae3307b59271742c37862abf0b9698d23"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ae3307b59271742c37862abf0b9698d23">&#9670;&#160;</a></span>cpyz()</h2>
 
@@ -217,9 +291,22 @@ Design Goals</h2>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="weights_8c_source.html#l00045">45</a> of file <a class="el" href="weights_8c_source.html">weights.c</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="weights_8c_source.html#l00254">ie_weights_open()</a>, and <a class="el" href="weights_8c_source.html#l00075">join_path()</a>.</p>
+<p class="definition">Definition at line <a class="el" href="weights_8c_source.html#l00057">57</a> of file <a class="el" href="weights_8c_source.html">weights.c</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">   57</span>                                                           {</div>
+<div class="line"><span class="lineno">   58</span>  <span class="keywordflow">if</span> (!dst || dstsz == 0) <span class="keywordflow">return</span>;</div>
+<div class="line"><span class="lineno">   59</span>  <span class="keywordflow">if</span> (!src) { dst[0] = <span class="charliteral">&#39;\0&#39;</span>; <span class="keywordflow">return</span>; }</div>
+<div class="line"><span class="lineno">   60</span>  <span class="keywordtype">size_t</span> n = strlen(src);</div>
+<div class="line"><span class="lineno">   61</span>  <span class="keywordflow">if</span> (n &gt;= dstsz) n = dstsz - 1;</div>
+<div class="line"><span class="lineno">   62</span>  memcpy(dst, src, n);</div>
+<div class="line"><span class="lineno">   63</span>  dst[n] = <span class="charliteral">&#39;\0&#39;</span>;</div>
+<div class="line"><span class="lineno">   64</span>}</div>
+</div><!-- fragment -->
+<p class="reference">Referenced by <a class="el" href="weights_8c_source.html#l00326">ie_weights_open()</a>, <a class="el" href="weights_8c_source.html#l00439">ie_weights_read_int4_meta()</a>, and <a class="el" href="weights_8c_source.html#l00081">join_path()</a>.</p>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="weights_8c_ae3307b59271742c37862abf0b9698d23_icgraph.svg" width="543" height="128"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
 
 </div>
 </div>
@@ -260,133 +347,275 @@ Design Goals</h2>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="weights_8c_source.html#l00228">228</a> of file <a class="el" href="weights_8c_source.html">weights.c</a>.</p>
-
-<p class="reference">References <a class="el" href="ie__kernels__ze_8cl_source.html#l00084">buf</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="weights_8c_source.html#l00311">ie_weights_touch()</a>.</p>
+<p class="definition">Definition at line <a class="el" href="weights_8c_source.html#l00293">293</a> of file <a class="el" href="weights_8c_source.html">weights.c</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">  293</span>                                                                       {</div>
+<div class="line"><span class="lineno">  294</span><span class="preprocessor">#if defined(_XOPEN_SOURCE) || defined(_POSIX_C_SOURCE)</span></div>
+<div class="line"><span class="lineno">  295</span>  <span class="keywordflow">return</span> pread(fd, buf, count, offset);</div>
+<div class="line"><span class="lineno">  296</span><span class="preprocessor">#else</span></div>
+<div class="line"><span class="lineno">  297</span>  off_t cur = lseek(fd, 0, SEEK_CUR);</div>
+<div class="line"><span class="lineno">  298</span>  <span class="keywordflow">if</span> (cur == (off_t)-1) <span class="keywordflow">return</span> -1;</div>
+<div class="line"><span class="lineno">  299</span>  <span class="keywordflow">if</span> (lseek(fd, offset, SEEK_SET) == (off_t)-1) <span class="keywordflow">return</span> -1;</div>
+<div class="line"><span class="lineno">  300</span>  ssize_t r = read(fd, buf, count);</div>
+<div class="line"><span class="lineno">  301</span>  (void)lseek(fd, cur, SEEK_SET);</div>
+<div class="line"><span class="lineno">  302</span>  <span class="keywordflow">return</span> r;</div>
+<div class="line"><span class="lineno">  303</span><span class="preprocessor">#endif</span></div>
+<div class="line"><span class="lineno">  304</span>}</div>
+</div><!-- fragment -->
+<p class="reference">Referenced by <a class="el" href="weights_8c_source.html#l00522">ie_weights_decode_int4()</a>, and <a class="el" href="weights_8c_source.html#l00386">ie_weights_touch()</a>.</p>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="weights_8c_aabb19f4a5e5385962c6db57f611bb785_icgraph.svg" width="416" height="91"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
 
 </div>
 </div>
-<a id="a06c2b7e35d1f82a11e4605e23a1976f5" name="a06c2b7e35d1f82a11e4605e23a1976f5"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a06c2b7e35d1f82a11e4605e23a1976f5">&#9670;&#160;</a></span>ie_weights_close()</h2>
+<a id="ab5498f6122af51af9b673e87a4049d19" name="ab5498f6122af51af9b673e87a4049d19"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab5498f6122af51af9b673e87a4049d19">&#9670;&#160;</a></span>ie_weights_decode_int4()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void ie_weights_close </td>
+          <td class="memname">int ie_weights_decode_int4 </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="ie__io_8h.html#af68ad3cdc2eb244fe4feed94372d7806">ie_weights_t</a> *</td>          <td class="paramname"><span class="paramname"><em>w</em></span></td><td>)</td>
+          <td class="paramtype">const char *</td>          <td class="paramname"><span class="paramname"><em>packed_path</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype">const char *</td>          <td class="paramname"><span class="paramname"><em>scales_path</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t</td>          <td class="paramname"><span class="paramname"><em>rows</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t</td>          <td class="paramname"><span class="paramname"><em>cols</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>per_row</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float *</td>          <td class="paramname"><span class="paramname"><em>dst</em></span>&#160;)</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p>Close weights resources (currently a no-op; reserved for future use). </p>
+<p>Dequantize a packed INT4 weight blob into a float32 matrix. </p>
+<p>Reads the packed INT4 blob and the associated scales from disk and produces a row-major float32 matrix into <code class="param">dst</code> (caller-allocated).</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">w</td><td>Weights descriptor previously opened with <a class="el" href="ie__io_8h.html#a522dac028ee37aae1307ffdb6d65ec1d">ie_weights_open</a>. </td></tr>
+    <tr><td class="paramname">packed_path</td><td>Path to packed INT4 weights (<code>*.int4.bin</code>). </td></tr>
+    <tr><td class="paramname">scales_path</td><td>Path to scales file. For per-tensor it must contain a single float32; for per-row it must contain <code>rows</code> float32 values. </td></tr>
+    <tr><td class="paramname">rows</td><td>Number of matrix rows. </td></tr>
+    <tr><td class="paramname">cols</td><td>Number of matrix columns. </td></tr>
+    <tr><td class="paramname">per_row</td><td>Non-zero for per-row scales; 0 for per-tensor. </td></tr>
+    <tr><td class="paramname">dst</td><td>Output buffer (length = rows*cols floats). </td></tr>
   </table>
   </dd>
 </dl>
+<dl class="section return"><dt>Returns</dt><dd><a class="el" href="group__ie__io__status.html#gga4c501870bd45dbe373416745a03de987a81b076a3d2516e2f45170c664c0fa57d" title="Success.">IE_IO_OK</a> on success, or an ::IE_IO_ERR_* code on failure. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="weights_8c_source.html#l00329">329</a> of file <a class="el" href="weights_8c_source.html">weights.c</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="main__infer_8c_source.html#l00241">main()</a>.</p>
+<p class="definition">Definition at line <a class="el" href="weights_8c_source.html#l00522">522</a> of file <a class="el" href="weights_8c_source.html">weights.c</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">  527</span>                                       {</div>
+<div class="line"><span class="lineno">  528</span>  <span class="keywordflow">if</span> (!packed_path || !scales_path || !dst || rows == 0 || cols == 0) <span class="keywordflow">return</span> <a class="code hl_enumvalue" href="group__ie__io__status.html#gga4c501870bd45dbe373416745a03de987a579de46204c4454f99e9620965e58239">IE_IO_ERR_ARGS</a>;</div>
+<div class="line"><span class="lineno">  529</span> </div>
+<div class="line"><span class="lineno">  530</span>  <span class="comment">/* Read packed blob */</span></div>
+<div class="line"><span class="lineno">  531</span>  <span class="keywordtype">int</span> fdw = open(packed_path, O_RDONLY);</div>
+<div class="line"><span class="lineno">  532</span>  <span class="keywordflow">if</span> (fdw &lt; 0) <span class="keywordflow">return</span> <a class="code hl_enumvalue" href="group__ie__io__status.html#gga4c501870bd45dbe373416745a03de987aba0321da4352c7a61ea1bda842bb64d0">IE_IO_ERR_OPEN</a>;</div>
+<div class="line"><span class="lineno">  533</span> </div>
+<div class="line"><span class="lineno">  534</span>  <span class="keyword">struct </span>stat stw;</div>
+<div class="line"><span class="lineno">  535</span>  <span class="keywordflow">if</span> (fstat(fdw, &amp;stw) != 0) { close(fdw); <span class="keywordflow">return</span> <a class="code hl_enumvalue" href="group__ie__io__status.html#gga4c501870bd45dbe373416745a03de987a82517853bf5084320fad8c88f67d29bb">IE_IO_ERR_STAT</a>; }</div>
+<div class="line"><span class="lineno">  536</span> </div>
+<div class="line"><span class="lineno">  537</span>  <span class="keyword">const</span> <span class="keywordtype">size_t</span> need_packed = rows * <a class="code hl_function" href="group__ie__int4__quant.html#gae9b8a40c7d01f1fa7f00487737c772b2">ie_int4_rowbytes</a>(cols);</div>
+<div class="line"><span class="lineno">  538</span>  <span class="keywordflow">if</span> ((<span class="keywordtype">size_t</span>)stw.st_size &lt; need_packed) { close(fdw); <span class="keywordflow">return</span> <a class="code hl_enumvalue" href="group__ie__io__status.html#gga4c501870bd45dbe373416745a03de987aa12fce48fd3eee2bd8a75dc61db150a7">IE_IO_ERR_READ</a>; }</div>
+<div class="line"><span class="lineno">  539</span> </div>
+<div class="line"><span class="lineno">  540</span>  uint8_t *buf_packed = (uint8_t*)malloc(need_packed);</div>
+<div class="line"><span class="lineno">  541</span>  <span class="keywordflow">if</span> (!buf_packed) { close(fdw); <span class="keywordflow">return</span> <a class="code hl_enumvalue" href="group__ie__io__status.html#gga4c501870bd45dbe373416745a03de987a215c4a31864749ed0fce240433824032">IE_IO_ERR_ALLOC</a>; }</div>
+<div class="line"><span class="lineno">  542</span> </div>
+<div class="line"><span class="lineno">  543</span>  ssize_t rd = <a class="code hl_function" href="#aabb19f4a5e5385962c6db57f611bb785">ie_pread</a>(fdw, buf_packed, need_packed, 0);</div>
+<div class="line"><span class="lineno">  544</span>  close(fdw);</div>
+<div class="line"><span class="lineno">  545</span>  <span class="keywordflow">if</span> (rd &lt; 0 || (<span class="keywordtype">size_t</span>)rd != need_packed) { free(buf_packed); <span class="keywordflow">return</span> <a class="code hl_enumvalue" href="group__ie__io__status.html#gga4c501870bd45dbe373416745a03de987aa12fce48fd3eee2bd8a75dc61db150a7">IE_IO_ERR_READ</a>; }</div>
+<div class="line"><span class="lineno">  546</span> </div>
+<div class="line"><span class="lineno">  547</span>  <span class="comment">/* Read scales */</span></div>
+<div class="line"><span class="lineno">  548</span>  <span class="keywordtype">int</span> fds = open(scales_path, O_RDONLY);</div>
+<div class="line"><span class="lineno">  549</span>  <span class="keywordflow">if</span> (fds &lt; 0) { free(buf_packed); <span class="keywordflow">return</span> <a class="code hl_enumvalue" href="group__ie__io__status.html#gga4c501870bd45dbe373416745a03de987aba0321da4352c7a61ea1bda842bb64d0">IE_IO_ERR_OPEN</a>; }</div>
+<div class="line"><span class="lineno">  550</span> </div>
+<div class="line"><span class="lineno">  551</span>  <span class="keyword">struct </span>stat sts;</div>
+<div class="line"><span class="lineno">  552</span>  <span class="keywordflow">if</span> (fstat(fds, &amp;sts) != 0) { close(fds); free(buf_packed); <span class="keywordflow">return</span> <a class="code hl_enumvalue" href="group__ie__io__status.html#gga4c501870bd45dbe373416745a03de987a82517853bf5084320fad8c88f67d29bb">IE_IO_ERR_STAT</a>; }</div>
+<div class="line"><span class="lineno">  553</span> </div>
+<div class="line"><span class="lineno">  554</span>  <span class="keywordtype">size_t</span> need_scales = per_row ? (rows * <span class="keyword">sizeof</span>(float)) : sizeof(float);</div>
+<div class="line"><span class="lineno">  555</span>  <span class="keywordflow">if</span> ((<span class="keywordtype">size_t</span>)sts.st_size &lt; need_scales) { close(fds); free(buf_packed); return IE_IO_ERR_READ; }</div>
+<div class="line"><span class="lineno">  556</span> </div>
+<div class="line"><span class="lineno">  557</span>  <span class="keywordtype">float</span> *buf_scales = (<span class="keywordtype">float</span>*)malloc(need_scales);</div>
+<div class="line"><span class="lineno">  558</span>  <span class="keywordflow">if</span> (!buf_scales) { close(fds); free(buf_packed); <span class="keywordflow">return</span> <a class="code hl_enumvalue" href="group__ie__io__status.html#gga4c501870bd45dbe373416745a03de987a215c4a31864749ed0fce240433824032">IE_IO_ERR_ALLOC</a>; }</div>
+<div class="line"><span class="lineno">  559</span> </div>
+<div class="line"><span class="lineno">  560</span>  rd = <a class="code hl_function" href="#aabb19f4a5e5385962c6db57f611bb785">ie_pread</a>(fds, buf_scales, need_scales, 0);</div>
+<div class="line"><span class="lineno">  561</span>  close(fds);</div>
+<div class="line"><span class="lineno">  562</span>  <span class="keywordflow">if</span> (rd &lt; 0 || (<span class="keywordtype">size_t</span>)rd != need_scales) { free(buf_scales); free(buf_packed); <span class="keywordflow">return</span> <a class="code hl_enumvalue" href="group__ie__io__status.html#gga4c501870bd45dbe373416745a03de987aa12fce48fd3eee2bd8a75dc61db150a7">IE_IO_ERR_READ</a>; }</div>
+<div class="line"><span class="lineno">  563</span> </div>
+<div class="line"><span class="lineno">  564</span>  <span class="comment">/* Dequantize */</span></div>
+<div class="line"><span class="lineno">  565</span>  <span class="keywordtype">int</span> qst = 0;</div>
+<div class="line"><span class="lineno">  566</span>  <span class="keywordflow">if</span> (per_row) {</div>
+<div class="line"><span class="lineno">  567</span>    qst = <a class="code hl_function" href="group__ie__int4__quant.html#gab017a4b1dff62c0ef8f1ed4f94375302">ie_int4_dequantize_per_row</a>(buf_packed, rows, cols, buf_scales, dst);</div>
+<div class="line"><span class="lineno">  568</span>  } <span class="keywordflow">else</span> {</div>
+<div class="line"><span class="lineno">  569</span>    qst = <a class="code hl_function" href="group__ie__int4__quant.html#ga7aaa2156d41e9a58eb6013cec4b32d78">ie_int4_dequantize_per_tensor</a>(buf_packed, rows, cols, buf_scales[0], dst);</div>
+<div class="line"><span class="lineno">  570</span>  }</div>
+<div class="line"><span class="lineno">  571</span> </div>
+<div class="line"><span class="lineno">  572</span>  free(buf_scales);</div>
+<div class="line"><span class="lineno">  573</span>  free(buf_packed);</div>
+<div class="line"><span class="lineno">  574</span> </div>
+<div class="line"><span class="lineno">  575</span>  <span class="keywordflow">if</span> (qst != <a class="code hl_enumvalue" href="group__ie__int4__quant.html#ggabdf58fdc422669c3d08610f8d40e43b6a24592f56913c1a24fabf56e9efcff48d">IE_INT4_STATUS_OK</a>) <span class="keywordflow">return</span> <a class="code hl_enumvalue" href="group__ie__io__status.html#gga4c501870bd45dbe373416745a03de987a9b079e5c6f78861150a9bc91623d8c42">IE_IO_ERR_DECODE</a>;</div>
+<div class="line"><span class="lineno">  576</span>  <span class="keywordflow">return</span> <a class="code hl_enumvalue" href="group__ie__io__status.html#gga4c501870bd45dbe373416745a03de987a81b076a3d2516e2f45170c664c0fa57d">IE_IO_OK</a>;</div>
+<div class="line"><span class="lineno">  577</span>}</div>
+<div class="ttc" id="agroup__ie__int4__quant_html_ga7aaa2156d41e9a58eb6013cec4b32d78"><div class="ttname"><a href="group__ie__int4__quant.html#ga7aaa2156d41e9a58eb6013cec4b32d78">ie_int4_dequantize_per_tensor</a></div><div class="ttdeci">int ie_int4_dequantize_per_tensor(const uint8_t *src_packed, size_t rows, size_t cols, float scale, float *dst)</div><div class="ttdoc">Dequantize a packed INT4 matrix using a single (per-tensor) scale.</div><div class="ttdef"><b>Definition</b> <a href="int4__ptq_8c_source.html#l00136">int4_ptq.c:136</a></div></div>
+<div class="ttc" id="agroup__ie__int4__quant_html_gab017a4b1dff62c0ef8f1ed4f94375302"><div class="ttname"><a href="group__ie__int4__quant.html#gab017a4b1dff62c0ef8f1ed4f94375302">ie_int4_dequantize_per_row</a></div><div class="ttdeci">int ie_int4_dequantize_per_row(const uint8_t *src_packed, size_t rows, size_t cols, const float *scales, float *dst)</div><div class="ttdoc">Dequantize a packed INT4 matrix with per-row scales.</div><div class="ttdef"><b>Definition</b> <a href="int4__ptq_8c_source.html#l00206">int4_ptq.c:206</a></div></div>
+<div class="ttc" id="agroup__ie__int4__quant_html_gae9b8a40c7d01f1fa7f00487737c772b2"><div class="ttname"><a href="group__ie__int4__quant.html#gae9b8a40c7d01f1fa7f00487737c772b2">ie_int4_rowbytes</a></div><div class="ttdeci">size_t ie_int4_rowbytes(size_t cols)</div><div class="ttdoc">Compute the number of packed bytes required to store a single row of cols 4-bit values (two per byte)...</div><div class="ttdef"><b>Definition</b> <a href="int4__ptq_8c_source.html#l00069">int4_ptq.c:69</a></div></div>
+<div class="ttc" id="agroup__ie__int4__quant_html_ggabdf58fdc422669c3d08610f8d40e43b6a24592f56913c1a24fabf56e9efcff48d"><div class="ttname"><a href="group__ie__int4__quant.html#ggabdf58fdc422669c3d08610f8d40e43b6a24592f56913c1a24fabf56e9efcff48d">IE_INT4_STATUS_OK</a></div><div class="ttdeci">@ IE_INT4_STATUS_OK</div><div class="ttdoc">Success.</div><div class="ttdef"><b>Definition</b> <a href="ie__quant__int4_8h_source.html#l00071">ie_quant_int4.h:71</a></div></div>
+<div class="ttc" id="agroup__ie__io__status_html_gga4c501870bd45dbe373416745a03de987a215c4a31864749ed0fce240433824032"><div class="ttname"><a href="group__ie__io__status.html#gga4c501870bd45dbe373416745a03de987a215c4a31864749ed0fce240433824032">IE_IO_ERR_ALLOC</a></div><div class="ttdeci">@ IE_IO_ERR_ALLOC</div><div class="ttdoc">Allocation failure (OOM or NULL from malloc/calloc/realloc).</div><div class="ttdef"><b>Definition</b> <a href="ie__io_8h_source.html#l00077">ie_io.h:77</a></div></div>
+<div class="ttc" id="agroup__ie__io__status_html_gga4c501870bd45dbe373416745a03de987a579de46204c4454f99e9620965e58239"><div class="ttname"><a href="group__ie__io__status.html#gga4c501870bd45dbe373416745a03de987a579de46204c4454f99e9620965e58239">IE_IO_ERR_ARGS</a></div><div class="ttdeci">@ IE_IO_ERR_ARGS</div><div class="ttdoc">Invalid arguments (NULL pointer, bad sizes, etc.).</div><div class="ttdef"><b>Definition</b> <a href="ie__io_8h_source.html#l00059">ie_io.h:59</a></div></div>
+<div class="ttc" id="agroup__ie__io__status_html_gga4c501870bd45dbe373416745a03de987a81b076a3d2516e2f45170c664c0fa57d"><div class="ttname"><a href="group__ie__io__status.html#gga4c501870bd45dbe373416745a03de987a81b076a3d2516e2f45170c664c0fa57d">IE_IO_OK</a></div><div class="ttdeci">@ IE_IO_OK</div><div class="ttdoc">Success.</div><div class="ttdef"><b>Definition</b> <a href="ie__io_8h_source.html#l00056">ie_io.h:56</a></div></div>
+<div class="ttc" id="agroup__ie__io__status_html_gga4c501870bd45dbe373416745a03de987a82517853bf5084320fad8c88f67d29bb"><div class="ttname"><a href="group__ie__io__status.html#gga4c501870bd45dbe373416745a03de987a82517853bf5084320fad8c88f67d29bb">IE_IO_ERR_STAT</a></div><div class="ttdeci">@ IE_IO_ERR_STAT</div><div class="ttdoc">Failed to stat() the weights file.</div><div class="ttdef"><b>Definition</b> <a href="ie__io_8h_source.html#l00068">ie_io.h:68</a></div></div>
+<div class="ttc" id="agroup__ie__io__status_html_gga4c501870bd45dbe373416745a03de987a9b079e5c6f78861150a9bc91623d8c42"><div class="ttname"><a href="group__ie__io__status.html#gga4c501870bd45dbe373416745a03de987a9b079e5c6f78861150a9bc91623d8c42">IE_IO_ERR_DECODE</a></div><div class="ttdeci">@ IE_IO_ERR_DECODE</div><div class="ttdoc">Decode/format error (e.g., quantized weights decode failure).</div><div class="ttdef"><b>Definition</b> <a href="ie__io_8h_source.html#l00080">ie_io.h:80</a></div></div>
+<div class="ttc" id="agroup__ie__io__status_html_gga4c501870bd45dbe373416745a03de987aa12fce48fd3eee2bd8a75dc61db150a7"><div class="ttname"><a href="group__ie__io__status.html#gga4c501870bd45dbe373416745a03de987aa12fce48fd3eee2bd8a75dc61db150a7">IE_IO_ERR_READ</a></div><div class="ttdeci">@ IE_IO_ERR_READ</div><div class="ttdoc">Failed to read from the weights file.</div><div class="ttdef"><b>Definition</b> <a href="ie__io_8h_source.html#l00074">ie_io.h:74</a></div></div>
+<div class="ttc" id="agroup__ie__io__status_html_gga4c501870bd45dbe373416745a03de987aba0321da4352c7a61ea1bda842bb64d0"><div class="ttname"><a href="group__ie__io__status.html#gga4c501870bd45dbe373416745a03de987aba0321da4352c7a61ea1bda842bb64d0">IE_IO_ERR_OPEN</a></div><div class="ttdeci">@ IE_IO_ERR_OPEN</div><div class="ttdoc">Failed to open the weights file.</div><div class="ttdef"><b>Definition</b> <a href="ie__io_8h_source.html#l00071">ie_io.h:71</a></div></div>
+<div class="ttc" id="aweights_8c_html_aabb19f4a5e5385962c6db57f611bb785"><div class="ttname"><a href="#aabb19f4a5e5385962c6db57f611bb785">ie_pread</a></div><div class="ttdeci">static ssize_t ie_pread(int fd, void *buf, size_t count, off_t offset)</div><div class="ttdef"><b>Definition</b> <a href="weights_8c_source.html#l00293">weights.c:293</a></div></div>
+</div><!-- fragment -->
+<p class="reference">References <a class="el" href="int4__ptq_8c_source.html#l00206">ie_int4_dequantize_per_row()</a>, <a class="el" href="int4__ptq_8c_source.html#l00136">ie_int4_dequantize_per_tensor()</a>, <a class="el" href="int4__ptq_8c_source.html#l00069">ie_int4_rowbytes()</a>, <a class="el" href="ie__quant__int4_8h_source.html#l00071">IE_INT4_STATUS_OK</a>, <a class="el" href="ie__io_8h_source.html#l00077">IE_IO_ERR_ALLOC</a>, <a class="el" href="ie__io_8h_source.html#l00059">IE_IO_ERR_ARGS</a>, <a class="el" href="ie__io_8h_source.html#l00080">IE_IO_ERR_DECODE</a>, <a class="el" href="ie__io_8h_source.html#l00071">IE_IO_ERR_OPEN</a>, <a class="el" href="ie__io_8h_source.html#l00074">IE_IO_ERR_READ</a>, <a class="el" href="ie__io_8h_source.html#l00068">IE_IO_ERR_STAT</a>, <a class="el" href="ie__io_8h_source.html#l00056">IE_IO_OK</a>, and <a class="el" href="weights_8c_source.html#l00293">ie_pread()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="weights_8c_ab5498f6122af51af9b673e87a4049d19_cgraph.svg" width="562" height="199"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
 
 </div>
 </div>
-<a id="a522dac028ee37aae1307ffdb6d65ec1d" name="a522dac028ee37aae1307ffdb6d65ec1d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a522dac028ee37aae1307ffdb6d65ec1d">&#9670;&#160;</a></span>ie_weights_open()</h2>
+<a id="a1c8fc195c7c1f4e503920578dbaf1d02" name="a1c8fc195c7c1f4e503920578dbaf1d02"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1c8fc195c7c1f4e503920578dbaf1d02">&#9670;&#160;</a></span>ie_weights_read_int4_meta()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int ie_weights_open </td>
+          <td class="memname">int ie_weights_read_int4_meta </td>
           <td>(</td>
           <td class="paramtype">const char *</td>          <td class="paramname"><span class="paramname"><em>json_path</em></span>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const char *</td>          <td class="paramname"><span class="paramname"><em>bin_path</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="ie__io_8h.html#af68ad3cdc2eb244fe4feed94372d7806">ie_weights_t</a> *</td>          <td class="paramname"><span class="paramname"><em>out</em></span>&#160;)</td>
+          <td class="paramtype">struct <a class="el" href="structie__int4__quant__meta.html">ie_int4_quant_meta</a> *</td>          <td class="paramname"><span class="paramname"><em>out_meta</em></span>&#160;)</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p>Open and parse IEBIN v1 metadata and resolve the weights path. </p>
+<p>Read INT4 quantization metadata from an IEBIN v1 JSON header. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">json_path</td><td>Path to <code>model.ie.json</code> (must be readable). </td></tr>
-    <tr><td class="paramname">bin_path</td><td>Optional override path for the binary (<code>model.ie.bin</code>); if NULL, the JSON <code>bin</code> field is used. </td></tr>
-    <tr><td class="paramname">out</td><td>Output descriptor; the function zero-initializes it on entry. </td></tr>
+    <tr><td class="paramname">json_path</td><td>Path to <code>model.ie.json</code>. </td></tr>
+    <tr><td class="paramname">out_meta</td><td>Output metadata (must be non-NULL). On success, <code>out_meta-&gt;present</code> is 1 when INT4 metadata is found. </td></tr>
   </table>
   </dd>
 </dl>
-<dl class="retval"><dt>Return values</dt><dd>
-  <table class="retval">
-    <tr><td class="paramname">IE_IO_OK</td><td>on success. </td></tr>
-    <tr><td class="paramname">IE_IO_ERR_ARGS</td><td>if arguments are invalid. </td></tr>
-    <tr><td class="paramname">IE_IO_ERR_JSON</td><td>if JSON cannot be read/parsed. </td></tr>
-    <tr><td class="paramname">IE_IO_ERR_BIN_UNSPEC</td><td>if a weights path cannot be determined. </td></tr>
-    <tr><td class="paramname">IE_IO_ERR_STAT</td><td>if the binary cannot be <code>stat()</code>-ed. </td></tr>
-  </table>
-  </dd>
-</dl>
+<dl class="section return"><dt>Returns</dt><dd><a class="el" href="group__ie__io__status.html#gga4c501870bd45dbe373416745a03de987a81b076a3d2516e2f45170c664c0fa57d" title="Success.">IE_IO_OK</a> on success (even if no INT4 meta is present), or an ::IE_IO_ERR_* code on I/O/parse errors. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="weights_8c_source.html#l00254">254</a> of file <a class="el" href="weights_8c_source.html">weights.c</a>.</p>
-
-<p class="reference">References <a class="el" href="ie__io_8h_source.html#l00092">ie_weights_s::bin_size_bytes</a>, <a class="el" href="weights_8c_source.html#l00045">cpyz()</a>, <a class="el" href="ie__io_8h_source.html#l00085">ie_weights_s::dtype</a>, <a class="el" href="ie__io_8h_source.html#l00062">IE_IO_ERR_ARGS</a>, <a class="el" href="ie__io_8h_source.html#l00064">IE_IO_ERR_BIN_UNSPEC</a>, <a class="el" href="ie__io_8h_source.html#l00063">IE_IO_ERR_JSON</a>, <a class="el" href="ie__io_8h_source.html#l00065">IE_IO_ERR_STAT</a>, <a class="el" href="ie__io_8h_source.html#l00061">IE_IO_OK</a>, <a class="el" href="weights_8c_source.html#l00075">join_path()</a>, <a class="el" href="ie__io_8h_source.html#l00088">ie_weights_s::json_path</a>, <a class="el" href="weights_8c_source.html#l00058">last_slash()</a>, <a class="el" href="ie__io_8h_source.html#l00095">ie_weights_s::loaded</a>, <a class="el" href="weights_8c_source.html#l00115">read_all_text()</a>, <a class="el" href="weights_8c_source.html#l00158">scan_json_key_int()</a>, <a class="el" href="weights_8c_source.html#l00187">scan_json_key_string()</a>, <a class="el" href="ie__io_8h_source.html#l00084">ie_weights_s::version</a>, and <a class="el" href="ie__io_8h_source.html#l00089">ie_weights_s::weights_path</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="main__infer_8c_source.html#l00241">main()</a>.</p>
-
+<p class="definition">Definition at line <a class="el" href="weights_8c_source.html#l00439">439</a> of file <a class="el" href="weights_8c_source.html">weights.c</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">  439</span>                                                                                          {</div>
+<div class="line"><span class="lineno">  440</span>  <span class="keywordflow">if</span> (!json_path || !out_meta) <span class="keywordflow">return</span> <a class="code hl_enumvalue" href="group__ie__io__status.html#gga4c501870bd45dbe373416745a03de987a579de46204c4454f99e9620965e58239">IE_IO_ERR_ARGS</a>;</div>
+<div class="line"><span class="lineno">  441</span>  memset(out_meta, 0, <span class="keyword">sizeof</span>(*out_meta));</div>
+<div class="line"><span class="lineno">  442</span> </div>
+<div class="line"><span class="lineno">  443</span>  <span class="comment">/* Read JSON */</span></div>
+<div class="line"><span class="lineno">  444</span>  <span class="keywordtype">char</span> *jbuf = NULL; <span class="keywordtype">size_t</span> jlen = 0;</div>
+<div class="line"><span class="lineno">  445</span>  <span class="keywordflow">if</span> (<a class="code hl_function" href="#a7d467c1ab0baceed9b0fdad7b5a8accf">read_all_text</a>(json_path, &amp;jbuf, &amp;jlen) != 0 || !jbuf || jlen == 0) {</div>
+<div class="line"><span class="lineno">  446</span>    <span class="keywordflow">return</span> <a class="code hl_enumvalue" href="group__ie__io__status.html#gga4c501870bd45dbe373416745a03de987aa02b300fcfbce31fe86de69090fc9fa9">IE_IO_ERR_JSON</a>;</div>
+<div class="line"><span class="lineno">  447</span>  }</div>
+<div class="line"><span class="lineno">  448</span> </div>
+<div class="line"><span class="lineno">  449</span>  <span class="comment">/* dtype must indicate INT4/Q4 (root-level) to proceed */</span></div>
+<div class="line"><span class="lineno">  450</span>  <span class="keywordtype">char</span> dtype[16]; dtype[0] = <span class="charliteral">&#39;\0&#39;</span>;</div>
+<div class="line"><span class="lineno">  451</span>  (void)<a class="code hl_function" href="#a3c438658d11f74ba4af8273c7e390311">scan_json_key_string</a>(jbuf, <span class="stringliteral">&quot;dtype&quot;</span>, dtype, <span class="keyword">sizeof</span>(dtype));</div>
+<div class="line"><span class="lineno">  452</span>  <span class="keywordflow">if</span> (!(<a class="code hl_function" href="#a72ab94aafe7740f1343d317daa89ca15">ascii_ieq</a>(dtype, <span class="stringliteral">&quot;int4&quot;</span>) || <a class="code hl_function" href="#a72ab94aafe7740f1343d317daa89ca15">ascii_ieq</a>(dtype, <span class="stringliteral">&quot;q4&quot;</span>) || <a class="code hl_function" href="#a72ab94aafe7740f1343d317daa89ca15">ascii_ieq</a>(dtype, <span class="stringliteral">&quot;mixed&quot;</span>))) {</div>
+<div class="line"><span class="lineno">  453</span>    free(jbuf);</div>
+<div class="line"><span class="lineno">  454</span>    out_meta-&gt;<a class="code hl_variable" href="structie__int4__quant__meta.html#a2839df315edfb65fcad27e1974695650">present</a> = 0;</div>
+<div class="line"><span class="lineno">  455</span>    <span class="keywordflow">return</span> <a class="code hl_enumvalue" href="group__ie__io__status.html#gga4c501870bd45dbe373416745a03de987a81b076a3d2516e2f45170c664c0fa57d">IE_IO_OK</a>;</div>
+<div class="line"><span class="lineno">  456</span>  }</div>
+<div class="line"><span class="lineno">  457</span> </div>
+<div class="line"><span class="lineno">  458</span>  <span class="comment">/* Find &quot;quant&quot;: { ... } section */</span></div>
+<div class="line"><span class="lineno">  459</span>  <span class="keyword">const</span> <span class="keywordtype">char</span> *qb = NULL, *qe = NULL;</div>
+<div class="line"><span class="lineno">  460</span>  <span class="keywordflow">if</span> (<a class="code hl_function" href="#a853d256b28c7e6c404c035fc1a16a454">scan_json_object_range</a>(jbuf, <span class="stringliteral">&quot;quant&quot;</span>, &amp;qb, &amp;qe) != 1 || !qb || !qe || qb &gt;= qe) {</div>
+<div class="line"><span class="lineno">  461</span>    free(jbuf);</div>
+<div class="line"><span class="lineno">  462</span>    out_meta-&gt;<a class="code hl_variable" href="structie__int4__quant__meta.html#a2839df315edfb65fcad27e1974695650">present</a> = 0;</div>
+<div class="line"><span class="lineno">  463</span>    <span class="keywordflow">return</span> <a class="code hl_enumvalue" href="group__ie__io__status.html#gga4c501870bd45dbe373416745a03de987a81b076a3d2516e2f45170c664c0fa57d">IE_IO_OK</a>; <span class="comment">/* treat as missing metadata */</span></div>
+<div class="line"><span class="lineno">  464</span>  }</div>
+<div class="line"><span class="lineno">  465</span> </div>
+<div class="line"><span class="lineno">  466</span>  <span class="comment">/* Extract fields from the quant object */</span></div>
+<div class="line"><span class="lineno">  467</span>  <span class="keywordtype">char</span> per[32]; per[0] = <span class="charliteral">&#39;\0&#39;</span>;</div>
+<div class="line"><span class="lineno">  468</span>  (void)<a class="code hl_function" href="#a110cc679cd45b43c11f22ba749bd0ea3">scan_json_key_string_in_range</a>(qb, qe, <span class="stringliteral">&quot;per&quot;</span>, per, <span class="keyword">sizeof</span>(per));</div>
+<div class="line"><span class="lineno">  469</span>  out_meta-&gt;<a class="code hl_variable" href="structie__int4__quant__meta.html#a6918c5b7cb00dd889721e7a1aacc6b08">per_row</a> = <a class="code hl_function" href="#a72ab94aafe7740f1343d317daa89ca15">ascii_ieq</a>(per, <span class="stringliteral">&quot;row&quot;</span>) ? 1 : 0;</div>
+<div class="line"><span class="lineno">  470</span> </div>
+<div class="line"><span class="lineno">  471</span>  <span class="keywordtype">char</span> scale_bin_rel[512]; scale_bin_rel[0] = <span class="charliteral">&#39;\0&#39;</span>;</div>
+<div class="line"><span class="lineno">  472</span>  (void)<a class="code hl_function" href="#a110cc679cd45b43c11f22ba749bd0ea3">scan_json_key_string_in_range</a>(qb, qe, <span class="stringliteral">&quot;scale_bin&quot;</span>, scale_bin_rel, <span class="keyword">sizeof</span>(scale_bin_rel));</div>
+<div class="line"><span class="lineno">  473</span> </div>
+<div class="line"><span class="lineno">  474</span>  <span class="keywordtype">char</span> pack[32]; pack[0] = <span class="charliteral">&#39;\0&#39;</span>;</div>
+<div class="line"><span class="lineno">  475</span>  (void)<a class="code hl_function" href="#a110cc679cd45b43c11f22ba749bd0ea3">scan_json_key_string_in_range</a>(qb, qe, <span class="stringliteral">&quot;pack&quot;</span>, pack, <span class="keyword">sizeof</span>(pack));</div>
+<div class="line"><span class="lineno">  476</span>  <a class="code hl_function" href="#ae3307b59271742c37862abf0b9698d23">cpyz</a>(out_meta-&gt;<a class="code hl_variable" href="structie__int4__quant__meta.html#adeb7b1901e92a823af56d42dae1147b0">pack</a>, <span class="keyword">sizeof</span>(out_meta-&gt;<a class="code hl_variable" href="structie__int4__quant__meta.html#adeb7b1901e92a823af56d42dae1147b0">pack</a>), pack);</div>
+<div class="line"><span class="lineno">  477</span> </div>
+<div class="line"><span class="lineno">  478</span>  <span class="keywordtype">char</span> zp_str[32]; zp_str[0] = <span class="charliteral">&#39;\0&#39;</span>;</div>
+<div class="line"><span class="lineno">  479</span>  (void)<a class="code hl_function" href="#a110cc679cd45b43c11f22ba749bd0ea3">scan_json_key_string_in_range</a>(qb, qe, <span class="stringliteral">&quot;zp&quot;</span>, zp_str, <span class="keyword">sizeof</span>(zp_str));</div>
+<div class="line"><span class="lineno">  480</span>  <span class="keywordflow">if</span> (zp_str[0]) out_meta-&gt;<a class="code hl_variable" href="structie__int4__quant__meta.html#a23f6a4c7d61a82f01525e0af1648949f">zero_point</a> = atoi(zp_str);</div>
+<div class="line"><span class="lineno">  481</span> </div>
+<div class="line"><span class="lineno">  482</span>  <span class="keywordtype">char</span> sym_str[32]; sym_str[0] = <span class="charliteral">&#39;\0&#39;</span>;</div>
+<div class="line"><span class="lineno">  483</span>  (void)<a class="code hl_function" href="#a110cc679cd45b43c11f22ba749bd0ea3">scan_json_key_string_in_range</a>(qb, qe, <span class="stringliteral">&quot;symmetric&quot;</span>, sym_str, <span class="keyword">sizeof</span>(sym_str));</div>
+<div class="line"><span class="lineno">  484</span>  <span class="keywordflow">if</span> (sym_str[0]) out_meta-&gt;<a class="code hl_variable" href="structie__int4__quant__meta.html#aa2a921c71c764707779cdd81f1f4af23">symmetric</a> = (<a class="code hl_function" href="#a72ab94aafe7740f1343d317daa89ca15">ascii_ieq</a>(sym_str, <span class="stringliteral">&quot;true&quot;</span>) || strcmp(sym_str, <span class="stringliteral">&quot;1&quot;</span>) == 0) ? 1 : 0;</div>
+<div class="line"><span class="lineno">  485</span> </div>
+<div class="line"><span class="lineno">  486</span>  <span class="comment">/* Resolve scale_bin relative to JSON directory if needed */</span></div>
+<div class="line"><span class="lineno">  487</span>  <span class="keywordflow">if</span> (scale_bin_rel[0]) {</div>
+<div class="line"><span class="lineno">  488</span>    <span class="keyword">const</span> <span class="keywordtype">char</span> *slash = <a class="code hl_function" href="#a7415d89bc8bd657819e06ac0fc53da95">last_slash</a>(json_path);</div>
+<div class="line"><span class="lineno">  489</span>    <span class="keywordflow">if</span> (slash) {</div>
+<div class="line"><span class="lineno">  490</span>      <span class="keywordtype">char</span> dir[512]; <span class="keywordtype">size_t</span> dn = (size_t)(slash - json_path);</div>
+<div class="line"><span class="lineno">  491</span>      <span class="keywordflow">if</span> (dn &gt;= <span class="keyword">sizeof</span>(dir)) dn = <span class="keyword">sizeof</span>(dir) - 1;</div>
+<div class="line"><span class="lineno">  492</span>      memcpy(dir, json_path, dn); dir[dn] = <span class="charliteral">&#39;\0&#39;</span>;</div>
+<div class="line"><span class="lineno">  493</span>      <a class="code hl_function" href="#a7bb1dd9958b072fc5d1a80373cc074ff">join_path</a>(out_meta-&gt;<a class="code hl_variable" href="structie__int4__quant__meta.html#a8e5938a2d01110bbf72153838467e52d">scale_bin</a>, <span class="keyword">sizeof</span>(out_meta-&gt;<a class="code hl_variable" href="structie__int4__quant__meta.html#a8e5938a2d01110bbf72153838467e52d">scale_bin</a>), dir, scale_bin_rel);</div>
+<div class="line"><span class="lineno">  494</span>    } <span class="keywordflow">else</span> {</div>
+<div class="line"><span class="lineno">  495</span>      <a class="code hl_function" href="#ae3307b59271742c37862abf0b9698d23">cpyz</a>(out_meta-&gt;<a class="code hl_variable" href="structie__int4__quant__meta.html#a8e5938a2d01110bbf72153838467e52d">scale_bin</a>, <span class="keyword">sizeof</span>(out_meta-&gt;<a class="code hl_variable" href="structie__int4__quant__meta.html#a8e5938a2d01110bbf72153838467e52d">scale_bin</a>), scale_bin_rel);</div>
+<div class="line"><span class="lineno">  496</span>    }</div>
+<div class="line"><span class="lineno">  497</span>  } <span class="keywordflow">else</span> {</div>
+<div class="line"><span class="lineno">  498</span>    out_meta-&gt;<a class="code hl_variable" href="structie__int4__quant__meta.html#a8e5938a2d01110bbf72153838467e52d">scale_bin</a>[0] = <span class="charliteral">&#39;\0&#39;</span>;</div>
+<div class="line"><span class="lineno">  499</span>  }</div>
+<div class="line"><span class="lineno">  500</span> </div>
+<div class="line"><span class="lineno">  501</span>  out_meta-&gt;<a class="code hl_variable" href="structie__int4__quant__meta.html#a2839df315edfb65fcad27e1974695650">present</a> = 1;</div>
+<div class="line"><span class="lineno">  502</span>  free(jbuf);</div>
+<div class="line"><span class="lineno">  503</span>  <span class="keywordflow">return</span> <a class="code hl_enumvalue" href="group__ie__io__status.html#gga4c501870bd45dbe373416745a03de987a81b076a3d2516e2f45170c664c0fa57d">IE_IO_OK</a>;</div>
+<div class="line"><span class="lineno">  504</span>}</div>
+<div class="ttc" id="agroup__ie__io__status_html_gga4c501870bd45dbe373416745a03de987aa02b300fcfbce31fe86de69090fc9fa9"><div class="ttname"><a href="group__ie__io__status.html#gga4c501870bd45dbe373416745a03de987aa02b300fcfbce31fe86de69090fc9fa9">IE_IO_ERR_JSON</a></div><div class="ttdeci">@ IE_IO_ERR_JSON</div><div class="ttdoc">Failed to read/parse JSON metadata.</div><div class="ttdef"><b>Definition</b> <a href="ie__io_8h_source.html#l00062">ie_io.h:62</a></div></div>
+<div class="ttc" id="astructie__int4__quant__meta_html_a23f6a4c7d61a82f01525e0af1648949f"><div class="ttname"><a href="structie__int4__quant__meta.html#a23f6a4c7d61a82f01525e0af1648949f">ie_int4_quant_meta::zero_point</a></div><div class="ttdeci">int zero_point</div><div class="ttdoc">Expected 0.</div><div class="ttdef"><b>Definition</b> <a href="weights_8c_source.html#l00427">weights.c:427</a></div></div>
+<div class="ttc" id="astructie__int4__quant__meta_html_a2839df315edfb65fcad27e1974695650"><div class="ttname"><a href="structie__int4__quant__meta.html#a2839df315edfb65fcad27e1974695650">ie_int4_quant_meta::present</a></div><div class="ttdeci">int present</div><div class="ttdoc">1 if INT4 metadata found.</div><div class="ttdef"><b>Definition</b> <a href="weights_8c_source.html#l00423">weights.c:423</a></div></div>
+<div class="ttc" id="astructie__int4__quant__meta_html_a6918c5b7cb00dd889721e7a1aacc6b08"><div class="ttname"><a href="structie__int4__quant__meta.html#a6918c5b7cb00dd889721e7a1aacc6b08">ie_int4_quant_meta::per_row</a></div><div class="ttdeci">int per_row</div><div class="ttdoc">1 for per-row, 0 for per-tensor.</div><div class="ttdef"><b>Definition</b> <a href="weights_8c_source.html#l00424">weights.c:424</a></div></div>
+<div class="ttc" id="astructie__int4__quant__meta_html_a8e5938a2d01110bbf72153838467e52d"><div class="ttname"><a href="structie__int4__quant__meta.html#a8e5938a2d01110bbf72153838467e52d">ie_int4_quant_meta::scale_bin</a></div><div class="ttdeci">char scale_bin[512]</div><div class="ttdoc">Path to scales binary.</div><div class="ttdef"><b>Definition</b> <a href="weights_8c_source.html#l00425">weights.c:425</a></div></div>
+<div class="ttc" id="astructie__int4__quant__meta_html_aa2a921c71c764707779cdd81f1f4af23"><div class="ttname"><a href="structie__int4__quant__meta.html#aa2a921c71c764707779cdd81f1f4af23">ie_int4_quant_meta::symmetric</a></div><div class="ttdeci">int symmetric</div><div class="ttdoc">Expected 1 (true).</div><div class="ttdef"><b>Definition</b> <a href="weights_8c_source.html#l00428">weights.c:428</a></div></div>
+<div class="ttc" id="astructie__int4__quant__meta_html_adeb7b1901e92a823af56d42dae1147b0"><div class="ttname"><a href="structie__int4__quant__meta.html#adeb7b1901e92a823af56d42dae1147b0">ie_int4_quant_meta::pack</a></div><div class="ttdeci">char pack[32]</div><div class="ttdoc">Expected &quot;nibble_lohi&quot;.</div><div class="ttdef"><b>Definition</b> <a href="weights_8c_source.html#l00426">weights.c:426</a></div></div>
+<div class="ttc" id="aweights_8c_html_a110cc679cd45b43c11f22ba749bd0ea3"><div class="ttname"><a href="#a110cc679cd45b43c11f22ba749bd0ea3">scan_json_key_string_in_range</a></div><div class="ttdeci">static int scan_json_key_string_in_range(const char *begin, const char *end, const char *key, char *dst, size_t dstsz)</div><div class="ttdef"><b>Definition</b> <a href="weights_8c_source.html#l00255">weights.c:255</a></div></div>
+<div class="ttc" id="aweights_8c_html_a3c438658d11f74ba4af8273c7e390311"><div class="ttname"><a href="#a3c438658d11f74ba4af8273c7e390311">scan_json_key_string</a></div><div class="ttdeci">static int scan_json_key_string(const char *json, const char *key, char *dst, size_t dstsz)</div><div class="ttdef"><b>Definition</b> <a href="weights_8c_source.html#l00179">weights.c:179</a></div></div>
+<div class="ttc" id="aweights_8c_html_a72ab94aafe7740f1343d317daa89ca15"><div class="ttname"><a href="#a72ab94aafe7740f1343d317daa89ca15">ascii_ieq</a></div><div class="ttdeci">static int ascii_ieq(const char *a, const char *b)</div><div class="ttdef"><b>Definition</b> <a href="weights_8c_source.html#l00310">weights.c:310</a></div></div>
+<div class="ttc" id="aweights_8c_html_a7415d89bc8bd657819e06ac0fc53da95"><div class="ttname"><a href="#a7415d89bc8bd657819e06ac0fc53da95">last_slash</a></div><div class="ttdeci">static const char * last_slash(const char *p)</div><div class="ttdef"><b>Definition</b> <a href="weights_8c_source.html#l00070">weights.c:70</a></div></div>
+<div class="ttc" id="aweights_8c_html_a7bb1dd9958b072fc5d1a80373cc074ff"><div class="ttname"><a href="#a7bb1dd9958b072fc5d1a80373cc074ff">join_path</a></div><div class="ttdeci">static void join_path(char *out, size_t outsz, const char *dir, const char *file)</div><div class="ttdef"><b>Definition</b> <a href="weights_8c_source.html#l00081">weights.c:81</a></div></div>
+<div class="ttc" id="aweights_8c_html_a7d467c1ab0baceed9b0fdad7b5a8accf"><div class="ttname"><a href="#a7d467c1ab0baceed9b0fdad7b5a8accf">read_all_text</a></div><div class="ttdeci">static int read_all_text(const char *path, char **buf, size_t *len_out)</div><div class="ttdef"><b>Definition</b> <a href="weights_8c_source.html#l00114">weights.c:114</a></div></div>
+<div class="ttc" id="aweights_8c_html_a853d256b28c7e6c404c035fc1a16a454"><div class="ttname"><a href="#a853d256b28c7e6c404c035fc1a16a454">scan_json_object_range</a></div><div class="ttdeci">static int scan_json_object_range(const char *json, const char *key, const char **out_begin, const char **out_end)</div><div class="ttdef"><b>Definition</b> <a href="weights_8c_source.html#l00212">weights.c:212</a></div></div>
+<div class="ttc" id="aweights_8c_html_ae3307b59271742c37862abf0b9698d23"><div class="ttname"><a href="#ae3307b59271742c37862abf0b9698d23">cpyz</a></div><div class="ttdeci">static void cpyz(char *dst, size_t dstsz, const char *src)</div><div class="ttdef"><b>Definition</b> <a href="weights_8c_source.html#l00057">weights.c:57</a></div></div>
+</div><!-- fragment -->
+<p class="reference">References <a class="el" href="weights_8c_source.html#l00310">ascii_ieq()</a>, <a class="el" href="weights_8c_source.html#l00057">cpyz()</a>, <a class="el" href="ie__io_8h_source.html#l00059">IE_IO_ERR_ARGS</a>, <a class="el" href="ie__io_8h_source.html#l00062">IE_IO_ERR_JSON</a>, <a class="el" href="ie__io_8h_source.html#l00056">IE_IO_OK</a>, <a class="el" href="weights_8c_source.html#l00081">join_path()</a>, <a class="el" href="weights_8c_source.html#l00070">last_slash()</a>, <a class="el" href="weights_8c_source.html#l00426">ie_int4_quant_meta::pack</a>, <a class="el" href="weights_8c_source.html#l00424">ie_int4_quant_meta::per_row</a>, <a class="el" href="weights_8c_source.html#l00423">ie_int4_quant_meta::present</a>, <a class="el" href="weights_8c_source.html#l00114">read_all_text()</a>, <a class="el" href="weights_8c_source.html#l00425">ie_int4_quant_meta::scale_bin</a>, <a class="el" href="weights_8c_source.html#l00179">scan_json_key_string()</a>, <a class="el" href="weights_8c_source.html#l00255">scan_json_key_string_in_range()</a>, <a class="el" href="weights_8c_source.html#l00212">scan_json_object_range()</a>, <a class="el" href="weights_8c_source.html#l00428">ie_int4_quant_meta::symmetric</a>, and <a class="el" href="weights_8c_source.html#l00427">ie_int4_quant_meta::zero_point</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="weights_8c_a1c8fc195c7c1f4e503920578dbaf1d02_cgraph.svg" width="535" height="416"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
-</div>
-<a id="a095d7f59c4cba2b530bac039bca8b7a9" name="a095d7f59c4cba2b530bac039bca8b7a9"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a095d7f59c4cba2b530bac039bca8b7a9">&#9670;&#160;</a></span>ie_weights_touch()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">int ie_weights_touch </td>
-          <td>(</td>
-          <td class="paramtype">const <a class="el" href="ie__io_8h.html#af68ad3cdc2eb244fe4feed94372d7806">ie_weights_t</a> *</td>          <td class="paramname"><span class="paramname"><em>w</em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Touch the weights binary to verify readability (and optionally warm caches). </p>
-<p>Performs a small positional read at offset 0 and at the end of file (if large enough). Intended as a fast sanity check during startup or tests. The implementation may be a no-op if the platform lacks <code>pread</code>.</p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">w</td><td>Opened weights descriptor (must come from <a class="el" href="ie__io_8h.html#a522dac028ee37aae1307ffdb6d65ec1d">ie_weights_open</a>). </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="retval"><dt>Return values</dt><dd>
-  <table class="retval">
-    <tr><td class="paramname">IE_IO_OK</td><td>on success (binary considered readable). </td></tr>
-    <tr><td class="paramname">IE_IO_ERR_ARGS</td><td>on invalid arguments or unopened descriptor. </td></tr>
-    <tr><td class="paramname">IE_IO_ERR_OPEN</td><td>if the binary cannot be opened. </td></tr>
-    <tr><td class="paramname">IE_IO_ERR_READ</td><td>if the binary cannot be read. </td></tr>
-  </table>
-  </dd>
-</dl>
-
-<p class="definition">Definition at line <a class="el" href="weights_8c_source.html#l00311">311</a> of file <a class="el" href="weights_8c_source.html">weights.c</a>.</p>
-
-<p class="reference">References <a class="el" href="ie__io_8h_source.html#l00092">ie_weights_s::bin_size_bytes</a>, <a class="el" href="ie__kernels__ze_8cl_source.html#l00084">buf</a>, <a class="el" href="ie__io_8h_source.html#l00062">IE_IO_ERR_ARGS</a>, <a class="el" href="ie__io_8h_source.html#l00066">IE_IO_ERR_OPEN</a>, <a class="el" href="ie__io_8h_source.html#l00067">IE_IO_ERR_READ</a>, <a class="el" href="ie__io_8h_source.html#l00061">IE_IO_OK</a>, <a class="el" href="weights_8c_source.html#l00228">ie_pread()</a>, and <a class="el" href="ie__io_8h_source.html#l00089">ie_weights_s::weights_path</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="main__infer_8c_source.html#l00241">main()</a>.</p>
 
 </div>
 </div>
@@ -427,11 +656,48 @@ Design Goals</h2>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="weights_8c_source.html#l00075">75</a> of file <a class="el" href="weights_8c_source.html">weights.c</a>.</p>
+<p class="definition">Definition at line <a class="el" href="weights_8c_source.html#l00081">81</a> of file <a class="el" href="weights_8c_source.html">weights.c</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">   81</span>                                                                                  {</div>
+<div class="line"><span class="lineno">   82</span>  <span class="keywordflow">if</span> (!out || outsz == 0) <span class="keywordflow">return</span>;</div>
+<div class="line"><span class="lineno">   83</span>  out[0] = <span class="charliteral">&#39;\0&#39;</span>;</div>
+<div class="line"><span class="lineno">   84</span>  <span class="keywordflow">if</span> (!file || !*file) <span class="keywordflow">return</span>;</div>
+<div class="line"><span class="lineno">   85</span> </div>
+<div class="line"><span class="lineno">   86</span>  <span class="keywordflow">if</span> (!dir || !*dir) { <a class="code hl_function" href="#ae3307b59271742c37862abf0b9698d23">cpyz</a>(out, outsz, file); <span class="keywordflow">return</span>; }</div>
+<div class="line"><span class="lineno">   87</span> </div>
+<div class="line"><span class="lineno">   88</span>  <span class="keyword">const</span> <span class="keywordtype">size_t</span> ld = strlen(dir);</div>
+<div class="line"><span class="lineno">   89</span>  <span class="keyword">const</span> <span class="keywordtype">size_t</span> lf = strlen(file);</div>
+<div class="line"><span class="lineno">   90</span>  <span class="keyword">const</span> <span class="keywordtype">int</span> need_slash = (ld &gt; 0 &amp;&amp; dir[ld - 1] != <span class="charliteral">&#39;/&#39;</span>);</div>
+<div class="line"><span class="lineno">   91</span> </div>
+<div class="line"><span class="lineno">   92</span>  <span class="keywordtype">size_t</span> pos = 0;</div>
+<div class="line"><span class="lineno">   93</span> </div>
+<div class="line"><span class="lineno">   94</span>  <span class="keywordtype">size_t</span> copyd = ld;</div>
+<div class="line"><span class="lineno">   95</span>  <span class="keywordflow">if</span> (copyd &gt;= outsz) copyd = outsz - 1;</div>
+<div class="line"><span class="lineno">   96</span>  <span class="keywordflow">if</span> (copyd &gt; 0) { memcpy(out + pos, dir, copyd); pos += copyd; }</div>
+<div class="line"><span class="lineno">   97</span> </div>
+<div class="line"><span class="lineno">   98</span>  <span class="keywordflow">if</span> (pos &lt; outsz - 1 &amp;&amp; need_slash) { out[pos++] = <span class="charliteral">&#39;/&#39;</span>; }</div>
+<div class="line"><span class="lineno">   99</span> </div>
+<div class="line"><span class="lineno">  100</span>  <span class="keywordflow">if</span> (pos &lt; outsz - 1) {</div>
+<div class="line"><span class="lineno">  101</span>    <span class="keywordtype">size_t</span> room = (outsz - 1) - pos;</div>
+<div class="line"><span class="lineno">  102</span>    <span class="keywordtype">size_t</span> copyf = (lf &gt; room) ? room : lf;</div>
+<div class="line"><span class="lineno">  103</span>    <span class="keywordflow">if</span> (copyf &gt; 0) { memcpy(out + pos, file, copyf); pos += copyf; }</div>
+<div class="line"><span class="lineno">  104</span>  }</div>
+<div class="line"><span class="lineno">  105</span> </div>
+<div class="line"><span class="lineno">  106</span>  out[pos] = <span class="charliteral">&#39;\0&#39;</span>;</div>
+<div class="line"><span class="lineno">  107</span>}</div>
+</div><!-- fragment -->
+<p class="reference">References <a class="el" href="weights_8c_source.html#l00057">cpyz()</a>.</p>
 
-<p class="reference">References <a class="el" href="weights_8c_source.html#l00045">cpyz()</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="weights_8c_source.html#l00254">ie_weights_open()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="weights_8c_source.html#l00326">ie_weights_open()</a>, and <a class="el" href="weights_8c_source.html#l00439">ie_weights_read_int4_meta()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="weights_8c_a7bb1dd9958b072fc5d1a80373cc074ff_cgraph.svg" width="192" height="39"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="weights_8c_a7bb1dd9958b072fc5d1a80373cc074ff_icgraph.svg" width="443" height="116"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
 
 </div>
 </div>
@@ -458,9 +724,20 @@ Design Goals</h2>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="weights_8c_source.html#l00058">58</a> of file <a class="el" href="weights_8c_source.html">weights.c</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="weights_8c_source.html#l00254">ie_weights_open()</a>.</p>
+<p class="definition">Definition at line <a class="el" href="weights_8c_source.html#l00070">70</a> of file <a class="el" href="weights_8c_source.html">weights.c</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">   70</span>                                             {</div>
+<div class="line"><span class="lineno">   71</span>  <span class="keyword">const</span> <span class="keywordtype">char</span> *s = NULL;</div>
+<div class="line"><span class="lineno">   72</span>  <span class="keywordflow">if</span> (!p) <span class="keywordflow">return</span> NULL;</div>
+<div class="line"><span class="lineno">   73</span>  <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keywordtype">char</span> *q = p; *q; ++q) <span class="keywordflow">if</span> (*q == <span class="charliteral">&#39;/&#39;</span>) s = q;</div>
+<div class="line"><span class="lineno">   74</span>  <span class="keywordflow">return</span> s;</div>
+<div class="line"><span class="lineno">   75</span>}</div>
+</div><!-- fragment -->
+<p class="reference">Referenced by <a class="el" href="weights_8c_source.html#l00326">ie_weights_open()</a>, and <a class="el" href="weights_8c_source.html#l00439">ie_weights_read_int4_meta()</a>.</p>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="weights_8c_a7415d89bc8bd657819e06ac0fc53da95_icgraph.svg" width="448" height="116"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
 
 </div>
 </div>
@@ -496,11 +773,48 @@ Design Goals</h2>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="weights_8c_source.html#l00115">115</a> of file <a class="el" href="weights_8c_source.html">weights.c</a>.</p>
-
-<p class="reference">References <a class="el" href="ie__kernels__ze_8cl_source.html#l00084">buf</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="weights_8c_source.html#l00254">ie_weights_open()</a>.</p>
+<p class="definition">Definition at line <a class="el" href="weights_8c_source.html#l00114">114</a> of file <a class="el" href="weights_8c_source.html">weights.c</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">  114</span>                                                                        {</div>
+<div class="line"><span class="lineno">  115</span>  <span class="keywordflow">if</span> (!path || !buf) <span class="keywordflow">return</span> -1;</div>
+<div class="line"><span class="lineno">  116</span>  *buf = NULL; <span class="keywordflow">if</span> (len_out) *len_out = 0;</div>
+<div class="line"><span class="lineno">  117</span> </div>
+<div class="line"><span class="lineno">  118</span>  FILE *f = fopen(path, <span class="stringliteral">&quot;rb&quot;</span>);</div>
+<div class="line"><span class="lineno">  119</span>  <span class="keywordflow">if</span> (!f) <span class="keywordflow">return</span> -2;</div>
+<div class="line"><span class="lineno">  120</span> </div>
+<div class="line"><span class="lineno">  121</span>  <span class="keywordflow">if</span> (fseek(f, 0, SEEK_END) != 0) { fclose(f); <span class="keywordflow">return</span> -3; }</div>
+<div class="line"><span class="lineno">  122</span>  <span class="keywordtype">long</span> n = ftell(f);</div>
+<div class="line"><span class="lineno">  123</span>  <span class="keywordflow">if</span> (n &lt; 0) { fclose(f); <span class="keywordflow">return</span> -3; }</div>
+<div class="line"><span class="lineno">  124</span>  <span class="keywordflow">if</span> (fseek(f, 0, SEEK_SET) != 0) { fclose(f); <span class="keywordflow">return</span> -3; }</div>
+<div class="line"><span class="lineno">  125</span> </div>
+<div class="line"><span class="lineno">  126</span>  <span class="keywordtype">size_t</span> size = (size_t)n;</div>
+<div class="line"><span class="lineno">  127</span>  <span class="keywordtype">char</span> *mem = (<span class="keywordtype">char</span>*)malloc(size + 1);</div>
+<div class="line"><span class="lineno">  128</span>  <span class="keywordflow">if</span> (!mem) { fclose(f); <span class="keywordflow">return</span> -4; }</div>
+<div class="line"><span class="lineno">  129</span> </div>
+<div class="line"><span class="lineno">  130</span>  <span class="keywordtype">size_t</span> rd = fread(mem, 1, size, f);</div>
+<div class="line"><span class="lineno">  131</span>  fclose(f);</div>
+<div class="line"><span class="lineno">  132</span>  <span class="keywordflow">if</span> (rd != size) { free(mem); <span class="keywordflow">return</span> -5; }</div>
+<div class="line"><span class="lineno">  133</span> </div>
+<div class="line"><span class="lineno">  134</span>  <span class="comment">/* Strip UTF-8 BOM if present */</span></div>
+<div class="line"><span class="lineno">  135</span>  <span class="keywordflow">if</span> (size &gt;= 3 &amp;&amp;</div>
+<div class="line"><span class="lineno">  136</span>      (<span class="keywordtype">unsigned</span> <span class="keywordtype">char</span>)mem[0] == 0xEF &amp;&amp;</div>
+<div class="line"><span class="lineno">  137</span>      (<span class="keywordtype">unsigned</span> <span class="keywordtype">char</span>)mem[1] == 0xBB &amp;&amp;</div>
+<div class="line"><span class="lineno">  138</span>      (<span class="keywordtype">unsigned</span> <span class="keywordtype">char</span>)mem[2] == 0xBF) {</div>
+<div class="line"><span class="lineno">  139</span>    size -= 3;</div>
+<div class="line"><span class="lineno">  140</span>    memmove(mem, mem + 3, size);</div>
+<div class="line"><span class="lineno">  141</span>  }</div>
+<div class="line"><span class="lineno">  142</span> </div>
+<div class="line"><span class="lineno">  143</span>  mem[size] = <span class="charliteral">&#39;\0&#39;</span>;</div>
+<div class="line"><span class="lineno">  144</span>  *buf = mem;</div>
+<div class="line"><span class="lineno">  145</span>  <span class="keywordflow">if</span> (len_out) *len_out = size;</div>
+<div class="line"><span class="lineno">  146</span>  <span class="keywordflow">return</span> 0;</div>
+<div class="line"><span class="lineno">  147</span>}</div>
+</div><!-- fragment -->
+<p class="reference">Referenced by <a class="el" href="weights_8c_source.html#l00326">ie_weights_open()</a>, and <a class="el" href="weights_8c_source.html#l00439">ie_weights_read_int4_meta()</a>.</p>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="weights_8c_a7d467c1ab0baceed9b0fdad7b5a8accf_icgraph.svg" width="468" height="116"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
 
 </div>
 </div>
@@ -536,9 +850,33 @@ Design Goals</h2>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="weights_8c_source.html#l00158">158</a> of file <a class="el" href="weights_8c_source.html">weights.c</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="weights_8c_source.html#l00254">ie_weights_open()</a>.</p>
+<p class="definition">Definition at line <a class="el" href="weights_8c_source.html#l00154">154</a> of file <a class="el" href="weights_8c_source.html">weights.c</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">  154</span>                                                                              {</div>
+<div class="line"><span class="lineno">  155</span>  <span class="keywordflow">if</span> (!json || !key || !out_val) <span class="keywordflow">return</span> -1;</div>
+<div class="line"><span class="lineno">  156</span>  <span class="keyword">const</span> <span class="keywordtype">char</span> *p = json;</div>
+<div class="line"><span class="lineno">  157</span>  <span class="keyword">const</span> <span class="keywordtype">size_t</span> klen = strlen(key);</div>
+<div class="line"><span class="lineno">  158</span>  <span class="keywordflow">while</span> ((p = strstr(p, <span class="stringliteral">&quot;\&quot;&quot;</span>))) {</div>
+<div class="line"><span class="lineno">  159</span>    ++p;</div>
+<div class="line"><span class="lineno">  160</span>    <span class="keywordflow">if</span> (strncmp(p, key, klen) == 0 &amp;&amp; p[klen] == <span class="charliteral">&#39;&quot;&#39;</span>) {</div>
+<div class="line"><span class="lineno">  161</span>      <span class="keyword">const</span> <span class="keywordtype">char</span> *c = p + klen + 1;</div>
+<div class="line"><span class="lineno">  162</span>      <span class="keywordflow">while</span> (*c == <span class="charliteral">&#39; &#39;</span> || *c == <span class="charliteral">&#39;\t&#39;</span> || *c == <span class="charliteral">&#39;\r&#39;</span> || *c == <span class="charliteral">&#39;\n&#39;</span>) ++c;</div>
+<div class="line"><span class="lineno">  163</span>      <span class="keywordflow">if</span> (*c != <span class="charliteral">&#39;:&#39;</span>) <span class="keywordflow">continue</span>;</div>
+<div class="line"><span class="lineno">  164</span>      ++c;</div>
+<div class="line"><span class="lineno">  165</span>      <span class="keywordflow">while</span> (*c == <span class="charliteral">&#39; &#39;</span> || *c == <span class="charliteral">&#39;\t&#39;</span> || *c == <span class="charliteral">&#39;\r&#39;</span> || *c == <span class="charliteral">&#39;\n&#39;</span>) ++c;</div>
+<div class="line"><span class="lineno">  166</span>      <span class="keywordtype">char</span> *end = NULL;</div>
+<div class="line"><span class="lineno">  167</span>      <span class="keywordtype">long</span> v = strtol(c, &amp;end, 10);</div>
+<div class="line"><span class="lineno">  168</span>      <span class="keywordflow">if</span> (end &amp;&amp; end != c) { *out_val = (int)v; <span class="keywordflow">return</span> 1; }</div>
+<div class="line"><span class="lineno">  169</span>    }</div>
+<div class="line"><span class="lineno">  170</span>  }</div>
+<div class="line"><span class="lineno">  171</span>  <span class="keywordflow">return</span> 0;</div>
+<div class="line"><span class="lineno">  172</span>}</div>
+</div><!-- fragment -->
+<p class="reference">Referenced by <a class="el" href="weights_8c_source.html#l00326">ie_weights_open()</a>.</p>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="weights_8c_a5c6ba72035c0c5110c91879350c8647f_icgraph.svg" width="431" height="91"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
 
 </div>
 </div>
@@ -579,9 +917,204 @@ Design Goals</h2>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="weights_8c_source.html#l00187">187</a> of file <a class="el" href="weights_8c_source.html">weights.c</a>.</p>
+<p class="definition">Definition at line <a class="el" href="weights_8c_source.html#l00179">179</a> of file <a class="el" href="weights_8c_source.html">weights.c</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">  179</span>                                                                                            {</div>
+<div class="line"><span class="lineno">  180</span>  <span class="keywordflow">if</span> (!json || !key || !dst || dstsz == 0) <span class="keywordflow">return</span> -1;</div>
+<div class="line"><span class="lineno">  181</span>  dst[0] = <span class="charliteral">&#39;\0&#39;</span>;</div>
+<div class="line"><span class="lineno">  182</span>  <span class="keyword">const</span> <span class="keywordtype">char</span> *p = json;</div>
+<div class="line"><span class="lineno">  183</span>  <span class="keyword">const</span> <span class="keywordtype">size_t</span> klen = strlen(key);</div>
+<div class="line"><span class="lineno">  184</span>  <span class="keywordflow">while</span> ((p = strstr(p, <span class="stringliteral">&quot;\&quot;&quot;</span>))) {</div>
+<div class="line"><span class="lineno">  185</span>    ++p;</div>
+<div class="line"><span class="lineno">  186</span>    <span class="keywordflow">if</span> (strncmp(p, key, klen) == 0 &amp;&amp; p[klen] == <span class="charliteral">&#39;&quot;&#39;</span>) {</div>
+<div class="line"><span class="lineno">  187</span>      <span class="keyword">const</span> <span class="keywordtype">char</span> *c = p + klen + 1;</div>
+<div class="line"><span class="lineno">  188</span>      <span class="keywordflow">while</span> (*c == <span class="charliteral">&#39; &#39;</span> || *c == <span class="charliteral">&#39;\t&#39;</span> || *c == <span class="charliteral">&#39;\r&#39;</span> || *c == <span class="charliteral">&#39;\n&#39;</span>) ++c;</div>
+<div class="line"><span class="lineno">  189</span>      <span class="keywordflow">if</span> (*c != <span class="charliteral">&#39;:&#39;</span>) <span class="keywordflow">continue</span>;</div>
+<div class="line"><span class="lineno">  190</span>      ++c;</div>
+<div class="line"><span class="lineno">  191</span>      <span class="keywordflow">while</span> (*c == <span class="charliteral">&#39; &#39;</span> || *c == <span class="charliteral">&#39;\t&#39;</span> || *c == <span class="charliteral">&#39;\r&#39;</span> || *c == <span class="charliteral">&#39;\n&#39;</span>) ++c;</div>
+<div class="line"><span class="lineno">  192</span>      <span class="keywordflow">if</span> (*c != <span class="charliteral">&#39;&quot;&#39;</span>) <span class="keywordflow">continue</span>;</div>
+<div class="line"><span class="lineno">  193</span>      ++c;</div>
+<div class="line"><span class="lineno">  194</span>      <span class="keyword">const</span> <span class="keywordtype">char</span> *start = c;</div>
+<div class="line"><span class="lineno">  195</span>      <span class="keywordflow">while</span> (*c &amp;&amp; *c != <span class="charliteral">&#39;&quot;&#39;</span>) ++c;</div>
+<div class="line"><span class="lineno">  196</span>      <span class="keywordtype">size_t</span> n = (size_t)(c - start);</div>
+<div class="line"><span class="lineno">  197</span>      <span class="keywordflow">if</span> (n &gt;= dstsz) n = dstsz - 1;</div>
+<div class="line"><span class="lineno">  198</span>      memcpy(dst, start, n);</div>
+<div class="line"><span class="lineno">  199</span>      dst[n] = <span class="charliteral">&#39;\0&#39;</span>;</div>
+<div class="line"><span class="lineno">  200</span>      <span class="keywordflow">return</span> 1;</div>
+<div class="line"><span class="lineno">  201</span>    }</div>
+<div class="line"><span class="lineno">  202</span>  }</div>
+<div class="line"><span class="lineno">  203</span>  <span class="keywordflow">return</span> 0;</div>
+<div class="line"><span class="lineno">  204</span>}</div>
+</div><!-- fragment -->
+<p class="reference">Referenced by <a class="el" href="weights_8c_source.html#l00326">ie_weights_open()</a>, and <a class="el" href="weights_8c_source.html#l00439">ie_weights_read_int4_meta()</a>.</p>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="weights_8c_a3c438658d11f74ba4af8273c7e390311_icgraph.svg" width="522" height="116"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
 
-<p class="reference">Referenced by <a class="el" href="weights_8c_source.html#l00254">ie_weights_open()</a>.</p>
+</div>
+</div>
+<a id="a110cc679cd45b43c11f22ba749bd0ea3" name="a110cc679cd45b43c11f22ba749bd0ea3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a110cc679cd45b43c11f22ba749bd0ea3">&#9670;&#160;</a></span>scan_json_key_string_in_range()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static int scan_json_key_string_in_range </td>
+          <td>(</td>
+          <td class="paramtype">const char *</td>          <td class="paramname"><span class="paramname"><em>begin</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *</td>          <td class="paramname"><span class="paramname"><em>end</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *</td>          <td class="paramname"><span class="paramname"><em>key</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">char *</td>          <td class="paramname"><span class="paramname"><em>dst</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t</td>          <td class="paramname"><span class="paramname"><em>dstsz</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="weights_8c_source.html#l00255">255</a> of file <a class="el" href="weights_8c_source.html">weights.c</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">  259</span>                                                       {</div>
+<div class="line"><span class="lineno">  260</span>  <span class="keywordflow">if</span> (!begin || !end || !key || !dst || dstsz == 0) <span class="keywordflow">return</span> -1;</div>
+<div class="line"><span class="lineno">  261</span>  dst[0] = <span class="charliteral">&#39;\0&#39;</span>;</div>
+<div class="line"><span class="lineno">  262</span>  <span class="keyword">const</span> <span class="keywordtype">size_t</span> klen = strlen(key);</div>
+<div class="line"><span class="lineno">  263</span>  <span class="keyword">const</span> <span class="keywordtype">char</span> *p = begin;</div>
+<div class="line"><span class="lineno">  264</span>  <span class="keywordflow">while</span> (p &lt; end) {</div>
+<div class="line"><span class="lineno">  265</span>    <span class="keyword">const</span> <span class="keywordtype">char</span> *q = memchr(p, <span class="charliteral">&#39;&quot;&#39;</span>, (<span class="keywordtype">size_t</span>)(end - p));</div>
+<div class="line"><span class="lineno">  266</span>    <span class="keywordflow">if</span> (!q) <span class="keywordflow">break</span>;</div>
+<div class="line"><span class="lineno">  267</span>    ++q;</div>
+<div class="line"><span class="lineno">  268</span>    <span class="keywordflow">if</span> ((<span class="keywordtype">size_t</span>)(end - q) &gt;= klen &amp;&amp; memcmp(q, key, klen) == 0 &amp;&amp; q[klen] == <span class="charliteral">&#39;&quot;&#39;</span>) {</div>
+<div class="line"><span class="lineno">  269</span>      <span class="keyword">const</span> <span class="keywordtype">char</span> *c = q + klen + 1;</div>
+<div class="line"><span class="lineno">  270</span>      <span class="keywordflow">while</span> (c &lt; end &amp;&amp; (*c == <span class="charliteral">&#39; &#39;</span> || *c == <span class="charliteral">&#39;\t&#39;</span> || *c == <span class="charliteral">&#39;\r&#39;</span> || *c == <span class="charliteral">&#39;\n&#39;</span>)) ++c;</div>
+<div class="line"><span class="lineno">  271</span>      <span class="keywordflow">if</span> (c &gt;= end || *c != <span class="charliteral">&#39;:&#39;</span>) { p = q + 1; <span class="keywordflow">continue</span>; }</div>
+<div class="line"><span class="lineno">  272</span>      ++c;</div>
+<div class="line"><span class="lineno">  273</span>      <span class="keywordflow">while</span> (c &lt; end &amp;&amp; (*c == <span class="charliteral">&#39; &#39;</span> || *c == <span class="charliteral">&#39;\t&#39;</span> || *c == <span class="charliteral">&#39;\r&#39;</span> || *c == <span class="charliteral">&#39;\n&#39;</span>)) ++c;</div>
+<div class="line"><span class="lineno">  274</span>      <span class="keywordflow">if</span> (c &gt;= end || *c != <span class="charliteral">&#39;&quot;&#39;</span>) { p = q + 1; <span class="keywordflow">continue</span>; }</div>
+<div class="line"><span class="lineno">  275</span>      ++c;</div>
+<div class="line"><span class="lineno">  276</span>      <span class="keyword">const</span> <span class="keywordtype">char</span> *start = c;</div>
+<div class="line"><span class="lineno">  277</span>      <span class="keywordflow">while</span> (c &lt; end &amp;&amp; *c != <span class="charliteral">&#39;&quot;&#39;</span>) ++c;</div>
+<div class="line"><span class="lineno">  278</span>      <span class="keywordtype">size_t</span> n = (size_t)(c - start);</div>
+<div class="line"><span class="lineno">  279</span>      <span class="keywordflow">if</span> (n &gt;= dstsz) n = dstsz - 1;</div>
+<div class="line"><span class="lineno">  280</span>      memcpy(dst, start, n);</div>
+<div class="line"><span class="lineno">  281</span>      dst[n] = <span class="charliteral">&#39;\0&#39;</span>;</div>
+<div class="line"><span class="lineno">  282</span>      <span class="keywordflow">return</span> 1;</div>
+<div class="line"><span class="lineno">  283</span>    }</div>
+<div class="line"><span class="lineno">  284</span>    p = q + 1;</div>
+<div class="line"><span class="lineno">  285</span>  }</div>
+<div class="line"><span class="lineno">  286</span>  <span class="keywordflow">return</span> 0;</div>
+<div class="line"><span class="lineno">  287</span>}</div>
+</div><!-- fragment -->
+<p class="reference">Referenced by <a class="el" href="weights_8c_source.html#l00439">ie_weights_read_int4_meta()</a>.</p>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="weights_8c_a110cc679cd45b43c11f22ba749bd0ea3_icgraph.svg" width="419" height="56"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a853d256b28c7e6c404c035fc1a16a454" name="a853d256b28c7e6c404c035fc1a16a454"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a853d256b28c7e6c404c035fc1a16a454">&#9670;&#160;</a></span>scan_json_object_range()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static int scan_json_object_range </td>
+          <td>(</td>
+          <td class="paramtype">const char *</td>          <td class="paramname"><span class="paramname"><em>json</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *</td>          <td class="paramname"><span class="paramname"><em>key</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char **</td>          <td class="paramname"><span class="paramname"><em>out_begin</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char **</td>          <td class="paramname"><span class="paramname"><em>out_end</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="weights_8c_source.html#l00212">212</a> of file <a class="el" href="weights_8c_source.html">weights.c</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">  215</span>                                                        {</div>
+<div class="line"><span class="lineno">  216</span>  <span class="keywordflow">if</span> (!json || !key || !out_begin || !out_end) <span class="keywordflow">return</span> -1;</div>
+<div class="line"><span class="lineno">  217</span>  *out_begin = *out_end = NULL;</div>
+<div class="line"><span class="lineno">  218</span> </div>
+<div class="line"><span class="lineno">  219</span>  <span class="keyword">const</span> <span class="keywordtype">size_t</span> klen = strlen(key);</div>
+<div class="line"><span class="lineno">  220</span>  <span class="keyword">const</span> <span class="keywordtype">char</span> *p = json;</div>
+<div class="line"><span class="lineno">  221</span>  <span class="keywordflow">while</span> ((p = strstr(p, <span class="stringliteral">&quot;\&quot;&quot;</span>))) {</div>
+<div class="line"><span class="lineno">  222</span>    ++p;</div>
+<div class="line"><span class="lineno">  223</span>    <span class="keywordflow">if</span> (strncmp(p, key, klen) == 0 &amp;&amp; p[klen] == <span class="charliteral">&#39;&quot;&#39;</span>) {</div>
+<div class="line"><span class="lineno">  224</span>      <span class="keyword">const</span> <span class="keywordtype">char</span> *c = p + klen + 1;</div>
+<div class="line"><span class="lineno">  225</span>      <span class="keywordflow">while</span> (*c == <span class="charliteral">&#39; &#39;</span> || *c == <span class="charliteral">&#39;\t&#39;</span> || *c == <span class="charliteral">&#39;\r&#39;</span> || *c == <span class="charliteral">&#39;\n&#39;</span>) ++c;</div>
+<div class="line"><span class="lineno">  226</span>      <span class="keywordflow">if</span> (*c != <span class="charliteral">&#39;:&#39;</span>) <span class="keywordflow">continue</span>;</div>
+<div class="line"><span class="lineno">  227</span>      ++c;</div>
+<div class="line"><span class="lineno">  228</span>      <span class="keywordflow">while</span> (*c == <span class="charliteral">&#39; &#39;</span> || *c == <span class="charliteral">&#39;\t&#39;</span> || *c == <span class="charliteral">&#39;\r&#39;</span> || *c == <span class="charliteral">&#39;\n&#39;</span>) ++c;</div>
+<div class="line"><span class="lineno">  229</span>      <span class="keywordflow">if</span> (*c != <span class="charliteral">&#39;{&#39;</span>) <span class="keywordflow">return</span> 0;</div>
+<div class="line"><span class="lineno">  230</span>      <span class="comment">/* scan balanced braces */</span></div>
+<div class="line"><span class="lineno">  231</span>      <span class="keywordtype">int</span> depth = 0;</div>
+<div class="line"><span class="lineno">  232</span>      <span class="keyword">const</span> <span class="keywordtype">char</span> *start = c + 1;</div>
+<div class="line"><span class="lineno">  233</span>      <span class="keyword">const</span> <span class="keywordtype">char</span> *q = c;</div>
+<div class="line"><span class="lineno">  234</span>      <span class="keywordflow">do</span> {</div>
+<div class="line"><span class="lineno">  235</span>        <span class="keywordflow">if</span> (*q == <span class="charliteral">&#39;{&#39;</span>) ++depth;</div>
+<div class="line"><span class="lineno">  236</span>        <span class="keywordflow">else</span> <span class="keywordflow">if</span> (*q == <span class="charliteral">&#39;}&#39;</span>) --depth;</div>
+<div class="line"><span class="lineno">  237</span>        ++q;</div>
+<div class="line"><span class="lineno">  238</span>      } <span class="keywordflow">while</span> (*q &amp;&amp; depth &gt; 0);</div>
+<div class="line"><span class="lineno">  239</span>      <span class="keywordflow">if</span> (depth == 0) {</div>
+<div class="line"><span class="lineno">  240</span>        *out_begin = start;</div>
+<div class="line"><span class="lineno">  241</span>        *out_end   = q - 1; <span class="comment">/* position of &#39;}&#39; */</span></div>
+<div class="line"><span class="lineno">  242</span>        <span class="keywordflow">return</span> 1;</div>
+<div class="line"><span class="lineno">  243</span>      }</div>
+<div class="line"><span class="lineno">  244</span>      <span class="keywordflow">return</span> 0;</div>
+<div class="line"><span class="lineno">  245</span>    }</div>
+<div class="line"><span class="lineno">  246</span>  }</div>
+<div class="line"><span class="lineno">  247</span>  <span class="keywordflow">return</span> 0;</div>
+<div class="line"><span class="lineno">  248</span>}</div>
+</div><!-- fragment -->
+<p class="reference">Referenced by <a class="el" href="weights_8c_source.html#l00439">ie_weights_read_int4_meta()</a>.</p>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="weights_8c_a853d256b28c7e6c404c035fc1a16a454_icgraph.svg" width="436" height="39"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
 
 </div>
 </div>

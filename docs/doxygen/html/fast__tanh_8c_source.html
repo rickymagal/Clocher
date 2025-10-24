@@ -27,9 +27,9 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">Inference Engine (Clocher)<span id="projectnumber">&#160;0.1</span>
+   <div id="projectname">Inference Engine (Clocher)<span id="projectnumber">&#160;0.2</span>
    </div>
-   <div id="projectbrief">C11 CPU inference baseline with strict metrics &amp; harness</div>
+   <div id="projectbrief">C11 CPU/GPU inference baseline with strict metrics &amp; harness</div>
   </td>
  </tr>
  </tbody>
@@ -108,21 +108,21 @@ $(function(){initNavTree('fast__tanh_8c_source.html',''); initResizable(true); }
 <div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span><span class="preprocessor">#include &lt;stddef.h&gt;</span></div>
 <div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span></div>
 <div class="foldopen" id="foldopen00028" data-start="{" data-end="}">
-<div class="line"><a id="l00028" name="l00028"></a><span class="lineno"><a class="line" href="ie__kernels_8h.html#a2b9a073aea2b6ff7450b2d0ee32765ae">   28</a></span><span class="keywordtype">float</span> <a class="code hl_function" href="fast__tanh_8c.html#a2b9a073aea2b6ff7450b2d0ee32765ae">ie_fast_tanhf</a>(<span class="keywordtype">float</span> <a class="code hl_variable" href="ie__kernels__ze_8cl.html#ad48b386850d1d2a5a51515ad676993a0">x</a>) {</div>
+<div class="line"><a id="l00028" name="l00028"></a><span class="lineno"><a class="line" href="ie__kernels_8h.html#a2b9a073aea2b6ff7450b2d0ee32765ae">   28</a></span><span class="keywordtype">float</span> <a class="code hl_function" href="fast__tanh_8c.html#a2b9a073aea2b6ff7450b2d0ee32765ae">ie_fast_tanhf</a>(<span class="keywordtype">float</span> x) {</div>
 <div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span>  <span class="comment">/* Early clamp for large magnitude to avoid overflow and extra work. */</span></div>
-<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span>  <span class="keywordflow">if</span> (<a class="code hl_variable" href="ie__kernels__ze_8cl.html#ad48b386850d1d2a5a51515ad676993a0">x</a> &gt; 5.0f)  <span class="keywordflow">return</span> 1.0f;</div>
-<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span>  <span class="keywordflow">if</span> (<a class="code hl_variable" href="ie__kernels__ze_8cl.html#ad48b386850d1d2a5a51515ad676993a0">x</a> &lt; -5.0f) <span class="keywordflow">return</span> -1.0f;</div>
+<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span>  <span class="keywordflow">if</span> (x &gt; 5.0f)  <span class="keywordflow">return</span> 1.0f;</div>
+<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span>  <span class="keywordflow">if</span> (x &lt; -5.0f) <span class="keywordflow">return</span> -1.0f;</div>
 <div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span> </div>
 <div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span>  <span class="comment">/* Rational approximation (cheap and monotonic on [-3,3]) */</span></div>
-<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span>  <span class="keyword">const</span> <span class="keywordtype">float</span> x2  = <a class="code hl_variable" href="ie__kernels__ze_8cl.html#ad48b386850d1d2a5a51515ad676993a0">x</a> * <a class="code hl_variable" href="ie__kernels__ze_8cl.html#ad48b386850d1d2a5a51515ad676993a0">x</a>;</div>
-<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>  <span class="keyword">const</span> <span class="keywordtype">float</span> num = <a class="code hl_variable" href="ie__kernels__ze_8cl.html#ad48b386850d1d2a5a51515ad676993a0">x</a> * (27.0f + x2);</div>
+<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span>  <span class="keyword">const</span> <span class="keywordtype">float</span> x2  = x * x;</div>
+<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>  <span class="keyword">const</span> <span class="keywordtype">float</span> num = x * (27.0f + x2);</div>
 <div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span>  <span class="keyword">const</span> <span class="keywordtype">float</span> den = 27.0f + 9.0f * x2;</div>
-<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span>  <span class="keywordtype">float</span> <a class="code hl_variable" href="ie__kernels__ze_8cl.html#aea3d67a4afbcc9232ebb1f337b451966">y</a> = num / den;</div>
+<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span>  <span class="keywordtype">float</span> y = num / den;</div>
 <div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span> </div>
 <div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span>  <span class="comment">/* Safety clamp for strict range compliance. */</span></div>
-<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>  <span class="keywordflow">if</span> (<a class="code hl_variable" href="ie__kernels__ze_8cl.html#aea3d67a4afbcc9232ebb1f337b451966">y</a> &gt; 1.0f)  <a class="code hl_variable" href="ie__kernels__ze_8cl.html#aea3d67a4afbcc9232ebb1f337b451966">y</a> = 1.0f;</div>
-<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>  <span class="keywordflow">if</span> (<a class="code hl_variable" href="ie__kernels__ze_8cl.html#aea3d67a4afbcc9232ebb1f337b451966">y</a> &lt; -1.0f) <a class="code hl_variable" href="ie__kernels__ze_8cl.html#aea3d67a4afbcc9232ebb1f337b451966">y</a> = -1.0f;</div>
-<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span>  <span class="keywordflow">return</span> <a class="code hl_variable" href="ie__kernels__ze_8cl.html#aea3d67a4afbcc9232ebb1f337b451966">y</a>;</div>
+<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>  <span class="keywordflow">if</span> (y &gt; 1.0f)  y = 1.0f;</div>
+<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>  <span class="keywordflow">if</span> (y &lt; -1.0f) y = -1.0f;</div>
+<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span>  <span class="keywordflow">return</span> y;</div>
 <div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span>}</div>
 </div>
 <div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span></div>
@@ -135,31 +135,31 @@ $(function(){initNavTree('fast__tanh_8c_source.html',''); initResizable(true); }
 <div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span>    }</div>
 <div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span>  } <span class="keywordflow">else</span> {</div>
 <div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span>    <span class="keywordflow">for</span> (<span class="keywordtype">size_t</span> i = 0; i &lt; n; ++i) {</div>
-<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span>      <span class="keywordtype">float</span> <a class="code hl_variable" href="ie__kernels__ze_8cl.html#aea3d67a4afbcc9232ebb1f337b451966">y</a> = tanhf(v[i]);</div>
-<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span>      <span class="keywordflow">if</span> (<a class="code hl_variable" href="ie__kernels__ze_8cl.html#aea3d67a4afbcc9232ebb1f337b451966">y</a> &gt; 1.0f)  <a class="code hl_variable" href="ie__kernels__ze_8cl.html#aea3d67a4afbcc9232ebb1f337b451966">y</a> = 1.0f;</div>
-<div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span>      <span class="keywordflow">if</span> (<a class="code hl_variable" href="ie__kernels__ze_8cl.html#aea3d67a4afbcc9232ebb1f337b451966">y</a> &lt; -1.0f) <a class="code hl_variable" href="ie__kernels__ze_8cl.html#aea3d67a4afbcc9232ebb1f337b451966">y</a> = -1.0f;</div>
-<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span>      v[i] = <a class="code hl_variable" href="ie__kernels__ze_8cl.html#aea3d67a4afbcc9232ebb1f337b451966">y</a>;</div>
+<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span>      <span class="keywordtype">float</span> y = tanhf(v[i]);</div>
+<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span>      <span class="keywordflow">if</span> (y &gt; 1.0f)  y = 1.0f;</div>
+<div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span>      <span class="keywordflow">if</span> (y &lt; -1.0f) y = -1.0f;</div>
+<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span>      v[i] = y;</div>
 <div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>    }</div>
 <div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span>  }</div>
 <div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span>}</div>
 </div>
 <div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span></div>
 <div class="foldopen" id="foldopen00078" data-start="{" data-end="}">
-<div class="line"><a id="l00078" name="l00078"></a><span class="lineno"><a class="line" href="ie__math_8h.html#a486b919a954eecb32bb323ee689b05df">   78</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="fast__tanh_8c.html#a486b919a954eecb32bb323ee689b05df">ie_vec_tanh_f32_out</a>(<span class="keyword">const</span> <span class="keywordtype">float</span> *<a class="code hl_variable" href="ie__kernels__ze_8cl.html#ad48b386850d1d2a5a51515ad676993a0">x</a>, <span class="keywordtype">float</span> *out, <span class="keywordtype">size_t</span> n) {</div>
-<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span>  <span class="keywordflow">if</span> (!<a class="code hl_variable" href="ie__kernels__ze_8cl.html#ad48b386850d1d2a5a51515ad676993a0">x</a> || !out || n == 0) <span class="keywordflow">return</span>;</div>
+<div class="line"><a id="l00078" name="l00078"></a><span class="lineno"><a class="line" href="ie__math_8h.html#a486b919a954eecb32bb323ee689b05df">   78</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="fast__tanh_8c.html#a486b919a954eecb32bb323ee689b05df">ie_vec_tanh_f32_out</a>(<span class="keyword">const</span> <span class="keywordtype">float</span> *x, <span class="keywordtype">float</span> *out, <span class="keywordtype">size_t</span> n) {</div>
+<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span>  <span class="keywordflow">if</span> (!x || !out || n == 0) <span class="keywordflow">return</span>;</div>
 <div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span>  <span class="keywordflow">for</span> (<span class="keywordtype">size_t</span> i = 0; i &lt; n; ++i) {</div>
-<div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span>    out[i] = <a class="code hl_function" href="fast__tanh_8c.html#a2b9a073aea2b6ff7450b2d0ee32765ae">ie_fast_tanhf</a>(<a class="code hl_variable" href="ie__kernels__ze_8cl.html#ad48b386850d1d2a5a51515ad676993a0">x</a>[i]);</div>
+<div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span>    out[i] = <a class="code hl_function" href="fast__tanh_8c.html#a2b9a073aea2b6ff7450b2d0ee32765ae">ie_fast_tanhf</a>(x[i]);</div>
 <div class="line"><a id="l00082" name="l00082"></a><span class="lineno">   82</span>  }</div>
 <div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span>}</div>
 </div>
 <div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span></div>
 <div class="foldopen" id="foldopen00096" data-start="{" data-end="}">
-<div class="line"><a id="l00096" name="l00096"></a><span class="lineno"><a class="line" href="ie__math_8h.html#ab97182db75b928e1b82cf2b4a0d0690b">   96</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="fast__tanh_8c.html#ab97182db75b928e1b82cf2b4a0d0690b">ie_vec_tanh_f32_strided</a>(<span class="keyword">const</span> <span class="keywordtype">float</span> *<a class="code hl_variable" href="ie__kernels__ze_8cl.html#ad48b386850d1d2a5a51515ad676993a0">x</a>, <span class="keywordtype">size_t</span> x_stride,</div>
+<div class="line"><a id="l00096" name="l00096"></a><span class="lineno"><a class="line" href="ie__math_8h.html#ab97182db75b928e1b82cf2b4a0d0690b">   96</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="fast__tanh_8c.html#ab97182db75b928e1b82cf2b4a0d0690b">ie_vec_tanh_f32_strided</a>(<span class="keyword">const</span> <span class="keywordtype">float</span> *x, <span class="keywordtype">size_t</span> x_stride,</div>
 <div class="line"><a id="l00097" name="l00097"></a><span class="lineno">   97</span>                             <span class="keywordtype">float</span> *out, <span class="keywordtype">size_t</span> out_stride,</div>
 <div class="line"><a id="l00098" name="l00098"></a><span class="lineno">   98</span>                             <span class="keywordtype">size_t</span> n) {</div>
-<div class="line"><a id="l00099" name="l00099"></a><span class="lineno">   99</span>  <span class="keywordflow">if</span> (!<a class="code hl_variable" href="ie__kernels__ze_8cl.html#ad48b386850d1d2a5a51515ad676993a0">x</a> || !out || n == 0) <span class="keywordflow">return</span>;</div>
+<div class="line"><a id="l00099" name="l00099"></a><span class="lineno">   99</span>  <span class="keywordflow">if</span> (!x || !out || n == 0) <span class="keywordflow">return</span>;</div>
 <div class="line"><a id="l00100" name="l00100"></a><span class="lineno">  100</span>  <span class="keywordflow">for</span> (<span class="keywordtype">size_t</span> i = 0; i &lt; n; ++i) {</div>
-<div class="line"><a id="l00101" name="l00101"></a><span class="lineno">  101</span>    out[i * out_stride] = <a class="code hl_function" href="fast__tanh_8c.html#a2b9a073aea2b6ff7450b2d0ee32765ae">ie_fast_tanhf</a>(<a class="code hl_variable" href="ie__kernels__ze_8cl.html#ad48b386850d1d2a5a51515ad676993a0">x</a>[i * x_stride]);</div>
+<div class="line"><a id="l00101" name="l00101"></a><span class="lineno">  101</span>    out[i * out_stride] = <a class="code hl_function" href="fast__tanh_8c.html#a2b9a073aea2b6ff7450b2d0ee32765ae">ie_fast_tanhf</a>(x[i * x_stride]);</div>
 <div class="line"><a id="l00102" name="l00102"></a><span class="lineno">  102</span>  }</div>
 <div class="line"><a id="l00103" name="l00103"></a><span class="lineno">  103</span>}</div>
 </div>
@@ -167,8 +167,6 @@ $(function(){initNavTree('fast__tanh_8c_source.html',''); initResizable(true); }
 <div class="ttc" id="afast__tanh_8c_html_a31b6c03fd5b95bdecb37f06821d3ce93"><div class="ttname"><a href="fast__tanh_8c.html#a31b6c03fd5b95bdecb37f06821d3ce93">ie_vec_tanh_f32</a></div><div class="ttdeci">void ie_vec_tanh_f32(float *v, size_t n, int fast_tanh)</div><div class="ttdoc">In-place vector tanh on a contiguous array (legacy API).</div><div class="ttdef"><b>Definition</b> <a href="#l00055">fast_tanh.c:55</a></div></div>
 <div class="ttc" id="afast__tanh_8c_html_a486b919a954eecb32bb323ee689b05df"><div class="ttname"><a href="fast__tanh_8c.html#a486b919a954eecb32bb323ee689b05df">ie_vec_tanh_f32_out</a></div><div class="ttdeci">void ie_vec_tanh_f32_out(const float *x, float *out, size_t n)</div><div class="ttdoc">Out-of-place vector tanh on a contiguous array (fast approximation).</div><div class="ttdef"><b>Definition</b> <a href="#l00078">fast_tanh.c:78</a></div></div>
 <div class="ttc" id="afast__tanh_8c_html_ab97182db75b928e1b82cf2b4a0d0690b"><div class="ttname"><a href="fast__tanh_8c.html#ab97182db75b928e1b82cf2b4a0d0690b">ie_vec_tanh_f32_strided</a></div><div class="ttdeci">void ie_vec_tanh_f32_strided(const float *x, size_t x_stride, float *out, size_t out_stride, size_t n)</div><div class="ttdoc">Out-of-place vector tanh on strided arrays (fast approximation).</div><div class="ttdef"><b>Definition</b> <a href="#l00096">fast_tanh.c:96</a></div></div>
-<div class="ttc" id="aie__kernels__ze_8cl_html_ad48b386850d1d2a5a51515ad676993a0"><div class="ttname"><a href="ie__kernels__ze_8cl.html#ad48b386850d1d2a5a51515ad676993a0">x</a></div><div class="ttdeci">__kernel __global const float *restrict x</div><div class="ttdef"><b>Definition</b> <a href="ie__kernels__ze_8cl_source.html#l00068">ie_kernels_ze.cl:68</a></div></div>
-<div class="ttc" id="aie__kernels__ze_8cl_html_aea3d67a4afbcc9232ebb1f337b451966"><div class="ttname"><a href="ie__kernels__ze_8cl.html#aea3d67a4afbcc9232ebb1f337b451966">y</a></div><div class="ttdeci">__kernel __global const float *restrict __global float *restrict y</div><div class="ttdef"><b>Definition</b> <a href="ie__kernels__ze_8cl_source.html#l00069">ie_kernels_ze.cl:69</a></div></div>
 <div class="ttc" id="aie__math_8h_html"><div class="ttname"><a href="ie__math_8h.html">ie_math.h</a></div><div class="ttdoc">Math utilities for activation functions and vector helpers.</div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->

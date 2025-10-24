@@ -1,0 +1,163 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="ie__quant__int4_8h" kind="file" language="C++">
+    <compoundname>ie_quant_int4.h</compoundname>
+    <includes local="no">stddef.h</includes>
+    <includes local="no">stdint.h</includes>
+    <includedby refid="weights_8c" local="yes">engine/src/io/weights.c</includedby>
+    <includedby refid="int4__ptq_8c" local="yes">engine/src/quant/int4_ptq.c</includedby>
+    <incdepgraph>
+      <node id="1">
+        <label>engine/include/ie_quant_int4.h</label>
+        <link refid="ie__quant__int4_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="3" relation="include">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>stddef.h</label>
+      </node>
+      <node id="3">
+        <label>stdint.h</label>
+      </node>
+    </incdepgraph>
+    <invincdepgraph>
+      <node id="1">
+        <label>engine/include/ie_quant_int4.h</label>
+        <link refid="ie__quant__int4_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="3" relation="include">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>engine/src/io/weights.c</label>
+        <link refid="weights_8c"/>
+      </node>
+      <node id="3">
+        <label>engine/src/quant/int4_ptq.c</label>
+        <link refid="int4__ptq_8c"/>
+      </node>
+    </invincdepgraph>
+    <sectiondef kind="enum">
+      <member refid="group__ie__int4__quant_1gabdf58fdc422669c3d08610f8d40e43b6" kind="enum"><name>ie_int4_status_t</name></member>
+    </sectiondef>
+    <sectiondef kind="typedef">
+      <member refid="group__ie__int4__quant_1ga15870fb674518215beaec63b1a5f9c88" kind="typedef"><name>ie_int4_status_t</name></member>
+    </sectiondef>
+    <sectiondef kind="func">
+      <member refid="group__ie__int4__quant_1gae9b8a40c7d01f1fa7f00487737c772b2" kind="function"><name>ie_int4_rowbytes</name></member>
+      <member refid="group__ie__int4__quant_1ga469c0b3e9333828daa3115c7ce9f1f2d" kind="function"><name>ie_int4_absmax</name></member>
+      <member refid="group__ie__int4__quant_1ga2f715c1bb3a9dbfade15d6e7d7ca3417" kind="function"><name>ie_int4_absmax_per_row</name></member>
+      <member refid="group__ie__int4__quant_1ga66ddd8b08ec6b704f6744718bfc7f5aa" kind="function"><name>ie_int4_quantize_per_tensor</name></member>
+      <member refid="group__ie__int4__quant_1ga7aaa2156d41e9a58eb6013cec4b32d78" kind="function"><name>ie_int4_dequantize_per_tensor</name></member>
+      <member refid="group__ie__int4__quant_1gabbd1e0545969cb21f4bce5e48e75e276" kind="function"><name>ie_int4_quantize_per_row</name></member>
+      <member refid="group__ie__int4__quant_1gab017a4b1dff62c0ef8f1ed4f94375302" kind="function"><name>ie_int4_dequantize_per_row</name></member>
+      <member refid="group__ie__int4__quant_1ga5eab5a797587f75e75af981b851f3d4d" kind="function"><name>ie_int4_error_metrics</name></member>
+    </sectiondef>
+    <briefdescription>
+<para>Public API for 4-bit (INT4) weight-only post-training quantization. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>This header declares a minimal, self-contained C API for exploring INT4 weight-only quantization of row-major 2D float32 matrices (e.g., linear layer weight matrices). It provides:</para>
+<para><itemizedlist>
+<listitem><para>Per-tensor and per-row symmetric quantization in the integer range [-7, +7] with zero-point fixed at 0. (We deliberately avoid using -8 to keep the mapping symmetric around zero.)</para>
+</listitem><listitem><para>Nibble packing: two signed 4-bit values per byte, stored as a biased unsigned nibble q_u = q + 8, where q ∈ [-7, +7]. The low nibble encodes column j (even index), the high nibble encodes column j + 1 (odd index).</para>
+</listitem><listitem><para>Dequantization helpers.</para>
+</listitem><listitem><para>Convenience utilities: row-bytes computation and simple error metrics.</para>
+</listitem></itemizedlist>
+</para>
+<para>The API does not depend on any project-specific types. Callers supply plain pointers and sizes. No dynamic memory allocation occurs inside; the caller owns all buffers.</para>
+<sect1 id="ie__quant__int4_8h_1autotoc_md39_1s1"><sect2 id="ie__quant__int4_8h_1autotoc_md39">
+<title>Packing layout (row-major)</title><para>For a matrix of shape (rows, cols):</para>
+<para>bytes_per_row = (cols + 1) / 2</para>
+<para>Each byte packs two 4-bit values:<itemizedlist>
+<listitem><para>dst[i] = (q1_u &lt;&lt; 4) | q0_u</para>
+</listitem><listitem><para>q0_u = (uint8_t)(q0 + 8) // low nibble, column j</para>
+</listitem><listitem><para>q1_u = (uint8_t)(q1 + 8) // high nibble, column j+1</para>
+</listitem></itemizedlist>
+</para>
+<para>When cols is odd, the last high nibble of the row is set to the encoding of 0 (i.e., 8) to keep the representation canonical.</para>
+</sect2></sect1>
+<sect1 id="ie__quant__int4_8h_1autotoc_md40_1s1"><sect2 id="ie__quant__int4_8h_1autotoc_md40">
+<title>Quantization rule</title><para>scale = max(|W|) / 7 q = round(W / scale) q = clamp(q, -7, +7)</para>
+<para>For per-row quantization, the scale is computed independently for each row.</para>
+</sect2></sect1>
+<sect1 id="ie__quant__int4_8h_1autotoc_md41_1s1"><sect2 id="ie__quant__int4_8h_1autotoc_md41">
+<title>Error handling</title><para>All functions return 0 on success and a negative value on failure:<itemizedlist>
+<listitem><para>IE_INT4_STATUS_OK (0)</para>
+</listitem><listitem><para>IE_INT4_STATUS_BADARG (-1)</para>
+</listitem><listitem><para>IE_INT4_STATUS_NUMERIC (-2)</para>
+</listitem></itemizedlist>
+</para>
+<para><simplesect kind="note"><para>This API is intended for benchmarking and integration experiments. For production use, consider adding robust metadata containers, alignment control, and kernel-side fused decode paths. </para>
+</simplesect>
+</para>
+</sect2></sect1>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="normal"></highlight></codeline>
+<codeline lineno="52"><highlight class="normal"></highlight></codeline>
+<codeline lineno="53"><highlight class="normal"></highlight><highlight class="preprocessor">#ifndef<sp/>IE_QUANT_INT4_H</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="54"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>IE_QUANT_INT4_H</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="55"><highlight class="normal"></highlight></codeline>
+<codeline lineno="56"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stddef.h&gt;</highlight><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">/*<sp/>size_t<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="57"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stdint.h&gt;</highlight><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">/*<sp/>uint8_t<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="58"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="59"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/></highlight><highlight class="stringliteral">&quot;C&quot;</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="60"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="61"><highlight class="normal"></highlight></codeline>
+<codeline lineno="65"><highlight class="normal"></highlight></codeline>
+<codeline lineno="70" refid="group__ie__int4__quant_1gabdf58fdc422669c3d08610f8d40e43b6" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">enum</highlight><highlight class="normal"><sp/><ref refid="group__ie__int4__quant_1gabdf58fdc422669c3d08610f8d40e43b6" kindref="member">ie_int4_status_t</ref><sp/>{</highlight></codeline>
+<codeline lineno="71" refid="group__ie__int4__quant_1ggabdf58fdc422669c3d08610f8d40e43b6a24592f56913c1a24fabf56e9efcff48d" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="group__ie__int4__quant_1ggabdf58fdc422669c3d08610f8d40e43b6a24592f56913c1a24fabf56e9efcff48d" kindref="member">IE_INT4_STATUS_OK</ref><sp/>=<sp/>0,<sp/><sp/><sp/><sp/><sp/><sp/></highlight></codeline>
+<codeline lineno="72" refid="group__ie__int4__quant_1ggabdf58fdc422669c3d08610f8d40e43b6a3d09ea134f6295e3ccfb296d932fefd0" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="group__ie__int4__quant_1ggabdf58fdc422669c3d08610f8d40e43b6a3d09ea134f6295e3ccfb296d932fefd0" kindref="member">IE_INT4_STATUS_BADARG</ref><sp/>=<sp/>-1,<sp/></highlight></codeline>
+<codeline lineno="73" refid="group__ie__int4__quant_1ggabdf58fdc422669c3d08610f8d40e43b6a23b78278a845de353e507b64a6901e52" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="group__ie__int4__quant_1ggabdf58fdc422669c3d08610f8d40e43b6a23b78278a845de353e507b64a6901e52" kindref="member">IE_INT4_STATUS_NUMERIC</ref><sp/>=<sp/>-2<sp/></highlight></codeline>
+<codeline lineno="74" refid="group__ie__int4__quant_1ga15870fb674518215beaec63b1a5f9c88" refkind="member"><highlight class="normal">}<sp/><ref refid="group__ie__int4__quant_1gabdf58fdc422669c3d08610f8d40e43b6" kindref="member">ie_int4_status_t</ref>;</highlight></codeline>
+<codeline lineno="75"><highlight class="normal"></highlight></codeline>
+<codeline lineno="83"><highlight class="normal"></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/><ref refid="group__ie__int4__quant_1gae9b8a40c7d01f1fa7f00487737c772b2" kindref="member">ie_int4_rowbytes</ref>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>cols);</highlight></codeline>
+<codeline lineno="84"><highlight class="normal"></highlight></codeline>
+<codeline lineno="94"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="group__ie__int4__quant_1ga469c0b3e9333828daa3115c7ce9f1f2d" kindref="member">ie_int4_absmax</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*src,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>rows,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>cols,<sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*out_absmax);</highlight></codeline>
+<codeline lineno="95"><highlight class="normal"></highlight></codeline>
+<codeline lineno="105"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="group__ie__int4__quant_1ga2f715c1bb3a9dbfade15d6e7d7ca3417" kindref="member">ie_int4_absmax_per_row</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*src,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>rows,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>cols,<sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*out_absmax_rows);</highlight></codeline>
+<codeline lineno="106"><highlight class="normal"></highlight></codeline>
+<codeline lineno="121"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="group__ie__int4__quant_1ga66ddd8b08ec6b704f6744718bfc7f5aa" kindref="member">ie_int4_quantize_per_tensor</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*src,</highlight></codeline>
+<codeline lineno="122"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>rows,</highlight></codeline>
+<codeline lineno="123"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>cols,</highlight></codeline>
+<codeline lineno="124"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>uint8_t<sp/>*dst_packed,</highlight></codeline>
+<codeline lineno="125"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*out_scale);</highlight></codeline>
+<codeline lineno="126"><highlight class="normal"></highlight></codeline>
+<codeline lineno="138"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="group__ie__int4__quant_1ga7aaa2156d41e9a58eb6013cec4b32d78" kindref="member">ie_int4_dequantize_per_tensor</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>uint8_t<sp/>*src_packed,</highlight></codeline>
+<codeline lineno="139"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>rows,</highlight></codeline>
+<codeline lineno="140"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>cols,</highlight></codeline>
+<codeline lineno="141"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>scale,</highlight></codeline>
+<codeline lineno="142"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*dst);</highlight></codeline>
+<codeline lineno="143"><highlight class="normal"></highlight></codeline>
+<codeline lineno="158"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="group__ie__int4__quant_1gabbd1e0545969cb21f4bce5e48e75e276" kindref="member">ie_int4_quantize_per_row</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*src,</highlight></codeline>
+<codeline lineno="159"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>rows,</highlight></codeline>
+<codeline lineno="160"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>cols,</highlight></codeline>
+<codeline lineno="161"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>uint8_t<sp/>*dst_packed,</highlight></codeline>
+<codeline lineno="162"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*out_scales);</highlight></codeline>
+<codeline lineno="163"><highlight class="normal"></highlight></codeline>
+<codeline lineno="175"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="group__ie__int4__quant_1gab017a4b1dff62c0ef8f1ed4f94375302" kindref="member">ie_int4_dequantize_per_row</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>uint8_t<sp/>*src_packed,</highlight></codeline>
+<codeline lineno="176"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>rows,</highlight></codeline>
+<codeline lineno="177"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>cols,</highlight></codeline>
+<codeline lineno="178"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*scales,</highlight></codeline>
+<codeline lineno="179"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*dst);</highlight></codeline>
+<codeline lineno="180"><highlight class="normal"></highlight></codeline>
+<codeline lineno="192"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="group__ie__int4__quant_1ga5eab5a797587f75e75af981b851f3d4d" kindref="member">ie_int4_error_metrics</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*ref,</highlight></codeline>
+<codeline lineno="193"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*test,</highlight></codeline>
+<codeline lineno="194"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>n,</highlight></codeline>
+<codeline lineno="195"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">double</highlight><highlight class="normal"><sp/>*out_mse,</highlight></codeline>
+<codeline lineno="196"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">double</highlight><highlight class="normal"><sp/>*out_cosine);</highlight></codeline>
+<codeline lineno="197"><highlight class="normal"></highlight></codeline>
+<codeline lineno="199"><highlight class="normal"></highlight></codeline>
+<codeline lineno="200"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="201"><highlight class="normal">}<sp/></highlight><highlight class="comment">/*<sp/>extern<sp/>&quot;C&quot;<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="202"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="203"><highlight class="normal"></highlight></codeline>
+<codeline lineno="204"><highlight class="normal"></highlight><highlight class="preprocessor">#endif<sp/></highlight><highlight class="comment">/*<sp/>IE_QUANT_INT4_H<sp/>*/</highlight><highlight class="preprocessor"></highlight></codeline>
+    </programlisting>
+    <location file="engine/include/ie_quant_int4.h"/>
+  </compounddef>
+</doxygen>

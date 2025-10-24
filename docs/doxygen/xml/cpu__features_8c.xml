@@ -1,0 +1,249 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="cpu__features_8c" kind="file" language="C++">
+    <compoundname>cpu_features.c</compoundname>
+    <includes refid="ie__cpu_8h" local="yes">ie_cpu.h</includes>
+    <incdepgraph>
+      <node id="2">
+        <label>ie_cpu.h</label>
+        <link refid="ie__cpu_8h"/>
+        <childnode refid="3" relation="include">
+        </childnode>
+      </node>
+      <node id="1">
+        <label>engine/src/opt/cpu_features.c</label>
+        <link refid="cpu__features_8c"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+      </node>
+      <node id="3">
+        <label>stdbool.h</label>
+      </node>
+    </incdepgraph>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="cpu__features_8c_1a6ab0f83647cb70ad0043407f15992363" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>static void cpuid_ex</definition>
+        <argsstring>(unsigned leaf, unsigned *eax, unsigned *ebx, unsigned *ecx, unsigned *edx)</argsstring>
+        <name>cpuid_ex</name>
+        <param>
+          <type>unsigned</type>
+          <declname>leaf</declname>
+        </param>
+        <param>
+          <type>unsigned *</type>
+          <declname>eax</declname>
+        </param>
+        <param>
+          <type>unsigned *</type>
+          <declname>ebx</declname>
+        </param>
+        <param>
+          <type>unsigned *</type>
+          <declname>ecx</declname>
+        </param>
+        <param>
+          <type>unsigned *</type>
+          <declname>edx</declname>
+        </param>
+        <briefdescription>
+<para>Query CPUID with the given leaf. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>On non-x86 builds, the outputs are set to zero.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>leaf</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>CPUID leaf to query. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>eax</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Output EAX register value. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>ebx</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Output EBX register value. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>ecx</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Output ECX register value. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>edx</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Output EDX register value. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/src/opt/cpu_features.c" line="30" column="13" bodyfile="engine/src/opt/cpu_features.c" bodystart="30" bodyend="49"/>
+        <referencedby refid="ie__cpu_8h_1af2e20a1ca28854df085dbe0d88ed91c3" compoundref="cpu__features_8c" startline="70" endline="102">ie_cpu_detect</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="cpu__features_8c_1a5ec481b22364387e65264e28e0f81bf7" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>unsigned</type>
+        <definition>static unsigned xgetbv_xcr0</definition>
+        <argsstring>(void)</argsstring>
+        <name>xgetbv_xcr0</name>
+        <param>
+          <type>void</type>
+        </param>
+        <briefdescription>
+<para>Read XCR0 via XGETBV to validate OS support for YMM state. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>On non-x86 builds, returns 0.</para>
+<para><simplesect kind="return"><para>Lower 32 bits of XCR0. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/src/opt/cpu_features.c" line="58" column="17" bodyfile="engine/src/opt/cpu_features.c" bodystart="58" bodyend="68"/>
+        <referencedby refid="ie__cpu_8h_1af2e20a1ca28854df085dbe0d88ed91c3" compoundref="cpu__features_8c" startline="70" endline="102">ie_cpu_detect</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="cpu__features_8c_1af2e20a1ca28854df085dbe0d88ed91c3" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool ie_cpu_detect</definition>
+        <argsstring>(ie_cpu_features_t *out)</argsstring>
+        <name>ie_cpu_detect</name>
+        <param>
+          <type><ref refid="structie__cpu__features__t" kindref="compound">ie_cpu_features_t</ref> *</type>
+          <declname>out</declname>
+        </param>
+        <briefdescription>
+<para>Detect CPU features on the current machine. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>The function is best-effort: it never crashes on unsupported platforms. On non-x86 builds it returns <computeroutput>true</computeroutput> and fills all flags as <computeroutput>false</computeroutput>.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="out">out</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Pointer to a <ref refid="structie__cpu__features__t" kindref="compound">ie_cpu_features_t</ref> structure to fill. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para><computeroutput>true</computeroutput> if the function executed; <computeroutput>false</computeroutput> only if <computeroutput>out</computeroutput> is NULL. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/src/opt/cpu_features.c" line="70" column="6" bodyfile="engine/src/opt/cpu_features.c" bodystart="70" bodyend="102"/>
+        <references refid="structie__cpu__features__t_1a126cd9fec9b1e9ec0a746ab0a28e7251" compoundref="ie__cpu_8h" startline="23">ie_cpu_features_t::avx2</references>
+        <references refid="cpu__features_8c_1a6ab0f83647cb70ad0043407f15992363" compoundref="cpu__features_8c" startline="30" endline="49">cpuid_ex</references>
+        <references refid="structie__cpu__features__t_1ab186c528f9355396127156bf6e6ab099" compoundref="ie__cpu_8h" startline="24">ie_cpu_features_t::fma</references>
+        <references refid="cpu__features_8c_1a5ec481b22364387e65264e28e0f81bf7" compoundref="cpu__features_8c" startline="58" endline="68">xgetbv_xcr0</references>
+        <referencedby refid="test__cpu__features_8c_1a840291bc02cba5474a4cb46a9b9566fe" compoundref="test__cpu__features_8c" startline="9" endline="15">main</referencedby>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para>Best-effort CPU feature detection for AVX2 and FMA at runtime. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>This module avoids external dependencies and uses CPUID/XGETBV directly. On non-x86 platforms all feature flags are reported as false. </para>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="normal"></highlight></codeline>
+<codeline lineno="8"><highlight class="normal"></highlight></codeline>
+<codeline lineno="9"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;<ref refid="ie__cpu_8h" kindref="compound">ie_cpu.h</ref>&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="10"><highlight class="normal"></highlight></codeline>
+<codeline lineno="11"><highlight class="normal"></highlight><highlight class="preprocessor">#if<sp/>defined(__x86_64__)<sp/>||<sp/>defined(_M_X64)<sp/>||<sp/>defined(__i386__)<sp/>||<sp/>defined(_M_IX86)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="12"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/>#if<sp/>defined(_MSC_VER)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="13"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/><sp/><sp/>#include<sp/>&lt;intrin.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="14"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/>#else</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="15"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/><sp/><sp/>#include<sp/>&lt;cpuid.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="16"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/>#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="17"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="18"><highlight class="normal"></highlight></codeline>
+<codeline lineno="30" refid="cpu__features_8c_1a6ab0f83647cb70ad0043407f15992363" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="cpu__features_8c_1a6ab0f83647cb70ad0043407f15992363" kindref="member">cpuid_ex</ref>(</highlight><highlight class="keywordtype">unsigned</highlight><highlight class="normal"><sp/>leaf,</highlight></codeline>
+<codeline lineno="31"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">unsigned</highlight><highlight class="normal"><sp/>*eax,<sp/></highlight><highlight class="keywordtype">unsigned</highlight><highlight class="normal"><sp/>*ebx,</highlight></codeline>
+<codeline lineno="32"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">unsigned</highlight><highlight class="normal"><sp/>*ecx,<sp/></highlight><highlight class="keywordtype">unsigned</highlight><highlight class="normal"><sp/>*edx)<sp/>{</highlight></codeline>
+<codeline lineno="33"><highlight class="normal"></highlight><highlight class="preprocessor">#if<sp/>defined(__x86_64__)<sp/>||<sp/>defined(__i386__)<sp/>||<sp/>defined(_M_X64)<sp/>||<sp/>defined(_M_IX86)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="34"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/>#if<sp/>defined(_MSC_VER)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="35"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>regs[4];</highlight></codeline>
+<codeline lineno="36"><highlight class="normal"><sp/><sp/><sp/><sp/>__cpuid(regs,<sp/>(</highlight><highlight class="keywordtype">int</highlight><highlight class="normal">)leaf);</highlight></codeline>
+<codeline lineno="37"><highlight class="normal"><sp/><sp/><sp/><sp/>*eax<sp/>=<sp/>(unsigned)regs[0];</highlight></codeline>
+<codeline lineno="38"><highlight class="normal"><sp/><sp/><sp/><sp/>*ebx<sp/>=<sp/>(unsigned)regs[1];</highlight></codeline>
+<codeline lineno="39"><highlight class="normal"><sp/><sp/><sp/><sp/>*ecx<sp/>=<sp/>(unsigned)regs[2];</highlight></codeline>
+<codeline lineno="40"><highlight class="normal"><sp/><sp/><sp/><sp/>*edx<sp/>=<sp/>(unsigned)regs[3];</highlight></codeline>
+<codeline lineno="41"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/>#else</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="42"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">unsigned</highlight><highlight class="normal"><sp/>a,<sp/>b,<sp/>c,<sp/>d;</highlight></codeline>
+<codeline lineno="43"><highlight class="normal"><sp/><sp/><sp/><sp/>__cpuid(leaf,<sp/>a,<sp/>b,<sp/>c,<sp/>d);</highlight></codeline>
+<codeline lineno="44"><highlight class="normal"><sp/><sp/><sp/><sp/>*eax<sp/>=<sp/>a;<sp/>*ebx<sp/>=<sp/>b;<sp/>*ecx<sp/>=<sp/>c;<sp/>*edx<sp/>=<sp/>d;</highlight></codeline>
+<codeline lineno="45"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/>#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="46"><highlight class="normal"></highlight><highlight class="preprocessor">#else</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="47"><highlight class="normal"><sp/><sp/>(void)leaf;<sp/>*eax<sp/>=<sp/>*ebx<sp/>=<sp/>*ecx<sp/>=<sp/>*edx<sp/>=<sp/>0;</highlight></codeline>
+<codeline lineno="48"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="49"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="50"><highlight class="normal"></highlight></codeline>
+<codeline lineno="58" refid="cpu__features_8c_1a5ec481b22364387e65264e28e0f81bf7" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">unsigned</highlight><highlight class="normal"><sp/><ref refid="cpu__features_8c_1a5ec481b22364387e65264e28e0f81bf7" kindref="member">xgetbv_xcr0</ref>(</highlight><highlight class="keywordtype">void</highlight><highlight class="normal">)<sp/>{</highlight></codeline>
+<codeline lineno="59"><highlight class="normal"></highlight><highlight class="preprocessor">#if<sp/>(defined(__x86_64__)<sp/>||<sp/>defined(__i386__))<sp/>&amp;&amp;<sp/>defined(__GNUC__)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="60"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">unsigned</highlight><highlight class="normal"><sp/>a,<sp/>d;</highlight></codeline>
+<codeline lineno="61"><highlight class="normal"><sp/><sp/>__asm__<sp/></highlight><highlight class="keyword">volatile</highlight><highlight class="normal"><sp/>(</highlight><highlight class="stringliteral">&quot;.byte<sp/>0x0f,<sp/>0x01,<sp/>0xd0&quot;</highlight><highlight class="normal"><sp/>:<sp/></highlight><highlight class="stringliteral">&quot;=a&quot;</highlight><highlight class="normal">(a),<sp/></highlight><highlight class="stringliteral">&quot;=d&quot;</highlight><highlight class="normal">(d)<sp/>:<sp/></highlight><highlight class="stringliteral">&quot;c&quot;</highlight><highlight class="normal">(0));</highlight></codeline>
+<codeline lineno="62"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>a;</highlight></codeline>
+<codeline lineno="63"><highlight class="normal"></highlight><highlight class="preprocessor">#elif<sp/>defined(_MSC_VER)<sp/>&amp;&amp;<sp/>(defined(_M_IX86)<sp/>||<sp/>defined(_M_X64))</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="64"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>(</highlight><highlight class="keywordtype">unsigned</highlight><highlight class="normal">)_xgetbv(0);</highlight></codeline>
+<codeline lineno="65"><highlight class="normal"></highlight><highlight class="preprocessor">#else</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="66"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>0u;</highlight></codeline>
+<codeline lineno="67"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="68"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="69"><highlight class="normal"></highlight></codeline>
+<codeline lineno="70" refid="ie__cpu_8h_1af2e20a1ca28854df085dbe0d88ed91c3" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/><ref refid="cpu__features_8c_1af2e20a1ca28854df085dbe0d88ed91c3" kindref="member">ie_cpu_detect</ref>(<ref refid="structie__cpu__features__t" kindref="compound">ie_cpu_features_t</ref><sp/>*out)<sp/>{</highlight></codeline>
+<codeline lineno="71"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!out)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">false</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="72"><highlight class="normal"><sp/><sp/>out-&gt;<ref refid="structie__cpu__features__t_1a126cd9fec9b1e9ec0a746ab0a28e7251" kindref="member">avx2</ref><sp/>=<sp/></highlight><highlight class="keyword">false</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="73"><highlight class="normal"><sp/><sp/>out-&gt;<ref refid="structie__cpu__features__t_1ab186c528f9355396127156bf6e6ab099" kindref="member">fma</ref><sp/><sp/>=<sp/></highlight><highlight class="keyword">false</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="74"><highlight class="normal"></highlight></codeline>
+<codeline lineno="75"><highlight class="normal"></highlight><highlight class="preprocessor">#if<sp/>defined(__x86_64__)<sp/>||<sp/>defined(__i386__)<sp/>||<sp/>defined(_M_X64)<sp/>||<sp/>defined(_M_IX86)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="76"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">unsigned</highlight><highlight class="normal"><sp/>a=0,b=0,c=0,d=0;</highlight></codeline>
+<codeline lineno="77"><highlight class="normal"></highlight></codeline>
+<codeline lineno="78"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">/*<sp/>Leaf<sp/>0:<sp/>availability<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="79"><highlight class="normal"><sp/><sp/><ref refid="cpu__features_8c_1a6ab0f83647cb70ad0043407f15992363" kindref="member">cpuid_ex</ref>(0,<sp/>&amp;a,<sp/>&amp;b,<sp/>&amp;c,<sp/>&amp;d);</highlight></codeline>
+<codeline lineno="80"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(a<sp/>==<sp/>0)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">true</highlight><highlight class="normal">;<sp/></highlight><highlight class="comment">/*<sp/>CPUID<sp/>unsupported<sp/>or<sp/>unavailable<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="81"><highlight class="normal"></highlight></codeline>
+<codeline lineno="82"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">/*<sp/>Leaf<sp/>1:<sp/>baseline<sp/>features<sp/>(AVX,<sp/>OSXSAVE,<sp/>FMA)<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="83"><highlight class="normal"><sp/><sp/><ref refid="cpu__features_8c_1a6ab0f83647cb70ad0043407f15992363" kindref="member">cpuid_ex</ref>(1,<sp/>&amp;a,<sp/>&amp;b,<sp/>&amp;c,<sp/>&amp;d);</highlight></codeline>
+<codeline lineno="84"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>osxsave<sp/>=<sp/>(int)((c<sp/>&gt;&gt;<sp/>27)<sp/>&amp;<sp/>1);</highlight></codeline>
+<codeline lineno="85"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>avx<sp/><sp/><sp/><sp/><sp/>=<sp/>(int)((c<sp/>&gt;&gt;<sp/>28)<sp/>&amp;<sp/>1);</highlight></codeline>
+<codeline lineno="86"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>fma<sp/><sp/><sp/><sp/><sp/>=<sp/>(int)((c<sp/>&gt;&gt;<sp/>12)<sp/>&amp;<sp/>1);</highlight></codeline>
+<codeline lineno="87"><highlight class="normal"></highlight></codeline>
+<codeline lineno="88"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">/*<sp/>Check<sp/>OS<sp/>has<sp/>enabled<sp/>XMM/YMM<sp/>via<sp/>XGETBV<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="89"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">unsigned</highlight><highlight class="normal"><sp/>xcr0<sp/>=<sp/>osxsave<sp/>?<sp/><ref refid="cpu__features_8c_1a5ec481b22364387e65264e28e0f81bf7" kindref="member">xgetbv_xcr0</ref>()<sp/>:<sp/>0u;</highlight></codeline>
+<codeline lineno="90"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>ymm_ok<sp/>=<sp/>((xcr0<sp/>&amp;<sp/>0x6u)<sp/>==<sp/>0x6u);</highlight></codeline>
+<codeline lineno="91"><highlight class="normal"></highlight></codeline>
+<codeline lineno="92"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">/*<sp/>Leaf<sp/>7:<sp/>extended<sp/>features<sp/>(AVX2)<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="93"><highlight class="normal"><sp/><sp/><ref refid="cpu__features_8c_1a6ab0f83647cb70ad0043407f15992363" kindref="member">cpuid_ex</ref>(7,<sp/>&amp;a,<sp/>&amp;b,<sp/>&amp;c,<sp/>&amp;d);</highlight></codeline>
+<codeline lineno="94"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>avx2<sp/>=<sp/>(int)((b<sp/>&gt;&gt;<sp/>5)<sp/>&amp;<sp/>1);</highlight></codeline>
+<codeline lineno="95"><highlight class="normal"></highlight></codeline>
+<codeline lineno="96"><highlight class="normal"><sp/><sp/>out-&gt;<ref refid="structie__cpu__features__t_1a126cd9fec9b1e9ec0a746ab0a28e7251" kindref="member">avx2</ref><sp/>=<sp/>(avx<sp/>&amp;&amp;<sp/>ymm_ok<sp/>&amp;&amp;<sp/>avx2);</highlight></codeline>
+<codeline lineno="97"><highlight class="normal"><sp/><sp/>out-&gt;<ref refid="structie__cpu__features__t_1ab186c528f9355396127156bf6e6ab099" kindref="member">fma</ref><sp/><sp/>=<sp/>(fma<sp/>!=<sp/>0);</highlight></codeline>
+<codeline lineno="98"><highlight class="normal"></highlight><highlight class="preprocessor">#else</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="99"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">/*<sp/>Non-x86:<sp/>keep<sp/>safe<sp/>defaults<sp/>(false).<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="100"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="101"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">true</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="102"><highlight class="normal">}</highlight></codeline>
+    </programlisting>
+    <location file="engine/src/opt/cpu_features.c"/>
+  </compounddef>
+</doxygen>

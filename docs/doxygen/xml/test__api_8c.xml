@@ -1,0 +1,115 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="test__api_8c" kind="file" language="C++">
+    <compoundname>test_api.c</compoundname>
+    <includes local="no">assert.h</includes>
+    <includes local="no">stdio.h</includes>
+    <includes refid="ie__api_8h" local="yes">ie_api.h</includes>
+    <incdepgraph>
+      <node id="4">
+        <label>ie_api.h</label>
+        <link refid="ie__api_8h"/>
+        <childnode refid="5" relation="include">
+        </childnode>
+        <childnode refid="6" relation="include">
+        </childnode>
+      </node>
+      <node id="1">
+        <label>tests/c/test_api.c</label>
+        <link refid="test__api_8c"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="3" relation="include">
+        </childnode>
+        <childnode refid="4" relation="include">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>assert.h</label>
+      </node>
+      <node id="5">
+        <label>stddef.h</label>
+      </node>
+      <node id="6">
+        <label>stdint.h</label>
+      </node>
+      <node id="3">
+        <label>stdio.h</label>
+      </node>
+    </incdepgraph>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="test__api_8c_1a840291bc02cba5474a4cb46a9b9566fe" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int main</definition>
+        <argsstring>(void)</argsstring>
+        <name>main</name>
+        <param>
+          <type>void</type>
+        </param>
+        <briefdescription>
+<para>Program entrypoint for API lifecycle tests. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Creates an engine with minimal parameters, generates a small number of tokens, fetches metrics, and validates sanity conditions.</para>
+<para><simplesect kind="return"><para>0 on success. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="tests/c/test_api.c" line="21" column="5" bodyfile="tests/c/test_api.c" bodystart="21" bodyend="50"/>
+        <references refid="ie__api_8h_1a29d800407f90ba6b44385725da64f27d" compoundref="ie__api_8c" startline="106" endline="134">ie_engine_create</references>
+        <references refid="ie__api_8h_1a8a724f7097b3e19da8d7dd97fba4415e" compoundref="ie__api_8c" startline="139" endline="142">ie_engine_destroy</references>
+        <references refid="ie__api_8h_1a21ab40e22d9192fe353ad6640610a01d" compoundref="ie__api_8c" startline="152" endline="189">ie_engine_generate</references>
+        <references refid="ie__api_8h_1ac1c4268d66d8a840276e0a72c9ace902" compoundref="ie__api_8c" startline="194" endline="198">ie_engine_metrics</references>
+        <references refid="ie__api_8h_1afe55386d31dcd43a7accd42d844d59d1" compoundref="ie__api_8h" startline="44">IE_OK</references>
+        <references refid="structie__engine__params_1a92b02bad12cb4e8173728311c00960b7" compoundref="ie__api_8h" startline="117">ie_engine_params::precision</references>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para>Unit tests for the public engine API lifecycle and metrics. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>Validates engine creation/destruction, a simple generation run, and the presence of expected metrics fields. </para>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="normal"></highlight></codeline>
+<codeline lineno="8"><highlight class="normal"></highlight></codeline>
+<codeline lineno="9"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;assert.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="10"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stdio.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="11"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;<ref refid="ie__api_8h" kindref="compound">ie_api.h</ref>&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="12"><highlight class="normal"></highlight></codeline>
+<codeline lineno="21" refid="test__api_8c_1a840291bc02cba5474a4cb46a9b9566fe" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="test__api_8c_1a840291bc02cba5474a4cb46a9b9566fe" kindref="member">main</ref>(</highlight><highlight class="keywordtype">void</highlight><highlight class="normal">)<sp/>{</highlight></codeline>
+<codeline lineno="22"><highlight class="normal"><sp/><sp/><ref refid="ie__api_8h_1a2339b3d8d0ba3c2aff4d4ee7d912ab96" kindref="member">ie_engine_t</ref><sp/>*e<sp/>=<sp/>NULL;</highlight></codeline>
+<codeline lineno="23"><highlight class="normal"></highlight></codeline>
+<codeline lineno="24"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">/*<sp/>Minimal<sp/>parameter<sp/>set;<sp/>paths<sp/>may<sp/>be<sp/>stubs<sp/>in<sp/>the<sp/>baseline.<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="25"><highlight class="normal"><sp/><sp/><ref refid="ie__api_8h_1a73fd6e398965a847ec84c3d208bf9e1a" kindref="member">ie_engine_params_t</ref><sp/>p<sp/>=<sp/>{0};</highlight></codeline>
+<codeline lineno="26"><highlight class="normal"><sp/><sp/>p.<ref refid="structie__engine__params_1a92b02bad12cb4e8173728311c00960b7" kindref="member">precision</ref><sp/>=<sp/></highlight><highlight class="stringliteral">&quot;fp32&quot;</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="27"><highlight class="normal"></highlight></codeline>
+<codeline lineno="28"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">/*<sp/>Create<sp/>engine<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="29"><highlight class="normal"><sp/><sp/>assert(<ref refid="ie__api_8h_1a29d800407f90ba6b44385725da64f27d" kindref="member">ie_engine_create</ref>(&amp;p,<sp/>&amp;e)<sp/>==<sp/><ref refid="ie__api_8h_1afe55386d31dcd43a7accd42d844d59d1" kindref="member">IE_OK</ref>);</highlight></codeline>
+<codeline lineno="30"><highlight class="normal"><sp/><sp/>assert(e<sp/>!=<sp/>NULL);</highlight></codeline>
+<codeline lineno="31"><highlight class="normal"></highlight></codeline>
+<codeline lineno="32"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">/*<sp/>Generate<sp/>a<sp/>small<sp/>batch<sp/>of<sp/>tokens<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="33"><highlight class="normal"><sp/><sp/>uint32_t<sp/>out[8];</highlight></codeline>
+<codeline lineno="34"><highlight class="normal"><sp/><sp/>uint32_t<sp/>n<sp/>=<sp/>0;</highlight></codeline>
+<codeline lineno="35"><highlight class="normal"><sp/><sp/>assert(<ref refid="ie__api_8h_1a21ab40e22d9192fe353ad6640610a01d" kindref="member">ie_engine_generate</ref>(e,<sp/></highlight><highlight class="stringliteral">&quot;hi&quot;</highlight><highlight class="normal">,<sp/>8,<sp/>out,<sp/>&amp;n)<sp/>==<sp/><ref refid="ie__api_8h_1afe55386d31dcd43a7accd42d844d59d1" kindref="member">IE_OK</ref>);</highlight></codeline>
+<codeline lineno="36"><highlight class="normal"><sp/><sp/>assert(n<sp/>==<sp/>8);</highlight></codeline>
+<codeline lineno="37"><highlight class="normal"></highlight></codeline>
+<codeline lineno="38"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">/*<sp/>Fetch<sp/>metrics<sp/>and<sp/>validate<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="39"><highlight class="normal"><sp/><sp/><ref refid="structie__metrics__t" kindref="compound">ie_metrics_t</ref><sp/>m;</highlight></codeline>
+<codeline lineno="40"><highlight class="normal"><sp/><sp/>assert(<ref refid="ie__api_8h_1ac1c4268d66d8a840276e0a72c9ace902" kindref="member">ie_engine_metrics</ref>(e,<sp/>&amp;m)<sp/>==<sp/><ref refid="ie__api_8h_1afe55386d31dcd43a7accd42d844d59d1" kindref="member">IE_OK</ref>);</highlight></codeline>
+<codeline lineno="41"><highlight class="normal"><sp/><sp/>assert(m.tps_true<sp/>&gt;=<sp/>0.0);</highlight></codeline>
+<codeline lineno="42"><highlight class="normal"><sp/><sp/>assert(m.latency_p50_ms<sp/>&gt;=<sp/>0.0);</highlight></codeline>
+<codeline lineno="43"><highlight class="normal"><sp/><sp/>assert(m.latency_p95_ms<sp/>&gt;=<sp/>0.0);</highlight></codeline>
+<codeline lineno="44"><highlight class="normal"></highlight></codeline>
+<codeline lineno="45"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">/*<sp/>Destroy<sp/>engine<sp/>(idempotent<sp/>if<sp/>called<sp/>once)<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="46"><highlight class="normal"><sp/><sp/><ref refid="ie__api_8h_1a8a724f7097b3e19da8d7dd97fba4415e" kindref="member">ie_engine_destroy</ref>(e);</highlight></codeline>
+<codeline lineno="47"><highlight class="normal"></highlight></codeline>
+<codeline lineno="48"><highlight class="normal"><sp/><sp/>printf(</highlight><highlight class="stringliteral">&quot;ok<sp/>test_api\n&quot;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="49"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>0;</highlight></codeline>
+<codeline lineno="50"><highlight class="normal">}</highlight></codeline>
+    </programlisting>
+    <location file="tests/c/test_api.c"/>
+  </compounddef>
+</doxygen>

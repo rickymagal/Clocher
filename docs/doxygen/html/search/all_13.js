@@ -1,16 +1,10 @@
 var searchData=
 [
-  ['n_5fids_0',['n_ids',['../structie__batcher__item__t.html#a6fa5aa6d85ddca6b90125464f1332626',1,'ie_batcher_item_t']]],
-  ['n_5fprompts_1',['n_prompts',['../structie__batcher.html#a66273bd78b7aa9abc1bbc175b9e9d567',1,'ie_batcher']]],
-  ['n_5fworkers_2',['n_workers',['../structie__batcher.html#a239b1f5bb428b7f4510c36afa720047d',1,'ie_batcher']]],
-  ['name_3',['name',['../structie__device__caps.html#a8077e475ea6ed7a265e255add0454957',1,'ie_device_caps::name'],['../structcpu__impl.html#a4479a15d3566dee6e784b5341e9374a8',1,'cpu_impl::name'],['../structcuda__impl.html#a9cf11521fb3e883109ee50c99faa7843',1,'cuda_impl::name'],['../structze__impl.html#a04b0234eeba1b0a50b302d5bb975faa2',1,'ze_impl::name']]],
-  ['next_4',['Next',['../md_docs_2adr-00060-optimization-path.html#autotoc_md78',1,'']]],
-  ['no_20libnuma_20link_5',['NUMA policies (Linux, no libnuma link)',['../index.html#autotoc_md36',1,'']]],
-  ['notable_20flags_6',['Notable flags',['../index.html#autotoc_md30',1,'']]],
-  ['notes_7',['Notes',['../ie__device__cuda_8cu.html#autotoc_md9',1,'']]],
-  ['now_5fsec_8',['now_sec',['../main__infer_8c.html#a4fdbfffdaa0f22a01822f6a62bb7e95e',1,'main_infer.c']]],
-  ['nth_9',['nth',['../structie__threadpool.html#a049cb6c4affb07f0eb1199091bdfa6ce',1,'ie_threadpool']]],
-  ['nth_5fmap_10',['nth_map',['../structie__task__arg__t.html#aa687c7daa39cacca34ab74ff58f433d5',1,'ie_task_arg_t']]],
-  ['numa_20policies_20linux_20no_20libnuma_20link_11',['NUMA policies (Linux, no libnuma link)',['../index.html#autotoc_md36',1,'']]],
-  ['numa_5fprobe_2ec_12',['numa_probe.c',['../numa__probe_8c.html',1,'']]]
+  ['oneapi_20gpu_20backend_0',['Level Zero (oneAPI) GPU backend',['../group__IE__GPU__ZE.html',1,'']]],
+  ['only_20helpers_20exploratory_1',['INT4 weight-only helpers (exploratory)',['../weights_8c.html#autotoc_md46',1,'']]],
+  ['only_20ptq_20manifest_20guided_20packing_20strong_2',['&lt;strong&gt;ADR-0013 (2025-10-24): Adopt INT4 weight-only PTQ &amp; manifest-guided packing&lt;/strong&gt;',['../md_docs_2DECISIONS.html#autotoc_md35',1,'']]],
+  ['operational_20notes_3',['Operational notes',['../index.html#autotoc_md55',1,'']]],
+  ['optimization_20path_20selection_20updated_20for_20int4_4',['ADR-00060 — Optimization Path Selection (updated for INT4)',['../md_docs_2adr-00060-optimization-path.html',1,'']]],
+  ['outdir_5',['outdir',['../namespaceharness.html#adda3065cc67c324fbcea064daf527b57',1,'harness']]],
+  ['overview_6',['Pipeline overview',['../index.html#autotoc_md53',1,'']]]
 ];

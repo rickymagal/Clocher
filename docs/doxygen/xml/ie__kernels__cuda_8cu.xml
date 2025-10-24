@@ -1,0 +1,865 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="ie__kernels__cuda_8cu" kind="file" language="C++">
+    <compoundname>ie_kernels_cuda.cu</compoundname>
+    <includes local="no">cuda_runtime.h</includes>
+    <includes local="no">math_constants.h</includes>
+    <includes local="no">stdint.h</includes>
+    <includes local="no">stddef.h</includes>
+    <includes refid="ie__kernels__cuda_8h" local="yes">ie_kernels_cuda.h</includes>
+    <incdepgraph>
+      <node id="6">
+        <label>ie_kernels_cuda.h</label>
+        <link refid="ie__kernels__cuda_8h"/>
+        <childnode refid="5" relation="include">
+        </childnode>
+        <childnode refid="4" relation="include">
+        </childnode>
+      </node>
+      <node id="1">
+        <label>engine/src/kernels/ie_kernels_cuda.cu</label>
+        <link refid="ie__kernels__cuda_8cu"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="3" relation="include">
+        </childnode>
+        <childnode refid="4" relation="include">
+        </childnode>
+        <childnode refid="5" relation="include">
+        </childnode>
+        <childnode refid="6" relation="include">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>cuda_runtime.h</label>
+      </node>
+      <node id="3">
+        <label>math_constants.h</label>
+      </node>
+      <node id="5">
+        <label>stddef.h</label>
+      </node>
+      <node id="4">
+        <label>stdint.h</label>
+      </node>
+    </incdepgraph>
+    <sectiondef kind="define">
+      <memberdef kind="define" id="ie__kernels__cuda_8cu_1afb3284f12e7d5038612ece3185920449" prot="public" static="no">
+        <name>IE_CUDA_OK</name>
+        <initializer>0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/src/kernels/ie_kernels_cuda.cu" line="24" column="9" bodyfile="engine/src/kernels/ie_kernels_cuda.cu" bodystart="24" bodyend="-1"/>
+        <referencedby refid="group__IE__GPU_1gaa2441c827e95b20c0413b0372ffc262b" compoundref="ie__kernels__cuda_8cu" startline="270" endline="292">ie_cuda_launch_gemv_bias_act_f32</referencedby>
+        <referencedby refid="group__IE__GPU_1ga92e383308a681db6bb757c3add5906f0" compoundref="ie__kernels__cuda_8cu" startline="246" endline="265">ie_cuda_launch_gemv_rowwise_f32</referencedby>
+        <referencedby refid="group__IE__GPU_1ga72b6dfd858bd993a18d9c5dfb3112389" compoundref="ie__kernels__cuda_8cu" startline="317" endline="335">ie_cuda_launch_pack_w_blockedk_f32</referencedby>
+        <referencedby refid="group__IE__GPU_1ga4e8445935545f1b5bbb671826543ffab" compoundref="ie__kernels__cuda_8cu" startline="297" endline="312">ie_cuda_launch_vec_tanh_f32</referencedby>
+      </memberdef>
+      <memberdef kind="define" id="ie__kernels__cuda_8cu_1ad253e9c439228a67be0e55b0f4c81edf" prot="public" static="no">
+        <name>IE_CUDA_STREAM_T_DEFINED</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/src/kernels/ie_kernels_cuda.cu" line="27" column="9" bodyfile="engine/src/kernels/ie_kernels_cuda.cu" bodystart="27" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="ie__kernels__cuda_8cu_1af4c083462b1e956e6461aa246d2af9a6" prot="public" static="no">
+        <name>CUDA_GUARD</name>
+        <param><defname>call</defname></param>
+        <initializer>  do {                                                                       \
+    cudaError_t _st = (call);                                                \
+    if (_st != cudaSuccess) {                                                \
+      <ref refid="ie__kernels__cuda_8cu_1a841d35ecb02f9850f311a5724d21deac" kindref="member">ie_cuda_set_err</ref>(cudaGetErrorString(_st));                              \
+      return -(int)_st;                                                      \
+    }                                                                        \
+  } while (0)</initializer>
+        <briefdescription>
+<para>Guard macro for CUDA runtime calls inside launchers. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>On failure: records the CUDA error string and returns the negative error code. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/src/kernels/ie_kernels_cuda.cu" line="68" column="9" bodyfile="engine/src/kernels/ie_kernels_cuda.cu" bodystart="68" bodyend="75"/>
+        <referencedby refid="group__IE__GPU_1gaa2441c827e95b20c0413b0372ffc262b" compoundref="ie__kernels__cuda_8cu" startline="270" endline="292">ie_cuda_launch_gemv_bias_act_f32</referencedby>
+        <referencedby refid="group__IE__GPU_1ga92e383308a681db6bb757c3add5906f0" compoundref="ie__kernels__cuda_8cu" startline="246" endline="265">ie_cuda_launch_gemv_rowwise_f32</referencedby>
+        <referencedby refid="group__IE__GPU_1ga72b6dfd858bd993a18d9c5dfb3112389" compoundref="ie__kernels__cuda_8cu" startline="317" endline="335">ie_cuda_launch_pack_w_blockedk_f32</referencedby>
+        <referencedby refid="group__IE__GPU_1ga4e8445935545f1b5bbb671826543ffab" compoundref="ie__kernels__cuda_8cu" startline="297" endline="312">ie_cuda_launch_vec_tanh_f32</referencedby>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="ie__kernels__cuda_8cu_1aa036ed43d83d669bfc8c15c81a7efe73" prot="public" static="no">
+        <type>cudaStream_t</type>
+        <definition>typedef cudaStream_t ie_cuda_stream_t</definition>
+        <argsstring></argsstring>
+        <name>ie_cuda_stream_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/src/kernels/ie_kernels_cuda.cu" line="28" column="22" bodyfile="engine/src/kernels/ie_kernels_cuda.cu" bodystart="28" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="var">
+      <memberdef kind="variable" id="ie__kernels__cuda_8cu_1a5ab38bcd2467e982c68d46e66acfa9ef" prot="public" static="yes" mutable="no">
+        <type>__thread char</type>
+        <definition>__thread char g_ie_cuda_err[256]</definition>
+        <argsstring>[256]</argsstring>
+        <name>g_ie_cuda_err</name>
+        <initializer>= {0}</initializer>
+        <briefdescription>
+<para>Thread-local buffer holding the most recent CUDA error message. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>The C-ABI launchers store any CUDA error textual description here so callers can retrieve it via <ref refid="group__IE__GPU_1ga6656c0ddd9df382048e7cd162e0c1d64" kindref="member">ie_cuda_last_error_string()</ref>. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/src/kernels/ie_kernels_cuda.cu" line="42" column="22" bodyfile="engine/src/kernels/ie_kernels_cuda.cu" bodystart="42" bodyend="42"/>
+        <referencedby refid="group__IE__GPU_1ga6656c0ddd9df382048e7cd162e0c1d64" compoundref="ie__kernels__cuda_8cu" startline="59" endline="61">ie_cuda_last_error_string</referencedby>
+        <referencedby refid="ie__kernels__cuda_8cu_1a841d35ecb02f9850f311a5724d21deac" compoundref="ie__kernels__cuda_8cu" startline="49" endline="54">ie_cuda_set_err</referencedby>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="ie__kernels__cuda_8cu_1a841d35ecb02f9850f311a5724d21deac" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>static void ie_cuda_set_err</definition>
+        <argsstring>(const char *msg)</argsstring>
+        <name>ie_cuda_set_err</name>
+        <param>
+          <type>const char *</type>
+          <declname>msg</declname>
+        </param>
+        <briefdescription>
+<para>Store an error message into the thread-local buffer (truncates). </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>msg</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>NUL-terminated message to copy; if <computeroutput>NULL</computeroutput>, clears the buffer. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/src/kernels/ie_kernels_cuda.cu" line="49" column="20" bodyfile="engine/src/kernels/ie_kernels_cuda.cu" bodystart="49" bodyend="54"/>
+        <references refid="ie__kernels__cuda_8cu_1a5ab38bcd2467e982c68d46e66acfa9ef" compoundref="ie__kernels__cuda_8cu" startline="42" endline="42">g_ie_cuda_err</references>
+        <referencedby refid="group__IE__GPU_1gaa2441c827e95b20c0413b0372ffc262b" compoundref="ie__kernels__cuda_8cu" startline="270" endline="292">ie_cuda_launch_gemv_bias_act_f32</referencedby>
+        <referencedby refid="group__IE__GPU_1ga92e383308a681db6bb757c3add5906f0" compoundref="ie__kernels__cuda_8cu" startline="246" endline="265">ie_cuda_launch_gemv_rowwise_f32</referencedby>
+        <referencedby refid="group__IE__GPU_1ga72b6dfd858bd993a18d9c5dfb3112389" compoundref="ie__kernels__cuda_8cu" startline="317" endline="335">ie_cuda_launch_pack_w_blockedk_f32</referencedby>
+        <referencedby refid="group__IE__GPU_1ga4e8445935545f1b5bbb671826543ffab" compoundref="ie__kernels__cuda_8cu" startline="297" endline="312">ie_cuda_launch_vec_tanh_f32</referencedby>
+      </memberdef>
+      <member refid="group__IE__GPU_1ga6656c0ddd9df382048e7cd162e0c1d64" kind="function"><name>ie_cuda_last_error_string</name></member>
+      <memberdef kind="function" id="ie__kernels__cuda_8cu_1a603115e5bb835d21609518d0af053e8d" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>__device__ float</type>
+        <definition>__device__ float ie_apply_activation</definition>
+        <argsstring>(float x, ie_act_kind_t act)</argsstring>
+        <name>ie_apply_activation</name>
+        <param>
+          <type>float</type>
+          <declname>x</declname>
+        </param>
+        <param>
+          <type><ref refid="group__IE__GPU_1ga08ba1d3777f64c23e99124d2e460e701" kindref="member">ie_act_kind_t</ref></type>
+          <declname>act</declname>
+        </param>
+        <briefdescription>
+<para>Apply activation in an epilogue. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>x</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Input value. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>act</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Activation kind (see <ref refid="group__IE__GPU_1ga08ba1d3777f64c23e99124d2e460e701" kindref="member">ie_act_kind_t</ref>). </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Activated value. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/src/kernels/ie_kernels_cuda.cu" line="88" column="25" bodyfile="engine/src/kernels/ie_kernels_cuda.cu" bodystart="88" bodyend="95"/>
+        <references refid="group__IE__GPU_1ggab2c254b332e574ed55c2537075337f85a4efb020b6e30222eac585f53f1d3e47f" compoundref="ie__kernels__cuda_8h" startline="57">IE_ACT_RELU</references>
+        <references refid="group__IE__GPU_1ggab2c254b332e574ed55c2537075337f85a5c3ab96a97ea7aa059b44e7508c28a08" compoundref="ie__kernels__cuda_8h" startline="58">IE_ACT_TANH</references>
+        <referencedby refid="ie__kernels__cuda_8cu_1ab9150fe6fc7da507974bfdd38b262ce2" compoundref="ie__kernels__cuda_8cu" startline="163" endline="193">k_gemv_bias_act_f32</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="ie__kernels__cuda_8cu_1af00402674d56c833c92c62df1cef1e84" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>__global__ void</type>
+        <definition>__global__ void k_gemv_rowwise_f32</definition>
+        <argsstring>(const float *__restrict__ W, const float *__restrict__ x, float *__restrict__ y, int rows, int cols, int ldW, float alpha, float beta)</argsstring>
+        <name>k_gemv_rowwise_f32</name>
+        <param>
+          <type>const float *__restrict__</type>
+          <declname>W</declname>
+        </param>
+        <param>
+          <type>const float *__restrict__</type>
+          <declname>x</declname>
+        </param>
+        <param>
+          <type>float *__restrict__</type>
+          <declname>y</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>rows</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>cols</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>ldW</declname>
+        </param>
+        <param>
+          <type>float</type>
+          <declname>alpha</declname>
+        </param>
+        <param>
+          <type>float</type>
+          <declname>beta</declname>
+        </param>
+        <briefdescription>
+<para>Kernel: row-wise GEMV (computes <computeroutput>y = alpha * W * x + beta * y</computeroutput>). </para>
+        </briefdescription>
+        <detaileddescription>
+<para><bold>Mapping:</bold> one block per output row; threads perform a strided reduction along the K (column) dimension; partial sums are reduced in shared memory.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>W</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Row-major matrix, <computeroutput>rows x ldW</computeroutput> (device). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>x</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Input vector of length <computeroutput>cols</computeroutput> (device). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>y</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Output vector of length <computeroutput>rows</computeroutput> (device). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>rows</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of rows in <computeroutput>W</computeroutput> and elements in <computeroutput>y</computeroutput>. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>cols</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of columns in <computeroutput>W</computeroutput> and elements in <computeroutput>x</computeroutput>. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>ldW</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Leading dimension (&gt;= cols). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>alpha</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Scale for <computeroutput>W*x</computeroutput>. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>beta</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Scale for existing <computeroutput>y</computeroutput>. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/src/kernels/ie_kernels_cuda.cu" line="116" column="17" bodyfile="engine/src/kernels/ie_kernels_cuda.cu" bodystart="116" bodyend="145"/>
+        <referencedby refid="group__IE__GPU_1ga92e383308a681db6bb757c3add5906f0" compoundref="ie__kernels__cuda_8cu" startline="246" endline="265">ie_cuda_launch_gemv_rowwise_f32</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="ie__kernels__cuda_8cu_1ab9150fe6fc7da507974bfdd38b262ce2" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>__global__ void</type>
+        <definition>__global__ void k_gemv_bias_act_f32</definition>
+        <argsstring>(const float *__restrict__ W, const float *__restrict__ x, const float *__restrict__ bias, float *__restrict__ y, int rows, int cols, int ldW, float alpha, float beta, ie_act_kind_t act)</argsstring>
+        <name>k_gemv_bias_act_f32</name>
+        <param>
+          <type>const float *__restrict__</type>
+          <declname>W</declname>
+        </param>
+        <param>
+          <type>const float *__restrict__</type>
+          <declname>x</declname>
+        </param>
+        <param>
+          <type>const float *__restrict__</type>
+          <declname>bias</declname>
+        </param>
+        <param>
+          <type>float *__restrict__</type>
+          <declname>y</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>rows</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>cols</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>ldW</declname>
+        </param>
+        <param>
+          <type>float</type>
+          <declname>alpha</declname>
+        </param>
+        <param>
+          <type>float</type>
+          <declname>beta</declname>
+        </param>
+        <param>
+          <type><ref refid="group__IE__GPU_1ga08ba1d3777f64c23e99124d2e460e701" kindref="member">ie_act_kind_t</ref></type>
+          <declname>act</declname>
+        </param>
+        <briefdescription>
+<para>Kernel: fused GEMV + bias + activation. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Computes <computeroutput>y = act(alpha * W*x + bias + beta*y)</computeroutput>.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>W</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Row-major matrix, <computeroutput>rows x ldW</computeroutput> (device). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>x</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Input vector of length <computeroutput>cols</computeroutput> (device). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>bias</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Per-row bias of length <computeroutput>rows</computeroutput> (device, may be NULL). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>y</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Output vector of length <computeroutput>rows</computeroutput> (device). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>rows</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of rows / elements in <computeroutput>y</computeroutput>. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>cols</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of columns / elements in <computeroutput>x</computeroutput>. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>ldW</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Leading dimension (&gt;= cols). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>alpha</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Scale for <computeroutput>W*x</computeroutput>. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>beta</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Scale for existing <computeroutput>y</computeroutput>. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>act</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Activation kind. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/src/kernels/ie_kernels_cuda.cu" line="163" column="17" bodyfile="engine/src/kernels/ie_kernels_cuda.cu" bodystart="163" bodyend="193"/>
+        <references refid="ie__kernels__cuda_8cu_1a603115e5bb835d21609518d0af053e8d" compoundref="ie__kernels__cuda_8cu" startline="88" endline="95">ie_apply_activation</references>
+        <referencedby refid="group__IE__GPU_1gaa2441c827e95b20c0413b0372ffc262b" compoundref="ie__kernels__cuda_8cu" startline="270" endline="292">ie_cuda_launch_gemv_bias_act_f32</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="ie__kernels__cuda_8cu_1aea063f21d4bdf3ba4108f9677476aad4" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>__global__ void</type>
+        <definition>__global__ void k_vec_tanh_f32</definition>
+        <argsstring>(float *__restrict__ y, const float *__restrict__ x, int n)</argsstring>
+        <name>k_vec_tanh_f32</name>
+        <param>
+          <type>float *__restrict__</type>
+          <declname>y</declname>
+        </param>
+        <param>
+          <type>const float *__restrict__</type>
+          <declname>x</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>n</declname>
+        </param>
+        <briefdescription>
+<para>Kernel: elementwise <computeroutput>tanh</computeroutput> on a vector. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>y</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Output vector (device). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>x</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Input vector (device). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>n</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of elements. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/src/kernels/ie_kernels_cuda.cu" line="202" column="17" bodyfile="engine/src/kernels/ie_kernels_cuda.cu" bodystart="202" bodyend="210"/>
+        <referencedby refid="group__IE__GPU_1ga4e8445935545f1b5bbb671826543ffab" compoundref="ie__kernels__cuda_8cu" startline="297" endline="312">ie_cuda_launch_vec_tanh_f32</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="ie__kernels__cuda_8cu_1ac440d51163bc9f16e835d00aedcb4b79" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>__global__ void</type>
+        <definition>__global__ void k_pack_w_blockedk_f32</definition>
+        <argsstring>(float *__restrict__ Wp, const float *__restrict__ W, int rows, int cols, int ldW, int block_k)</argsstring>
+        <name>k_pack_w_blockedk_f32</name>
+        <param>
+          <type>float *__restrict__</type>
+          <declname>Wp</declname>
+        </param>
+        <param>
+          <type>const float *__restrict__</type>
+          <declname>W</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>rows</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>cols</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>ldW</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>block_k</declname>
+        </param>
+        <briefdescription>
+<para>Kernel: pack row-major <computeroutput>W</computeroutput> into Blocked-K layout (see header docs). </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>Wp</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Destination (device). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>W</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Source row-major (device). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>rows</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Rows. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>cols</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Cols. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>ldW</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Leading dimension of <computeroutput>W</computeroutput>. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>block_k</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Tile size along K. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/src/kernels/ie_kernels_cuda.cu" line="222" column="17" bodyfile="engine/src/kernels/ie_kernels_cuda.cu" bodystart="222" bodyend="237"/>
+        <referencedby refid="group__IE__GPU_1ga72b6dfd858bd993a18d9c5dfb3112389" compoundref="ie__kernels__cuda_8cu" startline="317" endline="335">ie_cuda_launch_pack_w_blockedk_f32</referencedby>
+      </memberdef>
+      <member refid="group__IE__GPU_1ga92e383308a681db6bb757c3add5906f0" kind="function"><name>ie_cuda_launch_gemv_rowwise_f32</name></member>
+      <member refid="group__IE__GPU_1gaa2441c827e95b20c0413b0372ffc262b" kind="function"><name>ie_cuda_launch_gemv_bias_act_f32</name></member>
+      <member refid="group__IE__GPU_1ga4e8445935545f1b5bbb671826543ffab" kind="function"><name>ie_cuda_launch_vec_tanh_f32</name></member>
+      <member refid="group__IE__GPU_1ga72b6dfd858bd993a18d9c5dfb3112389" kind="function"><name>ie_cuda_launch_pack_w_blockedk_f32</name></member>
+    </sectiondef>
+    <briefdescription>
+<para>CUDA implementations of GEMV/activation/packing kernels + C-ABI launchers. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>This is the <bold>only</bold> TU that includes CUDA headers. The public header <computeroutput><ref refid="ie__kernels__cuda_8h" kindref="compound">ie_kernels_cuda.h</ref></computeroutput> keeps the rest of the codebase CUDA-agnostic.</para>
+<sect1 id="ie__kernels__cuda_8cu_1autotoc_md62_1s1"><sect2 id="ie__kernels__cuda_8cu_1autotoc_md62">
+<title>Kernel policy (baseline, safe defaults)</title><para><itemizedlist>
+<listitem><para><bold>GEMV row-wise:</bold> one block per output row, 256 threads per block, strided K loop with shared-memory reduction.</para>
+</listitem><listitem><para><bold>Fused GEMV+bias+activation:</bold> same grid policy with a short epilogue.</para>
+</listitem><listitem><para><bold>Vector tanh:</bold> grid-stride loop with 256-thread blocks, large grid.</para>
+</listitem><listitem><para><bold>Packing (Blocked-K):</bold> 2D grid over <computeroutput>(cols, rows)</computeroutput> with 32x8 threads.</para>
+</listitem></itemizedlist>
+</para>
+<para>These settings favor portability and predictability. They are easy to tune per architecture once you profile on target GPUs. </para>
+</sect2></sect1>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="normal"></highlight></codeline>
+<codeline lineno="18"><highlight class="normal"></highlight></codeline>
+<codeline lineno="19"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;cuda_runtime.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="20"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;math_constants.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="21"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stdint.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="22"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stddef.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="23"><highlight class="normal"></highlight></codeline>
+<codeline lineno="24" refid="ie__kernels__cuda_8cu_1afb3284f12e7d5038612ece3185920449" refkind="member"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>IE_CUDA_OK<sp/>0</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="25"><highlight class="normal"></highlight></codeline>
+<codeline lineno="26"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>Expose<sp/>the<sp/>same<sp/>stream<sp/>type<sp/>name<sp/>as<sp/>in<sp/>the<sp/>public<sp/>header.<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="27" refid="ie__kernels__cuda_8cu_1ad253e9c439228a67be0e55b0f4c81edf" refkind="member"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>IE_CUDA_STREAM_T_DEFINED</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="28" refid="ie__kernels__cuda_8cu_1aa036ed43d83d669bfc8c15c81a7efe73" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/>cudaStream_t<sp/><ref refid="group__IE__GPU_1gaefb3d7d282a514152960b6c3d812355b" kindref="member">ie_cuda_stream_t</ref>;</highlight></codeline>
+<codeline lineno="29"><highlight class="normal"></highlight></codeline>
+<codeline lineno="30"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;<ref refid="ie__kernels__cuda_8h" kindref="compound">ie_kernels_cuda.h</ref>&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="31"><highlight class="normal"></highlight></codeline>
+<codeline lineno="32"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>==========================================================================<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="33"><highlight class="normal"></highlight><highlight class="comment">/*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Errors<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="34"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>==========================================================================<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="35"><highlight class="normal"></highlight></codeline>
+<codeline lineno="42" refid="ie__kernels__cuda_8cu_1a5ab38bcd2467e982c68d46e66acfa9ef" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/>__thread<sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/><ref refid="ie__kernels__cuda_8cu_1a5ab38bcd2467e982c68d46e66acfa9ef" kindref="member">g_ie_cuda_err</ref>[256]<sp/>=<sp/>{0};</highlight></codeline>
+<codeline lineno="43"><highlight class="normal"></highlight></codeline>
+<codeline lineno="49" refid="ie__kernels__cuda_8cu_1a841d35ecb02f9850f311a5724d21deac" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">inline</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="ie__kernels__cuda_8cu_1a841d35ecb02f9850f311a5724d21deac" kindref="member">ie_cuda_set_err</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal">*<sp/>msg)<sp/>{</highlight></codeline>
+<codeline lineno="50"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!msg)<sp/>{<sp/><ref refid="ie__kernels__cuda_8cu_1a5ab38bcd2467e982c68d46e66acfa9ef" kindref="member">g_ie_cuda_err</ref>[0]<sp/>=<sp/></highlight><highlight class="charliteral">&apos;\0&apos;</highlight><highlight class="normal">;<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal">;<sp/>}</highlight></codeline>
+<codeline lineno="51"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>i<sp/>=<sp/>0;</highlight></codeline>
+<codeline lineno="52"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(;<sp/>i<sp/>+<sp/>1<sp/>&lt;<sp/></highlight><highlight class="keyword">sizeof</highlight><highlight class="normal">(<ref refid="ie__kernels__cuda_8cu_1a5ab38bcd2467e982c68d46e66acfa9ef" kindref="member">g_ie_cuda_err</ref>)<sp/>&amp;&amp;<sp/>msg[i];<sp/>++i)<sp/><ref refid="ie__kernels__cuda_8cu_1a5ab38bcd2467e982c68d46e66acfa9ef" kindref="member">g_ie_cuda_err</ref>[i]<sp/>=<sp/>msg[i];</highlight></codeline>
+<codeline lineno="53"><highlight class="normal"><sp/><sp/><ref refid="ie__kernels__cuda_8cu_1a5ab38bcd2467e982c68d46e66acfa9ef" kindref="member">g_ie_cuda_err</ref>[i]<sp/>=<sp/></highlight><highlight class="charliteral">&apos;\0&apos;</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="54"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="55"><highlight class="normal"></highlight></codeline>
+<codeline lineno="59" refid="group__IE__GPU_1ga6656c0ddd9df382048e7cd162e0c1d64" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal">*<sp/><ref refid="group__IE__GPU_1ga6656c0ddd9df382048e7cd162e0c1d64" kindref="member">ie_cuda_last_error_string</ref>(</highlight><highlight class="keywordtype">void</highlight><highlight class="normal">)<sp/>{</highlight></codeline>
+<codeline lineno="60"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/><ref refid="ie__kernels__cuda_8cu_1a5ab38bcd2467e982c68d46e66acfa9ef" kindref="member">g_ie_cuda_err</ref>;</highlight></codeline>
+<codeline lineno="61"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="62"><highlight class="normal"></highlight></codeline>
+<codeline lineno="68" refid="ie__kernels__cuda_8cu_1af4c083462b1e956e6461aa246d2af9a6" refkind="member"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>CUDA_GUARD(call)<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>\</highlight></codeline>
+<codeline lineno="69"><highlight class="preprocessor"><sp/><sp/>do<sp/>{<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>\</highlight></codeline>
+<codeline lineno="70"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>cudaError_t<sp/>_st<sp/>=<sp/>(call);<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>\</highlight></codeline>
+<codeline lineno="71"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>if<sp/>(_st<sp/>!=<sp/>cudaSuccess)<sp/>{<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>\</highlight></codeline>
+<codeline lineno="72"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/>ie_cuda_set_err(cudaGetErrorString(_st));<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>\</highlight></codeline>
+<codeline lineno="73"><highlight class="preprocessor"><sp/><sp/><sp/><sp/><sp/><sp/>return<sp/>-(int)_st;<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>\</highlight></codeline>
+<codeline lineno="74"><highlight class="preprocessor"><sp/><sp/><sp/><sp/>}<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>\</highlight></codeline>
+<codeline lineno="75"><highlight class="preprocessor"><sp/><sp/>}<sp/>while<sp/>(0)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="76"><highlight class="normal"></highlight></codeline>
+<codeline lineno="77"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>==========================================================================<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="78"><highlight class="normal"></highlight><highlight class="comment">/*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Device<sp/>helpers<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="79"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>==========================================================================<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="80"><highlight class="normal"></highlight></codeline>
+<codeline lineno="88" refid="ie__kernels__cuda_8cu_1a603115e5bb835d21609518d0af053e8d" refkind="member"><highlight class="normal">__device__<sp/></highlight><highlight class="keyword">inline</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/><ref refid="ie__kernels__cuda_8cu_1a603115e5bb835d21609518d0af053e8d" kindref="member">ie_apply_activation</ref>(</highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>x,<sp/><ref refid="group__IE__GPU_1ga08ba1d3777f64c23e99124d2e460e701" kindref="member">ie_act_kind_t</ref><sp/>act)<sp/>{</highlight></codeline>
+<codeline lineno="89"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(act<sp/>==<sp/><ref refid="group__IE__GPU_1ggab2c254b332e574ed55c2537075337f85a4efb020b6e30222eac585f53f1d3e47f" kindref="member">IE_ACT_RELU</ref>)<sp/>{</highlight></codeline>
+<codeline lineno="90"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>x<sp/>&gt;<sp/>0.f<sp/>?<sp/>x<sp/>:<sp/>0.f;</highlight></codeline>
+<codeline lineno="91"><highlight class="normal"><sp/><sp/>}<sp/></highlight><highlight class="keywordflow">else</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(act<sp/>==<sp/><ref refid="group__IE__GPU_1ggab2c254b332e574ed55c2537075337f85a5c3ab96a97ea7aa059b44e7508c28a08" kindref="member">IE_ACT_TANH</ref>)<sp/>{</highlight></codeline>
+<codeline lineno="92"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>tanhf(x);</highlight></codeline>
+<codeline lineno="93"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="94"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>x;<sp/></highlight><highlight class="comment">/*<sp/>IE_ACT_NONE<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="95"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="96"><highlight class="normal"></highlight></codeline>
+<codeline lineno="97"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>==========================================================================<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="98"><highlight class="normal"></highlight><highlight class="comment">/*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Kernels<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="99"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>==========================================================================<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="100"><highlight class="normal"></highlight></codeline>
+<codeline lineno="116" refid="ie__kernels__cuda_8cu_1af00402674d56c833c92c62df1cef1e84" refkind="member"><highlight class="normal">__global__<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="ie__kernels__cuda_8cu_1af00402674d56c833c92c62df1cef1e84" kindref="member">k_gemv_rowwise_f32</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal">*<sp/>__restrict__<sp/>W,</highlight></codeline>
+<codeline lineno="117"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal">*<sp/>__restrict__<sp/>x,</highlight></codeline>
+<codeline lineno="118"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal">*<sp/>__restrict__<sp/>y,</highlight></codeline>
+<codeline lineno="119"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>rows,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>cols,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>ldW,</highlight></codeline>
+<codeline lineno="120"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>alpha,<sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>beta)<sp/>{</highlight></codeline>
+<codeline lineno="121"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>r<sp/>=<sp/>blockIdx.x;</highlight></codeline>
+<codeline lineno="122"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(r<sp/>&gt;=<sp/>rows)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="123"><highlight class="normal"></highlight></codeline>
+<codeline lineno="124"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>acc<sp/>=<sp/>0.f;</highlight></codeline>
+<codeline lineno="125"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">/*<sp/>Parallel<sp/>dot-product<sp/>across<sp/>K<sp/>with<sp/>a<sp/>strided<sp/>loop.<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="126"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(</highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>k<sp/>=<sp/>threadIdx.x;<sp/>k<sp/>&lt;<sp/>cols;<sp/>k<sp/>+=<sp/>blockDim.x)<sp/>{</highlight></codeline>
+<codeline lineno="127"><highlight class="normal"><sp/><sp/><sp/><sp/>acc<sp/>+=<sp/>W[(size_t)r<sp/>*<sp/>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal">)ldW<sp/>+<sp/>(size_t)k]<sp/>*<sp/>x[k];</highlight></codeline>
+<codeline lineno="128"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="129"><highlight class="normal"></highlight></codeline>
+<codeline lineno="130"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">/*<sp/>Shared-memory<sp/>reduction<sp/>within<sp/>the<sp/>block.<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="131"><highlight class="normal"><sp/><sp/>__shared__<sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>buf[256];</highlight></codeline>
+<codeline lineno="132"><highlight class="normal"><sp/><sp/>buf[threadIdx.x]<sp/>=<sp/>acc;</highlight></codeline>
+<codeline lineno="133"><highlight class="normal"><sp/><sp/>__syncthreads();</highlight></codeline>
+<codeline lineno="134"><highlight class="normal"></highlight></codeline>
+<codeline lineno="135"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(</highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>s<sp/>=<sp/>blockDim.x<sp/>&gt;&gt;<sp/>1;<sp/>s<sp/>&gt;<sp/>0;<sp/>s<sp/>&gt;&gt;=<sp/>1)<sp/>{</highlight></codeline>
+<codeline lineno="136"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(threadIdx.x<sp/>&lt;<sp/>s)<sp/>buf[threadIdx.x]<sp/>+=<sp/>buf[threadIdx.x<sp/>+<sp/>s];</highlight></codeline>
+<codeline lineno="137"><highlight class="normal"><sp/><sp/><sp/><sp/>__syncthreads();</highlight></codeline>
+<codeline lineno="138"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="139"><highlight class="normal"></highlight></codeline>
+<codeline lineno="140"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(threadIdx.x<sp/>==<sp/>0)<sp/>{</highlight></codeline>
+<codeline lineno="141"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>out<sp/>=<sp/>alpha<sp/>*<sp/>buf[0];</highlight></codeline>
+<codeline lineno="142"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(beta<sp/>!=<sp/>0.f)<sp/>out<sp/>+=<sp/>beta<sp/>*<sp/>y[r];</highlight></codeline>
+<codeline lineno="143"><highlight class="normal"><sp/><sp/><sp/><sp/>y[r]<sp/>=<sp/>out;</highlight></codeline>
+<codeline lineno="144"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="145"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="146"><highlight class="normal"></highlight></codeline>
+<codeline lineno="163" refid="ie__kernels__cuda_8cu_1ab9150fe6fc7da507974bfdd38b262ce2" refkind="member"><highlight class="normal">__global__<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="ie__kernels__cuda_8cu_1ab9150fe6fc7da507974bfdd38b262ce2" kindref="member">k_gemv_bias_act_f32</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal">*<sp/>__restrict__<sp/>W,</highlight></codeline>
+<codeline lineno="164"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal">*<sp/>__restrict__<sp/>x,</highlight></codeline>
+<codeline lineno="165"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal">*<sp/>__restrict__<sp/>bias,</highlight></codeline>
+<codeline lineno="166"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal">*<sp/>__restrict__<sp/>y,</highlight></codeline>
+<codeline lineno="167"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>rows,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>cols,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>ldW,</highlight></codeline>
+<codeline lineno="168"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>alpha,<sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>beta,</highlight></codeline>
+<codeline lineno="169"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="group__IE__GPU_1ga08ba1d3777f64c23e99124d2e460e701" kindref="member">ie_act_kind_t</ref><sp/>act)<sp/>{</highlight></codeline>
+<codeline lineno="170"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>r<sp/>=<sp/>blockIdx.x;</highlight></codeline>
+<codeline lineno="171"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(r<sp/>&gt;=<sp/>rows)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="172"><highlight class="normal"></highlight></codeline>
+<codeline lineno="173"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>acc<sp/>=<sp/>0.f;</highlight></codeline>
+<codeline lineno="174"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(</highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>k<sp/>=<sp/>threadIdx.x;<sp/>k<sp/>&lt;<sp/>cols;<sp/>k<sp/>+=<sp/>blockDim.x)<sp/>{</highlight></codeline>
+<codeline lineno="175"><highlight class="normal"><sp/><sp/><sp/><sp/>acc<sp/>+=<sp/>W[(size_t)r<sp/>*<sp/>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal">)ldW<sp/>+<sp/>(size_t)k]<sp/>*<sp/>x[k];</highlight></codeline>
+<codeline lineno="176"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="177"><highlight class="normal"></highlight></codeline>
+<codeline lineno="178"><highlight class="normal"><sp/><sp/>__shared__<sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>buf[256];</highlight></codeline>
+<codeline lineno="179"><highlight class="normal"><sp/><sp/>buf[threadIdx.x]<sp/>=<sp/>acc;</highlight></codeline>
+<codeline lineno="180"><highlight class="normal"><sp/><sp/>__syncthreads();</highlight></codeline>
+<codeline lineno="181"><highlight class="normal"></highlight></codeline>
+<codeline lineno="182"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(</highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>s<sp/>=<sp/>blockDim.x<sp/>&gt;&gt;<sp/>1;<sp/>s<sp/>&gt;<sp/>0;<sp/>s<sp/>&gt;&gt;=<sp/>1)<sp/>{</highlight></codeline>
+<codeline lineno="183"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(threadIdx.x<sp/>&lt;<sp/>s)<sp/>buf[threadIdx.x]<sp/>+=<sp/>buf[threadIdx.x<sp/>+<sp/>s];</highlight></codeline>
+<codeline lineno="184"><highlight class="normal"><sp/><sp/><sp/><sp/>__syncthreads();</highlight></codeline>
+<codeline lineno="185"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="186"><highlight class="normal"></highlight></codeline>
+<codeline lineno="187"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(threadIdx.x<sp/>==<sp/>0)<sp/>{</highlight></codeline>
+<codeline lineno="188"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>b<sp/>=<sp/>bias<sp/>?<sp/>bias[r]<sp/>:<sp/>0.f;</highlight></codeline>
+<codeline lineno="189"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>out<sp/>=<sp/>alpha<sp/>*<sp/>buf[0]<sp/>+<sp/>b;</highlight></codeline>
+<codeline lineno="190"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(beta<sp/>!=<sp/>0.f)<sp/>out<sp/>+=<sp/>beta<sp/>*<sp/>y[r];</highlight></codeline>
+<codeline lineno="191"><highlight class="normal"><sp/><sp/><sp/><sp/>y[r]<sp/>=<sp/><ref refid="ie__kernels__cuda_8cu_1a603115e5bb835d21609518d0af053e8d" kindref="member">ie_apply_activation</ref>(out,<sp/>act);</highlight></codeline>
+<codeline lineno="192"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="193"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="194"><highlight class="normal"></highlight></codeline>
+<codeline lineno="202" refid="ie__kernels__cuda_8cu_1aea063f21d4bdf3ba4108f9677476aad4" refkind="member"><highlight class="normal">__global__<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="ie__kernels__cuda_8cu_1aea063f21d4bdf3ba4108f9677476aad4" kindref="member">k_vec_tanh_f32</ref>(</highlight><highlight class="keywordtype">float</highlight><highlight class="normal">*<sp/>__restrict__<sp/>y,</highlight></codeline>
+<codeline lineno="203"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal">*<sp/>__restrict__<sp/>x,</highlight></codeline>
+<codeline lineno="204"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>n)<sp/>{</highlight></codeline>
+<codeline lineno="205"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(</highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>i<sp/>=<sp/>blockIdx.x<sp/>*<sp/>blockDim.x<sp/>+<sp/>threadIdx.x;</highlight></codeline>
+<codeline lineno="206"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/>i<sp/>&lt;<sp/>n;</highlight></codeline>
+<codeline lineno="207"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/>i<sp/>+=<sp/>blockDim.x<sp/>*<sp/>gridDim.x)<sp/>{</highlight></codeline>
+<codeline lineno="208"><highlight class="normal"><sp/><sp/><sp/><sp/>y[i]<sp/>=<sp/>tanhf(x[i]);</highlight></codeline>
+<codeline lineno="209"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="210"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="211"><highlight class="normal"></highlight></codeline>
+<codeline lineno="222" refid="ie__kernels__cuda_8cu_1ac440d51163bc9f16e835d00aedcb4b79" refkind="member"><highlight class="normal">__global__<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="ie__kernels__cuda_8cu_1ac440d51163bc9f16e835d00aedcb4b79" kindref="member">k_pack_w_blockedk_f32</ref>(</highlight><highlight class="keywordtype">float</highlight><highlight class="normal">*<sp/>__restrict__<sp/>Wp,</highlight></codeline>
+<codeline lineno="223"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal">*<sp/>__restrict__<sp/>W,</highlight></codeline>
+<codeline lineno="224"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>rows,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>cols,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>ldW,</highlight></codeline>
+<codeline lineno="225"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>block_k)<sp/>{</highlight></codeline>
+<codeline lineno="226"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>r0<sp/>=<sp/>blockIdx.y<sp/>*<sp/>blockDim.y<sp/>+<sp/>threadIdx.y;</highlight></codeline>
+<codeline lineno="227"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>k0<sp/>=<sp/>blockIdx.x<sp/>*<sp/>blockDim.x<sp/>+<sp/>threadIdx.x;</highlight></codeline>
+<codeline lineno="228"><highlight class="normal"></highlight></codeline>
+<codeline lineno="229"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(</highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>r<sp/>=<sp/>r0;<sp/>r<sp/>&lt;<sp/>rows;<sp/>r<sp/>+=<sp/>blockDim.y<sp/>*<sp/>gridDim.y)<sp/>{</highlight></codeline>
+<codeline lineno="230"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(</highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>k<sp/>=<sp/>k0;<sp/>k<sp/>&lt;<sp/>cols;<sp/>k<sp/>+=<sp/>blockDim.x<sp/>*<sp/>gridDim.x)<sp/>{</highlight></codeline>
+<codeline lineno="231"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>kb<sp/>=<sp/>k<sp/>/<sp/>block_k;</highlight></codeline>
+<codeline lineno="232"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>ko<sp/>=<sp/>k<sp/>%<sp/>block_k;</highlight></codeline>
+<codeline lineno="233"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>dst<sp/>=<sp/>((size_t)kb<sp/>*<sp/>(size_t)rows<sp/>+<sp/>(size_t)r)<sp/>*<sp/>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal">)block_k<sp/>+<sp/>(size_t)ko;</highlight></codeline>
+<codeline lineno="234"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>Wp[dst]<sp/>=<sp/>W[(size_t)r<sp/>*<sp/>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal">)ldW<sp/>+<sp/>(size_t)k];</highlight></codeline>
+<codeline lineno="235"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="236"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="237"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="238"><highlight class="normal"></highlight></codeline>
+<codeline lineno="239"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>==========================================================================<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="240"><highlight class="normal"></highlight><highlight class="comment">/*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Launchers<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="241"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>==========================================================================<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="242"><highlight class="normal"></highlight></codeline>
+<codeline lineno="246" refid="group__IE__GPU_1ga92e383308a681db6bb757c3add5906f0" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="group__IE__GPU_1ga92e383308a681db6bb757c3add5906f0" kindref="member">ie_cuda_launch_gemv_rowwise_f32</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal">*<sp/>W,</highlight></codeline>
+<codeline lineno="247"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal">*<sp/>x,</highlight></codeline>
+<codeline lineno="248"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal">*<sp/><sp/><sp/><sp/><sp/><sp/><sp/>y,</highlight></codeline>
+<codeline lineno="249"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>rows,</highlight></codeline>
+<codeline lineno="250"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>cols,</highlight></codeline>
+<codeline lineno="251"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>ldW,</highlight></codeline>
+<codeline lineno="252"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>alpha,</highlight></codeline>
+<codeline lineno="253"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>beta,</highlight></codeline>
+<codeline lineno="254"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="group__IE__GPU_1gaefb3d7d282a514152960b6c3d812355b" kindref="member">ie_cuda_stream_t</ref><sp/>stream)<sp/>{</highlight></codeline>
+<codeline lineno="255"><highlight class="normal"><sp/><sp/><ref refid="ie__kernels__cuda_8cu_1a841d35ecb02f9850f311a5724d21deac" kindref="member">ie_cuda_set_err</ref>(NULL);</highlight></codeline>
+<codeline lineno="256"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!W<sp/>||<sp/>!x<sp/>||<sp/>!y<sp/>||<sp/>rows<sp/>&lt;=<sp/>0<sp/>||<sp/>cols<sp/>&lt;=<sp/>0<sp/>||<sp/>ldW<sp/>&lt;<sp/>cols)<sp/>{</highlight></codeline>
+<codeline lineno="257"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="ie__kernels__cuda_8cu_1a841d35ecb02f9850f311a5724d21deac" kindref="member">ie_cuda_set_err</ref>(</highlight><highlight class="stringliteral">&quot;invalid<sp/>arguments&quot;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="258"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>-1;</highlight></codeline>
+<codeline lineno="259"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="260"><highlight class="normal"><sp/><sp/>dim3<sp/>block(256,<sp/>1,<sp/>1);</highlight></codeline>
+<codeline lineno="261"><highlight class="normal"><sp/><sp/>dim3<sp/>grid(rows,<sp/>1,<sp/>1);</highlight></codeline>
+<codeline lineno="262"><highlight class="normal"><sp/><sp/><ref refid="ie__kernels__cuda_8cu_1af00402674d56c833c92c62df1cef1e84" kindref="member">k_gemv_rowwise_f32&lt;&lt;&lt;grid, block, 0, stream&gt;</ref>&gt;&gt;(W,<sp/>x,<sp/>y,<sp/>rows,<sp/>cols,<sp/>ldW,<sp/>alpha,<sp/>beta);</highlight></codeline>
+<codeline lineno="263"><highlight class="normal"><sp/><sp/><ref refid="ie__kernels__cuda_8cu_1af4c083462b1e956e6461aa246d2af9a6" kindref="member">CUDA_GUARD</ref>(cudaGetLastError());</highlight></codeline>
+<codeline lineno="264"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/><ref refid="ie__kernels__cuda_8cu_1afb3284f12e7d5038612ece3185920449" kindref="member">IE_CUDA_OK</ref>;</highlight></codeline>
+<codeline lineno="265"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="266"><highlight class="normal"></highlight></codeline>
+<codeline lineno="270" refid="group__IE__GPU_1gaa2441c827e95b20c0413b0372ffc262b" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="group__IE__GPU_1gaa2441c827e95b20c0413b0372ffc262b" kindref="member">ie_cuda_launch_gemv_bias_act_f32</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal">*<sp/>W,</highlight></codeline>
+<codeline lineno="271"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal">*<sp/>x,</highlight></codeline>
+<codeline lineno="272"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal">*<sp/>bias,</highlight></codeline>
+<codeline lineno="273"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal">*<sp/><sp/><sp/><sp/><sp/><sp/><sp/>y,</highlight></codeline>
+<codeline lineno="274"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>rows,</highlight></codeline>
+<codeline lineno="275"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>cols,</highlight></codeline>
+<codeline lineno="276"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>ldW,</highlight></codeline>
+<codeline lineno="277"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>alpha,</highlight></codeline>
+<codeline lineno="278"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>beta,</highlight></codeline>
+<codeline lineno="279"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="group__IE__GPU_1ga08ba1d3777f64c23e99124d2e460e701" kindref="member">ie_act_kind_t</ref><sp/>act,</highlight></codeline>
+<codeline lineno="280"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="group__IE__GPU_1gaefb3d7d282a514152960b6c3d812355b" kindref="member">ie_cuda_stream_t</ref><sp/>stream)<sp/>{</highlight></codeline>
+<codeline lineno="281"><highlight class="normal"><sp/><sp/><ref refid="ie__kernels__cuda_8cu_1a841d35ecb02f9850f311a5724d21deac" kindref="member">ie_cuda_set_err</ref>(NULL);</highlight></codeline>
+<codeline lineno="282"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!W<sp/>||<sp/>!x<sp/>||<sp/>!y<sp/>||<sp/>rows<sp/>&lt;=<sp/>0<sp/>||<sp/>cols<sp/>&lt;=<sp/>0<sp/>||<sp/>ldW<sp/>&lt;<sp/>cols)<sp/>{</highlight></codeline>
+<codeline lineno="283"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="ie__kernels__cuda_8cu_1a841d35ecb02f9850f311a5724d21deac" kindref="member">ie_cuda_set_err</ref>(</highlight><highlight class="stringliteral">&quot;invalid<sp/>arguments&quot;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="284"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>-1;</highlight></codeline>
+<codeline lineno="285"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="286"><highlight class="normal"><sp/><sp/>dim3<sp/>block(256,<sp/>1,<sp/>1);</highlight></codeline>
+<codeline lineno="287"><highlight class="normal"><sp/><sp/>dim3<sp/>grid(rows,<sp/>1,<sp/>1);</highlight></codeline>
+<codeline lineno="288"><highlight class="normal"><sp/><sp/><ref refid="ie__kernels__cuda_8cu_1ab9150fe6fc7da507974bfdd38b262ce2" kindref="member">k_gemv_bias_act_f32&lt;&lt;&lt;grid, block, 0, stream&gt;</ref>&gt;&gt;(</highlight></codeline>
+<codeline lineno="289"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>W,<sp/>x,<sp/>bias,<sp/>y,<sp/>rows,<sp/>cols,<sp/>ldW,<sp/>alpha,<sp/>beta,<sp/>act);</highlight></codeline>
+<codeline lineno="290"><highlight class="normal"><sp/><sp/><ref refid="ie__kernels__cuda_8cu_1af4c083462b1e956e6461aa246d2af9a6" kindref="member">CUDA_GUARD</ref>(cudaGetLastError());</highlight></codeline>
+<codeline lineno="291"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/><ref refid="ie__kernels__cuda_8cu_1afb3284f12e7d5038612ece3185920449" kindref="member">IE_CUDA_OK</ref>;</highlight></codeline>
+<codeline lineno="292"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="293"><highlight class="normal"></highlight></codeline>
+<codeline lineno="297" refid="group__IE__GPU_1ga4e8445935545f1b5bbb671826543ffab" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="group__IE__GPU_1ga4e8445935545f1b5bbb671826543ffab" kindref="member">ie_cuda_launch_vec_tanh_f32</ref>(</highlight><highlight class="keywordtype">float</highlight><highlight class="normal">*<sp/>y,</highlight></codeline>
+<codeline lineno="298"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal">*<sp/>x,</highlight></codeline>
+<codeline lineno="299"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>n,</highlight></codeline>
+<codeline lineno="300"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="group__IE__GPU_1gaefb3d7d282a514152960b6c3d812355b" kindref="member">ie_cuda_stream_t</ref><sp/>stream)<sp/>{</highlight></codeline>
+<codeline lineno="301"><highlight class="normal"><sp/><sp/><ref refid="ie__kernels__cuda_8cu_1a841d35ecb02f9850f311a5724d21deac" kindref="member">ie_cuda_set_err</ref>(NULL);</highlight></codeline>
+<codeline lineno="302"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!x<sp/>||<sp/>!y<sp/>||<sp/>n<sp/>&lt;=<sp/>0)<sp/>{</highlight></codeline>
+<codeline lineno="303"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="ie__kernels__cuda_8cu_1a841d35ecb02f9850f311a5724d21deac" kindref="member">ie_cuda_set_err</ref>(</highlight><highlight class="stringliteral">&quot;invalid<sp/>arguments&quot;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="304"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>-1;</highlight></codeline>
+<codeline lineno="305"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="306"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>block<sp/>=<sp/>256;</highlight></codeline>
+<codeline lineno="307"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>grid<sp/>=<sp/>(n<sp/>+<sp/>block<sp/>-<sp/>1)<sp/>/<sp/>block;</highlight></codeline>
+<codeline lineno="308"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(grid<sp/>&gt;<sp/>65535)<sp/>grid<sp/>=<sp/>65535;<sp/></highlight><highlight class="comment">/*<sp/>SM<sp/>limit<sp/>for<sp/>1D<sp/>grids<sp/>on<sp/>many<sp/>archs<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="309"><highlight class="normal"><sp/><sp/><ref refid="ie__kernels__cuda_8cu_1aea063f21d4bdf3ba4108f9677476aad4" kindref="member">k_vec_tanh_f32&lt;&lt;&lt;grid, block, 0, stream&gt;</ref>&gt;&gt;(y,<sp/>x,<sp/>n);</highlight></codeline>
+<codeline lineno="310"><highlight class="normal"><sp/><sp/><ref refid="ie__kernels__cuda_8cu_1af4c083462b1e956e6461aa246d2af9a6" kindref="member">CUDA_GUARD</ref>(cudaGetLastError());</highlight></codeline>
+<codeline lineno="311"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/><ref refid="ie__kernels__cuda_8cu_1afb3284f12e7d5038612ece3185920449" kindref="member">IE_CUDA_OK</ref>;</highlight></codeline>
+<codeline lineno="312"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="313"><highlight class="normal"></highlight></codeline>
+<codeline lineno="317" refid="group__IE__GPU_1ga72b6dfd858bd993a18d9c5dfb3112389" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="group__IE__GPU_1ga72b6dfd858bd993a18d9c5dfb3112389" kindref="member">ie_cuda_launch_pack_w_blockedk_f32</ref>(</highlight><highlight class="keywordtype">float</highlight><highlight class="normal">*<sp/><sp/><sp/><sp/><sp/><sp/><sp/>Wp,</highlight></codeline>
+<codeline lineno="318"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal">*<sp/>W,</highlight></codeline>
+<codeline lineno="319"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>rows,</highlight></codeline>
+<codeline lineno="320"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>cols,</highlight></codeline>
+<codeline lineno="321"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>ldW,</highlight></codeline>
+<codeline lineno="322"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>block_k,</highlight></codeline>
+<codeline lineno="323"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="group__IE__GPU_1gaefb3d7d282a514152960b6c3d812355b" kindref="member">ie_cuda_stream_t</ref><sp/>stream)<sp/>{</highlight></codeline>
+<codeline lineno="324"><highlight class="normal"><sp/><sp/><ref refid="ie__kernels__cuda_8cu_1a841d35ecb02f9850f311a5724d21deac" kindref="member">ie_cuda_set_err</ref>(NULL);</highlight></codeline>
+<codeline lineno="325"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!Wp<sp/>||<sp/>!W<sp/>||<sp/>rows<sp/>&lt;=<sp/>0<sp/>||<sp/>cols<sp/>&lt;=<sp/>0<sp/>||<sp/>ldW<sp/>&lt;<sp/>cols<sp/>||<sp/>block_k<sp/>&lt;=<sp/>0)<sp/>{</highlight></codeline>
+<codeline lineno="326"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="ie__kernels__cuda_8cu_1a841d35ecb02f9850f311a5724d21deac" kindref="member">ie_cuda_set_err</ref>(</highlight><highlight class="stringliteral">&quot;invalid<sp/>arguments&quot;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="327"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>-1;</highlight></codeline>
+<codeline lineno="328"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="329"><highlight class="normal"><sp/><sp/>dim3<sp/>block(32,<sp/>8,<sp/>1);<sp/><sp/></highlight><highlight class="comment">/*<sp/>256<sp/>threads<sp/>per<sp/>block<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="330"><highlight class="normal"><sp/><sp/>dim3<sp/>grid((cols<sp/>+<sp/>block.x<sp/>-<sp/>1)<sp/>/<sp/>block.x,</highlight></codeline>
+<codeline lineno="331"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>(rows<sp/>+<sp/>block.y<sp/>-<sp/>1)<sp/>/<sp/>block.y,<sp/>1);</highlight></codeline>
+<codeline lineno="332"><highlight class="normal"><sp/><sp/><ref refid="ie__kernels__cuda_8cu_1ac440d51163bc9f16e835d00aedcb4b79" kindref="member">k_pack_w_blockedk_f32&lt;&lt;&lt;grid, block, 0, stream&gt;</ref>&gt;&gt;(Wp,<sp/>W,<sp/>rows,<sp/>cols,<sp/>ldW,<sp/>block_k);</highlight></codeline>
+<codeline lineno="333"><highlight class="normal"><sp/><sp/><ref refid="ie__kernels__cuda_8cu_1af4c083462b1e956e6461aa246d2af9a6" kindref="member">CUDA_GUARD</ref>(cudaGetLastError());</highlight></codeline>
+<codeline lineno="334"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/><ref refid="ie__kernels__cuda_8cu_1afb3284f12e7d5038612ece3185920449" kindref="member">IE_CUDA_OK</ref>;</highlight></codeline>
+<codeline lineno="335"><highlight class="normal">}</highlight></codeline>
+    </programlisting>
+    <location file="engine/src/kernels/ie_kernels_cuda.cu"/>
+  </compounddef>
+</doxygen>

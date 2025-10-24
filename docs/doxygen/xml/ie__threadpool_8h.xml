@@ -1,0 +1,318 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="ie__threadpool_8h" kind="file" language="C++">
+    <compoundname>ie_threadpool.h</compoundname>
+    <includes local="no">stddef.h</includes>
+    <includedby refid="thread__pool_8c" local="yes">engine/src/opt/thread_pool.c</includedby>
+    <includedby refid="test__threadpool_8c" local="yes">tests/c/test_threadpool.c</includedby>
+    <incdepgraph>
+      <node id="1">
+        <label>engine/include/ie_threadpool.h</label>
+        <link refid="ie__threadpool_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>stddef.h</label>
+      </node>
+    </incdepgraph>
+    <invincdepgraph>
+      <node id="1">
+        <label>engine/include/ie_threadpool.h</label>
+        <link refid="ie__threadpool_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="3" relation="include">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>engine/src/opt/thread_pool.c</label>
+        <link refid="thread__pool_8c"/>
+      </node>
+      <node id="3">
+        <label>tests/c/test_threadpool.c</label>
+        <link refid="test__threadpool_8c"/>
+      </node>
+    </invincdepgraph>
+    <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="ie__threadpool_8h_1ada8c808f3fdd5327b3082d8725561ce8" prot="public" static="no">
+        <type>struct <ref refid="structie__threadpool" kindref="compound">ie_threadpool</ref></type>
+        <definition>typedef struct ie_threadpool ie_threadpool_t</definition>
+        <argsstring></argsstring>
+        <name>ie_threadpool_t</name>
+        <briefdescription>
+<para>Opaque thread-pool handle. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/ie_threadpool.h" line="26" column="28" bodyfile="engine/include/ie_threadpool.h" bodystart="26" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="typedef" id="ie__threadpool_8h_1af0040a9e6d528cabc1c7797542b85693" prot="public" static="no">
+        <type>void(*</type>
+        <definition>typedef void(* ie_tp_for_body_fn) (void *ctx, unsigned start, unsigned end)</definition>
+        <argsstring>)(void *ctx, unsigned start, unsigned end)</argsstring>
+        <name>ie_tp_for_body_fn</name>
+        <briefdescription>
+<para>Function type for a parallel-for body over a half-open range [start, end). </para>
+        </briefdescription>
+        <detaileddescription>
+<para>The implementation guarantees that <computeroutput>start &lt; end</computeroutput> for non-empty subranges and that the union of all issued subranges exactly covers <computeroutput>[0, n)</computeroutput>.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>ctx</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>User context pointer passed through from <computeroutput><ref refid="ie__threadpool_8h_1ac3dd114f8b47a5fe0d22f8107a51e90f" kindref="member">ie_tp_parallel_for()</ref></computeroutput>. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>start</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Inclusive start index for this worker. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>end</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Exclusive end index for this worker. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/ie_threadpool.h" line="56" column="9" bodyfile="engine/include/ie_threadpool.h" bodystart="56" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="ie__threadpool_8h_1ac8f8095fb1ec189946232325a3fce3a2" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="ie__threadpool_8h_1ada8c808f3fdd5327b3082d8725561ce8" kindref="member">ie_threadpool_t</ref> *</type>
+        <definition>ie_threadpool_t * ie_tp_create</definition>
+        <argsstring>(unsigned nth, const char *affinity)</argsstring>
+        <name>ie_tp_create</name>
+        <param>
+          <type>unsigned</type>
+          <declname>nth</declname>
+        </param>
+        <param>
+          <type>const char *</type>
+          <declname>affinity</declname>
+        </param>
+        <briefdescription>
+<para>Create a thread pool. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>nth</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Desired number of worker threads (&gt;= 1). Values &lt; 1 are clamped to 1. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>affinity</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Optional policy string: &quot;auto&quot;, &quot;compact&quot;, or &quot;scatter&quot;. The value is advisory; non-Linux builds ignore affinity. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Newly created thread-pool handle, or NULL on allocation failure. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/ie_threadpool.h" line="37" column="17" bodyfile="engine/src/opt/thread_pool.c" bodystart="115" bodyend="144" declfile="engine/include/ie_threadpool.h" declline="37" declcolumn="17"/>
+        <references refid="structie__threadpool_1ab30ff46e0f8992c0c9fceea8c336a4a0" compoundref="thread__pool_8c" startline="36">ie_threadpool::affinity</references>
+        <references refid="thread__pool_8c_1a76c9a7c2502624899ae3cb5d46c04f7e" compoundref="thread__pool_8c" startline="99" endline="109">ie_worker_main</references>
+        <references refid="structie__threadpool_1a049cb6c4affb07f0eb1199091bdfa6ce" compoundref="thread__pool_8c" startline="35">ie_threadpool::nth</references>
+        <references refid="structie__threadpool_1a951e09270eaf6eba31e75ec4aed170b7" compoundref="thread__pool_8c" startline="40">ie_threadpool::threads</references>
+        <references refid="structie__worker__arg__t_1aafb928d17efdf95af0fdcde45c4592f5" compoundref="thread__pool_8c" startline="90">ie_worker_arg_t::tidx</references>
+        <references refid="structie__worker__arg__t_1a2d5b690772e7feda6de890a2f06cb033" compoundref="thread__pool_8c" startline="89">ie_worker_arg_t::tp</references>
+        <references refid="structie__threadpool_1ac1aab334f9b4baf6aac73f151438f7bd" compoundref="thread__pool_8c" startline="37">ie_threadpool::use_affinity</references>
+        <referencedby refid="test__threadpool_8c_1a840291bc02cba5474a4cb46a9b9566fe" compoundref="test__threadpool_8c" startline="69" endline="126">main</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="ie__threadpool_8h_1ab205aaf0e68cb61f3ac782c02aa5d475" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ie_tp_destroy</definition>
+        <argsstring>(ie_threadpool_t *tp)</argsstring>
+        <name>ie_tp_destroy</name>
+        <param>
+          <type><ref refid="ie__threadpool_8h_1ada8c808f3fdd5327b3082d8725561ce8" kindref="member">ie_threadpool_t</ref> *</type>
+          <declname>tp</declname>
+        </param>
+        <briefdescription>
+<para>Destroy a thread pool and join all worker threads. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>tp</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Thread-pool handle (NULL allowed; no-op). </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/ie_threadpool.h" line="44" column="6" bodyfile="engine/src/opt/thread_pool.c" bodystart="146" bodyend="157" declfile="engine/include/ie_threadpool.h" declline="44" declcolumn="6"/>
+        <references refid="structie__threadpool_1a049cb6c4affb07f0eb1199091bdfa6ce" compoundref="thread__pool_8c" startline="35">ie_threadpool::nth</references>
+        <references refid="structie__threadpool_1a951e09270eaf6eba31e75ec4aed170b7" compoundref="thread__pool_8c" startline="40">ie_threadpool::threads</references>
+        <referencedby refid="test__threadpool_8c_1a840291bc02cba5474a4cb46a9b9566fe" compoundref="test__threadpool_8c" startline="69" endline="126">main</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="ie__threadpool_8h_1ac3dd114f8b47a5fe0d22f8107a51e90f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ie_tp_parallel_for</definition>
+        <argsstring>(ie_threadpool_t *tp, unsigned n, unsigned grainsize, ie_tp_for_body_fn body_fn, void *ctx)</argsstring>
+        <name>ie_tp_parallel_for</name>
+        <param>
+          <type><ref refid="ie__threadpool_8h_1ada8c808f3fdd5327b3082d8725561ce8" kindref="member">ie_threadpool_t</ref> *</type>
+          <declname>tp</declname>
+        </param>
+        <param>
+          <type>unsigned</type>
+          <declname>n</declname>
+        </param>
+        <param>
+          <type>unsigned</type>
+          <declname>grainsize</declname>
+        </param>
+        <param>
+          <type><ref refid="ie__threadpool_8h_1af0040a9e6d528cabc1c7797542b85693" kindref="member">ie_tp_for_body_fn</ref></type>
+          <declname>body_fn</declname>
+        </param>
+        <param>
+          <type>void *</type>
+          <declname>ctx</declname>
+        </param>
+        <briefdescription>
+<para>Execute a synchronous parallel-for over <computeroutput>n</computeroutput> iterations. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>The iteration space <computeroutput>[0, n)</computeroutput> is partitioned into contiguous chunks. If <computeroutput>grainsize &gt; 0</computeroutput>, each chunk will be at least <computeroutput>grainsize</computeroutput> iterations (except possibly the last). If <computeroutput>grainsize == 0</computeroutput>, the function partitions the space as evenly as possible across the pool&apos;s workers.</para>
+<para>On non-Linux systems (or when <computeroutput>IE_TP_USE_AFFINITY != 1</computeroutput>), no CPU affinity is applied. On Linux with <computeroutput>IE_TP_USE_AFFINITY=1</computeroutput>, worker threads may bind to specific CPUs using the policy provided at creation (&quot;auto&quot;/&quot;compact&quot;/&quot;scatter&quot;).</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>tp</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Thread-pool handle (may be NULL for single-threaded). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>n</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of iterations in the global range <computeroutput>[0, n)</computeroutput>. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>grainsize</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Minimum chunk size (use 0 for auto). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>body_fn</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Function called for each chunk. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>ctx</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Opaque user pointer passed to <computeroutput>body_fn</computeroutput>. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/ie_threadpool.h" line="76" column="6" bodyfile="engine/src/opt/thread_pool.c" bodystart="194" bodyend="262" declfile="engine/include/ie_threadpool.h" declline="76" declcolumn="6"/>
+        <references refid="structie__task__arg__t_1a3392b3ce65fc59698bec0d92ec94ba31" compoundref="thread__pool_8c" startline="164">ie_task_arg_t::affinity</references>
+        <references refid="structie__threadpool_1ab30ff46e0f8992c0c9fceea8c336a4a0" compoundref="thread__pool_8c" startline="36">ie_threadpool::affinity</references>
+        <references refid="structie__task__arg__t_1a1d5b2ad9724bb08fba602b3cb4ad28e8" compoundref="thread__pool_8c" startline="172">ie_task_arg_t::body</references>
+        <references refid="structie__task__arg__t_1ad0a63b137b85c1b50a797cd54204fd69" compoundref="thread__pool_8c" startline="173">ie_task_arg_t::ctx</references>
+        <references refid="structie__task__arg__t_1a68e089a47b157f9398b8059269d6b95d" compoundref="thread__pool_8c" startline="170">ie_task_arg_t::end</references>
+        <references refid="thread__pool_8c_1a2359598b57e5b606af0406bb0e2fba98" compoundref="thread__pool_8c" startline="182" endline="192">ie_task_main</references>
+        <references refid="structie__threadpool_1a049cb6c4affb07f0eb1199091bdfa6ce" compoundref="thread__pool_8c" startline="35">ie_threadpool::nth</references>
+        <references refid="structie__task__arg__t_1aa687c7daa39cacca34ab74ff58f433d5" compoundref="thread__pool_8c" startline="167">ie_task_arg_t::nth_map</references>
+        <references refid="structie__task__arg__t_1afee2b8f07881d75ea8829a1f54757c5e" compoundref="thread__pool_8c" startline="169">ie_task_arg_t::start</references>
+        <references refid="structie__task__arg__t_1a67e8d3401edad2240d6c2f4d398fc6d0" compoundref="thread__pool_8c" startline="166">ie_task_arg_t::tidx_map</references>
+        <references refid="structie__task__arg__t_1a9d90ceaa82f746983034dd7bc034bc26" compoundref="thread__pool_8c" startline="165">ie_task_arg_t::use_affinity</references>
+        <references refid="structie__threadpool_1ac1aab334f9b4baf6aac73f151438f7bd" compoundref="thread__pool_8c" startline="37">ie_threadpool::use_affinity</references>
+        <referencedby refid="test__threadpool_8c_1a840291bc02cba5474a4cb46a9b9566fe" compoundref="test__threadpool_8c" startline="69" endline="126">main</referencedby>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para>Minimal thread-pool interface with optional Linux CPU affinity. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>This API purposely keeps the contract small:<itemizedlist>
+<listitem><para>Create / destroy a pool.</para>
+</listitem><listitem><para>Run a synchronous parallel-for with contiguous partition.</para>
+</listitem></itemizedlist>
+</para>
+<para>Notes:<itemizedlist>
+<listitem><para><computeroutput><ref refid="ie__threadpool_8h_1ac3dd114f8b47a5fe0d22f8107a51e90f" kindref="member">ie_tp_parallel_for()</ref></computeroutput> is synchronous; it returns when all work is done.</para>
+</listitem><listitem><para>If <computeroutput>tp == NULL</computeroutput> or the pool has only one worker, it runs single-threaded.</para>
+</listitem><listitem><para>Affinity is applied only on Linux when the environment variable <computeroutput>IE_TP_USE_AFFINITY=1</computeroutput> is set at runtime. </para>
+</listitem></itemizedlist>
+</para>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="normal"></highlight></codeline>
+<codeline lineno="15"><highlight class="normal"></highlight></codeline>
+<codeline lineno="16"><highlight class="normal"></highlight><highlight class="preprocessor">#ifndef<sp/>IE_THREADPOOL_H_</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="17"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>IE_THREADPOOL_H_</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="18"><highlight class="normal"></highlight></codeline>
+<codeline lineno="19"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="20"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/></highlight><highlight class="stringliteral">&quot;C&quot;</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="21"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="22"><highlight class="normal"></highlight></codeline>
+<codeline lineno="23"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stddef.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="24"><highlight class="normal"></highlight></codeline>
+<codeline lineno="26" refid="ie__threadpool_8h_1ada8c808f3fdd5327b3082d8725561ce8" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structie__threadpool" kindref="compound">ie_threadpool</ref><sp/><ref refid="ie__threadpool_8h_1ada8c808f3fdd5327b3082d8725561ce8" kindref="member">ie_threadpool_t</ref>;</highlight></codeline>
+<codeline lineno="27"><highlight class="normal"></highlight></codeline>
+<codeline lineno="37"><highlight class="normal"><ref refid="ie__threadpool_8h_1ada8c808f3fdd5327b3082d8725561ce8" kindref="member">ie_threadpool_t</ref>*<sp/><ref refid="ie__threadpool_8h_1ac8f8095fb1ec189946232325a3fce3a2" kindref="member">ie_tp_create</ref>(</highlight><highlight class="keywordtype">unsigned</highlight><highlight class="normal"><sp/><ref refid="structie__threadpool_1a049cb6c4affb07f0eb1199091bdfa6ce" kindref="member">nth</ref>,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*<ref refid="structie__threadpool_1ab30ff46e0f8992c0c9fceea8c336a4a0" kindref="member">affinity</ref>);</highlight></codeline>
+<codeline lineno="38"><highlight class="normal"></highlight></codeline>
+<codeline lineno="44"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="ie__threadpool_8h_1ab205aaf0e68cb61f3ac782c02aa5d475" kindref="member">ie_tp_destroy</ref>(<ref refid="ie__threadpool_8h_1ada8c808f3fdd5327b3082d8725561ce8" kindref="member">ie_threadpool_t</ref><sp/>*tp);</highlight></codeline>
+<codeline lineno="45"><highlight class="normal"></highlight></codeline>
+<codeline lineno="56" refid="ie__threadpool_8h_1af0040a9e6d528cabc1c7797542b85693" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/>void<sp/>(*<ref refid="ie__threadpool_8h_1af0040a9e6d528cabc1c7797542b85693" kindref="member">ie_tp_for_body_fn</ref>)(</highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*ctx,<sp/></highlight><highlight class="keywordtype">unsigned</highlight><highlight class="normal"><sp/>start,<sp/></highlight><highlight class="keywordtype">unsigned</highlight><highlight class="normal"><sp/>end);</highlight></codeline>
+<codeline lineno="57"><highlight class="normal"></highlight></codeline>
+<codeline lineno="76"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="ie__threadpool_8h_1ac3dd114f8b47a5fe0d22f8107a51e90f" kindref="member">ie_tp_parallel_for</ref>(<ref refid="ie__threadpool_8h_1ada8c808f3fdd5327b3082d8725561ce8" kindref="member">ie_threadpool_t</ref><sp/>*tp,</highlight></codeline>
+<codeline lineno="77"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">unsigned</highlight><highlight class="normal"><sp/>n,</highlight></codeline>
+<codeline lineno="78"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">unsigned</highlight><highlight class="normal"><sp/>grainsize,</highlight></codeline>
+<codeline lineno="79"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="ie__threadpool_8h_1af0040a9e6d528cabc1c7797542b85693" kindref="member">ie_tp_for_body_fn</ref><sp/>body_fn,</highlight></codeline>
+<codeline lineno="80"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*ctx);</highlight></codeline>
+<codeline lineno="81"><highlight class="normal"></highlight></codeline>
+<codeline lineno="82"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="83"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="84"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="85"><highlight class="normal"></highlight></codeline>
+<codeline lineno="86"><highlight class="normal"></highlight><highlight class="preprocessor">#endif<sp/></highlight><highlight class="comment">/*<sp/>IE_THREADPOOL_H_<sp/>*/</highlight><highlight class="preprocessor"></highlight></codeline>
+    </programlisting>
+    <location file="engine/include/ie_threadpool.h"/>
+  </compounddef>
+</doxygen>

@@ -1,0 +1,138 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="README_8md" kind="file" language="Markdown">
+    <compoundname>README.md</compoundname>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline><highlight class="normal">#<sp/>Inference<sp/>Engine<sp/>(Clocher)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">_A<sp/>minimal<sp/>C11<sp/>inference<sp/>baseline<sp/>with<sp/>strict<sp/>metrics<sp/>&amp;<sp/>a<sp/>Python<sp/>harness._<sp/><sp/></highlight></codeline>
+<codeline><highlight class="normal">**Last<sp/>updated:**<sp/>2025-10-24<sp/>21:00:48<sp/>UTC</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">---</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Quick<sp/>start</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Build<sp/>CPU<sp/>and<sp/>(optionally)<sp/>CUDA<sp/>binaries</highlight></codeline>
+<codeline><highlight class="normal">make<sp/>build</highlight></codeline>
+<codeline><highlight class="normal">make<sp/>build-cuda<sp/><sp/><sp/>#<sp/>requires<sp/>a<sp/>CUDA<sp/>toolchain;<sp/>produces<sp/>build/inference-engine.cuda</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Sanity:<sp/>show<sp/>CLI</highlight></codeline>
+<codeline><highlight class="normal">./build/inference-engine<sp/>--help</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Model<sp/>format<sp/>(IEBIN<sp/>v1)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">The<sp/>engine<sp/>consumes<sp/>a<sp/>pair<sp/>of<sp/>files<sp/>in<sp/>the<sp/>current<sp/>working<sp/>directory:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline><highlight class="normal">model.ie.json<sp/><sp/><sp/>#<sp/>metadata<sp/>(tensor<sp/>names,<sp/>shapes,<sp/>dtypes,<sp/>scales)</highlight></codeline>
+<codeline><highlight class="normal">model.ie.bin<sp/><sp/><sp/><sp/>#<sp/>raw,<sp/>mmap‑friendly<sp/>tensor<sp/>blob</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">You<sp/>can<sp/>pack<sp/>from<sp/>a<sp/>Hugging<sp/>Face<sp/>checkpoint<sp/>using<sp/>the<sp/>helper<sp/>script<sp/>below.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">---</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>NEW:<sp/>INT4<sp/>**weight‑only**<sp/>PTQ<sp/>path<sp/>(Q4)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">This<sp/>repository<sp/>now<sp/>includes<sp/>a<sp/>**4‑bit<sp/>(INT4)<sp/>weight‑only**<sp/>path<sp/>that<sp/>trades<sp/>a<sp/>small<sp/>accuracy<sp/>budget<sp/>for<sp/>**4×<sp/>smaller<sp/>weights**<sp/>and<sp/>a<sp/>substantial<sp/>**memory‑bandwidth<sp/>reduction**.<sp/>It<sp/>is<sp/>designed<sp/>to<sp/>be<sp/>drop‑in<sp/>with<sp/>the<sp/>existing<sp/>build<sp/>and<sp/>harness.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Pipeline<sp/>overview</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">1)<sp/>**Prepare/locate<sp/>a<sp/>HF<sp/>model**<sp/>(already<sp/>sharded<sp/>is<sp/>fine):</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline><highlight class="normal">models/gpt-oss-20b/hf/</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>├──<sp/>config.json</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>├──<sp/>tokenizer.json<sp/>/<sp/>vocab.json<sp/>/<sp/>merges.txt</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>└──<sp/>pytorch_model-00001-of-00046.bin<sp/>…<sp/>pytorch_model-00046-of-00046.bin</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">2)<sp/>**(Calibrate)<sp/>produce<sp/>the<sp/>INT4<sp/>manifest**<sp/><sp/></highlight></codeline>
+<codeline><highlight class="normal">Use<sp/>one<sp/>of<sp/>the<sp/>PTQ<sp/>helper<sp/>scripts<sp/>to<sp/>create<sp/>a<sp/>manifest<sp/>describing<sp/>which<sp/>tensors<sp/>are<sp/>quantized<sp/>to<sp/>4‑bit<sp/>and<sp/>their<sp/>per‑row/per‑tensor<sp/>scales:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Choose<sp/>one<sp/>depending<sp/>on<sp/>your<sp/>source<sp/>of<sp/>truth<sp/>and<sp/>available<sp/>samples.</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>See:<sp/>python3<sp/>scripts/ptq_from_hf.py<sp/>--help</highlight></codeline>
+<codeline><highlight class="normal">#<sp/><sp/><sp/><sp/><sp/><sp/>python3<sp/>scripts/ptq_from_bin.py<sp/>--help</highlight></codeline>
+<codeline><highlight class="normal">#<sp/><sp/><sp/><sp/><sp/><sp/>python3<sp/>scripts/ptq_from_source.py<sp/>--help</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">python3<sp/>scripts/ptq_from_hf.py<sp/><sp/><sp/>--hf-dir<sp/>models/gpt-oss-20b/hf<sp/><sp/><sp/>--out<sp/>quant/q4_manifest.json<sp/><sp/><sp/>--bits<sp/>4<sp/>--weights-only<sp/>1</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Notes:</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>The<sp/>manifest<sp/>(JSON)<sp/>maps<sp/>tensor<sp/>names<sp/>to<sp/>**INT4<sp/>packing<sp/>+<sp/>scale<sp/>params**.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Calib<sp/>options<sp/>(group<sp/>size,<sp/>symmetric/affine,<sp/>clamp,<sp/>percentile)<sp/>are<sp/>exposed<sp/>by<sp/>the<sp/>script;<sp/>pick<sp/>values<sp/>that<sp/>satisfy<sp/>your<sp/>accuracy<sp/>budget.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">3)<sp/>**Pack<sp/>Hugging<sp/>Face<sp/>→<sp/>IEBIN<sp/>(with<sp/>INT4)**</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">python3<sp/>scripts/hf_to_iebin.py<sp/><sp/><sp/>--hf-dir<sp/>models/gpt-oss-20b/hf<sp/><sp/><sp/>--out-dir<sp/>models/gpt-oss-20b<sp/><sp/><sp/>--q4-map<sp/>quant/q4_manifest.json</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">This<sp/>writes<sp/>`model.ie.json`<sp/>and<sp/>`model.ie.bin`<sp/>in<sp/>`models/gpt-oss-20b/`<sp/>(or<sp/>as<sp/>configured).</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">4)<sp/>**Run<sp/>the<sp/>benchmark<sp/>(CPU<sp/>or<sp/>CUDA)<sp/>with<sp/>INT4<sp/>weights**</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">The<sp/>engine<sp/>selects<sp/>kernels<sp/>by<sp/>**precision**.<sp/>For<sp/>INT4<sp/>**weight‑only**,<sp/>use<sp/>`int4w`.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">&gt;<sp/>**64<sp/>MB<sp/>per<sp/>token**<sp/>=<sp/>`IE_BYTES_PER_TOKEN=64000000`<sp/>(decimal<sp/>bytes).</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**CPU:**</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">cd<sp/>models/gpt-oss-20b</highlight></codeline>
+<codeline><highlight class="normal">PROMPTS=../../benchmarks/prompts_10..txt<sp/>IE_PRECISION=int4w<sp/>IE_REQUIRE_MODEL=1<sp/>IE_BYTES_PER_TOKEN=64000000<sp/>IE_STRIDE_BYTES=256<sp/>RUNS=3<sp/>make<sp/>-C<sp/>../..<sp/>bench</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**CUDA:**</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">cd<sp/>models/gpt-oss-20b</highlight></codeline>
+<codeline><highlight class="normal">PROMPTS=../../benchmarks/prompts_10..txt<sp/>IE_PRECISION=int4w<sp/>IE_REQUIRE_MODEL=1<sp/>IE_BYTES_PER_TOKEN=64000000<sp/>IE_STRIDE_BYTES=256<sp/>RUNS=3<sp/>make<sp/>-C<sp/>../..<sp/>bench-cuda</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">The<sp/>CLI<sp/>will<sp/>emit<sp/>a<sp/>**single<sp/>JSON<sp/>line**<sp/>per<sp/>run,<sp/>which<sp/>the<sp/>harness<sp/>merges<sp/>into<sp/>`docs/PERFORMANCE.md`.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">---</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Operational<sp/>notes</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>The<sp/>`--device`<sp/>flag<sp/>is<sp/>accepted<sp/>by<sp/>the<sp/>CLI<sp/>as<sp/>a<sp/>**no‑op<sp/>hint**<sp/>(selection<sp/>is<sp/>a<sp/>build‑time<sp/>concern).<sp/>CPU:<sp/>`build/inference-engine`,<sp/>CUDA:<sp/>`build/inference-engine.cuda`.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Strict<sp/>mode**:<sp/>set<sp/>`IE_REQUIRE_MODEL=1`<sp/>to<sp/>require<sp/>a<sp/>valid<sp/>`model.ie.json`<sp/>+<sp/>`model.ie.bin`.<sp/>Otherwise<sp/>the<sp/>engine<sp/>can<sp/>operate<sp/>in<sp/>a<sp/>deterministic<sp/>**stub**<sp/>mode<sp/>for<sp/>CI.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Work‑touch**:<sp/>to<sp/>emulate<sp/>memory<sp/>pressure,<sp/>set<sp/>`IE_BYTES_PER_TOKEN`<sp/>(e.g.<sp/>`64000000`)<sp/>and<sp/>`IE_STRIDE_BYTES`<sp/>(e.g.<sp/>`256`).<sp/>The<sp/>measured<sp/>window<sp/>includes<sp/>generation<sp/>**and**<sp/>this<sp/>per‑token<sp/>touch<sp/>over<sp/>the<sp/>mmap’d<sp/>`model.ie.bin`.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**RSS<sp/>reporting**:<sp/>the<sp/>CLI<sp/>samples<sp/>peak<sp/>RSS<sp/>after<sp/>the<sp/>timed<sp/>window<sp/>(Linux:<sp/>`/proc/self/status`<sp/>`VmHWM`,<sp/>fallback<sp/>`getrusage`).</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">---</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Troubleshooting</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>`ERROR:<sp/>--q4-map<sp/>not<sp/>found`:<sp/>pass<sp/>a<sp/>real<sp/>path<sp/>to<sp/>your<sp/>manifest,<sp/>e.g.<sp/>`quant/q4_manifest.json`.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`error:<sp/>unknown<sp/>flag<sp/>&apos;--model-dir&apos;`<sp/>or<sp/>`&apos;--rounds&apos;`:<sp/>you<sp/>are<sp/>using<sp/>an<sp/>older<sp/>binary;<sp/>rebuild<sp/>with<sp/>`make<sp/>clean<sp/>&amp;&amp;<sp/>make<sp/>build`.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`RSS<sp/>peak<sp/>=<sp/>0`:<sp/>ensure<sp/>the<sp/>process<sp/>reads<sp/>enough<sp/>memory<sp/>while<sp/>resident<sp/>(set<sp/>`IE_BYTES_PER_TOKEN`<sp/>to<sp/>a<sp/>non‑zero<sp/>value)<sp/>and<sp/>you<sp/>are<sp/>not<sp/>running<sp/>inside<sp/>a<sp/>constrained<sp/>container<sp/>namespace<sp/>that<sp/>suppresses<sp/>`VmHWM`.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Prompts<sp/>file<sp/>not<sp/>found:<sp/>`PROMPTS=benchmarks/prompts_10..txt`<sp/>(note<sp/>the<sp/>**double<sp/>dot**<sp/>in<sp/>the<sp/>demo<sp/>file).</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">---</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>What<sp/>INT4<sp/>(weight‑only)<sp/>means<sp/>here</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>**Activations**<sp/>remain<sp/>floating‑point;<sp/>only<sp/>**weights**<sp/>are<sp/>nibble‑packed<sp/>(2<sp/>weights<sp/>per<sp/>byte)<sp/>with<sp/>per‑row<sp/>scales.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Dequantization<sp/>is<sp/>fused<sp/>in<sp/>the<sp/>matmul<sp/>kernels<sp/>(see<sp/>`engine/src/quant/int4_ptq.c`<sp/>and<sp/>GPU<sp/>equivalents).<sp/>Pretranspose/blocked‑K<sp/>packing<sp/>are<sp/>applied<sp/>before/after<sp/>quantization<sp/>as<sp/>configured.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Accuracy<sp/>is<sp/>safeguarded<sp/>by<sp/>a<sp/>**calibration<sp/>gate**<sp/>(cosine<sp/>similarity<sp/>or<sp/>task‑level<sp/>eval),<sp/>configurable<sp/>in<sp/>the<sp/>PTQ<sp/>scripts.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">---</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>See<sp/>also</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>Detailed<sp/>design<sp/>and<sp/>optimization<sp/>path:<sp/>`docs/DESIGN.md`,<sp/>`docs/adr-00060-optimization-path.md`</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Decision<sp/>log:<sp/>`docs/DECISIONS.md`</highlight></codeline>
+<codeline></codeline>
+    </programlisting>
+    <location file="README.md"/>
+  </compounddef>
+</doxygen>

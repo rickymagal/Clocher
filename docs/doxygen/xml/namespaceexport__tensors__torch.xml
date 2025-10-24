@@ -1,0 +1,50 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="namespaceexport__tensors__torch" kind="namespace" language="Python">
+    <compoundname>export_tensors_torch</compoundname>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="namespaceexport__tensors__torch_1a2433c23b09ef1937c4c1e1c8c4c0f796" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>export_tensors_torch.main</definition>
+        <argsstring>()</argsstring>
+        <name>main</name>
+        <qualifiedname>export_tensors_torch.main</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="scripts/export_tensors_torch.py" line="29" column="1" bodyfile="scripts/export_tensors_torch.py" bodystart="29" bodyend="107"/>
+        <references refid="namespaceexport__tensors__torch_1a2433c23b09ef1937c4c1e1c8c4c0f796" compoundref="export__tensors__torch_8py" startline="29" endline="107">main</references>
+        <referencedby refid="namespaceexport__tensors__torch_1a2433c23b09ef1937c4c1e1c8c4c0f796" compoundref="export__tensors__torch_8py" startline="29" endline="107">main</referencedby>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><verbatim>Export selected tensors from a PyTorch checkpoint to row-major float32 .bin files.
+
+Usage examples:
+
+  # List all tensor names in a checkpoint
+  python3 scripts/export_tensors_torch.py --checkpoint model.ckpt --list
+
+  # Export specific tensors by state_dict key
+  python3 scripts/export_tensors_torch.py \
+    --checkpoint model.ckpt \
+    --tensor &quot;rnn.weight_hh_l0:bin/Wxh.bin&quot; \
+    --tensor &quot;classifier.weight:bin/Woh.bin&quot; \
+    --transpose Woh  # if classifier.weight is [V, H] and you need [H, V], don&apos;t use --transpose
+                     # if it&apos;s [H, V] and you need [V, H], add its alias in --transpose
+
+Notes:
+- Tensors are written in **row-major float32**; we do not change layout unless you request
+  a transpose via --transpose &lt;alias&gt;.
+- Use --alias to give a short name to each export so you can target it in --transpose.
+- You can repeat --tensor and --alias multiple times; order matters: alias i corresponds to tensor i.
+</verbatim> </para>
+    </detaileddescription>
+    <location file="scripts/export_tensors_torch.py" line="1" column="1"/>
+  </compounddef>
+</doxygen>

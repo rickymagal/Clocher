@@ -1,5 +1,4 @@
 var searchData=
 [
-  ['decisions_2emd_0',['DECISIONS.md',['../DECISIONS_8md.html',1,'']]],
-  ['design_2emd_1',['DESIGN.md',['../DESIGN_8md.html',1,'']]]
+  ['cpu_5ffeatures_2ec_0',['cpu_features.c',['../cpu__features_8c.html',1,'']]]
 ];

@@ -1,0 +1,340 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="gemv__generic_8c" kind="file" language="C++">
+    <compoundname>gemv_generic.c</compoundname>
+    <includes refid="ie__kernels_8h" local="yes">ie_kernels.h</includes>
+    <includes local="no">stddef.h</includes>
+    <includes local="no">string.h</includes>
+    <incdepgraph>
+      <node id="2">
+        <label>ie_kernels.h</label>
+        <link refid="ie__kernels_8h"/>
+        <childnode refid="3" relation="include">
+        </childnode>
+      </node>
+      <node id="1">
+        <label>engine/src/kernels/gemv_generic.c</label>
+        <link refid="gemv__generic_8c"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="3" relation="include">
+        </childnode>
+        <childnode refid="4" relation="include">
+        </childnode>
+      </node>
+      <node id="3">
+        <label>stddef.h</label>
+      </node>
+      <node id="4">
+        <label>string.h</label>
+      </node>
+    </incdepgraph>
+    <sectiondef kind="var">
+      <memberdef kind="variable" id="gemv__generic_8c_1aa80eb69d355054f1f8213721e72bec9a" prot="public" static="yes" mutable="no">
+        <type>void(*</type>
+        <definition>void(* s_gemv_f32) (const float *, const float *, float *, size_t, size_t, const float *, size_t)</definition>
+        <argsstring>)(const float *, const float *, float *, size_t, size_t, const float *, size_t)</argsstring>
+        <name>s_gemv_f32</name>
+        <initializer>= NULL</initializer>
+        <briefdescription>
+<para>Installed function pointer for GEMV (generic by default). </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/src/kernels/gemv_generic.c" line="11" column="8" bodyfile="engine/src/kernels/gemv_generic.c" bodystart="11" bodyend="-1"/>
+        <referencedby refid="ie__kernels_8h_1a4e112b3396ed21919f404631c1d4d7fb" compoundref="gemv__generic_8c" startline="67" endline="71">ie_gemv_f32</referencedby>
+        <referencedby refid="ie__kernels_8h_1a1b919f71b86ec1791fe53bc68d5c240d" compoundref="gemv__generic_8c" startline="51" endline="54">ie_kernels_install</referencedby>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="gemv__generic_8c_1a51096a373f5e5010d39cbf44e34b730d" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>static void gemv_generic_impl</definition>
+        <argsstring>(const float *W, const float *x, float *y, size_t rows, size_t cols, const float *bias, size_t blk_k)</argsstring>
+        <name>gemv_generic_impl</name>
+        <param>
+          <type>const float *</type>
+          <declname>W</declname>
+        </param>
+        <param>
+          <type>const float *</type>
+          <declname>x</declname>
+        </param>
+        <param>
+          <type>float *</type>
+          <declname>y</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>rows</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>cols</declname>
+        </param>
+        <param>
+          <type>const float *</type>
+          <declname>bias</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>blk_k</declname>
+        </param>
+        <briefdescription>
+<para>Generic C implementation: GEMV with optional blocked-K and bias epilogue. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>W</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Pointer to weights (row-major or blocked-K). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>x</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Input vector (length cols). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>y</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Output vector (length rows). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>rows</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of rows. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>cols</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of columns. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>bias</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Optional bias (length rows), may be NULL. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>blk_k</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Column block size; 0 means plain row-major (no blocking). </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/src/kernels/gemv_generic.c" line="24" column="13" bodyfile="engine/src/kernels/gemv_generic.c" bodystart="24" bodyend="44"/>
+        <referencedby refid="ie__kernels_8h_1a1b919f71b86ec1791fe53bc68d5c240d" compoundref="gemv__generic_8c" startline="51" endline="54">ie_kernels_install</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="gemv__generic_8c_1a1b919f71b86ec1791fe53bc68d5c240d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ie_kernels_install</definition>
+        <argsstring>(int use_avx2)</argsstring>
+        <name>ie_kernels_install</name>
+        <param>
+          <type>int</type>
+          <declname>use_avx2</declname>
+        </param>
+        <briefdescription>
+<para>Install best kernels (generic fallback). </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Install the best available CPU kernels at runtime.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>use_avx2</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Non-zero to prefer AVX2 if available (handled in <ref refid="gemv__avx2_8c" kindref="compound">gemv_avx2.c</ref>). </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/src/kernels/gemv_generic.c" line="51" column="6" bodyfile="engine/src/kernels/gemv_generic.c" bodystart="51" bodyend="54"/>
+        <references refid="gemv__generic_8c_1a51096a373f5e5010d39cbf44e34b730d" compoundref="gemv__generic_8c" startline="24" endline="44">gemv_generic_impl</references>
+        <references refid="gemv__generic_8c_1aa80eb69d355054f1f8213721e72bec9a" compoundref="gemv__generic_8c" startline="11">s_gemv_f32</references>
+        <referencedby refid="test__kernels_8c_1a840291bc02cba5474a4cb46a9b9566fe" compoundref="test__kernels_8c" startline="149" endline="163">main</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="gemv__generic_8c_1a4e112b3396ed21919f404631c1d4d7fb" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ie_gemv_f32</definition>
+        <argsstring>(const float *W, const float *x, float *y, size_t rows, size_t cols, const float *bias, size_t blk_k)</argsstring>
+        <name>ie_gemv_f32</name>
+        <param>
+          <type>const float *</type>
+          <declname>W</declname>
+        </param>
+        <param>
+          <type>const float *</type>
+          <declname>x</declname>
+        </param>
+        <param>
+          <type>float *</type>
+          <declname>y</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>rows</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>cols</declname>
+        </param>
+        <param>
+          <type>const float *</type>
+          <declname>bias</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>blk_k</declname>
+        </param>
+        <briefdescription>
+<para>Dispatch GEMV to the installed kernel. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>GEMV: y[r] = dot(W[r, :], x) [+ bias[r]] for r in [0, rows).</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>W</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Weights pointer. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>x</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Input vector. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>y</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Output vector. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>rows</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Rows. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>cols</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Cols. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>bias</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Optional bias vector (may be NULL). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>blk_k</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Column-block size for blocked layout; 0 for plain row-major. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/src/kernels/gemv_generic.c" line="67" column="6" bodyfile="engine/src/kernels/gemv_generic.c" bodystart="67" bodyend="71"/>
+        <references refid="gemv__generic_8c_1aa80eb69d355054f1f8213721e72bec9a" compoundref="gemv__generic_8c" startline="11">s_gemv_f32</references>
+        <referencedby refid="ie__device__common_8c_1a4fb9bb01bfbe71517f9df925ba9c93ec" compoundref="ie__device__common_8c" startline="164" endline="172">cpu_gemv_f32</referencedby>
+        <referencedby refid="test__kernels_8c_1a0ac9b0c3b1d865ef69bd2bc69d14a685" compoundref="test__kernels_8c" startline="109" endline="122">test_gemv_rowmajor_no_bias</referencedby>
+        <referencedby refid="test__kernels_8c_1a2305be22b4279f3ac4d55f90584569cb" compoundref="test__kernels_8c" startline="129" endline="142">test_gemv_rowmajor_with_bias</referencedby>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para>Portable C GEMV with optional column-blocking and epilogue bias. </para>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="normal"></highlight></codeline>
+<codeline lineno="5"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;<ref refid="ie__kernels_8h" kindref="compound">ie_kernels.h</ref>&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="6"><highlight class="normal"></highlight></codeline>
+<codeline lineno="7"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stddef.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="8"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;string.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="9"><highlight class="normal"></highlight></codeline>
+<codeline lineno="11" refid="gemv__generic_8c_1aa80eb69d355054f1f8213721e72bec9a" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/>void<sp/>(*<ref refid="gemv__generic_8c_1aa80eb69d355054f1f8213721e72bec9a" kindref="member">s_gemv_f32</ref>)(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal">*,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal">*,<sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal">*,<sp/>size_t,<sp/>size_t,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal">*,<sp/>size_t)<sp/>=<sp/>NULL;</highlight></codeline>
+<codeline lineno="12"><highlight class="normal"></highlight></codeline>
+<codeline lineno="24" refid="gemv__generic_8c_1a51096a373f5e5010d39cbf44e34b730d" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="gemv__generic_8c_1a51096a373f5e5010d39cbf44e34b730d" kindref="member">gemv_generic_impl</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*W,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*x,<sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*y,</highlight></codeline>
+<codeline lineno="25"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>rows,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>cols,</highlight></codeline>
+<codeline lineno="26"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*bias,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>blk_k)<sp/>{</highlight></codeline>
+<codeline lineno="27"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>BK<sp/>=<sp/>(blk_k<sp/>&gt;<sp/>0<sp/>?<sp/>blk_k<sp/>:<sp/>cols);</highlight></codeline>
+<codeline lineno="28"><highlight class="normal"></highlight></codeline>
+<codeline lineno="29"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>r<sp/>=<sp/>0;<sp/>r<sp/>&lt;<sp/>rows;<sp/>++r)<sp/>{</highlight></codeline>
+<codeline lineno="30"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*wrow<sp/>=<sp/>W<sp/>+<sp/>r<sp/>*<sp/>cols;<sp/></highlight><highlight class="comment">/*<sp/>blocked<sp/>row<sp/>is<sp/>still<sp/>contiguous<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="31"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>acc<sp/>=<sp/>0.0f;</highlight></codeline>
+<codeline lineno="32"><highlight class="normal"></highlight></codeline>
+<codeline lineno="33"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>kofs<sp/>=<sp/>0;</highlight></codeline>
+<codeline lineno="34"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>k0<sp/>=<sp/>0;<sp/>k0<sp/>&lt;<sp/>cols;<sp/>k0<sp/>+=<sp/>BK)<sp/>{</highlight></codeline>
+<codeline lineno="35"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>klen<sp/>=<sp/>(k0<sp/>+<sp/>BK<sp/>&lt;=<sp/>cols)<sp/>?<sp/>BK<sp/>:<sp/>(cols<sp/>-<sp/>k0);</highlight></codeline>
+<codeline lineno="36"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*wblk<sp/>=<sp/>wrow<sp/>+<sp/>kofs;</highlight></codeline>
+<codeline lineno="37"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*xblk<sp/>=<sp/>x<sp/>+<sp/>k0;</highlight></codeline>
+<codeline lineno="38"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>k<sp/>=<sp/>0;<sp/>k<sp/>&lt;<sp/>klen;<sp/>++k)<sp/>acc<sp/>+=<sp/>wblk[k]<sp/>*<sp/>xblk[k];</highlight></codeline>
+<codeline lineno="39"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>kofs<sp/>+=<sp/>klen;</highlight></codeline>
+<codeline lineno="40"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="41"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(bias)<sp/>acc<sp/>+=<sp/>bias[r];</highlight></codeline>
+<codeline lineno="42"><highlight class="normal"><sp/><sp/><sp/><sp/>y[r]<sp/>=<sp/>acc;</highlight></codeline>
+<codeline lineno="43"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="44"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="45"><highlight class="normal"></highlight></codeline>
+<codeline lineno="51" refid="ie__kernels_8h_1a1b919f71b86ec1791fe53bc68d5c240d" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="gemv__generic_8c_1a1b919f71b86ec1791fe53bc68d5c240d" kindref="member">ie_kernels_install</ref>(</highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>use_avx2)<sp/>{</highlight></codeline>
+<codeline lineno="52"><highlight class="normal"><sp/><sp/>(void)use_avx2;</highlight></codeline>
+<codeline lineno="53"><highlight class="normal"><sp/><sp/><ref refid="gemv__generic_8c_1aa80eb69d355054f1f8213721e72bec9a" kindref="member">s_gemv_f32</ref><sp/>=<sp/><ref refid="gemv__generic_8c_1a51096a373f5e5010d39cbf44e34b730d" kindref="member">gemv_generic_impl</ref>;</highlight></codeline>
+<codeline lineno="54"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="55"><highlight class="normal"></highlight></codeline>
+<codeline lineno="67" refid="ie__kernels_8h_1a4e112b3396ed21919f404631c1d4d7fb" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="gemv__generic_8c_1a4e112b3396ed21919f404631c1d4d7fb" kindref="member">ie_gemv_f32</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*W,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*x,<sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*y,</highlight></codeline>
+<codeline lineno="68"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>rows,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>cols,</highlight></codeline>
+<codeline lineno="69"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*bias,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>blk_k)<sp/>{</highlight></codeline>
+<codeline lineno="70"><highlight class="normal"><sp/><sp/><ref refid="gemv__generic_8c_1aa80eb69d355054f1f8213721e72bec9a" kindref="member">s_gemv_f32</ref>(W,<sp/>x,<sp/>y,<sp/>rows,<sp/>cols,<sp/>bias,<sp/>blk_k);</highlight></codeline>
+<codeline lineno="71"><highlight class="normal">}</highlight></codeline>
+    </programlisting>
+    <location file="engine/src/kernels/gemv_generic.c"/>
+  </compounddef>
+</doxygen>

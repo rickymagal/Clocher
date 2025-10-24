@@ -27,9 +27,9 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">Inference Engine (Clocher)<span id="projectnumber">&#160;0.1</span>
+   <div id="projectname">Inference Engine (Clocher)<span id="projectnumber">&#160;0.2</span>
    </div>
-   <div id="projectbrief">C11 CPU inference baseline with strict metrics &amp; harness</div>
+   <div id="projectbrief">C11 CPU/GPU inference baseline with strict metrics &amp; harness</div>
   </td>
  </tr>
  </tbody>
@@ -99,8 +99,7 @@ $(function(){initNavTree('ie__kernels__ze_8cl.html',''); initResizable(true); })
 <div class="header">
   <div class="summary">
 <a href="#define-members">Macros</a> &#124;
-<a href="#func-members">Functions</a> &#124;
-<a href="#var-members">Variables</a>  </div>
+<a href="#func-members">Functions</a>  </div>
   <div class="headertitle"><div class="title">ie_kernels_ze.cl File Reference</div></div>
 </div><!--header-->
 <div class="contents">
@@ -112,60 +111,26 @@ $(function(){initNavTree('ie__kernels__ze_8cl.html',''); initResizable(true); })
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="define-members" name="define-members"></a>
 Macros</h2></td></tr>
-<tr class="memitem:a23d302f7ef21814172c805270ac90730" id="r_a23d302f7ef21814172c805270ac90730"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a23d302f7ef21814172c805270ac90730">IE_WG_TILE</a>&#160;&#160;&#160;256  /* Required local size X <a class="el" href="#af9d091f76ee32433ba4b7a33e2e38ab5">for</a> reductions */</td></tr>
+<tr class="memitem:a23d302f7ef21814172c805270ac90730" id="r_a23d302f7ef21814172c805270ac90730"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a23d302f7ef21814172c805270ac90730">IE_WG_TILE</a>&#160;&#160;&#160;256  /* Required local size X for reductions */</td></tr>
 <tr class="separator:a23d302f7ef21814172c805270ac90730"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:ac201a9ea4df331010c34a2c99cb2be56" id="r_ac201a9ea4df331010c34a2c99cb2be56"><td class="memItemLeft" align="right" valign="top">static float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac201a9ea4df331010c34a2c99cb2be56">ie_apply_activation</a> (float <a class="el" href="#ad48b386850d1d2a5a51515ad676993a0">x</a>, int <a class="el" href="#ac8f2ae6794c6c329fe6562487f7826ac">act</a>)</td></tr>
+<tr class="memitem:ac201a9ea4df331010c34a2c99cb2be56" id="r_ac201a9ea4df331010c34a2c99cb2be56"><td class="memItemLeft" align="right" valign="top">static float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac201a9ea4df331010c34a2c99cb2be56">ie_apply_activation</a> (float x, int act)</td></tr>
 <tr class="memdesc:ac201a9ea4df331010c34a2c99cb2be56"><td class="mdescLeft">&#160;</td><td class="mdescRight">Apply an activation function that mirrors the host enum layout.  <br /></td></tr>
 <tr class="separator:ac201a9ea4df331010c34a2c99cb2be56"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae2ef05e9795e8e5d3eebe7e8c15e5a81" id="r_ae2ef05e9795e8e5d3eebe7e8c15e5a81"><td class="memItemLeft" align="right" valign="top">__kernel&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ae2ef05e9795e8e5d3eebe7e8c15e5a81">__attribute__</a> ((reqd_work_group_size(256, 1, 1))) void gemv_rowwise_f32(__global const float *restrict W</td></tr>
-<tr class="memdesc:ae2ef05e9795e8e5d3eebe7e8c15e5a81"><td class="mdescLeft">&#160;</td><td class="mdescRight">Row-wise GEMV (FP32): y = alpha * W * x + beta * y.  <br /></td></tr>
-<tr class="separator:ae2ef05e9795e8e5d3eebe7e8c15e5a81"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a19dfb80c9cf48bd6c4d3647fc34f723a" id="r_a19dfb80c9cf48bd6c4d3647fc34f723a"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a19dfb80c9cf48bd6c4d3647fc34f723a">if</a> (r &gt;=<a class="el" href="#a35363449221d3f91c1cbb04818f843d9">rows</a>) return</td></tr>
-<tr class="separator:a19dfb80c9cf48bd6c4d3647fc34f723a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af9d091f76ee32433ba4b7a33e2e38ab5" id="r_af9d091f76ee32433ba4b7a33e2e38ab5"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af9d091f76ee32433ba4b7a33e2e38ab5">for</a> (int k=<a class="el" href="#a2ccfed46dfdf3d57f0ea8757a88a3ba6">lr</a>;k&lt; <a class="el" href="#af942f0573963b9e5aaa312bb99574c86">cols</a>;k+=256)</td></tr>
-<tr class="separator:af9d091f76ee32433ba4b7a33e2e38ab5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3e38c79e12e7a582014f8b0664301d74" id="r_a3e38c79e12e7a582014f8b0664301d74"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a3e38c79e12e7a582014f8b0664301d74">barrier</a> (CLK_LOCAL_MEM_FENCE)</td></tr>
-<tr class="separator:a3e38c79e12e7a582014f8b0664301d74"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7761b4b705dd138cfe1b7b0e69992334" id="r_a7761b4b705dd138cfe1b7b0e69992334"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a7761b4b705dd138cfe1b7b0e69992334">for</a> (int s=256 &gt; &gt; 1;s &gt; 0;s &gt; &gt;=1)</td></tr>
-<tr class="separator:a7761b4b705dd138cfe1b7b0e69992334"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:abe3c8c061ae8aafff6f6b7dfb9a2477d" id="r_abe3c8c061ae8aafff6f6b7dfb9a2477d"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#abe3c8c061ae8aafff6f6b7dfb9a2477d">if</a> (<a class="el" href="#a2ccfed46dfdf3d57f0ea8757a88a3ba6">lr</a>==0)</td></tr>
-<tr class="separator:abe3c8c061ae8aafff6f6b7dfb9a2477d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2261b0a1b8943ff014f3796d4d10d454" id="r_a2261b0a1b8943ff014f3796d4d10d454"><td class="memItemLeft" align="right" valign="top">__kernel void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a2261b0a1b8943ff014f3796d4d10d454">vec_tanh_f32</a> (__global float *restrict <a class="el" href="#aea3d67a4afbcc9232ebb1f337b451966">y</a>, __global const float *restrict <a class="el" href="#ad48b386850d1d2a5a51515ad676993a0">x</a>, int n)</td></tr>
+<tr class="memitem:a1aeaae590abe44f0392b55f435c39cf7" id="r_a1aeaae590abe44f0392b55f435c39cf7"><td class="memItemLeft" align="right" valign="top">__kernel void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a1aeaae590abe44f0392b55f435c39cf7">gemv_rowwise_f32</a> (__global const float *restrict W, __global const float *restrict x, __global float *restrict y, int rows, int cols, int ldW, float alpha, float beta)</td></tr>
+<tr class="memdesc:a1aeaae590abe44f0392b55f435c39cf7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Row-wise GEMV (FP32): y = alpha * W * x + beta * y.  <br /></td></tr>
+<tr class="separator:a1aeaae590abe44f0392b55f435c39cf7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a32d59e346c85a4b1dccb8448d0748d9e" id="r_a32d59e346c85a4b1dccb8448d0748d9e"><td class="memItemLeft" align="right" valign="top">__kernel void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a32d59e346c85a4b1dccb8448d0748d9e">gemv_bias_act_f32</a> (__global const float *restrict W, __global const float *restrict x, __global const float *restrict bias, __global float *restrict y, int rows, int cols, int ldW, float alpha, float beta, int act)</td></tr>
+<tr class="memdesc:a32d59e346c85a4b1dccb8448d0748d9e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Fused GEMV + bias + activation: y = act(alpha * W*x + bias + beta*y)  <br /></td></tr>
+<tr class="separator:a32d59e346c85a4b1dccb8448d0748d9e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2261b0a1b8943ff014f3796d4d10d454" id="r_a2261b0a1b8943ff014f3796d4d10d454"><td class="memItemLeft" align="right" valign="top">__kernel void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a2261b0a1b8943ff014f3796d4d10d454">vec_tanh_f32</a> (__global float *restrict y, __global const float *restrict x, int n)</td></tr>
 <tr class="memdesc:a2261b0a1b8943ff014f3796d4d10d454"><td class="mdescLeft">&#160;</td><td class="mdescRight">Elementwise hyperbolic tangent: y[i] = tanh(x[i]).  <br /></td></tr>
 <tr class="separator:a2261b0a1b8943ff014f3796d4d10d454"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9eabeb874d4fef74c860c96689a6fc44" id="r_a9eabeb874d4fef74c860c96689a6fc44"><td class="memItemLeft" align="right" valign="top">__kernel void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a9eabeb874d4fef74c860c96689a6fc44">pack_w_blockedk_f32</a> (__global float *restrict Wp, __global const float *restrict W, int <a class="el" href="#a35363449221d3f91c1cbb04818f843d9">rows</a>, int <a class="el" href="#af942f0573963b9e5aaa312bb99574c86">cols</a>, int <a class="el" href="#a8670fee560ed3b5cc952b89bed537616">ldW</a>, int block_k)</td></tr>
+<tr class="memitem:a9eabeb874d4fef74c860c96689a6fc44" id="r_a9eabeb874d4fef74c860c96689a6fc44"><td class="memItemLeft" align="right" valign="top">__kernel void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a9eabeb874d4fef74c860c96689a6fc44">pack_w_blockedk_f32</a> (__global float *restrict Wp, __global const float *restrict W, int rows, int cols, int ldW, int block_k)</td></tr>
 <tr class="memdesc:a9eabeb874d4fef74c860c96689a6fc44"><td class="mdescLeft">&#160;</td><td class="mdescRight">Pack row-major W (rows x ldW) into a blocked-K layout Wp.  <br /></td></tr>
 <tr class="separator:a9eabeb874d4fef74c860c96689a6fc44"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="var-members" name="var-members"></a>
-Variables</h2></td></tr>
-<tr class="memitem:ad48b386850d1d2a5a51515ad676993a0" id="r_ad48b386850d1d2a5a51515ad676993a0"><td class="memItemLeft" align="right" valign="top">__kernel __global const float *restrict&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad48b386850d1d2a5a51515ad676993a0">x</a></td></tr>
-<tr class="separator:ad48b386850d1d2a5a51515ad676993a0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aea3d67a4afbcc9232ebb1f337b451966" id="r_aea3d67a4afbcc9232ebb1f337b451966"><td class="memItemLeft" align="right" valign="top">__kernel __global const float *restrict __global float *restrict&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aea3d67a4afbcc9232ebb1f337b451966">y</a></td></tr>
-<tr class="separator:aea3d67a4afbcc9232ebb1f337b451966"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a35363449221d3f91c1cbb04818f843d9" id="r_a35363449221d3f91c1cbb04818f843d9"><td class="memItemLeft" align="right" valign="top">__kernel __global const float *restrict __global float *restrict int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a35363449221d3f91c1cbb04818f843d9">rows</a></td></tr>
-<tr class="separator:a35363449221d3f91c1cbb04818f843d9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af942f0573963b9e5aaa312bb99574c86" id="r_af942f0573963b9e5aaa312bb99574c86"><td class="memItemLeft" align="right" valign="top">__kernel __global const float *restrict __global float *restrict int int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af942f0573963b9e5aaa312bb99574c86">cols</a></td></tr>
-<tr class="separator:af942f0573963b9e5aaa312bb99574c86"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8670fee560ed3b5cc952b89bed537616" id="r_a8670fee560ed3b5cc952b89bed537616"><td class="memItemLeft" align="right" valign="top">__kernel __global const float *restrict __global float *restrict int int int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a8670fee560ed3b5cc952b89bed537616">ldW</a></td></tr>
-<tr class="separator:a8670fee560ed3b5cc952b89bed537616"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1ed7c041b95733adcb91c850c327801a" id="r_a1ed7c041b95733adcb91c850c327801a"><td class="memItemLeft" align="right" valign="top">__kernel __global const float *restrict __global float *restrict int int int float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a1ed7c041b95733adcb91c850c327801a">alpha</a></td></tr>
-<tr class="separator:a1ed7c041b95733adcb91c850c327801a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:adff94f6593498005c7fdbb1094908bcd" id="r_adff94f6593498005c7fdbb1094908bcd"><td class="memItemLeft" align="right" valign="top">__kernel __global const float *restrict __global float *restrict int int int float float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#adff94f6593498005c7fdbb1094908bcd">beta</a></td></tr>
-<tr class="separator:adff94f6593498005c7fdbb1094908bcd"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2ccfed46dfdf3d57f0ea8757a88a3ba6" id="r_a2ccfed46dfdf3d57f0ea8757a88a3ba6"><td class="memItemLeft" align="right" valign="top">const int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a2ccfed46dfdf3d57f0ea8757a88a3ba6">lr</a> = get_local_id(0)</td></tr>
-<tr class="separator:a2ccfed46dfdf3d57f0ea8757a88a3ba6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae7a59aea3ae02e7c3c40b93e77208b3a" id="r_ae7a59aea3ae02e7c3c40b93e77208b3a"><td class="memItemLeft" align="right" valign="top">float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ae7a59aea3ae02e7c3c40b93e77208b3a">acc</a> = 0.0f</td></tr>
-<tr class="separator:ae7a59aea3ae02e7c3c40b93e77208b3a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2fc07fdd1b60b645c24a35bc0c75ed7f" id="r_a2fc07fdd1b60b645c24a35bc0c75ed7f"><td class="memItemLeft" align="right" valign="top">__local float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a2fc07fdd1b60b645c24a35bc0c75ed7f">buf</a> [256] = <a class="el" href="#ae7a59aea3ae02e7c3c40b93e77208b3a">acc</a></td></tr>
-<tr class="separator:a2fc07fdd1b60b645c24a35bc0c75ed7f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6e7f44009791b41b64f365b59236e3a1" id="r_a6e7f44009791b41b64f365b59236e3a1"><td class="memItemLeft" align="right" valign="top">__kernel __global const float *restrict __global const float *restrict&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a6e7f44009791b41b64f365b59236e3a1">bias</a></td></tr>
-<tr class="separator:a6e7f44009791b41b64f365b59236e3a1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac8f2ae6794c6c329fe6562487f7826ac" id="r_ac8f2ae6794c6c329fe6562487f7826ac"><td class="memItemLeft" align="right" valign="top">__kernel __global const float *restrict __global const float *restrict __global float *restrict int int int float float int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac8f2ae6794c6c329fe6562487f7826ac">act</a></td></tr>
-<tr class="separator:ac8f2ae6794c6c329fe6562487f7826ac"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>OpenCL C kernels for the Level Zero backend (compiled to SPIR-V). </p>
@@ -182,53 +147,78 @@ Variables</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">#define IE_WG_TILE&#160;&#160;&#160;256  /* Required local size X <a class="el" href="#af9d091f76ee32433ba4b7a33e2e38ab5">for</a> reductions */</td>
+          <td class="memname">#define IE_WG_TILE&#160;&#160;&#160;256  /* Required local size X for reductions */</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 <p class="definition">Definition at line <a class="el" href="ie__kernels__ze_8cl_source.html#l00019">19</a> of file <a class="el" href="ie__kernels__ze_8cl_source.html">ie_kernels_ze.cl</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="#ae2ef05e9795e8e5d3eebe7e8c15e5a81">__attribute__()</a>, <a class="el" href="ie__kernels__ze_8cl_source.html#l00078">for()</a>, and <a class="el" href="ie__kernels__ze_8cl_source.html#l00088">for()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="ie__kernels__ze_8cl_source.html#l00124">gemv_bias_act_f32()</a>, and <a class="el" href="ie__kernels__ze_8cl_source.html#l00067">gemv_rowwise_f32()</a>.</p>
 
 </div>
 </div>
 <h2 class="groupheader">Function Documentation</h2>
-<a id="ae2ef05e9795e8e5d3eebe7e8c15e5a81" name="ae2ef05e9795e8e5d3eebe7e8c15e5a81"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae2ef05e9795e8e5d3eebe7e8c15e5a81">&#9670;&#160;</a></span>__attribute__()</h2>
+<a id="a32d59e346c85a4b1dccb8448d0748d9e" name="a32d59e346c85a4b1dccb8448d0748d9e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a32d59e346c85a4b1dccb8448d0748d9e">&#9670;&#160;</a></span>gemv_bias_act_f32()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">__kernel __attribute__ </td>
+          <td class="memname">__kernel void gemv_bias_act_f32 </td>
           <td>(</td>
-          <td class="paramtype">(reqd_work_group_size(256, 1, 1))</td>          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
-          <td> const</td>
+          <td class="paramtype">__global const float *restrict</td>          <td class="paramname"><span class="paramname"><em>W</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">__global const float *restrict</td>          <td class="paramname"><span class="paramname"><em>x</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">__global const float *restrict</td>          <td class="paramname"><span class="paramname"><em>bias</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">__global float *restrict</td>          <td class="paramname"><span class="paramname"><em>y</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>rows</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>cols</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>ldW</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float</td>          <td class="paramname"><span class="paramname"><em>alpha</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float</td>          <td class="paramname"><span class="paramname"><em>beta</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>act</em></span>&#160;)</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p>Row-wise GEMV (FP32): y = alpha * W * x + beta * y. </p>
-<p>Fused GEMV + bias + activation: y = act(alpha * W*x + bias + beta*y)</p>
-<p>Each work-item computes a partial dot for its row and participates in a reduction within the work-group. The local X dimension MUST be 256 so that reduction uses a fixed-size local array without overflow.</p>
-<p>Preconditions:</p><ul>
-<li>Local work-group size X is exactly 256.</li>
-<li>Global X dimension covers <code>rows</code> (excess work-items exit early).</li>
-</ul>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">W</td><td>__global const float* (rows x ldW), row-major </td></tr>
-    <tr><td class="paramname">x</td><td>__global const float* (length cols) </td></tr>
-    <tr><td class="paramname">y</td><td>__global float* (length rows) </td></tr>
-    <tr><td class="paramname">rows</td><td>Number of rows in W (and length of y) </td></tr>
-    <tr><td class="paramname">cols</td><td>Number of columns in W (and length of x) </td></tr>
-    <tr><td class="paramname">ldW</td><td>Leading dimension for W (ldW &gt;= cols) </td></tr>
-    <tr><td class="paramname">alpha</td><td>Scalar multiplier for W*x </td></tr>
-    <tr><td class="paramname">beta</td><td>Scalar multiplier for existing y</td></tr>
-  </table>
-  </dd>
-</dl>
+<p>Fused GEMV + bias + activation: y = act(alpha * W*x + bias + beta*y) </p>
 <p>Identical reduction scheme and local-size requirement as gemv_rowwise_f32.</p>
 <p>Preconditions:</p><ul>
 <li>Local work-group size X is exactly 256.</li>
@@ -250,72 +240,169 @@ Variables</h2></td></tr>
   </dd>
 </dl>
 
-<p class="reference">References <a class="el" href="ie__kernels__ze_8cl_source.html#l00019">IE_WG_TILE</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ie__kernels__ze_8cl_source.html#l00124">124</a> of file <a class="el" href="ie__kernels__ze_8cl_source.html">ie_kernels_ze.cl</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">  129</span>                                                         {</div>
+<div class="line"><span class="lineno">  130</span>  <span class="keyword">const</span> <span class="keywordtype">int</span> r  = get_global_id(0);</div>
+<div class="line"><span class="lineno">  131</span>  <span class="keyword">const</span> <span class="keywordtype">int</span> lr = get_local_id(0);</div>
+<div class="line"><span class="lineno">  132</span>  <span class="keywordflow">if</span> (r &gt;= rows) <span class="keywordflow">return</span>;</div>
+<div class="line"><span class="lineno">  133</span> </div>
+<div class="line"><span class="lineno">  134</span>  <span class="keywordtype">float</span> acc = 0.0f;</div>
+<div class="line"><span class="lineno">  135</span>  <span class="keywordflow">for</span> (<span class="keywordtype">int</span> k = lr; k &lt; cols; k += <a class="code hl_define" href="#a23d302f7ef21814172c805270ac90730">IE_WG_TILE</a>) {</div>
+<div class="line"><span class="lineno">  136</span>    <span class="keyword">const</span> <span class="keywordtype">size_t</span> idx = (size_t)r * (<span class="keywordtype">size_t</span>)ldW + (size_t)k;</div>
+<div class="line"><span class="lineno">  137</span>    acc += W[idx] * x[k];</div>
+<div class="line"><span class="lineno">  138</span>  }</div>
+<div class="line"><span class="lineno">  139</span> </div>
+<div class="line"><span class="lineno">  140</span>  __local <span class="keywordtype">float</span> buf[<a class="code hl_define" href="#a23d302f7ef21814172c805270ac90730">IE_WG_TILE</a>];</div>
+<div class="line"><span class="lineno">  141</span>  buf[lr] = acc;</div>
+<div class="line"><span class="lineno">  142</span>  barrier(CLK_LOCAL_MEM_FENCE);</div>
+<div class="line"><span class="lineno">  143</span> </div>
+<div class="line"><span class="lineno">  144</span>  <span class="keywordflow">for</span> (<span class="keywordtype">int</span> s = <a class="code hl_define" href="#a23d302f7ef21814172c805270ac90730">IE_WG_TILE</a> &gt;&gt; 1; s &gt; 0; s &gt;&gt;= 1) {</div>
+<div class="line"><span class="lineno">  145</span>    <span class="keywordflow">if</span> (lr &lt; s) {</div>
+<div class="line"><span class="lineno">  146</span>      buf[lr] += buf[lr + s];</div>
+<div class="line"><span class="lineno">  147</span>    }</div>
+<div class="line"><span class="lineno">  148</span>    barrier(CLK_LOCAL_MEM_FENCE);</div>
+<div class="line"><span class="lineno">  149</span>  }</div>
+<div class="line"><span class="lineno">  150</span> </div>
+<div class="line"><span class="lineno">  151</span>  <span class="keywordflow">if</span> (lr == 0) {</div>
+<div class="line"><span class="lineno">  152</span>    <span class="keyword">const</span> <span class="keywordtype">float</span> b = (bias == NULL) ? 0.0f : bias[r];</div>
+<div class="line"><span class="lineno">  153</span>    <span class="keywordtype">float</span> out = alpha * buf[0] + b;</div>
+<div class="line"><span class="lineno">  154</span>    <span class="keywordflow">if</span> (beta != 0.0f) out += beta * y[r];</div>
+<div class="line"><span class="lineno">  155</span>    y[r] = <a class="code hl_function" href="#ac201a9ea4df331010c34a2c99cb2be56">ie_apply_activation</a>(out, act);</div>
+<div class="line"><span class="lineno">  156</span>  }</div>
+<div class="line"><span class="lineno">  157</span>}</div>
+<div class="ttc" id="aie__kernels__ze_8cl_html_a23d302f7ef21814172c805270ac90730"><div class="ttname"><a href="#a23d302f7ef21814172c805270ac90730">IE_WG_TILE</a></div><div class="ttdeci">#define IE_WG_TILE</div><div class="ttdef"><b>Definition</b> <a href="ie__kernels__ze_8cl_source.html#l00019">ie_kernels_ze.cl:19</a></div></div>
+<div class="ttc" id="aie__kernels__ze_8cl_html_ac201a9ea4df331010c34a2c99cb2be56"><div class="ttname"><a href="#ac201a9ea4df331010c34a2c99cb2be56">ie_apply_activation</a></div><div class="ttdeci">static float ie_apply_activation(float x, int act)</div><div class="ttdoc">Apply an activation function that mirrors the host enum layout.</div><div class="ttdef"><b>Definition</b> <a href="ie__kernels__ze_8cl_source.html#l00035">ie_kernels_ze.cl:35</a></div></div>
+</div><!-- fragment -->
+<p class="reference">References <a class="el" href="ie__kernels__ze_8cl_source.html#l00124">gemv_bias_act_f32()</a>, <a class="el" href="ie__kernels__ze_8cl_source.html#l00035">ie_apply_activation()</a>, and <a class="el" href="ie__kernels__ze_8cl_source.html#l00019">IE_WG_TILE</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="ie__kernels__ze_8cl_source.html#l00124">gemv_bias_act_f32()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="ie__kernels__ze_8cl_a32d59e346c85a4b1dccb8448d0748d9e_cgraph.svg" width="355" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="ie__kernels__ze_8cl_a32d59e346c85a4b1dccb8448d0748d9e_icgraph.svg" width="159" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
 
 </div>
 </div>
-<a id="a3e38c79e12e7a582014f8b0664301d74" name="a3e38c79e12e7a582014f8b0664301d74"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3e38c79e12e7a582014f8b0664301d74">&#9670;&#160;</a></span>barrier()</h2>
+<a id="a1aeaae590abe44f0392b55f435c39cf7" name="a1aeaae590abe44f0392b55f435c39cf7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1aeaae590abe44f0392b55f435c39cf7">&#9670;&#160;</a></span>gemv_rowwise_f32()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">barrier </td>
+          <td class="memname">__kernel void gemv_rowwise_f32 </td>
           <td>(</td>
-          <td class="paramtype">CLK_LOCAL_MEM_FENCE</td>          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p class="reference">Referenced by <a class="el" href="ie__kernels__ze_8cl_source.html#l00088">for()</a>.</p>
-
-</div>
-</div>
-<a id="af9d091f76ee32433ba4b7a33e2e38ab5" name="af9d091f76ee32433ba4b7a33e2e38ab5"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af9d091f76ee32433ba4b7a33e2e38ab5">&#9670;&#160;</a></span>for() <span class="overload">[1/2]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">for </td>
-          <td>(</td>
-          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="ie__kernels__ze_8cl_source.html#l00078">78</a> of file <a class="el" href="ie__kernels__ze_8cl_source.html">ie_kernels_ze.cl</a>.</p>
-
-<p class="reference">References <a class="el" href="ie__kernels__ze_8cl_source.html#l00076">acc</a>, <a class="el" href="ie__kernels__ze_8cl_source.html#l00070">cols</a>, <a class="el" href="ie__kernels__ze_8cl_source.html#l00019">IE_WG_TILE</a>, <a class="el" href="ie__kernels__ze_8cl_source.html#l00070">ldW</a>, <a class="el" href="ie__kernels__ze_8cl_source.html#l00073">lr</a>, and <a class="el" href="ie__kernels__ze_8cl_source.html#l00068">x</a>.</p>
-
-</div>
-</div>
-<a id="a7761b4b705dd138cfe1b7b0e69992334" name="a7761b4b705dd138cfe1b7b0e69992334"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7761b4b705dd138cfe1b7b0e69992334">&#9670;&#160;</a></span>for() <span class="overload">[2/2]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">for </td>
-          <td>(</td>
-          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>s</em></span><span class="paramdefsep"> = </span><span class="paramdefval">256&#160;&#160;&gt;&gt;&#160;1;&#160;s</span>, </td>
+          <td class="paramtype">__global const float *restrict</td>          <td class="paramname"><span class="paramname"><em>W</em></span>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">0;s &gt; &gt;</td>          <td class="paramname"><span class="paramname"><em></em></span><span class="paramdefsep"> = </span><span class="paramdefval">1</span>&#160;)</td>
+          <td class="paramtype">__global const float *restrict</td>          <td class="paramname"><span class="paramname"><em>x</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">__global float *restrict</td>          <td class="paramname"><span class="paramname"><em>y</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>rows</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>cols</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>ldW</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float</td>          <td class="paramname"><span class="paramname"><em>alpha</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float</td>          <td class="paramname"><span class="paramname"><em>beta</em></span>&#160;)</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="ie__kernels__ze_8cl_source.html#l00088">88</a> of file <a class="el" href="ie__kernels__ze_8cl_source.html">ie_kernels_ze.cl</a>.</p>
+<p>Row-wise GEMV (FP32): y = alpha * W * x + beta * y. </p>
+<p>Each work-item computes a partial dot for its row and participates in a reduction within the work-group. The local X dimension MUST be 256 so that reduction uses a fixed-size local array without overflow.</p>
+<p>Preconditions:</p><ul>
+<li>Local work-group size X is exactly 256.</li>
+<li>Global X dimension covers <code>rows</code> (excess work-items exit early).</li>
+</ul>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">W</td><td>__global const float* (rows x ldW), row-major </td></tr>
+    <tr><td class="paramname">x</td><td>__global const float* (length cols) </td></tr>
+    <tr><td class="paramname">y</td><td>__global float* (length rows) </td></tr>
+    <tr><td class="paramname">rows</td><td>Number of rows in W (and length of y) </td></tr>
+    <tr><td class="paramname">cols</td><td>Number of columns in W (and length of x) </td></tr>
+    <tr><td class="paramname">ldW</td><td>Leading dimension for W (ldW &gt;= cols) </td></tr>
+    <tr><td class="paramname">alpha</td><td>Scalar multiplier for W*x </td></tr>
+    <tr><td class="paramname">beta</td><td>Scalar multiplier for existing y </td></tr>
+  </table>
+  </dd>
+</dl>
 
-<p class="reference">References <a class="el" href="#a3e38c79e12e7a582014f8b0664301d74">barrier()</a>, <a class="el" href="ie__kernels__ze_8cl_source.html#l00084">buf</a>, <a class="el" href="ie__kernels__ze_8cl_source.html#l00019">IE_WG_TILE</a>, and <a class="el" href="ie__kernels__ze_8cl_source.html#l00073">lr</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ie__kernels__ze_8cl_source.html#l00067">67</a> of file <a class="el" href="ie__kernels__ze_8cl_source.html">ie_kernels_ze.cl</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">   71</span>                                               {</div>
+<div class="line"><span class="lineno">   72</span>  <span class="keyword">const</span> <span class="keywordtype">int</span> r  = get_global_id(0);</div>
+<div class="line"><span class="lineno">   73</span>  <span class="keyword">const</span> <span class="keywordtype">int</span> lr = get_local_id(0);</div>
+<div class="line"><span class="lineno">   74</span>  <span class="keywordflow">if</span> (r &gt;= rows) <span class="keywordflow">return</span>;</div>
+<div class="line"><span class="lineno">   75</span> </div>
+<div class="line"><span class="lineno">   76</span>  <span class="keywordtype">float</span> acc = 0.0f;</div>
+<div class="line"><span class="lineno">   77</span>  <span class="comment">/* Strided partial dot-product over this thread&#39;s lane */</span></div>
+<div class="line"><span class="lineno">   78</span>  <span class="keywordflow">for</span> (<span class="keywordtype">int</span> k = lr; k &lt; cols; k += <a class="code hl_define" href="#a23d302f7ef21814172c805270ac90730">IE_WG_TILE</a>) {</div>
+<div class="line"><span class="lineno">   79</span>    <span class="keyword">const</span> <span class="keywordtype">size_t</span> idx = (size_t)r * (<span class="keywordtype">size_t</span>)ldW + (size_t)k;</div>
+<div class="line"><span class="lineno">   80</span>    acc += W[idx] * x[k];</div>
+<div class="line"><span class="lineno">   81</span>  }</div>
+<div class="line"><span class="lineno">   82</span> </div>
+<div class="line"><span class="lineno">   83</span>  <span class="comment">/* Intra-group reduction */</span></div>
+<div class="line"><span class="lineno">   84</span>  __local <span class="keywordtype">float</span> buf[<a class="code hl_define" href="#a23d302f7ef21814172c805270ac90730">IE_WG_TILE</a>];</div>
+<div class="line"><span class="lineno">   85</span>  buf[lr] = acc;</div>
+<div class="line"><span class="lineno">   86</span>  barrier(CLK_LOCAL_MEM_FENCE);</div>
+<div class="line"><span class="lineno">   87</span> </div>
+<div class="line"><span class="lineno">   88</span>  <span class="keywordflow">for</span> (<span class="keywordtype">int</span> s = <a class="code hl_define" href="#a23d302f7ef21814172c805270ac90730">IE_WG_TILE</a> &gt;&gt; 1; s &gt; 0; s &gt;&gt;= 1) {</div>
+<div class="line"><span class="lineno">   89</span>    <span class="keywordflow">if</span> (lr &lt; s) {</div>
+<div class="line"><span class="lineno">   90</span>      buf[lr] += buf[lr + s];</div>
+<div class="line"><span class="lineno">   91</span>    }</div>
+<div class="line"><span class="lineno">   92</span>    barrier(CLK_LOCAL_MEM_FENCE);</div>
+<div class="line"><span class="lineno">   93</span>  }</div>
+<div class="line"><span class="lineno">   94</span> </div>
+<div class="line"><span class="lineno">   95</span>  <span class="keywordflow">if</span> (lr == 0) {</div>
+<div class="line"><span class="lineno">   96</span>    <span class="keywordtype">float</span> out = alpha * buf[0];</div>
+<div class="line"><span class="lineno">   97</span>    <span class="keywordflow">if</span> (beta != 0.0f) out += beta * y[r];</div>
+<div class="line"><span class="lineno">   98</span>    y[r] = out;</div>
+<div class="line"><span class="lineno">   99</span>  }</div>
+<div class="line"><span class="lineno">  100</span>}</div>
+</div><!-- fragment -->
+<p class="reference">References <a class="el" href="ie__kernels__ze_8cl_source.html#l00067">gemv_rowwise_f32()</a>, and <a class="el" href="ie__kernels__ze_8cl_source.html#l00019">IE_WG_TILE</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="ie__kernels__ze_8cl_source.html#l00067">gemv_rowwise_f32()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="ie__kernels__ze_8cl_a1aeaae590abe44f0392b55f435c39cf7_cgraph.svg" width="159" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="ie__kernels__ze_8cl_a1aeaae590abe44f0392b55f435c39cf7_icgraph.svg" width="159" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
 
 </div>
 </div>
@@ -358,48 +445,21 @@ Variables</h2></td></tr>
 <dl class="section return"><dt>Returns</dt><dd>Activated value. </dd></dl>
 
 <p class="definition">Definition at line <a class="el" href="ie__kernels__ze_8cl_source.html#l00035">35</a> of file <a class="el" href="ie__kernels__ze_8cl_source.html">ie_kernels_ze.cl</a>.</p>
-
-<p class="reference">References <a class="el" href="ie__kernels__ze_8cl_source.html#l00129">act</a>, and <a class="el" href="ie__kernels__ze_8cl_source.html#l00068">x</a>.</p>
-
+<div class="fragment"><div class="line"><span class="lineno">   35</span>                                                          {</div>
+<div class="line"><span class="lineno">   36</span>  <span class="keywordflow">if</span> (act == 1) {            <span class="comment">/* RELU */</span></div>
+<div class="line"><span class="lineno">   37</span>    <span class="keywordflow">return</span> x &gt; 0.0f ? x : 0.0f;</div>
+<div class="line"><span class="lineno">   38</span>  } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (act == 2) {     <span class="comment">/* TANH */</span></div>
+<div class="line"><span class="lineno">   39</span>    <span class="keywordflow">return</span> tanh(x);</div>
+<div class="line"><span class="lineno">   40</span>  }</div>
+<div class="line"><span class="lineno">   41</span>  <span class="keywordflow">return</span> x;                  <span class="comment">/* NONE */</span></div>
+<div class="line"><span class="lineno">   42</span>}</div>
+</div><!-- fragment -->
+<p class="reference">Referenced by <a class="el" href="ie__kernels__ze_8cl_source.html#l00124">gemv_bias_act_f32()</a>.</p>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="ie__kernels__ze_8cl_ac201a9ea4df331010c34a2c99cb2be56_icgraph.svg" width="355" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
-</div>
-<a id="abe3c8c061ae8aafff6f6b7dfb9a2477d" name="abe3c8c061ae8aafff6f6b7dfb9a2477d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#abe3c8c061ae8aafff6f6b7dfb9a2477d">&#9670;&#160;</a></span>if() <span class="overload">[1/2]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">if </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="#a2ccfed46dfdf3d57f0ea8757a88a3ba6">lr</a></td>          <td class="paramname"><span class="paramname"><em></em></span><span class="paramdefsep"> = </span><span class="paramdefval">=&#160;0</span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="ie__kernels__ze_8cl_source.html#l00095">95</a> of file <a class="el" href="ie__kernels__ze_8cl_source.html">ie_kernels_ze.cl</a>.</p>
-
-<p class="reference">References <a class="el" href="ie__kernels__ze_8cl_source.html#l00071">alpha</a>, <a class="el" href="ie__kernels__ze_8cl_source.html#l00071">beta</a>, <a class="el" href="ie__kernels__ze_8cl_source.html#l00084">buf</a>, <a class="el" href="ie__kernels__ze_8cl_source.html#l00073">lr</a>, and <a class="el" href="ie__kernels__ze_8cl_source.html#l00069">y</a>.</p>
-
-</div>
-</div>
-<a id="a19dfb80c9cf48bd6c4d3647fc34f723a" name="a19dfb80c9cf48bd6c4d3647fc34f723a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a19dfb80c9cf48bd6c4d3647fc34f723a">&#9670;&#160;</a></span>if() <span class="overload">[2/2]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">if </td>
-          <td>(</td>
-          <td class="paramtype">r &gt;=</td>          <td class="paramname"><span class="paramname"><em>rows</em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p class="reference">References <a class="el" href="ie__kernels__ze_8cl_source.html#l00070">rows</a>.</p>
 
 </div>
 </div>
@@ -458,9 +518,22 @@ Variables</h2></td></tr>
 </dl>
 
 <p class="definition">Definition at line <a class="el" href="ie__kernels__ze_8cl_source.html#l00202">202</a> of file <a class="el" href="ie__kernels__ze_8cl_source.html">ie_kernels_ze.cl</a>.</p>
-
-<p class="reference">References <a class="el" href="ie__kernels__ze_8cl_source.html#l00070">cols</a>, <a class="el" href="ie__kernels__ze_8cl_source.html#l00070">ldW</a>, and <a class="el" href="ie__kernels__ze_8cl_source.html#l00070">rows</a>.</p>
-
+<div class="fragment"><div class="line"><span class="lineno">  205</span>                                               {</div>
+<div class="line"><span class="lineno">  206</span>  <span class="keyword">const</span> <span class="keywordtype">int</span> k0 = get_global_id(0);</div>
+<div class="line"><span class="lineno">  207</span>  <span class="keyword">const</span> <span class="keywordtype">int</span> r0 = get_global_id(1);</div>
+<div class="line"><span class="lineno">  208</span>  <span class="keyword">const</span> <span class="keywordtype">int</span> Gx = get_global_size(0);</div>
+<div class="line"><span class="lineno">  209</span>  <span class="keyword">const</span> <span class="keywordtype">int</span> Gy = get_global_size(1);</div>
+<div class="line"><span class="lineno">  210</span> </div>
+<div class="line"><span class="lineno">  211</span>  <span class="keywordflow">for</span> (<span class="keywordtype">int</span> r = r0; r &lt; rows; r += Gy) {</div>
+<div class="line"><span class="lineno">  212</span>    <span class="keywordflow">for</span> (<span class="keywordtype">int</span> k = k0; k &lt; cols; k += Gx) {</div>
+<div class="line"><span class="lineno">  213</span>      <span class="keyword">const</span> <span class="keywordtype">int</span> kb = k / block_k;</div>
+<div class="line"><span class="lineno">  214</span>      <span class="keyword">const</span> <span class="keywordtype">int</span> ko = k % block_k;</div>
+<div class="line"><span class="lineno">  215</span>      <span class="keyword">const</span> <span class="keywordtype">size_t</span> dst = ((size_t)kb * (size_t)rows + (size_t)r) * (<span class="keywordtype">size_t</span>)block_k + (size_t)ko;</div>
+<div class="line"><span class="lineno">  216</span>      Wp[dst] = W[(size_t)r * (<span class="keywordtype">size_t</span>)ldW + (size_t)k];</div>
+<div class="line"><span class="lineno">  217</span>    }</div>
+<div class="line"><span class="lineno">  218</span>  }</div>
+<div class="line"><span class="lineno">  219</span>}</div>
+</div><!-- fragment -->
 </div>
 </div>
 <a id="a2261b0a1b8943ff014f3796d4d10d454" name="a2261b0a1b8943ff014f3796d4d10d454"></a>
@@ -499,230 +572,14 @@ Variables</h2></td></tr>
 </dl>
 
 <p class="definition">Definition at line <a class="el" href="ie__kernels__ze_8cl_source.html#l00170">170</a> of file <a class="el" href="ie__kernels__ze_8cl_source.html">ie_kernels_ze.cl</a>.</p>
-
-<p class="reference">References <a class="el" href="ie__kernels__ze_8cl_source.html#l00068">x</a>, and <a class="el" href="ie__kernels__ze_8cl_source.html#l00069">y</a>.</p>
-
-</div>
-</div>
-<h2 class="groupheader">Variable Documentation</h2>
-<a id="ae7a59aea3ae02e7c3c40b93e77208b3a" name="ae7a59aea3ae02e7c3c40b93e77208b3a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae7a59aea3ae02e7c3c40b93e77208b3a">&#9670;&#160;</a></span>acc</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">float acc = 0.0f</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="ie__kernels__ze_8cl_source.html#l00076">76</a> of file <a class="el" href="ie__kernels__ze_8cl_source.html">ie_kernels_ze.cl</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="gemv__avx2_8c_source.html#l00026">__attribute__()</a>, <a class="el" href="ie__kernels__ze_8cl_source.html#l00078">for()</a>, <a class="el" href="gemv__generic_8c_source.html#l00024">gemv_generic_impl()</a>, <a class="el" href="ie__kernels__cuda_8cu_source.html#l00163">k_gemv_bias_act_f32()</a>, <a class="el" href="ie__kernels__cuda_8cu_source.html#l00116">k_gemv_rowwise_f32()</a>, and <a class="el" href="main__infer_8c_source.html#l00241">main()</a>.</p>
-
-</div>
-</div>
-<a id="ac8f2ae6794c6c329fe6562487f7826ac" name="ac8f2ae6794c6c329fe6562487f7826ac"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac8f2ae6794c6c329fe6562487f7826ac">&#9670;&#160;</a></span>act</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">__kernel __global const float* restrict __global const float* restrict __global float* restrict int int int float float int act</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<b>Initial value:</b><div class="fragment"><div class="line">{</div>
-<div class="line">  <span class="keyword">const</span> <span class="keywordtype">int</span> r  = get_global_id(0)</div>
+<div class="fragment"><div class="line"><span class="lineno">  172</span>                                  {</div>
+<div class="line"><span class="lineno">  173</span>  <span class="keyword">const</span> <span class="keywordtype">int</span> gid = get_global_id(0);</div>
+<div class="line"><span class="lineno">  174</span>  <span class="keyword">const</span> <span class="keywordtype">int</span> gsz = get_global_size(0);</div>
+<div class="line"><span class="lineno">  175</span>  <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i = gid; i &lt; n; i += gsz) {</div>
+<div class="line"><span class="lineno">  176</span>    y[i] = tanh(x[i]);</div>
+<div class="line"><span class="lineno">  177</span>  }</div>
+<div class="line"><span class="lineno">  178</span>}</div>
 </div><!-- fragment -->
-<p class="definition">Definition at line <a class="el" href="ie__kernels__ze_8cl_source.html#l00129">129</a> of file <a class="el" href="ie__kernels__ze_8cl_source.html">ie_kernels_ze.cl</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="ie__kernels__cuda_8cu_source.html#l00088">ie_apply_activation()</a>, <a class="el" href="ie__kernels__ze_8cl_source.html#l00035">ie_apply_activation()</a>, <a class="el" href="ie__kernels__cuda_8cu_source.html#l00270">ie_cuda_launch_gemv_bias_act_f32()</a>, <a class="el" href="ie__kernel__ze_8cpp_source.html#l00462">ie_ze_launch_gemv_bias_act_f32()</a>, and <a class="el" href="ie__kernels__cuda_8cu_source.html#l00163">k_gemv_bias_act_f32()</a>.</p>
-
-</div>
-</div>
-<a id="a1ed7c041b95733adcb91c850c327801a" name="a1ed7c041b95733adcb91c850c327801a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a1ed7c041b95733adcb91c850c327801a">&#9670;&#160;</a></span>alpha</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">__kernel __global const float *restrict __global const float *restrict __global float *restrict int int int float alpha</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="ie__kernels__ze_8cl_source.html#l00071">71</a> of file <a class="el" href="ie__kernels__ze_8cl_source.html">ie_kernels_ze.cl</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="ie__kernels__cuda_8cu_source.html#l00270">ie_cuda_launch_gemv_bias_act_f32()</a>, <a class="el" href="ie__kernels__cuda_8cu_source.html#l00246">ie_cuda_launch_gemv_rowwise_f32()</a>, <a class="el" href="ie__kernel__ze_8cpp_source.html#l00462">ie_ze_launch_gemv_bias_act_f32()</a>, <a class="el" href="ie__kernel__ze_8cpp_source.html#l00409">ie_ze_launch_gemv_rowwise_f32()</a>, <a class="el" href="ie__kernels__ze_8cl_source.html#l00095">if()</a>, <a class="el" href="ie__kernels__cuda_8cu_source.html#l00163">k_gemv_bias_act_f32()</a>, and <a class="el" href="ie__kernels__cuda_8cu_source.html#l00116">k_gemv_rowwise_f32()</a>.</p>
-
-</div>
-</div>
-<a id="adff94f6593498005c7fdbb1094908bcd" name="adff94f6593498005c7fdbb1094908bcd"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#adff94f6593498005c7fdbb1094908bcd">&#9670;&#160;</a></span>beta</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">__kernel __global const float *restrict __global const float *restrict __global float *restrict int int int float float beta</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<b>Initial value:</b><div class="fragment"><div class="line">{</div>
-<div class="line">  <span class="keyword">const</span> <span class="keywordtype">int</span> r  = get_global_id(0)</div>
-</div><!-- fragment -->
-<p class="definition">Definition at line <a class="el" href="ie__kernels__ze_8cl_source.html#l00071">71</a> of file <a class="el" href="ie__kernels__ze_8cl_source.html">ie_kernels_ze.cl</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="ie__kernels__cuda_8cu_source.html#l00270">ie_cuda_launch_gemv_bias_act_f32()</a>, <a class="el" href="ie__kernels__cuda_8cu_source.html#l00246">ie_cuda_launch_gemv_rowwise_f32()</a>, <a class="el" href="ie__kernel__ze_8cpp_source.html#l00462">ie_ze_launch_gemv_bias_act_f32()</a>, <a class="el" href="ie__kernel__ze_8cpp_source.html#l00409">ie_ze_launch_gemv_rowwise_f32()</a>, <a class="el" href="ie__kernels__ze_8cl_source.html#l00095">if()</a>, <a class="el" href="ie__kernels__cuda_8cu_source.html#l00163">k_gemv_bias_act_f32()</a>, and <a class="el" href="ie__kernels__cuda_8cu_source.html#l00116">k_gemv_rowwise_f32()</a>.</p>
-
-</div>
-</div>
-<a id="a6e7f44009791b41b64f365b59236e3a1" name="a6e7f44009791b41b64f365b59236e3a1"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6e7f44009791b41b64f365b59236e3a1">&#9670;&#160;</a></span>bias</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">__kernel __global const float* restrict __global const float* restrict bias</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="ie__kernels__ze_8cl_source.html#l00126">126</a> of file <a class="el" href="ie__kernels__ze_8cl_source.html">ie_kernels_ze.cl</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="gemv__avx2_8c_source.html#l00026">__attribute__()</a>, <a class="el" href="ie__device__common_8c_source.html#l00164">cpu_gemv_f32()</a>, <a class="el" href="ie__device__common_8c_source.html#l00255">cuda_gemv_c()</a>, <a class="el" href="gemv__generic_8c_source.html#l00024">gemv_generic_impl()</a>, <a class="el" href="ie__kernels__cuda_8cu_source.html#l00270">ie_cuda_launch_gemv_bias_act_f32()</a>, <a class="el" href="ie__device__common_8c_source.html#l00444">ie_device_gemv_f32()</a>, <a class="el" href="gemv__generic_8c_source.html#l00067">ie_gemv_f32()</a>, <a class="el" href="ie__kernel__ze_8cpp_source.html#l00462">ie_ze_launch_gemv_bias_act_f32()</a>, <a class="el" href="ie__kernels__cuda_8cu_source.html#l00163">k_gemv_bias_act_f32()</a>, and <a class="el" href="ie__device__common_8c_source.html#l00339">ze_gemv_c()</a>.</p>
-
-</div>
-</div>
-<a id="a2fc07fdd1b60b645c24a35bc0c75ed7f" name="a2fc07fdd1b60b645c24a35bc0c75ed7f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a2fc07fdd1b60b645c24a35bc0c75ed7f">&#9670;&#160;</a></span>buf</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">__local float buf = <a class="el" href="#ae7a59aea3ae02e7c3c40b93e77208b3a">acc</a></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="ie__kernels__ze_8cl_source.html#l00084">84</a> of file <a class="el" href="ie__kernels__ze_8cl_source.html">ie_kernels_ze.cl</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="ie__kernels__ze_8cl_source.html#l00088">for()</a>, <a class="el" href="ie__device__common_8c_source.html#l00106">ie_device_kind_from_str()</a>, <a class="el" href="pretranspose_8c_source.html#l00098">ie_layout_build_blockedK()</a>, <a class="el" href="util__metrics_8c_source.html#l00117">ie_metrics_sample_rss_peak()</a>, <a class="el" href="numa__probe_8c_source.html#l00078">ie_numa_detect_nodes()</a>, <a class="el" href="weights_8c_source.html#l00228">ie_pread()</a>, <a class="el" href="tokenizer_8c_source.html#l00097">ie_vocab_load()</a>, <a class="el" href="weights_8c_source.html#l00311">ie_weights_touch()</a>, <a class="el" href="ie__kernels__ze_8cl_source.html#l00095">if()</a>, <a class="el" href="ie__kernels__cuda_8cu_source.html#l00163">k_gemv_bias_act_f32()</a>, <a class="el" href="ie__kernels__cuda_8cu_source.html#l00116">k_gemv_rowwise_f32()</a>, <a class="el" href="pretranspose_8c_source.html#l00043">load_cache()</a>, <a class="el" href="weights_8c_source.html#l00115">read_all_text()</a>, and <a class="el" href="main__infer_8c_source.html#l00174">read_first_nonempty_line()</a>.</p>
-
-</div>
-</div>
-<a id="af942f0573963b9e5aaa312bb99574c86" name="af942f0573963b9e5aaa312bb99574c86"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af942f0573963b9e5aaa312bb99574c86">&#9670;&#160;</a></span>cols</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">__kernel __global const float *restrict __global const float *restrict __global float *restrict int int cols</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="ie__kernels__ze_8cl_source.html#l00070">70</a> of file <a class="el" href="ie__kernels__ze_8cl_source.html">ie_kernels_ze.cl</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="gemv__avx2_8c_source.html#l00026">__attribute__()</a>, <a class="el" href="ie__device__common_8c_source.html#l00164">cpu_gemv_f32()</a>, <a class="el" href="ie__device__common_8c_source.html#l00255">cuda_gemv_c()</a>, <a class="el" href="ie__kernels__ze_8cl_source.html#l00078">for()</a>, <a class="el" href="gemv__generic_8c_source.html#l00024">gemv_generic_impl()</a>, <a class="el" href="ie__device__cuda_8cu_source.html#l00195">ie_cuda_gemv_f32()</a>, <a class="el" href="ie__device__cuda_8cu_source.html#l00183">ie_cuda_gemv_f32_strided()</a>, <a class="el" href="ie__kernels__cuda_8cu_source.html#l00270">ie_cuda_launch_gemv_bias_act_f32()</a>, <a class="el" href="ie__kernels__cuda_8cu_source.html#l00246">ie_cuda_launch_gemv_rowwise_f32()</a>, <a class="el" href="ie__kernels__cuda_8cu_source.html#l00317">ie_cuda_launch_pack_w_blockedk_f32()</a>, <a class="el" href="ie__device__common_8c_source.html#l00444">ie_device_gemv_f32()</a>, <a class="el" href="gemv__generic_8c_source.html#l00067">ie_gemv_f32()</a>, <a class="el" href="pretranspose_8c_source.html#l00098">ie_layout_build_blockedK()</a>, <a class="el" href="pretranspose_8c_source.html#l00024">ie_layout_cache_name()</a>, <a class="el" href="int8__ptq_8c_source.html#l00057">ie_ptq_compute_scales_minmax()</a>, <a class="el" href="int8__ptq_8c_source.html#l00154">ie_ptq_dequant_int8()</a>, <a class="el" href="int8__ptq_8c_source.html#l00109">ie_ptq_quantize_int8()</a>, <a class="el" href="ie__device__ze_8cpp_source.html#l00050">ie_ze_gemv_f32()</a>, <a class="el" href="ie__kernel__ze_8cpp_source.html#l00462">ie_ze_launch_gemv_bias_act_f32()</a>, <a class="el" href="ie__kernel__ze_8cpp_source.html#l00409">ie_ze_launch_gemv_rowwise_f32()</a>, <a class="el" href="ie__kernel__ze_8cpp_source.html#l00565">ie_ze_launch_pack_w_blockedk_f32()</a>, <a class="el" href="ie__kernels__cuda_8cu_source.html#l00163">k_gemv_bias_act_f32()</a>, <a class="el" href="ie__kernels__cuda_8cu_source.html#l00116">k_gemv_rowwise_f32()</a>, <a class="el" href="ie__kernels__cuda_8cu_source.html#l00222">k_pack_w_blockedk_f32()</a>, <a class="el" href="pretranspose_8c_source.html#l00043">load_cache()</a>, <a class="el" href="ie__kernels__ze_8cl_source.html#l00202">pack_w_blockedk_f32()</a>, <a class="el" href="pretranspose_8c_source.html#l00066">save_cache_atomic()</a>, and <a class="el" href="ie__device__common_8c_source.html#l00339">ze_gemv_c()</a>.</p>
-
-</div>
-</div>
-<a id="a8670fee560ed3b5cc952b89bed537616" name="a8670fee560ed3b5cc952b89bed537616"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a8670fee560ed3b5cc952b89bed537616">&#9670;&#160;</a></span>ldW</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">__kernel __global const float *restrict __global const float *restrict __global float *restrict int int int ldW</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="ie__kernels__ze_8cl_source.html#l00070">70</a> of file <a class="el" href="ie__kernels__ze_8cl_source.html">ie_kernels_ze.cl</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="ie__kernels__ze_8cl_source.html#l00078">for()</a>, <a class="el" href="ie__kernels__cuda_8cu_source.html#l00270">ie_cuda_launch_gemv_bias_act_f32()</a>, <a class="el" href="ie__kernels__cuda_8cu_source.html#l00246">ie_cuda_launch_gemv_rowwise_f32()</a>, <a class="el" href="ie__kernels__cuda_8cu_source.html#l00317">ie_cuda_launch_pack_w_blockedk_f32()</a>, <a class="el" href="ie__kernel__ze_8cpp_source.html#l00462">ie_ze_launch_gemv_bias_act_f32()</a>, <a class="el" href="ie__kernel__ze_8cpp_source.html#l00409">ie_ze_launch_gemv_rowwise_f32()</a>, <a class="el" href="ie__kernel__ze_8cpp_source.html#l00565">ie_ze_launch_pack_w_blockedk_f32()</a>, <a class="el" href="ie__kernels__cuda_8cu_source.html#l00163">k_gemv_bias_act_f32()</a>, <a class="el" href="ie__kernels__cuda_8cu_source.html#l00116">k_gemv_rowwise_f32()</a>, <a class="el" href="ie__kernels__cuda_8cu_source.html#l00222">k_pack_w_blockedk_f32()</a>, and <a class="el" href="ie__kernels__ze_8cl_source.html#l00202">pack_w_blockedk_f32()</a>.</p>
-
-</div>
-</div>
-<a id="a2ccfed46dfdf3d57f0ea8757a88a3ba6" name="a2ccfed46dfdf3d57f0ea8757a88a3ba6"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a2ccfed46dfdf3d57f0ea8757a88a3ba6">&#9670;&#160;</a></span>lr</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">const int lr = get_local_id(0)</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="ie__kernels__ze_8cl_source.html#l00073">73</a> of file <a class="el" href="ie__kernels__ze_8cl_source.html">ie_kernels_ze.cl</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="ie__kernels__ze_8cl_source.html#l00078">for()</a>, <a class="el" href="ie__kernels__ze_8cl_source.html#l00088">for()</a>, and <a class="el" href="ie__kernels__ze_8cl_source.html#l00095">if()</a>.</p>
-
-</div>
-</div>
-<a id="a35363449221d3f91c1cbb04818f843d9" name="a35363449221d3f91c1cbb04818f843d9"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a35363449221d3f91c1cbb04818f843d9">&#9670;&#160;</a></span>rows</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">__kernel __global const float *restrict __global const float *restrict __global float *restrict int rows</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="ie__kernels__ze_8cl_source.html#l00070">70</a> of file <a class="el" href="ie__kernels__ze_8cl_source.html">ie_kernels_ze.cl</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="gemv__avx2_8c_source.html#l00026">__attribute__()</a>, <a class="el" href="ie__device__common_8c_source.html#l00164">cpu_gemv_f32()</a>, <a class="el" href="ie__device__common_8c_source.html#l00255">cuda_gemv_c()</a>, <a class="el" href="gemv__generic_8c_source.html#l00024">gemv_generic_impl()</a>, <a class="el" href="ie__device__cuda_8cu_source.html#l00195">ie_cuda_gemv_f32()</a>, <a class="el" href="ie__device__cuda_8cu_source.html#l00183">ie_cuda_gemv_f32_strided()</a>, <a class="el" href="ie__kernels__cuda_8cu_source.html#l00270">ie_cuda_launch_gemv_bias_act_f32()</a>, <a class="el" href="ie__kernels__cuda_8cu_source.html#l00246">ie_cuda_launch_gemv_rowwise_f32()</a>, <a class="el" href="ie__kernels__cuda_8cu_source.html#l00317">ie_cuda_launch_pack_w_blockedk_f32()</a>, <a class="el" href="ie__device__common_8c_source.html#l00444">ie_device_gemv_f32()</a>, <a class="el" href="gemv__generic_8c_source.html#l00067">ie_gemv_f32()</a>, <a class="el" href="pretranspose_8c_source.html#l00098">ie_layout_build_blockedK()</a>, <a class="el" href="pretranspose_8c_source.html#l00024">ie_layout_cache_name()</a>, <a class="el" href="int8__ptq_8c_source.html#l00057">ie_ptq_compute_scales_minmax()</a>, <a class="el" href="int8__ptq_8c_source.html#l00154">ie_ptq_dequant_int8()</a>, <a class="el" href="int8__ptq_8c_source.html#l00109">ie_ptq_quantize_int8()</a>, <a class="el" href="ie__device__ze_8cpp_source.html#l00050">ie_ze_gemv_f32()</a>, <a class="el" href="ie__kernel__ze_8cpp_source.html#l00462">ie_ze_launch_gemv_bias_act_f32()</a>, <a class="el" href="ie__kernel__ze_8cpp_source.html#l00409">ie_ze_launch_gemv_rowwise_f32()</a>, <a class="el" href="ie__kernel__ze_8cpp_source.html#l00565">ie_ze_launch_pack_w_blockedk_f32()</a>, <a class="el" href="#a19dfb80c9cf48bd6c4d3647fc34f723a">if()</a>, <a class="el" href="ie__kernels__cuda_8cu_source.html#l00163">k_gemv_bias_act_f32()</a>, <a class="el" href="ie__kernels__cuda_8cu_source.html#l00116">k_gemv_rowwise_f32()</a>, <a class="el" href="ie__kernels__cuda_8cu_source.html#l00222">k_pack_w_blockedk_f32()</a>, <a class="el" href="pretranspose_8c_source.html#l00043">load_cache()</a>, <a class="el" href="ie__kernels__ze_8cl_source.html#l00202">pack_w_blockedk_f32()</a>, <a class="el" href="pretranspose_8c_source.html#l00066">save_cache_atomic()</a>, and <a class="el" href="ie__device__common_8c_source.html#l00339">ze_gemv_c()</a>.</p>
-
-</div>
-</div>
-<a id="ad48b386850d1d2a5a51515ad676993a0" name="ad48b386850d1d2a5a51515ad676993a0"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad48b386850d1d2a5a51515ad676993a0">&#9670;&#160;</a></span>x</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">__kernel __global const float *restrict x</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="ie__kernels__ze_8cl_source.html#l00068">68</a> of file <a class="el" href="ie__kernels__ze_8cl_source.html">ie_kernels_ze.cl</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="gemv__avx2_8c_source.html#l00026">__attribute__()</a>, <a class="el" href="int8__ptq_8c_source.html#l00027">clamp_sym_int8()</a>, <a class="el" href="tokenizer_8c_source.html#l00075">clamp_to_pos31()</a>, <a class="el" href="ie__device__common_8c_source.html#l00164">cpu_gemv_f32()</a>, <a class="el" href="ie__device__common_8c_source.html#l00255">cuda_gemv_c()</a>, <a class="el" href="ie__kernels__ze_8cl_source.html#l00078">for()</a>, <a class="el" href="gemv__generic_8c_source.html#l00024">gemv_generic_impl()</a>, <a class="el" href="ie__kernels__cuda_8cu_source.html#l00088">ie_apply_activation()</a>, <a class="el" href="ie__kernels__ze_8cl_source.html#l00035">ie_apply_activation()</a>, <a class="el" href="ie__device__cuda_8cu_source.html#l00195">ie_cuda_gemv_f32()</a>, <a class="el" href="ie__device__cuda_8cu_source.html#l00183">ie_cuda_gemv_f32_strided()</a>, <a class="el" href="ie__kernels__cuda_8cu_source.html#l00270">ie_cuda_launch_gemv_bias_act_f32()</a>, <a class="el" href="ie__kernels__cuda_8cu_source.html#l00246">ie_cuda_launch_gemv_rowwise_f32()</a>, <a class="el" href="ie__kernels__cuda_8cu_source.html#l00297">ie_cuda_launch_vec_tanh_f32()</a>, <a class="el" href="ie__device__common_8c_source.html#l00444">ie_device_gemv_f32()</a>, <a class="el" href="fast__tanh_8c_source.html#l00028">ie_fast_tanhf()</a>, <a class="el" href="floatx_8c_source.html#l00020">ie_fp32_to_bf16()</a>, <a class="el" href="floatx_8c_source.html#l00062">ie_fp32_to_fp16()</a>, <a class="el" href="gemv__generic_8c_source.html#l00067">ie_gemv_f32()</a>, <a class="el" href="fast__tanh_8c_source.html#l00078">ie_vec_tanh_f32_out()</a>, <a class="el" href="fast__tanh_8c_source.html#l00096">ie_vec_tanh_f32_strided()</a>, <a class="el" href="ie__device__ze_8cpp_source.html#l00050">ie_ze_gemv_f32()</a>, <a class="el" href="ie__kernel__ze_8cpp_source.html#l00462">ie_ze_launch_gemv_bias_act_f32()</a>, <a class="el" href="ie__kernel__ze_8cpp_source.html#l00409">ie_ze_launch_gemv_rowwise_f32()</a>, <a class="el" href="ie__kernel__ze_8cpp_source.html#l00526">ie_ze_launch_vec_tanh_f32()</a>, <a class="el" href="ie__kernels__cuda_8cu_source.html#l00163">k_gemv_bias_act_f32()</a>, <a class="el" href="ie__kernels__cuda_8cu_source.html#l00116">k_gemv_rowwise_f32()</a>, <a class="el" href="ie__kernels__cuda_8cu_source.html#l00202">k_vec_tanh_f32()</a>, <a class="el" href="ie__kernels__ze_8cl_source.html#l00170">vec_tanh_f32()</a>, <a class="el" href="ie__api_8c_source.html#l00073">xorshift64star()</a>, and <a class="el" href="ie__device__common_8c_source.html#l00339">ze_gemv_c()</a>.</p>
-
-</div>
-</div>
-<a id="aea3d67a4afbcc9232ebb1f337b451966" name="aea3d67a4afbcc9232ebb1f337b451966"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aea3d67a4afbcc9232ebb1f337b451966">&#9670;&#160;</a></span>y</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">__kernel __global const float *restrict __global const float *restrict __global float *restrict y</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="ie__kernels__ze_8cl_source.html#l00069">69</a> of file <a class="el" href="ie__kernels__ze_8cl_source.html">ie_kernels_ze.cl</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="gemv__avx2_8c_source.html#l00026">__attribute__()</a>, <a class="el" href="tokenizer_8c_source.html#l00075">clamp_to_pos31()</a>, <a class="el" href="ie__device__common_8c_source.html#l00164">cpu_gemv_f32()</a>, <a class="el" href="ie__device__common_8c_source.html#l00255">cuda_gemv_c()</a>, <a class="el" href="gemv__generic_8c_source.html#l00024">gemv_generic_impl()</a>, <a class="el" href="ie__device__cuda_8cu_source.html#l00195">ie_cuda_gemv_f32()</a>, <a class="el" href="ie__device__cuda_8cu_source.html#l00183">ie_cuda_gemv_f32_strided()</a>, <a class="el" href="ie__kernels__cuda_8cu_source.html#l00270">ie_cuda_launch_gemv_bias_act_f32()</a>, <a class="el" href="ie__kernels__cuda_8cu_source.html#l00246">ie_cuda_launch_gemv_rowwise_f32()</a>, <a class="el" href="ie__kernels__cuda_8cu_source.html#l00297">ie_cuda_launch_vec_tanh_f32()</a>, <a class="el" href="ie__device__common_8c_source.html#l00444">ie_device_gemv_f32()</a>, <a class="el" href="fast__tanh_8c_source.html#l00028">ie_fast_tanhf()</a>, <a class="el" href="gemv__generic_8c_source.html#l00067">ie_gemv_f32()</a>, <a class="el" href="fast__tanh_8c_source.html#l00055">ie_vec_tanh_f32()</a>, <a class="el" href="ie__device__ze_8cpp_source.html#l00050">ie_ze_gemv_f32()</a>, <a class="el" href="ie__kernel__ze_8cpp_source.html#l00462">ie_ze_launch_gemv_bias_act_f32()</a>, <a class="el" href="ie__kernel__ze_8cpp_source.html#l00409">ie_ze_launch_gemv_rowwise_f32()</a>, <a class="el" href="ie__kernel__ze_8cpp_source.html#l00526">ie_ze_launch_vec_tanh_f32()</a>, <a class="el" href="ie__kernels__ze_8cl_source.html#l00095">if()</a>, <a class="el" href="ie__kernels__cuda_8cu_source.html#l00163">k_gemv_bias_act_f32()</a>, <a class="el" href="ie__kernels__cuda_8cu_source.html#l00116">k_gemv_rowwise_f32()</a>, <a class="el" href="ie__kernels__cuda_8cu_source.html#l00202">k_vec_tanh_f32()</a>, <a class="el" href="ie__kernels__ze_8cl_source.html#l00170">vec_tanh_f32()</a>, and <a class="el" href="ie__device__common_8c_source.html#l00339">ze_gemv_c()</a>.</p>
-
 </div>
 </div>
 </div><!-- contents -->

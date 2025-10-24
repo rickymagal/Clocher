@@ -1,38 +1,29 @@
-# ADR-0006 — Optimization path selection (CPU baseline)
+# ADR-00060 — Optimization Path Selection (updated for INT4)
 
-## Status
-Accepted — 2025-10-14
+**Status:** Accepted • **Last updated:** 2025-10-24 21:00:48 UTC
 
-## Context
-We need deterministic, portable, zero-dependency CPU performance. Upstream runtimes
-(ORT/TVM/OpenVINO/TensorRT-CPU) bring heavy deps and reduce control over hot inner loops.
+## Problem
+We need a portable CPU baseline with predictable performance and a clear path to exploit memory locality and bandwidth while keeping the code simple and testable.
 
 ## Decision
-1. **Hand-written AVX2 microkernels** for GEMV/GEMM with block tiling + FMA.
-2. **Threading via pthreads pool** with pinning modes (`compact|scatter`) and optional NUMA hints.
-3. **Math fast paths**:
-   - `tanhf`: polynomial/table approximation gated by accuracy budget (with clamp).
-   - Minimize expensive transcendentals in token feature paths.
-4. **Layout** toggles (blocked-K packing) and prefetch hints in hot loops.
-5. Keep an **optional oneDNN fallback** behind a build flag (non-default) for validation.
+- Keep a single binary with **FP32 baseline** and optional precision switches: BF16/FP16 (accumulate FP32), INT8 PTQ, and **INT4 weight‑only (INT4W)**.
+- Maintain **blocked‑K packing** and optional **pretranspose** for cache locality.
+- Threading via a fixed `pthread` pool with optional affinity and NUMA hints.
+
+## INT4W specifics (new)
+- **When to use**: memory‑bound regimes (large models, small batches) where weight bandwidth dominates. Select with `IE_PRECISION=int4w` or `--precision int4w`.
+- **How it works**:
+  - PTQ scripts derive a `q4_manifest.json` (per‑tensor entry with packing metadata and scales).
+  - `scripts/hf_to_iebin.py --q4-map …` consumes the manifest and packs `model.ie.bin` accordingly.
+  - Kernels fuse **dequant(scale × int4)** into the matmul path; accumulation remains FP32.
+- **Interplay with pretranspose**: quantization occurs after any offline layout transform intended for locality; manifests capture the final layout to keep IO deterministic.
+- **Quality gate**: manifests are accepted only if a calibration threshold (cosine or task metric) is met; the threshold is repo‑configurable in the PTQ helpers.
+
+## Rationale
+INT4W yields **4× compression** over FP32 and **2× over INT8**, unlocking higher tokens/s on bandwidth‑limited hardware with minimal additional complexity.
 
 ## Consequences
-- Maximum control and transparency of performance changes.
-- Minimal external dependencies → easier reproducibility.
-- Larger code surface maintained in-tree; unit tests and microbenches mandatory.
+- Slight accuracy loss bounded by the calibration gate.
+- Simplified runtime: no activation quantization; scales live with the packed weights and are broadcast during compute.
+- Uniform harness & docs: packing is explicit and reproducible via scripts and environment flags.
 
-## Next
-- Complete AVX2 GEMV microkernel integration behind runtime gating.
-- Validate scaling of thread-pool and NUMA effects with flamegraph evidence.
-- Compare accuracy/latency impact of fast `tanh` vs libm baseline.
-## Updates — 2025-10-17
-
-- **Batching impact:** amortizes tokenizer and scheduling overhead; reduces per-prompt latency variance for short prompts.
-- **Prefetch policy:** `auto` maps to enabled when `--prompts-file` is provided; otherwise conservative for single-prompt runs.
-- **Profiling workflow:** `make perf-report` records with `perf` and renders with FlameGraph; supports `ROUNDS`, `MAX_NEW`, `FREQ`, and `CALLGRAPH` envs.
-- **Limits observed:** if `perf.data` is empty, increase `ROUNDS/MAX_NEW/FREQ` or adjust kernel `perf_event_paranoid`.
-
----
-
-## Updates — 2025-10-24 00:42:21 UTC
-This ADR remains **CPU-focused**. GPU benchmarking is tracked separately (see ADR-0011) and does not change the baseline CPU optimization path (AVX2 kernels, pthreads pool, blocked-K packing).

@@ -1,0 +1,417 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="ie__kernels_8h" kind="file" language="C++">
+    <compoundname>ie_kernels.h</compoundname>
+    <includes local="no">stddef.h</includes>
+    <includedby refid="ie__device__common_8c" local="yes">engine/src/devices/ie_device_common.c</includedby>
+    <includedby refid="gemv__avx2_8c" local="yes">engine/src/kernels/gemv_avx2.c</includedby>
+    <includedby refid="gemv__generic_8c" local="yes">engine/src/kernels/gemv_generic.c</includedby>
+    <includedby refid="test__kernels_8c" local="yes">tests/c/test_kernels.c</includedby>
+    <incdepgraph>
+      <node id="1">
+        <label>engine/include/ie_kernels.h</label>
+        <link refid="ie__kernels_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>stddef.h</label>
+      </node>
+    </incdepgraph>
+    <invincdepgraph>
+      <node id="1">
+        <label>engine/include/ie_kernels.h</label>
+        <link refid="ie__kernels_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="3" relation="include">
+        </childnode>
+        <childnode refid="4" relation="include">
+        </childnode>
+        <childnode refid="5" relation="include">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>engine/src/devices/ie_device_common.c</label>
+        <link refid="ie__device__common_8c"/>
+      </node>
+      <node id="3">
+        <label>engine/src/kernels/gemv_avx2.c</label>
+        <link refid="gemv__avx2_8c"/>
+      </node>
+      <node id="4">
+        <label>engine/src/kernels/gemv_generic.c</label>
+        <link refid="gemv__generic_8c"/>
+      </node>
+      <node id="5">
+        <label>tests/c/test_kernels.c</label>
+        <link refid="test__kernels_8c"/>
+      </node>
+    </invincdepgraph>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="ie__kernels_8h_1a1b919f71b86ec1791fe53bc68d5c240d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ie_kernels_install</definition>
+        <argsstring>(int use_avx2)</argsstring>
+        <name>ie_kernels_install</name>
+        <param>
+          <type>int</type>
+          <declname>use_avx2</declname>
+        </param>
+        <briefdescription>
+<para>Install the best available CPU kernels at runtime. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>use_avx2</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Non-zero to select AVX2-optimized paths where available.</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+Install the best available CPU kernels at runtime.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>use_avx2</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Non-zero to prefer AVX2 if available (handled in <ref refid="gemv__avx2_8c" kindref="compound">gemv_avx2.c</ref>). </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/ie_kernels.h" line="19" column="6" bodyfile="engine/src/kernels/gemv_generic.c" bodystart="51" bodyend="54" declfile="engine/include/ie_kernels.h" declline="19" declcolumn="6"/>
+        <references refid="gemv__generic_8c_1a51096a373f5e5010d39cbf44e34b730d" compoundref="gemv__generic_8c" startline="24" endline="44">gemv_generic_impl</references>
+        <references refid="gemv__generic_8c_1aa80eb69d355054f1f8213721e72bec9a" compoundref="gemv__generic_8c" startline="11">s_gemv_f32</references>
+        <referencedby refid="test__kernels_8c_1a840291bc02cba5474a4cb46a9b9566fe" compoundref="test__kernels_8c" startline="149" endline="163">main</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="ie__kernels_8h_1a4e112b3396ed21919f404631c1d4d7fb" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ie_gemv_f32</definition>
+        <argsstring>(const float *W, const float *x, float *y, size_t rows, size_t cols, const float *bias, size_t blk_k)</argsstring>
+        <name>ie_gemv_f32</name>
+        <param>
+          <type>const float *</type>
+          <declname>W</declname>
+        </param>
+        <param>
+          <type>const float *</type>
+          <declname>x</declname>
+        </param>
+        <param>
+          <type>float *</type>
+          <declname>y</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>rows</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>cols</declname>
+        </param>
+        <param>
+          <type>const float *</type>
+          <declname>bias</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>blk_k</declname>
+        </param>
+        <briefdescription>
+<para>GEMV: y[r] = dot(W[r, :], x) [+ bias[r]] for r in [0, rows). </para>
+        </briefdescription>
+        <detaileddescription>
+<para>The function chooses the best implementation (AVX2 or generic) selected by <ref refid="ie__kernels_8h_1a1b919f71b86ec1791fe53bc68d5c240d" kindref="member">ie_kernels_install()</ref>. The <computeroutput>bias</computeroutput> pointer may be NULL to skip epilogue bias.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>W</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Pointer to weights in row-major layout or pretransposed-blocked layout accepted by the active kernel (see <computeroutput><ref refid="ie__layout_8h" kindref="compound">ie_layout.h</ref></computeroutput>). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>x</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Pointer to input vector of length <computeroutput>cols</computeroutput>. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>y</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Pointer to output vector of length <computeroutput>rows</computeroutput>. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>rows</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of rows to process. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>cols</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of columns per row. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>bias</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Optional pointer to bias vector of length <computeroutput>rows</computeroutput>; may be NULL. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>blk_k</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Column-block size if <computeroutput>W</computeroutput> is in blocked-K layout; pass 0 for plain row-major (kernel will treat as unblocked).</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+GEMV: y[r] = dot(W[r, :], x) [+ bias[r]] for r in [0, rows).</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>W</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Weights pointer. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>x</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Input vector. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>y</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Output vector. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>rows</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Rows. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>cols</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Cols. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>bias</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Optional bias vector (may be NULL). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>blk_k</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Column-block size for blocked layout; 0 for plain row-major. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/ie_kernels.h" line="37" column="6" bodyfile="engine/src/kernels/gemv_generic.c" bodystart="67" bodyend="71" declfile="engine/include/ie_kernels.h" declline="37" declcolumn="6"/>
+        <references refid="gemv__generic_8c_1aa80eb69d355054f1f8213721e72bec9a" compoundref="gemv__generic_8c" startline="11">s_gemv_f32</references>
+        <referencedby refid="ie__device__common_8c_1a4fb9bb01bfbe71517f9df925ba9c93ec" compoundref="ie__device__common_8c" startline="164" endline="172">cpu_gemv_f32</referencedby>
+        <referencedby refid="test__kernels_8c_1a0ac9b0c3b1d865ef69bd2bc69d14a685" compoundref="test__kernels_8c" startline="109" endline="122">test_gemv_rowmajor_no_bias</referencedby>
+        <referencedby refid="test__kernels_8c_1a2305be22b4279f3ac4d55f90584569cb" compoundref="test__kernels_8c" startline="129" endline="142">test_gemv_rowmajor_with_bias</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="ie__kernels_8h_1a31b6c03fd5b95bdecb37f06821d3ce93" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ie_vec_tanh_f32</definition>
+        <argsstring>(float *v, size_t n, int fast_tanh)</argsstring>
+        <name>ie_vec_tanh_f32</name>
+        <param>
+          <type>float *</type>
+          <declname>v</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>n</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>fast_tanh</declname>
+        </param>
+        <briefdescription>
+<para>Vector tanh on float data (fp32). </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>v</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Pointer to input/output vector (in-place). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>n</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of elements. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>fast_tanh</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Non-zero to use a fast approximation; zero to use tanhf().</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+Vector tanh on float data (fp32).</para>
+<para>If <computeroutput>fast_tanh</computeroutput> != 0, uses <ref refid="ie__kernels_8h_1a2b9a073aea2b6ff7450b2d0ee32765ae" kindref="member">ie_fast_tanhf</ref>; otherwise uses libm <computeroutput>tanhf</computeroutput>. Output values are clamped to [-1, 1] in both modes to satisfy strict bounds.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>v</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Pointer to the vector (length <computeroutput>n</computeroutput>). Modified in-place. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>n</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of elements in <computeroutput>v</computeroutput>. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>fast_tanh</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Non-zero to use the fast approximation; 0 to use libm. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/ie_kernels.h" line="48" column="6" bodyfile="engine/src/math/fast_tanh.c" bodystart="55" bodyend="69" declfile="engine/include/ie_kernels.h" declline="48" declcolumn="6"/>
+        <references refid="fast__tanh_8c_1a2b9a073aea2b6ff7450b2d0ee32765ae" compoundref="fast__tanh_8c" startline="28" endline="43">ie_fast_tanhf</references>
+        <referencedby refid="test__math_8c_1a840291bc02cba5474a4cb46a9b9566fe" compoundref="test__math_8c" startline="12" endline="33">main</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="ie__kernels_8h_1a2b9a073aea2b6ff7450b2d0ee32765ae" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>float</type>
+        <definition>float ie_fast_tanhf</definition>
+        <argsstring>(float x)</argsstring>
+        <name>ie_fast_tanhf</name>
+        <param>
+          <type>float</type>
+          <declname>x</declname>
+        </param>
+        <briefdescription>
+<para>Fast scalar tanh approximation (used for fused bias+tanh paths). </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>x</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Input value. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>tanh(x) approximated with a polynomial/rational form.</para>
+</simplesect>
+Fast scalar tanh approximation (used for fused bias+tanh paths).</para>
+<para>For large |x| we short-circuit to +/-1.0f. For moderate |x| we use a small rational function that gives a smooth S-curve: <verbatim>tanh(x) ≈ x * (27 + x^2) / (27 + 9 x^2)
+</verbatim></para>
+<para>Finally, the result is clamped to [-1, 1] to guarantee range correctness.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>x</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Input value. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Approximated tanh(x) in [-1.0f, 1.0f]. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/ie_kernels.h" line="56" column="7" bodyfile="engine/src/math/fast_tanh.c" bodystart="28" bodyend="43" declfile="engine/include/ie_kernels.h" declline="56" declcolumn="7"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para>Kernel dispatch points (generic/AVX2) for GEMV and vector ops. </para>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="normal"></highlight></codeline>
+<codeline lineno="5"><highlight class="normal"></highlight><highlight class="preprocessor">#ifndef<sp/>IE_KERNELS_H_</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="6"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>IE_KERNELS_H_</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="7"><highlight class="normal"></highlight></codeline>
+<codeline lineno="8"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stddef.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="9"><highlight class="normal"></highlight></codeline>
+<codeline lineno="10"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="11"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/></highlight><highlight class="stringliteral">&quot;C&quot;</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="12"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="13"><highlight class="normal"></highlight></codeline>
+<codeline lineno="19"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="ie__kernels_8h_1a1b919f71b86ec1791fe53bc68d5c240d" kindref="member">ie_kernels_install</ref>(</highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>use_avx2);</highlight></codeline>
+<codeline lineno="20"><highlight class="normal"></highlight></codeline>
+<codeline lineno="37"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="ie__kernels_8h_1a4e112b3396ed21919f404631c1d4d7fb" kindref="member">ie_gemv_f32</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*W,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*x,<sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*y,</highlight></codeline>
+<codeline lineno="38"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>rows,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>cols,</highlight></codeline>
+<codeline lineno="39"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*bias,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>blk_k);</highlight></codeline>
+<codeline lineno="40"><highlight class="normal"></highlight></codeline>
+<codeline lineno="48"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="ie__kernels_8h_1a31b6c03fd5b95bdecb37f06821d3ce93" kindref="member">ie_vec_tanh_f32</ref>(</highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*v,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>n,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>fast_tanh);</highlight></codeline>
+<codeline lineno="49"><highlight class="normal"></highlight></codeline>
+<codeline lineno="56"><highlight class="normal"></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/><ref refid="ie__kernels_8h_1a2b9a073aea2b6ff7450b2d0ee32765ae" kindref="member">ie_fast_tanhf</ref>(</highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>x);</highlight></codeline>
+<codeline lineno="57"><highlight class="normal"></highlight></codeline>
+<codeline lineno="58"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="59"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="60"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="61"><highlight class="normal"></highlight></codeline>
+<codeline lineno="62"><highlight class="normal"></highlight><highlight class="preprocessor">#endif<sp/></highlight><highlight class="comment">/*<sp/>IE_KERNELS_H_<sp/>*/</highlight><highlight class="preprocessor"></highlight></codeline>
+    </programlisting>
+    <location file="engine/include/ie_kernels.h"/>
+  </compounddef>
+</doxygen>

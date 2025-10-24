@@ -17,6 +17,7 @@ var dir_bafa501d493553e442f19f5f8dd7b29c =
     [ "ie_metrics.h", "ie__metrics_8h.html", "ie__metrics_8h" ],
     [ "ie_numa.h", "ie__numa_8h.html", "ie__numa_8h" ],
     [ "ie_quant.h", "ie__quant_8h.html", "ie__quant_8h" ],
+    [ "ie_quant_int4.h", "ie__quant__int4_8h.html", "ie__quant__int4_8h" ],
     [ "ie_tensor.h", "ie__tensor_8h.html", "ie__tensor_8h" ],
     [ "ie_threadpool.h", "ie__threadpool_8h.html", "ie__threadpool_8h" ],
     [ "ie_tokenizer.h", "ie__tokenizer_8h.html", null ],

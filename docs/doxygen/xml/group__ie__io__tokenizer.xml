@@ -1,0 +1,483 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="group__ie__io__tokenizer" kind="group">
+    <compoundname>ie_io_tokenizer</compoundname>
+    <title>Tokenizer (Stub)</title>
+    <innerclass refid="structie__vocab__s" prot="public">ie_vocab_s</innerclass>
+    <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="group__ie__io__tokenizer_1ga8bdd12fff1489e034fcb2e8f7f29039a" prot="public" static="no">
+        <type>struct <ref refid="structie__vocab__s" kindref="compound">ie_vocab_s</ref></type>
+        <definition>typedef struct ie_vocab_s ie_vocab_t</definition>
+        <argsstring></argsstring>
+        <name>ie_vocab_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/ie_io.h" line="192" column="12"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="group__ie__io__tokenizer_1gadbe33a7f4e53bcb709d56dc753c9148b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int ie_vocab_load</definition>
+        <argsstring>(const char *vocab_path, ie_vocab_t *out)</argsstring>
+        <name>ie_vocab_load</name>
+        <param>
+          <type>const char *</type>
+          <declname>vocab_path</declname>
+        </param>
+        <param>
+          <type><ref refid="group__ie__io__tokenizer_1ga8bdd12fff1489e034fcb2e8f7f29039a" kindref="member">ie_vocab_t</ref> *</type>
+          <declname>out</declname>
+        </param>
+        <briefdescription>
+<para>Load a vocabulary from <computeroutput>vocab_path</computeroutput> (or default to a stub). </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Implementations should never fail hard: for reproducible CI, returning a small stub vocab is valid. The function attempts to parse a <computeroutput>vocabSize</computeroutput> integer if a JSON-like file is provided; otherwise a default size is used.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>vocab_path</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Path to a vocab file (e.g., <computeroutput>vocab.json</computeroutput>); may be NULL. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>out</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Output vocabulary (written on success). </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<parameterlist kind="retval"><parameteritem>
+<parameternamelist>
+<parametername>0</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>on success (including stub fallback). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>negative</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>on unrecoverable failure (e.g., <computeroutput>out</computeroutput> is NULL).</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+Load a vocabulary from <computeroutput>vocab_path</computeroutput> (or default to a stub).</para>
+<para>The implementation accepts any readable file but only attempts to detect a simple JSON-like <computeroutput>&quot;vocabSize&quot;: &lt;int&gt;</computeroutput> field. If the file is missing or unparsable, a small stub vocab is returned to keep execution deterministic.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>vocab_path</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Path to a vocabulary file (may be NULL). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>out</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Output vocabulary (written on success). </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<parameterlist kind="retval"><parameteritem>
+<parameternamelist>
+<parametername>0</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>on success (including stub fallback). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>-1</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>on invalid arguments (e.g., <computeroutput>out</computeroutput> is NULL). </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/ie_io.h" line="207" column="5" bodyfile="engine/src/io/tokenizer.c" bodystart="97" bodyend="132" declfile="engine/include/ie_io.h" declline="207" declcolumn="5"/>
+        <references refid="structie__vocab__s_1a794049c93aac2c2c4b8e12c673db5296" compoundref="ie__io_8h" startline="190">ie_vocab_s::vocab_size</references>
+        <referencedby refid="test__tokenizer_8c_1a840291bc02cba5474a4cb46a9b9566fe" compoundref="test__tokenizer_8c" startline="24" endline="59">main</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="group__ie__io__tokenizer_1ga2b9cb342eb062867f93fb786548003f7" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int ie_tok_encode</definition>
+        <argsstring>(const ie_vocab_t *v, const char *text, uint32_t *ids, uint32_t *out_count)</argsstring>
+        <name>ie_tok_encode</name>
+        <param>
+          <type>const <ref refid="group__ie__io__tokenizer_1ga8bdd12fff1489e034fcb2e8f7f29039a" kindref="member">ie_vocab_t</ref> *</type>
+          <declname>v</declname>
+        </param>
+        <param>
+          <type>const char *</type>
+          <declname>text</declname>
+        </param>
+        <param>
+          <type>uint32_t *</type>
+          <declname>ids</declname>
+        </param>
+        <param>
+          <type>uint32_t *</type>
+          <declname>out_count</declname>
+        </param>
+        <briefdescription>
+<para>Encode UTF-8 text into token IDs (whitespace split, hashed IDs). </para>
+        </briefdescription>
+        <detaileddescription>
+<para><bold>Size-only mode:</bold> pass <computeroutput>ids == NULL</computeroutput> to compute the required length in <computeroutput>*out_count</computeroutput> without writing token data.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>v</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Loaded vocabulary (must have positive <computeroutput>vocab_size</computeroutput>). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>text</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>NUL-terminated UTF-8 input string. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>ids</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Output buffer of length <computeroutput>*out_count</computeroutput> (or NULL for size query). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>out_count</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>In: capacity of <computeroutput>ids</computeroutput> when <computeroutput>ids != NULL</computeroutput>. <linebreak/>
+ Out: number of tokens written (or needed). </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<parameterlist kind="retval"><parameteritem>
+<parameternamelist>
+<parametername>0</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>on success. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>-1</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>on invalid arguments. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>-2</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>if provided capacity is insufficient to hold all tokens.</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+Encode UTF-8 text into token IDs (whitespace split, hashed IDs).</para>
+<para>Tokenization rule: split on <bold>one or more</bold> whitespace characters (ASCII). Consecutive whitespace collapses to a single separator, producing no empty tokens. For example, <computeroutput>&quot;hello  world&quot;</computeroutput> yields 2 tokens.</para>
+<para><bold>Size-only mode:</bold> pass <computeroutput>ids == NULL</computeroutput> to receive the required length in <computeroutput>*out_count</computeroutput> without writing IDs.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>v</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Loaded vocabulary descriptor (only <computeroutput>vocab_size</computeroutput> is used). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>text</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>NUL-terminated UTF-8 string. Must not be NULL. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>ids</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Output buffer of length <computeroutput>*out_count</computeroutput> (or NULL for size query). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>out_count</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>In: capacity of <computeroutput>ids</computeroutput> when <computeroutput>ids != NULL</computeroutput>. <linebreak/>
+ Out: number of tokens written (or needed). </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<parameterlist kind="retval"><parameteritem>
+<parameternamelist>
+<parametername>0</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>on success. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>-1</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>on invalid arguments. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>-2</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>if provided capacity is insufficient to hold all tokens. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/ie_io.h" line="225" column="5" bodyfile="engine/src/io/tokenizer.c" bodystart="162" bodyend="213" declfile="engine/include/ie_io.h" declline="225" declcolumn="5"/>
+        <references refid="tokenizer_8c_1a3ca2adb2290e006f09b1fb7f274bd371" compoundref="tokenizer_8c" startline="75" endline="78">clamp_to_pos31</references>
+        <references refid="tokenizer_8c_1ab65f36294d9d8ee9d8b027673b01de30" compoundref="tokenizer_8c" startline="59" endline="67">fnv1a_32</references>
+        <references refid="tokenizer_8c_1a35b758cbf8aeb3348c6eec59a770f888" compoundref="tokenizer_8c" startline="44" endline="46">is_space_byte</references>
+        <referencedby refid="test__tokenizer_8c_1a840291bc02cba5474a4cb46a9b9566fe" compoundref="test__tokenizer_8c" startline="24" endline="59">main</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="group__ie__io__tokenizer_1ga68bc61261a64b4fe8bd566fc7d399a2e" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int ie_tok_decode</definition>
+        <argsstring>(const ie_vocab_t *v, const uint32_t *ids, uint32_t count, char *out, size_t out_sz)</argsstring>
+        <name>ie_tok_decode</name>
+        <param>
+          <type>const <ref refid="group__ie__io__tokenizer_1ga8bdd12fff1489e034fcb2e8f7f29039a" kindref="member">ie_vocab_t</ref> *</type>
+          <declname>v</declname>
+        </param>
+        <param>
+          <type>const uint32_t *</type>
+          <declname>ids</declname>
+        </param>
+        <param>
+          <type>uint32_t</type>
+          <declname>count</declname>
+        </param>
+        <param>
+          <type>char *</type>
+          <declname>out</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>out_sz</declname>
+        </param>
+        <briefdescription>
+<para>Decode token IDs into a printable placeholder string. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Implementations may produce a stable, testing-friendly textual form rather than true detokenization. The reference implementation returns <computeroutput>&quot;T&lt;ID0&gt; T&lt;ID1&gt; ...&quot;</computeroutput> into <computeroutput>out</computeroutput>.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>v</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Loaded vocabulary. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>ids</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Array of token IDs. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>count</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of IDs (elements in <computeroutput>ids</computeroutput>). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>out</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Output character buffer (NUL-terminated on success). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>out_sz</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Capacity of <computeroutput>out</computeroutput> in bytes. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<parameterlist kind="retval"><parameteritem>
+<parameternamelist>
+<parametername>0</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>on success. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>-1</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>on invalid arguments or zero-sized buffer. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>-2</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>if <computeroutput>out</computeroutput> is too small to hold the formatted sequence.</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+Decode token IDs into a printable placeholder string.</para>
+<para>Format: <computeroutput>&quot;T&lt;ID0&gt; T&lt;ID1&gt; ... T&lt;IDn&gt;&quot;</computeroutput> (space-separated). This is sufficient for unit-test invariants that check spacing and a predictable prefix.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>v</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Loaded vocabulary (unused but reserved). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>ids</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Array of token IDs. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>count</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of IDs. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>out</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Output buffer for the textual form. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>out_sz</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Capacity of <computeroutput>out</computeroutput> in bytes. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<parameterlist kind="retval"><parameteritem>
+<parameternamelist>
+<parametername>0</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>on success. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>-1</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>on invalid arguments (e.g., NULL <computeroutput>out</computeroutput> or zero <computeroutput>out_sz</computeroutput>). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>-2</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>if <computeroutput>out</computeroutput> is too small to hold the formatted string. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/ie_io.h" line="247" column="5" bodyfile="engine/src/io/tokenizer.c" bodystart="231" bodyend="272" declfile="engine/include/ie_io.h" declline="247" declcolumn="5"/>
+        <referencedby refid="test__tokenizer_8c_1a840291bc02cba5474a4cb46a9b9566fe" compoundref="test__tokenizer_8c" startline="24" endline="59">main</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="group__ie__io__tokenizer_1ga1a76c23fd3fdf25bdae9ee6e9103cf83" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ie_vocab_free</definition>
+        <argsstring>(ie_vocab_t *v)</argsstring>
+        <name>ie_vocab_free</name>
+        <param>
+          <type><ref refid="group__ie__io__tokenizer_1ga8bdd12fff1489e034fcb2e8f7f29039a" kindref="member">ie_vocab_t</ref> *</type>
+          <declname>v</declname>
+        </param>
+        <briefdescription>
+<para>Release resources held by a vocabulary. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>The current tokenizer implementation does not heap-allocate inside <ref refid="group__ie__io__tokenizer_1ga8bdd12fff1489e034fcb2e8f7f29039a" kindref="member">ie_vocab_t</ref>, so this function is a no-op. It exists for symmetry and forward compatibility if the tokenizer later gains owned resources.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>v</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Vocabulary pointer (may be NULL; no-op). </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/ie_io.h" line="263" column="6" bodyfile="engine/src/io/tokenizer.c" bodystart="134" bodyend="136" declfile="engine/include/ie_io.h" declline="263" declcolumn="6"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para>Lightweight, dependency-free tokenizer used in tests and harness. </para>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

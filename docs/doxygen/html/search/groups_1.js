@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['cuda_20kernels_20launchers_0',['CUDA kernels &amp; launchers',['../group__IE__GPU.html',1,'']]]
+  ['backend_0',['Level Zero (oneAPI) GPU backend',['../group__IE__GPU__ZE.html',1,'']]]
 ];

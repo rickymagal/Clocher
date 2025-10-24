@@ -1,0 +1,73 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="ie__numa_8h" kind="file" language="C++">
+    <compoundname>ie_numa.h</compoundname>
+    <includedby refid="numa__probe_8c" local="yes">engine/src/opt/numa_probe.c</includedby>
+    <invincdepgraph>
+      <node id="1">
+        <label>engine/include/ie_numa.h</label>
+        <link refid="ie__numa_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>engine/src/opt/numa_probe.c</label>
+        <link refid="numa__probe_8c"/>
+      </node>
+    </invincdepgraph>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="ie__numa_8h_1a973de21424f504f3050bac89ab24b122" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int ie_numa_detect_nodes</definition>
+        <argsstring>(void)</argsstring>
+        <name>ie_numa_detect_nodes</name>
+        <param>
+          <type>void</type>
+        </param>
+        <briefdescription>
+<para>Detect the number of NUMA nodes available on the system. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>On Linux, this function reads <computeroutput>/sys/devices/system/node/online</computeroutput> and parses the CPU-node range list (e.g., &quot;0&quot;, &quot;0-1&quot;, &quot;0-3,8-9&quot;) to determine the highest node id, returning <computeroutput>max_id + 1</computeroutput>. If the file is not present or cannot be read, the function returns 1.</para>
+<para>On non-Linux systems, the function always returns 1.</para>
+<para><simplesect kind="return"><para>Detected NUMA node count (&gt;= 1). Returns 1 on error or non-Linux OS.</para>
+</simplesect>
+Detect the number of NUMA nodes available on the system.</para>
+<para>On Linux, this reads <computeroutput>/sys/devices/system/node/online</computeroutput> and parses its contents using <ref refid="numa__probe_8c_1ae133a664672ab3e678d0d229a477d17b" kindref="member">parse_range_list()</ref>. If the file cannot be read or is empty, the function returns 1. On non-Linux systems, this function always returns 1.</para>
+<para><simplesect kind="return"><para>Detected NUMA node count (&gt;= 1). Returns 1 on error or non-Linux OS. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/ie_numa.h" line="29" column="5" bodyfile="engine/src/opt/numa_probe.c" bodystart="78" bodyend="95" declfile="engine/include/ie_numa.h" declline="29" declcolumn="5"/>
+        <references refid="numa__probe_8c_1ae133a664672ab3e678d0d229a477d17b" compoundref="numa__probe_8c" startline="38" endline="67">parse_range_list</references>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para>Lightweight NUMA probing via sysfs (Linux only), no external deps. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>This header declares a minimal NUMA-detection helper that reads <computeroutput>/sys/devices/system/node/online</computeroutput> to infer the number of NUMA nodes. On non-Linux platforms, the helper degrades gracefully to a single node. </para>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="normal"></highlight></codeline>
+<codeline lineno="9"><highlight class="normal"></highlight></codeline>
+<codeline lineno="10"><highlight class="normal"></highlight><highlight class="preprocessor">#ifndef<sp/>IE_NUMA_H_</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="11"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>IE_NUMA_H_</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="12"><highlight class="normal"></highlight></codeline>
+<codeline lineno="13"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="14"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/></highlight><highlight class="stringliteral">&quot;C&quot;</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="15"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="16"><highlight class="normal"></highlight></codeline>
+<codeline lineno="29"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="ie__numa_8h_1a973de21424f504f3050bac89ab24b122" kindref="member">ie_numa_detect_nodes</ref>(</highlight><highlight class="keywordtype">void</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="30"><highlight class="normal"></highlight></codeline>
+<codeline lineno="31"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="32"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="33"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="34"><highlight class="normal"></highlight></codeline>
+<codeline lineno="35"><highlight class="normal"></highlight><highlight class="preprocessor">#endif<sp/></highlight><highlight class="comment">/*<sp/>IE_NUMA_H_<sp/>*/</highlight><highlight class="preprocessor"></highlight></codeline>
+    </programlisting>
+    <location file="engine/include/ie_numa.h"/>
+  </compounddef>
+</doxygen>

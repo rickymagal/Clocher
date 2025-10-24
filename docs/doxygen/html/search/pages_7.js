@@ -1,4 +1,6 @@
 var searchData=
 [
-  ['llm_20inference_20baseline_20c11_20core_20python_20stdlib_20harness_0',['Clocher — CPU LLM Inference Baseline (C11 core + Python stdlib harness)',['../index.html',1,'']]]
+  ['inference_20engine_20clocher_0',['Inference Engine (Clocher)',['../index.html',1,'']]],
+  ['int4_1',['ADR-00060 — Optimization Path Selection (updated for INT4)',['../md_docs_2adr-00060-optimization-path.html',1,'']]],
+  ['int4_20path_2',['Design (CPU baseline + INT4 path)',['../md_docs_2DESIGN.html',1,'']]]
 ];

@@ -1,0 +1,167 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="run__benchmark_8sh" kind="file" language="C++">
+    <compoundname>run_benchmark.sh</compoundname>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline><highlight class="normal">#!/usr/bin/env<sp/>bash</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>CPU<sp/>harness<sp/>com<sp/>PRECISION=fp32|bf16|int8<sp/>(tolerante<sp/>para<sp/>int8).</highlight></codeline>
+<codeline><highlight class="normal">set<sp/>-euo<sp/>pipefail</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">ENGINE_BIN=&quot;${ENGINE_BIN:-build/inference-engine}&quot;</highlight></codeline>
+<codeline><highlight class="normal">MODEL=&quot;${MODEL:-models/gpt-oss-20b}&quot;</highlight></codeline>
+<codeline><highlight class="normal">PROMPTS=&quot;${PROMPTS:-benchmarks/prompts_10.txt}&quot;</highlight></codeline>
+<codeline><highlight class="normal">RUNS=&quot;${RUNS:-3}&quot;</highlight></codeline>
+<codeline><highlight class="normal">WARMUP=&quot;${WARMUP:-1}&quot;</highlight></codeline>
+<codeline><highlight class="normal">THREADS=&quot;${THREADS:-$(nproc)}&quot;</highlight></codeline>
+<codeline><highlight class="normal">PRECISION=&quot;${PRECISION:-fp32}&quot;<sp/><sp/><sp/>#<sp/>fp32|bf16|int8</highlight></codeline>
+<codeline><highlight class="normal">AFFINITY=&quot;${AFFINITY:-auto}&quot;</highlight></codeline>
+<codeline><highlight class="normal">PRETRANSPOSE=&quot;${PRETRANSPOSE:-all}&quot;</highlight></codeline>
+<codeline><highlight class="normal">BATCH=&quot;${BATCH:-1}&quot;</highlight></codeline>
+<codeline><highlight class="normal">PREFETCH=&quot;${PREFETCH:-auto}&quot;</highlight></codeline>
+<codeline><highlight class="normal">MAX_NEW=&quot;${MAX_NEW:-128}&quot;</highlight></codeline>
+<codeline><highlight class="normal">TARGET_SECONDS=&quot;${TARGET_SECONDS:-10}&quot;</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">IE_REQUIRE_MODEL=&quot;${IE_REQUIRE_MODEL:-1}&quot;</highlight></codeline>
+<codeline><highlight class="normal">IE_BYTES_PER_TOKEN=&quot;${IE_BYTES_PER_TOKEN:-0}&quot;</highlight></codeline>
+<codeline><highlight class="normal">IE_STRIDE_BYTES=&quot;${IE_STRIDE_BYTES:-64}&quot;</highlight></codeline>
+<codeline><highlight class="normal">IE_VERIFY_TOUCH=&quot;${IE_VERIFY_TOUCH:-0}&quot;</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Resolve<sp/>binário<sp/>p/<sp/>caminho<sp/>ABSOLUTO</highlight></codeline>
+<codeline><highlight class="normal">if<sp/>[[<sp/>&quot;$ENGINE_BIN&quot;<sp/>!=<sp/>/*<sp/>]];<sp/>then</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>ENGINE_BIN=&quot;$(cd<sp/>&quot;$(dirname<sp/>&quot;$ENGINE_BIN&quot;)&quot;<sp/>&amp;&amp;<sp/>pwd)/$(basename<sp/>&quot;$ENGINE_BIN&quot;)&quot;</highlight></codeline>
+<codeline><highlight class="normal">fi</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">OUT_ROOT=&quot;benchmarks/reports&quot;</highlight></codeline>
+<codeline><highlight class="normal">STAMP=&quot;$(date<sp/>+%Y%m%d_%H%M%S)&quot;</highlight></codeline>
+<codeline><highlight class="normal">OUT_DIR=&quot;$OUT_ROOT/$STAMP&quot;</highlight></codeline>
+<codeline><highlight class="normal">mkdir<sp/>-p<sp/>&quot;$OUT_DIR&quot;</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">MEAS_LOG=&quot;${MEAS_LOG:-}&quot;</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">echo<sp/>&quot;#<sp/>Warmup<sp/>runs:<sp/>$WARMUP&quot;</highlight></codeline>
+<codeline><highlight class="normal">echo<sp/>&quot;#<sp/>Measured<sp/>runs:<sp/>$RUNS&quot;</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">if<sp/>[[<sp/>!<sp/>-x<sp/>&quot;$ENGINE_BIN&quot;<sp/>]];<sp/>then<sp/>echo<sp/>&quot;ERROR:<sp/>$ENGINE_BIN&quot;;<sp/>exit<sp/>2;<sp/>fi</highlight></codeline>
+<codeline><highlight class="normal">if<sp/>[[<sp/>!<sp/>-d<sp/>&quot;$MODEL&quot;<sp/>]];<sp/>then<sp/>echo<sp/>&quot;ERROR:<sp/>model<sp/>dir<sp/>$MODEL&quot;;<sp/>exit<sp/>2;<sp/>fi</highlight></codeline>
+<codeline><highlight class="normal">if<sp/>[[<sp/>!<sp/>-f<sp/>&quot;$PROMPTS&quot;<sp/>]];<sp/>then<sp/>echo<sp/>&quot;ERROR:<sp/>prompts<sp/>$PROMPTS&quot;;<sp/>exit<sp/>2;<sp/>fi</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">case<sp/>&quot;$PRECISION&quot;<sp/>in<sp/>fp32|bf16|int8)<sp/>;;<sp/>*)<sp/>echo<sp/>&quot;WARN:<sp/>PRECISION=$PRECISION<sp/>-&gt;<sp/>fp32&quot;;<sp/>PRECISION=fp32;;<sp/>esac</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Mapeia<sp/>&quot;int8&quot;<sp/>-&gt;<sp/>&quot;fp32&quot;<sp/>para<sp/>o<sp/>binário<sp/>(que<sp/>não<sp/>suporta<sp/>int8<sp/>no<sp/>flag),</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>mas<sp/>mantém<sp/>PRECISION=int8<sp/>nos<sp/>metadados<sp/>do<sp/>relatório.</highlight></codeline>
+<codeline><highlight class="normal">ENGINE_PREC=&quot;$PRECISION&quot;</highlight></codeline>
+<codeline><highlight class="normal">if<sp/>[[<sp/>&quot;$PRECISION&quot;<sp/>==<sp/>&quot;int8&quot;<sp/>]];<sp/>then</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>ENGINE_PREC=&quot;fp32&quot;</highlight></codeline>
+<codeline><highlight class="normal">fi</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">run_once()<sp/>{</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>local<sp/>tag=&quot;$1&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>local<sp/>out_json=&quot;$2&quot;</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal"><sp/><sp/>local<sp/>OLDPWD_SAVE=&quot;$PWD&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>cd<sp/>&quot;$MODEL&quot;<sp/>||<sp/>exit<sp/>2</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>IE_REQUIRE_MODEL=&quot;$IE_REQUIRE_MODEL&quot;<sp/>IE_BYTES_PER_TOKEN=&quot;$IE_BYTES_PER_TOKEN&quot;<sp/>IE_STRIDE_BYTES=&quot;$IE_STRIDE_BYTES&quot;<sp/>IE_VERIFY_TOUCH=&quot;$IE_VERIFY_TOUCH&quot;<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>&quot;$ENGINE_BIN&quot;<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>--prompts-file<sp/>&quot;$OLDPWD_SAVE/$PROMPTS&quot;<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>--batch<sp/>&quot;$BATCH&quot;<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>--max-new<sp/>&quot;$MAX_NEW&quot;<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>--prefetch<sp/>&quot;$PREFETCH&quot;<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>--warmup<sp/>&quot;$WARMUP&quot;<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>--threads<sp/>&quot;$THREADS&quot;<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>--precision<sp/>&quot;$ENGINE_PREC&quot;<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>--affinity<sp/>&quot;$AFFINITY&quot;<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>--pretranspose<sp/>&quot;$PRETRANSPOSE&quot;<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>&gt;<sp/>&quot;$OLDPWD_SAVE/$out_json&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>cd<sp/>&quot;$OLDPWD_SAVE&quot;<sp/>||<sp/>exit<sp/>2</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal"><sp/><sp/>python3<sp/>-<sp/>&quot;$out_json&quot;<sp/>&lt;&lt;&apos;PY&apos;</highlight></codeline>
+<codeline><highlight class="normal">import<sp/>sys,<sp/>json</highlight></codeline>
+<codeline><highlight class="normal">p=sys.argv[1]</highlight></codeline>
+<codeline><highlight class="normal">j=json.load(open(p))</highlight></codeline>
+<codeline><highlight class="normal">for<sp/>k<sp/>in<sp/>(&quot;tokens_generated&quot;,&quot;wall_time_s&quot;,&quot;tps_true&quot;):</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>assert<sp/>k<sp/>in<sp/>j,<sp/>f&quot;missing<sp/>{k}&quot;</highlight></codeline>
+<codeline><highlight class="normal">print(&quot;[ok]&quot;,<sp/>p)</highlight></codeline>
+<codeline><highlight class="normal">PY</highlight></codeline>
+<codeline><highlight class="normal">}</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">WARM_LOG=&quot;$OUT_DIR/warmup.jsonl&quot;;<sp/>:<sp/>&gt;<sp/>&quot;$WARM_LOG&quot;</highlight></codeline>
+<codeline><highlight class="normal">for<sp/>i<sp/>in<sp/>$(seq<sp/>1<sp/>&quot;$WARMUP&quot;);<sp/>do</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>TMP=&quot;$OUT_DIR/warmup_$i.json&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>run_once<sp/>&quot;warmup&quot;<sp/>&quot;$TMP&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>cat<sp/>&quot;$TMP&quot;<sp/>&gt;&gt;<sp/>&quot;$WARM_LOG&quot;</highlight></codeline>
+<codeline><highlight class="normal">done</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">RUNS_LOG=&quot;$OUT_DIR/runs.jsonl&quot;;<sp/>:<sp/>&gt;<sp/>&quot;$RUNS_LOG&quot;</highlight></codeline>
+<codeline><highlight class="normal">for<sp/>i<sp/>in<sp/>$(seq<sp/>1<sp/>&quot;$RUNS&quot;);<sp/>do</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>TMP=&quot;$OUT_DIR/run_${i}.json&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>run_once<sp/>&quot;run_$i&quot;<sp/>&quot;$TMP&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>cat<sp/>&quot;$TMP&quot;<sp/>&gt;&gt;<sp/>&quot;$RUNS_LOG&quot;</highlight></codeline>
+<codeline><highlight class="normal">done</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">(<sp/>lscpu<sp/>||<sp/>true<sp/>)<sp/>&gt;<sp/>&quot;$OUT_DIR/cpuinfo.txt&quot;<sp/>2&gt;&amp;1</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">python3<sp/>-<sp/>&quot;$RUNS_LOG&quot;<sp/>&quot;$WARM_LOG&quot;<sp/>&quot;$OUT_DIR&quot;<sp/>&quot;$MEAS_LOG&quot;<sp/>&lt;&lt;&apos;PY&apos;</highlight></codeline>
+<codeline><highlight class="normal">import<sp/>sys,<sp/>json,<sp/>os,<sp/>time</highlight></codeline>
+<codeline><highlight class="normal">runs_path,<sp/>warm_path,<sp/>out_dir,<sp/>meas_log<sp/>=<sp/>sys.argv[1:5]</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">def<sp/>slurp_jsonl(p):</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>xs=[]</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>if<sp/>not<sp/>os.path.exists(p)<sp/>or<sp/>os.path.getsize(p)==0:<sp/>return<sp/>xs</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>with<sp/>open(p,&apos;r&apos;)<sp/>as<sp/>f:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>for<sp/>line<sp/>in<sp/>f:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>line=line.strip()</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>if<sp/>line:<sp/>xs.append(json.loads(line))</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>return<sp/>xs</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">def<sp/>sums(xs):</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>tok=sum(int(j.get(&quot;tokens_generated&quot;,0))<sp/>for<sp/>j<sp/>in<sp/>xs)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>wall=sum(float(j.get(&quot;wall_time_s&quot;,0.0))<sp/>for<sp/>j<sp/>in<sp/>xs)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>return<sp/>tok,wall</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">runs=slurp_jsonl(runs_path)</highlight></codeline>
+<codeline><highlight class="normal">warm=slurp_jsonl(warm_path)</highlight></codeline>
+<codeline><highlight class="normal">tok,<sp/>wall<sp/>=<sp/>sums(runs)</highlight></codeline>
+<codeline><highlight class="normal">true_tps<sp/>=<sp/>(tok/wall)<sp/>if<sp/>wall&gt;0<sp/>else<sp/>0.0</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">report<sp/>=<sp/>{</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>&quot;timestamp&quot;:<sp/>time.strftime(&quot;%Y-%m-%d<sp/>%H:%M:%S&quot;),</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>&quot;precision&quot;:<sp/>os.environ.get(&quot;PRECISION&quot;,&quot;fp32&quot;),</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>&quot;threads&quot;:<sp/>int(os.environ.get(&quot;THREADS&quot;,&quot;0&quot;)<sp/>or<sp/>0),</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>&quot;batch&quot;:<sp/>int(os.environ.get(&quot;BATCH&quot;,&quot;1&quot;)<sp/>or<sp/>1),</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>&quot;max_new&quot;:<sp/>int(os.environ.get(&quot;MAX_NEW&quot;,&quot;128&quot;)<sp/>or<sp/>128),</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>&quot;affinity&quot;:<sp/>os.environ.get(&quot;AFFINITY&quot;,&quot;auto&quot;),</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>&quot;pretranspose&quot;:<sp/>os.environ.get(&quot;PRETRANSPOSE&quot;,&quot;all&quot;),</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>&quot;prefetch&quot;:<sp/>os.environ.get(&quot;PREFETCH&quot;,&quot;auto&quot;),</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>&quot;ie_require_model&quot;:<sp/>int(os.environ.get(&quot;IE_REQUIRE_MODEL&quot;,&quot;0&quot;)<sp/>or<sp/>0),</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>&quot;ie_bytes_per_token&quot;:<sp/>int(os.environ.get(&quot;IE_BYTES_PER_TOKEN&quot;,&quot;0&quot;)<sp/>or<sp/>0),</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>&quot;ie_stride_bytes&quot;:<sp/>int(os.environ.get(&quot;IE_STRIDE_BYTES&quot;,&quot;64&quot;)<sp/>or<sp/>64),</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>&quot;ie_verify_touch&quot;:<sp/>int(os.environ.get(&quot;IE_VERIFY_TOUCH&quot;,&quot;0&quot;)<sp/>or<sp/>0),</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>&quot;warmup&quot;:<sp/>warm,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>&quot;runs&quot;:<sp/>runs,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>&quot;aggregates&quot;:<sp/>{</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&quot;total_generated_tokens&quot;:<sp/>tok,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&quot;total_wall_time_s&quot;:<sp/>wall,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&quot;true_tps&quot;:<sp/>true_tps</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline><highlight class="normal">}</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">if<sp/>runs:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>base<sp/>=<sp/>os.path.join(out_dir,<sp/>&quot;run_{}.json&quot;)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>for<sp/>i<sp/>in<sp/>range(min(3,<sp/>len(runs))):</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>json.dump(runs[i],<sp/>open(base.format(i+1),&quot;w&quot;),<sp/>indent=2)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">if<sp/>meas_log:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>json.dump(report,<sp/>open(meas_log,&quot;w&quot;),<sp/>indent=2)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">print(json.dumps(report,<sp/>indent=2))</highlight></codeline>
+<codeline><highlight class="normal">PY</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">echo<sp/>&quot;Report<sp/>saved<sp/>to:<sp/>$OUT_DIR&quot;</highlight></codeline>
+    </programlisting>
+    <location file="scripts/run_benchmark.sh"/>
+  </compounddef>
+</doxygen>

@@ -1,4 +1,7 @@
 var searchData=
 [
-  ['x_0',['x',['../ie__kernels__ze_8cl.html#ad48b386850d1d2a5a51515ad676993a0',1,'ie_kernels_ze.cl']]]
+  ['w_0',['w',['../structie__batcher.html#a804cd0a8962633e95e2916a86e2d41dd',1,'ie_batcher']]],
+  ['warmup_1',['warmup',['../structie__cli__extras.html#a775c61b7ff6b47695404ae95f2374ab1',1,'ie_cli_extras']]],
+  ['warmup_5ftokens_2',['warmup_tokens',['../structcli__extras.html#a628bf363ee35fe852bbb6510455647bd',1,'cli_extras']]],
+  ['weights_5fpath_3',['weights_path',['../structie__weights__s.html#ab6a61099d0af4a47854d02dc4fef5b8f',1,'ie_weights_s']]]
 ];

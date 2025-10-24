@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['version_0',['version',['../structie__weights__s.html#ae12c1b3b426321f6ba604f0a89673315',1,'ie_weights_s']]],
-  ['vocab_5fsize_1',['vocab_size',['../structie__vocab__s.html#a794049c93aac2c2c4b8e12c673db5296',1,'ie_vocab_s']]],
-  ['vt_2',['vt',['../structie__device.html#aeff992a5f5e1b29e4648d630565b6c71',1,'ie_device']]]
+  ['use_5faffinity_0',['use_affinity',['../structie__threadpool.html#ac1aab334f9b4baf6aac73f151438f7bd',1,'ie_threadpool::use_affinity'],['../structie__task__arg__t.html#a9d90ceaa82f746983034dd7bc034bc26',1,'ie_task_arg_t::use_affinity']]],
+  ['user_5fctx_1',['user_ctx',['../structie__batcher.html#ac168939e040aad22b182fef1a908fdb2',1,'ie_batcher']]],
+  ['uses_5fweight_5fint4_2',['uses_weight_int4',['../structie__engine.html#a85ec8e92466a0e14370e003ad3af6a68',1,'ie_engine']]]
 ];

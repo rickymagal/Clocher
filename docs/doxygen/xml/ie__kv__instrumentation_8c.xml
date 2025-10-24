@@ -1,0 +1,439 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="ie__kv__instrumentation_8c" kind="file" language="C++">
+    <compoundname>ie_kv_instrumentation.c</compoundname>
+    <includes refid="ie__kv__instrumentation_8h" local="yes">ie_kv_instrumentation.h</includes>
+    <includes local="no">assert.h</includes>
+    <includes local="no">stddef.h</includes>
+    <includes local="no">stdint.h</includes>
+    <includes local="no">stdio.h</includes>
+    <includes local="no">stdlib.h</includes>
+    <includes local="no">string.h</includes>
+    <incdepgraph>
+      <node id="2">
+        <label>ie_kv_instrumentation.h</label>
+        <link refid="ie__kv__instrumentation_8h"/>
+        <childnode refid="3" relation="include">
+        </childnode>
+        <childnode refid="4" relation="include">
+        </childnode>
+      </node>
+      <node id="1">
+        <label>engine/src/ie_kv_instrumentation.c</label>
+        <link refid="ie__kv__instrumentation_8c"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="5" relation="include">
+        </childnode>
+        <childnode refid="4" relation="include">
+        </childnode>
+        <childnode refid="3" relation="include">
+        </childnode>
+        <childnode refid="6" relation="include">
+        </childnode>
+        <childnode refid="7" relation="include">
+        </childnode>
+        <childnode refid="8" relation="include">
+        </childnode>
+      </node>
+      <node id="5">
+        <label>assert.h</label>
+      </node>
+      <node id="4">
+        <label>stddef.h</label>
+      </node>
+      <node id="3">
+        <label>stdint.h</label>
+      </node>
+      <node id="6">
+        <label>stdio.h</label>
+      </node>
+      <node id="7">
+        <label>stdlib.h</label>
+      </node>
+      <node id="8">
+        <label>string.h</label>
+      </node>
+    </incdepgraph>
+    <innerclass refid="structie__kv__state__t" prot="public">ie_kv_state_t</innerclass>
+    <sectiondef kind="var">
+      <memberdef kind="variable" id="ie__kv__instrumentation_8c_1a37cc7552afd879b87e4dba0dfdcc607d" prot="public" static="yes" mutable="no">
+        <type><ref refid="structie__kv__state__t" kindref="compound">ie_kv_state_t</ref></type>
+        <definition>ie_kv_state_t g_kv</definition>
+        <argsstring></argsstring>
+        <name>g_kv</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/src/ie_kv_instrumentation.c" line="33" column="22" bodyfile="engine/src/ie_kv_instrumentation.c" bodystart="33" bodyend="-1"/>
+        <referencedby refid="ie__kv__instrumentation_8h_1a0a8ac6ff4fa3502470774c6cb9e6f488" compoundref="ie__kv__instrumentation_8c" startline="87" endline="111">ie_kv_begin_round</referencedby>
+        <referencedby refid="ie__kv__instrumentation_8h_1a2c9789a487a67ebc8e6054aa0b991e4e" compoundref="ie__kv__instrumentation_8c" startline="123" endline="150">ie_kv_finish_round</referencedby>
+        <referencedby refid="ie__kv__instrumentation_8h_1a27b3df57a37a25798490912b1e92d716" compoundref="ie__kv__instrumentation_8c" startline="113" endline="121">ie_kv_on_token</referencedby>
+        <referencedby refid="ie__kv__instrumentation_8c_1a37bd44541ec645006f436707ca67b407" compoundref="ie__kv__instrumentation_8c" startline="61" endline="66">kv_contains</referencedby>
+        <referencedby refid="ie__kv__instrumentation_8c_1a83b5153f7145e76551b31ced07063538" compoundref="ie__kv__instrumentation_8c" startline="73" endline="82">kv_insert_fifo</referencedby>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="ie__kv__instrumentation_8c_1a886abd7a4ad752897b4469e29cc344e3" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>size_t</type>
+        <definition>static size_t env_size</definition>
+        <argsstring>(const char *name, size_t defv)</argsstring>
+        <name>env_size</name>
+        <param>
+          <type>const char *</type>
+          <declname>name</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>defv</declname>
+        </param>
+        <briefdescription>
+<para>Strict-decimal environment reader with fallback. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>name</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Env var name. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>defv</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Default value when unset/invalid. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Parsed non-negative value. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/src/ie_kv_instrumentation.c" line="45" column="15" bodyfile="engine/src/ie_kv_instrumentation.c" bodystart="45" bodyend="53"/>
+        <referencedby refid="ie__kv__instrumentation_8h_1a0a8ac6ff4fa3502470774c6cb9e6f488" compoundref="ie__kv__instrumentation_8c" startline="87" endline="111">ie_kv_begin_round</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="ie__kv__instrumentation_8c_1a37bd44541ec645006f436707ca67b407" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>static int kv_contains</definition>
+        <argsstring>(uint32_t token)</argsstring>
+        <name>kv_contains</name>
+        <param>
+          <type>uint32_t</type>
+          <declname>token</declname>
+        </param>
+        <briefdescription>
+<para>Linear membership test in the FIFO set. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>token</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Token to check. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>1 if found, 0 otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/src/ie_kv_instrumentation.c" line="61" column="12" bodyfile="engine/src/ie_kv_instrumentation.c" bodystart="61" bodyend="66"/>
+        <references refid="ie__kv__instrumentation_8c_1a37cc7552afd879b87e4dba0dfdcc607d" compoundref="ie__kv__instrumentation_8c" startline="33">g_kv</references>
+        <referencedby refid="ie__kv__instrumentation_8h_1a27b3df57a37a25798490912b1e92d716" compoundref="ie__kv__instrumentation_8c" startline="113" endline="121">ie_kv_on_token</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="ie__kv__instrumentation_8c_1a83b5153f7145e76551b31ced07063538" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>static void kv_insert_fifo</definition>
+        <argsstring>(uint32_t token)</argsstring>
+        <name>kv_insert_fifo</name>
+        <param>
+          <type>uint32_t</type>
+          <declname>token</declname>
+        </param>
+        <briefdescription>
+<para>Insert token into the FIFO set, evicting the oldest if full. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>token</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Token to insert. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/src/ie_kv_instrumentation.c" line="73" column="13" bodyfile="engine/src/ie_kv_instrumentation.c" bodystart="73" bodyend="82"/>
+        <references refid="ie__kv__instrumentation_8c_1a37cc7552afd879b87e4dba0dfdcc607d" compoundref="ie__kv__instrumentation_8c" startline="33">g_kv</references>
+        <referencedby refid="ie__kv__instrumentation_8h_1a27b3df57a37a25798490912b1e92d716" compoundref="ie__kv__instrumentation_8c" startline="113" endline="121">ie_kv_on_token</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="ie__kv__instrumentation_8c_1a0a8ac6ff4fa3502470774c6cb9e6f488" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int ie_kv_begin_round</definition>
+        <argsstring>(void)</argsstring>
+        <name>ie_kv_begin_round</name>
+        <param>
+          <type>void</type>
+        </param>
+        <briefdescription>
+<para>Initialize KV counters and allocate a token set for the round. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Capacity is read from the environment variable <computeroutput>IE_KV_CAP</computeroutput> if present; otherwise a default capacity of 4096 tokens is used. Passing this function multiple times resets the state (counters and set) for a new round.</para>
+<para><simplesect kind="return"><para>0 on success; non-zero on allocation failure. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/src/ie_kv_instrumentation.c" line="87" column="5" bodyfile="engine/src/ie_kv_instrumentation.c" bodystart="87" bodyend="111"/>
+        <references refid="ie__kv__instrumentation_8c_1a886abd7a4ad752897b4469e29cc344e3" compoundref="ie__kv__instrumentation_8c" startline="45" endline="53">env_size</references>
+        <references refid="ie__kv__instrumentation_8c_1a37cc7552afd879b87e4dba0dfdcc607d" compoundref="ie__kv__instrumentation_8c" startline="33">g_kv</references>
+        <referencedby refid="main__infer_8c_1a3c04138a5bfe5d72780bb7e82a18e627" compoundref="main__infer_8c" startline="474" endline="695">main</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="ie__kv__instrumentation_8c_1a27b3df57a37a25798490912b1e92d716" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ie_kv_on_token</definition>
+        <argsstring>(uint32_t token)</argsstring>
+        <name>ie_kv_on_token</name>
+        <param>
+          <type>uint32_t</type>
+          <declname>token</declname>
+        </param>
+        <briefdescription>
+<para>Report a produced token to the KV tracker. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>If the token is already present in the FIFO set, this increments the <bold>hit</bold> counter. Otherwise it increments <bold>miss</bold> and inserts the token (evicting the oldest element when the set is full).</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>token</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>32-bit token identifier generated by the model. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/src/ie_kv_instrumentation.c" line="113" column="6" bodyfile="engine/src/ie_kv_instrumentation.c" bodystart="113" bodyend="121"/>
+        <references refid="ie__kv__instrumentation_8c_1a37cc7552afd879b87e4dba0dfdcc607d" compoundref="ie__kv__instrumentation_8c" startline="33">g_kv</references>
+        <references refid="ie__kv__instrumentation_8c_1a37bd44541ec645006f436707ca67b407" compoundref="ie__kv__instrumentation_8c" startline="61" endline="66">kv_contains</references>
+        <references refid="ie__kv__instrumentation_8c_1a83b5153f7145e76551b31ced07063538" compoundref="ie__kv__instrumentation_8c" startline="73" endline="82">kv_insert_fifo</references>
+        <referencedby refid="ie__api_8h_1a21ab40e22d9192fe353ad6640610a01d" compoundref="ie__api_8c" startline="152" endline="189">ie_engine_generate</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="ie__kv__instrumentation_8c_1a2c9789a487a67ebc8e6054aa0b991e4e" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ie_kv_finish_round</definition>
+        <argsstring>(uint64_t total_tokens, uint64_t *out_hits, uint64_t *out_misses)</argsstring>
+        <name>ie_kv_finish_round</name>
+        <param>
+          <type>uint64_t</type>
+          <declname>total_tokens</declname>
+        </param>
+        <param>
+          <type>uint64_t *</type>
+          <declname>out_hits</declname>
+        </param>
+        <param>
+          <type>uint64_t *</type>
+          <declname>out_misses</declname>
+        </param>
+        <briefdescription>
+<para>Finalize the round and return hit/miss counters. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>If no tokens were reported (counters are both zero) but <computeroutput>total_tokens</computeroutput> is non-zero, this function conservatively assumes all tokens were <bold>misses</bold>.</para>
+<para>This call also frees any internal buffers allocated by <ref refid="ie__kv__instrumentation_8h_1a0a8ac6ff4fa3502470774c6cb9e6f488" kindref="member">ie_kv_begin_round()</ref>.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>total_tokens</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Total tokens generated in the round (for fallback). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>out_hits</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Output: total hit count (non-NULL). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>out_misses</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Output: total miss count (non-NULL). </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/src/ie_kv_instrumentation.c" line="123" column="6" bodyfile="engine/src/ie_kv_instrumentation.c" bodystart="123" bodyend="150"/>
+        <references refid="ie__kv__instrumentation_8c_1a37cc7552afd879b87e4dba0dfdcc607d" compoundref="ie__kv__instrumentation_8c" startline="33">g_kv</references>
+        <referencedby refid="main__infer_8c_1a3c04138a5bfe5d72780bb7e82a18e627" compoundref="main__infer_8c" startline="474" endline="695">main</referencedby>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para>FIFO-set based KV cache hit/miss counters (single-threaded). </para>
+    </briefdescription>
+    <detaileddescription>
+<para>See <ref refid="ie__kv__instrumentation_8h" kindref="compound">ie_kv_instrumentation.h</ref> for the high-level description. </para>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="comment">/*<sp/>==========================================================================<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="2"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>File:<sp/>engine/src/ie_kv_instrumentation.c<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="3"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>==========================================================================<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="10"><highlight class="normal"></highlight></codeline>
+<codeline lineno="11"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;<ref refid="ie__kv__instrumentation_8h" kindref="compound">ie_kv_instrumentation.h</ref>&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="12"><highlight class="normal"></highlight></codeline>
+<codeline lineno="13"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;assert.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="14"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stddef.h&gt;</highlight><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">/*<sp/>NULL<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="15"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stdint.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="16"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stdio.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="17"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stdlib.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="18"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;string.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="19"><highlight class="normal"></highlight></codeline>
+<codeline lineno="20"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>----------------------------------------------------------------------------</highlight></codeline>
+<codeline lineno="21"><highlight class="comment"><sp/>*<sp/>Internal<sp/>state<sp/>(process-local,<sp/>single-threaded)</highlight></codeline>
+<codeline lineno="22"><highlight class="comment"><sp/>*<sp/>--------------------------------------------------------------------------*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="23" refid="structie__kv__state__t" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal">{</highlight></codeline>
+<codeline lineno="24" refid="structie__kv__state__t_1aef9869041cb48c24bd4a4b10ad278342" refkind="member"><highlight class="normal"><sp/><sp/>uint32_t<sp/>*<ref refid="structie__kv__state__t_1aef9869041cb48c24bd4a4b10ad278342" kindref="member">slots</ref>;<sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">/*<sp/>FIFO<sp/>ring<sp/>buffer<sp/>of<sp/>token<sp/>IDs<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="25" refid="structie__kv__state__t_1a9c61076416b6215136db9cced44ff019" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structie__kv__state__t_1a9c61076416b6215136db9cced44ff019" kindref="member">capacity</ref>;<sp/><sp/></highlight><highlight class="comment">/*<sp/>max<sp/>number<sp/>of<sp/>elements<sp/>in<sp/>the<sp/>set<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="26" refid="structie__kv__state__t_1a0719757df84d8f699aec2dcc427a8674" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structie__kv__state__t_1a0719757df84d8f699aec2dcc427a8674" kindref="member">count</ref>;<sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">/*<sp/>current<sp/>number<sp/>of<sp/>valid<sp/>elements<sp/>(&lt;=<sp/>capacity)<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="27" refid="structie__kv__state__t_1ab8bc75960c3a8b68d1e7d519222a423e" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structie__kv__state__t_1ab8bc75960c3a8b68d1e7d519222a423e" kindref="member">head</ref>;<sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">/*<sp/>index<sp/>of<sp/>the<sp/>oldest<sp/>element<sp/>for<sp/>eviction<sp/>(0..capacity-1)<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="28" refid="structie__kv__state__t_1a25296c199f82f3f7ccde330a649d58d8" refkind="member"><highlight class="normal"><sp/><sp/>uint64_t<sp/><sp/><ref refid="structie__kv__state__t_1a25296c199f82f3f7ccde330a649d58d8" kindref="member">hits</ref>;<sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">/*<sp/>accumulated<sp/>hits<sp/>in<sp/>the<sp/>round<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="29" refid="structie__kv__state__t_1a1fa1e42d45d8cc9ac8305769f5afc259" refkind="member"><highlight class="normal"><sp/><sp/>uint64_t<sp/><sp/><ref refid="structie__kv__state__t_1a1fa1e42d45d8cc9ac8305769f5afc259" kindref="member">misses</ref>;<sp/><sp/><sp/><sp/></highlight><highlight class="comment">/*<sp/>accumulated<sp/>misses<sp/>in<sp/>the<sp/>round<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="30" refid="structie__kv__state__t_1a828ea65682d5c2bc18f50ed573c651cd" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="structie__kv__state__t_1a828ea65682d5c2bc18f50ed573c651cd" kindref="member">ready</ref>;<sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">/*<sp/>1<sp/>after<sp/>begin_round(),<sp/>0<sp/>after<sp/>finish_round()<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="31"><highlight class="normal">}<sp/><ref refid="structie__kv__state__t" kindref="compound">ie_kv_state_t</ref>;</highlight></codeline>
+<codeline lineno="32"><highlight class="normal"></highlight></codeline>
+<codeline lineno="33" refid="ie__kv__instrumentation_8c_1a37cc7552afd879b87e4dba0dfdcc607d" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/><ref refid="structie__kv__state__t" kindref="compound">ie_kv_state_t</ref><sp/><ref refid="ie__kv__instrumentation_8c_1a37cc7552afd879b87e4dba0dfdcc607d" kindref="member">g_kv</ref>;</highlight></codeline>
+<codeline lineno="34"><highlight class="normal"></highlight></codeline>
+<codeline lineno="35"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>----------------------------------------------------------------------------</highlight></codeline>
+<codeline lineno="36"><highlight class="comment"><sp/>*<sp/>Utilities</highlight></codeline>
+<codeline lineno="37"><highlight class="comment"><sp/>*<sp/>--------------------------------------------------------------------------*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="45" refid="ie__kv__instrumentation_8c_1a886abd7a4ad752897b4469e29cc344e3" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/><ref refid="ie__kv__instrumentation_8c_1a886abd7a4ad752897b4469e29cc344e3" kindref="member">env_size</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*name,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>defv)<sp/>{</highlight></codeline>
+<codeline lineno="46"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*s<sp/>=<sp/>getenv(name);</highlight></codeline>
+<codeline lineno="47"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!s<sp/>||<sp/>!*s)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>defv;</highlight></codeline>
+<codeline lineno="48"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*end<sp/>=<sp/>NULL;</highlight></codeline>
+<codeline lineno="49"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">long</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">long</highlight><highlight class="normal"><sp/>v<sp/>=<sp/>strtoll(s,<sp/>&amp;end,<sp/>10);</highlight></codeline>
+<codeline lineno="50"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(end<sp/>==<sp/>s<sp/>||<sp/>(end<sp/>&amp;&amp;<sp/>*end))<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>defv;</highlight></codeline>
+<codeline lineno="51"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(v<sp/>&lt;=<sp/>0)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>defv;</highlight></codeline>
+<codeline lineno="52"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal">)v;</highlight></codeline>
+<codeline lineno="53"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="54"><highlight class="normal"></highlight></codeline>
+<codeline lineno="61" refid="ie__kv__instrumentation_8c_1a37bd44541ec645006f436707ca67b407" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="ie__kv__instrumentation_8c_1a37bd44541ec645006f436707ca67b407" kindref="member">kv_contains</ref>(uint32_t<sp/>token)<sp/>{</highlight></codeline>
+<codeline lineno="62"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>i<sp/>=<sp/>0;<sp/>i<sp/>&lt;<sp/><ref refid="ie__kv__instrumentation_8c_1a37cc7552afd879b87e4dba0dfdcc607d" kindref="member">g_kv</ref>.count;<sp/>++i)<sp/>{</highlight></codeline>
+<codeline lineno="63"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(<ref refid="ie__kv__instrumentation_8c_1a37cc7552afd879b87e4dba0dfdcc607d" kindref="member">g_kv</ref>.slots[i]<sp/>==<sp/>token)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>1;</highlight></codeline>
+<codeline lineno="64"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="65"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>0;</highlight></codeline>
+<codeline lineno="66"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="67"><highlight class="normal"></highlight></codeline>
+<codeline lineno="73" refid="ie__kv__instrumentation_8c_1a83b5153f7145e76551b31ced07063538" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="ie__kv__instrumentation_8c_1a83b5153f7145e76551b31ced07063538" kindref="member">kv_insert_fifo</ref>(uint32_t<sp/>token)<sp/>{</highlight></codeline>
+<codeline lineno="74"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(<ref refid="ie__kv__instrumentation_8c_1a37cc7552afd879b87e4dba0dfdcc607d" kindref="member">g_kv</ref>.capacity<sp/>==<sp/>0)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="75"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(<ref refid="ie__kv__instrumentation_8c_1a37cc7552afd879b87e4dba0dfdcc607d" kindref="member">g_kv</ref>.count<sp/>&lt;<sp/><ref refid="ie__kv__instrumentation_8c_1a37cc7552afd879b87e4dba0dfdcc607d" kindref="member">g_kv</ref>.capacity)<sp/>{</highlight></codeline>
+<codeline lineno="76"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="ie__kv__instrumentation_8c_1a37cc7552afd879b87e4dba0dfdcc607d" kindref="member">g_kv</ref>.slots[<ref refid="ie__kv__instrumentation_8c_1a37cc7552afd879b87e4dba0dfdcc607d" kindref="member">g_kv</ref>.count++]<sp/>=<sp/>token;</highlight></codeline>
+<codeline lineno="77"><highlight class="normal"><sp/><sp/>}<sp/></highlight><highlight class="keywordflow">else</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="78"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">/*<sp/>Evict<sp/>oldest<sp/>at<sp/>head,<sp/>write<sp/>new<sp/>token,<sp/>advance<sp/>head<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="79"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="ie__kv__instrumentation_8c_1a37cc7552afd879b87e4dba0dfdcc607d" kindref="member">g_kv</ref>.slots[<ref refid="ie__kv__instrumentation_8c_1a37cc7552afd879b87e4dba0dfdcc607d" kindref="member">g_kv</ref>.head]<sp/>=<sp/>token;</highlight></codeline>
+<codeline lineno="80"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="ie__kv__instrumentation_8c_1a37cc7552afd879b87e4dba0dfdcc607d" kindref="member">g_kv</ref>.head<sp/>=<sp/>(<ref refid="ie__kv__instrumentation_8c_1a37cc7552afd879b87e4dba0dfdcc607d" kindref="member">g_kv</ref>.head<sp/>+<sp/>1)<sp/>%<sp/><ref refid="ie__kv__instrumentation_8c_1a37cc7552afd879b87e4dba0dfdcc607d" kindref="member">g_kv</ref>.capacity;</highlight></codeline>
+<codeline lineno="81"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="82"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="83"><highlight class="normal"></highlight></codeline>
+<codeline lineno="84"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>----------------------------------------------------------------------------</highlight></codeline>
+<codeline lineno="85"><highlight class="comment"><sp/>*<sp/>Public<sp/>API</highlight></codeline>
+<codeline lineno="86"><highlight class="comment"><sp/>*<sp/>--------------------------------------------------------------------------*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="87" refid="ie__kv__instrumentation_8h_1a0a8ac6ff4fa3502470774c6cb9e6f488" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="ie__kv__instrumentation_8c_1a0a8ac6ff4fa3502470774c6cb9e6f488" kindref="member">ie_kv_begin_round</ref>(</highlight><highlight class="keywordtype">void</highlight><highlight class="normal">)<sp/>{</highlight></codeline>
+<codeline lineno="88"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">/*<sp/>Reset<sp/>counters<sp/>and<sp/>(re)allocate<sp/>set<sp/>as<sp/>needed.<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="89"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>cap<sp/>=<sp/><ref refid="ie__kv__instrumentation_8c_1a886abd7a4ad752897b4469e29cc344e3" kindref="member">env_size</ref>(</highlight><highlight class="stringliteral">&quot;IE_KV_CAP&quot;</highlight><highlight class="normal">,<sp/>4096);<sp/></highlight><highlight class="comment">/*<sp/>default:<sp/>4K<sp/>tokens<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="90"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(<ref refid="ie__kv__instrumentation_8c_1a37cc7552afd879b87e4dba0dfdcc607d" kindref="member">g_kv</ref>.slots<sp/>&amp;&amp;<sp/><ref refid="ie__kv__instrumentation_8c_1a37cc7552afd879b87e4dba0dfdcc607d" kindref="member">g_kv</ref>.capacity<sp/>!=<sp/>cap)<sp/>{</highlight></codeline>
+<codeline lineno="91"><highlight class="normal"><sp/><sp/><sp/><sp/>free(<ref refid="ie__kv__instrumentation_8c_1a37cc7552afd879b87e4dba0dfdcc607d" kindref="member">g_kv</ref>.slots);</highlight></codeline>
+<codeline lineno="92"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="ie__kv__instrumentation_8c_1a37cc7552afd879b87e4dba0dfdcc607d" kindref="member">g_kv</ref>.slots<sp/>=<sp/>NULL;</highlight></codeline>
+<codeline lineno="93"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="94"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!<ref refid="ie__kv__instrumentation_8c_1a37cc7552afd879b87e4dba0dfdcc607d" kindref="member">g_kv</ref>.slots)<sp/>{</highlight></codeline>
+<codeline lineno="95"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="ie__kv__instrumentation_8c_1a37cc7552afd879b87e4dba0dfdcc607d" kindref="member">g_kv</ref>.slots<sp/>=<sp/>(uint32_t<sp/>*)malloc(</highlight><highlight class="keyword">sizeof</highlight><highlight class="normal">(uint32_t)<sp/>*<sp/>cap);</highlight></codeline>
+<codeline lineno="96"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!<ref refid="ie__kv__instrumentation_8c_1a37cc7552afd879b87e4dba0dfdcc607d" kindref="member">g_kv</ref>.slots)<sp/>{</highlight></codeline>
+<codeline lineno="97"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="ie__kv__instrumentation_8c_1a37cc7552afd879b87e4dba0dfdcc607d" kindref="member">g_kv</ref>.capacity<sp/>=<sp/>0;</highlight></codeline>
+<codeline lineno="98"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="ie__kv__instrumentation_8c_1a37cc7552afd879b87e4dba0dfdcc607d" kindref="member">g_kv</ref>.count<sp/>=<sp/><ref refid="ie__kv__instrumentation_8c_1a37cc7552afd879b87e4dba0dfdcc607d" kindref="member">g_kv</ref>.head<sp/>=<sp/>0;</highlight></codeline>
+<codeline lineno="99"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="ie__kv__instrumentation_8c_1a37cc7552afd879b87e4dba0dfdcc607d" kindref="member">g_kv</ref>.hits<sp/>=<sp/><ref refid="ie__kv__instrumentation_8c_1a37cc7552afd879b87e4dba0dfdcc607d" kindref="member">g_kv</ref>.misses<sp/>=<sp/>0;</highlight></codeline>
+<codeline lineno="100"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="ie__kv__instrumentation_8c_1a37cc7552afd879b87e4dba0dfdcc607d" kindref="member">g_kv</ref>.ready<sp/>=<sp/>0;</highlight></codeline>
+<codeline lineno="101"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>-1;</highlight></codeline>
+<codeline lineno="102"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="103"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="104"><highlight class="normal"><sp/><sp/><ref refid="ie__kv__instrumentation_8c_1a37cc7552afd879b87e4dba0dfdcc607d" kindref="member">g_kv</ref>.capacity<sp/>=<sp/>cap;</highlight></codeline>
+<codeline lineno="105"><highlight class="normal"><sp/><sp/><ref refid="ie__kv__instrumentation_8c_1a37cc7552afd879b87e4dba0dfdcc607d" kindref="member">g_kv</ref>.count<sp/>=<sp/>0;</highlight></codeline>
+<codeline lineno="106"><highlight class="normal"><sp/><sp/><ref refid="ie__kv__instrumentation_8c_1a37cc7552afd879b87e4dba0dfdcc607d" kindref="member">g_kv</ref>.head<sp/>=<sp/>0;</highlight></codeline>
+<codeline lineno="107"><highlight class="normal"><sp/><sp/><ref refid="ie__kv__instrumentation_8c_1a37cc7552afd879b87e4dba0dfdcc607d" kindref="member">g_kv</ref>.hits<sp/>=<sp/>0;</highlight></codeline>
+<codeline lineno="108"><highlight class="normal"><sp/><sp/><ref refid="ie__kv__instrumentation_8c_1a37cc7552afd879b87e4dba0dfdcc607d" kindref="member">g_kv</ref>.misses<sp/>=<sp/>0;</highlight></codeline>
+<codeline lineno="109"><highlight class="normal"><sp/><sp/><ref refid="ie__kv__instrumentation_8c_1a37cc7552afd879b87e4dba0dfdcc607d" kindref="member">g_kv</ref>.ready<sp/>=<sp/>1;</highlight></codeline>
+<codeline lineno="110"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>0;</highlight></codeline>
+<codeline lineno="111"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="112"><highlight class="normal"></highlight></codeline>
+<codeline lineno="113" refid="ie__kv__instrumentation_8h_1a27b3df57a37a25798490912b1e92d716" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="ie__kv__instrumentation_8c_1a27b3df57a37a25798490912b1e92d716" kindref="member">ie_kv_on_token</ref>(uint32_t<sp/>token)<sp/>{</highlight></codeline>
+<codeline lineno="114"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!<ref refid="ie__kv__instrumentation_8c_1a37cc7552afd879b87e4dba0dfdcc607d" kindref="member">g_kv</ref>.ready<sp/>||<sp/><ref refid="ie__kv__instrumentation_8c_1a37cc7552afd879b87e4dba0dfdcc607d" kindref="member">g_kv</ref>.capacity<sp/>==<sp/>0)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="115"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(<ref refid="ie__kv__instrumentation_8c_1a37bd44541ec645006f436707ca67b407" kindref="member">kv_contains</ref>(token))<sp/>{</highlight></codeline>
+<codeline lineno="116"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="ie__kv__instrumentation_8c_1a37cc7552afd879b87e4dba0dfdcc607d" kindref="member">g_kv</ref>.hits++;</highlight></codeline>
+<codeline lineno="117"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="118"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="119"><highlight class="normal"><sp/><sp/><ref refid="ie__kv__instrumentation_8c_1a37cc7552afd879b87e4dba0dfdcc607d" kindref="member">g_kv</ref>.misses++;</highlight></codeline>
+<codeline lineno="120"><highlight class="normal"><sp/><sp/><ref refid="ie__kv__instrumentation_8c_1a83b5153f7145e76551b31ced07063538" kindref="member">kv_insert_fifo</ref>(token);</highlight></codeline>
+<codeline lineno="121"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="122"><highlight class="normal"></highlight></codeline>
+<codeline lineno="123" refid="ie__kv__instrumentation_8h_1a2c9789a487a67ebc8e6054aa0b991e4e" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="ie__kv__instrumentation_8c_1a2c9789a487a67ebc8e6054aa0b991e4e" kindref="member">ie_kv_finish_round</ref>(uint64_t<sp/>total_tokens,</highlight></codeline>
+<codeline lineno="124"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>uint64_t<sp/>*out_hits,</highlight></codeline>
+<codeline lineno="125"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>uint64_t<sp/>*out_misses)<sp/>{</highlight></codeline>
+<codeline lineno="126"><highlight class="normal"><sp/><sp/>assert(out_hits<sp/><sp/><sp/>!=<sp/>NULL);</highlight></codeline>
+<codeline lineno="127"><highlight class="normal"><sp/><sp/>assert(out_misses<sp/>!=<sp/>NULL);</highlight></codeline>
+<codeline lineno="128"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!<ref refid="ie__kv__instrumentation_8c_1a37cc7552afd879b87e4dba0dfdcc607d" kindref="member">g_kv</ref>.ready)<sp/>{</highlight></codeline>
+<codeline lineno="129"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">/*<sp/>Not<sp/>initialized:<sp/>conservative<sp/>fallback.<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="130"><highlight class="normal"><sp/><sp/><sp/><sp/>*out_hits<sp/>=<sp/>0;</highlight></codeline>
+<codeline lineno="131"><highlight class="normal"><sp/><sp/><sp/><sp/>*out_misses<sp/>=<sp/>total_tokens;</highlight></codeline>
+<codeline lineno="132"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="133"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="134"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">/*<sp/>Fallback<sp/>if<sp/>no<sp/>tokens<sp/>were<sp/>observed<sp/>but<sp/>caller<sp/>claims<sp/>otherwise.<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="135"><highlight class="normal"><sp/><sp/>uint64_t<sp/>hits<sp/><sp/><sp/>=<sp/><ref refid="ie__kv__instrumentation_8c_1a37cc7552afd879b87e4dba0dfdcc607d" kindref="member">g_kv</ref>.hits;</highlight></codeline>
+<codeline lineno="136"><highlight class="normal"><sp/><sp/>uint64_t<sp/>misses<sp/>=<sp/><ref refid="ie__kv__instrumentation_8c_1a37cc7552afd879b87e4dba0dfdcc607d" kindref="member">g_kv</ref>.misses;</highlight></codeline>
+<codeline lineno="137"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>((hits<sp/>+<sp/>misses)<sp/>==<sp/>0<sp/>&amp;&amp;<sp/>total_tokens<sp/>&gt;<sp/>0)<sp/>{</highlight></codeline>
+<codeline lineno="138"><highlight class="normal"><sp/><sp/><sp/><sp/>misses<sp/>=<sp/>total_tokens;</highlight></codeline>
+<codeline lineno="139"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="140"><highlight class="normal"></highlight></codeline>
+<codeline lineno="141"><highlight class="normal"><sp/><sp/>*out_hits<sp/><sp/><sp/>=<sp/>hits;</highlight></codeline>
+<codeline lineno="142"><highlight class="normal"><sp/><sp/>*out_misses<sp/>=<sp/>misses;</highlight></codeline>
+<codeline lineno="143"><highlight class="normal"></highlight></codeline>
+<codeline lineno="144"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">/*<sp/>Free<sp/>the<sp/>set<sp/>to<sp/>keep<sp/>memory<sp/>footprint<sp/>low<sp/>across<sp/>short-lived<sp/>runs.<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="145"><highlight class="normal"><sp/><sp/>free(<ref refid="ie__kv__instrumentation_8c_1a37cc7552afd879b87e4dba0dfdcc607d" kindref="member">g_kv</ref>.slots);</highlight></codeline>
+<codeline lineno="146"><highlight class="normal"><sp/><sp/><ref refid="ie__kv__instrumentation_8c_1a37cc7552afd879b87e4dba0dfdcc607d" kindref="member">g_kv</ref>.slots<sp/>=<sp/>NULL;</highlight></codeline>
+<codeline lineno="147"><highlight class="normal"><sp/><sp/><ref refid="ie__kv__instrumentation_8c_1a37cc7552afd879b87e4dba0dfdcc607d" kindref="member">g_kv</ref>.capacity<sp/>=<sp/><ref refid="ie__kv__instrumentation_8c_1a37cc7552afd879b87e4dba0dfdcc607d" kindref="member">g_kv</ref>.count<sp/>=<sp/><ref refid="ie__kv__instrumentation_8c_1a37cc7552afd879b87e4dba0dfdcc607d" kindref="member">g_kv</ref>.head<sp/>=<sp/>0;</highlight></codeline>
+<codeline lineno="148"><highlight class="normal"><sp/><sp/><ref refid="ie__kv__instrumentation_8c_1a37cc7552afd879b87e4dba0dfdcc607d" kindref="member">g_kv</ref>.hits<sp/>=<sp/><ref refid="ie__kv__instrumentation_8c_1a37cc7552afd879b87e4dba0dfdcc607d" kindref="member">g_kv</ref>.misses<sp/>=<sp/>0;</highlight></codeline>
+<codeline lineno="149"><highlight class="normal"><sp/><sp/><ref refid="ie__kv__instrumentation_8c_1a37cc7552afd879b87e4dba0dfdcc607d" kindref="member">g_kv</ref>.ready<sp/>=<sp/>0;</highlight></codeline>
+<codeline lineno="150"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="151"><highlight class="normal"></highlight></codeline>
+<codeline lineno="152"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>==========================================================================<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="153"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>End<sp/>of<sp/>file<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="154"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>==========================================================================<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+    </programlisting>
+    <location file="engine/src/ie_kv_instrumentation.c"/>
+  </compounddef>
+</doxygen>

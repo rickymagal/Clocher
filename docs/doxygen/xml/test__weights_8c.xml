@@ -1,0 +1,102 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="test__weights_8c" kind="file" language="C++">
+    <compoundname>test_weights.c</compoundname>
+    <includes local="no">assert.h</includes>
+    <includes local="no">stdio.h</includes>
+    <includes refid="ie__io_8h" local="yes">ie_io.h</includes>
+    <incdepgraph>
+      <node id="4">
+        <label>ie_io.h</label>
+        <link refid="ie__io_8h"/>
+        <childnode refid="5" relation="include">
+        </childnode>
+        <childnode refid="6" relation="include">
+        </childnode>
+      </node>
+      <node id="1">
+        <label>tests/c/test_weights.c</label>
+        <link refid="test__weights_8c"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="3" relation="include">
+        </childnode>
+        <childnode refid="4" relation="include">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>assert.h</label>
+      </node>
+      <node id="5">
+        <label>stddef.h</label>
+      </node>
+      <node id="6">
+        <label>stdint.h</label>
+      </node>
+      <node id="3">
+        <label>stdio.h</label>
+      </node>
+    </incdepgraph>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="test__weights_8c_1a840291bc02cba5474a4cb46a9b9566fe" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int main</definition>
+        <argsstring>(void)</argsstring>
+        <name>main</name>
+        <param>
+          <type>void</type>
+        </param>
+        <briefdescription>
+<para>Program entrypoint for weights loader tests. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Opens the stub metadata included in the repo, validates fields such as version and dtype, and exercises the close path.</para>
+<para><simplesect kind="return"><para>0 on success. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="tests/c/test_weights.c" line="21" column="5" bodyfile="tests/c/test_weights.c" bodystart="21" bodyend="39"/>
+        <references refid="structie__weights__s_1aaedc444c52d256720c4b4099604206a4" compoundref="ie__io_8h" startline="109">ie_weights_s::dtype</references>
+        <references refid="group__ie__io__weights_1ga06c2b7e35d1f82a11e4605e23a1976f5" compoundref="weights_8c" startline="407" endline="409">ie_weights_close</references>
+        <references refid="group__ie__io__weights_1ga522dac028ee37aae1307ffdb6d65ec1d" compoundref="weights_8c" startline="326" endline="381">ie_weights_open</references>
+        <references refid="structie__weights__s_1ae12c1b3b426321f6ba604f0a89673315" compoundref="ie__io_8h" startline="106">ie_weights_s::version</references>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para>Unit tests for the IEBIN v1 lightweight loader. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>Ensures that the JSON metadata can be opened and parsed with relaxed scanning, that defaults are populated, and that closing is safe. </para>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="normal"></highlight></codeline>
+<codeline lineno="8"><highlight class="normal"></highlight></codeline>
+<codeline lineno="9"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;assert.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="10"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stdio.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="11"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;<ref refid="ie__io_8h" kindref="compound">ie_io.h</ref>&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="12"><highlight class="normal"></highlight></codeline>
+<codeline lineno="21" refid="test__weights_8c_1a840291bc02cba5474a4cb46a9b9566fe" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="test__weights_8c_1a840291bc02cba5474a4cb46a9b9566fe" kindref="member">main</ref>(</highlight><highlight class="keywordtype">void</highlight><highlight class="normal">)<sp/>{</highlight></codeline>
+<codeline lineno="22"><highlight class="normal"><sp/><sp/><ref refid="group__ie__io__weights_1gaf68ad3cdc2eb244fe4feed94372d7806" kindref="member">ie_weights_t</ref><sp/>w;</highlight></codeline>
+<codeline lineno="23"><highlight class="normal"></highlight></codeline>
+<codeline lineno="24"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">/*<sp/>Expect<sp/>success<sp/>with<sp/>the<sp/>stub<sp/>files<sp/>shipped<sp/>in<sp/>models/gpt-oss-20b<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="25"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>rc<sp/>=<sp/><ref refid="group__ie__io__weights_1ga522dac028ee37aae1307ffdb6d65ec1d" kindref="member">ie_weights_open</ref>(</highlight><highlight class="stringliteral">&quot;models/gpt-oss-20b/model.ie.json&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="26"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;models/gpt-oss-20b/model.ie.bin&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="27"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&amp;w);</highlight></codeline>
+<codeline lineno="28"><highlight class="normal"><sp/><sp/>assert(rc<sp/>==<sp/>0);</highlight></codeline>
+<codeline lineno="29"><highlight class="normal"></highlight></codeline>
+<codeline lineno="30"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">/*<sp/>version<sp/>must<sp/>be<sp/>&gt;=<sp/>1;<sp/>dtype<sp/>must<sp/>not<sp/>be<sp/>empty<sp/>(default<sp/>&quot;fp32&quot;<sp/>allowed)<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="31"><highlight class="normal"><sp/><sp/>assert(w.<ref refid="structie__weights__s_1ae12c1b3b426321f6ba604f0a89673315" kindref="member">version</ref><sp/>&gt;=<sp/>1);</highlight></codeline>
+<codeline lineno="32"><highlight class="normal"><sp/><sp/>assert(w.<ref refid="structie__weights__s_1aaedc444c52d256720c4b4099604206a4" kindref="member">dtype</ref>[0]<sp/>!=<sp/></highlight><highlight class="charliteral">&apos;\0&apos;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="33"><highlight class="normal"></highlight></codeline>
+<codeline lineno="34"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">/*<sp/>Close<sp/>is<sp/>a<sp/>no-op<sp/>in<sp/>the<sp/>baseline,<sp/>but<sp/>call<sp/>for<sp/>symmetry<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="35"><highlight class="normal"><sp/><sp/><ref refid="group__ie__io__weights_1ga06c2b7e35d1f82a11e4605e23a1976f5" kindref="member">ie_weights_close</ref>(&amp;w);</highlight></codeline>
+<codeline lineno="36"><highlight class="normal"></highlight></codeline>
+<codeline lineno="37"><highlight class="normal"><sp/><sp/>printf(</highlight><highlight class="stringliteral">&quot;ok<sp/>test_weights\n&quot;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="38"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>0;</highlight></codeline>
+<codeline lineno="39"><highlight class="normal">}</highlight></codeline>
+    </programlisting>
+    <location file="tests/c/test_weights.c"/>
+  </compounddef>
+</doxygen>

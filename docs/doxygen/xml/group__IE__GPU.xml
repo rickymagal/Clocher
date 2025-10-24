@@ -1,0 +1,932 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="group__IE__GPU" kind="group">
+    <compoundname>IE_GPU</compoundname>
+    <title>CUDA kernels &amp; launchers</title>
+    <innerfile refid="ie__kernels__cuda_8h">ie_kernels_cuda.h</innerfile>
+    <sectiondef kind="user-defined">
+      <header>Error handling</header>
+      <memberdef kind="function" id="group__IE__GPU_1ga6656c0ddd9df382048e7cd162e0c1d64" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>const char *</type>
+        <definition>const char * ie_cuda_last_error_string</definition>
+        <argsstring>(void)</argsstring>
+        <name>ie_cuda_last_error_string</name>
+        <param>
+          <type>void</type>
+        </param>
+        <briefdescription>
+<para>Return a thread-local message describing the last CUDA error. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>The pointer remains valid until the next launcher call on the same thread. An empty string means &quot;no error&quot;.</para>
+<para><simplesect kind="return"><para>NUL-terminated error message (never <computeroutput>NULL</computeroutput>).</para>
+</simplesect>
+Return a thread-local message describing the last CUDA error.</para>
+<para>The pointer remains valid until the next launcher call on the same thread. An empty string means &quot;no error&quot;.</para>
+<para><simplesect kind="return"><para>NUL-terminated error message (never <computeroutput>NULL</computeroutput>).</para>
+</simplesect>
+Return a thread-local message describing the last CUDA error.</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/ie_kernels_cuda.h" line="74" column="12" bodyfile="engine/src/kernels/ie_kernels_cuda.cu" bodystart="59" bodyend="61" declfile="engine/include/ie_kernels_cuda.h" declline="74" declcolumn="12"/>
+        <references refid="ie__kernels__cuda_8cu_1a5ab38bcd2467e982c68d46e66acfa9ef" compoundref="ie__kernels__cuda_8cu" startline="42" endline="42">g_ie_cuda_err</references>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="user-defined">
+      <header>GEMV FP32 (row-wise)</header>
+      <memberdef kind="function" id="group__IE__GPU_1ga92e383308a681db6bb757c3add5906f0" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int ie_cuda_launch_gemv_rowwise_f32</definition>
+        <argsstring>(const float *W, const float *x, float *y, int rows, int cols, int ldW, float alpha, float beta, ie_cuda_stream_t stream)</argsstring>
+        <name>ie_cuda_launch_gemv_rowwise_f32</name>
+        <param>
+          <type>const float *</type>
+          <declname>W</declname>
+        </param>
+        <param>
+          <type>const float *</type>
+          <declname>x</declname>
+        </param>
+        <param>
+          <type>float *</type>
+          <declname>y</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>rows</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>cols</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>ldW</declname>
+        </param>
+        <param>
+          <type>float</type>
+          <declname>alpha</declname>
+        </param>
+        <param>
+          <type>float</type>
+          <declname>beta</declname>
+        </param>
+        <param>
+          <type><ref refid="group__IE__GPU_1gaefb3d7d282a514152960b6c3d812355b" kindref="member">ie_cuda_stream_t</ref></type>
+          <declname>stream</declname>
+        </param>
+        <briefdescription>
+<para>Compute <computeroutput>y = alpha * W * x + beta * y</computeroutput> (row-wise GEMV). </para>
+        </briefdescription>
+        <detaileddescription>
+<para><itemizedlist>
+<listitem><para><computeroutput>W</computeroutput> is dense row-major with <computeroutput>rows</computeroutput> rows and <computeroutput>ldW</computeroutput> columns stride.</para>
+</listitem><listitem><para>Each row is reduced in parallel; one block per output row.</para>
+</listitem></itemizedlist>
+</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>W</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Device pointer to row-major matrix <computeroutput>(rows x ldW)</computeroutput>. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>x</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Device pointer to input vector (length <computeroutput>cols</computeroutput>). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>y</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Device pointer to output vector (length <computeroutput>rows</computeroutput>). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>rows</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of rows in <computeroutput>W</computeroutput> and elements in <computeroutput>y</computeroutput> (&gt;= 1). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>cols</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of columns in <computeroutput>W</computeroutput> and elements in <computeroutput>x</computeroutput> (&gt;= 1). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>ldW</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Leading dimension of <computeroutput>W</computeroutput> in elements (&gt;= <computeroutput>cols</computeroutput>). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>alpha</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Scalar multiplier for <computeroutput>W*x</computeroutput>. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>beta</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Scalar multiplier for existing <computeroutput>y</computeroutput> (use <computeroutput>0.f</computeroutput> to overwrite). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>stream</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>CUDA stream handle (may be <computeroutput>NULL</computeroutput>). </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para><computeroutput>0</computeroutput> on success, negative on error (see <ref refid="group__IE__GPU_1ga6656c0ddd9df382048e7cd162e0c1d64" kindref="member">ie_cuda_last_error_string()</ref>).</para>
+</simplesect>
+<simplesect kind="pre"><para>Pointers are non-NULL and reference device memory. </para>
+</simplesect>
+<simplesect kind="pre"><para><computeroutput>rows &gt; 0</computeroutput>, <computeroutput>cols &gt; 0</computeroutput>, <computeroutput>ldW &gt;= cols</computeroutput>. </para>
+</simplesect>
+<simplesect kind="post"><para><computeroutput>y</computeroutput> contains the result.</para>
+</simplesect>
+Compute <computeroutput>y = alpha * W * x + beta * y</computeroutput> (row-wise GEMV).</para>
+<para><itemizedlist>
+<listitem><para><computeroutput>W</computeroutput> is dense row-major with <computeroutput>rows</computeroutput> rows and <computeroutput>ldW</computeroutput> columns stride.</para>
+</listitem><listitem><para>Each row is reduced in parallel; one block per output row.</para>
+</listitem></itemizedlist>
+</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>W</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Device pointer to row-major matrix <computeroutput>(rows x ldW)</computeroutput>. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>x</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Device pointer to input vector (length <computeroutput>cols</computeroutput>). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>y</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Device pointer to output vector (length <computeroutput>rows</computeroutput>). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>rows</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of rows in <computeroutput>W</computeroutput> and elements in <computeroutput>y</computeroutput> (&gt;= 1). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>cols</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of columns in <computeroutput>W</computeroutput> and elements in <computeroutput>x</computeroutput> (&gt;= 1). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>ldW</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Leading dimension of <computeroutput>W</computeroutput> in elements (&gt;= <computeroutput>cols</computeroutput>). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>alpha</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Scalar multiplier for <computeroutput>W*x</computeroutput>. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>beta</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Scalar multiplier for existing <computeroutput>y</computeroutput> (use <computeroutput>0.f</computeroutput> to overwrite). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>stream</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>CUDA stream handle (may be <computeroutput>NULL</computeroutput>). </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para><computeroutput>0</computeroutput> on success, negative on error (see <ref refid="group__IE__GPU_1ga6656c0ddd9df382048e7cd162e0c1d64" kindref="member">ie_cuda_last_error_string()</ref>).</para>
+</simplesect>
+<simplesect kind="pre"><para>Pointers are non-NULL and reference device memory. </para>
+</simplesect>
+<simplesect kind="pre"><para><computeroutput>rows &gt; 0</computeroutput>, <computeroutput>cols &gt; 0</computeroutput>, <computeroutput>ldW &gt;= cols</computeroutput>. </para>
+</simplesect>
+<simplesect kind="post"><para><computeroutput>y</computeroutput> contains the result.</para>
+</simplesect>
+Compute <computeroutput>y = alpha * W * x + beta * y</computeroutput> (row-wise GEMV).</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/ie_kernels_cuda.h" line="103" column="5" bodyfile="engine/src/kernels/ie_kernels_cuda.cu" bodystart="246" bodyend="265" declfile="engine/include/ie_kernels_cuda.h" declline="103" declcolumn="5"/>
+        <references refid="ie__kernels__cuda_8cu_1af4c083462b1e956e6461aa246d2af9a6" compoundref="ie__kernels__cuda_8cu" startline="68" endline="75">CUDA_GUARD</references>
+        <references refid="ie__kernels__cuda_8cu_1afb3284f12e7d5038612ece3185920449" compoundref="ie__kernels__cuda_8cu" startline="24">IE_CUDA_OK</references>
+        <references refid="ie__kernels__cuda_8cu_1a841d35ecb02f9850f311a5724d21deac" compoundref="ie__kernels__cuda_8cu" startline="49" endline="54">ie_cuda_set_err</references>
+        <references refid="ie__kernels__cuda_8cu_1af00402674d56c833c92c62df1cef1e84" compoundref="ie__kernels__cuda_8cu" startline="116" endline="145">k_gemv_rowwise_f32</references>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="user-defined">
+      <header>Fused GEMV + bias + activation (FP32)</header>
+      <memberdef kind="function" id="group__IE__GPU_1gaa2441c827e95b20c0413b0372ffc262b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int ie_cuda_launch_gemv_bias_act_f32</definition>
+        <argsstring>(const float *W, const float *x, const float *bias, float *y, int rows, int cols, int ldW, float alpha, float beta, ie_act_kind_t act, ie_cuda_stream_t stream)</argsstring>
+        <name>ie_cuda_launch_gemv_bias_act_f32</name>
+        <param>
+          <type>const float *</type>
+          <declname>W</declname>
+        </param>
+        <param>
+          <type>const float *</type>
+          <declname>x</declname>
+        </param>
+        <param>
+          <type>const float *</type>
+          <declname>bias</declname>
+        </param>
+        <param>
+          <type>float *</type>
+          <declname>y</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>rows</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>cols</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>ldW</declname>
+        </param>
+        <param>
+          <type>float</type>
+          <declname>alpha</declname>
+        </param>
+        <param>
+          <type>float</type>
+          <declname>beta</declname>
+        </param>
+        <param>
+          <type><ref refid="group__IE__GPU_1ga08ba1d3777f64c23e99124d2e460e701" kindref="member">ie_act_kind_t</ref></type>
+          <declname>act</declname>
+        </param>
+        <param>
+          <type><ref refid="group__IE__GPU_1gaefb3d7d282a514152960b6c3d812355b" kindref="member">ie_cuda_stream_t</ref></type>
+          <declname>stream</declname>
+        </param>
+        <briefdescription>
+<para>Compute <computeroutput>y = act(alpha * W*x + bias + beta*y)</computeroutput> in one pass. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><itemizedlist>
+<listitem><para>Applies optional per-row <computeroutput>bias</computeroutput> (may be NULL → treated as zeros).</para>
+</listitem><listitem><para>Applies activation specified by <ref refid="group__IE__GPU_1ga08ba1d3777f64c23e99124d2e460e701" kindref="member">ie_act_kind_t</ref>.</para>
+</listitem></itemizedlist>
+</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>W</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Device pointer to row-major matrix <computeroutput>(rows x ldW)</computeroutput>. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>x</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Device pointer to input vector (length <computeroutput>cols</computeroutput>). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>bias</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Device pointer to per-row bias (length <computeroutput>rows</computeroutput>) or <computeroutput>NULL</computeroutput>. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>y</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Device pointer to output vector (length <computeroutput>rows</computeroutput>). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>rows</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of rows in <computeroutput>W</computeroutput>/<computeroutput>y</computeroutput>/<computeroutput>bias</computeroutput> (&gt;= 1). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>cols</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of columns in <computeroutput>W</computeroutput> and elements in <computeroutput>x</computeroutput> (&gt;= 1). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>ldW</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Leading dimension of <computeroutput>W</computeroutput> in elements (&gt;= <computeroutput>cols</computeroutput>). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>alpha</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Scalar multiplier for <computeroutput>W*x</computeroutput>. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>beta</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Scalar multiplier for existing <computeroutput>y</computeroutput> (use <computeroutput>0.f</computeroutput> to overwrite). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>act</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Activation kind (see <ref refid="group__IE__GPU_1ga08ba1d3777f64c23e99124d2e460e701" kindref="member">ie_act_kind_t</ref>). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>stream</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>CUDA stream handle (may be <computeroutput>NULL</computeroutput>). </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para><computeroutput>0</computeroutput> on success, negative on error.</para>
+</simplesect>
+<simplesect kind="pre"><para>Pointers are non-NULL device pointers (except <computeroutput>bias</computeroutput>, which may be NULL). </para>
+</simplesect>
+<simplesect kind="pre"><para><computeroutput>rows &gt; 0</computeroutput>, <computeroutput>cols &gt; 0</computeroutput>, <computeroutput>ldW &gt;= cols</computeroutput>. </para>
+</simplesect>
+<simplesect kind="post"><para><computeroutput>y</computeroutput> contains the result with activation applied.</para>
+</simplesect>
+Compute <computeroutput>y = act(alpha * W*x + bias + beta*y)</computeroutput> in one pass.</para>
+<para><itemizedlist>
+<listitem><para>Applies optional per-row <computeroutput>bias</computeroutput> (may be NULL → treated as zeros).</para>
+</listitem><listitem><para>Applies activation specified by <ref refid="group__IE__GPU_1ga08ba1d3777f64c23e99124d2e460e701" kindref="member">ie_act_kind_t</ref>.</para>
+</listitem></itemizedlist>
+</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>W</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Device pointer to row-major matrix <computeroutput>(rows x ldW)</computeroutput>. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>x</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Device pointer to input vector (length <computeroutput>cols</computeroutput>). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>bias</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Device pointer to per-row bias (length <computeroutput>rows</computeroutput>) or <computeroutput>NULL</computeroutput>. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>y</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Device pointer to output vector (length <computeroutput>rows</computeroutput>). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>rows</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of rows in <computeroutput>W</computeroutput>/<computeroutput>y</computeroutput>/<computeroutput>bias</computeroutput> (&gt;= 1). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>cols</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of columns in <computeroutput>W</computeroutput> and elements in <computeroutput>x</computeroutput> (&gt;= 1). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>ldW</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Leading dimension of <computeroutput>W</computeroutput> in elements (&gt;= <computeroutput>cols</computeroutput>). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>alpha</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Scalar multiplier for <computeroutput>W*x</computeroutput>. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>beta</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Scalar multiplier for existing <computeroutput>y</computeroutput> (use <computeroutput>0.f</computeroutput> to overwrite). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>act</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Activation kind (see <ref refid="group__IE__GPU_1ga08ba1d3777f64c23e99124d2e460e701" kindref="member">ie_act_kind_t</ref>). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>stream</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>CUDA stream handle (may be <computeroutput>NULL</computeroutput>). </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para><computeroutput>0</computeroutput> on success, negative on error.</para>
+</simplesect>
+<simplesect kind="pre"><para>Pointers are non-NULL device pointers (except <computeroutput>bias</computeroutput>, which may be NULL). </para>
+</simplesect>
+<simplesect kind="pre"><para><computeroutput>rows &gt; 0</computeroutput>, <computeroutput>cols &gt; 0</computeroutput>, <computeroutput>ldW &gt;= cols</computeroutput>. </para>
+</simplesect>
+<simplesect kind="post"><para><computeroutput>y</computeroutput> contains the result with activation applied.</para>
+</simplesect>
+Compute <computeroutput>y = act(alpha * W*x + bias + beta*y)</computeroutput> in one pass.</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/ie_kernels_cuda.h" line="142" column="5" bodyfile="engine/src/kernels/ie_kernels_cuda.cu" bodystart="270" bodyend="292" declfile="engine/include/ie_kernels_cuda.h" declline="142" declcolumn="5"/>
+        <references refid="ie__kernels__cuda_8cu_1af4c083462b1e956e6461aa246d2af9a6" compoundref="ie__kernels__cuda_8cu" startline="68" endline="75">CUDA_GUARD</references>
+        <references refid="ie__kernels__cuda_8cu_1afb3284f12e7d5038612ece3185920449" compoundref="ie__kernels__cuda_8cu" startline="24">IE_CUDA_OK</references>
+        <references refid="ie__kernels__cuda_8cu_1a841d35ecb02f9850f311a5724d21deac" compoundref="ie__kernels__cuda_8cu" startline="49" endline="54">ie_cuda_set_err</references>
+        <references refid="ie__kernels__cuda_8cu_1ab9150fe6fc7da507974bfdd38b262ce2" compoundref="ie__kernels__cuda_8cu" startline="163" endline="193">k_gemv_bias_act_f32</references>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="user-defined">
+      <header>Vector activations (FP32)</header>
+      <memberdef kind="function" id="group__IE__GPU_1ga4e8445935545f1b5bbb671826543ffab" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int ie_cuda_launch_vec_tanh_f32</definition>
+        <argsstring>(float *y, const float *x, int n, ie_cuda_stream_t stream)</argsstring>
+        <name>ie_cuda_launch_vec_tanh_f32</name>
+        <param>
+          <type>float *</type>
+          <declname>y</declname>
+        </param>
+        <param>
+          <type>const float *</type>
+          <declname>x</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>n</declname>
+        </param>
+        <param>
+          <type><ref refid="group__IE__GPU_1gaefb3d7d282a514152960b6c3d812355b" kindref="member">ie_cuda_stream_t</ref></type>
+          <declname>stream</declname>
+        </param>
+        <briefdescription>
+<para>Compute <computeroutput>y[i] = tanh(x[i])</computeroutput> for <computeroutput>i in [0, n)</computeroutput>. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>y</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Device pointer to output vector (length <computeroutput>n</computeroutput>). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>x</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Device pointer to input vector (length <computeroutput>n</computeroutput>). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>n</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of elements (&gt;= 1). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>stream</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>CUDA stream handle (may be <computeroutput>NULL</computeroutput>). </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para><computeroutput>0</computeroutput> on success, negative on error.</para>
+</simplesect>
+<simplesect kind="pre"><para><computeroutput>x</computeroutput> and <computeroutput>y</computeroutput> are valid device pointers with at least <computeroutput>n</computeroutput> elements. </para>
+</simplesect>
+<simplesect kind="post"><para><computeroutput>y</computeroutput> contains elementwise <computeroutput>tanh(x)</computeroutput>.</para>
+</simplesect>
+Compute <computeroutput>y[i] = tanh(x[i])</computeroutput> for <computeroutput>i in [0, n)</computeroutput>.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>y</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Device pointer to output vector (length <computeroutput>n</computeroutput>). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>x</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Device pointer to input vector (length <computeroutput>n</computeroutput>). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>n</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of elements (&gt;= 1). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>stream</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>CUDA stream handle (may be <computeroutput>NULL</computeroutput>). </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para><computeroutput>0</computeroutput> on success, negative on error.</para>
+</simplesect>
+<simplesect kind="pre"><para><computeroutput>x</computeroutput> and <computeroutput>y</computeroutput> are valid device pointers with at least <computeroutput>n</computeroutput> elements. </para>
+</simplesect>
+<simplesect kind="post"><para><computeroutput>y</computeroutput> contains elementwise <computeroutput>tanh(x)</computeroutput>.</para>
+</simplesect>
+Compute <computeroutput>y[i] = tanh(x[i])</computeroutput> for <computeroutput>i in [0, n)</computeroutput>.</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/ie_kernels_cuda.h" line="172" column="5" bodyfile="engine/src/kernels/ie_kernels_cuda.cu" bodystart="297" bodyend="312" declfile="engine/include/ie_kernels_cuda.h" declline="172" declcolumn="5"/>
+        <references refid="ie__kernels__cuda_8cu_1af4c083462b1e956e6461aa246d2af9a6" compoundref="ie__kernels__cuda_8cu" startline="68" endline="75">CUDA_GUARD</references>
+        <references refid="ie__kernels__cuda_8cu_1afb3284f12e7d5038612ece3185920449" compoundref="ie__kernels__cuda_8cu" startline="24">IE_CUDA_OK</references>
+        <references refid="ie__kernels__cuda_8cu_1a841d35ecb02f9850f311a5724d21deac" compoundref="ie__kernels__cuda_8cu" startline="49" endline="54">ie_cuda_set_err</references>
+        <references refid="ie__kernels__cuda_8cu_1aea063f21d4bdf3ba4108f9677476aad4" compoundref="ie__kernels__cuda_8cu" startline="202" endline="210">k_vec_tanh_f32</references>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="user-defined">
+      <header>Weight packing (Blocked-K)</header>
+      <memberdef kind="function" id="group__IE__GPU_1ga72b6dfd858bd993a18d9c5dfb3112389" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int ie_cuda_launch_pack_w_blockedk_f32</definition>
+        <argsstring>(float *Wp, const float *W, int rows, int cols, int ldW, int block_k, ie_cuda_stream_t stream)</argsstring>
+        <name>ie_cuda_launch_pack_w_blockedk_f32</name>
+        <param>
+          <type>float *</type>
+          <declname>Wp</declname>
+        </param>
+        <param>
+          <type>const float *</type>
+          <declname>W</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>rows</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>cols</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>ldW</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>block_k</declname>
+        </param>
+        <param>
+          <type><ref refid="group__IE__GPU_1gaefb3d7d282a514152960b6c3d812355b" kindref="member">ie_cuda_stream_t</ref></type>
+          <declname>stream</declname>
+        </param>
+        <briefdescription>
+<para>Pack a row-major matrix into Blocked-K layout for better memory access. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>The K dimension (columns) is partitioned into tiles of size <computeroutput>block_k</computeroutput>. Data are stored as contiguous tiles: <programlisting><codeline><highlight class="normal">int<sp/>kb<sp/>=<sp/>k<sp/>/<sp/>block_k;<sp/><sp/>//<sp/>tile<sp/>index<sp/>along<sp/>K</highlight></codeline>
+<codeline><highlight class="normal">int<sp/>ko<sp/>=<sp/>k<sp/>%<sp/>block_k;<sp/><sp/>//<sp/>in-tile<sp/>offset</highlight></codeline>
+<codeline><highlight class="normal">size_t<sp/>dst<sp/>=<sp/>((size_t)kb<sp/>*<sp/>rows<sp/>+<sp/>r)<sp/>*<sp/>(size_t)block_k<sp/>+<sp/>(size_t)ko;</highlight></codeline>
+<codeline><highlight class="normal">Wp[dst]<sp/>=<sp/>W[(size_t)r<sp/>*<sp/>ldW<sp/>+<sp/>(size_t)k];</highlight></codeline>
+</programlisting></para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>Wp</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Device pointer to destination buffer (size = rows*cols). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>W</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Device pointer to source row-major matrix. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>rows</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of rows (&gt;= 1). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>cols</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of columns (&gt;= 1). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>ldW</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Leading dimension of <computeroutput>W</computeroutput> in elements (&gt;= <computeroutput>cols</computeroutput>). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>block_k</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Tile size along K (e.g., 32/64/128; must be &gt; 0). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>stream</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>CUDA stream handle (may be <computeroutput>NULL</computeroutput>). </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para><computeroutput>0</computeroutput> on success, negative on error.</para>
+</simplesect>
+<simplesect kind="pre"><para><computeroutput>Wp</computeroutput> and <computeroutput>W</computeroutput> are device pointers with sufficient capacity. </para>
+</simplesect>
+<simplesect kind="post"><para><computeroutput>Wp</computeroutput> contains the packed matrix in Blocked-K layout.</para>
+</simplesect>
+Pack a row-major matrix into Blocked-K layout for better memory access.</para>
+<para>The K dimension (columns) is partitioned into tiles of size <computeroutput>block_k</computeroutput>. Data are stored as contiguous tiles: <programlisting><codeline><highlight class="normal">int<sp/>kb<sp/>=<sp/>k<sp/>/<sp/>block_k;<sp/><sp/>//<sp/>tile<sp/>index<sp/>along<sp/>K</highlight></codeline>
+<codeline><highlight class="normal">int<sp/>ko<sp/>=<sp/>k<sp/>%<sp/>block_k;<sp/><sp/>//<sp/>in-tile<sp/>offset</highlight></codeline>
+<codeline><highlight class="normal">size_t<sp/>dst<sp/>=<sp/>((size_t)kb<sp/>*<sp/>rows<sp/>+<sp/>r)<sp/>*<sp/>(size_t)block_k<sp/>+<sp/>(size_t)ko;</highlight></codeline>
+<codeline><highlight class="normal">Wp[dst]<sp/>=<sp/>W[(size_t)r<sp/>*<sp/>ldW<sp/>+<sp/>(size_t)k];</highlight></codeline>
+</programlisting></para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>Wp</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Device pointer to destination buffer (size = rows*cols). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>W</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Device pointer to source row-major matrix. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>rows</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of rows (&gt;= 1). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>cols</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of columns (&gt;= 1). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>ldW</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Leading dimension of <computeroutput>W</computeroutput> in elements (&gt;= <computeroutput>cols</computeroutput>). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>block_k</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Tile size along K (e.g., 32/64/128; must be &gt; 0). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>stream</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>CUDA stream handle (may be <computeroutput>NULL</computeroutput>). </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para><computeroutput>0</computeroutput> on success, negative on error.</para>
+</simplesect>
+<simplesect kind="pre"><para><computeroutput>Wp</computeroutput> and <computeroutput>W</computeroutput> are device pointers with sufficient capacity. </para>
+</simplesect>
+<simplesect kind="post"><para><computeroutput>Wp</computeroutput> contains the packed matrix in Blocked-K layout.</para>
+</simplesect>
+Pack a row-major matrix into Blocked-K layout for better memory access.</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/ie_kernels_cuda.h" line="207" column="5" bodyfile="engine/src/kernels/ie_kernels_cuda.cu" bodystart="317" bodyend="335" declfile="engine/include/ie_kernels_cuda.h" declline="207" declcolumn="5"/>
+        <references refid="ie__kernels__cuda_8cu_1af4c083462b1e956e6461aa246d2af9a6" compoundref="ie__kernels__cuda_8cu" startline="68" endline="75">CUDA_GUARD</references>
+        <references refid="ie__kernels__cuda_8cu_1afb3284f12e7d5038612ece3185920449" compoundref="ie__kernels__cuda_8cu" startline="24">IE_CUDA_OK</references>
+        <references refid="ie__kernels__cuda_8cu_1a841d35ecb02f9850f311a5724d21deac" compoundref="ie__kernels__cuda_8cu" startline="49" endline="54">ie_cuda_set_err</references>
+        <references refid="ie__kernels__cuda_8cu_1ac440d51163bc9f16e835d00aedcb4b79" compoundref="ie__kernels__cuda_8cu" startline="222" endline="237">k_pack_w_blockedk_f32</references>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="enum">
+      <memberdef kind="enum" id="group__IE__GPU_1gab2c254b332e574ed55c2537075337f85" prot="public" static="no" strong="no">
+        <type></type>
+        <name>ie_act_kind_e</name>
+        <enumvalue id="group__IE__GPU_1ggab2c254b332e574ed55c2537075337f85a72bddb07e52c2dcecd390cda078cd33f" prot="public">
+          <name>IE_ACT_NONE</name>
+          <initializer>= 0</initializer>
+          <briefdescription>
+<para>Identity. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__IE__GPU_1ggab2c254b332e574ed55c2537075337f85a4efb020b6e30222eac585f53f1d3e47f" prot="public">
+          <name>IE_ACT_RELU</name>
+          <initializer>= 1</initializer>
+          <briefdescription>
+<para>ReLU: max(0, x). </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__IE__GPU_1ggab2c254b332e574ed55c2537075337f85a5c3ab96a97ea7aa059b44e7508c28a08" prot="public">
+          <name>IE_ACT_TANH</name>
+          <initializer>= 2</initializer>
+          <briefdescription>
+<para>Hyperbolic tangent. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+<para>Activation types supported by fused kernels. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/ie_kernels_cuda.h" line="55" column="1" bodyfile="engine/include/ie_kernels_cuda.h" bodystart="55" bodyend="59"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="group__IE__GPU_1gaefb3d7d282a514152960b6c3d812355b" prot="public" static="no">
+        <type>void *</type>
+        <definition>typedef void* ie_cuda_stream_t</definition>
+        <argsstring></argsstring>
+        <name>ie_cuda_stream_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/ie_kernels_cuda.h" line="49" column="14" bodyfile="engine/include/ie_kernels_cuda.h" bodystart="49" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="typedef" id="group__IE__GPU_1ga08ba1d3777f64c23e99124d2e460e701" prot="public" static="no">
+        <type>enum <ref refid="group__IE__GPU_1gab2c254b332e574ed55c2537075337f85" kindref="member">ie_act_kind_e</ref></type>
+        <definition>typedef enum ie_act_kind_e ie_act_kind_t</definition>
+        <argsstring></argsstring>
+        <name>ie_act_kind_t</name>
+        <briefdescription>
+<para>Activation types supported by fused kernels. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/ie_kernels_cuda.h" line="59" column="15"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="define">
+      <memberdef kind="define" id="group__IE__GPU_1gad253e9c439228a67be0e55b0f4c81edf" prot="public" static="no">
+        <name>IE_CUDA_STREAM_T_DEFINED</name>
+        <briefdescription>
+<para>Opaque CUDA stream handle used by this C API. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>In non-CUDA translation units this is a <computeroutput>void*</computeroutput>. In the CUDA TU it is replaced by <computeroutput>cudaStream_t</computeroutput>. You may pass <computeroutput>NULL</computeroutput> to use the default stream. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/ie_kernels_cuda.h" line="48" column="9" bodyfile="engine/include/ie_kernels_cuda.h" bodystart="48" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para>Public API to invoke CUDA kernels for GEMV, activations and packing. </para>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+  </compounddef>
+</doxygen>

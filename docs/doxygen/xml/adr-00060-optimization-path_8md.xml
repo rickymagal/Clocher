@@ -1,0 +1,42 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="adr-00060-optimization-path_8md" kind="file" language="Markdown">
+    <compoundname>adr-00060-optimization-path.md</compoundname>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline><highlight class="normal">#<sp/>ADR-00060<sp/>—<sp/>Optimization<sp/>Path<sp/>Selection<sp/>(updated<sp/>for<sp/>INT4)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Status:**<sp/>Accepted<sp/>•<sp/>**Last<sp/>updated:**<sp/>2025-10-24<sp/>21:00:48<sp/>UTC</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Problem</highlight></codeline>
+<codeline><highlight class="normal">We<sp/>need<sp/>a<sp/>portable<sp/>CPU<sp/>baseline<sp/>with<sp/>predictable<sp/>performance<sp/>and<sp/>a<sp/>clear<sp/>path<sp/>to<sp/>exploit<sp/>memory<sp/>locality<sp/>and<sp/>bandwidth<sp/>while<sp/>keeping<sp/>the<sp/>code<sp/>simple<sp/>and<sp/>testable.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Decision</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Keep<sp/>a<sp/>single<sp/>binary<sp/>with<sp/>**FP32<sp/>baseline**<sp/>and<sp/>optional<sp/>precision<sp/>switches:<sp/>BF16/FP16<sp/>(accumulate<sp/>FP32),<sp/>INT8<sp/>PTQ,<sp/>and<sp/>**INT4<sp/>weight‑only<sp/>(INT4W)**.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Maintain<sp/>**blocked‑K<sp/>packing**<sp/>and<sp/>optional<sp/>**pretranspose**<sp/>for<sp/>cache<sp/>locality.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Threading<sp/>via<sp/>a<sp/>fixed<sp/>`pthread`<sp/>pool<sp/>with<sp/>optional<sp/>affinity<sp/>and<sp/>NUMA<sp/>hints.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>INT4W<sp/>specifics<sp/>(new)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**When<sp/>to<sp/>use**:<sp/>memory‑bound<sp/>regimes<sp/>(large<sp/>models,<sp/>small<sp/>batches)<sp/>where<sp/>weight<sp/>bandwidth<sp/>dominates.<sp/>Select<sp/>with<sp/>`IE_PRECISION=int4w`<sp/>or<sp/>`--precision<sp/>int4w`.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**How<sp/>it<sp/>works**:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>PTQ<sp/>scripts<sp/>derive<sp/>a<sp/>`q4_manifest.json`<sp/>(per‑tensor<sp/>entry<sp/>with<sp/>packing<sp/>metadata<sp/>and<sp/>scales).</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>`scripts/hf_to_iebin.py<sp/>--q4-map<sp/>…`<sp/>consumes<sp/>the<sp/>manifest<sp/>and<sp/>packs<sp/>`model.ie.bin`<sp/>accordingly.</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Kernels<sp/>fuse<sp/>**dequant(scale<sp/>×<sp/>int4)**<sp/>into<sp/>the<sp/>matmul<sp/>path;<sp/>accumulation<sp/>remains<sp/>FP32.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Interplay<sp/>with<sp/>pretranspose**:<sp/>quantization<sp/>occurs<sp/>after<sp/>any<sp/>offline<sp/>layout<sp/>transform<sp/>intended<sp/>for<sp/>locality;<sp/>manifests<sp/>capture<sp/>the<sp/>final<sp/>layout<sp/>to<sp/>keep<sp/>IO<sp/>deterministic.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Quality<sp/>gate**:<sp/>manifests<sp/>are<sp/>accepted<sp/>only<sp/>if<sp/>a<sp/>calibration<sp/>threshold<sp/>(cosine<sp/>or<sp/>task<sp/>metric)<sp/>is<sp/>met;<sp/>the<sp/>threshold<sp/>is<sp/>repo‑configurable<sp/>in<sp/>the<sp/>PTQ<sp/>helpers.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Rationale</highlight></codeline>
+<codeline><highlight class="normal">INT4W<sp/>yields<sp/>**4×<sp/>compression**<sp/>over<sp/>FP32<sp/>and<sp/>**2×<sp/>over<sp/>INT8**,<sp/>unlocking<sp/>higher<sp/>tokens/s<sp/>on<sp/>bandwidth‑limited<sp/>hardware<sp/>with<sp/>minimal<sp/>additional<sp/>complexity.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Consequences</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Slight<sp/>accuracy<sp/>loss<sp/>bounded<sp/>by<sp/>the<sp/>calibration<sp/>gate.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Simplified<sp/>runtime:<sp/>no<sp/>activation<sp/>quantization;<sp/>scales<sp/>live<sp/>with<sp/>the<sp/>packed<sp/>weights<sp/>and<sp/>are<sp/>broadcast<sp/>during<sp/>compute.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Uniform<sp/>harness<sp/>&amp;<sp/>docs:<sp/>packing<sp/>is<sp/>explicit<sp/>and<sp/>reproducible<sp/>via<sp/>scripts<sp/>and<sp/>environment<sp/>flags.</highlight></codeline>
+<codeline></codeline>
+    </programlisting>
+    <location file="docs/adr-00060-optimization-path.md"/>
+  </compounddef>
+</doxygen>

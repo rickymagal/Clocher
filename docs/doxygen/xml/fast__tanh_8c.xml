@@ -1,0 +1,326 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="fast__tanh_8c" kind="file" language="C++">
+    <compoundname>fast_tanh.c</compoundname>
+    <includes refid="ie__math_8h" local="yes">ie_math.h</includes>
+    <includes local="no">math.h</includes>
+    <includes local="no">stddef.h</includes>
+    <incdepgraph>
+      <node id="2">
+        <label>ie_math.h</label>
+        <link refid="ie__math_8h"/>
+        <childnode refid="3" relation="include">
+        </childnode>
+      </node>
+      <node id="1">
+        <label>engine/src/math/fast_tanh.c</label>
+        <link refid="fast__tanh_8c"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="4" relation="include">
+        </childnode>
+        <childnode refid="3" relation="include">
+        </childnode>
+      </node>
+      <node id="4">
+        <label>math.h</label>
+      </node>
+      <node id="3">
+        <label>stddef.h</label>
+      </node>
+    </incdepgraph>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="fast__tanh_8c_1a2b9a073aea2b6ff7450b2d0ee32765ae" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>float</type>
+        <definition>float ie_fast_tanhf</definition>
+        <argsstring>(float x)</argsstring>
+        <name>ie_fast_tanhf</name>
+        <param>
+          <type>float</type>
+          <declname>x</declname>
+        </param>
+        <briefdescription>
+<para>Fast approximation of hyperbolic tangent with hard clamping. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Fast approximation of hyperbolic tanh with strict [-1, 1] range.</para>
+<para>Fast scalar tanh approximation (used for fused bias+tanh paths).</para>
+<para>For large |x| we short-circuit to +/-1.0f. For moderate |x| we use a small rational function that gives a smooth S-curve: <verbatim>tanh(x) ≈ x * (27 + x^2) / (27 + 9 x^2)
+</verbatim></para>
+<para>Finally, the result is clamped to [-1, 1] to guarantee range correctness.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>x</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Input value. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Approximated tanh(x) in [-1.0f, 1.0f]. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/src/math/fast_tanh.c" line="28" column="7" bodyfile="engine/src/math/fast_tanh.c" bodystart="28" bodyend="43"/>
+        <referencedby refid="ie__kernels_8h_1a31b6c03fd5b95bdecb37f06821d3ce93" compoundref="fast__tanh_8c" startline="55" endline="69">ie_vec_tanh_f32</referencedby>
+        <referencedby refid="ie__math_8h_1a486b919a954eecb32bb323ee689b05df" compoundref="fast__tanh_8c" startline="78" endline="83">ie_vec_tanh_f32_out</referencedby>
+        <referencedby refid="ie__math_8h_1ab97182db75b928e1b82cf2b4a0d0690b" compoundref="fast__tanh_8c" startline="96" endline="103">ie_vec_tanh_f32_strided</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="fast__tanh_8c_1a31b6c03fd5b95bdecb37f06821d3ce93" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ie_vec_tanh_f32</definition>
+        <argsstring>(float *v, size_t n, int fast_tanh)</argsstring>
+        <name>ie_vec_tanh_f32</name>
+        <param>
+          <type>float *</type>
+          <declname>v</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>n</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>fast_tanh</declname>
+        </param>
+        <briefdescription>
+<para>In-place vector tanh on a contiguous array (legacy API). </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Vector tanh on float data (fp32).</para>
+<para>If <computeroutput>fast_tanh</computeroutput> != 0, uses <ref refid="ie__kernels_8h_1a2b9a073aea2b6ff7450b2d0ee32765ae" kindref="member">ie_fast_tanhf</ref>; otherwise uses libm <computeroutput>tanhf</computeroutput>. Output values are clamped to [-1, 1] in both modes to satisfy strict bounds.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>v</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Pointer to the vector (length <computeroutput>n</computeroutput>). Modified in-place. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>n</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of elements in <computeroutput>v</computeroutput>. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>fast_tanh</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Non-zero to use the fast approximation; 0 to use libm. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/src/math/fast_tanh.c" line="55" column="6" bodyfile="engine/src/math/fast_tanh.c" bodystart="55" bodyend="69"/>
+        <references refid="fast__tanh_8c_1a2b9a073aea2b6ff7450b2d0ee32765ae" compoundref="fast__tanh_8c" startline="28" endline="43">ie_fast_tanhf</references>
+        <referencedby refid="test__math_8c_1a840291bc02cba5474a4cb46a9b9566fe" compoundref="test__math_8c" startline="12" endline="33">main</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="fast__tanh_8c_1a486b919a954eecb32bb323ee689b05df" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ie_vec_tanh_f32_out</definition>
+        <argsstring>(const float *x, float *out, size_t n)</argsstring>
+        <name>ie_vec_tanh_f32_out</name>
+        <param>
+          <type>const float *</type>
+          <declname>x</declname>
+        </param>
+        <param>
+          <type>float *</type>
+          <declname>out</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>n</declname>
+        </param>
+        <briefdescription>
+<para>Out-of-place vector tanh on a contiguous array (fast approximation). </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Out-of-place vector tanh on a contiguous array.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>x</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Pointer to input array (length <computeroutput>n</computeroutput>). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>out</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Pointer to output array (length <computeroutput>n</computeroutput>). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>n</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of elements. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/src/math/fast_tanh.c" line="78" column="6" bodyfile="engine/src/math/fast_tanh.c" bodystart="78" bodyend="83"/>
+        <references refid="fast__tanh_8c_1a2b9a073aea2b6ff7450b2d0ee32765ae" compoundref="fast__tanh_8c" startline="28" endline="43">ie_fast_tanhf</references>
+      </memberdef>
+      <memberdef kind="function" id="fast__tanh_8c_1ab97182db75b928e1b82cf2b4a0d0690b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ie_vec_tanh_f32_strided</definition>
+        <argsstring>(const float *x, size_t x_stride, float *out, size_t out_stride, size_t n)</argsstring>
+        <name>ie_vec_tanh_f32_strided</name>
+        <param>
+          <type>const float *</type>
+          <declname>x</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>x_stride</declname>
+        </param>
+        <param>
+          <type>float *</type>
+          <declname>out</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>out_stride</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>n</declname>
+        </param>
+        <briefdescription>
+<para>Out-of-place vector tanh on strided arrays (fast approximation). </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Out-of-place vector tanh on strided arrays.</para>
+<para>Computes for i in [0, n): out[i*out_stride] = tanh(x[i*x_stride]).</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>x</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Pointer to input array. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>x_stride</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Stride (in elements) between consecutive inputs. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>out</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Pointer to output array. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>out_stride</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Stride (in elements) between consecutive outputs. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>n</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of elements to process. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/src/math/fast_tanh.c" line="96" column="6" bodyfile="engine/src/math/fast_tanh.c" bodystart="96" bodyend="103"/>
+        <references refid="fast__tanh_8c_1a2b9a073aea2b6ff7450b2d0ee32765ae" compoundref="fast__tanh_8c" startline="28" endline="43">ie_fast_tanhf</references>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para>Fast tanh approximation (scalar and vector forms) with strict [-1, 1] clamping. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>The scalar uses a cheap rational approximation for moderate |x| and early saturation for large |x|. Vector helpers call the scalar per element to keep the implementation simple and portable; SIMD paths can be added later. </para>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="normal"></highlight></codeline>
+<codeline lineno="9"><highlight class="normal"></highlight></codeline>
+<codeline lineno="10"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;<ref refid="ie__math_8h" kindref="compound">ie_math.h</ref>&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="11"><highlight class="normal"></highlight></codeline>
+<codeline lineno="12"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;math.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="13"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stddef.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="14"><highlight class="normal"></highlight></codeline>
+<codeline lineno="28" refid="ie__kernels_8h_1a2b9a073aea2b6ff7450b2d0ee32765ae" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/><ref refid="fast__tanh_8c_1a2b9a073aea2b6ff7450b2d0ee32765ae" kindref="member">ie_fast_tanhf</ref>(</highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>x)<sp/>{</highlight></codeline>
+<codeline lineno="29"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">/*<sp/>Early<sp/>clamp<sp/>for<sp/>large<sp/>magnitude<sp/>to<sp/>avoid<sp/>overflow<sp/>and<sp/>extra<sp/>work.<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="30"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(x<sp/>&gt;<sp/>5.0f)<sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>1.0f;</highlight></codeline>
+<codeline lineno="31"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(x<sp/>&lt;<sp/>-5.0f)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>-1.0f;</highlight></codeline>
+<codeline lineno="32"><highlight class="normal"></highlight></codeline>
+<codeline lineno="33"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">/*<sp/>Rational<sp/>approximation<sp/>(cheap<sp/>and<sp/>monotonic<sp/>on<sp/>[-3,3])<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="34"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>x2<sp/><sp/>=<sp/>x<sp/>*<sp/>x;</highlight></codeline>
+<codeline lineno="35"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>num<sp/>=<sp/>x<sp/>*<sp/>(27.0f<sp/>+<sp/>x2);</highlight></codeline>
+<codeline lineno="36"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>den<sp/>=<sp/>27.0f<sp/>+<sp/>9.0f<sp/>*<sp/>x2;</highlight></codeline>
+<codeline lineno="37"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>y<sp/>=<sp/>num<sp/>/<sp/>den;</highlight></codeline>
+<codeline lineno="38"><highlight class="normal"></highlight></codeline>
+<codeline lineno="39"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">/*<sp/>Safety<sp/>clamp<sp/>for<sp/>strict<sp/>range<sp/>compliance.<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="40"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(y<sp/>&gt;<sp/>1.0f)<sp/><sp/>y<sp/>=<sp/>1.0f;</highlight></codeline>
+<codeline lineno="41"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(y<sp/>&lt;<sp/>-1.0f)<sp/>y<sp/>=<sp/>-1.0f;</highlight></codeline>
+<codeline lineno="42"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>y;</highlight></codeline>
+<codeline lineno="43"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="44"><highlight class="normal"></highlight></codeline>
+<codeline lineno="55" refid="ie__kernels_8h_1a31b6c03fd5b95bdecb37f06821d3ce93" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="fast__tanh_8c_1a31b6c03fd5b95bdecb37f06821d3ce93" kindref="member">ie_vec_tanh_f32</ref>(</highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*v,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>n,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>fast_tanh)<sp/>{</highlight></codeline>
+<codeline lineno="56"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!v<sp/>||<sp/>n<sp/>==<sp/>0)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="57"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(fast_tanh)<sp/>{</highlight></codeline>
+<codeline lineno="58"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>i<sp/>=<sp/>0;<sp/>i<sp/>&lt;<sp/>n;<sp/>++i)<sp/>{</highlight></codeline>
+<codeline lineno="59"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>v[i]<sp/>=<sp/><ref refid="fast__tanh_8c_1a2b9a073aea2b6ff7450b2d0ee32765ae" kindref="member">ie_fast_tanhf</ref>(v[i]);</highlight></codeline>
+<codeline lineno="60"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="61"><highlight class="normal"><sp/><sp/>}<sp/></highlight><highlight class="keywordflow">else</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="62"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>i<sp/>=<sp/>0;<sp/>i<sp/>&lt;<sp/>n;<sp/>++i)<sp/>{</highlight></codeline>
+<codeline lineno="63"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>y<sp/>=<sp/>tanhf(v[i]);</highlight></codeline>
+<codeline lineno="64"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(y<sp/>&gt;<sp/>1.0f)<sp/><sp/>y<sp/>=<sp/>1.0f;</highlight></codeline>
+<codeline lineno="65"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(y<sp/>&lt;<sp/>-1.0f)<sp/>y<sp/>=<sp/>-1.0f;</highlight></codeline>
+<codeline lineno="66"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>v[i]<sp/>=<sp/>y;</highlight></codeline>
+<codeline lineno="67"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="68"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="69"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="70"><highlight class="normal"></highlight></codeline>
+<codeline lineno="78" refid="ie__math_8h_1a486b919a954eecb32bb323ee689b05df" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="fast__tanh_8c_1a486b919a954eecb32bb323ee689b05df" kindref="member">ie_vec_tanh_f32_out</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*x,<sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*out,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>n)<sp/>{</highlight></codeline>
+<codeline lineno="79"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!x<sp/>||<sp/>!out<sp/>||<sp/>n<sp/>==<sp/>0)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="80"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>i<sp/>=<sp/>0;<sp/>i<sp/>&lt;<sp/>n;<sp/>++i)<sp/>{</highlight></codeline>
+<codeline lineno="81"><highlight class="normal"><sp/><sp/><sp/><sp/>out[i]<sp/>=<sp/><ref refid="fast__tanh_8c_1a2b9a073aea2b6ff7450b2d0ee32765ae" kindref="member">ie_fast_tanhf</ref>(x[i]);</highlight></codeline>
+<codeline lineno="82"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="83"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="84"><highlight class="normal"></highlight></codeline>
+<codeline lineno="96" refid="ie__math_8h_1ab97182db75b928e1b82cf2b4a0d0690b" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="fast__tanh_8c_1ab97182db75b928e1b82cf2b4a0d0690b" kindref="member">ie_vec_tanh_f32_strided</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*x,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>x_stride,</highlight></codeline>
+<codeline lineno="97"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*out,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>out_stride,</highlight></codeline>
+<codeline lineno="98"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>n)<sp/>{</highlight></codeline>
+<codeline lineno="99"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!x<sp/>||<sp/>!out<sp/>||<sp/>n<sp/>==<sp/>0)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="100"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>i<sp/>=<sp/>0;<sp/>i<sp/>&lt;<sp/>n;<sp/>++i)<sp/>{</highlight></codeline>
+<codeline lineno="101"><highlight class="normal"><sp/><sp/><sp/><sp/>out[i<sp/>*<sp/>out_stride]<sp/>=<sp/><ref refid="fast__tanh_8c_1a2b9a073aea2b6ff7450b2d0ee32765ae" kindref="member">ie_fast_tanhf</ref>(x[i<sp/>*<sp/>x_stride]);</highlight></codeline>
+<codeline lineno="102"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="103"><highlight class="normal">}</highlight></codeline>
+    </programlisting>
+    <location file="engine/src/math/fast_tanh.c"/>
+  </compounddef>
+</doxygen>

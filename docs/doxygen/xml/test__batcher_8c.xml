@@ -1,0 +1,361 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="test__batcher_8c" kind="file" language="C++">
+    <compoundname>test_batcher.c</compoundname>
+    <includes refid="ie__batcher_8h" local="yes">ie_batcher.h</includes>
+    <includes local="no">assert.h</includes>
+    <includes local="no">pthread.h</includes>
+    <includes local="no">stdio.h</includes>
+    <includes local="no">stdlib.h</includes>
+    <includes local="no">string.h</includes>
+    <incdepgraph>
+      <node id="2">
+        <label>ie_batcher.h</label>
+        <link refid="ie__batcher_8h"/>
+        <childnode refid="3" relation="include">
+        </childnode>
+        <childnode refid="4" relation="include">
+        </childnode>
+      </node>
+      <node id="1">
+        <label>tests/c/test_batcher.c</label>
+        <link refid="test__batcher_8c"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="5" relation="include">
+        </childnode>
+        <childnode refid="6" relation="include">
+        </childnode>
+        <childnode refid="7" relation="include">
+        </childnode>
+        <childnode refid="8" relation="include">
+        </childnode>
+        <childnode refid="9" relation="include">
+        </childnode>
+      </node>
+      <node id="5">
+        <label>assert.h</label>
+      </node>
+      <node id="6">
+        <label>pthread.h</label>
+      </node>
+      <node id="3">
+        <label>stddef.h</label>
+      </node>
+      <node id="4">
+        <label>stdint.h</label>
+      </node>
+      <node id="7">
+        <label>stdio.h</label>
+      </node>
+      <node id="8">
+        <label>stdlib.h</label>
+      </node>
+      <node id="9">
+        <label>string.h</label>
+      </node>
+    </incdepgraph>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="test__batcher_8c_1a4818ddbc1b516bbe63d2a991a2b1b4bd" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>static int test_tokenize_cb</definition>
+        <argsstring>(const char *prompt, uint32_t **out_ids, size_t *out_n, void *user_ctx)</argsstring>
+        <name>test_tokenize_cb</name>
+        <param>
+          <type>const char *</type>
+          <declname>prompt</declname>
+        </param>
+        <param>
+          <type>uint32_t **</type>
+          <declname>out_ids</declname>
+        </param>
+        <param>
+          <type>size_t *</type>
+          <declname>out_n</declname>
+        </param>
+        <param>
+          <type>void *</type>
+          <declname>user_ctx</declname>
+        </param>
+        <briefdescription>
+<para>Deterministic tokenizer used for testing. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Produces ids = { len(prompt), sum(bytes)%2048 }. Allocates <computeroutput>*out_ids</computeroutput> with malloc; caller (batcher) takes ownership.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>prompt</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Zero-terminated input string. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>out_ids</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Output pointer receiving malloc&apos;ed uint32 array. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>out_n</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Output count (number of tokens). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>user_ctx</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Opaque pointer (unused). </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>int 0 on success. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="tests/c/test_batcher.c" line="35" column="12" bodyfile="tests/c/test_batcher.c" bodystart="35" bodyend="47"/>
+        <referencedby refid="test__batcher_8c_1a840a5fb06d03045c6f4e645ed682b7ad" compoundref="test__batcher_8c" startline="60" endline="98">test_basic_prefetch_and_order</referencedby>
+        <referencedby refid="test__batcher_8c_1acebcf748df4676af1488302913dcc33e" compoundref="test__batcher_8c" startline="136" endline="151">test_partial_teardown</referencedby>
+        <referencedby refid="test__batcher_8c_1ae1015c7a7a149612ed323d43e7c93a0c" compoundref="test__batcher_8c" startline="105" endline="128">test_wrap_and_view_limits</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="test__batcher_8c_1a840a5fb06d03045c6f4e645ed682b7ad" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>static void test_basic_prefetch_and_order</definition>
+        <argsstring>(void)</argsstring>
+        <name>test_basic_prefetch_and_order</name>
+        <param>
+          <type>void</type>
+        </param>
+        <briefdescription>
+<para>Validate basic prefetch, ordering, microbatch slicing and draining. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Steps: 1) Create batcher with 10 prompts, microbatch=3, ring=5, workers=2. 2) Repeatedly call get/advance until done. 3) Check that prompts order matches outputs&apos; implicit prompt order. 4) Check that each item received 2 tokens and status==0. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="tests/c/test_batcher.c" line="60" column="13" bodyfile="tests/c/test_batcher.c" bodystart="60" bodyend="98"/>
+        <references refid="structie__batcher__view_1a2efe82b85f967469f6f22777eb739f2d" compoundref="ie__batcher_8h" startline="43">ie_batcher_view::count</references>
+        <references refid="structie__batcher__view_1acc236db8ff60ecd7bf003b5e3c2f29e8" compoundref="ie__batcher_8h" startline="44">ie_batcher_view::done</references>
+        <references refid="structie__batcher__item__t_1a3e5c291bf7f461870e8f25d1834ef408" compoundref="ie__batcher_8h" startline="30">ie_batcher_item_t::ids</references>
+        <references refid="ie__batcher_8h_1a32c4149e9889f52a2eb339131ecc38dc" compoundref="ie__batcher_8c" startline="250" endline="265">ie_batcher_advance</references>
+        <references refid="ie__batcher_8h_1ab201d312c4f0fa59e31e99e221bd71f6" compoundref="ie__batcher_8c" startline="171" endline="215">ie_batcher_create</references>
+        <references refid="ie__batcher_8h_1a606dcb56c138607d9b0d77948d8b48b9" compoundref="ie__batcher_8c" startline="267" endline="290">ie_batcher_destroy</references>
+        <references refid="ie__batcher_8h_1a6dfb3b0fad4a7c1271d86da06649236f" compoundref="ie__batcher_8c" startline="217" endline="248">ie_batcher_get</references>
+        <references refid="structie__batcher__view_1a209b9ec614bb4622c1bb58e2e3a9e979" compoundref="ie__batcher_8h" startline="42">ie_batcher_view::items</references>
+        <references refid="structie__batcher__item__t_1a6fa5aa6d85ddca6b90125464f1332626" compoundref="ie__batcher_8h" startline="31">ie_batcher_item_t::n_ids</references>
+        <references refid="structie__batcher__item__t_1a29bbd077e2e4a2c0e8fad18a2a8ae7cd" compoundref="ie__batcher_8h" startline="29">ie_batcher_item_t::prompt</references>
+        <references refid="structie__batcher__item__t_1a0415c395810297f906e8a6757d9ad425" compoundref="ie__batcher_8h" startline="32">ie_batcher_item_t::status</references>
+        <references refid="test__batcher_8c_1a4818ddbc1b516bbe63d2a991a2b1b4bd" compoundref="test__batcher_8c" startline="35" endline="47">test_tokenize_cb</references>
+        <referencedby refid="test__batcher_8c_1a840291bc02cba5474a4cb46a9b9566fe" compoundref="test__batcher_8c" startline="153" endline="158">main</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="test__batcher_8c_1ae1015c7a7a149612ed323d43e7c93a0c" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>static void test_wrap_and_view_limits</definition>
+        <argsstring>(void)</argsstring>
+        <name>test_wrap_and_view_limits</name>
+        <param>
+          <type>void</type>
+        </param>
+        <briefdescription>
+<para>Validate ring wrap behavior (tail truncation) and view sizes. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Uses small ring and microbatch to force wrap-around at least once. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="tests/c/test_batcher.c" line="105" column="13" bodyfile="tests/c/test_batcher.c" bodystart="105" bodyend="128"/>
+        <references refid="structie__batcher__view_1a2efe82b85f967469f6f22777eb739f2d" compoundref="ie__batcher_8h" startline="43">ie_batcher_view::count</references>
+        <references refid="structie__batcher__view_1acc236db8ff60ecd7bf003b5e3c2f29e8" compoundref="ie__batcher_8h" startline="44">ie_batcher_view::done</references>
+        <references refid="ie__batcher_8h_1a32c4149e9889f52a2eb339131ecc38dc" compoundref="ie__batcher_8c" startline="250" endline="265">ie_batcher_advance</references>
+        <references refid="ie__batcher_8h_1ab201d312c4f0fa59e31e99e221bd71f6" compoundref="ie__batcher_8c" startline="171" endline="215">ie_batcher_create</references>
+        <references refid="ie__batcher_8h_1a606dcb56c138607d9b0d77948d8b48b9" compoundref="ie__batcher_8c" startline="267" endline="290">ie_batcher_destroy</references>
+        <references refid="ie__batcher_8h_1a6dfb3b0fad4a7c1271d86da06649236f" compoundref="ie__batcher_8c" startline="217" endline="248">ie_batcher_get</references>
+        <references refid="test__batcher_8c_1a4818ddbc1b516bbe63d2a991a2b1b4bd" compoundref="test__batcher_8c" startline="35" endline="47">test_tokenize_cb</references>
+        <referencedby refid="test__batcher_8c_1a840291bc02cba5474a4cb46a9b9566fe" compoundref="test__batcher_8c" startline="153" endline="158">main</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="test__batcher_8c_1acebcf748df4676af1488302913dcc33e" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>static void test_partial_teardown</definition>
+        <argsstring>(void)</argsstring>
+        <name>test_partial_teardown</name>
+        <param>
+          <type>void</type>
+        </param>
+        <briefdescription>
+<para>Validate graceful teardown: destroy after partial consumption. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Requests one view then destroys without advancing further; ensures no crashes and no double-free scenarios. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="tests/c/test_batcher.c" line="136" column="13" bodyfile="tests/c/test_batcher.c" bodystart="136" bodyend="151"/>
+        <references refid="structie__batcher__view_1a2efe82b85f967469f6f22777eb739f2d" compoundref="ie__batcher_8h" startline="43">ie_batcher_view::count</references>
+        <references refid="ie__batcher_8h_1ab201d312c4f0fa59e31e99e221bd71f6" compoundref="ie__batcher_8c" startline="171" endline="215">ie_batcher_create</references>
+        <references refid="ie__batcher_8h_1a606dcb56c138607d9b0d77948d8b48b9" compoundref="ie__batcher_8c" startline="267" endline="290">ie_batcher_destroy</references>
+        <references refid="ie__batcher_8h_1a6dfb3b0fad4a7c1271d86da06649236f" compoundref="ie__batcher_8c" startline="217" endline="248">ie_batcher_get</references>
+        <references refid="test__batcher_8c_1a4818ddbc1b516bbe63d2a991a2b1b4bd" compoundref="test__batcher_8c" startline="35" endline="47">test_tokenize_cb</references>
+        <referencedby refid="test__batcher_8c_1a840291bc02cba5474a4cb46a9b9566fe" compoundref="test__batcher_8c" startline="153" endline="158">main</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="test__batcher_8c_1a840291bc02cba5474a4cb46a9b9566fe" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int main</definition>
+        <argsstring>(void)</argsstring>
+        <name>main</name>
+        <param>
+          <type>void</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="tests/c/test_batcher.c" line="153" column="5" bodyfile="tests/c/test_batcher.c" bodystart="153" bodyend="158"/>
+        <references refid="test__batcher_8c_1a840a5fb06d03045c6f4e645ed682b7ad" compoundref="test__batcher_8c" startline="60" endline="98">test_basic_prefetch_and_order</references>
+        <references refid="test__batcher_8c_1acebcf748df4676af1488302913dcc33e" compoundref="test__batcher_8c" startline="136" endline="151">test_partial_teardown</references>
+        <references refid="test__batcher_8c_1ae1015c7a7a149612ed323d43e7c93a0c" compoundref="test__batcher_8c" startline="105" endline="128">test_wrap_and_view_limits</references>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para>Unit tests for <ref refid="structie__batcher" kindref="compound">ie_batcher</ref> (async prefetch + microbatching). </para>
+    </briefdescription>
+    <detaileddescription>
+<para>This test uses a deterministic tokenizer that maps each prompt to a short, synthetic token sequence; then it validates:<itemizedlist>
+<listitem><para>Production/consumption completes (done flag).</para>
+</listitem><listitem><para>Microbatch view respects capacity and ring tail.</para>
+</listitem><listitem><para>Items are in the same order as input prompts.</para>
+</listitem><listitem><para>Payload ownership lifecycle is correct (no double frees / leaks). </para>
+</listitem></itemizedlist>
+</para>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="comment">/*<sp/>tests/c/test_batcher.c<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="13"><highlight class="normal"></highlight></codeline>
+<codeline lineno="14"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;<ref refid="ie__batcher_8h" kindref="compound">ie_batcher.h</ref>&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="15"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;assert.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="16"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;pthread.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="17"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stdio.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="18"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stdlib.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="19"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;string.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="20"><highlight class="normal"></highlight></codeline>
+<codeline lineno="21"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>----------<sp/>deterministic<sp/>&quot;tokenizer&quot;<sp/>callback<sp/>----------<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="22"><highlight class="normal"></highlight></codeline>
+<codeline lineno="35" refid="test__batcher_8c_1a4818ddbc1b516bbe63d2a991a2b1b4bd" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="test__batcher_8c_1a4818ddbc1b516bbe63d2a991a2b1b4bd" kindref="member">test_tokenize_cb</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*prompt,<sp/>uint32_t<sp/>**out_ids,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>*out_n,<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*user_ctx)<sp/>{</highlight></codeline>
+<codeline lineno="36"><highlight class="normal"><sp/><sp/>(void)user_ctx;</highlight></codeline>
+<codeline lineno="37"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>L<sp/>=<sp/>strlen(prompt);</highlight></codeline>
+<codeline lineno="38"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">unsigned</highlight><highlight class="normal"><sp/>sum<sp/>=<sp/>0;</highlight></codeline>
+<codeline lineno="39"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>i<sp/>=<sp/>0;<sp/>i<sp/>&lt;<sp/>L;<sp/>++i)<sp/>sum<sp/>+=<sp/>(</highlight><highlight class="keywordtype">unsigned</highlight><highlight class="normal">)(</highlight><highlight class="keywordtype">unsigned</highlight><highlight class="normal"><sp/>char)prompt[i];</highlight></codeline>
+<codeline lineno="40"><highlight class="normal"></highlight></codeline>
+<codeline lineno="41"><highlight class="normal"><sp/><sp/>*out_n<sp/>=<sp/>2;</highlight></codeline>
+<codeline lineno="42"><highlight class="normal"><sp/><sp/>*out_ids<sp/>=<sp/>(uint32_t*)malloc(</highlight><highlight class="keyword">sizeof</highlight><highlight class="normal">(uint32_t)<sp/>*<sp/>(*out_n));</highlight></codeline>
+<codeline lineno="43"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!*out_ids)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>-12;</highlight></codeline>
+<codeline lineno="44"><highlight class="normal"><sp/><sp/>(*out_ids)[0]<sp/>=<sp/>(uint32_t)L;</highlight></codeline>
+<codeline lineno="45"><highlight class="normal"><sp/><sp/>(*out_ids)[1]<sp/>=<sp/>(uint32_t)(sum<sp/>%<sp/>2048u);</highlight></codeline>
+<codeline lineno="46"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>0;</highlight></codeline>
+<codeline lineno="47"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="48"><highlight class="normal"></highlight></codeline>
+<codeline lineno="49"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>-----------------------------<sp/>tests<sp/>-----------------------------<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="50"><highlight class="normal"></highlight></codeline>
+<codeline lineno="60" refid="test__batcher_8c_1a840a5fb06d03045c6f4e645ed682b7ad" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="test__batcher_8c_1a840a5fb06d03045c6f4e645ed682b7ad" kindref="member">test_basic_prefetch_and_order</ref>(</highlight><highlight class="keywordtype">void</highlight><highlight class="normal">)<sp/>{</highlight></codeline>
+<codeline lineno="61"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*prompts[10]<sp/>=<sp/>{</highlight></codeline>
+<codeline lineno="62"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;alpha&quot;</highlight><highlight class="normal">,<sp/></highlight><highlight class="stringliteral">&quot;beta&quot;</highlight><highlight class="normal">,<sp/></highlight><highlight class="stringliteral">&quot;gamma&quot;</highlight><highlight class="normal">,<sp/></highlight><highlight class="stringliteral">&quot;delta&quot;</highlight><highlight class="normal">,<sp/></highlight><highlight class="stringliteral">&quot;epsilon&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="63"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;zeta&quot;</highlight><highlight class="normal">,<sp/></highlight><highlight class="stringliteral">&quot;eta&quot;</highlight><highlight class="normal">,<sp/></highlight><highlight class="stringliteral">&quot;theta&quot;</highlight><highlight class="normal">,<sp/></highlight><highlight class="stringliteral">&quot;iota&quot;</highlight><highlight class="normal">,<sp/></highlight><highlight class="stringliteral">&quot;kappa&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="64"><highlight class="normal"><sp/><sp/>};</highlight></codeline>
+<codeline lineno="65"><highlight class="normal"></highlight></codeline>
+<codeline lineno="66"><highlight class="normal"><sp/><sp/><ref refid="ie__batcher_8h_1a23fde82b750e5e9b50ab7007f35cf042" kindref="member">ie_batcher_t</ref><sp/>*b<sp/>=<sp/><ref refid="ie__batcher_8h_1ab201d312c4f0fa59e31e99e221bd71f6" kindref="member">ie_batcher_create</ref>(</highlight></codeline>
+<codeline lineno="67"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>prompts,<sp/>10,<sp/></highlight><highlight class="comment">/*microbatch=*/</highlight><highlight class="normal">3,<sp/></highlight><highlight class="comment">/*queue_capacity=*/</highlight><highlight class="normal">5,</highlight></codeline>
+<codeline lineno="68"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">/*n_workers=*/</highlight><highlight class="normal">2,<sp/><ref refid="test__batcher_8c_1a4818ddbc1b516bbe63d2a991a2b1b4bd" kindref="member">test_tokenize_cb</ref>,<sp/></highlight><highlight class="comment">/*user_ctx=*/</highlight><highlight class="normal">NULL);</highlight></codeline>
+<codeline lineno="69"><highlight class="normal"><sp/><sp/>assert(b<sp/>&amp;&amp;<sp/></highlight><highlight class="stringliteral">&quot;batcher<sp/>create&quot;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="70"><highlight class="normal"></highlight></codeline>
+<codeline lineno="71"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>seen<sp/>=<sp/>0;</highlight></codeline>
+<codeline lineno="72"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(;;)<sp/>{</highlight></codeline>
+<codeline lineno="73"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="ie__batcher_8h_1a95ad6e20e6851edda314f06421b90b0f" kindref="member">ie_batcher_view_t</ref><sp/>v;</highlight></codeline>
+<codeline lineno="74"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>ok<sp/>=<sp/><ref refid="ie__batcher_8h_1a6dfb3b0fad4a7c1271d86da06649236f" kindref="member">ie_batcher_get</ref>(b,<sp/>&amp;v);</highlight></codeline>
+<codeline lineno="75"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!ok)<sp/>{</highlight></codeline>
+<codeline lineno="76"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">/*<sp/>drained:<sp/>ensure<sp/>flag<sp/>set<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="77"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>assert(v.<ref refid="structie__batcher__view_1acc236db8ff60ecd7bf003b5e3c2f29e8" kindref="member">done</ref><sp/>==<sp/>1);</highlight></codeline>
+<codeline lineno="78"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">break</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="79"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="80"><highlight class="normal"><sp/><sp/><sp/><sp/>assert(v.<ref refid="structie__batcher__view_1a2efe82b85f967469f6f22777eb739f2d" kindref="member">count</ref><sp/>&gt;=<sp/>1<sp/>&amp;&amp;<sp/>v.<ref refid="structie__batcher__view_1a2efe82b85f967469f6f22777eb739f2d" kindref="member">count</ref><sp/>&lt;=<sp/>3);</highlight></codeline>
+<codeline lineno="81"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>i<sp/>=<sp/>0;<sp/>i<sp/>&lt;<sp/>v.<ref refid="structie__batcher__view_1a2efe82b85f967469f6f22777eb739f2d" kindref="member">count</ref>;<sp/>++i)<sp/>{</highlight></codeline>
+<codeline lineno="82"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="structie__batcher__item__t" kindref="compound">ie_batcher_item_t</ref><sp/>*it<sp/>=<sp/>&amp;v.<ref refid="structie__batcher__view_1a209b9ec614bb4622c1bb58e2e3a9e979" kindref="member">items</ref>[i];</highlight></codeline>
+<codeline lineno="83"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>assert(it-&gt;<ref refid="structie__batcher__item__t_1a29bbd077e2e4a2c0e8fad18a2a8ae7cd" kindref="member">prompt</ref><sp/>==<sp/>prompts[seen]<sp/>&amp;&amp;<sp/></highlight><highlight class="stringliteral">&quot;preserve<sp/>input<sp/>order&quot;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="84"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>assert(it-&gt;<ref refid="structie__batcher__item__t_1a0415c395810297f906e8a6757d9ad425" kindref="member">status</ref><sp/>==<sp/>0);</highlight></codeline>
+<codeline lineno="85"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>assert(it-&gt;<ref refid="structie__batcher__item__t_1a3e5c291bf7f461870e8f25d1834ef408" kindref="member">ids</ref><sp/>&amp;&amp;<sp/>it-&gt;<ref refid="structie__batcher__item__t_1a6fa5aa6d85ddca6b90125464f1332626" kindref="member">n_ids</ref><sp/>==<sp/>2);</highlight></codeline>
+<codeline lineno="86"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">/*<sp/>quick<sp/>content<sp/>check<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="87"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>L<sp/>=<sp/>strlen(prompts[seen]);</highlight></codeline>
+<codeline lineno="88"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>assert(it-&gt;<ref refid="structie__batcher__item__t_1a3e5c291bf7f461870e8f25d1834ef408" kindref="member">ids</ref>[0]<sp/>==<sp/>(uint32_t)L);</highlight></codeline>
+<codeline lineno="89"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">/*<sp/>ids[1]<sp/>tested<sp/>indirectly<sp/>by<sp/>tokenizer<sp/>shape<sp/>only<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="90"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>++seen;</highlight></codeline>
+<codeline lineno="91"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="92"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="ie__batcher_8h_1a32c4149e9889f52a2eb339131ecc38dc" kindref="member">ie_batcher_advance</ref>(b,<sp/>v.<ref refid="structie__batcher__view_1a2efe82b85f967469f6f22777eb739f2d" kindref="member">count</ref>);</highlight></codeline>
+<codeline lineno="93"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="94"><highlight class="normal"></highlight></codeline>
+<codeline lineno="95"><highlight class="normal"><sp/><sp/>assert(seen<sp/>==<sp/>10);</highlight></codeline>
+<codeline lineno="96"><highlight class="normal"><sp/><sp/><ref refid="ie__batcher_8h_1a606dcb56c138607d9b0d77948d8b48b9" kindref="member">ie_batcher_destroy</ref>(b);</highlight></codeline>
+<codeline lineno="97"><highlight class="normal"><sp/><sp/>printf(</highlight><highlight class="stringliteral">&quot;ok<sp/>test_basic_prefetch_and_order\n&quot;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="98"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="99"><highlight class="normal"></highlight></codeline>
+<codeline lineno="105" refid="test__batcher_8c_1ae1015c7a7a149612ed323d43e7c93a0c" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="test__batcher_8c_1ae1015c7a7a149612ed323d43e7c93a0c" kindref="member">test_wrap_and_view_limits</ref>(</highlight><highlight class="keywordtype">void</highlight><highlight class="normal">)<sp/>{</highlight></codeline>
+<codeline lineno="106"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*prompts[7]<sp/>=<sp/>{</highlight><highlight class="stringliteral">&quot;a&quot;</highlight><highlight class="normal">,</highlight><highlight class="stringliteral">&quot;b&quot;</highlight><highlight class="normal">,</highlight><highlight class="stringliteral">&quot;c&quot;</highlight><highlight class="normal">,</highlight><highlight class="stringliteral">&quot;d&quot;</highlight><highlight class="normal">,</highlight><highlight class="stringliteral">&quot;e&quot;</highlight><highlight class="normal">,</highlight><highlight class="stringliteral">&quot;f&quot;</highlight><highlight class="normal">,</highlight><highlight class="stringliteral">&quot;g&quot;</highlight><highlight class="normal">};</highlight></codeline>
+<codeline lineno="107"><highlight class="normal"><sp/><sp/><ref refid="ie__batcher_8h_1a23fde82b750e5e9b50ab7007f35cf042" kindref="member">ie_batcher_t</ref><sp/>*b<sp/>=<sp/><ref refid="ie__batcher_8h_1ab201d312c4f0fa59e31e99e221bd71f6" kindref="member">ie_batcher_create</ref>(</highlight></codeline>
+<codeline lineno="108"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>prompts,<sp/>7,<sp/></highlight><highlight class="comment">/*microbatch=*/</highlight><highlight class="normal">4,<sp/></highlight><highlight class="comment">/*queue_capacity=*/</highlight><highlight class="normal">4,</highlight></codeline>
+<codeline lineno="109"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">/*n_workers=*/</highlight><highlight class="normal">2,<sp/><ref refid="test__batcher_8c_1a4818ddbc1b516bbe63d2a991a2b1b4bd" kindref="member">test_tokenize_cb</ref>,<sp/>NULL);</highlight></codeline>
+<codeline lineno="110"><highlight class="normal"><sp/><sp/>assert(b);</highlight></codeline>
+<codeline lineno="111"><highlight class="normal"></highlight></codeline>
+<codeline lineno="112"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>total<sp/>=<sp/>0;</highlight></codeline>
+<codeline lineno="113"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>iterations<sp/>=<sp/>0;</highlight></codeline>
+<codeline lineno="114"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(;;)<sp/>{</highlight></codeline>
+<codeline lineno="115"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="ie__batcher_8h_1a95ad6e20e6851edda314f06421b90b0f" kindref="member">ie_batcher_view_t</ref><sp/>v;</highlight></codeline>
+<codeline lineno="116"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>ok<sp/>=<sp/><ref refid="ie__batcher_8h_1a6dfb3b0fad4a7c1271d86da06649236f" kindref="member">ie_batcher_get</ref>(b,<sp/>&amp;v);</highlight></codeline>
+<codeline lineno="117"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!ok)<sp/>{<sp/>assert(v.<ref refid="structie__batcher__view_1acc236db8ff60ecd7bf003b5e3c2f29e8" kindref="member">done</ref><sp/>==<sp/>1);<sp/></highlight><highlight class="keywordflow">break</highlight><highlight class="normal">;<sp/>}</highlight></codeline>
+<codeline lineno="118"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">/*<sp/>With<sp/>cap=4,<sp/>view.count<sp/>cannot<sp/>exceed<sp/>4,<sp/>but<sp/>also<sp/>cannot<sp/>exceed<sp/>the<sp/>ring<sp/>tail.<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="119"><highlight class="normal"><sp/><sp/><sp/><sp/>assert(v.<ref refid="structie__batcher__view_1a2efe82b85f967469f6f22777eb739f2d" kindref="member">count</ref><sp/>&gt;=<sp/>1<sp/>&amp;&amp;<sp/>v.<ref refid="structie__batcher__view_1a2efe82b85f967469f6f22777eb739f2d" kindref="member">count</ref><sp/>&lt;=<sp/>4);</highlight></codeline>
+<codeline lineno="120"><highlight class="normal"><sp/><sp/><sp/><sp/>total<sp/>+=<sp/>v.<ref refid="structie__batcher__view_1a2efe82b85f967469f6f22777eb739f2d" kindref="member">count</ref>;</highlight></codeline>
+<codeline lineno="121"><highlight class="normal"><sp/><sp/><sp/><sp/>iterations++;</highlight></codeline>
+<codeline lineno="122"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="ie__batcher_8h_1a32c4149e9889f52a2eb339131ecc38dc" kindref="member">ie_batcher_advance</ref>(b,<sp/>v.<ref refid="structie__batcher__view_1a2efe82b85f967469f6f22777eb739f2d" kindref="member">count</ref>);</highlight></codeline>
+<codeline lineno="123"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="124"><highlight class="normal"><sp/><sp/>assert(total<sp/>==<sp/>7);</highlight></codeline>
+<codeline lineno="125"><highlight class="normal"><sp/><sp/>assert(iterations<sp/>&gt;=<sp/>2);<sp/></highlight><highlight class="comment">/*<sp/>should<sp/>have<sp/>needed<sp/>more<sp/>than<sp/>one<sp/>view<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="126"><highlight class="normal"><sp/><sp/><ref refid="ie__batcher_8h_1a606dcb56c138607d9b0d77948d8b48b9" kindref="member">ie_batcher_destroy</ref>(b);</highlight></codeline>
+<codeline lineno="127"><highlight class="normal"><sp/><sp/>printf(</highlight><highlight class="stringliteral">&quot;ok<sp/>test_wrap_and_view_limits\n&quot;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="128"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="129"><highlight class="normal"></highlight></codeline>
+<codeline lineno="136" refid="test__batcher_8c_1acebcf748df4676af1488302913dcc33e" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="test__batcher_8c_1acebcf748df4676af1488302913dcc33e" kindref="member">test_partial_teardown</ref>(</highlight><highlight class="keywordtype">void</highlight><highlight class="normal">)<sp/>{</highlight></codeline>
+<codeline lineno="137"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*prompts[4]<sp/>=<sp/>{</highlight><highlight class="stringliteral">&quot;p&quot;</highlight><highlight class="normal">,</highlight><highlight class="stringliteral">&quot;q&quot;</highlight><highlight class="normal">,</highlight><highlight class="stringliteral">&quot;r&quot;</highlight><highlight class="normal">,</highlight><highlight class="stringliteral">&quot;s&quot;</highlight><highlight class="normal">};</highlight></codeline>
+<codeline lineno="138"><highlight class="normal"><sp/><sp/><ref refid="ie__batcher_8h_1a23fde82b750e5e9b50ab7007f35cf042" kindref="member">ie_batcher_t</ref><sp/>*b<sp/>=<sp/><ref refid="ie__batcher_8h_1ab201d312c4f0fa59e31e99e221bd71f6" kindref="member">ie_batcher_create</ref>(</highlight></codeline>
+<codeline lineno="139"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>prompts,<sp/>4,<sp/></highlight><highlight class="comment">/*microbatch=*/</highlight><highlight class="normal">2,<sp/></highlight><highlight class="comment">/*queue_capacity=*/</highlight><highlight class="normal">2,</highlight></codeline>
+<codeline lineno="140"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">/*n_workers=*/</highlight><highlight class="normal">1,<sp/><ref refid="test__batcher_8c_1a4818ddbc1b516bbe63d2a991a2b1b4bd" kindref="member">test_tokenize_cb</ref>,<sp/>NULL);</highlight></codeline>
+<codeline lineno="141"><highlight class="normal"><sp/><sp/>assert(b);</highlight></codeline>
+<codeline lineno="142"><highlight class="normal"></highlight></codeline>
+<codeline lineno="143"><highlight class="normal"><sp/><sp/><ref refid="ie__batcher_8h_1a95ad6e20e6851edda314f06421b90b0f" kindref="member">ie_batcher_view_t</ref><sp/>v;</highlight></codeline>
+<codeline lineno="144"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>ok<sp/>=<sp/><ref refid="ie__batcher_8h_1a6dfb3b0fad4a7c1271d86da06649236f" kindref="member">ie_batcher_get</ref>(b,<sp/>&amp;v);</highlight></codeline>
+<codeline lineno="145"><highlight class="normal"><sp/><sp/>assert(ok<sp/>==<sp/>1);</highlight></codeline>
+<codeline lineno="146"><highlight class="normal"><sp/><sp/>assert(v.<ref refid="structie__batcher__view_1a2efe82b85f967469f6f22777eb739f2d" kindref="member">count</ref><sp/>&gt;=<sp/>1);</highlight></codeline>
+<codeline lineno="147"><highlight class="normal"></highlight></codeline>
+<codeline lineno="148"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">/*<sp/>Intentionally<sp/>skip<sp/>advance<sp/>and<sp/>destroy<sp/>to<sp/>force<sp/>internal<sp/>cleanup.<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="149"><highlight class="normal"><sp/><sp/><ref refid="ie__batcher_8h_1a606dcb56c138607d9b0d77948d8b48b9" kindref="member">ie_batcher_destroy</ref>(b);</highlight></codeline>
+<codeline lineno="150"><highlight class="normal"><sp/><sp/>printf(</highlight><highlight class="stringliteral">&quot;ok<sp/>test_partial_teardown\n&quot;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="151"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="152"><highlight class="normal"></highlight></codeline>
+<codeline lineno="153" refid="test__batcher_8c_1a840291bc02cba5474a4cb46a9b9566fe" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="test__batcher_8c_1a840291bc02cba5474a4cb46a9b9566fe" kindref="member">main</ref>(</highlight><highlight class="keywordtype">void</highlight><highlight class="normal">)<sp/>{</highlight></codeline>
+<codeline lineno="154"><highlight class="normal"><sp/><sp/><ref refid="test__batcher_8c_1a840a5fb06d03045c6f4e645ed682b7ad" kindref="member">test_basic_prefetch_and_order</ref>();</highlight></codeline>
+<codeline lineno="155"><highlight class="normal"><sp/><sp/><ref refid="test__batcher_8c_1ae1015c7a7a149612ed323d43e7c93a0c" kindref="member">test_wrap_and_view_limits</ref>();</highlight></codeline>
+<codeline lineno="156"><highlight class="normal"><sp/><sp/><ref refid="test__batcher_8c_1acebcf748df4676af1488302913dcc33e" kindref="member">test_partial_teardown</ref>();</highlight></codeline>
+<codeline lineno="157"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>0;</highlight></codeline>
+<codeline lineno="158"><highlight class="normal">}</highlight></codeline>
+    </programlisting>
+    <location file="tests/c/test_batcher.c"/>
+  </compounddef>
+</doxygen>

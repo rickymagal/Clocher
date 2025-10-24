@@ -1,0 +1,479 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="int8__ptq_8c" kind="file" language="C++">
+    <compoundname>int8_ptq.c</compoundname>
+    <includes refid="ie__quant_8h" local="yes">ie_quant.h</includes>
+    <includes local="no">float.h</includes>
+    <includes local="no">math.h</includes>
+    <includes local="no">stddef.h</includes>
+    <includes local="no">stdint.h</includes>
+    <incdepgraph>
+      <node id="2">
+        <label>ie_quant.h</label>
+        <link refid="ie__quant_8h"/>
+        <childnode refid="3" relation="include">
+        </childnode>
+        <childnode refid="4" relation="include">
+        </childnode>
+      </node>
+      <node id="1">
+        <label>engine/src/quant/int8_ptq.c</label>
+        <link refid="int8__ptq_8c"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="5" relation="include">
+        </childnode>
+        <childnode refid="6" relation="include">
+        </childnode>
+        <childnode refid="3" relation="include">
+        </childnode>
+        <childnode refid="4" relation="include">
+        </childnode>
+      </node>
+      <node id="5">
+        <label>float.h</label>
+      </node>
+      <node id="6">
+        <label>math.h</label>
+      </node>
+      <node id="3">
+        <label>stddef.h</label>
+      </node>
+      <node id="4">
+        <label>stdint.h</label>
+      </node>
+    </incdepgraph>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="int8__ptq_8c_1ab92fcddda0d8b713e806a12f4208ec48" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>int8_t</type>
+        <definition>static int8_t clamp_sym_int8</definition>
+        <argsstring>(float x)</argsstring>
+        <name>clamp_sym_int8</name>
+        <param>
+          <type>float</type>
+          <declname>x</declname>
+        </param>
+        <briefdescription>
+<para>Clamp a float value to the symmetric INT8 range and round to nearest. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>The symmetric INT8 range is taken as [-127, +127] (note: not including -128) to avoid asymmetric saturation that can bias dequantization.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>x</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Input value as 32-bit float. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>int8_t The clamped and rounded integer in [-127, +127]. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/src/quant/int8_ptq.c" line="27" column="22" bodyfile="engine/src/quant/int8_ptq.c" bodystart="27" bodyend="31"/>
+        <referencedby refid="ie__quant_8h_1af45e61af59caa6f75b228f0fa2ebcead" compoundref="int8__ptq_8c" startline="109" endline="136">ie_ptq_quantize_int8</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="int8__ptq_8c_1a3cc68794fcfd2082fae543dbac7d652d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ie_ptq_compute_scales_minmax</definition>
+        <argsstring>(const float *w, size_t rows, size_t cols, ie_ptq_scale_mode_t mode, float *scales)</argsstring>
+        <name>ie_ptq_compute_scales_minmax</name>
+        <param>
+          <type>const float *</type>
+          <declname>w</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>rows</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>cols</declname>
+        </param>
+        <param>
+          <type><ref refid="ie__quant_8h_1a52bfe81b5a68e8a06031a1f46305a4ce" kindref="member">ie_ptq_scale_mode_t</ref></type>
+          <declname>mode</declname>
+        </param>
+        <param>
+          <type>float *</type>
+          <declname>scales</declname>
+        </param>
+        <briefdescription>
+<para>Compute symmetric min-max scales for INT8 PTQ. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Compute INT8 scales using a symmetric min-max rule.</para>
+<para>For each scaling domain <computeroutput>D</computeroutput> (the entire tensor when IE_PTQ_SCALE_PER_TENSOR, or each row when IE_PTQ_SCALE_PER_ROW), this routine computes:</para>
+<para><itemizedlist>
+<listitem><para><formula id="0">$ a_{\max}(D) = \max(\lvert \min(D) \rvert, \lvert \max(D) \rvert) $</formula></para>
+</listitem><listitem><para><formula id="1">$ \text{scale}(D) = \frac{a_{\max}(D)}{127.0} $</formula></para>
+</listitem></itemizedlist>
+</para>
+<para>If <formula id="2">$ a_{\max}(D) = 0 $</formula>, the scale falls back to 1.0 to avoid division by zero during quantization.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">w</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Pointer to FP32 weights (row-major), length = rows*cols. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">rows</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of rows (use 1 for flat vectors). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">cols</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of columns (use N for flat vectors). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">mode</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Scale granularity (tensor- or row-wise). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">scales</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Output buffer for scales:<itemizedlist>
+<listitem><para>length 1 when mode == IE_PTQ_SCALE_PER_TENSOR</para>
+</listitem><listitem><para>length rows when mode == IE_PTQ_SCALE_PER_ROW</para>
+</listitem></itemizedlist>
+</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="note"><para>Inputs are not validated beyond null/zero checks for performance. Callers must ensure the buffers are correctly sized. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/src/quant/int8_ptq.c" line="57" column="6" bodyfile="engine/src/quant/int8_ptq.c" bodystart="57" bodyend="89"/>
+        <references refid="ie__quant_8h_1ae73a58c1f5caa264cd3f860aeb2494abaa607bffb3e8229edaca8535a10eda192" compoundref="ie__quant_8h" startline="26">IE_PTQ_SCALE_PER_TENSOR</references>
+        <referencedby refid="test__int8__ptq_8c_1a8ae74b307e2995ddbc1b9aba3b77c0a3" compoundref="test__int8__ptq_8c" startline="101" endline="135">test_per_row_independent_scales</referencedby>
+        <referencedby refid="test__int8__ptq_8c_1a3792beb85f04b90aa7eee559045c2748" compoundref="test__int8__ptq_8c" startline="57" endline="92">test_per_tensor_roundtrip</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="int8__ptq_8c_1af45e61af59caa6f75b228f0fa2ebcead" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ie_ptq_quantize_int8</definition>
+        <argsstring>(const float *w, size_t rows, size_t cols, ie_ptq_scale_mode_t mode, const float *scales, int8_t *q8)</argsstring>
+        <name>ie_ptq_quantize_int8</name>
+        <param>
+          <type>const float *</type>
+          <declname>w</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>rows</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>cols</declname>
+        </param>
+        <param>
+          <type><ref refid="ie__quant_8h_1a52bfe81b5a68e8a06031a1f46305a4ce" kindref="member">ie_ptq_scale_mode_t</ref></type>
+          <declname>mode</declname>
+        </param>
+        <param>
+          <type>const float *</type>
+          <declname>scales</declname>
+        </param>
+        <param>
+          <type>int8_t *</type>
+          <declname>q8</declname>
+        </param>
+        <briefdescription>
+<para>Quantize FP32 weights to INT8 using provided scales. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Quantize FP32 weights to INT8 using precomputed scales.</para>
+<para>When mode == IE_PTQ_SCALE_PER_TENSOR, <computeroutput>scales</computeroutput>[0] is used for all values. When mode == IE_PTQ_SCALE_PER_ROW, <computeroutput>scales</computeroutput>[r] is used for row <computeroutput>r</computeroutput>. Values are multiplied by the reciprocal scale, rounded to nearest, and clamped to the symmetric INT8 range [-127, 127].</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">w</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Pointer to FP32 weights (row-major), length = rows*cols. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">rows</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of rows. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">cols</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of columns. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">mode</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Granularity of scales (tensor or per-row). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">scales</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Scale buffer from ie_ptq_compute_scales_minmax. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">q8</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Output INT8 buffer (row-major), length = rows*cols.</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="note"><para>This is a pure weight-only quantization step: no zero-points; the quantization is symmetric around zero. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/src/quant/int8_ptq.c" line="109" column="6" bodyfile="engine/src/quant/int8_ptq.c" bodystart="109" bodyend="136"/>
+        <references refid="int8__ptq_8c_1ab92fcddda0d8b713e806a12f4208ec48" compoundref="int8__ptq_8c" startline="27" endline="31">clamp_sym_int8</references>
+        <references refid="ie__quant_8h_1ae73a58c1f5caa264cd3f860aeb2494abaa607bffb3e8229edaca8535a10eda192" compoundref="ie__quant_8h" startline="26">IE_PTQ_SCALE_PER_TENSOR</references>
+        <referencedby refid="test__int8__ptq_8c_1a8ae74b307e2995ddbc1b9aba3b77c0a3" compoundref="test__int8__ptq_8c" startline="101" endline="135">test_per_row_independent_scales</referencedby>
+        <referencedby refid="test__int8__ptq_8c_1a3792beb85f04b90aa7eee559045c2748" compoundref="test__int8__ptq_8c" startline="57" endline="92">test_per_tensor_roundtrip</referencedby>
+        <referencedby refid="test__int8__ptq_8c_1ab9ef656d54b1e5e856eda1c73fb90787" compoundref="test__int8__ptq_8c" startline="145" endline="158">test_saturation_symmetric</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="int8__ptq_8c_1a475490c4ad104bbbd8a1f0f4cc714069" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ie_ptq_dequant_int8</definition>
+        <argsstring>(const int8_t *q8, size_t rows, size_t cols, ie_ptq_scale_mode_t mode, const float *scales, float *w_out)</argsstring>
+        <name>ie_ptq_dequant_int8</name>
+        <param>
+          <type>const int8_t *</type>
+          <declname>q8</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>rows</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>cols</declname>
+        </param>
+        <param>
+          <type><ref refid="ie__quant_8h_1a52bfe81b5a68e8a06031a1f46305a4ce" kindref="member">ie_ptq_scale_mode_t</ref></type>
+          <declname>mode</declname>
+        </param>
+        <param>
+          <type>const float *</type>
+          <declname>scales</declname>
+        </param>
+        <param>
+          <type>float *</type>
+          <declname>w_out</declname>
+        </param>
+        <briefdescription>
+<para>Dequantize INT8 weights back to FP32 using provided scales. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>This function reverses ie_ptq_quantize_int8 by multiplying each INT8 element with its associated scale.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">q8</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Pointer to INT8 weights (row-major), length = rows*cols. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">rows</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of rows. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">cols</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of columns. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">mode</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Granularity of scales (tensor or per-row). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">scales</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Scale buffer that was used during quantization. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">w_out</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Output FP32 buffer (row-major), length = rows*cols.</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="note"><para>Dequantization is exact with respect to the chosen scale; any loss is due to the quantization rounding/clamping step. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/src/quant/int8_ptq.c" line="154" column="6" bodyfile="engine/src/quant/int8_ptq.c" bodystart="154" bodyend="180"/>
+        <references refid="ie__quant_8h_1ae73a58c1f5caa264cd3f860aeb2494abaa607bffb3e8229edaca8535a10eda192" compoundref="ie__quant_8h" startline="26">IE_PTQ_SCALE_PER_TENSOR</references>
+        <referencedby refid="test__int8__ptq_8c_1a8ae74b307e2995ddbc1b9aba3b77c0a3" compoundref="test__int8__ptq_8c" startline="101" endline="135">test_per_row_independent_scales</referencedby>
+        <referencedby refid="test__int8__ptq_8c_1a3792beb85f04b90aa7eee559045c2748" compoundref="test__int8__ptq_8c" startline="57" endline="92">test_per_tensor_roundtrip</referencedby>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para>Implementation of INT8 PTQ min-max scaling and (de)quantization. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>This translation unit provides a minimal, reproducible Post-Training Quantization (PTQ) path for weight-only INT8 using symmetric min-max scaling. It is backend-agnostic and dependency-free, suitable for both CPU and GPU/iGPU pipelines that only need offline quantization artifacts. </para>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="normal"></highlight></codeline>
+<codeline lineno="10"><highlight class="normal"></highlight></codeline>
+<codeline lineno="11"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;<ref refid="ie__quant_8h" kindref="compound">ie_quant.h</ref>&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="12"><highlight class="normal"></highlight></codeline>
+<codeline lineno="13"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;float.h&gt;</highlight><highlight class="normal"><sp/><sp/><sp/></highlight><highlight class="comment">/*<sp/>FLT_MAX<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="14"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;math.h&gt;</highlight><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">/*<sp/>fabsf,<sp/>lroundf,<sp/>fmaxf<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="15"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stddef.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="16"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stdint.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="17"><highlight class="normal"></highlight></codeline>
+<codeline lineno="27" refid="int8__ptq_8c_1ab92fcddda0d8b713e806a12f4208ec48" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">inline</highlight><highlight class="normal"><sp/>int8_t<sp/><ref refid="int8__ptq_8c_1ab92fcddda0d8b713e806a12f4208ec48" kindref="member">clamp_sym_int8</ref>(</highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>x)<sp/>{</highlight></codeline>
+<codeline lineno="28"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(x<sp/>&gt;<sp/>127.0f)<sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>127;</highlight></codeline>
+<codeline lineno="29"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(x<sp/>&lt;<sp/>-127.0f)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>-127;</highlight></codeline>
+<codeline lineno="30"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>(int8_t)lroundf(x);</highlight></codeline>
+<codeline lineno="31"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="32"><highlight class="normal"></highlight></codeline>
+<codeline lineno="57" refid="ie__quant_8h_1a3cc68794fcfd2082fae543dbac7d652d" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="int8__ptq_8c_1a3cc68794fcfd2082fae543dbac7d652d" kindref="member">ie_ptq_compute_scales_minmax</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*w,</highlight></codeline>
+<codeline lineno="58"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>rows,</highlight></codeline>
+<codeline lineno="59"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>cols,</highlight></codeline>
+<codeline lineno="60"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="ie__quant_8h_1a52bfe81b5a68e8a06031a1f46305a4ce" kindref="member">ie_ptq_scale_mode_t</ref><sp/>mode,</highlight></codeline>
+<codeline lineno="61"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*scales)<sp/>{</highlight></codeline>
+<codeline lineno="62"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!w<sp/>||<sp/>!scales<sp/>||<sp/>rows<sp/>==<sp/>0<sp/>||<sp/>cols<sp/>==<sp/>0)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="63"><highlight class="normal"></highlight></codeline>
+<codeline lineno="64"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(mode<sp/>==<sp/><ref refid="ie__quant_8h_1ae73a58c1f5caa264cd3f860aeb2494abaa607bffb3e8229edaca8535a10eda192" kindref="member">IE_PTQ_SCALE_PER_TENSOR</ref>)<sp/>{</highlight></codeline>
+<codeline lineno="65"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>lo<sp/>=<sp/>FLT_MAX,<sp/>hi<sp/>=<sp/>-FLT_MAX;</highlight></codeline>
+<codeline lineno="66"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>n<sp/>=<sp/>rows<sp/>*<sp/>cols;</highlight></codeline>
+<codeline lineno="67"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>i<sp/>=<sp/>0;<sp/>i<sp/>&lt;<sp/>n;<sp/>++i)<sp/>{</highlight></codeline>
+<codeline lineno="68"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>v<sp/>=<sp/>w[i];</highlight></codeline>
+<codeline lineno="69"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(v<sp/>&lt;<sp/>lo)<sp/>lo<sp/>=<sp/>v;</highlight></codeline>
+<codeline lineno="70"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(v<sp/>&gt;<sp/>hi)<sp/>hi<sp/>=<sp/>v;</highlight></codeline>
+<codeline lineno="71"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="72"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>amax<sp/>=<sp/>fmaxf(fabsf(lo),<sp/>fabsf(hi));</highlight></codeline>
+<codeline lineno="73"><highlight class="normal"><sp/><sp/><sp/><sp/>scales[0]<sp/>=<sp/>(amax<sp/>&gt;<sp/>0.0f)<sp/>?<sp/>(amax<sp/>/<sp/>127.0f)<sp/>:<sp/>1.0f;</highlight></codeline>
+<codeline lineno="74"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="75"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="76"><highlight class="normal"></highlight></codeline>
+<codeline lineno="77"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">/*<sp/>Per-row<sp/>scaling.<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="78"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>r<sp/>=<sp/>0;<sp/>r<sp/>&lt;<sp/>rows;<sp/>++r)<sp/>{</highlight></codeline>
+<codeline lineno="79"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>lo<sp/>=<sp/>FLT_MAX,<sp/>hi<sp/>=<sp/>-FLT_MAX;</highlight></codeline>
+<codeline lineno="80"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*row<sp/>=<sp/>w<sp/>+<sp/>r<sp/>*<sp/>cols;</highlight></codeline>
+<codeline lineno="81"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>c<sp/>=<sp/>0;<sp/>c<sp/>&lt;<sp/>cols;<sp/>++c)<sp/>{</highlight></codeline>
+<codeline lineno="82"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>v<sp/>=<sp/>row[c];</highlight></codeline>
+<codeline lineno="83"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(v<sp/>&lt;<sp/>lo)<sp/>lo<sp/>=<sp/>v;</highlight></codeline>
+<codeline lineno="84"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(v<sp/>&gt;<sp/>hi)<sp/>hi<sp/>=<sp/>v;</highlight></codeline>
+<codeline lineno="85"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="86"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>amax<sp/>=<sp/>fmaxf(fabsf(lo),<sp/>fabsf(hi));</highlight></codeline>
+<codeline lineno="87"><highlight class="normal"><sp/><sp/><sp/><sp/>scales[r]<sp/>=<sp/>(amax<sp/>&gt;<sp/>0.0f)<sp/>?<sp/>(amax<sp/>/<sp/>127.0f)<sp/>:<sp/>1.0f;</highlight></codeline>
+<codeline lineno="88"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="89"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="90"><highlight class="normal"></highlight></codeline>
+<codeline lineno="109" refid="ie__quant_8h_1af45e61af59caa6f75b228f0fa2ebcead" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="int8__ptq_8c_1af45e61af59caa6f75b228f0fa2ebcead" kindref="member">ie_ptq_quantize_int8</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*w,</highlight></codeline>
+<codeline lineno="110"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>rows,</highlight></codeline>
+<codeline lineno="111"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>cols,</highlight></codeline>
+<codeline lineno="112"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="ie__quant_8h_1a52bfe81b5a68e8a06031a1f46305a4ce" kindref="member">ie_ptq_scale_mode_t</ref><sp/>mode,</highlight></codeline>
+<codeline lineno="113"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*scales,</highlight></codeline>
+<codeline lineno="114"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>int8_t<sp/>*q8)<sp/>{</highlight></codeline>
+<codeline lineno="115"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!w<sp/>||<sp/>!q8<sp/>||<sp/>!scales<sp/>||<sp/>rows<sp/>==<sp/>0<sp/>||<sp/>cols<sp/>==<sp/>0)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="116"><highlight class="normal"></highlight></codeline>
+<codeline lineno="117"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(mode<sp/>==<sp/><ref refid="ie__quant_8h_1ae73a58c1f5caa264cd3f860aeb2494abaa607bffb3e8229edaca8535a10eda192" kindref="member">IE_PTQ_SCALE_PER_TENSOR</ref>)<sp/>{</highlight></codeline>
+<codeline lineno="118"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>inv<sp/>=<sp/>(scales[0]<sp/>&gt;<sp/>0.0f)<sp/>?<sp/>(1.0f<sp/>/<sp/>scales[0])<sp/>:<sp/>1.0f;</highlight></codeline>
+<codeline lineno="119"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>n<sp/>=<sp/>rows<sp/>*<sp/>cols;</highlight></codeline>
+<codeline lineno="120"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>i<sp/>=<sp/>0;<sp/>i<sp/>&lt;<sp/>n;<sp/>++i)<sp/>{</highlight></codeline>
+<codeline lineno="121"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>q8[i]<sp/>=<sp/><ref refid="int8__ptq_8c_1ab92fcddda0d8b713e806a12f4208ec48" kindref="member">clamp_sym_int8</ref>(w[i]<sp/>*<sp/>inv);</highlight></codeline>
+<codeline lineno="122"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="123"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="124"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="125"><highlight class="normal"></highlight></codeline>
+<codeline lineno="126"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">/*<sp/>Per-row<sp/>scaling.<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="127"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>r<sp/>=<sp/>0;<sp/>r<sp/>&lt;<sp/>rows;<sp/>++r)<sp/>{</highlight></codeline>
+<codeline lineno="128"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>s<sp/>=<sp/>scales[r];</highlight></codeline>
+<codeline lineno="129"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>inv<sp/>=<sp/>(s<sp/>&gt;<sp/>0.0f)<sp/>?<sp/>(1.0f<sp/>/<sp/>s)<sp/>:<sp/>1.0f;</highlight></codeline>
+<codeline lineno="130"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*row<sp/>=<sp/>w<sp/>+<sp/>r<sp/>*<sp/>cols;</highlight></codeline>
+<codeline lineno="131"><highlight class="normal"><sp/><sp/><sp/><sp/>int8_t<sp/>*qrow<sp/>=<sp/>q8<sp/>+<sp/>r<sp/>*<sp/>cols;</highlight></codeline>
+<codeline lineno="132"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>c<sp/>=<sp/>0;<sp/>c<sp/>&lt;<sp/>cols;<sp/>++c)<sp/>{</highlight></codeline>
+<codeline lineno="133"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>qrow[c]<sp/>=<sp/><ref refid="int8__ptq_8c_1ab92fcddda0d8b713e806a12f4208ec48" kindref="member">clamp_sym_int8</ref>(row[c]<sp/>*<sp/>inv);</highlight></codeline>
+<codeline lineno="134"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="135"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="136"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="137"><highlight class="normal"></highlight></codeline>
+<codeline lineno="154" refid="ie__quant_8h_1a475490c4ad104bbbd8a1f0f4cc714069" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="int8__ptq_8c_1a475490c4ad104bbbd8a1f0f4cc714069" kindref="member">ie_ptq_dequant_int8</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>int8_t<sp/>*q8,</highlight></codeline>
+<codeline lineno="155"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>rows,</highlight></codeline>
+<codeline lineno="156"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>cols,</highlight></codeline>
+<codeline lineno="157"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="ie__quant_8h_1a52bfe81b5a68e8a06031a1f46305a4ce" kindref="member">ie_ptq_scale_mode_t</ref><sp/>mode,</highlight></codeline>
+<codeline lineno="158"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*scales,</highlight></codeline>
+<codeline lineno="159"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*w_out)<sp/>{</highlight></codeline>
+<codeline lineno="160"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!q8<sp/>||<sp/>!w_out<sp/>||<sp/>!scales<sp/>||<sp/>rows<sp/>==<sp/>0<sp/>||<sp/>cols<sp/>==<sp/>0)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="161"><highlight class="normal"></highlight></codeline>
+<codeline lineno="162"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(mode<sp/>==<sp/><ref refid="ie__quant_8h_1ae73a58c1f5caa264cd3f860aeb2494abaa607bffb3e8229edaca8535a10eda192" kindref="member">IE_PTQ_SCALE_PER_TENSOR</ref>)<sp/>{</highlight></codeline>
+<codeline lineno="163"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>s<sp/>=<sp/>scales[0]<sp/>&gt;<sp/>0.0f<sp/>?<sp/>scales[0]<sp/>:<sp/>1.0f;</highlight></codeline>
+<codeline lineno="164"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>n<sp/>=<sp/>rows<sp/>*<sp/>cols;</highlight></codeline>
+<codeline lineno="165"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>i<sp/>=<sp/>0;<sp/>i<sp/>&lt;<sp/>n;<sp/>++i)<sp/>{</highlight></codeline>
+<codeline lineno="166"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>w_out[i]<sp/>=<sp/>(float)q8[i]<sp/>*<sp/>s;</highlight></codeline>
+<codeline lineno="167"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="168"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="169"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="170"><highlight class="normal"></highlight></codeline>
+<codeline lineno="171"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">/*<sp/>Per-row<sp/>scaling.<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="172"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>r<sp/>=<sp/>0;<sp/>r<sp/>&lt;<sp/>rows;<sp/>++r)<sp/>{</highlight></codeline>
+<codeline lineno="173"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>s<sp/>=<sp/>scales[r]<sp/>&gt;<sp/>0.0f<sp/>?<sp/>scales[r]<sp/>:<sp/>1.0f;</highlight></codeline>
+<codeline lineno="174"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>int8_t<sp/>*qrow<sp/>=<sp/>q8<sp/>+<sp/>r<sp/>*<sp/>cols;</highlight></codeline>
+<codeline lineno="175"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*row<sp/>=<sp/>w_out<sp/>+<sp/>r<sp/>*<sp/>cols;</highlight></codeline>
+<codeline lineno="176"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>c<sp/>=<sp/>0;<sp/>c<sp/>&lt;<sp/>cols;<sp/>++c)<sp/>{</highlight></codeline>
+<codeline lineno="177"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>row[c]<sp/>=<sp/>(float)qrow[c]<sp/>*<sp/>s;</highlight></codeline>
+<codeline lineno="178"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="179"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="180"><highlight class="normal">}</highlight></codeline>
+    </programlisting>
+    <location file="engine/src/quant/int8_ptq.c"/>
+  </compounddef>
+</doxygen>

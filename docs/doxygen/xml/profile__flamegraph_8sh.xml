@@ -1,0 +1,120 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="profile__flamegraph_8sh" kind="file" language="C++">
+    <compoundname>profile_flamegraph.sh</compoundname>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline><highlight class="normal">#!/usr/bin/env<sp/>bash</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Perf<sp/>→<sp/>stackcollapse<sp/>→<sp/>flamegraph,<sp/>placed<sp/>under<sp/>benchmarks/reports/&lt;stamp&gt;/</highlight></codeline>
+<codeline><highlight class="normal">set<sp/>-euo<sp/>pipefail</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">BIN=&quot;${1:-build/inference-engine}&quot;</highlight></codeline>
+<codeline><highlight class="normal">LABEL=&quot;${2:-profiling<sp/>run}&quot;</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Workload<sp/>knobs</highlight></codeline>
+<codeline><highlight class="normal">PROMPTS_FILE=&quot;${PROMPTS_FILE:-benchmarks/prompts_10.txt}&quot;</highlight></codeline>
+<codeline><highlight class="normal">BATCH=&quot;${BATCH:-16}&quot;</highlight></codeline>
+<codeline><highlight class="normal">WARMUP=&quot;${WARMUP:-8}&quot;</highlight></codeline>
+<codeline><highlight class="normal">PREFETCH_RAW=&quot;${PREFETCH:-auto}&quot;</highlight></codeline>
+<codeline><highlight class="normal">MAX_NEW=&quot;${MAX_NEW:-65536}&quot;</highlight></codeline>
+<codeline><highlight class="normal">THREADS=&quot;${THREADS:-4}&quot;</highlight></codeline>
+<codeline><highlight class="normal">PRECISION=&quot;${PRECISION:-fp32}&quot;</highlight></codeline>
+<codeline><highlight class="normal">PRETRANSPOSE=&quot;${PRETRANSPOSE:-none}&quot;</highlight></codeline>
+<codeline><highlight class="normal">AFFINITY=&quot;${AFFINITY:-auto}&quot;</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Perf<sp/>knobs</highlight></codeline>
+<codeline><highlight class="normal">ROUNDS=&quot;${ROUNDS:-120}&quot;</highlight></codeline>
+<codeline><highlight class="normal">FREQ=&quot;${FREQ:-1200}&quot;</highlight></codeline>
+<codeline><highlight class="normal">CALLGRAPH=&quot;${CALLGRAPH:-fp}&quot;<sp/><sp/><sp/>#<sp/>fp|dwarf|lbr<sp/>(if<sp/>supported)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Tool<sp/>discovery</highlight></codeline>
+<codeline><highlight class="normal">STACKCOLLAPSE=&quot;${STACKCOLLAPSE:-}&quot;</highlight></codeline>
+<codeline><highlight class="normal">FLAMEGRAPH=&quot;${FLAMEGRAPH:-}&quot;</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">if<sp/>[[<sp/>-z<sp/>&quot;${STACKCOLLAPSE}&quot;<sp/>]];<sp/>then</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>for<sp/>c<sp/>in<sp/>scripts/FlameGraph/stackcollapse-perf.pl<sp/>/usr/bin/stackcollapse-perf.pl<sp/>/usr/bin/stackcollapse-perf;<sp/>do</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>[[<sp/>-x<sp/>&quot;$c&quot;<sp/>]]<sp/>&amp;&amp;<sp/>STACKCOLLAPSE=&quot;$c&quot;<sp/>&amp;&amp;<sp/>break</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>done</highlight></codeline>
+<codeline><highlight class="normal">fi</highlight></codeline>
+<codeline><highlight class="normal">if<sp/>[[<sp/>-z<sp/>&quot;${FLAMEGRAPH}&quot;<sp/>]];<sp/>then</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>for<sp/>c<sp/>in<sp/>scripts/FlameGraph/flamegraph.pl<sp/>/usr/bin/flamegraph.pl<sp/>/usr/bin/flamegraph;<sp/>do</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>[[<sp/>-x<sp/>&quot;$c&quot;<sp/>]]<sp/>&amp;&amp;<sp/>FLAMEGRAPH=&quot;$c&quot;<sp/>&amp;&amp;<sp/>break</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>done</highlight></codeline>
+<codeline><highlight class="normal">fi</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">echo<sp/>&quot;[profile]<sp/>generating<sp/>flamegraph...&quot;</highlight></codeline>
+<codeline><highlight class="normal">if<sp/>[[<sp/>!<sp/>-x<sp/>&quot;${STACKCOLLAPSE:-/nope}&quot;<sp/>||<sp/>!<sp/>-x<sp/>&quot;${FLAMEGRAPH:-/nope}&quot;<sp/>]];<sp/>then</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>echo<sp/>&quot;error:<sp/>FlameGraph<sp/>utilities<sp/>not<sp/>found.&quot;<sp/>&gt;&amp;2</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>echo<sp/>&quot;<sp/><sp/><sp/><sp/><sp/><sp/><sp/>STACKCOLLAPSE=&apos;${STACKCOLLAPSE:-unset}&apos;<sp/>FLAMEGRAPH=&apos;${FLAMEGRAPH:-unset}&apos;&quot;<sp/>&gt;&amp;2</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>exit<sp/>3</highlight></codeline>
+<codeline><highlight class="normal">fi</highlight></codeline>
+<codeline><highlight class="normal">echo<sp/>&quot;[tools]<sp/>stackcollapse:<sp/>${STACKCOLLAPSE}&quot;</highlight></codeline>
+<codeline><highlight class="normal">echo<sp/>&quot;[tools]<sp/>flamegraph<sp/><sp/><sp/>:<sp/>${FLAMEGRAPH}&quot;</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Normalize<sp/>prefetch<sp/>for<sp/>new<sp/>CLI</highlight></codeline>
+<codeline><highlight class="normal">norm=&quot;$(printf<sp/>&apos;%s&apos;<sp/>&quot;$PREFETCH_RAW&quot;<sp/>|<sp/>tr<sp/>&apos;[:upper:]&apos;<sp/>&apos;[:lower:]&apos;)&quot;</highlight></codeline>
+<codeline><highlight class="normal">case<sp/>&quot;$norm&quot;<sp/>in</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>0|off)<sp/><sp/><sp/>PREFETCH=&quot;off&quot;<sp/>;;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>1|on)<sp/><sp/><sp/><sp/>PREFETCH=&quot;on&quot;<sp/><sp/>;;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>2|auto|autotune)<sp/>PREFETCH=&quot;auto&quot;<sp/>;;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>*)<sp/><sp/><sp/><sp/><sp/><sp/><sp/>PREFETCH=&quot;auto&quot;<sp/>;;</highlight></codeline>
+<codeline><highlight class="normal">esac</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">STAMP=&quot;$(date<sp/>+%Y%m%d_%H%M%S)&quot;</highlight></codeline>
+<codeline><highlight class="normal">OUTDIR=&quot;benchmarks/reports/${STAMP}&quot;</highlight></codeline>
+<codeline><highlight class="normal">mkdir<sp/>-p<sp/>&quot;$OUTDIR&quot;</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Ensure<sp/>frame<sp/>pointers<sp/>help:<sp/>suggest<sp/>but<sp/>do<sp/>not<sp/>enforce</highlight></codeline>
+<codeline><highlight class="normal">if<sp/>[[<sp/>-n<sp/>&quot;${CFLAGS:-}&quot;<sp/>&amp;&amp;<sp/>&quot;${CFLAGS}&quot;<sp/>!=<sp/>*&quot;-fno-omit-frame-pointer&quot;*<sp/>]];<sp/>then</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>echo<sp/>&quot;[warn]<sp/>consider<sp/>compiling<sp/>with<sp/>-fno-omit-frame-pointer<sp/>for<sp/>better<sp/>fp<sp/>callgraphs&quot;<sp/>&gt;&amp;2</highlight></codeline>
+<codeline><highlight class="normal">fi</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Compose<sp/>command<sp/>once</highlight></codeline>
+<codeline><highlight class="normal">base_cmd=(<sp/>&quot;$BIN&quot;<sp/>--max-new<sp/>&quot;$MAX_NEW&quot;<sp/>--threads<sp/>&quot;$THREADS&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>--precision<sp/>&quot;$PRECISION&quot;<sp/>--affinity<sp/>&quot;$AFFINITY&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>--prefetch<sp/>&quot;$PREFETCH&quot;<sp/>--warmup<sp/>&quot;$WARMUP&quot;<sp/>)</highlight></codeline>
+<codeline><highlight class="normal">if<sp/>[[<sp/>-f<sp/>&quot;$PROMPTS_FILE&quot;<sp/>]];<sp/>then</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>base_cmd+=(<sp/>--prompts-file<sp/>&quot;$PROMPTS_FILE&quot;<sp/>--batch<sp/>&quot;$BATCH&quot;<sp/>)</highlight></codeline>
+<codeline><highlight class="normal">else</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>base_cmd+=(<sp/>--prompt<sp/>&quot;$LABEL&quot;<sp/>)</highlight></codeline>
+<codeline><highlight class="normal">fi</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Record<sp/>multiple<sp/>iterations<sp/>in<sp/>a<sp/>single<sp/>perf<sp/>session</highlight></codeline>
+<codeline><highlight class="normal">echo<sp/>&quot;[info]<sp/>perf<sp/>record<sp/>(rounds=${ROUNDS},<sp/>freq=${FREQ}Hz,<sp/>callgraph=${CALLGRAPH})…&quot;</highlight></codeline>
+<codeline><highlight class="normal">perf_cmd=(<sp/>perf<sp/>record<sp/>-F<sp/>&quot;$FREQ&quot;<sp/>--call-graph=&quot;$CALLGRAPH&quot;<sp/>-o<sp/>perf.data<sp/>--<sp/>)</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>shellcheck<sp/>disable=SC2016</highlight></codeline>
+<codeline><highlight class="normal">driver=(<sp/>bash<sp/>-c<sp/>&apos;for<sp/>i<sp/>in<sp/>$(seq<sp/>1<sp/>&apos;&quot;$ROUNDS&quot;&apos;);<sp/>do<sp/>&quot;$@&quot;<sp/>&gt;/dev/null<sp/>||<sp/>exit<sp/>1;<sp/>done&apos;<sp/>--<sp/>)</highlight></codeline>
+<codeline><highlight class="normal">&quot;${perf_cmd[@]}&quot;<sp/>&quot;${driver[@]}&quot;<sp/>&quot;${base_cmd[@]}&quot;</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Convert<sp/>→<sp/>SVG</highlight></codeline>
+<codeline><highlight class="normal">perf<sp/>script<sp/>|<sp/>&quot;$STACKCOLLAPSE&quot;<sp/>|<sp/>&quot;$FLAMEGRAPH&quot;<sp/>&gt;<sp/>flamegraph.svg<sp/>||<sp/>{</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>echo<sp/>&quot;ERROR:<sp/>stack<sp/>collapse/flamegraph<sp/>failed.&quot;<sp/>&gt;&amp;2</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>exit<sp/>5</highlight></codeline>
+<codeline><highlight class="normal">}</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Stash<sp/>artifacts</highlight></codeline>
+<codeline><highlight class="normal">mv<sp/>-f<sp/>perf.data<sp/>&quot;$OUTDIR&quot;/perf.data</highlight></codeline>
+<codeline><highlight class="normal">mv<sp/>-f<sp/>flamegraph.svg<sp/>&quot;$OUTDIR&quot;/flamegraph.svg</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Write<sp/>params.json<sp/>for<sp/>docs</highlight></codeline>
+<codeline><highlight class="normal">cat<sp/>&gt;&quot;$OUTDIR/params.json&quot;<sp/>&lt;&lt;JSON</highlight></codeline>
+<codeline><highlight class="normal">{</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>&quot;threads&quot;:<sp/>${THREADS},</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>&quot;precision&quot;:<sp/>&quot;${PRECISION}&quot;,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>&quot;pretranspose&quot;:<sp/>&quot;${PRETRANSPOSE}&quot;,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>&quot;affinity&quot;:<sp/>&quot;${AFFINITY}&quot;,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>&quot;batch&quot;:<sp/>${BATCH},</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>&quot;prefetch&quot;:<sp/>&quot;${PREFETCH}&quot;,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>&quot;warmup&quot;:<sp/>${WARMUP},</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>&quot;max_new&quot;:<sp/>${MAX_NEW}</highlight></codeline>
+<codeline><highlight class="normal">}</highlight></codeline>
+<codeline><highlight class="normal">JSON</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">echo<sp/>&quot;[ok]<sp/>report<sp/>dir:<sp/>${OUTDIR}&quot;</highlight></codeline>
+    </programlisting>
+    <location file="scripts/profile_flamegraph.sh"/>
+  </compounddef>
+</doxygen>

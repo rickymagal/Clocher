@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.13.2"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Inference Engine (Clocher): ADR-0006 — Optimization path selection (CPU baseline)</title>
+<title>Inference Engine (Clocher): ADR-00060 — Optimization Path Selection (updated for INT4)</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -27,9 +27,9 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">Inference Engine (Clocher)<span id="projectnumber">&#160;0.1</span>
+   <div id="projectname">Inference Engine (Clocher)<span id="projectnumber">&#160;0.2</span>
    </div>
-   <div id="projectbrief">C11 CPU inference baseline with strict metrics &amp; harness</div>
+   <div id="projectbrief">C11 CPU/GPU inference baseline with strict metrics &amp; harness</div>
   </td>
  </tr>
  </tbody>
@@ -97,55 +97,44 @@ $(function(){initNavTree('md_docs_2adr-00060-optimization-path.html',''); initRe
 </div>
 
 <div><div class="header">
-  <div class="headertitle"><div class="title">ADR-0006 — Optimization path selection (CPU baseline)</div></div>
+  <div class="headertitle"><div class="title">ADR-00060 — Optimization Path Selection (updated for INT4)</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md73"></a></p>
-<h1><a class="anchor" id="autotoc_md74"></a>
-Status</h1>
-<p>Accepted — 2025-10-14</p>
-<h1><a class="anchor" id="autotoc_md75"></a>
-Context</h1>
-<p>We need deterministic, portable, zero-dependency CPU performance. Upstream runtimes (ORT/TVM/OpenVINO/TensorRT-CPU) bring heavy deps and reduce control over hot inner loops.</p>
-<h1><a class="anchor" id="autotoc_md76"></a>
+<div class="textblock"><p><a class="anchor" id="autotoc_md0"></a></p>
+<p><b>Status:</b> Accepted • <b>Last updated:</b> 2025-10-24 21:00:48 UTC</p>
+<h1><a class="anchor" id="autotoc_md2"></a>
+Problem</h1>
+<p>We need a portable CPU baseline with predictable performance and a clear path to exploit memory locality and bandwidth while keeping the code simple and testable.</p>
+<h1><a class="anchor" id="autotoc_md3"></a>
 Decision</h1>
-<ol type="1">
-<li><b>Hand-written AVX2 microkernels</b> for GEMV/GEMM with block tiling + FMA.</li>
-<li><b>Threading via pthreads pool</b> with pinning modes (<code>compact|scatter</code>) and optional NUMA hints.</li>
-<li><b>Math fast paths</b>:<ul>
-<li><code>tanhf</code>: polynomial/table approximation gated by accuracy budget (with clamp).</li>
-<li>Minimize expensive transcendentals in token feature paths.</li>
+<ul>
+<li>Keep a single binary with <b>FP32 baseline</b> and optional precision switches: BF16/FP16 (accumulate FP32), INT8 PTQ, and <b>INT4 weight‑only (INT4W)</b>.</li>
+<li>Maintain <b>blocked‑K packing</b> and optional <b>pretranspose</b> for cache locality.</li>
+<li>Threading via a fixed <code>pthread</code> pool with optional affinity and NUMA hints.</li>
+</ul>
+<h1><a class="anchor" id="autotoc_md6"></a>
+INT4W specifics (new)</h1>
+<ul>
+<li><b>When to use</b>: memory‑bound regimes (large models, small batches) where weight bandwidth dominates. Select with <code>IE_PRECISION=int4w</code> or <code>--precision int4w</code>.</li>
+<li><b>How it works</b>:<ul>
+<li>PTQ scripts derive a <code>q4_manifest.json</code> (per‑tensor entry with packing metadata and scales).</li>
+<li><code><a class="el" href="hf__to__iebin_8py.html">scripts/hf_to_iebin.py</a> --q4-map …</code> consumes the manifest and packs <code>model.ie.bin</code> accordingly.</li>
+<li>Kernels fuse <b>dequant(scale × int4)</b> into the matmul path; accumulation remains FP32.</li>
 </ul>
 </li>
-<li><b>Layout</b> toggles (blocked-K packing) and prefetch hints in hot loops.</li>
-<li>Keep an <b>optional oneDNN fallback</b> behind a build flag (non-default) for validation.</li>
-</ol>
-<h1><a class="anchor" id="autotoc_md77"></a>
+<li><b>Interplay with pretranspose</b>: quantization occurs after any offline layout transform intended for locality; manifests capture the final layout to keep IO deterministic.</li>
+<li><b>Quality gate</b>: manifests are accepted only if a calibration threshold (cosine or task metric) is met; the threshold is repo‑configurable in the PTQ helpers.</li>
+</ul>
+<h1><a class="anchor" id="autotoc_md9"></a>
+Rationale</h1>
+<p>INT4W yields <b>4× compression</b> over FP32 and <b>2× over INT8</b>, unlocking higher tokens/s on bandwidth‑limited hardware with minimal additional complexity.</p>
+<h1><a class="anchor" id="autotoc_md11"></a>
 Consequences</h1>
 <ul>
-<li>Maximum control and transparency of performance changes.</li>
-<li>Minimal external dependencies → easier reproducibility.</li>
-<li>Larger code surface maintained in-tree; unit tests and microbenches mandatory.</li>
+<li>Slight accuracy loss bounded by the calibration gate.</li>
+<li>Simplified runtime: no activation quantization; scales live with the packed weights and are broadcast during compute.</li>
+<li>Uniform harness &amp; docs: packing is explicit and reproducible via scripts and environment flags. </li>
 </ul>
-<h1><a class="anchor" id="autotoc_md78"></a>
-Next</h1>
-<ul>
-<li>Complete AVX2 GEMV microkernel integration behind runtime gating.</li>
-<li>Validate scaling of thread-pool and NUMA effects with flamegraph evidence.</li>
-<li>Compare accuracy/latency impact of fast <code>tanh</code> vs libm baseline. </li>
-</ul>
-<h1><a class="anchor" id="autotoc_md79"></a>
-Updates — 2025-10-17</h1>
-<ul>
-<li><b>Batching impact:</b> amortizes tokenizer and scheduling overhead; reduces per-prompt latency variance for short prompts.</li>
-<li><b>Prefetch policy:</b> <code>auto</code> maps to enabled when <code>--prompts-file</code> is provided; otherwise conservative for single-prompt runs.</li>
-<li><b>Profiling workflow:</b> <code>make perf-report</code> records with <code>perf</code> and renders with FlameGraph; supports <code>ROUNDS</code>, <code>MAX_NEW</code>, <code>FREQ</code>, and <code>CALLGRAPH</code> envs.</li>
-<li><b>Limits observed:</b> if <code>perf.data</code> is empty, increase <code>ROUNDS/MAX_NEW/FREQ</code> or adjust kernel <code>perf_event_paranoid</code>.</li>
-</ul>
-<hr  />
-<h1><a class="anchor" id="autotoc_md81"></a>
-Updates — 2025-10-24 00:42:21 UTC</h1>
-<p>This ADR remains <b>CPU-focused</b>. GPU benchmarking is tracked separately (see ADR-0011) and does not change the baseline CPU optimization path (AVX2 kernels, pthreads pool, blocked-K packing). </p>
 </div></div><!-- contents -->
 </div><!-- PageDoc -->
 </div><!-- doc-content -->

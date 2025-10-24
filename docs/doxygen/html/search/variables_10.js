@@ -1,10 +1,15 @@
 var searchData=
 [
-  ['s_5fgemv_5ff32_0',['s_gemv_f32',['../gemv__generic_8c.html#aa80eb69d355054f1f8213721e72bec9a',1,'gemv_generic.c']]],
-  ['seed_1',['seed',['../structie__engine.html#a39645576c844465466e51883ccb5ca34',1,'ie_engine']]],
-  ['size_2',['size',['../structie__batcher.html#af3eb137ebe601d71c94b345d9d7e97a0',1,'ie_batcher']]],
-  ['slots_3',['slots',['../structie__kv__state__t.html#aef9869041cb48c24bd4a4b10ad278342',1,'ie_kv_state_t']]],
-  ['start_4',['start',['../structie__task__arg__t.html#afee2b8f07881d75ea8829a1f54757c5e',1,'ie_task_arg_t']]],
-  ['status_5',['status',['../structie__batcher__item__t.html#a0415c395810297f906e8a6757d9ad425',1,'ie_batcher_item_t']]],
-  ['stop_6',['stop',['../structie__batcher.html#a242cb22d24bf957c272419a23f8de079',1,'ie_batcher']]]
+  ['r_0',['r',['../structie__batcher.html#afc91dc7b95574b4fd89796fdf65473e3',1,'ie_batcher']]],
+  ['ready_1',['ready',['../structie__kv__state__t.html#a828ea65682d5c2bc18f50ed573c651cd',1,'ie_kv_state_t']]],
+  ['repo_5froot_2',['repo_root',['../classtest__cli_1_1CLITests.html#ac29691600e1e118bf50d7f5d61aa3658',1,'test_cli.CLITests.repo_root'],['../classtest__harness_1_1HarnessTests.html#a9da2a077c2a49eecb0e669c6f56dc0b3',1,'test_harness.HarnessTests.repo_root']]],
+  ['reports_5fdir_3',['REPORTS_DIR',['../namespacemake__baseline__md.html#aa53d9819cf378e7fd3ba52d5a5f48926',1,'make_baseline_md']]],
+  ['reports_5fdir_4',['reports_dir',['../classtest__harness_1_1HarnessTests.html#af576dc895342c5c62354e833eb8ad029',1,'test_harness::HarnessTests']]],
+  ['ring_5',['ring',['../structie__batcher.html#a862ac941b8747e72ad52afb521f4969f',1,'ie_batcher']]],
+  ['root_6',['ROOT',['../namespacemake__baseline__md.html#a934d8f8b7e3dd8b9d7e121df6ac93d4d',1,'make_baseline_md']]],
+  ['rounds_7',['rounds',['../structcli__extras.html#a8c1b8fdbf9dc75a774e8b451608c961b',1,'cli_extras']]],
+  ['rows_8',['rows',['../structie__wblocked__desc.html#aad0e79d6b83fc4e2f15ae0d9b2dad038',1,'ie_wblocked_desc']]],
+  ['rss_5fpeak_5fmb_9',['rss_peak_mb',['../structie__metrics.html#aaba3f47eb3330e79ef9e127586f3d223',1,'ie_metrics']]],
+  ['rsvd0_10',['rsvd0',['../structie__metrics__t.html#a61161a43f433cc379aa4e80a1ed1ebc1',1,'ie_metrics_t']]],
+  ['run_11',['Run',['../namespaceupdate__performance__md.html#ad720a2eea113ced5851b5c3cae4d23a5',1,'update_performance_md']]]
 ];

@@ -1,0 +1,390 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="ptq__calib_8py" kind="file" language="Python">
+    <compoundname>ptq_calib.py</compoundname>
+    <innernamespace refid="namespaceptq__calib">ptq_calib</innernamespace>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1" refid="namespaceptq__calib" refkind="compound"><highlight class="comment">#<sp/>=============================================================================</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="2"><highlight class="normal"></highlight><highlight class="comment">#<sp/>File:<sp/>benchmarks/ptq_calib.py</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="3"><highlight class="normal"></highlight><highlight class="comment">#<sp/>=============================================================================</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="4"><highlight class="normal"></highlight><highlight class="comment">#!/usr/bin/env<sp/>python3</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="5"><highlight class="normal"></highlight><highlight class="stringliteral">&quot;&quot;&quot;</highlight></codeline>
+<codeline lineno="6"><highlight class="stringliteral">Post-Training<sp/>Quantization<sp/>(weight-only)<sp/>calibrator.</highlight></codeline>
+<codeline lineno="7"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="8"><highlight class="stringliteral">Reads<sp/>a<sp/>row-major<sp/>FP32<sp/>weight<sp/>matrix<sp/>(W<sp/>in<sp/>R^{rows<sp/>x<sp/>cols})<sp/>from<sp/>a<sp/>.bin<sp/>file,</highlight></codeline>
+<codeline lineno="9"><highlight class="stringliteral">computes<sp/>symmetric<sp/>scales<sp/>and<sp/>quantizes<sp/>weights<sp/>to<sp/>INT8<sp/>or<sp/>INT4<sp/>(weight-only),</highlight></codeline>
+<codeline lineno="10"><highlight class="stringliteral">then<sp/>writes<sp/>compact<sp/>artifacts:</highlight></codeline>
+<codeline lineno="11"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="12"><highlight class="stringliteral">Outputs<sp/>(for<sp/>OUT_PREFIX<sp/>=<sp/>&lt;prefix&gt;):</highlight></codeline>
+<codeline lineno="13"><highlight class="stringliteral"><sp/><sp/>-<sp/>&lt;prefix&gt;.meta.json<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>metadata<sp/>with<sp/>shapes,<sp/>files,<sp/>metrics</highlight></codeline>
+<codeline lineno="14"><highlight class="stringliteral"><sp/><sp/>-<sp/>&lt;prefix&gt;.scale.f16.bin|.f32.bin<sp/>#<sp/>per-row<sp/>or<sp/>per-tensor<sp/>scales</highlight></codeline>
+<codeline lineno="15"><highlight class="stringliteral"><sp/><sp/>-<sp/>&lt;prefix&gt;.int8.w.bin<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>row-major<sp/>int8<sp/>weights<sp/>(if<sp/>--wbits=8)</highlight></codeline>
+<codeline lineno="16"><highlight class="stringliteral"><sp/><sp/>-<sp/>&lt;prefix&gt;.int4.w.bin<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>row-major<sp/>4-bit<sp/>packed<sp/>weights<sp/>(if<sp/>--wbits=4)</highlight></codeline>
+<codeline lineno="17"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="18"><highlight class="stringliteral">Packing<sp/>(INT4):</highlight></codeline>
+<codeline lineno="19"><highlight class="stringliteral"><sp/><sp/>-<sp/>Signed<sp/>4-bit<sp/>values<sp/>in<sp/>two&apos;s<sp/>complement,<sp/>range<sp/>[-8..7]</highlight></codeline>
+<codeline lineno="20"><highlight class="stringliteral"><sp/><sp/>-<sp/>Two<sp/>values<sp/>packed<sp/>per<sp/>byte:<sp/>low<sp/>nibble<sp/>=<sp/>column<sp/>j<sp/>(even),<sp/>high<sp/>nibble<sp/>=<sp/>j+1</highlight></codeline>
+<codeline lineno="21"><highlight class="stringliteral"><sp/><sp/>-<sp/>Row-major<sp/>order;<sp/>each<sp/>row<sp/>occupies<sp/>ceil(cols/2)<sp/>bytes</highlight></codeline>
+<codeline lineno="22"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="23"><highlight class="stringliteral">Scale<sp/>modes:</highlight></codeline>
+<codeline lineno="24"><highlight class="stringliteral"><sp/><sp/>-<sp/>per_row:<sp/>one<sp/>scale<sp/>per<sp/>row<sp/>(default,<sp/>recommended<sp/>for<sp/>GEMV)</highlight></codeline>
+<codeline lineno="25"><highlight class="stringliteral"><sp/><sp/>-<sp/>per_tensor:<sp/>one<sp/>scale<sp/>for<sp/>the<sp/>entire<sp/>tensor</highlight></codeline>
+<codeline lineno="26"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="27"><highlight class="stringliteral">Metrics:</highlight></codeline>
+<codeline lineno="28"><highlight class="stringliteral"><sp/><sp/>-<sp/>Average<sp/>row-wise<sp/>cosine<sp/>similarity<sp/>between<sp/>W<sp/>and<sp/>dequantized(W_q)</highlight></codeline>
+<codeline lineno="29"><highlight class="stringliteral"><sp/><sp/>-<sp/>Global<sp/>mean<sp/>squared<sp/>error</highlight></codeline>
+<codeline lineno="30"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="31"><highlight class="stringliteral">A<sp/>JSON<sp/>snippet<sp/>you<sp/>can<sp/>paste<sp/>into<sp/>`model.ie.json`<sp/>is<sp/>printed<sp/>as:</highlight></codeline>
+<codeline lineno="32"><highlight class="stringliteral"><sp/><sp/>[iebin-json]<sp/>{...}</highlight></codeline>
+<codeline lineno="33"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="34"><highlight class="stringliteral">Example:</highlight></codeline>
+<codeline lineno="35"><highlight class="stringliteral"><sp/><sp/>python3<sp/>benchmarks/ptq_calib.py<sp/>\</highlight></codeline>
+<codeline lineno="36"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/>--weights<sp/>out/qproj.f32.bin<sp/>--rows<sp/>4096<sp/>--cols<sp/>4096<sp/>\</highlight></codeline>
+<codeline lineno="37"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/>--mode<sp/>per_row<sp/>--wbits<sp/>4<sp/>--out-prefix<sp/>out/qproj_q4<sp/>\</highlight></codeline>
+<codeline lineno="38"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/>--scale-dtype<sp/>fp16</highlight></codeline>
+<codeline lineno="39"><highlight class="stringliteral">&quot;&quot;&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="40"><highlight class="normal"></highlight><highlight class="keyword">from</highlight><highlight class="normal"><sp/>__future__<sp/></highlight><highlight class="keyword">import</highlight><highlight class="normal"><sp/>annotations</highlight></codeline>
+<codeline lineno="41"><highlight class="normal"></highlight></codeline>
+<codeline lineno="42"><highlight class="normal"></highlight><highlight class="keyword">import</highlight><highlight class="normal"><sp/>argparse</highlight></codeline>
+<codeline lineno="43"><highlight class="normal"></highlight><highlight class="keyword">import</highlight><highlight class="normal"><sp/>json</highlight></codeline>
+<codeline lineno="44"><highlight class="normal"></highlight><highlight class="keyword">import</highlight><highlight class="normal"><sp/>math</highlight></codeline>
+<codeline lineno="45"><highlight class="normal"></highlight><highlight class="keyword">import</highlight><highlight class="normal"><sp/>os</highlight></codeline>
+<codeline lineno="46"><highlight class="normal"></highlight><highlight class="keyword">from</highlight><highlight class="normal"><sp/>pathlib<sp/></highlight><highlight class="keyword">import</highlight><highlight class="normal"><sp/>Path</highlight></codeline>
+<codeline lineno="47"><highlight class="normal"></highlight><highlight class="keyword">from</highlight><highlight class="normal"><sp/>typing<sp/></highlight><highlight class="keyword">import</highlight><highlight class="normal"><sp/>Tuple</highlight></codeline>
+<codeline lineno="48"><highlight class="normal"></highlight></codeline>
+<codeline lineno="49"><highlight class="normal"></highlight><highlight class="keyword">import</highlight><highlight class="normal"><sp/>numpy<sp/></highlight><highlight class="keyword">as</highlight><highlight class="normal"><sp/>np</highlight></codeline>
+<codeline lineno="50"><highlight class="normal"></highlight></codeline>
+<codeline lineno="51"><highlight class="normal"></highlight></codeline>
+<codeline lineno="52"><highlight class="normal"></highlight><highlight class="comment">#<sp/>-----------------------------<sp/>I/O<sp/>Utilities<sp/>---------------------------------</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="53" refid="namespaceptq__calib_1a3c61645c84bf45ea46988b90da7eacf2" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">def<sp/></highlight><highlight class="normal"><ref refid="namespaceptq__calib_1a3c61645c84bf45ea46988b90da7eacf2" kindref="member">load_f32_matrix</ref>(path:<sp/>str,<sp/>rows:<sp/>int,<sp/>cols:<sp/>int)<sp/>-&gt;<sp/>np.ndarray:</highlight></codeline>
+<codeline lineno="54"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;&quot;&quot;</highlight></codeline>
+<codeline lineno="55"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>Load<sp/>a<sp/>row-major<sp/>float32<sp/>matrix<sp/>from<sp/>a<sp/>flat<sp/>.bin<sp/>file.</highlight></codeline>
+<codeline lineno="56"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="57"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>Parameters</highlight></codeline>
+<codeline lineno="58"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>----------</highlight></codeline>
+<codeline lineno="59"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>path<sp/>:<sp/>str</highlight></codeline>
+<codeline lineno="60"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Path<sp/>to<sp/>the<sp/>.bin<sp/>file<sp/>containing<sp/>raw<sp/>float32<sp/>data.</highlight></codeline>
+<codeline lineno="61"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>rows<sp/>:<sp/>int</highlight></codeline>
+<codeline lineno="62"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Number<sp/>of<sp/>rows<sp/>in<sp/>the<sp/>matrix.</highlight></codeline>
+<codeline lineno="63"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>cols<sp/>:<sp/>int</highlight></codeline>
+<codeline lineno="64"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Number<sp/>of<sp/>columns<sp/>in<sp/>the<sp/>matrix.</highlight></codeline>
+<codeline lineno="65"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="66"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>Returns</highlight></codeline>
+<codeline lineno="67"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>-------</highlight></codeline>
+<codeline lineno="68"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>np.ndarray</highlight></codeline>
+<codeline lineno="69"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Array<sp/>of<sp/>shape<sp/>(rows,<sp/>cols),<sp/>dtype<sp/>float32.</highlight></codeline>
+<codeline lineno="70"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="71"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>Raises</highlight></codeline>
+<codeline lineno="72"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>------</highlight></codeline>
+<codeline lineno="73"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>ValueError</highlight></codeline>
+<codeline lineno="74"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>If<sp/>the<sp/>file<sp/>size<sp/>does<sp/>not<sp/>match<sp/>rows*cols*4<sp/>bytes.</highlight></codeline>
+<codeline lineno="75"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>&quot;&quot;&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="76"><highlight class="normal"><sp/><sp/><sp/><sp/>p<sp/>=<sp/>Path(path)</highlight></codeline>
+<codeline lineno="77"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordflow">not</highlight><highlight class="normal"><sp/>p.is_file():</highlight></codeline>
+<codeline lineno="78"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">raise</highlight><highlight class="normal"><sp/>ValueError(f</highlight><highlight class="stringliteral">&quot;weights<sp/>file<sp/>not<sp/>found:<sp/>{path}&quot;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline lineno="79"><highlight class="normal"><sp/><sp/><sp/><sp/>expected<sp/>=<sp/>rows<sp/>*<sp/>cols<sp/>*<sp/>4</highlight></codeline>
+<codeline lineno="80"><highlight class="normal"><sp/><sp/><sp/><sp/>actual<sp/>=<sp/>p.stat().st_size</highlight></codeline>
+<codeline lineno="81"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>actual<sp/>!=<sp/>expected:</highlight></codeline>
+<codeline lineno="82"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">raise</highlight><highlight class="normal"><sp/>ValueError(</highlight></codeline>
+<codeline lineno="83"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>f</highlight><highlight class="stringliteral">&quot;size<sp/>mismatch<sp/>for<sp/>{path}:<sp/>got<sp/>{actual}<sp/>bytes,<sp/>expected<sp/>{expected}<sp/>&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="84"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>f</highlight><highlight class="stringliteral">&quot;(rows={rows},<sp/>cols={cols})&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="85"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>)</highlight></codeline>
+<codeline lineno="86"><highlight class="normal"><sp/><sp/><sp/><sp/>arr<sp/>=<sp/>np.fromfile(path,<sp/>dtype=np.float32,<sp/>count=rows<sp/>*<sp/>cols)</highlight></codeline>
+<codeline lineno="87"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>arr.reshape(rows,<sp/>cols)</highlight></codeline>
+<codeline lineno="88"><highlight class="normal"></highlight></codeline>
+<codeline lineno="89"><highlight class="normal"></highlight></codeline>
+<codeline lineno="90" refid="namespaceptq__calib_1a0ff53d4b3af1bcce6cc9aa70c71ad741" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">def<sp/></highlight><highlight class="normal"><ref refid="namespaceptq__calib_1a0ff53d4b3af1bcce6cc9aa70c71ad741" kindref="member">save_binary</ref>(path:<sp/>str,<sp/>array:<sp/>np.ndarray)<sp/>-&gt;<sp/></highlight><highlight class="keywordtype">None</highlight><highlight class="normal">:</highlight></codeline>
+<codeline lineno="91"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;&quot;&quot;</highlight></codeline>
+<codeline lineno="92"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>Save<sp/>a<sp/>contiguous<sp/>numpy<sp/>array<sp/>to<sp/>a<sp/>binary<sp/>file.</highlight></codeline>
+<codeline lineno="93"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="94"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>Parameters</highlight></codeline>
+<codeline lineno="95"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>----------</highlight></codeline>
+<codeline lineno="96"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>path<sp/>:<sp/>str</highlight></codeline>
+<codeline lineno="97"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Output<sp/>file<sp/>path.</highlight></codeline>
+<codeline lineno="98"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>array<sp/>:<sp/>np.ndarray</highlight></codeline>
+<codeline lineno="99"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Array<sp/>to<sp/>write.<sp/>The<sp/>function<sp/>writes<sp/>bytes<sp/>as-is<sp/>(no<sp/>header).</highlight></codeline>
+<codeline lineno="100"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>&quot;&quot;&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="101"><highlight class="normal"><sp/><sp/><sp/><sp/>Path(path).parent.mkdir(parents=</highlight><highlight class="keyword">True</highlight><highlight class="normal">,<sp/>exist_ok=</highlight><highlight class="keyword">True</highlight><highlight class="normal">)</highlight></codeline>
+<codeline lineno="102"><highlight class="normal"><sp/><sp/><sp/><sp/>array.tofile(path)</highlight></codeline>
+<codeline lineno="103"><highlight class="normal"></highlight></codeline>
+<codeline lineno="104"><highlight class="normal"></highlight></codeline>
+<codeline lineno="105"><highlight class="normal"></highlight><highlight class="comment">#<sp/>---------------------------<sp/>Quantization<sp/>Core<sp/>-------------------------------</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="106" refid="namespaceptq__calib_1af0f830db41d66b7dc2d9462dfc37133c" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">def<sp/></highlight><highlight class="normal"><ref refid="namespaceptq__calib_1af0f830db41d66b7dc2d9462dfc37133c" kindref="member">compute_scales</ref>(</highlight></codeline>
+<codeline lineno="107"><highlight class="normal"><sp/><sp/><sp/><sp/>W:<sp/>np.ndarray,<sp/>wbits:<sp/>int,<sp/>mode:<sp/>str,<sp/>eps:<sp/>float<sp/>=<sp/>1e-12</highlight></codeline>
+<codeline lineno="108"><highlight class="normal">)<sp/>-&gt;<sp/>np.ndarray:</highlight></codeline>
+<codeline lineno="109"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;&quot;&quot;</highlight></codeline>
+<codeline lineno="110"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>Compute<sp/>symmetric<sp/>quantization<sp/>scales<sp/>for<sp/>weight-only<sp/>PTQ.</highlight></codeline>
+<codeline lineno="111"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="112"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>Parameters</highlight></codeline>
+<codeline lineno="113"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>----------</highlight></codeline>
+<codeline lineno="114"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>W<sp/>:<sp/>np.ndarray</highlight></codeline>
+<codeline lineno="115"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Weight<sp/>matrix,<sp/>shape<sp/>(rows,<sp/>cols),<sp/>dtype<sp/>float32.</highlight></codeline>
+<codeline lineno="116"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>wbits<sp/>:<sp/>int</highlight></codeline>
+<codeline lineno="117"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Bit-width<sp/>(8<sp/>or<sp/>4).</highlight></codeline>
+<codeline lineno="118"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>mode<sp/>:<sp/>str</highlight></codeline>
+<codeline lineno="119"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&apos;per_row&apos;<sp/>or<sp/>&apos;per_tensor&apos;.</highlight></codeline>
+<codeline lineno="120"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>eps<sp/>:<sp/>float</highlight></codeline>
+<codeline lineno="121"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Small<sp/>constant<sp/>to<sp/>avoid<sp/>division<sp/>by<sp/>zero.</highlight></codeline>
+<codeline lineno="122"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="123"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>Returns</highlight></codeline>
+<codeline lineno="124"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>-------</highlight></codeline>
+<codeline lineno="125"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>np.ndarray</highlight></codeline>
+<codeline lineno="126"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Scales<sp/>as<sp/>float32.<sp/>Shape<sp/>(rows,)<sp/>for<sp/>per_row,<sp/>or<sp/>(1,)<sp/>for<sp/>per_tensor.</highlight></codeline>
+<codeline lineno="127"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>&quot;&quot;&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="128"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">assert</highlight><highlight class="normal"><sp/>W.ndim<sp/>==<sp/>2,<sp/></highlight><highlight class="stringliteral">&quot;W<sp/>must<sp/>be<sp/>2D&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="129"><highlight class="normal"><sp/><sp/><sp/><sp/>qmax<sp/>=<sp/>127<sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>wbits<sp/>==<sp/>8<sp/></highlight><highlight class="keywordflow">else</highlight><highlight class="normal"><sp/>7</highlight></codeline>
+<codeline lineno="130"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>mode<sp/>==<sp/></highlight><highlight class="stringliteral">&quot;per_row&quot;</highlight><highlight class="normal">:</highlight></codeline>
+<codeline lineno="131"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>absmax<sp/>=<sp/>np.max(np.abs(W),<sp/>axis=1).astype(np.float32)</highlight></codeline>
+<codeline lineno="132"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>scales<sp/>=<sp/>np.maximum(absmax<sp/>/<sp/>float(qmax),<sp/>eps).astype(np.float32)</highlight></codeline>
+<codeline lineno="133"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>scales<sp/><sp/></highlight><highlight class="comment">#<sp/>(rows,)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="134"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">elif</highlight><highlight class="normal"><sp/>mode<sp/>==<sp/></highlight><highlight class="stringliteral">&quot;per_tensor&quot;</highlight><highlight class="normal">:</highlight></codeline>
+<codeline lineno="135"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>absmax<sp/>=<sp/>float(np.max(np.abs(W)))</highlight></codeline>
+<codeline lineno="136"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>scale<sp/>=<sp/>max(absmax<sp/>/<sp/>float(qmax),<sp/>eps)</highlight></codeline>
+<codeline lineno="137"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>np.array([scale],<sp/>dtype=np.float32)<sp/><sp/></highlight><highlight class="comment">#<sp/>(1,)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="138"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">else</highlight><highlight class="normal">:</highlight></codeline>
+<codeline lineno="139"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">raise</highlight><highlight class="normal"><sp/>ValueError(f</highlight><highlight class="stringliteral">&quot;unknown<sp/>mode:<sp/>{mode}&quot;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline lineno="140"><highlight class="normal"></highlight></codeline>
+<codeline lineno="141"><highlight class="normal"></highlight></codeline>
+<codeline lineno="142" refid="namespaceptq__calib_1a6855dfc7d067ff09439e3ea0902bbd25" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">def<sp/></highlight><highlight class="normal"><ref refid="namespaceptq__calib_1a6855dfc7d067ff09439e3ea0902bbd25" kindref="member">quantize_int8</ref>(W:<sp/>np.ndarray,<sp/>scales:<sp/>np.ndarray,<sp/>mode:<sp/>str)<sp/>-&gt;<sp/>Tuple[np.ndarray,<sp/>np.ndarray]:</highlight></codeline>
+<codeline lineno="143"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;&quot;&quot;</highlight></codeline>
+<codeline lineno="144"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>Quantize<sp/>to<sp/>INT8<sp/>with<sp/>symmetric<sp/>zero-point<sp/>(z=0),<sp/>range<sp/>[-127,<sp/>127].</highlight></codeline>
+<codeline lineno="145"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="146"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>Parameters</highlight></codeline>
+<codeline lineno="147"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>----------</highlight></codeline>
+<codeline lineno="148"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>W<sp/>:<sp/>np.ndarray</highlight></codeline>
+<codeline lineno="149"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Float32<sp/>weights.</highlight></codeline>
+<codeline lineno="150"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>scales<sp/>:<sp/>np.ndarray</highlight></codeline>
+<codeline lineno="151"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Scales<sp/>computed<sp/>by<sp/>compute_scales.</highlight></codeline>
+<codeline lineno="152"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>mode<sp/>:<sp/>str</highlight></codeline>
+<codeline lineno="153"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&apos;per_row&apos;<sp/>or<sp/>&apos;per_tensor&apos;.</highlight></codeline>
+<codeline lineno="154"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="155"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>Returns</highlight></codeline>
+<codeline lineno="156"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>-------</highlight></codeline>
+<codeline lineno="157"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>(Q,<sp/>W_hat)</highlight></codeline>
+<codeline lineno="158"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Q<sp/>is<sp/>int8<sp/>array,<sp/>same<sp/>shape<sp/>as<sp/>W.</highlight></codeline>
+<codeline lineno="159"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>W_hat<sp/>is<sp/>float32<sp/>dequantized<sp/>reconstruction.</highlight></codeline>
+<codeline lineno="160"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>&quot;&quot;&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="161"><highlight class="normal"><sp/><sp/><sp/><sp/>qmax<sp/>=<sp/>127</highlight></codeline>
+<codeline lineno="162"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>mode<sp/>==<sp/></highlight><highlight class="stringliteral">&quot;per_row&quot;</highlight><highlight class="normal">:</highlight></codeline>
+<codeline lineno="163"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>s<sp/>=<sp/>scales[:,<sp/></highlight><highlight class="keywordtype">None</highlight><highlight class="normal">]<sp/><sp/></highlight><highlight class="comment">#<sp/>(rows,<sp/>1)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="164"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">else</highlight><highlight class="normal">:</highlight></codeline>
+<codeline lineno="165"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>s<sp/>=<sp/>scales.reshape(1,<sp/>1)<sp/><sp/></highlight><highlight class="comment">#<sp/>(1,<sp/>1)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="166"><highlight class="normal"><sp/><sp/><sp/><sp/>Q<sp/>=<sp/>np.clip(np.rint(W<sp/>/<sp/>s),<sp/>-qmax,<sp/>qmax).astype(np.int8)</highlight></codeline>
+<codeline lineno="167"><highlight class="normal"><sp/><sp/><sp/><sp/>W_hat<sp/>=<sp/>(Q.astype(np.float32)<sp/>*<sp/>s).astype(np.float32)</highlight></codeline>
+<codeline lineno="168"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>Q,<sp/>W_hat</highlight></codeline>
+<codeline lineno="169"><highlight class="normal"></highlight></codeline>
+<codeline lineno="170"><highlight class="normal"></highlight></codeline>
+<codeline lineno="171" refid="namespaceptq__calib_1aa6020564afa3bb98f636c4a2bcfe7f25" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">def<sp/></highlight><highlight class="normal"><ref refid="namespaceptq__calib_1aa6020564afa3bb98f636c4a2bcfe7f25" kindref="member">_pack_row_int4_signed</ref>(q_row:<sp/>np.ndarray)<sp/>-&gt;<sp/>bytes:</highlight></codeline>
+<codeline lineno="172"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;&quot;&quot;</highlight></codeline>
+<codeline lineno="173"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>Pack<sp/>a<sp/>single<sp/>int8<sp/>row<sp/>(values<sp/>in<sp/>[-8..7])<sp/>into<sp/>int4<sp/>bytes.</highlight></codeline>
+<codeline lineno="174"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="175"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>Low<sp/>nibble<sp/>holds<sp/>column<sp/>j<sp/>(even),<sp/>high<sp/>nibble<sp/>holds<sp/>column<sp/>j+1<sp/>(odd).</highlight></codeline>
+<codeline lineno="176"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>&quot;&quot;&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="177"><highlight class="normal"><sp/><sp/><sp/><sp/>n<sp/>=<sp/>q_row.shape[0]</highlight></codeline>
+<codeline lineno="178"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>n<sp/>%<sp/>2<sp/>!=<sp/>0:</highlight></codeline>
+<codeline lineno="179"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>q_row<sp/>=<sp/>np.concatenate([q_row,<sp/>np.zeros(1,<sp/>dtype=np.int8)],<sp/>axis=0)</highlight></codeline>
+<codeline lineno="180"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>n<sp/>+=<sp/>1</highlight></codeline>
+<codeline lineno="181"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">#<sp/>Two&apos;s<sp/>complement<sp/>mapping<sp/>into<sp/>[0..15]</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="182"><highlight class="normal"><sp/><sp/><sp/><sp/>nibbles<sp/>=<sp/>(q_row.astype(np.int8)<sp/>&amp;<sp/>0x0F).astype(np.uint8)</highlight></codeline>
+<codeline lineno="183"><highlight class="normal"><sp/><sp/><sp/><sp/>lo<sp/>=<sp/>nibbles[0::2]</highlight></codeline>
+<codeline lineno="184"><highlight class="normal"><sp/><sp/><sp/><sp/>hi<sp/>=<sp/>nibbles[1::2]<sp/>&lt;&lt;<sp/>4</highlight></codeline>
+<codeline lineno="185"><highlight class="normal"><sp/><sp/><sp/><sp/>packed<sp/>=<sp/>(lo<sp/>|<sp/>hi).astype(np.uint8).tobytes()</highlight></codeline>
+<codeline lineno="186"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>packed</highlight></codeline>
+<codeline lineno="187"><highlight class="normal"></highlight></codeline>
+<codeline lineno="188"><highlight class="normal"></highlight></codeline>
+<codeline lineno="189" refid="namespaceptq__calib_1a15c1ec510d143c4356e29ed8922e51bc" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">def<sp/></highlight><highlight class="normal"><ref refid="namespaceptq__calib_1a15c1ec510d143c4356e29ed8922e51bc" kindref="member">quantize_int4_packed</ref>(</highlight></codeline>
+<codeline lineno="190"><highlight class="normal"><sp/><sp/><sp/><sp/>W:<sp/>np.ndarray,<sp/>scales:<sp/>np.ndarray,<sp/>mode:<sp/>str</highlight></codeline>
+<codeline lineno="191"><highlight class="normal">)<sp/>-&gt;<sp/>Tuple[bytes,<sp/>np.ndarray]:</highlight></codeline>
+<codeline lineno="192"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;&quot;&quot;</highlight></codeline>
+<codeline lineno="193"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>Quantize<sp/>to<sp/>signed<sp/>INT4<sp/>(two&apos;s<sp/>complement,<sp/>range<sp/>[-8..7])<sp/>and<sp/>pack.</highlight></codeline>
+<codeline lineno="194"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="195"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>Parameters</highlight></codeline>
+<codeline lineno="196"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>----------</highlight></codeline>
+<codeline lineno="197"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>W<sp/>:<sp/>np.ndarray</highlight></codeline>
+<codeline lineno="198"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Float32<sp/>weights.</highlight></codeline>
+<codeline lineno="199"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>scales<sp/>:<sp/>np.ndarray</highlight></codeline>
+<codeline lineno="200"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Scales<sp/>computed<sp/>by<sp/>compute_scales.</highlight></codeline>
+<codeline lineno="201"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>mode<sp/>:<sp/>str</highlight></codeline>
+<codeline lineno="202"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&apos;per_row&apos;<sp/>or<sp/>&apos;per_tensor&apos;.</highlight></codeline>
+<codeline lineno="203"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="204"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>Returns</highlight></codeline>
+<codeline lineno="205"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>-------</highlight></codeline>
+<codeline lineno="206"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>(packed_bytes,<sp/>W_hat)</highlight></codeline>
+<codeline lineno="207"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>packed_bytes:<sp/>bytes<sp/>object<sp/>containing<sp/>row-major<sp/>packed<sp/>int4</highlight></codeline>
+<codeline lineno="208"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>W_hat:<sp/>float32<sp/>dequantized<sp/>reconstruction<sp/>(for<sp/>metrics)</highlight></codeline>
+<codeline lineno="209"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>&quot;&quot;&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="210"><highlight class="normal"><sp/><sp/><sp/><sp/>qmin,<sp/>qmax<sp/>=<sp/>-8,<sp/>7</highlight></codeline>
+<codeline lineno="211"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>mode<sp/>==<sp/></highlight><highlight class="stringliteral">&quot;per_row&quot;</highlight><highlight class="normal">:</highlight></codeline>
+<codeline lineno="212"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>s<sp/>=<sp/>scales[:,<sp/></highlight><highlight class="keywordtype">None</highlight><highlight class="normal">]<sp/><sp/></highlight><highlight class="comment">#<sp/>(rows,<sp/>1)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="213"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">else</highlight><highlight class="normal">:</highlight></codeline>
+<codeline lineno="214"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>s<sp/>=<sp/>scales.reshape(1,<sp/>1)<sp/><sp/></highlight><highlight class="comment">#<sp/>(1,<sp/>1)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="215"><highlight class="normal"></highlight></codeline>
+<codeline lineno="216"><highlight class="normal"><sp/><sp/><sp/><sp/>Q<sp/>=<sp/>np.clip(np.rint(W<sp/>/<sp/>s),<sp/>qmin,<sp/>qmax).astype(np.int8)</highlight></codeline>
+<codeline lineno="217"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">#<sp/>Dequantization<sp/>for<sp/>metrics:</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="218"><highlight class="normal"><sp/><sp/><sp/><sp/>W_hat<sp/>=<sp/>(Q.astype(np.float32)<sp/>*<sp/>s).astype(np.float32)</highlight></codeline>
+<codeline lineno="219"><highlight class="normal"></highlight></codeline>
+<codeline lineno="220"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">#<sp/>Pack<sp/>each<sp/>row<sp/>into<sp/>bytes</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="221"><highlight class="normal"><sp/><sp/><sp/><sp/>rows<sp/>=<sp/>Q.shape[0]</highlight></codeline>
+<codeline lineno="222"><highlight class="normal"><sp/><sp/><sp/><sp/>packed_rows<sp/>=<sp/>[]</highlight></codeline>
+<codeline lineno="223"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>r<sp/></highlight><highlight class="keywordflow">in</highlight><highlight class="normal"><sp/>range(rows):</highlight></codeline>
+<codeline lineno="224"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>packed_rows.append(<ref refid="namespaceptq__calib_1aa6020564afa3bb98f636c4a2bcfe7f25" kindref="member">_pack_row_int4_signed</ref>(Q[r]))</highlight></codeline>
+<codeline lineno="225"><highlight class="normal"><sp/><sp/><sp/><sp/>packed<sp/>=<sp/>b</highlight><highlight class="stringliteral">&quot;&quot;</highlight><highlight class="normal">.join(packed_rows)</highlight></codeline>
+<codeline lineno="226"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>packed,<sp/>W_hat</highlight></codeline>
+<codeline lineno="227"><highlight class="normal"></highlight></codeline>
+<codeline lineno="228"><highlight class="normal"></highlight></codeline>
+<codeline lineno="229"><highlight class="normal"></highlight><highlight class="comment">#<sp/>-------------------------------<sp/>Metrics<sp/>-------------------------------------</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="230" refid="namespaceptq__calib_1a9805c5526e7e404510096d4c348247e1" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">def<sp/></highlight><highlight class="normal"><ref refid="namespaceptq__calib_1a9805c5526e7e404510096d4c348247e1" kindref="member">avg_row_cosine</ref>(a:<sp/>np.ndarray,<sp/>b:<sp/>np.ndarray,<sp/>eps:<sp/>float<sp/>=<sp/>1e-12)<sp/>-&gt;<sp/>float:</highlight></codeline>
+<codeline lineno="231"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;&quot;&quot;</highlight></codeline>
+<codeline lineno="232"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>Compute<sp/>the<sp/>average<sp/>row-wise<sp/>cosine<sp/>similarity<sp/>between<sp/>two<sp/>matrices.</highlight></codeline>
+<codeline lineno="233"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="234"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>Parameters</highlight></codeline>
+<codeline lineno="235"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>----------</highlight></codeline>
+<codeline lineno="236"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>a,<sp/>b<sp/>:<sp/>np.ndarray</highlight></codeline>
+<codeline lineno="237"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Float32<sp/>matrices<sp/>with<sp/>the<sp/>same<sp/>shape.</highlight></codeline>
+<codeline lineno="238"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>eps<sp/>:<sp/>float</highlight></codeline>
+<codeline lineno="239"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Numerical<sp/>stability<sp/>epsilon.</highlight></codeline>
+<codeline lineno="240"><highlight class="stringliteral"></highlight></codeline>
+<codeline lineno="241"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>Returns</highlight></codeline>
+<codeline lineno="242"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>-------</highlight></codeline>
+<codeline lineno="243"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>float</highlight></codeline>
+<codeline lineno="244"><highlight class="stringliteral"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Average<sp/>cosine<sp/>similarity<sp/>in<sp/>[0,<sp/>1].</highlight></codeline>
+<codeline lineno="245"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>&quot;&quot;&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="246"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">assert</highlight><highlight class="normal"><sp/>a.shape<sp/>==<sp/>b.shape</highlight></codeline>
+<codeline lineno="247"><highlight class="normal"><sp/><sp/><sp/><sp/>a_norm<sp/>=<sp/>np.linalg.norm(a,<sp/>axis=1)<sp/>+<sp/>eps</highlight></codeline>
+<codeline lineno="248"><highlight class="normal"><sp/><sp/><sp/><sp/>b_norm<sp/>=<sp/>np.linalg.norm(b,<sp/>axis=1)<sp/>+<sp/>eps</highlight></codeline>
+<codeline lineno="249"><highlight class="normal"><sp/><sp/><sp/><sp/>dot<sp/>=<sp/>np.sum(a<sp/>*<sp/>b,<sp/>axis=1)</highlight></codeline>
+<codeline lineno="250"><highlight class="normal"><sp/><sp/><sp/><sp/>cos<sp/>=<sp/>dot<sp/>/<sp/>(a_norm<sp/>*<sp/>b_norm)</highlight></codeline>
+<codeline lineno="251"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">#<sp/>Clamp<sp/>for<sp/>safety</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="252"><highlight class="normal"><sp/><sp/><sp/><sp/>cos<sp/>=<sp/>np.clip(cos,<sp/>-1.0,<sp/>1.0)</highlight></codeline>
+<codeline lineno="253"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">#<sp/>Map<sp/>to<sp/>[0,1]<sp/>if<sp/>negative<sp/>due<sp/>to<sp/>numeric<sp/>issues;<sp/>typical<sp/>positive<sp/>for<sp/>weights</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="254"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>float(np.mean((cos<sp/>+<sp/>1.0)<sp/>/<sp/>2.0))</highlight></codeline>
+<codeline lineno="255"><highlight class="normal"></highlight></codeline>
+<codeline lineno="256"><highlight class="normal"></highlight></codeline>
+<codeline lineno="257" refid="namespaceptq__calib_1a8091bc9c066240fc12d193762c5c17f6" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">def<sp/></highlight><highlight class="normal"><ref refid="namespaceptq__calib_1a8091bc9c066240fc12d193762c5c17f6" kindref="member">mse</ref>(a:<sp/>np.ndarray,<sp/>b:<sp/>np.ndarray)<sp/>-&gt;<sp/>float:</highlight></codeline>
+<codeline lineno="258"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;&quot;&quot;</highlight></codeline>
+<codeline lineno="259"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>Mean<sp/>squared<sp/>error<sp/>between<sp/>two<sp/>matrices.</highlight></codeline>
+<codeline lineno="260"><highlight class="stringliteral"><sp/><sp/><sp/><sp/>&quot;&quot;&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="261"><highlight class="normal"><sp/><sp/><sp/><sp/>d<sp/>=<sp/>(a<sp/>-<sp/>b).astype(np.float32)</highlight></codeline>
+<codeline lineno="262"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>float(np.mean(d<sp/>*<sp/>d))</highlight></codeline>
+<codeline lineno="263"><highlight class="normal"></highlight></codeline>
+<codeline lineno="264"><highlight class="normal"></highlight></codeline>
+<codeline lineno="265"><highlight class="normal"></highlight><highlight class="comment">#<sp/>-------------------------------<sp/>Main<sp/>Flow<sp/>-----------------------------------</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="266" refid="namespaceptq__calib_1a8c5f80e88cff2f08011a13e1a7b9ea6e" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">def<sp/></highlight><highlight class="normal"><ref refid="namespaceptq__calib_1a8c5f80e88cff2f08011a13e1a7b9ea6e" kindref="member">main</ref>()<sp/>-&gt;<sp/>None:</highlight></codeline>
+<codeline lineno="267"><highlight class="normal"><sp/><sp/><sp/><sp/>ap<sp/>=<sp/>argparse.ArgumentParser()</highlight></codeline>
+<codeline lineno="268"><highlight class="normal"><sp/><sp/><sp/><sp/>ap.add_argument(</highlight><highlight class="stringliteral">&quot;--weights&quot;</highlight><highlight class="normal">,<sp/>required=</highlight><highlight class="keyword">True</highlight><highlight class="normal">,<sp/>help=</highlight><highlight class="stringliteral">&quot;Input<sp/>FP32<sp/>.bin<sp/>(row-major)&quot;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline lineno="269"><highlight class="normal"><sp/><sp/><sp/><sp/>ap.add_argument(</highlight><highlight class="stringliteral">&quot;--rows&quot;</highlight><highlight class="normal">,<sp/>type=int,<sp/>required=</highlight><highlight class="keyword">True</highlight><highlight class="normal">,<sp/>help=</highlight><highlight class="stringliteral">&quot;Rows<sp/>of<sp/>the<sp/>matrix&quot;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline lineno="270"><highlight class="normal"><sp/><sp/><sp/><sp/>ap.add_argument(</highlight><highlight class="stringliteral">&quot;--cols&quot;</highlight><highlight class="normal">,<sp/>type=int,<sp/>required=</highlight><highlight class="keyword">True</highlight><highlight class="normal">,<sp/>help=</highlight><highlight class="stringliteral">&quot;Cols<sp/>of<sp/>the<sp/>matrix&quot;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline lineno="271"><highlight class="normal"><sp/><sp/><sp/><sp/>ap.add_argument(</highlight><highlight class="stringliteral">&quot;--mode&quot;</highlight><highlight class="normal">,<sp/>default=</highlight><highlight class="stringliteral">&quot;per_row&quot;</highlight><highlight class="normal">,<sp/>choices=[</highlight><highlight class="stringliteral">&quot;per_row&quot;</highlight><highlight class="normal">,<sp/></highlight><highlight class="stringliteral">&quot;per_tensor&quot;</highlight><highlight class="normal">],</highlight></codeline>
+<codeline lineno="272"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>help=</highlight><highlight class="stringliteral">&quot;Scale<sp/>mode<sp/>(default:<sp/>per_row)&quot;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline lineno="273"><highlight class="normal"><sp/><sp/><sp/><sp/>ap.add_argument(</highlight><highlight class="stringliteral">&quot;--out-prefix&quot;</highlight><highlight class="normal">,<sp/>required=</highlight><highlight class="keyword">True</highlight><highlight class="normal">,<sp/>help=</highlight><highlight class="stringliteral">&quot;Output<sp/>prefix<sp/>for<sp/>artifacts&quot;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline lineno="274"><highlight class="normal"><sp/><sp/><sp/><sp/>ap.add_argument(</highlight><highlight class="stringliteral">&quot;--accuracy-threshold&quot;</highlight><highlight class="normal">,<sp/>type=float,<sp/>default=0.995,</highlight></codeline>
+<codeline lineno="275"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>help=</highlight><highlight class="stringliteral">&quot;Advisory<sp/>threshold<sp/>for<sp/>avg<sp/>row<sp/>cosine<sp/>(no<sp/>hard<sp/>fail<sp/>by<sp/>default)&quot;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline lineno="276"><highlight class="normal"><sp/><sp/><sp/><sp/>ap.add_argument(</highlight><highlight class="stringliteral">&quot;--wbits&quot;</highlight><highlight class="normal">,<sp/>type=int,<sp/>default=8,<sp/>choices=[8,<sp/>4],</highlight></codeline>
+<codeline lineno="277"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>help=</highlight><highlight class="stringliteral">&quot;Weight<sp/>bit-width:<sp/>8<sp/>or<sp/>4<sp/>(default:<sp/>8)&quot;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline lineno="278"><highlight class="normal"><sp/><sp/><sp/><sp/>ap.add_argument(</highlight><highlight class="stringliteral">&quot;--scale-dtype&quot;</highlight><highlight class="normal">,<sp/>default=</highlight><highlight class="stringliteral">&quot;fp16&quot;</highlight><highlight class="normal">,<sp/>choices=[</highlight><highlight class="stringliteral">&quot;fp16&quot;</highlight><highlight class="normal">,<sp/></highlight><highlight class="stringliteral">&quot;fp32&quot;</highlight><highlight class="normal">],</highlight></codeline>
+<codeline lineno="279"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>help=</highlight><highlight class="stringliteral">&quot;Scale<sp/>storage<sp/>dtype<sp/>(default:<sp/>fp16)&quot;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline lineno="280"><highlight class="normal"><sp/><sp/><sp/><sp/>ap.add_argument(</highlight><highlight class="stringliteral">&quot;--fail-below-threshold&quot;</highlight><highlight class="normal">,<sp/>action=</highlight><highlight class="stringliteral">&quot;store_true&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="281"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>help=</highlight><highlight class="stringliteral">&quot;Exit<sp/>non-zero<sp/>if<sp/>metric<sp/>falls<sp/>below<sp/>threshold&quot;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline lineno="282"><highlight class="normal"><sp/><sp/><sp/><sp/>args<sp/>=<sp/>ap.parse_args()</highlight></codeline>
+<codeline lineno="283"><highlight class="normal"></highlight></codeline>
+<codeline lineno="284"><highlight class="normal"><sp/><sp/><sp/><sp/>W<sp/>=<sp/><ref refid="namespaceptq__calib_1a3c61645c84bf45ea46988b90da7eacf2" kindref="member">load_f32_matrix</ref>(args.weights,<sp/>args.rows,<sp/>args.cols)</highlight></codeline>
+<codeline lineno="285"><highlight class="normal"></highlight></codeline>
+<codeline lineno="286"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">#<sp/>Compute<sp/>scales</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="287"><highlight class="normal"><sp/><sp/><sp/><sp/>scales_f32<sp/>=<sp/><ref refid="namespaceptq__calib_1af0f830db41d66b7dc2d9462dfc37133c" kindref="member">compute_scales</ref>(W,<sp/>args.wbits,<sp/>args.mode)</highlight></codeline>
+<codeline lineno="288"><highlight class="normal"></highlight></codeline>
+<codeline lineno="289"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">#<sp/>Quantize</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="290"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>args.wbits<sp/>==<sp/>8:</highlight></codeline>
+<codeline lineno="291"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Q8,<sp/>W_hat<sp/>=<sp/><ref refid="namespaceptq__calib_1a6855dfc7d067ff09439e3ea0902bbd25" kindref="member">quantize_int8</ref>(W,<sp/>scales_f32,<sp/>args.mode)</highlight></codeline>
+<codeline lineno="292"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>weight_path<sp/>=<sp/>f</highlight><highlight class="stringliteral">&quot;{args.out_prefix}.int8.w.bin&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="293"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="namespaceptq__calib_1a0ff53d4b3af1bcce6cc9aa70c71ad741" kindref="member">save_binary</ref>(weight_path,<sp/>Q8.astype(np.int8,<sp/>copy=</highlight><highlight class="keyword">False</highlight><highlight class="normal">))</highlight></codeline>
+<codeline lineno="294"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>packed_note<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;int8<sp/>row-major&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="295"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">else</highlight><highlight class="normal">:</highlight></codeline>
+<codeline lineno="296"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>packed_bytes,<sp/>W_hat<sp/>=<sp/><ref refid="namespaceptq__calib_1a15c1ec510d143c4356e29ed8922e51bc" kindref="member">quantize_int4_packed</ref>(W,<sp/>scales_f32,<sp/>args.mode)</highlight></codeline>
+<codeline lineno="297"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>weight_path<sp/>=<sp/>f</highlight><highlight class="stringliteral">&quot;{args.out_prefix}.int4.w.bin&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="298"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Path(weight_path).parent.mkdir(parents=</highlight><highlight class="keyword">True</highlight><highlight class="normal">,<sp/>exist_ok=</highlight><highlight class="keyword">True</highlight><highlight class="normal">)</highlight></codeline>
+<codeline lineno="299"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">with</highlight><highlight class="normal"><sp/>open(weight_path,<sp/></highlight><highlight class="stringliteral">&quot;wb&quot;</highlight><highlight class="normal">)<sp/></highlight><highlight class="keyword">as</highlight><highlight class="normal"><sp/>f:</highlight></codeline>
+<codeline lineno="300"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>f.write(packed_bytes)</highlight></codeline>
+<codeline lineno="301"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>packed_note<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;int4<sp/>packed<sp/>(two&apos;s<sp/>complement),<sp/>low<sp/>nibble<sp/>=<sp/>even<sp/>col&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="302"><highlight class="normal"></highlight></codeline>
+<codeline lineno="303"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">#<sp/>Save<sp/>scales</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="304"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>args.mode<sp/>==<sp/></highlight><highlight class="stringliteral">&quot;per_row&quot;</highlight><highlight class="normal">:</highlight></codeline>
+<codeline lineno="305"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>scale_shape<sp/>=<sp/>[args.rows]</highlight></codeline>
+<codeline lineno="306"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">else</highlight><highlight class="normal">:</highlight></codeline>
+<codeline lineno="307"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>scale_shape<sp/>=<sp/>[1]</highlight></codeline>
+<codeline lineno="308"><highlight class="normal"></highlight></codeline>
+<codeline lineno="309"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>args.scale_dtype<sp/>==<sp/></highlight><highlight class="stringliteral">&quot;fp16&quot;</highlight><highlight class="normal">:</highlight></codeline>
+<codeline lineno="310"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>scales_to_save<sp/>=<sp/>scales_f32.astype(np.float16)</highlight></codeline>
+<codeline lineno="311"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>scale_path<sp/>=<sp/>f</highlight><highlight class="stringliteral">&quot;{args.out_prefix}.scale.f16.bin&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="312"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">else</highlight><highlight class="normal">:</highlight></codeline>
+<codeline lineno="313"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>scales_to_save<sp/>=<sp/>scales_f32.astype(np.float32)</highlight></codeline>
+<codeline lineno="314"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>scale_path<sp/>=<sp/>f</highlight><highlight class="stringliteral">&quot;{args.out_prefix}.scale.f32.bin&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="315"><highlight class="normal"></highlight></codeline>
+<codeline lineno="316"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="namespaceptq__calib_1a0ff53d4b3af1bcce6cc9aa70c71ad741" kindref="member">save_binary</ref>(scale_path,<sp/>scales_to_save)</highlight></codeline>
+<codeline lineno="317"><highlight class="normal"></highlight></codeline>
+<codeline lineno="318"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">#<sp/>Metrics</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="319"><highlight class="normal"><sp/><sp/><sp/><sp/>cos<sp/>=<sp/><ref refid="namespaceptq__calib_1a9805c5526e7e404510096d4c348247e1" kindref="member">avg_row_cosine</ref>(W,<sp/>W_hat)</highlight></codeline>
+<codeline lineno="320"><highlight class="normal"><sp/><sp/><sp/><sp/>err<sp/>=<sp/><ref refid="namespaceptq__calib_1a8091bc9c066240fc12d193762c5c17f6" kindref="member">mse</ref>(W,<sp/>W_hat)</highlight></codeline>
+<codeline lineno="321"><highlight class="normal"></highlight></codeline>
+<codeline lineno="322"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">#<sp/>Metadata</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="323"><highlight class="normal"><sp/><sp/><sp/><sp/>meta<sp/>=<sp/>{</highlight></codeline>
+<codeline lineno="324"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;rows&quot;</highlight><highlight class="normal">:<sp/>args.rows,</highlight></codeline>
+<codeline lineno="325"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;cols&quot;</highlight><highlight class="normal">:<sp/>args.cols,</highlight></codeline>
+<codeline lineno="326"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;wbits&quot;</highlight><highlight class="normal">:<sp/>args.wbits,</highlight></codeline>
+<codeline lineno="327"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;mode&quot;</highlight><highlight class="normal">:<sp/>args.mode,</highlight></codeline>
+<codeline lineno="328"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;scale_dtype&quot;</highlight><highlight class="normal">:<sp/>args.scale_dtype,</highlight></codeline>
+<codeline lineno="329"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;scale_shape&quot;</highlight><highlight class="normal">:<sp/>scale_shape,</highlight></codeline>
+<codeline lineno="330"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;files&quot;</highlight><highlight class="normal">:<sp/>{</highlight></codeline>
+<codeline lineno="331"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;weights&quot;</highlight><highlight class="normal">:<sp/>weight_path,</highlight></codeline>
+<codeline lineno="332"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;scales&quot;</highlight><highlight class="normal">:<sp/>scale_path,</highlight></codeline>
+<codeline lineno="333"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;fp32_src&quot;</highlight><highlight class="normal">:<sp/>os.path.abspath(args.weights),</highlight></codeline>
+<codeline lineno="334"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>},</highlight></codeline>
+<codeline lineno="335"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;packing&quot;</highlight><highlight class="normal">:<sp/>packed_note,</highlight></codeline>
+<codeline lineno="336"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;metrics&quot;</highlight><highlight class="normal">:<sp/>{</highlight></codeline>
+<codeline lineno="337"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;avg_row_cosine&quot;</highlight><highlight class="normal">:<sp/>round(cos,<sp/>6),</highlight></codeline>
+<codeline lineno="338"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;mse&quot;</highlight><highlight class="normal">:<sp/>err,</highlight></codeline>
+<codeline lineno="339"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>},</highlight></codeline>
+<codeline lineno="340"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="341"><highlight class="normal"></highlight></codeline>
+<codeline lineno="342"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">#<sp/>Emit<sp/>a<sp/>helpful<sp/>snippet<sp/>the<sp/>engine<sp/>can<sp/>adopt<sp/>in<sp/>model.ie.json</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="343"><highlight class="normal"><sp/><sp/><sp/><sp/>ie_json_snippet<sp/>=<sp/>{</highlight></codeline>
+<codeline lineno="344"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;dtype&quot;</highlight><highlight class="normal">:<sp/>f</highlight><highlight class="stringliteral">&quot;int{args.wbits}&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="345"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;quant&quot;</highlight><highlight class="normal">:<sp/>{</highlight></codeline>
+<codeline lineno="346"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;scheme&quot;</highlight><highlight class="normal">:<sp/></highlight><highlight class="stringliteral">&quot;weight_only&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="347"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;mode&quot;</highlight><highlight class="normal">:<sp/>args.mode,</highlight></codeline>
+<codeline lineno="348"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;bits&quot;</highlight><highlight class="normal">:<sp/>args.wbits,</highlight></codeline>
+<codeline lineno="349"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;scale_bin&quot;</highlight><highlight class="normal">:<sp/>scale_path,</highlight></codeline>
+<codeline lineno="350"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;scale_dtype&quot;</highlight><highlight class="normal">:<sp/>args.scale_dtype,</highlight></codeline>
+<codeline lineno="351"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;weight_bin&quot;</highlight><highlight class="normal">:<sp/>weight_path,</highlight></codeline>
+<codeline lineno="352"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;pack&quot;</highlight><highlight class="normal">:<sp/>(</highlight><highlight class="stringliteral">&quot;int8_row_major&quot;</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>args.wbits<sp/>==<sp/>8<sp/></highlight><highlight class="keywordflow">else</highlight><highlight class="normal"><sp/></highlight><highlight class="stringliteral">&quot;int4_nibbles_low_even&quot;</highlight><highlight class="normal">),</highlight></codeline>
+<codeline lineno="353"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;shape&quot;</highlight><highlight class="normal">:<sp/>[args.rows,<sp/>args.cols],</highlight></codeline>
+<codeline lineno="354"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>},</highlight></codeline>
+<codeline lineno="355"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="356"><highlight class="normal"><sp/><sp/><sp/><sp/>meta[</highlight><highlight class="stringliteral">&quot;ie_json_snippet&quot;</highlight><highlight class="normal">]<sp/>=<sp/>ie_json_snippet</highlight></codeline>
+<codeline lineno="357"><highlight class="normal"></highlight></codeline>
+<codeline lineno="358"><highlight class="normal"><sp/><sp/><sp/><sp/>meta_path<sp/>=<sp/>f</highlight><highlight class="stringliteral">&quot;{args.out_prefix}.meta.json&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="359"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">with</highlight><highlight class="normal"><sp/>open(meta_path,<sp/></highlight><highlight class="stringliteral">&quot;w&quot;</highlight><highlight class="normal">,<sp/>encoding=</highlight><highlight class="stringliteral">&quot;utf-8&quot;</highlight><highlight class="normal">)<sp/></highlight><highlight class="keyword">as</highlight><highlight class="normal"><sp/>f:</highlight></codeline>
+<codeline lineno="360"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>json.dump(meta,<sp/>f,<sp/>indent=2)</highlight></codeline>
+<codeline lineno="361"><highlight class="normal"></highlight></codeline>
+<codeline lineno="362"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">#<sp/>Single-line<sp/>summaries<sp/>for<sp/>parsers</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="363"><highlight class="normal"><sp/><sp/><sp/><sp/>print(</highlight><highlight class="stringliteral">&quot;[ptq]&quot;</highlight><highlight class="normal">,<sp/>json.dumps({</highlight></codeline>
+<codeline lineno="364"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;rows&quot;</highlight><highlight class="normal">:<sp/>args.rows,<sp/></highlight><highlight class="stringliteral">&quot;cols&quot;</highlight><highlight class="normal">:<sp/>args.cols,<sp/></highlight><highlight class="stringliteral">&quot;wbits&quot;</highlight><highlight class="normal">:<sp/>args.wbits,</highlight></codeline>
+<codeline lineno="365"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;mode&quot;</highlight><highlight class="normal">:<sp/>args.mode,<sp/></highlight><highlight class="stringliteral">&quot;avg_row_cosine&quot;</highlight><highlight class="normal">:<sp/>cos,<sp/></highlight><highlight class="stringliteral">&quot;mse&quot;</highlight><highlight class="normal">:<sp/>err,</highlight></codeline>
+<codeline lineno="366"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;weights&quot;</highlight><highlight class="normal">:<sp/>weight_path,<sp/></highlight><highlight class="stringliteral">&quot;scales&quot;</highlight><highlight class="normal">:<sp/>scale_path,<sp/></highlight><highlight class="stringliteral">&quot;meta&quot;</highlight><highlight class="normal">:<sp/>meta_path</highlight></codeline>
+<codeline lineno="367"><highlight class="normal"><sp/><sp/><sp/><sp/>}))</highlight></codeline>
+<codeline lineno="368"><highlight class="normal"></highlight></codeline>
+<codeline lineno="369"><highlight class="normal"><sp/><sp/><sp/><sp/>print(</highlight><highlight class="stringliteral">&quot;[iebin-json]&quot;</highlight><highlight class="normal">,<sp/>json.dumps(ie_json_snippet))</highlight></codeline>
+<codeline lineno="370"><highlight class="normal"></highlight></codeline>
+<codeline lineno="371"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>args.fail_below_threshold<sp/></highlight><highlight class="keywordflow">and</highlight><highlight class="normal"><sp/>cos<sp/>&lt;<sp/>float(args.accuracy_threshold):</highlight></codeline>
+<codeline lineno="372"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">raise</highlight><highlight class="normal"><sp/>SystemExit(4)</highlight></codeline>
+<codeline lineno="373"><highlight class="normal"></highlight></codeline>
+<codeline lineno="374"><highlight class="normal"></highlight></codeline>
+<codeline lineno="375"><highlight class="normal"></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>__name__<sp/>==<sp/></highlight><highlight class="stringliteral">&quot;__main__&quot;</highlight><highlight class="normal">:</highlight></codeline>
+<codeline lineno="376"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="namespaceptq__calib_1a8c5f80e88cff2f08011a13e1a7b9ea6e" kindref="member">main</ref>()</highlight></codeline>
+    </programlisting>
+    <location file="benchmarks/ptq_calib.py"/>
+  </compounddef>
+</doxygen>

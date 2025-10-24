@@ -1,0 +1,32 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="test__determinism_8py" kind="file" language="Python">
+    <compoundname>test_determinism.py</compoundname>
+    <innerclass refid="classtest__determinism_1_1DeterminismTests" prot="public">test_determinism::DeterminismTests</innerclass>
+    <innernamespace refid="namespacetest__determinism">test_determinism</innernamespace>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1" refid="namespacetest__determinism" refkind="compound"><highlight class="keyword">import</highlight><highlight class="normal"><sp/>json</highlight></codeline>
+<codeline lineno="2"><highlight class="normal"></highlight><highlight class="keyword">import</highlight><highlight class="normal"><sp/>subprocess</highlight></codeline>
+<codeline lineno="3"><highlight class="normal"></highlight><highlight class="keyword">import</highlight><highlight class="normal"><sp/>unittest</highlight></codeline>
+<codeline lineno="4"><highlight class="normal"></highlight><highlight class="keyword">from</highlight><highlight class="normal"><sp/>pathlib<sp/></highlight><highlight class="keyword">import</highlight><highlight class="normal"><sp/>Path</highlight></codeline>
+<codeline lineno="5"><highlight class="normal"></highlight></codeline>
+<codeline lineno="6" refid="namespacetest__determinism_1affcb5fa9fb60dcc0bc9a1898f1a646b2" refkind="member"><highlight class="normal">BIN<sp/>=<sp/>str(Path(</highlight><highlight class="stringliteral">&quot;build/inference-engine&quot;</highlight><highlight class="normal">).resolve())</highlight></codeline>
+<codeline lineno="7"><highlight class="normal"></highlight></codeline>
+<codeline lineno="8" refid="classtest__determinism_1_1DeterminismTests" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">class<sp/></highlight><highlight class="normal"><ref refid="classtest__determinism_1_1DeterminismTests" kindref="compound">DeterminismTests</ref>(unittest.TestCase):</highlight></codeline>
+<codeline lineno="9" refid="classtest__determinism_1_1DeterminismTests_1a83d49f69c24708486dd4f63722b2740a" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">def<sp/></highlight><highlight class="normal"><ref refid="classtest__determinism_1_1DeterminismTests_1a83d49f69c24708486dd4f63722b2740a" kindref="member">test_same_prompt_same_output_short_run</ref>(self):</highlight></codeline>
+<codeline lineno="10"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>args<sp/>=<sp/>[</highlight><highlight class="stringliteral">&quot;--prompt&quot;</highlight><highlight class="normal">,<sp/></highlight><highlight class="stringliteral">&quot;once<sp/>upon<sp/>a<sp/>time&quot;</highlight><highlight class="normal">,<sp/></highlight><highlight class="stringliteral">&quot;--max-new&quot;</highlight><highlight class="normal">,<sp/></highlight><highlight class="stringliteral">&quot;8&quot;</highlight><highlight class="normal">]</highlight></codeline>
+<codeline lineno="11"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>a<sp/>=<sp/>json.loads(subprocess.run([BIN]+args,<sp/>text=</highlight><highlight class="keyword">True</highlight><highlight class="normal">,<sp/>capture_output=</highlight><highlight class="keyword">True</highlight><highlight class="normal">,<sp/>check=</highlight><highlight class="keyword">True</highlight><highlight class="normal">).stdout)</highlight></codeline>
+<codeline lineno="12"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>b<sp/>=<sp/>json.loads(subprocess.run([BIN]+args,<sp/>text=</highlight><highlight class="keyword">True</highlight><highlight class="normal">,<sp/>capture_output=</highlight><highlight class="keyword">True</highlight><highlight class="normal">,<sp/>check=</highlight><highlight class="keyword">True</highlight><highlight class="normal">).stdout)</highlight></codeline>
+<codeline lineno="13"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>self.assertEqual(a[</highlight><highlight class="stringliteral">&quot;tokens_generated&quot;</highlight><highlight class="normal">],<sp/>b[</highlight><highlight class="stringliteral">&quot;tokens_generated&quot;</highlight><highlight class="normal">])</highlight></codeline>
+<codeline lineno="14"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>self.assertEqual(a[</highlight><highlight class="stringliteral">&quot;tokens&quot;</highlight><highlight class="normal">][0:4],<sp/>b[</highlight><highlight class="stringliteral">&quot;tokens&quot;</highlight><highlight class="normal">][0:4])<sp/><sp/></highlight><highlight class="comment">#<sp/>prefix<sp/>deterministic</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="15"><highlight class="normal"></highlight></codeline>
+<codeline lineno="16"><highlight class="normal"></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>__name__<sp/>==<sp/></highlight><highlight class="stringliteral">&quot;__main__&quot;</highlight><highlight class="normal">:</highlight></codeline>
+<codeline lineno="17" refid="namespacetest__determinism_1a2ac3362f6af39b657c3a6ed37ef4df65" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/>unittest.main(verbosity=2)</highlight></codeline>
+    </programlisting>
+    <location file="tests/python/test_determinism.py"/>
+  </compounddef>
+</doxygen>
