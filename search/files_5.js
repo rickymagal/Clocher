@@ -1,26 +1,5 @@
 var searchData=
 [
-  ['ie_5fapi_2ec_0',['ie_api.c',['../ie__api_8c.html',1,'']]],
-  ['ie_5fapi_2eh_1',['ie_api.h',['../ie__api_8h.html',1,'']]],
-  ['ie_5fbatcher_2ec_2',['ie_batcher.c',['../ie__batcher_8c.html',1,'']]],
-  ['ie_5fbatcher_2eh_3',['ie_batcher.h',['../ie__batcher_8h.html',1,'']]],
-  ['ie_5fcli_5fextras_2eh_4',['ie_cli_extras.h',['../ie__cli__extras_8h.html',1,'']]],
-  ['ie_5fcpu_2eh_5',['ie_cpu.h',['../ie__cpu_8h.html',1,'']]],
-  ['ie_5fdevice_2eh_6',['ie_device.h',['../ie__device_8h.html',1,'']]],
-  ['ie_5fdevice_5fcommon_2ec_7',['ie_device_common.c',['../ie__device__common_8c.html',1,'']]],
-  ['ie_5ffloatx_2eh_8',['ie_floatx.h',['../ie__floatx_8h.html',1,'']]],
-  ['ie_5fio_2eh_9',['ie_io.h',['../ie__io_8h.html',1,'']]],
-  ['ie_5fkernels_2eh_10',['ie_kernels.h',['../ie__kernels_8h.html',1,'']]],
-  ['ie_5fkv_5finstrumentation_2ec_11',['ie_kv_instrumentation.c',['../ie__kv__instrumentation_8c.html',1,'']]],
-  ['ie_5fkv_5finstrumentation_2eh_12',['ie_kv_instrumentation.h',['../ie__kv__instrumentation_8h.html',1,'']]],
-  ['ie_5flayout_2eh_13',['ie_layout.h',['../ie__layout_8h.html',1,'']]],
-  ['ie_5fmath_2eh_14',['ie_math.h',['../ie__math_8h.html',1,'']]],
-  ['ie_5fmetrics_2eh_15',['ie_metrics.h',['../ie__metrics_8h.html',1,'']]],
-  ['ie_5fnuma_2eh_16',['ie_numa.h',['../ie__numa_8h.html',1,'']]],
-  ['ie_5fquant_2eh_17',['ie_quant.h',['../ie__quant_8h.html',1,'']]],
-  ['ie_5ftensor_2ec_18',['ie_tensor.c',['../ie__tensor_8c.html',1,'']]],
-  ['ie_5ftensor_2eh_19',['ie_tensor.h',['../ie__tensor_8h.html',1,'']]],
-  ['ie_5fthreadpool_2eh_20',['ie_threadpool.h',['../ie__threadpool_8h.html',1,'']]],
-  ['ie_5ftokenizer_2eh_21',['ie_tokenizer.h',['../ie__tokenizer_8h.html',1,'']]],
-  ['int8_5fptq_2ec_22',['int8_ptq.c',['../int8__ptq_8c.html',1,'']]]
+  ['fast_5ftanh_2ec_0',['fast_tanh.c',['../fast__tanh_8c.html',1,'']]],
+  ['floatx_2ec_1',['floatx.c',['../floatx_8c.html',1,'']]]
 ];

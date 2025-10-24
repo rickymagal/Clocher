@@ -27,9 +27,9 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">Inference Engine (Clocher)<span id="projectnumber">&#160;0.1</span>
+   <div id="projectname">Inference Engine (Clocher)<span id="projectnumber">&#160;0.2</span>
    </div>
-   <div id="projectbrief">C11 CPU inference baseline with strict metrics &amp; harness</div>
+   <div id="projectbrief">C11 CPU/GPU inference baseline with strict metrics &amp; harness</div>
   </td>
  </tr>
  </tbody>
@@ -98,7 +98,7 @@ $(function(){initNavTree('ie__cli__extras_8h.html',''); initResizable(true); });
 
 <div class="header">
   <div class="summary">
-<a href="#nested-classes">Classes</a> &#124;
+<a href="#nested-classes">Data Structures</a> &#124;
 <a href="#typedef-members">Typedefs</a> &#124;
 <a href="#func-members">Functions</a>  </div>
   <div class="headertitle"><div class="title">ie_cli_extras.h File Reference</div></div>
@@ -117,13 +117,15 @@ Include dependency graph for ie_cli_extras.h:</div>
 <p><a href="ie__cli__extras_8h_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
-Classes</h2></td></tr>
+Data Structures</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structie__cli__extras.html">ie_cli_extras</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Parsed extras for I/O &amp; batching.  <a href="structie__cli__extras.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="typedef-members" name="typedef-members"></a>
 Typedefs</h2></td></tr>
 <tr class="memitem:abff28603eb6f713e47a82f7573559c14" id="r_abff28603eb6f713e47a82f7573559c14"><td class="memItemLeft" align="right" valign="top">typedef struct <a class="el" href="structie__cli__extras.html">ie_cli_extras</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#abff28603eb6f713e47a82f7573559c14">ie_cli_extras_t</a></td></tr>
+<tr class="memdesc:abff28603eb6f713e47a82f7573559c14"><td class="mdescLeft">&#160;</td><td class="mdescRight">Parsed extras for I/O &amp; batching.  <br /></td></tr>
 <tr class="separator:abff28603eb6f713e47a82f7573559c14"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
@@ -148,6 +150,7 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
 <p>Parsed extras for I/O &amp; batching. </p>
 
 </div>
@@ -185,7 +188,18 @@ Functions</h2></td></tr>
 </dl>
 
 <p class="definition">Definition at line <a class="el" href="ie__cli__extras_8h_source.html#l00027">27</a> of file <a class="el" href="ie__cli__extras_8h_source.html">ie_cli_extras.h</a>.</p>
-
+<div class="fragment"><div class="line"><span class="lineno">   27</span>                                                              {</div>
+<div class="line"><span class="lineno">   28</span>  <span class="keywordflow">if</span> (!e) <span class="keywordflow">return</span>;</div>
+<div class="line"><span class="lineno">   29</span>  e-&gt;<a class="code hl_variable" href="structie__cli__extras.html#a6d65ced667b70b4eaac6543425c6949c">batch</a> = 1;</div>
+<div class="line"><span class="lineno">   30</span>  e-&gt;<a class="code hl_variable" href="structie__cli__extras.html#adabeb6985b713f2cef2e63ba67379ecf">prefetch</a> = 0;  <span class="comment">/* 0 =&gt; auto = max(1, threads/2) inside main */</span></div>
+<div class="line"><span class="lineno">   31</span>  e-&gt;<a class="code hl_variable" href="structie__cli__extras.html#a775c61b7ff6b47695404ae95f2374ab1">warmup</a> = 0;</div>
+<div class="line"><span class="lineno">   32</span>  e-&gt;<a class="code hl_variable" href="structie__cli__extras.html#a90cfb62097607907fe50c00016ea2e53">prompts_file</a> = NULL;</div>
+<div class="line"><span class="lineno">   33</span>}</div>
+<div class="ttc" id="astructie__cli__extras_html_a6d65ced667b70b4eaac6543425c6949c"><div class="ttname"><a href="structie__cli__extras.html#a6d65ced667b70b4eaac6543425c6949c">ie_cli_extras::batch</a></div><div class="ttdeci">size_t batch</div><div class="ttdoc">Microbatch size: number of prompts processed per slice.</div><div class="ttdef"><b>Definition</b> <a href="ie__cli__extras_8h_source.html#l00016">ie_cli_extras.h:16</a></div></div>
+<div class="ttc" id="astructie__cli__extras_html_a775c61b7ff6b47695404ae95f2374ab1"><div class="ttname"><a href="structie__cli__extras.html#a775c61b7ff6b47695404ae95f2374ab1">ie_cli_extras::warmup</a></div><div class="ttdeci">size_t warmup</div><div class="ttdoc">Number of warmup tokens to generate before timing.</div><div class="ttdef"><b>Definition</b> <a href="ie__cli__extras_8h_source.html#l00018">ie_cli_extras.h:18</a></div></div>
+<div class="ttc" id="astructie__cli__extras_html_a90cfb62097607907fe50c00016ea2e53"><div class="ttname"><a href="structie__cli__extras.html#a90cfb62097607907fe50c00016ea2e53">ie_cli_extras::prompts_file</a></div><div class="ttdeci">const char * prompts_file</div><div class="ttdoc">Optional file path for standardized prompts.</div><div class="ttdef"><b>Definition</b> <a href="ie__cli__extras_8h_source.html#l00019">ie_cli_extras.h:19</a></div></div>
+<div class="ttc" id="astructie__cli__extras_html_adabeb6985b713f2cef2e63ba67379ecf"><div class="ttname"><a href="structie__cli__extras.html#adabeb6985b713f2cef2e63ba67379ecf">ie_cli_extras::prefetch</a></div><div class="ttdeci">size_t prefetch</div><div class="ttdoc">Number of background tokenization workers.</div><div class="ttdef"><b>Definition</b> <a href="ie__cli__extras_8h_source.html#l00017">ie_cli_extras.h:17</a></div></div>
+</div><!-- fragment -->
 <p class="reference">References <a class="el" href="ie__cli__extras_8h_source.html#l00016">ie_cli_extras::batch</a>, <a class="el" href="ie__cli__extras_8h_source.html#l00017">ie_cli_extras::prefetch</a>, <a class="el" href="ie__cli__extras_8h_source.html#l00019">ie_cli_extras::prompts_file</a>, and <a class="el" href="ie__cli__extras_8h_source.html#l00018">ie_cli_extras::warmup</a>.</p>
 
 </div>

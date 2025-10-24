@@ -27,9 +27,9 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">Inference Engine (Clocher)<span id="projectnumber">&#160;0.1</span>
+   <div id="projectname">Inference Engine (Clocher)<span id="projectnumber">&#160;0.2</span>
    </div>
-   <div id="projectbrief">C11 CPU inference baseline with strict metrics &amp; harness</div>
+   <div id="projectbrief">C11 CPU/GPU inference baseline with strict metrics &amp; harness</div>
   </td>
  </tr>
  </tbody>
@@ -188,8 +188,31 @@ Functions</h2></td></tr>
 </dl>
 
 <p class="definition">Definition at line <a class="el" href="cpu__features_8c_source.html#l00030">30</a> of file <a class="el" href="cpu__features_8c_source.html">cpu_features.c</a>.</p>
-
+<div class="fragment"><div class="line"><span class="lineno">   32</span>                                                   {</div>
+<div class="line"><span class="lineno">   33</span><span class="preprocessor">#if defined(__x86_64__) || defined(__i386__) || defined(_M_X64) || defined(_M_IX86)</span></div>
+<div class="line"><span class="lineno">   34</span><span class="preprocessor">  #if defined(_MSC_VER)</span></div>
+<div class="line"><span class="lineno">   35</span>    <span class="keywordtype">int</span> regs[4];</div>
+<div class="line"><span class="lineno">   36</span>    __cpuid(regs, (<span class="keywordtype">int</span>)leaf);</div>
+<div class="line"><span class="lineno">   37</span>    *eax = (unsigned)regs[0];</div>
+<div class="line"><span class="lineno">   38</span>    *ebx = (unsigned)regs[1];</div>
+<div class="line"><span class="lineno">   39</span>    *ecx = (unsigned)regs[2];</div>
+<div class="line"><span class="lineno">   40</span>    *edx = (unsigned)regs[3];</div>
+<div class="line"><span class="lineno">   41</span><span class="preprocessor">  #else</span></div>
+<div class="line"><span class="lineno">   42</span>    <span class="keywordtype">unsigned</span> a, b, c, d;</div>
+<div class="line"><span class="lineno">   43</span>    __cpuid(leaf, a, b, c, d);</div>
+<div class="line"><span class="lineno">   44</span>    *eax = a; *ebx = b; *ecx = c; *edx = d;</div>
+<div class="line"><span class="lineno">   45</span><span class="preprocessor">  #endif</span></div>
+<div class="line"><span class="lineno">   46</span><span class="preprocessor">#else</span></div>
+<div class="line"><span class="lineno">   47</span>  (void)leaf; *eax = *ebx = *ecx = *edx = 0;</div>
+<div class="line"><span class="lineno">   48</span><span class="preprocessor">#endif</span></div>
+<div class="line"><span class="lineno">   49</span>}</div>
+</div><!-- fragment -->
 <p class="reference">Referenced by <a class="el" href="cpu__features_8c_source.html#l00070">ie_cpu_detect()</a>.</p>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="cpu__features_8c_a6ab0f83647cb70ad0043407f15992363_icgraph.svg" width="352" height="39"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
 
 </div>
 </div>
@@ -219,8 +242,57 @@ Functions</h2></td></tr>
 <dl class="section return"><dt>Returns</dt><dd><code>true</code> if the function executed; <code>false</code> only if <code class="param">out</code> is NULL. </dd></dl>
 
 <p class="definition">Definition at line <a class="el" href="cpu__features_8c_source.html#l00070">70</a> of file <a class="el" href="cpu__features_8c_source.html">cpu_features.c</a>.</p>
-
+<div class="fragment"><div class="line"><span class="lineno">   70</span>                                           {</div>
+<div class="line"><span class="lineno">   71</span>  <span class="keywordflow">if</span> (!out) <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
+<div class="line"><span class="lineno">   72</span>  out-&gt;<a class="code hl_variable" href="structie__cpu__features__t.html#a126cd9fec9b1e9ec0a746ab0a28e7251">avx2</a> = <span class="keyword">false</span>;</div>
+<div class="line"><span class="lineno">   73</span>  out-&gt;<a class="code hl_variable" href="structie__cpu__features__t.html#ab186c528f9355396127156bf6e6ab099">fma</a>  = <span class="keyword">false</span>;</div>
+<div class="line"><span class="lineno">   74</span> </div>
+<div class="line"><span class="lineno">   75</span><span class="preprocessor">#if defined(__x86_64__) || defined(__i386__) || defined(_M_X64) || defined(_M_IX86)</span></div>
+<div class="line"><span class="lineno">   76</span>  <span class="keywordtype">unsigned</span> a=0,b=0,c=0,d=0;</div>
+<div class="line"><span class="lineno">   77</span> </div>
+<div class="line"><span class="lineno">   78</span>  <span class="comment">/* Leaf 0: availability */</span></div>
+<div class="line"><span class="lineno">   79</span>  <a class="code hl_function" href="#a6ab0f83647cb70ad0043407f15992363">cpuid_ex</a>(0, &amp;a, &amp;b, &amp;c, &amp;d);</div>
+<div class="line"><span class="lineno">   80</span>  <span class="keywordflow">if</span> (a == 0) <span class="keywordflow">return</span> <span class="keyword">true</span>; <span class="comment">/* CPUID unsupported or unavailable */</span></div>
+<div class="line"><span class="lineno">   81</span> </div>
+<div class="line"><span class="lineno">   82</span>  <span class="comment">/* Leaf 1: baseline features (AVX, OSXSAVE, FMA) */</span></div>
+<div class="line"><span class="lineno">   83</span>  <a class="code hl_function" href="#a6ab0f83647cb70ad0043407f15992363">cpuid_ex</a>(1, &amp;a, &amp;b, &amp;c, &amp;d);</div>
+<div class="line"><span class="lineno">   84</span>  <span class="keyword">const</span> <span class="keywordtype">int</span> osxsave = (int)((c &gt;&gt; 27) &amp; 1);</div>
+<div class="line"><span class="lineno">   85</span>  <span class="keyword">const</span> <span class="keywordtype">int</span> avx     = (int)((c &gt;&gt; 28) &amp; 1);</div>
+<div class="line"><span class="lineno">   86</span>  <span class="keyword">const</span> <span class="keywordtype">int</span> fma     = (int)((c &gt;&gt; 12) &amp; 1);</div>
+<div class="line"><span class="lineno">   87</span> </div>
+<div class="line"><span class="lineno">   88</span>  <span class="comment">/* Check OS has enabled XMM/YMM via XGETBV */</span></div>
+<div class="line"><span class="lineno">   89</span>  <span class="keywordtype">unsigned</span> xcr0 = osxsave ? <a class="code hl_function" href="#a5ec481b22364387e65264e28e0f81bf7">xgetbv_xcr0</a>() : 0u;</div>
+<div class="line"><span class="lineno">   90</span>  <span class="keyword">const</span> <span class="keywordtype">int</span> ymm_ok = ((xcr0 &amp; 0x6u) == 0x6u);</div>
+<div class="line"><span class="lineno">   91</span> </div>
+<div class="line"><span class="lineno">   92</span>  <span class="comment">/* Leaf 7: extended features (AVX2) */</span></div>
+<div class="line"><span class="lineno">   93</span>  <a class="code hl_function" href="#a6ab0f83647cb70ad0043407f15992363">cpuid_ex</a>(7, &amp;a, &amp;b, &amp;c, &amp;d);</div>
+<div class="line"><span class="lineno">   94</span>  <span class="keyword">const</span> <span class="keywordtype">int</span> avx2 = (int)((b &gt;&gt; 5) &amp; 1);</div>
+<div class="line"><span class="lineno">   95</span> </div>
+<div class="line"><span class="lineno">   96</span>  out-&gt;<a class="code hl_variable" href="structie__cpu__features__t.html#a126cd9fec9b1e9ec0a746ab0a28e7251">avx2</a> = (avx &amp;&amp; ymm_ok &amp;&amp; avx2);</div>
+<div class="line"><span class="lineno">   97</span>  out-&gt;<a class="code hl_variable" href="structie__cpu__features__t.html#ab186c528f9355396127156bf6e6ab099">fma</a>  = (fma != 0);</div>
+<div class="line"><span class="lineno">   98</span><span class="preprocessor">#else</span></div>
+<div class="line"><span class="lineno">   99</span>  <span class="comment">/* Non-x86: keep safe defaults (false). */</span></div>
+<div class="line"><span class="lineno">  100</span><span class="preprocessor">#endif</span></div>
+<div class="line"><span class="lineno">  101</span>  <span class="keywordflow">return</span> <span class="keyword">true</span>;</div>
+<div class="line"><span class="lineno">  102</span>}</div>
+<div class="ttc" id="acpu__features_8c_html_a5ec481b22364387e65264e28e0f81bf7"><div class="ttname"><a href="#a5ec481b22364387e65264e28e0f81bf7">xgetbv_xcr0</a></div><div class="ttdeci">static unsigned xgetbv_xcr0(void)</div><div class="ttdoc">Read XCR0 via XGETBV to validate OS support for YMM state.</div><div class="ttdef"><b>Definition</b> <a href="cpu__features_8c_source.html#l00058">cpu_features.c:58</a></div></div>
+<div class="ttc" id="acpu__features_8c_html_a6ab0f83647cb70ad0043407f15992363"><div class="ttname"><a href="#a6ab0f83647cb70ad0043407f15992363">cpuid_ex</a></div><div class="ttdeci">static void cpuid_ex(unsigned leaf, unsigned *eax, unsigned *ebx, unsigned *ecx, unsigned *edx)</div><div class="ttdoc">Query CPUID with the given leaf.</div><div class="ttdef"><b>Definition</b> <a href="cpu__features_8c_source.html#l00030">cpu_features.c:30</a></div></div>
+<div class="ttc" id="astructie__cpu__features__t_html_a126cd9fec9b1e9ec0a746ab0a28e7251"><div class="ttname"><a href="structie__cpu__features__t.html#a126cd9fec9b1e9ec0a746ab0a28e7251">ie_cpu_features_t::avx2</a></div><div class="ttdeci">bool avx2</div><div class="ttdoc">AVX2 support present at runtime.</div><div class="ttdef"><b>Definition</b> <a href="ie__cpu_8h_source.html#l00023">ie_cpu.h:23</a></div></div>
+<div class="ttc" id="astructie__cpu__features__t_html_ab186c528f9355396127156bf6e6ab099"><div class="ttname"><a href="structie__cpu__features__t.html#ab186c528f9355396127156bf6e6ab099">ie_cpu_features_t::fma</a></div><div class="ttdeci">bool fma</div><div class="ttdoc">FMA (Fused Multiply-Add) support present.</div><div class="ttdef"><b>Definition</b> <a href="ie__cpu_8h_source.html#l00024">ie_cpu.h:24</a></div></div>
+</div><!-- fragment -->
 <p class="reference">References <a class="el" href="ie__cpu_8h_source.html#l00023">ie_cpu_features_t::avx2</a>, <a class="el" href="cpu__features_8c_source.html#l00030">cpuid_ex()</a>, <a class="el" href="ie__cpu_8h_source.html#l00024">ie_cpu_features_t::fma</a>, and <a class="el" href="cpu__features_8c_source.html#l00058">xgetbv_xcr0()</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="test__cpu__features_8c_source.html#l00009">main()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="cpu__features_8c_af2e20a1ca28854df085dbe0d88ed91c3_cgraph.svg" width="272" height="91"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="cpu__features_8c_af2e20a1ca28854df085dbe0d88ed91c3_icgraph.svg" width="224" height="39"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
 
 </div>
 </div>
@@ -252,8 +324,24 @@ Functions</h2></td></tr>
 <dl class="section return"><dt>Returns</dt><dd>Lower 32 bits of XCR0. </dd></dl>
 
 <p class="definition">Definition at line <a class="el" href="cpu__features_8c_source.html#l00058">58</a> of file <a class="el" href="cpu__features_8c_source.html">cpu_features.c</a>.</p>
-
+<div class="fragment"><div class="line"><span class="lineno">   58</span>                                  {</div>
+<div class="line"><span class="lineno">   59</span><span class="preprocessor">#if (defined(__x86_64__) || defined(__i386__)) &amp;&amp; defined(__GNUC__)</span></div>
+<div class="line"><span class="lineno">   60</span>  <span class="keywordtype">unsigned</span> a, d;</div>
+<div class="line"><span class="lineno">   61</span>  __asm__ <span class="keyword">volatile</span> (<span class="stringliteral">&quot;.byte 0x0f, 0x01, 0xd0&quot;</span> : <span class="stringliteral">&quot;=a&quot;</span>(a), <span class="stringliteral">&quot;=d&quot;</span>(d) : <span class="stringliteral">&quot;c&quot;</span>(0));</div>
+<div class="line"><span class="lineno">   62</span>  <span class="keywordflow">return</span> a;</div>
+<div class="line"><span class="lineno">   63</span><span class="preprocessor">#elif defined(_MSC_VER) &amp;&amp; (defined(_M_IX86) || defined(_M_X64))</span></div>
+<div class="line"><span class="lineno">   64</span>  <span class="keywordflow">return</span> (<span class="keywordtype">unsigned</span>)_xgetbv(0);</div>
+<div class="line"><span class="lineno">   65</span><span class="preprocessor">#else</span></div>
+<div class="line"><span class="lineno">   66</span>  <span class="keywordflow">return</span> 0u;</div>
+<div class="line"><span class="lineno">   67</span><span class="preprocessor">#endif</span></div>
+<div class="line"><span class="lineno">   68</span>}</div>
+</div><!-- fragment -->
 <p class="reference">Referenced by <a class="el" href="cpu__features_8c_source.html#l00070">ie_cpu_detect()</a>.</p>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="cpu__features_8c_a5ec481b22364387e65264e28e0f81bf7_icgraph.svg" width="374" height="39"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
 
 </div>
 </div>

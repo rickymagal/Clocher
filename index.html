@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.13.2"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Inference Engine (Clocher): Clocher — CPU LLM Inference Baseline (C11 core + Python stdlib harness)</title>
+<title>Inference Engine (Clocher): Inference Engine (Clocher)</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -27,9 +27,9 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">Inference Engine (Clocher)<span id="projectnumber">&#160;0.1</span>
+   <div id="projectname">Inference Engine (Clocher)<span id="projectnumber">&#160;0.2</span>
    </div>
-   <div id="projectbrief">C11 CPU inference baseline with strict metrics &amp; harness</div>
+   <div id="projectbrief">C11 CPU/GPU inference baseline with strict metrics &amp; harness</div>
   </td>
  </tr>
  </tbody>
@@ -97,176 +97,96 @@ $(function(){initNavTree('index.html',''); initResizable(true); });
 </div>
 
 <div><div class="header">
-  <div class="headertitle"><div class="title">Clocher — CPU LLM Inference Baseline (C11 core + Python stdlib harness) </div></div>
+  <div class="headertitle"><div class="title">Inference Engine (Clocher) </div></div>
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><p><a class="anchor" id="md_README"></a></p>
-<p>C11, zero-dependency <b>CPU inference baseline</b> with a minimal CLI and a stdlib-only Python harness for <b>reproducible throughput (TPS)</b> and <b>per-token latency</b>. The project emphasizes portability, determinism, rigorous tests, and turnkey automation (Makefile + CI + Doxygen).</p>
+<p><em>A minimal C11 inference baseline with strict metrics &amp; a Python harness.</em> <br  />
+ <b>Last updated:</b> 2025-10-24 21:00:48 UTC</p>
 <hr  />
-<h1><a class="anchor" id="autotoc_md6"></a>
-Features</h1>
+<h1><a class="anchor" id="autotoc_md49"></a>
+Quick start</h1>
+<div class="fragment"><div class="line"># Build CPU and (optionally) CUDA binaries</div>
+<div class="line">make build</div>
+<div class="line">make build-cuda   # requires a CUDA toolchain; produces build/inference-engine.cuda</div>
+<div class="line"> </div>
+<div class="line"># Sanity: show CLI</div>
+<div class="line">./build/inference-engine --help</div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md50"></a>
+Model format (IEBIN v1)</h2>
+<p>The engine consumes a pair of files in the current working directory:</p>
+<div class="fragment"><div class="line">model.ie.json   # metadata (tensor names, shapes, dtypes, scales)</div>
+<div class="line">model.ie.bin    # raw, mmap‑friendly tensor blob</div>
+</div><!-- fragment --><p>You can pack from a Hugging Face checkpoint using the helper script below.</p>
+<hr  />
+<h1><a class="anchor" id="autotoc_md52"></a>
+NEW: INT4 <b>weight‑only</b> PTQ path (Q4)</h1>
+<p>This repository now includes a <b>4‑bit (INT4) weight‑only</b> path that trades a small accuracy budget for <b>4× smaller weights</b> and a substantial <b>memory‑bandwidth reduction</b>. It is designed to be drop‑in with the existing build and harness.</p>
+<h2><a class="anchor" id="autotoc_md53"></a>
+Pipeline overview</h2>
+<p>1) <b>Prepare/locate a HF model</b> (already sharded is fine):</p>
+<div class="fragment"><div class="line">models/gpt-oss-20b/hf/</div>
+<div class="line">  ├── config.json</div>
+<div class="line">  ├── tokenizer.json / vocab.json / merges.txt</div>
+<div class="line">  └── pytorch_model-00001-of-00046.bin … pytorch_model-00046-of-00046.bin</div>
+</div><!-- fragment --><p>2) <b>(Calibrate) produce the INT4 manifest</b> <br  />
+ Use one of the PTQ helper scripts to create a manifest describing which tensors are quantized to 4‑bit and their per‑row/per‑tensor scales:</p>
+<div class="fragment"><div class="line"># Choose one depending on your source of truth and available samples.</div>
+<div class="line"># See: python3 scripts/ptq_from_hf.py --help</div>
+<div class="line">#      python3 scripts/ptq_from_bin.py --help</div>
+<div class="line">#      python3 scripts/ptq_from_source.py --help</div>
+<div class="line"> </div>
+<div class="line">python3 scripts/ptq_from_hf.py   --hf-dir models/gpt-oss-20b/hf   --out quant/q4_manifest.json   --bits 4 --weights-only 1</div>
+</div><!-- fragment --><p>Notes:</p><ul>
+<li>The manifest (JSON) maps tensor names to <b>INT4 packing + scale params</b>.</li>
+<li>Calib options (group size, symmetric/affine, clamp, percentile) are exposed by the script; pick values that satisfy your accuracy budget.</li>
+</ul>
+<p>3) <b>Pack Hugging Face → IEBIN (with INT4)</b></p>
+<div class="fragment"><div class="line">python3 scripts/hf_to_iebin.py   --hf-dir models/gpt-oss-20b/hf   --out-dir models/gpt-oss-20b   --q4-map quant/q4_manifest.json</div>
+</div><!-- fragment --><p>This writes <code>model.ie.json</code> and <code>model.ie.bin</code> in <code>models/gpt-oss-20b/</code> (or as configured).</p>
+<p>4) <b>Run the benchmark (CPU or CUDA) with INT4 weights</b></p>
+<p>The engine selects kernels by <b>precision</b>. For INT4 <b>weight‑only</b>, use <code>int4w</code>.</p>
+<blockquote class="doxtable">
+<p><b>64 MB per token</b> = <code>IE_BYTES_PER_TOKEN=64000000</code> (decimal bytes). </p>
+</blockquote>
+<p><b>CPU:</b></p>
+<div class="fragment"><div class="line">cd models/gpt-oss-20b</div>
+<div class="line">PROMPTS=../../benchmarks/prompts_10..txt IE_PRECISION=int4w IE_REQUIRE_MODEL=1 IE_BYTES_PER_TOKEN=64000000 IE_STRIDE_BYTES=256 RUNS=3 make -C ../.. bench</div>
+</div><!-- fragment --><p><b>CUDA:</b></p>
+<div class="fragment"><div class="line">cd models/gpt-oss-20b</div>
+<div class="line">PROMPTS=../../benchmarks/prompts_10..txt IE_PRECISION=int4w IE_REQUIRE_MODEL=1 IE_BYTES_PER_TOKEN=64000000 IE_STRIDE_BYTES=256 RUNS=3 make -C ../.. bench-cuda</div>
+</div><!-- fragment --><p>The CLI will emit a <b>single JSON line</b> per run, which the harness merges into <code><a class="el" href="PERFORMANCE_8md.html">docs/PERFORMANCE.md</a></code>.</p>
+<hr  />
+<h1><a class="anchor" id="autotoc_md55"></a>
+Operational notes</h1>
 <ul>
-<li><b>C11 core</b>, no external runtime deps (<code>-lpthread -lm</code> only)</li>
-<li><b>Deterministic generator</b> (repeatable tokens for equal prompts)</li>
-<li><b>Per-token latency ring</b> with p50/p95 in CLI JSON</li>
-<li><b>Vectorization</b>: AVX2/FMA GEMV path (runtime-gated), light prefetch</li>
-<li><b>Fast activations</b>: clamped <code>tanh</code> approx + vector helpers</li>
-<li><b>Precision plumbing</b>: optional BF16/FP16 round-trip (FP32 accumulation)</li>
-<li><b>INT8 PTQ pipeline</b>: min-max scales (per-tensor/per-row), calibration script with accuracy checks</li>
-<li><b>Threading</b>: fixed thread pool, contiguous sharding, grainsize control</li>
-<li><b>Affinity (Linux)</b>: opt-in CPU pinning via <code>IE_TP_USE_AFFINITY=1</code></li>
-<li><b>Layout</b>: blocked-K packing + optional on-disk cache</li>
-<li><b>Microbenchmarks</b> and <b>perf → flamegraph</b> pipeline</li>
-<li><b>Unit tests</b> (C + Python), <b>Doxygen</b> comments everywhere, <b>Makefile</b> automation</li>
+<li>The <code>--device</code> flag is accepted by the CLI as a <b>no‑op hint</b> (selection is a build‑time concern). CPU: <code>build/inference-engine</code>, CUDA: <code>build/inference-engine.cuda</code>.</li>
+<li><b>Strict mode</b>: set <code>IE_REQUIRE_MODEL=1</code> to require a valid <code>model.ie.json</code> + <code>model.ie.bin</code>. Otherwise the engine can operate in a deterministic <b>stub</b> mode for CI.</li>
+<li><b>Work‑touch</b>: to emulate memory pressure, set <code>IE_BYTES_PER_TOKEN</code> (e.g. <code>64000000</code>) and <code>IE_STRIDE_BYTES</code> (e.g. <code>256</code>). The measured window includes generation <b>and</b> this per‑token touch over the mmap’d <code>model.ie.bin</code>.</li>
+<li><b>RSS reporting</b>: the CLI samples peak RSS after the timed window (Linux: <code>/proc/self/status</code> <code>VmHWM</code>, fallback <code>getrusage</code>).</li>
 </ul>
 <hr  />
-<h1><a class="anchor" id="autotoc_md8"></a>
-Repository layout</h1>
-<div class="fragment"><div class="line">engine/</div>
-<div class="line">  include/        # Public headers (Doxygen)</div>
-<div class="line">  src/            # C sources: core, kernels, math, io, opt, quant</div>
-<div class="line">benchmarks/</div>
-<div class="line">  harness.py      # Python stdlib harness (CSV/JSON reports)</div>
-<div class="line">  ptq_calib.py    # INT8 PTQ calibration/validation</div>
-<div class="line">  reports/        # Generated results (timestamped)</div>
-<div class="line">  src/            # Microbench sources</div>
-<div class="line">docs/</div>
-<div class="line">  Doxyfile        # Doxygen config (outputs to docs/doxygen/)</div>
-<div class="line">scripts/</div>
-<div class="line">  run_benchmark.sh</div>
-<div class="line">  profile_flamegraph.sh</div>
-<div class="line">  set_numa.sh     # NUMA policy helper (no libnuma link required)</div>
-<div class="line">  make_baseline_md.py</div>
-<div class="line">  update_performance_md.py</div>
-<div class="line">tests/</div>
-<div class="line">  c/              # C unit tests</div>
-<div class="line">  python/         # Python tests (unittest)</div>
-<div class="line">Makefile</div>
-</div><!-- fragment --><hr  />
-<h1><a class="anchor" id="autotoc_md10"></a>
-Requirements</h1>
+<h1><a class="anchor" id="autotoc_md57"></a>
+Troubleshooting</h1>
 <ul>
-<li><b>Build toolchain</b>: GCC/Clang with C11</li>
-<li><b>Linux/macOS</b> (Windows via MSYS/WSL)</li>
-<li><b>perf</b> (Linux) for flamegraphs (optional)</li>
-<li><b>Python 3.8+</b> (stdlib only) for harness &amp; scripts</li>
-<li><b>Doxygen</b> for HTML docs (optional)</li>
+<li><code>ERROR: --q4-map not found</code>: pass a real path to your manifest, e.g. <code>quant/q4_manifest.json</code>.</li>
+<li>&lsquo;error: unknown flag &rsquo;&ndash;model-dir'<code>or</code>'&ndash;rounds'<code>: you are using an older binary; rebuild with</code>make clean &amp;&amp; make build<code>. -</code>RSS peak = 0<code>: ensure the process reads enough memory while resident (set</code>IE_BYTES_PER_TOKEN<code>to a non‑zero value) and you are not running inside a constrained container namespace that suppresses</code>VmHWM<code>.</code></li>
+<li><code>Prompts file not found:</code>PROMPTS=benchmarks/prompts_10..txt` (note the <b>double dot</b> in the demo file).</li>
 </ul>
 <hr  />
-<h1><a class="anchor" id="autotoc_md12"></a>
-Quickstart</h1>
-<div class="fragment"><div class="line">make build     # build the CLI binary</div>
-<div class="line">make test      # run C + Python tests</div>
-<div class="line">make bench     # run harness → CSV/JSON under benchmarks/reports/&lt;UTC_TS&gt;/</div>
-</div><!-- fragment --><hr  />
-<h1><a class="anchor" id="autotoc_md14"></a>
-CLI usage</h1>
-<div class="fragment"><div class="line">./build/inference-engine [--prompt TEXT] [--max-new N]</div>
-<div class="line">                         [--threads N]</div>
-<div class="line">                         [--precision fp32|bf16|fp16]</div>
-<div class="line">                         [--affinity auto|compact|scatter]</div>
-<div class="line">                         [--pretranspose none|woh|wxh|all]</div>
-<div class="line">                         [--grainsize K]</div>
-<div class="line">                         [--help]</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md15"></a>
-Example</h2>
-<div class="fragment"><div class="line">./build/inference-engine --prompt &quot;hello&quot; --max-new 8 --threads 4 --precision fp32</div>
-</div><!-- fragment --><p><b>Output (JSON):</b> </p><div class="fragment"><div class="line">{</div>
-<div class="line">  &quot;tokens_generated&quot;: 8,</div>
-<div class="line">  &quot;tokens&quot;: [1705,1657,1537,1183,1704,1315,1917,1162],</div>
-<div class="line">  &quot;wall_time_s&quot;: 0.001209,</div>
-<div class="line">  &quot;tps_true&quot;: 7639.897996,</div>
-<div class="line">  &quot;latency_p50_ms&quot;: 0.131,</div>
-<div class="line">  &quot;latency_p95_ms&quot;: 0.143,</div>
-<div class="line">  &quot;rss_peak_mb&quot;: 0,</div>
-<div class="line">  &quot;kv_hits&quot;: 0,</div>
-<div class="line">  &quot;kv_misses&quot;: 8</div>
-<div class="line">}</div>
-</div><!-- fragment --><hr  />
-<h1><a class="anchor" id="autotoc_md17"></a>
-Notable flags</h1>
+<h1><a class="anchor" id="autotoc_md59"></a>
+What INT4 (weight‑only) means here</h1>
 <ul>
-<li><code>--threads N</code> — number of worker threads.</li>
-<li><code>--affinity {auto,compact,scatter}</code> — policy name; <b>effective on Linux</b> only and only if <code>IE_TP_USE_AFFINITY=1</code>.</li>
-<li><code>--grainsize K</code> — chunk size for contiguous partitioning (used by parallel-for).</li>
-<li><code>--precision {fp32,bf16,fp16}</code> — optional round-trip to BF16/FP16 with <b>FP32 accumulation</b>.</li>
-<li><code>--pretranspose {none,woh,wxh,all}</code> — pretranspose/pack weights and optionally cache to disk; <code>all</code> applies to both projections if present.</li>
-</ul>
-<p><b>Linux CPU pinning toggle</b> </p><div class="fragment"><div class="line">IE_TP_USE_AFFINITY=1 ./build/inference-engine --prompt &quot;x&quot; --max-new 8 --threads 4 --affinity scatter</div>
-</div><!-- fragment --><hr  />
-<h1><a class="anchor" id="autotoc_md19"></a>
-Benchmarks &amp; baseline</h1>
-<p>Run the harness:</p>
-<div class="fragment"><div class="line">make bench</div>
-<div class="line"># Reports: benchmarks/reports/&lt;UTC_TS&gt;/{samples.csv,summary.json}</div>
-</div><!-- fragment --><p>Create a baseline markdown from the latest report:</p>
-<div class="fragment"><div class="line">make baseline-report</div>
-<div class="line"># Generates: benchmarks/reports/&lt;UTC_TS&gt;/BASELINE.md</div>
-</div><!-- fragment --><hr  />
-<h1><a class="anchor" id="autotoc_md21"></a>
-Profiling &amp; flamegraphs (Linux)</h1>
-<div class="fragment"><div class="line">make profile</div>
-<div class="line"># → perf.data, flamegraph.svg, and PERFORMANCE.md updated (English)</div>
-</div><!-- fragment --><p>Re-emit/update performance notes:</p>
-<div class="fragment"><div class="line">python3 scripts/update_performance_md.py</div>
-</div><!-- fragment --><hr  />
-<h1><a class="anchor" id="autotoc_md23"></a>
-NUMA policies (Linux, no libnuma link)</h1>
-<p>Set a process-wide policy, then launch the engine:</p>
-<div class="fragment"><div class="line">scripts/set_numa.sh interleave -- ./build/inference-engine --prompt &quot;x&quot; --max-new 8</div>
-<div class="line">scripts/set_numa.sh node:0     -- ./build/inference-engine --prompt &quot;x&quot; --max-new 8</div>
-<div class="line">scripts/set_numa.sh strict     -- ./build/inference-engine --prompt &quot;x&quot; --max-new 8</div>
-</div><!-- fragment --><hr  />
-<h1><a class="anchor" id="autotoc_md25"></a>
-INT8 PTQ pipeline</h1>
-<p>Per-tensor or per-row min-max scaling with accuracy checks.</p>
-<p><b>From an existing FP32 weight matrix (.bin, row-major):</b> </p><div class="fragment"><div class="line">python3 benchmarks/ptq_calib.py   --weights bin/W.bin --rows 768 --cols 768   --mode per_row --out-prefix out/W_int8 --accuracy-threshold 0.995</div>
-</div><!-- fragment --><p><b>From Hugging Face (state_dict key):</b> </p><div class="fragment"><div class="line">make ptq-from-hf HF_MODEL=facebook/opt-125m   KEY=model.decoder.layers.0.self_attn.q_proj.weight   OUT_PREFIX=out/qproj_int8</div>
-</div><!-- fragment --><p>Artifacts: <code>&lt;prefix&gt;.int8.bin</code>, <code>&lt;prefix&gt;.scales.bin</code>, <code>&lt;prefix&gt;.report.json</code>.</p>
-<hr  />
-<h1><a class="anchor" id="autotoc_md27"></a>
-Testing</h1>
-<div class="fragment"><div class="line">make test</div>
-</div><!-- fragment --><ul>
-<li><b>C tests</b>: tensors, kernels (generic + AVX2), thread-pool, math, tokenizer, weights, <b>int8_ptq</b>.</li>
-<li><b>Python tests</b>: CLI, harness, metrics ring (p50/p95), determinism, <b>PTQ calibration pipeline</b>.</li>
+<li><b>Activations</b> remain floating‑point; only <b>weights</b> are nibble‑packed (2 weights per byte) with per‑row scales.</li>
+<li>Dequantization is fused in the matmul kernels (see <code><a class="el" href="int4__ptq_8c.html" title="Implementation of 4-bit (INT4) weight-only quantization utilities.">engine/src/quant/int4_ptq.c</a></code> and GPU equivalents). Pretranspose/blocked‑K packing are applied before/after quantization as configured.</li>
+<li>Accuracy is safeguarded by a <b>calibration gate</b> (cosine similarity or task‑level eval), configurable in the PTQ scripts.</li>
 </ul>
 <hr  />
-<h1><a class="anchor" id="autotoc_md29"></a>
-Documentation (Doxygen)</h1>
-<div class="fragment"><div class="line">make docs-doxygen</div>
-<div class="line"># HTML at: docs/doxygen/html/index.html</div>
-</div><!-- fragment --><p>All C functions (public and internal TUs) are documented with Doxygen-style comments.</p>
-<hr  />
-<h1><a class="anchor" id="autotoc_md31"></a>
-Coding standards</h1>
+<h1><a class="anchor" id="autotoc_md61"></a>
+See also</h1>
 <ul>
-<li><b>C</b>: C11, warnings as errors (<code>-Wall -Wextra -Werror -pedantic</code>)</li>
-<li><b>Formatting</b>: <code>make fmt</code> (uses <code>clang-format</code> if available)</li>
-<li><b>Linting</b>: <code>make lint</code> (uses <code>clang-tidy</code> if available)</li>
-<li><b>Commits</b>: semantic commit messages</li>
-<li><b>Makefile</b>: single entry point for build, test, bench, profile, docs</li>
-</ul>
-<hr  />
-<h1><a class="anchor" id="autotoc_md33"></a>
-Roadmap</h1>
-<ul>
-<li><b>Step 6</b>: I/O &amp; batching — async prefetch, pinned workers, microbatch sizing, warmup policy.</li>
-<li>Extras: GPU/iGPU variant (CUDA/oneAPI), INT4 exploration, Prometheus/Grafana dashboard.</li>
-</ul>
-<hr  />
- <h1><a class="anchor" id="autotoc_md35"></a>
-Updates — 2025-10-17</h1>
-<ul>
-<li><b>CLI flags added:</b> <code>--prompts-file PATH</code>, <code>--batch N</code>, <code>--prefetch on|off|auto</code>, <code>--warmup N</code>.</li>
-<li><b>Examples:</b><ul>
-<li><code>inference-engine --prompts-file benchmarks/prompts_10.txt --batch 32 --max-new 8 --prefetch on --warmup 8</code></li>
-<li><code>inference-engine --prompt "hello" --max-new 16 --threads 4 --precision fp32</code></li>
-</ul>
-</li>
-<li><b>Stable JSON output:</b> ensure exact field formatting used by the test harness (e.g., <code>"tokens_generated": 0</code> with a space after the colon).</li>
-<li><b>Batcher integration:</b> asynchronous prefetch + tokenization with order guarantees; micro-batch views from a ring buffer.</li>
-<li><b>Bench &amp; perf:</b> <code>make bench</code> uses prompts file and batching; <code>make perf-report</code> autodetects FlameGraph tools or accepts <code>STACKCOLLAPSE</code>/<code>FLAMEGRAPH</code> env overrides. </li>
+<li>Detailed design and optimization path: <code><a class="el" href="DESIGN_8md.html">docs/DESIGN.md</a></code>, <code><a class="el" href="adr-00060-optimization-path_8md.html">docs/adr-00060-optimization-path.md</a></code></li>
+<li>Decision log: <code><a class="el" href="DECISIONS_8md.html">docs/DECISIONS.md</a></code> </li>
 </ul>
 </div></div><!-- PageDoc -->
 <a href="doxygen_crawl.html"></a>

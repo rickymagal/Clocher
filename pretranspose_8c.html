@@ -27,9 +27,9 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">Inference Engine (Clocher)<span id="projectnumber">&#160;0.1</span>
+   <div id="projectname">Inference Engine (Clocher)<span id="projectnumber">&#160;0.2</span>
    </div>
-   <div id="projectbrief">C11 CPU inference baseline with strict metrics &amp; harness</div>
+   <div id="projectbrief">C11 CPU/GPU inference baseline with strict metrics &amp; harness</div>
   </td>
  </tr>
  </tbody>
@@ -197,8 +197,47 @@ Functions</h2></td></tr>
 <dl class="section return"><dt>Returns</dt><dd>0 on success; -1 on failure. </dd></dl>
 
 <p class="definition">Definition at line <a class="el" href="pretranspose_8c_source.html#l00098">98</a> of file <a class="el" href="pretranspose_8c_source.html">pretranspose.c</a>.</p>
-
+<div class="fragment"><div class="line"><span class="lineno">  101</span>                                                      {</div>
+<div class="line"><span class="lineno">  102</span>  <span class="keywordflow">if</span> (!W || !out || rows == 0 || cols == 0 || blk_k == 0) <span class="keywordflow">return</span> -1;</div>
+<div class="line"><span class="lineno">  103</span> </div>
+<div class="line"><span class="lineno">  104</span>  <span class="keywordtype">float</span> *buf = NULL;</div>
+<div class="line"><span class="lineno">  105</span>  <span class="keywordflow">if</span> (<a class="code hl_function" href="#a3b1361210ce0850cf868bc60c96d4b6e">load_cache</a>(cache_path, rows, cols, &amp;buf) == 0) {</div>
+<div class="line"><span class="lineno">  106</span>    out-&gt;<a class="code hl_variable" href="structie__wblocked__desc.html#aad0e79d6b83fc4e2f15ae0d9b2dad038">rows</a> = rows; out-&gt;<a class="code hl_variable" href="structie__wblocked__desc.html#a7adf6c23e6798f2fae5ba7b6ddaadcd7">cols</a> = cols; out-&gt;<a class="code hl_variable" href="structie__wblocked__desc.html#aecbe9b5f97e69baf611e6b01a0b6b699">blk_k</a> = blk_k; out-&gt;<a class="code hl_variable" href="structie__wblocked__desc.html#a8a4379a023f9a078a1f21c7fc7a48b09">data</a> = buf;</div>
+<div class="line"><span class="lineno">  107</span>    <span class="keywordflow">return</span> 0;</div>
+<div class="line"><span class="lineno">  108</span>  }</div>
+<div class="line"><span class="lineno">  109</span> </div>
+<div class="line"><span class="lineno">  110</span>  buf = (<span class="keywordtype">float</span>*)malloc(rows * cols * <span class="keyword">sizeof</span>(<span class="keywordtype">float</span>));</div>
+<div class="line"><span class="lineno">  111</span>  <span class="keywordflow">if</span> (!buf) <span class="keywordflow">return</span> -1;</div>
+<div class="line"><span class="lineno">  112</span> </div>
+<div class="line"><span class="lineno">  113</span>  <span class="keywordflow">for</span> (<span class="keywordtype">size_t</span> r = 0; r &lt; rows; ++r) {</div>
+<div class="line"><span class="lineno">  114</span>    <span class="keyword">const</span> <span class="keywordtype">float</span> *src_row = W + r * cols;</div>
+<div class="line"><span class="lineno">  115</span>    <span class="keywordtype">float</span> *dst_row = buf + r * cols;</div>
+<div class="line"><span class="lineno">  116</span>    <span class="keywordtype">size_t</span> written = 0;</div>
+<div class="line"><span class="lineno">  117</span>    <span class="keywordflow">for</span> (<span class="keywordtype">size_t</span> k0 = 0; k0 &lt; cols; k0 += blk_k) {</div>
+<div class="line"><span class="lineno">  118</span>      <span class="keywordtype">size_t</span> klen = (k0 + blk_k &lt;= cols) ? blk_k : (cols - k0);</div>
+<div class="line"><span class="lineno">  119</span>      memcpy(dst_row + written, src_row + k0, klen * <span class="keyword">sizeof</span>(<span class="keywordtype">float</span>));</div>
+<div class="line"><span class="lineno">  120</span>      written += klen;</div>
+<div class="line"><span class="lineno">  121</span>    }</div>
+<div class="line"><span class="lineno">  122</span>  }</div>
+<div class="line"><span class="lineno">  123</span> </div>
+<div class="line"><span class="lineno">  124</span>  <span class="keywordflow">if</span> (cache_path) (void)<a class="code hl_function" href="#aa32af2b1dc7c23ae2f05e78492d5e71d">save_cache_atomic</a>(cache_path, buf, rows, cols);</div>
+<div class="line"><span class="lineno">  125</span> </div>
+<div class="line"><span class="lineno">  126</span>  out-&gt;<a class="code hl_variable" href="structie__wblocked__desc.html#aad0e79d6b83fc4e2f15ae0d9b2dad038">rows</a> = rows; out-&gt;<a class="code hl_variable" href="structie__wblocked__desc.html#a7adf6c23e6798f2fae5ba7b6ddaadcd7">cols</a> = cols; out-&gt;<a class="code hl_variable" href="structie__wblocked__desc.html#aecbe9b5f97e69baf611e6b01a0b6b699">blk_k</a> = blk_k; out-&gt;<a class="code hl_variable" href="structie__wblocked__desc.html#a8a4379a023f9a078a1f21c7fc7a48b09">data</a> = buf;</div>
+<div class="line"><span class="lineno">  127</span>  <span class="keywordflow">return</span> 0;</div>
+<div class="line"><span class="lineno">  128</span>}</div>
+<div class="ttc" id="apretranspose_8c_html_a3b1361210ce0850cf868bc60c96d4b6e"><div class="ttname"><a href="#a3b1361210ce0850cf868bc60c96d4b6e">load_cache</a></div><div class="ttdeci">static int load_cache(const char *path, size_t rows, size_t cols, float **data_out)</div><div class="ttdoc">Try loading a blocked buffer from disk cache.</div><div class="ttdef"><b>Definition</b> <a href="pretranspose_8c_source.html#l00043">pretranspose.c:43</a></div></div>
+<div class="ttc" id="apretranspose_8c_html_aa32af2b1dc7c23ae2f05e78492d5e71d"><div class="ttname"><a href="#aa32af2b1dc7c23ae2f05e78492d5e71d">save_cache_atomic</a></div><div class="ttdeci">static int save_cache_atomic(const char *path, const float *data, size_t rows, size_t cols)</div><div class="ttdoc">Save a blocked buffer to disk cache (atomic via temp file).</div><div class="ttdef"><b>Definition</b> <a href="pretranspose_8c_source.html#l00066">pretranspose.c:66</a></div></div>
+<div class="ttc" id="astructie__wblocked__desc_html_a7adf6c23e6798f2fae5ba7b6ddaadcd7"><div class="ttname"><a href="structie__wblocked__desc.html#a7adf6c23e6798f2fae5ba7b6ddaadcd7">ie_wblocked_desc::cols</a></div><div class="ttdeci">size_t cols</div><div class="ttdoc">Number of columns (K).</div><div class="ttdef"><b>Definition</b> <a href="ie__layout_8h_source.html#l00017">ie_layout.h:17</a></div></div>
+<div class="ttc" id="astructie__wblocked__desc_html_a8a4379a023f9a078a1f21c7fc7a48b09"><div class="ttname"><a href="structie__wblocked__desc.html#a8a4379a023f9a078a1f21c7fc7a48b09">ie_wblocked_desc::data</a></div><div class="ttdeci">float * data</div><div class="ttdoc">Pointer to blocked buffer (size rows*cols).</div><div class="ttdef"><b>Definition</b> <a href="ie__layout_8h_source.html#l00019">ie_layout.h:19</a></div></div>
+<div class="ttc" id="astructie__wblocked__desc_html_aad0e79d6b83fc4e2f15ae0d9b2dad038"><div class="ttname"><a href="structie__wblocked__desc.html#aad0e79d6b83fc4e2f15ae0d9b2dad038">ie_wblocked_desc::rows</a></div><div class="ttdeci">size_t rows</div><div class="ttdoc">Number of rows (R).</div><div class="ttdef"><b>Definition</b> <a href="ie__layout_8h_source.html#l00016">ie_layout.h:16</a></div></div>
+<div class="ttc" id="astructie__wblocked__desc_html_aecbe9b5f97e69baf611e6b01a0b6b699"><div class="ttname"><a href="structie__wblocked__desc.html#aecbe9b5f97e69baf611e6b01a0b6b699">ie_wblocked_desc::blk_k</a></div><div class="ttdeci">size_t blk_k</div><div class="ttdoc">Column block size (BK).</div><div class="ttdef"><b>Definition</b> <a href="ie__layout_8h_source.html#l00018">ie_layout.h:18</a></div></div>
+</div><!-- fragment -->
 <p class="reference">References <a class="el" href="ie__layout_8h_source.html#l00018">ie_wblocked_desc::blk_k</a>, <a class="el" href="ie__layout_8h_source.html#l00017">ie_wblocked_desc::cols</a>, <a class="el" href="ie__layout_8h_source.html#l00019">ie_wblocked_desc::data</a>, <a class="el" href="pretranspose_8c_source.html#l00043">load_cache()</a>, <a class="el" href="ie__layout_8h_source.html#l00016">ie_wblocked_desc::rows</a>, and <a class="el" href="pretranspose_8c_source.html#l00066">save_cache_atomic()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="pretranspose_8c_aec7ada5371889da8bd67de5f679f49e1_cgraph.svg" width="395" height="91"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
 
 </div>
 </div>
@@ -262,7 +301,14 @@ Functions</h2></td></tr>
 <dl class="section return"><dt>Returns</dt><dd>0 on success; -1 on failure. </dd></dl>
 
 <p class="definition">Definition at line <a class="el" href="pretranspose_8c_source.html#l00024">24</a> of file <a class="el" href="pretranspose_8c_source.html">pretranspose.c</a>.</p>
-
+<div class="fragment"><div class="line"><span class="lineno">   26</span>                                                        {</div>
+<div class="line"><span class="lineno">   27</span>  <span class="keywordflow">if</span> (!tag || !out_buf || out_cap &lt; 8) <span class="keywordflow">return</span> -1;</div>
+<div class="line"><span class="lineno">   28</span>  <span class="keyword">const</span> <span class="keywordtype">char</span> *stem = (base_path &amp;&amp; *base_path) ? base_path : <span class="stringliteral">&quot;weights.bin&quot;</span>;</div>
+<div class="line"><span class="lineno">   29</span>  <span class="keywordtype">int</span> n = snprintf(out_buf, out_cap, <span class="stringliteral">&quot;%s.%s.r%zu.c%zu.bk%zu.cache.bin&quot;</span>,</div>
+<div class="line"><span class="lineno">   30</span>                   stem, tag, rows, cols, blk_k);</div>
+<div class="line"><span class="lineno">   31</span>  <span class="keywordflow">return</span> (n &gt; 0 &amp;&amp; (<span class="keywordtype">size_t</span>)n &lt; out_cap) ? 0 : -1;</div>
+<div class="line"><span class="lineno">   32</span>}</div>
+</div><!-- fragment -->
 </div>
 </div>
 <a id="adfbda87f521cd3df6d9a2dc3118019dd" name="adfbda87f521cd3df6d9a2dc3118019dd"></a>
@@ -290,7 +336,13 @@ Functions</h2></td></tr>
 </dl>
 
 <p class="definition">Definition at line <a class="el" href="pretranspose_8c_source.html#l00135">135</a> of file <a class="el" href="pretranspose_8c_source.html">pretranspose.c</a>.</p>
-
+<div class="fragment"><div class="line"><span class="lineno">  135</span>                                              {</div>
+<div class="line"><span class="lineno">  136</span>  <span class="keywordflow">if</span> (!desc) <span class="keywordflow">return</span>;</div>
+<div class="line"><span class="lineno">  137</span>  free(desc-&gt;<a class="code hl_variable" href="structie__wblocked__desc.html#a8a4379a023f9a078a1f21c7fc7a48b09">data</a>);</div>
+<div class="line"><span class="lineno">  138</span>  desc-&gt;<a class="code hl_variable" href="structie__wblocked__desc.html#a8a4379a023f9a078a1f21c7fc7a48b09">data</a> = NULL;</div>
+<div class="line"><span class="lineno">  139</span>  desc-&gt;<a class="code hl_variable" href="structie__wblocked__desc.html#aad0e79d6b83fc4e2f15ae0d9b2dad038">rows</a> = desc-&gt;<a class="code hl_variable" href="structie__wblocked__desc.html#a7adf6c23e6798f2fae5ba7b6ddaadcd7">cols</a> = desc-&gt;<a class="code hl_variable" href="structie__wblocked__desc.html#aecbe9b5f97e69baf611e6b01a0b6b699">blk_k</a> = 0;</div>
+<div class="line"><span class="lineno">  140</span>}</div>
+</div><!-- fragment -->
 <p class="reference">References <a class="el" href="ie__layout_8h_source.html#l00018">ie_wblocked_desc::blk_k</a>, <a class="el" href="ie__layout_8h_source.html#l00017">ie_wblocked_desc::cols</a>, <a class="el" href="ie__layout_8h_source.html#l00019">ie_wblocked_desc::data</a>, and <a class="el" href="ie__layout_8h_source.html#l00016">ie_wblocked_desc::rows</a>.</p>
 
 </div>
@@ -345,8 +397,26 @@ Functions</h2></td></tr>
 <dl class="section return"><dt>Returns</dt><dd>0 on success; -1 otherwise. </dd></dl>
 
 <p class="definition">Definition at line <a class="el" href="pretranspose_8c_source.html#l00043">43</a> of file <a class="el" href="pretranspose_8c_source.html">pretranspose.c</a>.</p>
-
+<div class="fragment"><div class="line"><span class="lineno">   43</span>                                                                                    {</div>
+<div class="line"><span class="lineno">   44</span>  <span class="keywordflow">if</span> (!path) <span class="keywordflow">return</span> -1;</div>
+<div class="line"><span class="lineno">   45</span>  FILE *f = fopen(path, <span class="stringliteral">&quot;rb&quot;</span>);</div>
+<div class="line"><span class="lineno">   46</span>  <span class="keywordflow">if</span> (!f) <span class="keywordflow">return</span> -1;</div>
+<div class="line"><span class="lineno">   47</span>  <span class="keywordtype">size_t</span> count = rows * cols;</div>
+<div class="line"><span class="lineno">   48</span>  <span class="keywordtype">float</span> *buf = (<span class="keywordtype">float</span>*)malloc(count * <span class="keyword">sizeof</span>(<span class="keywordtype">float</span>));</div>
+<div class="line"><span class="lineno">   49</span>  <span class="keywordflow">if</span> (!buf) { fclose(f); <span class="keywordflow">return</span> -1; }</div>
+<div class="line"><span class="lineno">   50</span>  <span class="keywordtype">size_t</span> got = fread(buf, <span class="keyword">sizeof</span>(<span class="keywordtype">float</span>), count, f);</div>
+<div class="line"><span class="lineno">   51</span>  fclose(f);</div>
+<div class="line"><span class="lineno">   52</span>  <span class="keywordflow">if</span> (got != count) { free(buf); <span class="keywordflow">return</span> -1; }</div>
+<div class="line"><span class="lineno">   53</span>  *data_out = buf;</div>
+<div class="line"><span class="lineno">   54</span>  <span class="keywordflow">return</span> 0;</div>
+<div class="line"><span class="lineno">   55</span>}</div>
+</div><!-- fragment -->
 <p class="reference">Referenced by <a class="el" href="pretranspose_8c_source.html#l00098">ie_layout_build_blockedK()</a>.</p>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="pretranspose_8c_a3b1361210ce0850cf868bc60c96d4b6e_icgraph.svg" width="340" height="39"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
 
 </div>
 </div>
@@ -400,8 +470,29 @@ Functions</h2></td></tr>
 <dl class="section return"><dt>Returns</dt><dd>0 on success; -1 otherwise. </dd></dl>
 
 <p class="definition">Definition at line <a class="el" href="pretranspose_8c_source.html#l00066">66</a> of file <a class="el" href="pretranspose_8c_source.html">pretranspose.c</a>.</p>
-
+<div class="fragment"><div class="line"><span class="lineno">   66</span>                                                                                            {</div>
+<div class="line"><span class="lineno">   67</span>  <span class="keywordflow">if</span> (!path) <span class="keywordflow">return</span> -1;</div>
+<div class="line"><span class="lineno">   68</span>  <span class="keywordtype">char</span> tmp[4096];</div>
+<div class="line"><span class="lineno">   69</span>  <span class="keywordtype">int</span> n = snprintf(tmp, <span class="keyword">sizeof</span>(tmp), <span class="stringliteral">&quot;%s.tmp&quot;</span>, path);</div>
+<div class="line"><span class="lineno">   70</span>  <span class="keywordflow">if</span> (n &lt;= 0 || (<span class="keywordtype">size_t</span>)n &gt;= <span class="keyword">sizeof</span>(tmp)) <span class="keywordflow">return</span> -1;</div>
+<div class="line"><span class="lineno">   71</span> </div>
+<div class="line"><span class="lineno">   72</span>  FILE *f = fopen(tmp, <span class="stringliteral">&quot;wb&quot;</span>);</div>
+<div class="line"><span class="lineno">   73</span>  <span class="keywordflow">if</span> (!f) <span class="keywordflow">return</span> -1;</div>
+<div class="line"><span class="lineno">   74</span>  <span class="keywordtype">size_t</span> count = rows * cols;</div>
+<div class="line"><span class="lineno">   75</span>  <span class="keywordtype">size_t</span> put = fwrite(data, <span class="keyword">sizeof</span>(<span class="keywordtype">float</span>), count, f);</div>
+<div class="line"><span class="lineno">   76</span>  <span class="keywordflow">if</span> (put != count) { fclose(f); remove(tmp); <span class="keywordflow">return</span> -1; }</div>
+<div class="line"><span class="lineno">   77</span>  <span class="keywordflow">if</span> (fclose(f) != 0) { remove(tmp); <span class="keywordflow">return</span> -1; }</div>
+<div class="line"><span class="lineno">   78</span> </div>
+<div class="line"><span class="lineno">   79</span>  <span class="keywordflow">if</span> (rename(tmp, path) != 0) { remove(tmp); <span class="keywordflow">return</span> -1; }</div>
+<div class="line"><span class="lineno">   80</span>  <span class="keywordflow">return</span> 0;</div>
+<div class="line"><span class="lineno">   81</span>}</div>
+</div><!-- fragment -->
 <p class="reference">Referenced by <a class="el" href="pretranspose_8c_source.html#l00098">ie_layout_build_blockedK()</a>.</p>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="pretranspose_8c_aa32af2b1dc7c23ae2f05e78492d5e71d_icgraph.svg" width="395" height="39"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
 
 </div>
 </div>

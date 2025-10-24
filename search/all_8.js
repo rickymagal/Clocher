@@ -1,8 +1,26 @@
 var searchData=
 [
-  ['end_0',['end',['../structie__task__arg__t.html#a68e089a47b157f9398b8059269d6b95d',1,'ie_task_arg_t']]],
-  ['enqueue_5fitem_1',['enqueue_item',['../ie__batcher_8c.html#a9475e6883ae67815581f9573b97d2148',1,'ie_batcher.c']]],
-  ['env_5flong_2',['env_long',['../main__infer_8c.html#a9675b1f5b8b73e24233f92cb11e31f6a',1,'main_infer.c']]],
-  ['env_5fsize_3',['env_size',['../ie__kv__instrumentation_8c.html#a886abd7a4ad752897b4469e29cc344e3',1,'ie_kv_instrumentation.c']]],
-  ['example_4',['Example',['../index.html#autotoc_md15',1,'']]]
+  ['dalloc_0',['dalloc',['../ie__kernel__ze_8cpp.html#a8966e8d4592d80b5e1f8d02dd586bb57',1,'ie_kernel_ze.cpp']]],
+  ['data_1',['data',['../structie__wblocked__desc.html#a8a4379a023f9a078a1f21c7fc7a48b09',1,'ie_wblocked_desc::data'],['../structie__f32__vec__t.html#abfa7cc8f0cfe5b985246c08b54fb342e',1,'ie_f32_vec_t::data']]],
+  ['dbg_2',['dbg',['../util__metrics_8c.html#aad9404d49721a4fdd407e2eff25b6489',1,'util_metrics.c']]],
+  ['decision_3',['Decision',['../md_docs_2adr-00060-optimization-path.html#autotoc_md3',1,'']]],
+  ['decision_20records_4',['Architectural Decision Records',['../md_docs_2DECISIONS.html',1,'']]],
+  ['decisions_2emd_5',['DECISIONS.md',['../DECISIONS_8md.html',1,'']]],
+  ['defaults_6',['Kernel policy (baseline, safe defaults)',['../ie__kernels__cuda_8cu.html#autotoc_md62',1,'']]],
+  ['design_20cpu_20baseline_20int4_20path_7',['Design (CPU baseline + INT4 path)',['../md_docs_2DESIGN.html',1,'']]],
+  ['design_20goals_8',['Design Goals',['../weights_8c.html#autotoc_md45',1,'']]],
+  ['design_20goals_9',['Design goals',['../ie__device__cuda_8h.html#autotoc_md30',1,'Design goals'],['../ie__kernels__cuda_8h.html#autotoc_md36',1,'Design goals'],['../tokenizer_8c.html#autotoc_md42',1,'Design goals']]],
+  ['design_20notes_10',['Design notes',['../ie__tensor_8c.html#design_notes',1,'']]],
+  ['design_2emd_11',['DESIGN.md',['../DESIGN_8md.html',1,'']]],
+  ['destroy_12',['destroy',['../structie__device__vtbl.html#a646d8353c3ebf1ba47f4a4ac37efac33',1,'ie_device_vtbl']]],
+  ['determinismtests_13',['DeterminismTests',['../classtest__determinism_1_1DeterminismTests.html',1,'test_determinism']]],
+  ['device_14',['device',['../structcli__extras.html#a50cd2ee771a9eee3fd448d2a1c0b5645',1,'cli_extras']]],
+  ['dfree_15',['dfree',['../ie__kernel__ze_8cpp.html#a8659992f4a5a709d0794e3b43ff99a30',1,'ie_kernel_ze.cpp']]],
+  ['die_16',['die',['../namespacehf__to__iebin.html#a4b60e8118426fdaed71bda80d597f94a',1,'hf_to_iebin']]],
+  ['dir_5fpath_17',['dir_path',['../classmetrics__exporter_1_1Handler.html#afc72795f3f7c7aaa165b98640b8503fc',1,'metrics_exporter::Handler']]],
+  ['discover_5ftokenizer_18',['discover_tokenizer',['../namespacehf__to__iebin.html#af84d2ba1d587dddd733c92c0350f7ab5',1,'hf_to_iebin']]],
+  ['do_5fget_19',['do_GET',['../classmetrics__exporter_1_1Handler.html#aa929b01d98693e510b94e82e6a9e92c0',1,'metrics_exporter::Handler']]],
+  ['done_20',['done',['../structie__batcher__view.html#acc236db8ff60ecd7bf003b5e3c2f29e8',1,'ie_batcher_view']]],
+  ['driver_21',['driver',['../structie__device__caps.html#a771260909362d500182f5d806a415a75',1,'ie_device_caps::driver'],['../structcuda__impl.html#ac0872251863fea67af3ca65bc624c5a2',1,'cuda_impl::driver'],['../structze__impl.html#a3658972a66aa2284d3db33abf484f0fd',1,'ze_impl::driver']]],
+  ['dtype_22',['dtype',['../structie__weights__s.html#aaedc444c52d256720c4b4099604206a4',1,'ie_weights_s']]]
 ];

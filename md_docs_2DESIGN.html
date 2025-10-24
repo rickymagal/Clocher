@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.13.2"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Inference Engine (Clocher): Design (CPU baseline)</title>
+<title>Inference Engine (Clocher): Design (CPU baseline + INT4 path)</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -27,9 +27,9 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">Inference Engine (Clocher)<span id="projectnumber">&#160;0.1</span>
+   <div id="projectname">Inference Engine (Clocher)<span id="projectnumber">&#160;0.2</span>
    </div>
-   <div id="projectbrief">C11 CPU inference baseline with strict metrics &amp; harness</div>
+   <div id="projectbrief">C11 CPU/GPU inference baseline with strict metrics &amp; harness</div>
   </td>
  </tr>
  </tbody>
@@ -97,98 +97,93 @@ $(function(){initNavTree('md_docs_2DESIGN.html',''); initResizable(true); });
 </div>
 
 <div><div class="header">
-  <div class="headertitle"><div class="title">Design (CPU baseline)</div></div>
+  <div class="headertitle"><div class="title">Design (CPU baseline + INT4 path)</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md36"></a></p>
-<h1><a class="anchor" id="autotoc_md37"></a>
+<div class="textblock"><p><a class="anchor" id="autotoc_md16"></a></p>
+<p>This document describes the hot path, API boundaries, and precision modes. <br  />
+ <b>Last updated:</b> 2025-10-24 21:00:48 UTC</p>
+<h1><a class="anchor" id="autotoc_md17"></a>
 Process and boundaries</h1>
 <ul>
 <li>Single binary <code>inference-engine</code>: create → generate → collect metrics → destroy.</li>
 <li>CLI prints exactly one JSON line per run so the Python harness can ingest results.</li>
-<li>No third-party runtime dependencies; only <code>pthread</code> and <code>libm</code>.</li>
+<li>No third‑party runtime dependencies; only <code>pthread</code> and <code>libm</code> (and CUDA for the GPU build).</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md38"></a>
+<h1><a class="anchor" id="autotoc_md18"></a>
 API surface (high level)</h1>
 <ul>
-<li><code>ie_engine_create(cfg)</code> → initializes state (weights, buffers, thread-pool).</li>
+<li><code>ie_engine_create(cfg)</code> → initializes state (weights, buffers, thread‑pool).</li>
 <li><code>ie_engine_generate(prompt, max_new, params)</code> → produces tokens and updates metrics rings.</li>
-<li><code>ie_engine_get_metrics()</code> → returns p50/p95, TPS, RSS peak, KV hits/misses.</li>
+<li><code>ie_engine_metrics(out)</code> → returns latency p50/p95, true TPS, <b>RSS peak</b>, KV hits/misses.</li>
 <li><code><a class="el" href="ie__api_8h.html#a8a724f7097b3e19da8d7dd97fba4415e" title="Destroy an engine and free its resources.">ie_engine_destroy()</a></code> → frees all resources.</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md39"></a>
+<h1><a class="anchor" id="autotoc_md19"></a>
 Hot path layout</h1>
 <ul>
 <li>GEMV microkernel:<ul>
-<li>Generic scalar reference implementation</li>
-<li>AVX2/FMA path with light prefetch and blocked-K packing</li>
+<li>Generic scalar reference implementation.</li>
+<li>AVX2/FMA path with light prefetch and blocked‑K packing.</li>
 </ul>
 </li>
 <li>Activation:<ul>
-<li><code>tanh</code> fast path with clamp (accuracy-bounded), vector helper</li>
-<li>Optional fused bias + activation to reduce memory traffic</li>
-</ul>
-</li>
-<li>Precision:<ul>
-<li>FP32 baseline, optional BF16/FP16 round-trip (accumulate FP32)</li>
-<li>INT8 PTQ with per-tensor/per-row scales (min-max); (de)quant helpers</li>
+<li><code>tanh</code> fast path with clamp (accuracy‑bounded), vector helper.</li>
+<li>Optional fused bias + activation to reduce memory traffic.</li>
 </ul>
 </li>
 </ul>
-<h1><a class="anchor" id="autotoc_md40"></a>
+<h1><a class="anchor" id="autotoc_md20"></a>
+Precision modes</h1>
+<h2><a class="anchor" id="autotoc_md21"></a>
+Floating point</h2>
+<ul>
+<li>FP32 baseline, optional BF16/FP16 round‑trip (accumulate FP32).</li>
+</ul>
+<h2><a class="anchor" id="autotoc_md22"></a>
+INT8 PTQ (reference)</h2>
+<ul>
+<li>Per‑tensor/per‑row scales (min‑max); (de)quant helpers; task gate in scripts.</li>
+</ul>
+<h2><a class="anchor" id="autotoc_md23"></a>
+<b>NEW — INT4 PTQ (weight‑only)</b></h2>
+<ul>
+<li><b>Format</b>: weights are <b>nibble‑packed</b> (2 values per byte). Each row (or group) carries a scale (and optional zero‑point if affine).</li>
+<li><b>Packing</b>: INT4 packing integrates with the existing <b>pretranspose / blocked‑K</b> pipeline. Packing order: float → (optional) pretranspose → quantize to int4 → pack.</li>
+<li><b>Dequantization</b>: fused in the matmul path; scale is broadcast per row (or group) to recover FP32 accumulators.</li>
+<li><b>Manifests</b>: a <code>q4_manifest.json</code> enumerates which tensors use INT4 and their scale metadata. <code><a class="el" href="hf__to__iebin_8py.html">scripts/hf_to_iebin.py</a></code> consumes this manifest via <code>--q4-map</code> to emit <code>model.ie.bin</code>/<code>.json</code>.</li>
+<li><b>Selection</b>: at runtime choose <code>IE_PRECISION=int4w</code> (or <code>--precision int4w</code>), leaving activations in float. This is <b>bandwidth‑oriented</b> and preserves compute simplicity.</li>
+</ul>
+<h1><a class="anchor" id="autotoc_md24"></a>
 Threading model</h1>
 <ul>
-<li>Fixed thread-pool over <code>pthread</code>, contiguous sharding, grainsize control.</li>
+<li>Fixed thread‑pool over <code>pthread</code>, contiguous sharding, grainsize control.</li>
 <li>Affinity (Linux): <code>IE_TP_USE_AFFINITY=1</code> enables <code>auto|compact|scatter</code>.</li>
 <li>NUMA:<ul>
-<li>External helper <code>scripts/set_numa.sh</code> to set OS policy (<code>interleave|node:X|strict</code>).</li>
-<li>In-repo probe reads <code>/sys/devices/system/node/online</code> to annotate reports.</li>
+<li><code><a class="el" href="set__numa_8sh.html">scripts/set_numa.sh</a></code> can set OS policy (<code>interleave|node:X|strict</code>).</li>
+<li>In‑repo probe reads <code>/sys/devices/system/node/online</code> to annotate reports.</li>
 </ul>
 </li>
 </ul>
-<h1><a class="anchor" id="autotoc_md41"></a>
+<h1><a class="anchor" id="autotoc_md25"></a>
 Layout and caching</h1>
 <ul>
-<li>Blocked-K packing with optional on-disk caching (content-addressed by shape + block size).</li>
-<li>CLI flag <code>--pretranspose</code> controls packing scope (<code>none|woh|wxh|all</code>).</li>
+<li>Blocked‑K packing with optional on‑disk caching (content‑addressed by shape + block size).</li>
+<li>CLI flag <code>--pretranspose</code> controls packing scope (<code>none|woh|wxh|all</code>). INT4 can be cached per layout variant.</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md42"></a>
+<h1><a class="anchor" id="autotoc_md26"></a>
 Metrics</h1>
 <ul>
-<li>Per-token latency ring (p50/p95).</li>
+<li>Per‑token latency ring (p50/p95).</li>
 <li>True TPS (<code>generated_tokens / wall_time_s</code>).</li>
-<li>Optional RSS peak, KV hits/misses counter stubs.</li>
+<li><b>Peak RSS</b> (Linux <code>/proc/self/status:VmHWM</code> → MiB; fallback <code>getrusage</code>).</li>
+<li>KV hits/misses counter stubs aggregated per round.</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md43"></a>
-Testing strategy</h1>
+<h1><a class="anchor" id="autotoc_md27"></a>
+GPU integration (CUDA path)</h1>
 <ul>
-<li>C unit tests for tensor ops, kernels, math, thread-pool, tokenizer, weights, quant.</li>
-<li>Python tests for CLI, harness, metrics integrity, PTQ pipeline.</li>
-<li>Microbenchmarks for GEMV and math kernels.</li>
-</ul>
-<h1><a class="anchor" id="autotoc_md44"></a>
-Tooling</h1>
-<ul>
-<li>Makefile orchestrates build, test, bench, profile, docs.</li>
-<li>Doxygen for C API reference.</li>
-<li><code>perf + FlameGraph</code> → <code>flamegraph.svg</code> and <code>PERFORMANCE.md</code>. </li>
-</ul>
-<h1><a class="anchor" id="autotoc_md45"></a>
-Updates — 2025-10-17</h1>
-<h2><a class="anchor" id="autotoc_md46"></a>
-I/O Batching and Prefetch</h2>
-<ul>
-<li>Introduced a multi-worker <b>prefetch + tokenization batcher</b> feeding a ring buffer.</li>
-<li><b>Order preservation:</b> despite parallel tokenization, items are consumed in input order via indexed enqueue and contiguous micro-batch views.</li>
-<li><b>Backpressure:</b> producer blocks when the ring is full; consumer signals on advance; micro-batch size is tunable.</li>
-<li><b>Failure semantics:</b> tokenization status is carried per item; consumers free payloads on advance.</li>
-</ul>
-<h2><a class="anchor" id="autotoc_md47"></a>
-CLI &amp; Pipeline Integration</h2>
-<ul>
-<li>New CLI knobs: <code>--prompts-file</code>, <code>--batch</code>, <code>--prefetch</code>, <code>--warmup</code>.</li>
-<li>Warmup performs a small generation before timed runs to stabilize caches.</li>
-<li>JSON output is a single stable line for automation with predictable field names and spacing. </li>
+<li>Device layer: <code><a class="el" href="ie__device__cuda_8cu.html" title="CUDA backend implementation: device availability + FP32 GEMV kernel.">engine/src/devices/ie_device_cuda.cu</a></code>, kernels in <code><a class="el" href="ie__kernels__cuda_8cu.html" title="CUDA implementations of GEMV/activation/packing kernels + C-ABI launchers.">engine/src/kernels/ie_kernels_cuda.cu</a></code>.</li>
+<li>Build: <code>make build-cuda</code> → <code>build/inference-engine.cuda</code>.</li>
+<li>INT4 weight‑only support mirrors the CPU path; packing and scales are shared in <code>model.ie.json</code>. </li>
 </ul>
 </div></div><!-- contents -->
 </div><!-- PageDoc -->

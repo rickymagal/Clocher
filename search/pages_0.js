@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['0006_20—_20optimization_20path_20selection_20cpu_20baseline_0',['ADR-0006 — Optimization path selection (CPU baseline)',['../md_docs_2adr-00060-optimization-path.html',1,'']]]
+  ['00060_20—_20optimization_20path_20selection_20updated_20for_20int4_0',['ADR-00060 — Optimization Path Selection (updated for INT4)',['../md_docs_2adr-00060-optimization-path.html',1,'']]]
 ];

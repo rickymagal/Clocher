@@ -27,9 +27,9 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">Inference Engine (Clocher)<span id="projectnumber">&#160;0.1</span>
+   <div id="projectname">Inference Engine (Clocher)<span id="projectnumber">&#160;0.2</span>
    </div>
-   <div id="projectbrief">C11 CPU inference baseline with strict metrics &amp; harness</div>
+   <div id="projectbrief">C11 CPU/GPU inference baseline with strict metrics &amp; harness</div>
   </td>
  </tr>
  </tbody>
@@ -103,174 +103,56 @@ $(function(){initNavTree('util__metrics_8h.html',''); initResizable(true); });
 </div><!--header-->
 <div class="contents">
 
-<p>Lightweight, dependency-free runtime metrics helpers.  
+<p>Public helpers for runtime metrics (KV counters + RSS sampling).  
 <a href="#details">More...</a></p>
-<div class="textblock"><code>#include &lt;stddef.h&gt;</code><br />
-<code>#include &lt;stdint.h&gt;</code><br />
+<div class="textblock"><code>#include &lt;stdint.h&gt;</code><br />
 <code>#include &quot;<a class="el" href="ie__api_8h_source.html">ie_api.h</a>&quot;</code><br />
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for util_metrics.h:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="util__metrics_8h__incl.svg" width="191" height="207"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="util__metrics_8h__incl.svg" width="179" height="207"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 </div><div class="textblock"><div class="dynheader">
 This graph shows which files directly or indirectly include this file:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="util__metrics_8h__dep__incl.svg" width="183" height="131"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="util__metrics_8h__dep__incl.svg" width="387" height="131"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 </div>
 <p><a href="util__metrics_8h_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:a52297e5086ae572967fb686664c765c5" id="r_a52297e5086ae572967fb686664c765c5"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a52297e5086ae572967fb686664c765c5">ie_metrics_read_proc_status_kb</a> (size_t *VmHWM_kb, size_t *VmRSS_kb)</td></tr>
-<tr class="memdesc:a52297e5086ae572967fb686664c765c5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read <code>VmHWM</code> (high-water mark of RSS) and <code>VmRSS</code> from <code>/proc/self/status</code>.  <br /></td></tr>
-<tr class="separator:a52297e5086ae572967fb686664c765c5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a46d4296369f5868e5efa91e3ecb5d8b3" id="r_a46d4296369f5868e5efa91e3ecb5d8b3"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a46d4296369f5868e5efa91e3ecb5d8b3">ie_metrics_sample_rss_peak</a> (<a class="el" href="structie__metrics__t.html">ie_metrics_t</a> *m)</td></tr>
-<tr class="memdesc:a46d4296369f5868e5efa91e3ecb5d8b3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sample and update the <code>rss_peak_mb</code> field of an <a class="el" href="structie__metrics__t.html">ie_metrics_t</a>.  <br /></td></tr>
-<tr class="separator:a46d4296369f5868e5efa91e3ecb5d8b3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a17d898e96133a91c888cdbbcdf692f8b" id="r_a17d898e96133a91c888cdbbcdf692f8b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a17d898e96133a91c888cdbbcdf692f8b">ie_metrics_kv_reset</a> (<a class="el" href="structie__metrics__t.html">ie_metrics_t</a> *m)</td></tr>
-<tr class="memdesc:a17d898e96133a91c888cdbbcdf692f8b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reset the KV counters (hits, misses) inside an <a class="el" href="structie__metrics__t.html">ie_metrics_t</a>.  <br /></td></tr>
-<tr class="separator:a17d898e96133a91c888cdbbcdf692f8b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a772937729e3d676f5f4abf7acb14388d" id="r_a772937729e3d676f5f4abf7acb14388d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a772937729e3d676f5f4abf7acb14388d">ie_metrics_kv_add</a> (<a class="el" href="structie__metrics__t.html">ie_metrics_t</a> *m, uint64_t hits, uint64_t misses)</td></tr>
-<tr class="memdesc:a772937729e3d676f5f4abf7acb14388d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Additive update to KV hit/miss counters in <a class="el" href="structie__metrics__t.html">ie_metrics_t</a>.  <br /></td></tr>
-<tr class="separator:a772937729e3d676f5f4abf7acb14388d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga874413f3f40c7927c465112b7f162656" id="r_ga874413f3f40c7927c465112b7f162656"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__IE__METRICS.html#ga874413f3f40c7927c465112b7f162656">ie_metrics_reset</a> (void)</td></tr>
+<tr class="memdesc:ga874413f3f40c7927c465112b7f162656"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reset process-wide KV counters to zero.  <br /></td></tr>
+<tr class="separator:ga874413f3f40c7927c465112b7f162656"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga7102e1b1461b7ac674d42c58660fda0d" id="r_ga7102e1b1461b7ac674d42c58660fda0d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__IE__METRICS.html#ga7102e1b1461b7ac674d42c58660fda0d">ie_metrics_add_kv_hit</a> (uint64_t n)</td></tr>
+<tr class="memdesc:ga7102e1b1461b7ac674d42c58660fda0d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Add <code class="param">n</code> KV hits to the process-wide counter.  <br /></td></tr>
+<tr class="separator:ga7102e1b1461b7ac674d42c58660fda0d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga8eecda9f8202c3f887066f287d97c954" id="r_ga8eecda9f8202c3f887066f287d97c954"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__IE__METRICS.html#ga8eecda9f8202c3f887066f287d97c954">ie_metrics_add_kv_miss</a> (uint64_t n)</td></tr>
+<tr class="memdesc:ga8eecda9f8202c3f887066f287d97c954"><td class="mdescLeft">&#160;</td><td class="mdescRight">Add <code class="param">n</code> KV misses to the process-wide counter.  <br /></td></tr>
+<tr class="separator:ga8eecda9f8202c3f887066f287d97c954"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaf9f02e4faa24298be27d9299df602fca" id="r_gaf9f02e4faa24298be27d9299df602fca"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__IE__METRICS.html#gaf9f02e4faa24298be27d9299df602fca">ie_metrics_add_kv</a> (uint64_t hits, uint64_t misses)</td></tr>
+<tr class="memdesc:gaf9f02e4faa24298be27d9299df602fca"><td class="mdescLeft">&#160;</td><td class="mdescRight">Add both hits and misses in one call (each may be zero).  <br /></td></tr>
+<tr class="separator:gaf9f02e4faa24298be27d9299df602fca"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga3a6a9208ad3e80cbc57fb1923e5e263f" id="r_ga3a6a9208ad3e80cbc57fb1923e5e263f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__IE__METRICS.html#ga3a6a9208ad3e80cbc57fb1923e5e263f">ie_metrics_snapshot</a> (<a class="el" href="structie__metrics__t.html">ie_metrics_t</a> *out, int reset_after)</td></tr>
+<tr class="memdesc:ga3a6a9208ad3e80cbc57fb1923e5e263f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Snapshot process-wide KV counters into <code class="param">out</code>.  <br /></td></tr>
+<tr class="separator:ga3a6a9208ad3e80cbc57fb1923e5e263f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga0b083c9fbf90d02c9ef387ab34220a34" id="r_ga0b083c9fbf90d02c9ef387ab34220a34"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__IE__METRICS.html#ga0b083c9fbf90d02c9ef387ab34220a34">ie_metrics_sample_rss_peak</a> (void)</td></tr>
+<tr class="memdesc:ga0b083c9fbf90d02c9ef387ab34220a34"><td class="mdescLeft">&#160;</td><td class="mdescRight">Best-effort sampling of process peak RSS, in MiB.  <br /></td></tr>
+<tr class="separator:ga0b083c9fbf90d02c9ef387ab34220a34"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Lightweight, dependency-free runtime metrics helpers. </p>
-<p>This header exposes small helpers for collecting <b>host-observable</b> signals such as peak resident set size (RSS) and simple KV hit/miss accounting plumbing. It intentionally keeps the surface area small and ABI-stable.</p>
-<p>Design notes:</p><ul>
-<li>The canonical metrics structure is <code><a class="el" href="structie__metrics__t.html" title="Snapshot of engine metrics for a measurement interval.">ie_metrics_t</a></code> from <a class="el" href="ie__api_8h.html">ie_api.h</a>. This header only <em>updates</em> that struct; it does not redefine it.</li>
-<li>On non-Linux platforms, the <code>/proc</code>-based functions become no-ops that return success and leave outputs as zero.</li>
-<li>No dynamic allocation; all updates happen on caller-owned storage. </li>
+<div class="textblock"><p>Public helpers for runtime metrics (KV counters + RSS sampling). </p>
+<p>This header complements the engine metrics exposed by <code><a class="el" href="ie__api_8h.html" title="Public C API for the inference engine (minimal surface used by CLI/tests).">ie_api.h</a></code>. It provides:</p><ul>
+<li>Process-wide KV hit/miss accumulators using C11 atomics.</li>
+<li>A best-effort function to retrieve the process peak RSS (in MiB).</li>
+</ul>
+<p>Design:</p><ul>
+<li>We intentionally include <b><a class="el" href="ie__api_8h.html" title="Public C API for the inference engine (minimal surface used by CLI/tests).">ie_api.h</a></b> (and NOT <a class="el" href="ie__metrics_8h.html" title="Public API for runtime metrics (KV cache and memory/RSS sampling).">ie_metrics.h</a>) so the project uses the canonical <code><a class="el" href="structie__metrics__t.html" title="Snapshot of engine metrics for a measurement interval.">ie_metrics_t</a></code> owned by the engine API, avoiding duplicate/contradicting typedefs. </li>
 </ul>
 
 <p class="definition">Definition in file <a class="el" href="util__metrics_8h_source.html">util_metrics.h</a>.</p>
-</div><h2 class="groupheader">Function Documentation</h2>
-<a id="a772937729e3d676f5f4abf7acb14388d" name="a772937729e3d676f5f4abf7acb14388d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a772937729e3d676f5f4abf7acb14388d">&#9670;&#160;</a></span>ie_metrics_kv_add()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void ie_metrics_kv_add </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="structie__metrics__t.html">ie_metrics_t</a> *</td>          <td class="paramname"><span class="paramname"><em>m</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">uint64_t</td>          <td class="paramname"><span class="paramname"><em>hits</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">uint64_t</td>          <td class="paramname"><span class="paramname"><em>misses</em></span>&#160;)</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Additive update to KV hit/miss counters in <a class="el" href="structie__metrics__t.html">ie_metrics_t</a>. </p>
-<p>Engines may call this to accumulate KV statistics while they run. The CLI merely snapshots the resulting numbers; it does not generate or probe KV.</p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">m</td><td>Pointer to a valid <a class="el" href="structie__metrics__t.html">ie_metrics_t</a>. </td></tr>
-    <tr><td class="paramname">hits</td><td>Number of hits to add. </td></tr>
-    <tr><td class="paramname">misses</td><td>Number of misses to add. </td></tr>
-  </table>
-  </dd>
-</dl>
-
-</div>
-</div>
-<a id="a17d898e96133a91c888cdbbcdf692f8b" name="a17d898e96133a91c888cdbbcdf692f8b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a17d898e96133a91c888cdbbcdf692f8b">&#9670;&#160;</a></span>ie_metrics_kv_reset()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void ie_metrics_kv_reset </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="structie__metrics__t.html">ie_metrics_t</a> *</td>          <td class="paramname"><span class="paramname"><em>m</em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Reset the KV counters (hits, misses) inside an <a class="el" href="structie__metrics__t.html">ie_metrics_t</a>. </p>
-<p>This is a <em>plumbing</em> helper for engines that wish to expose KV stats via the public metrics object without forcing the CLI to maintain separate counters. It does <b>not</b> perform any memory “touching” or probing.</p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">m</td><td>Pointer to a valid <a class="el" href="structie__metrics__t.html">ie_metrics_t</a>. </td></tr>
-  </table>
-  </dd>
-</dl>
-
-</div>
-</div>
-<a id="a52297e5086ae572967fb686664c765c5" name="a52297e5086ae572967fb686664c765c5"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a52297e5086ae572967fb686664c765c5">&#9670;&#160;</a></span>ie_metrics_read_proc_status_kb()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">int ie_metrics_read_proc_status_kb </td>
-          <td>(</td>
-          <td class="paramtype">size_t *</td>          <td class="paramname"><span class="paramname"><em>VmHWM_kb</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">size_t *</td>          <td class="paramname"><span class="paramname"><em>VmRSS_kb</em></span>&#160;)</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Read <code>VmHWM</code> (high-water mark of RSS) and <code>VmRSS</code> from <code>/proc/self/status</code>. </p>
-<p>Linux-only implementation: parses <code>/proc/self/status</code> to extract both values. If a pointer is <code>NULL</code>, that output is skipped. Units returned are <b>KiB</b>.</p>
-<p>On non-Linux builds, this function returns 0 and sets outputs to 0.</p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramdir">[out]</td><td class="paramname">VmHWM_kb</td><td>Optional output for peak RSS (KiB). </td></tr>
-    <tr><td class="paramdir">[out]</td><td class="paramname">VmRSS_kb</td><td>Optional output for current RSS (KiB). </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd>0 on success; negative on error (e.g., file missing/unreadable). </dd></dl>
-
-</div>
-</div>
-<a id="a46d4296369f5868e5efa91e3ecb5d8b3" name="a46d4296369f5868e5efa91e3ecb5d8b3"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a46d4296369f5868e5efa91e3ecb5d8b3">&#9670;&#160;</a></span>ie_metrics_sample_rss_peak()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">int ie_metrics_sample_rss_peak </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="structie__metrics__t.html">ie_metrics_t</a> *</td>          <td class="paramname"><span class="paramname"><em>m</em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Sample and update the <code>rss_peak_mb</code> field of an <a class="el" href="structie__metrics__t.html">ie_metrics_t</a>. </p>
-<p>This function is <b>cheap</b> and <b>non-intrusive</b>. It never walks process mappings or touches model pages; it only parses <code>/proc/self/status</code> and converts <code>VmHWM</code> (KiB) to MiB.</p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">m</td><td>Pointer to a valid <a class="el" href="structie__metrics__t.html">ie_metrics_t</a>. </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd>0 on success; negative on error (invalid pointer or parse error). </dd></dl>
-
-</div>
-</div>
-</div><!-- contents -->
+</div></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->

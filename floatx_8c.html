@@ -27,9 +27,9 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">Inference Engine (Clocher)<span id="projectnumber">&#160;0.1</span>
+   <div id="projectname">Inference Engine (Clocher)<span id="projectnumber">&#160;0.2</span>
    </div>
-   <div id="projectbrief">C11 CPU inference baseline with strict metrics &amp; harness</div>
+   <div id="projectbrief">C11 CPU/GPU inference baseline with strict metrics &amp; harness</div>
   </td>
  </tr>
  </tbody>
@@ -172,7 +172,15 @@ Functions</h2></td></tr>
 </dl>
 
 <p class="definition">Definition at line <a class="el" href="floatx_8c_source.html#l00042">42</a> of file <a class="el" href="floatx_8c_source.html">floatx.c</a>.</p>
-
+<div class="fragment"><div class="line"><span class="lineno">   42</span>                                                               {</div>
+<div class="line"><span class="lineno">   43</span>  <span class="keywordflow">if</span> (!in || !out || n == 0) <span class="keywordflow">return</span>;</div>
+<div class="line"><span class="lineno">   44</span>  <span class="keywordflow">for</span> (<span class="keywordtype">size_t</span> i = 0; i &lt; n; ++i) {</div>
+<div class="line"><span class="lineno">   45</span>    <span class="keyword">union </span>{ uint32_t u; <span class="keywordtype">float</span> f; } v;</div>
+<div class="line"><span class="lineno">   46</span>    v.u = ((uint32_t)in[i]) &lt;&lt; 16;</div>
+<div class="line"><span class="lineno">   47</span>    out[i] = v.f;</div>
+<div class="line"><span class="lineno">   48</span>  }</div>
+<div class="line"><span class="lineno">   49</span>}</div>
+</div><!-- fragment -->
 </div>
 </div>
 <a id="ad5abc69b1882aaf3a03faf76ddf4cb28" name="ad5abc69b1882aaf3a03faf76ddf4cb28"></a>
@@ -211,7 +219,44 @@ Functions</h2></td></tr>
 </dl>
 
 <p class="definition">Definition at line <a class="el" href="floatx_8c_source.html#l00120">120</a> of file <a class="el" href="floatx_8c_source.html">floatx.c</a>.</p>
-
+<div class="fragment"><div class="line"><span class="lineno">  120</span>                                                               {</div>
+<div class="line"><span class="lineno">  121</span>  <span class="keywordflow">if</span> (!in || !out || n == 0) <span class="keywordflow">return</span>;</div>
+<div class="line"><span class="lineno">  122</span> </div>
+<div class="line"><span class="lineno">  123</span>  <span class="keywordflow">for</span> (<span class="keywordtype">size_t</span> i = 0; i &lt; n; ++i) {</div>
+<div class="line"><span class="lineno">  124</span>    uint16_t h = in[i];</div>
+<div class="line"><span class="lineno">  125</span>    uint32_t sign = (h &gt;&gt; 15) &amp; 0x1u;</div>
+<div class="line"><span class="lineno">  126</span>    uint32_t exp  = (h &gt;&gt; 10) &amp; 0x1Fu;</div>
+<div class="line"><span class="lineno">  127</span>    uint32_t frac = h &amp; 0x3FFu;</div>
+<div class="line"><span class="lineno">  128</span> </div>
+<div class="line"><span class="lineno">  129</span>    uint32_t out_sign = sign &lt;&lt; 31;</div>
+<div class="line"><span class="lineno">  130</span>    uint32_t out_exp, out_frac;</div>
+<div class="line"><span class="lineno">  131</span> </div>
+<div class="line"><span class="lineno">  132</span>    <span class="keywordflow">if</span> (exp == 0) {</div>
+<div class="line"><span class="lineno">  133</span>      <span class="keywordflow">if</span> (frac == 0) {</div>
+<div class="line"><span class="lineno">  134</span>        out_exp = 0;</div>
+<div class="line"><span class="lineno">  135</span>        out_frac = 0;</div>
+<div class="line"><span class="lineno">  136</span>      } <span class="keywordflow">else</span> {</div>
+<div class="line"><span class="lineno">  137</span>        <span class="comment">/* subnormal -&gt; normalize */</span></div>
+<div class="line"><span class="lineno">  138</span>        <span class="keywordtype">int</span> e = -14;</div>
+<div class="line"><span class="lineno">  139</span>        uint32_t f = frac;</div>
+<div class="line"><span class="lineno">  140</span>        <span class="keywordflow">while</span> ((f &amp; 0x400u) == 0) { f &lt;&lt;= 1; e--; }</div>
+<div class="line"><span class="lineno">  141</span>        f &amp;= 0x3FFu;</div>
+<div class="line"><span class="lineno">  142</span>        out_exp  = (uint32_t)(e + 127) &lt;&lt; 23;</div>
+<div class="line"><span class="lineno">  143</span>        out_frac = f &lt;&lt; 13;</div>
+<div class="line"><span class="lineno">  144</span>      }</div>
+<div class="line"><span class="lineno">  145</span>    } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (exp == 31) {</div>
+<div class="line"><span class="lineno">  146</span>      out_exp  = 0xFFu &lt;&lt; 23;</div>
+<div class="line"><span class="lineno">  147</span>      out_frac = (frac ? (frac &lt;&lt; 13) : 0);</div>
+<div class="line"><span class="lineno">  148</span>    } <span class="keywordflow">else</span> {</div>
+<div class="line"><span class="lineno">  149</span>      out_exp  = (uint32_t)(exp - 15 + 127) &lt;&lt; 23;</div>
+<div class="line"><span class="lineno">  150</span>      out_frac = frac &lt;&lt; 13;</div>
+<div class="line"><span class="lineno">  151</span>    }</div>
+<div class="line"><span class="lineno">  152</span> </div>
+<div class="line"><span class="lineno">  153</span>    <span class="keyword">union </span>{ uint32_t u; <span class="keywordtype">float</span> f; } v = { .u = out_sign | out_exp | out_frac };</div>
+<div class="line"><span class="lineno">  154</span>    out[i] = v.f;</div>
+<div class="line"><span class="lineno">  155</span>  }</div>
+<div class="line"><span class="lineno">  156</span>}</div>
+</div><!-- fragment -->
 </div>
 </div>
 <a id="a0c66f1d557d06e7bce4c3c702e884481" name="a0c66f1d557d06e7bce4c3c702e884481"></a>
@@ -250,7 +295,21 @@ Functions</h2></td></tr>
 </dl>
 
 <p class="definition">Definition at line <a class="el" href="floatx_8c_source.html#l00020">20</a> of file <a class="el" href="floatx_8c_source.html">floatx.c</a>.</p>
-
+<div class="fragment"><div class="line"><span class="lineno">   20</span>                                                               {</div>
+<div class="line"><span class="lineno">   21</span>  <span class="keywordflow">if</span> (!in || !out || n == 0) <span class="keywordflow">return</span>;</div>
+<div class="line"><span class="lineno">   22</span>  <span class="keywordflow">for</span> (<span class="keywordtype">size_t</span> i = 0; i &lt; n; ++i) {</div>
+<div class="line"><span class="lineno">   23</span>    <span class="keyword">union </span>{ <span class="keywordtype">float</span> f; uint32_t u; } v = { .f = in[i] };</div>
+<div class="line"><span class="lineno">   24</span>    uint32_t x = v.u;</div>
+<div class="line"><span class="lineno">   25</span> </div>
+<div class="line"><span class="lineno">   26</span>    <span class="comment">/* Round-to-nearest-even on the lower 16 bits. */</span></div>
+<div class="line"><span class="lineno">   27</span>    uint32_t lsb = (x &gt;&gt; 16) &amp; 1u;</div>
+<div class="line"><span class="lineno">   28</span>    uint32_t rounding_bias = 0x7FFFu + lsb;</div>
+<div class="line"><span class="lineno">   29</span>    x += rounding_bias;</div>
+<div class="line"><span class="lineno">   30</span> </div>
+<div class="line"><span class="lineno">   31</span>    out[i] = (uint16_t)(x &gt;&gt; 16);</div>
+<div class="line"><span class="lineno">   32</span>  }</div>
+<div class="line"><span class="lineno">   33</span>}</div>
+</div><!-- fragment -->
 </div>
 </div>
 <a id="a1aa580b0b947f7d3a6628e844d9aa852" name="a1aa580b0b947f7d3a6628e844d9aa852"></a>
@@ -289,7 +348,57 @@ Functions</h2></td></tr>
 </dl>
 
 <p class="definition">Definition at line <a class="el" href="floatx_8c_source.html#l00062">62</a> of file <a class="el" href="floatx_8c_source.html">floatx.c</a>.</p>
-
+<div class="fragment"><div class="line"><span class="lineno">   62</span>                                                               {</div>
+<div class="line"><span class="lineno">   63</span>  <span class="keywordflow">if</span> (!in || !out || n == 0) <span class="keywordflow">return</span>;</div>
+<div class="line"><span class="lineno">   64</span> </div>
+<div class="line"><span class="lineno">   65</span>  <span class="keywordflow">for</span> (<span class="keywordtype">size_t</span> i = 0; i &lt; n; ++i) {</div>
+<div class="line"><span class="lineno">   66</span>    <span class="keyword">union </span>{ <span class="keywordtype">float</span> f; uint32_t u; } v = { .f = in[i] };</div>
+<div class="line"><span class="lineno">   67</span>    uint32_t x = v.u;</div>
+<div class="line"><span class="lineno">   68</span> </div>
+<div class="line"><span class="lineno">   69</span>    uint32_t sign = (x &gt;&gt; 31) &amp; 0x1u;</div>
+<div class="line"><span class="lineno">   70</span>    int32_t  exp  = (int32_t)((x &gt;&gt; 23) &amp; 0xFFu) - 127;   <span class="comment">/* unbiased exp */</span></div>
+<div class="line"><span class="lineno">   71</span>    uint32_t frac = x &amp; 0x7FFFFFu;                        <span class="comment">/* 23 bits */</span></div>
+<div class="line"><span class="lineno">   72</span> </div>
+<div class="line"><span class="lineno">   73</span>    uint16_t h;</div>
+<div class="line"><span class="lineno">   74</span>    <span class="keywordflow">if</span> (exp == 128) { <span class="comment">/* Inf / NaN */</span></div>
+<div class="line"><span class="lineno">   75</span>      h = (uint16_t)((sign &lt;&lt; 15) | 0x7C00u | (frac ? 0x200u : 0));</div>
+<div class="line"><span class="lineno">   76</span>    } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (exp &gt; 15) { <span class="comment">/* Overflow -&gt; Inf */</span></div>
+<div class="line"><span class="lineno">   77</span>      h = (uint16_t)((sign &lt;&lt; 15) | 0x7C00u);</div>
+<div class="line"><span class="lineno">   78</span>    } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (exp &gt;= -14) { <span class="comment">/* Normalized half */</span></div>
+<div class="line"><span class="lineno">   79</span>      <span class="comment">/* Put implicit leading 1 back and round to 10 bits. */</span></div>
+<div class="line"><span class="lineno">   80</span>      uint32_t mant = (frac | 0x800000u); <span class="comment">/* 24 bits */</span></div>
+<div class="line"><span class="lineno">   81</span>      <span class="keywordtype">int</span> shift = 13 - exp;               <span class="comment">/* align to 10-bit mantissa */</span></div>
+<div class="line"><span class="lineno">   82</span>      uint32_t rounding = (shift &gt; 0) ? ((1u &lt;&lt; (shift - 1)) - 1u) : 0;</div>
+<div class="line"><span class="lineno">   83</span>      uint32_t half_mant = (shift &gt; 0) ? ((mant + rounding + ((mant &gt;&gt; shift) &amp; 1u)) &gt;&gt; shift)</div>
+<div class="line"><span class="lineno">   84</span>                                       : (mant &lt;&lt; (-shift));</div>
+<div class="line"><span class="lineno">   85</span>      <span class="keywordflow">if</span> (half_mant &amp; 0x400u) { <span class="comment">/* mantissa overflow after rounding */</span></div>
+<div class="line"><span class="lineno">   86</span>        half_mant &gt;&gt;= 1;</div>
+<div class="line"><span class="lineno">   87</span>        exp += 1;</div>
+<div class="line"><span class="lineno">   88</span>      }</div>
+<div class="line"><span class="lineno">   89</span>      <span class="keywordflow">if</span> (exp &gt; 15) { <span class="comment">/* overflow to Inf */</span></div>
+<div class="line"><span class="lineno">   90</span>        h = (uint16_t)((sign &lt;&lt; 15) | 0x7C00u);</div>
+<div class="line"><span class="lineno">   91</span>      } <span class="keywordflow">else</span> {</div>
+<div class="line"><span class="lineno">   92</span>        uint16_t he = (uint16_t)((exp + 15) &amp; 0x1Fu);</div>
+<div class="line"><span class="lineno">   93</span>        h = (uint16_t)((sign &lt;&lt; 15) | (he &lt;&lt; 10) | (half_mant &amp; 0x3FFu));</div>
+<div class="line"><span class="lineno">   94</span>      }</div>
+<div class="line"><span class="lineno">   95</span>    } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (exp &gt;= -24) { <span class="comment">/* Subnormal half */</span></div>
+<div class="line"><span class="lineno">   96</span>      uint32_t mant = (frac | 0x800000u);</div>
+<div class="line"><span class="lineno">   97</span>      <span class="keywordtype">int</span> rshift = (-14 - exp) + 1; <span class="comment">/* +1 to position for subnormal */</span></div>
+<div class="line"><span class="lineno">   98</span>      uint32_t sub = mant &gt;&gt; (rshift + 13); <span class="comment">/* to 10 bits */</span></div>
+<div class="line"><span class="lineno">   99</span>      <span class="comment">/* round-to-nearest-even */</span></div>
+<div class="line"><span class="lineno">  100</span>      uint32_t rem = mant &amp; ((1u &lt;&lt; (rshift + 13)) - 1u);</div>
+<div class="line"><span class="lineno">  101</span>      uint32_t halfway = 1u &lt;&lt; (rshift + 12);</div>
+<div class="line"><span class="lineno">  102</span>      <span class="keywordflow">if</span> (rem &gt; halfway || (rem == halfway &amp;&amp; (sub &amp; 1u))) sub++;</div>
+<div class="line"><span class="lineno">  103</span>      h = (uint16_t)((sign &lt;&lt; 15) | (sub &amp; 0x3FFu));</div>
+<div class="line"><span class="lineno">  104</span>    } <span class="keywordflow">else</span> {</div>
+<div class="line"><span class="lineno">  105</span>      <span class="comment">/* Underflow -&gt; signed zero */</span></div>
+<div class="line"><span class="lineno">  106</span>      h = (uint16_t)(sign &lt;&lt; 15);</div>
+<div class="line"><span class="lineno">  107</span>    }</div>
+<div class="line"><span class="lineno">  108</span> </div>
+<div class="line"><span class="lineno">  109</span>    out[i] = h;</div>
+<div class="line"><span class="lineno">  110</span>  }</div>
+<div class="line"><span class="lineno">  111</span>}</div>
+</div><!-- fragment -->
 </div>
 </div>
 </div><!-- contents -->

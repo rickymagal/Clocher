@@ -27,9 +27,9 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">Inference Engine (Clocher)<span id="projectnumber">&#160;0.1</span>
+   <div id="projectname">Inference Engine (Clocher)<span id="projectnumber">&#160;0.2</span>
    </div>
-   <div id="projectbrief">C11 CPU inference baseline with strict metrics &amp; harness</div>
+   <div id="projectbrief">C11 CPU/GPU inference baseline with strict metrics &amp; harness</div>
   </td>
  </tr>
  </tbody>
@@ -117,7 +117,7 @@ Include dependency graph for ie_quant.h:</div>
 </div><div class="textblock"><div class="dynheader">
 This graph shows which files directly or indirectly include this file:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ie__quant_8h__dep__incl.svg" width="199" height="131"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="ie__quant_8h__dep__incl.svg" width="358" height="131"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 </div>
 <p><a href="ie__quant_8h_source.html">Go to the source code of this file.</a></p>
@@ -186,7 +186,14 @@ Functions</h2></td></tr>
 </table>
 
 <p class="definition">Definition at line <a class="el" href="ie__quant_8h_source.html#l00025">25</a> of file <a class="el" href="ie__quant_8h_source.html">ie_quant.h</a>.</p>
-
+<div class="fragment"><div class="line"><span class="lineno">   25</span>                                 {</div>
+<div class="line"><span class="lineno">   26</span>  <a class="code hl_enumvalue" href="#ae73a58c1f5caa264cd3f860aeb2494abaa607bffb3e8229edaca8535a10eda192">IE_PTQ_SCALE_PER_TENSOR</a> = 0, </div>
+<div class="line"><span class="lineno">   27</span>  <a class="code hl_enumvalue" href="#ae73a58c1f5caa264cd3f860aeb2494aba359d6e53066af385fc19619f4e03b62e">IE_PTQ_SCALE_PER_ROW</a>    = 1  </div>
+<div class="line"><span class="lineno">   28</span>} <a class="code hl_typedef" href="#a52bfe81b5a68e8a06031a1f46305a4ce">ie_ptq_scale_mode_t</a>;</div>
+<div class="ttc" id="aie__quant_8h_html_a52bfe81b5a68e8a06031a1f46305a4ce"><div class="ttname"><a href="#a52bfe81b5a68e8a06031a1f46305a4ce">ie_ptq_scale_mode_t</a></div><div class="ttdeci">enum ie_ptq_scale_mode_e ie_ptq_scale_mode_t</div></div>
+<div class="ttc" id="aie__quant_8h_html_ae73a58c1f5caa264cd3f860aeb2494aba359d6e53066af385fc19619f4e03b62e"><div class="ttname"><a href="#ae73a58c1f5caa264cd3f860aeb2494aba359d6e53066af385fc19619f4e03b62e">IE_PTQ_SCALE_PER_ROW</a></div><div class="ttdeci">@ IE_PTQ_SCALE_PER_ROW</div><div class="ttdoc">One scale per row (for row-major 2D matrices).</div><div class="ttdef"><b>Definition</b> <a href="ie__quant_8h_source.html#l00027">ie_quant.h:27</a></div></div>
+<div class="ttc" id="aie__quant_8h_html_ae73a58c1f5caa264cd3f860aeb2494abaa607bffb3e8229edaca8535a10eda192"><div class="ttname"><a href="#ae73a58c1f5caa264cd3f860aeb2494abaa607bffb3e8229edaca8535a10eda192">IE_PTQ_SCALE_PER_TENSOR</a></div><div class="ttdeci">@ IE_PTQ_SCALE_PER_TENSOR</div><div class="ttdoc">Single scale for the entire tensor.</div><div class="ttdef"><b>Definition</b> <a href="ie__quant_8h_source.html#l00026">ie_quant.h:26</a></div></div>
+</div><!-- fragment -->
 </div>
 </div>
 <h2 class="groupheader">Function Documentation</h2>
@@ -264,8 +271,44 @@ Functions</h2></td></tr>
 <dl class="section note"><dt>Note</dt><dd>Inputs are not validated beyond null/zero checks for performance. Callers must ensure the buffers are correctly sized. </dd></dl>
 
 <p class="definition">Definition at line <a class="el" href="int8__ptq_8c_source.html#l00057">57</a> of file <a class="el" href="int8__ptq_8c_source.html">int8_ptq.c</a>.</p>
-
+<div class="fragment"><div class="line"><span class="lineno">   61</span>                                                 {</div>
+<div class="line"><span class="lineno">   62</span>  <span class="keywordflow">if</span> (!w || !scales || rows == 0 || cols == 0) <span class="keywordflow">return</span>;</div>
+<div class="line"><span class="lineno">   63</span> </div>
+<div class="line"><span class="lineno">   64</span>  <span class="keywordflow">if</span> (mode == <a class="code hl_enumvalue" href="#ae73a58c1f5caa264cd3f860aeb2494abaa607bffb3e8229edaca8535a10eda192">IE_PTQ_SCALE_PER_TENSOR</a>) {</div>
+<div class="line"><span class="lineno">   65</span>    <span class="keywordtype">float</span> lo = FLT_MAX, hi = -FLT_MAX;</div>
+<div class="line"><span class="lineno">   66</span>    <span class="keyword">const</span> <span class="keywordtype">size_t</span> n = rows * cols;</div>
+<div class="line"><span class="lineno">   67</span>    <span class="keywordflow">for</span> (<span class="keywordtype">size_t</span> i = 0; i &lt; n; ++i) {</div>
+<div class="line"><span class="lineno">   68</span>      <span class="keyword">const</span> <span class="keywordtype">float</span> v = w[i];</div>
+<div class="line"><span class="lineno">   69</span>      <span class="keywordflow">if</span> (v &lt; lo) lo = v;</div>
+<div class="line"><span class="lineno">   70</span>      <span class="keywordflow">if</span> (v &gt; hi) hi = v;</div>
+<div class="line"><span class="lineno">   71</span>    }</div>
+<div class="line"><span class="lineno">   72</span>    <span class="keyword">const</span> <span class="keywordtype">float</span> amax = fmaxf(fabsf(lo), fabsf(hi));</div>
+<div class="line"><span class="lineno">   73</span>    scales[0] = (amax &gt; 0.0f) ? (amax / 127.0f) : 1.0f;</div>
+<div class="line"><span class="lineno">   74</span>    <span class="keywordflow">return</span>;</div>
+<div class="line"><span class="lineno">   75</span>  }</div>
+<div class="line"><span class="lineno">   76</span> </div>
+<div class="line"><span class="lineno">   77</span>  <span class="comment">/* Per-row scaling. */</span></div>
+<div class="line"><span class="lineno">   78</span>  <span class="keywordflow">for</span> (<span class="keywordtype">size_t</span> r = 0; r &lt; rows; ++r) {</div>
+<div class="line"><span class="lineno">   79</span>    <span class="keywordtype">float</span> lo = FLT_MAX, hi = -FLT_MAX;</div>
+<div class="line"><span class="lineno">   80</span>    <span class="keyword">const</span> <span class="keywordtype">float</span> *row = w + r * cols;</div>
+<div class="line"><span class="lineno">   81</span>    <span class="keywordflow">for</span> (<span class="keywordtype">size_t</span> c = 0; c &lt; cols; ++c) {</div>
+<div class="line"><span class="lineno">   82</span>      <span class="keyword">const</span> <span class="keywordtype">float</span> v = row[c];</div>
+<div class="line"><span class="lineno">   83</span>      <span class="keywordflow">if</span> (v &lt; lo) lo = v;</div>
+<div class="line"><span class="lineno">   84</span>      <span class="keywordflow">if</span> (v &gt; hi) hi = v;</div>
+<div class="line"><span class="lineno">   85</span>    }</div>
+<div class="line"><span class="lineno">   86</span>    <span class="keyword">const</span> <span class="keywordtype">float</span> amax = fmaxf(fabsf(lo), fabsf(hi));</div>
+<div class="line"><span class="lineno">   87</span>    scales[r] = (amax &gt; 0.0f) ? (amax / 127.0f) : 1.0f;</div>
+<div class="line"><span class="lineno">   88</span>  }</div>
+<div class="line"><span class="lineno">   89</span>}</div>
+</div><!-- fragment -->
 <p class="reference">References <a class="el" href="ie__quant_8h_source.html#l00026">IE_PTQ_SCALE_PER_TENSOR</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="test__int8__ptq_8c_source.html#l00101">test_per_row_independent_scales()</a>, and <a class="el" href="test__int8__ptq_8c_source.html#l00057">test_per_tensor_roundtrip()</a>.</p>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="ie__quant_8h_a3cc68794fcfd2082fae543dbac7d652d_icgraph.svg" width="528" height="107"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
 
 </div>
 </div>
@@ -335,8 +378,37 @@ Functions</h2></td></tr>
 <dl class="section note"><dt>Note</dt><dd>Dequantization is exact with respect to the chosen scale; any loss is due to the quantization rounding/clamping step. </dd></dl>
 
 <p class="definition">Definition at line <a class="el" href="int8__ptq_8c_source.html#l00154">154</a> of file <a class="el" href="int8__ptq_8c_source.html">int8_ptq.c</a>.</p>
-
+<div class="fragment"><div class="line"><span class="lineno">  159</span>                                       {</div>
+<div class="line"><span class="lineno">  160</span>  <span class="keywordflow">if</span> (!q8 || !w_out || !scales || rows == 0 || cols == 0) <span class="keywordflow">return</span>;</div>
+<div class="line"><span class="lineno">  161</span> </div>
+<div class="line"><span class="lineno">  162</span>  <span class="keywordflow">if</span> (mode == <a class="code hl_enumvalue" href="#ae73a58c1f5caa264cd3f860aeb2494abaa607bffb3e8229edaca8535a10eda192">IE_PTQ_SCALE_PER_TENSOR</a>) {</div>
+<div class="line"><span class="lineno">  163</span>    <span class="keyword">const</span> <span class="keywordtype">float</span> s = scales[0] &gt; 0.0f ? scales[0] : 1.0f;</div>
+<div class="line"><span class="lineno">  164</span>    <span class="keyword">const</span> <span class="keywordtype">size_t</span> n = rows * cols;</div>
+<div class="line"><span class="lineno">  165</span>    <span class="keywordflow">for</span> (<span class="keywordtype">size_t</span> i = 0; i &lt; n; ++i) {</div>
+<div class="line"><span class="lineno">  166</span>      w_out[i] = (float)q8[i] * s;</div>
+<div class="line"><span class="lineno">  167</span>    }</div>
+<div class="line"><span class="lineno">  168</span>    <span class="keywordflow">return</span>;</div>
+<div class="line"><span class="lineno">  169</span>  }</div>
+<div class="line"><span class="lineno">  170</span> </div>
+<div class="line"><span class="lineno">  171</span>  <span class="comment">/* Per-row scaling. */</span></div>
+<div class="line"><span class="lineno">  172</span>  <span class="keywordflow">for</span> (<span class="keywordtype">size_t</span> r = 0; r &lt; rows; ++r) {</div>
+<div class="line"><span class="lineno">  173</span>    <span class="keyword">const</span> <span class="keywordtype">float</span> s = scales[r] &gt; 0.0f ? scales[r] : 1.0f;</div>
+<div class="line"><span class="lineno">  174</span>    <span class="keyword">const</span> int8_t *qrow = q8 + r * cols;</div>
+<div class="line"><span class="lineno">  175</span>    <span class="keywordtype">float</span> *row = w_out + r * cols;</div>
+<div class="line"><span class="lineno">  176</span>    <span class="keywordflow">for</span> (<span class="keywordtype">size_t</span> c = 0; c &lt; cols; ++c) {</div>
+<div class="line"><span class="lineno">  177</span>      row[c] = (float)qrow[c] * s;</div>
+<div class="line"><span class="lineno">  178</span>    }</div>
+<div class="line"><span class="lineno">  179</span>  }</div>
+<div class="line"><span class="lineno">  180</span>}</div>
+</div><!-- fragment -->
 <p class="reference">References <a class="el" href="ie__quant_8h_source.html#l00026">IE_PTQ_SCALE_PER_TENSOR</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="test__int8__ptq_8c_source.html#l00101">test_per_row_independent_scales()</a>, and <a class="el" href="test__int8__ptq_8c_source.html#l00057">test_per_tensor_roundtrip()</a>.</p>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="ie__quant_8h_a475490c4ad104bbbd8a1f0f4cc714069_icgraph.svg" width="508" height="107"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
 
 </div>
 </div>
@@ -408,8 +480,44 @@ Functions</h2></td></tr>
 <dl class="section note"><dt>Note</dt><dd>This is a pure weight-only quantization step: no zero-points; the quantization is symmetric around zero. </dd></dl>
 
 <p class="definition">Definition at line <a class="el" href="int8__ptq_8c_source.html#l00109">109</a> of file <a class="el" href="int8__ptq_8c_source.html">int8_ptq.c</a>.</p>
-
+<div class="fragment"><div class="line"><span class="lineno">  114</span>                                      {</div>
+<div class="line"><span class="lineno">  115</span>  <span class="keywordflow">if</span> (!w || !q8 || !scales || rows == 0 || cols == 0) <span class="keywordflow">return</span>;</div>
+<div class="line"><span class="lineno">  116</span> </div>
+<div class="line"><span class="lineno">  117</span>  <span class="keywordflow">if</span> (mode == <a class="code hl_enumvalue" href="#ae73a58c1f5caa264cd3f860aeb2494abaa607bffb3e8229edaca8535a10eda192">IE_PTQ_SCALE_PER_TENSOR</a>) {</div>
+<div class="line"><span class="lineno">  118</span>    <span class="keyword">const</span> <span class="keywordtype">float</span> inv = (scales[0] &gt; 0.0f) ? (1.0f / scales[0]) : 1.0f;</div>
+<div class="line"><span class="lineno">  119</span>    <span class="keyword">const</span> <span class="keywordtype">size_t</span> n = rows * cols;</div>
+<div class="line"><span class="lineno">  120</span>    <span class="keywordflow">for</span> (<span class="keywordtype">size_t</span> i = 0; i &lt; n; ++i) {</div>
+<div class="line"><span class="lineno">  121</span>      q8[i] = <a class="code hl_function" href="int8__ptq_8c.html#ab92fcddda0d8b713e806a12f4208ec48">clamp_sym_int8</a>(w[i] * inv);</div>
+<div class="line"><span class="lineno">  122</span>    }</div>
+<div class="line"><span class="lineno">  123</span>    <span class="keywordflow">return</span>;</div>
+<div class="line"><span class="lineno">  124</span>  }</div>
+<div class="line"><span class="lineno">  125</span> </div>
+<div class="line"><span class="lineno">  126</span>  <span class="comment">/* Per-row scaling. */</span></div>
+<div class="line"><span class="lineno">  127</span>  <span class="keywordflow">for</span> (<span class="keywordtype">size_t</span> r = 0; r &lt; rows; ++r) {</div>
+<div class="line"><span class="lineno">  128</span>    <span class="keyword">const</span> <span class="keywordtype">float</span> s = scales[r];</div>
+<div class="line"><span class="lineno">  129</span>    <span class="keyword">const</span> <span class="keywordtype">float</span> inv = (s &gt; 0.0f) ? (1.0f / s) : 1.0f;</div>
+<div class="line"><span class="lineno">  130</span>    <span class="keyword">const</span> <span class="keywordtype">float</span> *row = w + r * cols;</div>
+<div class="line"><span class="lineno">  131</span>    int8_t *qrow = q8 + r * cols;</div>
+<div class="line"><span class="lineno">  132</span>    <span class="keywordflow">for</span> (<span class="keywordtype">size_t</span> c = 0; c &lt; cols; ++c) {</div>
+<div class="line"><span class="lineno">  133</span>      qrow[c] = <a class="code hl_function" href="int8__ptq_8c.html#ab92fcddda0d8b713e806a12f4208ec48">clamp_sym_int8</a>(row[c] * inv);</div>
+<div class="line"><span class="lineno">  134</span>    }</div>
+<div class="line"><span class="lineno">  135</span>  }</div>
+<div class="line"><span class="lineno">  136</span>}</div>
+<div class="ttc" id="aint8__ptq_8c_html_ab92fcddda0d8b713e806a12f4208ec48"><div class="ttname"><a href="int8__ptq_8c.html#ab92fcddda0d8b713e806a12f4208ec48">clamp_sym_int8</a></div><div class="ttdeci">static int8_t clamp_sym_int8(float x)</div><div class="ttdoc">Clamp a float value to the symmetric INT8 range and round to nearest.</div><div class="ttdef"><b>Definition</b> <a href="int8__ptq_8c_source.html#l00027">int8_ptq.c:27</a></div></div>
+</div><!-- fragment -->
 <p class="reference">References <a class="el" href="int8__ptq_8c_source.html#l00027">clamp_sym_int8()</a>, and <a class="el" href="ie__quant_8h_source.html#l00026">IE_PTQ_SCALE_PER_TENSOR</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="test__int8__ptq_8c_source.html#l00101">test_per_row_independent_scales()</a>, <a class="el" href="test__int8__ptq_8c_source.html#l00057">test_per_tensor_roundtrip()</a>, and <a class="el" href="test__int8__ptq_8c_source.html#l00145">test_saturation_symmetric()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="ie__quant_8h_af45e61af59caa6f75b228f0fa2ebcead_cgraph.svg" width="344" height="39"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="ie__quant_8h_af45e61af59caa6f75b228f0fa2ebcead_icgraph.svg" width="514" height="159"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
 
 </div>
 </div>

@@ -27,9 +27,9 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">Inference Engine (Clocher)<span id="projectnumber">&#160;0.1</span>
+   <div id="projectname">Inference Engine (Clocher)<span id="projectnumber">&#160;0.2</span>
    </div>
-   <div id="projectbrief">C11 CPU inference baseline with strict metrics &amp; harness</div>
+   <div id="projectbrief">C11 CPU/GPU inference baseline with strict metrics &amp; harness</div>
   </td>
  </tr>
  </tbody>
@@ -114,7 +114,7 @@ Include dependency graph for ie_kernels.h:</div>
 </div><div class="textblock"><div class="dynheader">
 This graph shows which files directly or indirectly include this file:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ie__kernels_8h__dep__incl.svg" width="500" height="131"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="ie__kernels_8h__dep__incl.svg" width="100%" height="398"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
 </div>
 </div>
 <p><a href="ie__kernels_8h_source.html">Go to the source code of this file.</a></p>
@@ -174,7 +174,23 @@ Functions</h2></td></tr>
 <dl class="section return"><dt>Returns</dt><dd>Approximated tanh(x) in [-1.0f, 1.0f]. </dd></dl>
 
 <p class="definition">Definition at line <a class="el" href="fast__tanh_8c_source.html#l00028">28</a> of file <a class="el" href="fast__tanh_8c_source.html">fast_tanh.c</a>.</p>
-
+<div class="fragment"><div class="line"><span class="lineno">   28</span>                             {</div>
+<div class="line"><span class="lineno">   29</span>  <span class="comment">/* Early clamp for large magnitude to avoid overflow and extra work. */</span></div>
+<div class="line"><span class="lineno">   30</span>  <span class="keywordflow">if</span> (x &gt; 5.0f)  <span class="keywordflow">return</span> 1.0f;</div>
+<div class="line"><span class="lineno">   31</span>  <span class="keywordflow">if</span> (x &lt; -5.0f) <span class="keywordflow">return</span> -1.0f;</div>
+<div class="line"><span class="lineno">   32</span> </div>
+<div class="line"><span class="lineno">   33</span>  <span class="comment">/* Rational approximation (cheap and monotonic on [-3,3]) */</span></div>
+<div class="line"><span class="lineno">   34</span>  <span class="keyword">const</span> <span class="keywordtype">float</span> x2  = x * x;</div>
+<div class="line"><span class="lineno">   35</span>  <span class="keyword">const</span> <span class="keywordtype">float</span> num = x * (27.0f + x2);</div>
+<div class="line"><span class="lineno">   36</span>  <span class="keyword">const</span> <span class="keywordtype">float</span> den = 27.0f + 9.0f * x2;</div>
+<div class="line"><span class="lineno">   37</span>  <span class="keywordtype">float</span> y = num / den;</div>
+<div class="line"><span class="lineno">   38</span> </div>
+<div class="line"><span class="lineno">   39</span>  <span class="comment">/* Safety clamp for strict range compliance. */</span></div>
+<div class="line"><span class="lineno">   40</span>  <span class="keywordflow">if</span> (y &gt; 1.0f)  y = 1.0f;</div>
+<div class="line"><span class="lineno">   41</span>  <span class="keywordflow">if</span> (y &lt; -1.0f) y = -1.0f;</div>
+<div class="line"><span class="lineno">   42</span>  <span class="keywordflow">return</span> y;</div>
+<div class="line"><span class="lineno">   43</span>}</div>
+</div><!-- fragment -->
 </div>
 </div>
 <a id="a4e112b3396ed21919f404631c1d4d7fb" name="a4e112b3396ed21919f404631c1d4d7fb"></a>
@@ -250,10 +266,19 @@ Functions</h2></td></tr>
 </dl>
 
 <p class="definition">Definition at line <a class="el" href="gemv__generic_8c_source.html#l00067">67</a> of file <a class="el" href="gemv__generic_8c_source.html">gemv_generic.c</a>.</p>
-
+<div class="fragment"><div class="line"><span class="lineno">   69</span>                                                  {</div>
+<div class="line"><span class="lineno">   70</span>  <a class="code hl_variable" href="gemv__generic_8c.html#aa80eb69d355054f1f8213721e72bec9a">s_gemv_f32</a>(W, x, y, rows, cols, bias, blk_k);</div>
+<div class="line"><span class="lineno">   71</span>}</div>
+<div class="ttc" id="agemv__generic_8c_html_aa80eb69d355054f1f8213721e72bec9a"><div class="ttname"><a href="gemv__generic_8c.html#aa80eb69d355054f1f8213721e72bec9a">s_gemv_f32</a></div><div class="ttdeci">static void(* s_gemv_f32)(const float *, const float *, float *, size_t, size_t, const float *, size_t)</div><div class="ttdoc">Installed function pointer for GEMV (generic by default).</div><div class="ttdef"><b>Definition</b> <a href="gemv__generic_8c_source.html#l00011">gemv_generic.c:11</a></div></div>
+</div><!-- fragment -->
 <p class="reference">References <a class="el" href="gemv__generic_8c_source.html#l00011">s_gemv_f32</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="ie__device__common_8c_source.html#l00164">cpu_gemv_f32()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="ie__device__common_8c_source.html#l00164">cpu_gemv_f32()</a>, <a class="el" href="test__kernels_8c_source.html#l00109">test_gemv_rowmajor_no_bias()</a>, and <a class="el" href="test__kernels_8c_source.html#l00129">test_gemv_rowmajor_with_bias()</a>.</p>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="ie__kernels_8h_a4e112b3396ed21919f404631c1d4d7fb_icgraph.svg" width="100%" height="516"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
+</div>
 
 </div>
 </div>
@@ -288,8 +313,25 @@ Functions</h2></td></tr>
 </dl>
 
 <p class="definition">Definition at line <a class="el" href="gemv__generic_8c_source.html#l00051">51</a> of file <a class="el" href="gemv__generic_8c_source.html">gemv_generic.c</a>.</p>
-
+<div class="fragment"><div class="line"><span class="lineno">   51</span>                                      {</div>
+<div class="line"><span class="lineno">   52</span>  (void)use_avx2;</div>
+<div class="line"><span class="lineno">   53</span>  <a class="code hl_variable" href="gemv__generic_8c.html#aa80eb69d355054f1f8213721e72bec9a">s_gemv_f32</a> = <a class="code hl_function" href="gemv__generic_8c.html#a51096a373f5e5010d39cbf44e34b730d">gemv_generic_impl</a>;</div>
+<div class="line"><span class="lineno">   54</span>}</div>
+<div class="ttc" id="agemv__generic_8c_html_a51096a373f5e5010d39cbf44e34b730d"><div class="ttname"><a href="gemv__generic_8c.html#a51096a373f5e5010d39cbf44e34b730d">gemv_generic_impl</a></div><div class="ttdeci">static void gemv_generic_impl(const float *W, const float *x, float *y, size_t rows, size_t cols, const float *bias, size_t blk_k)</div><div class="ttdoc">Generic C implementation: GEMV with optional blocked-K and bias epilogue.</div><div class="ttdef"><b>Definition</b> <a href="gemv__generic_8c_source.html#l00024">gemv_generic.c:24</a></div></div>
+</div><!-- fragment -->
 <p class="reference">References <a class="el" href="gemv__generic_8c_source.html#l00024">gemv_generic_impl()</a>, and <a class="el" href="gemv__generic_8c_source.html#l00011">s_gemv_f32</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="test__kernels_8c_source.html#l00149">main()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="ie__kernels_8h_a1b919f71b86ec1791fe53bc68d5c240d_cgraph.svg" width="343" height="39"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="ie__kernels_8h_a1b919f71b86ec1791fe53bc68d5c240d_icgraph.svg" width="248" height="39"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
 
 </div>
 </div>
@@ -338,8 +380,36 @@ Functions</h2></td></tr>
 </dl>
 
 <p class="definition">Definition at line <a class="el" href="fast__tanh_8c_source.html#l00055">55</a> of file <a class="el" href="fast__tanh_8c_source.html">fast_tanh.c</a>.</p>
-
+<div class="fragment"><div class="line"><span class="lineno">   55</span>                                                        {</div>
+<div class="line"><span class="lineno">   56</span>  <span class="keywordflow">if</span> (!v || n == 0) <span class="keywordflow">return</span>;</div>
+<div class="line"><span class="lineno">   57</span>  <span class="keywordflow">if</span> (fast_tanh) {</div>
+<div class="line"><span class="lineno">   58</span>    <span class="keywordflow">for</span> (<span class="keywordtype">size_t</span> i = 0; i &lt; n; ++i) {</div>
+<div class="line"><span class="lineno">   59</span>      v[i] = <a class="code hl_function" href="fast__tanh_8c.html#a2b9a073aea2b6ff7450b2d0ee32765ae">ie_fast_tanhf</a>(v[i]);</div>
+<div class="line"><span class="lineno">   60</span>    }</div>
+<div class="line"><span class="lineno">   61</span>  } <span class="keywordflow">else</span> {</div>
+<div class="line"><span class="lineno">   62</span>    <span class="keywordflow">for</span> (<span class="keywordtype">size_t</span> i = 0; i &lt; n; ++i) {</div>
+<div class="line"><span class="lineno">   63</span>      <span class="keywordtype">float</span> y = tanhf(v[i]);</div>
+<div class="line"><span class="lineno">   64</span>      <span class="keywordflow">if</span> (y &gt; 1.0f)  y = 1.0f;</div>
+<div class="line"><span class="lineno">   65</span>      <span class="keywordflow">if</span> (y &lt; -1.0f) y = -1.0f;</div>
+<div class="line"><span class="lineno">   66</span>      v[i] = y;</div>
+<div class="line"><span class="lineno">   67</span>    }</div>
+<div class="line"><span class="lineno">   68</span>  }</div>
+<div class="line"><span class="lineno">   69</span>}</div>
+<div class="ttc" id="afast__tanh_8c_html_a2b9a073aea2b6ff7450b2d0ee32765ae"><div class="ttname"><a href="fast__tanh_8c.html#a2b9a073aea2b6ff7450b2d0ee32765ae">ie_fast_tanhf</a></div><div class="ttdeci">float ie_fast_tanhf(float x)</div><div class="ttdoc">Fast approximation of hyperbolic tangent with hard clamping.</div><div class="ttdef"><b>Definition</b> <a href="fast__tanh_8c_source.html#l00028">fast_tanh.c:28</a></div></div>
+</div><!-- fragment -->
 <p class="reference">References <a class="el" href="fast__tanh_8c_source.html#l00028">ie_fast_tanhf()</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="test__math_8c_source.html#l00012">main()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="ie__kernels_8h_a31b6c03fd5b95bdecb37f06821d3ce93_cgraph.svg" width="292" height="39"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="ie__kernels_8h_a31b6c03fd5b95bdecb37f06821d3ce93_icgraph.svg" width="240" height="39"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
 
 </div>
 </div>

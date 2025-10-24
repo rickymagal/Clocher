@@ -27,9 +27,9 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">Inference Engine (Clocher)<span id="projectnumber">&#160;0.1</span>
+   <div id="projectname">Inference Engine (Clocher)<span id="projectnumber">&#160;0.2</span>
    </div>
-   <div id="projectbrief">C11 CPU inference baseline with strict metrics &amp; harness</div>
+   <div id="projectbrief">C11 CPU/GPU inference baseline with strict metrics &amp; harness</div>
   </td>
  </tr>
  </tbody>
@@ -106,11 +106,11 @@ $(function(){initNavTree('gemv__avx2_8c_source.html',''); initResizable(true); }
 <div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span><span class="preprocessor">#include &lt;immintrin.h&gt;</span></div>
 <div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span><span class="preprocessor">#include &lt;stddef.h&gt;</span></div>
 <div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span></div>
-<div class="foldopen" id="foldopen00026" data-start="{" data-end="}">
-<div class="line"><a id="l00026" name="l00026"></a><span class="lineno"><a class="line" href="gemv__avx2_8c.html#a10b6d8f580e16b56c1d2109f3d39000d">   26</a></span><a class="code hl_function" href="gemv__avx2_8c.html#a10b6d8f580e16b56c1d2109f3d39000d">__attribute__</a>((target(<span class="stringliteral">&quot;avx2,fma&quot;</span>), used))</div>
-<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span><span class="keywordtype">void</span> ie_gemv_f32_avx2_impl(<span class="keyword">const</span> <span class="keywordtype">float</span> *W, <span class="keyword">const</span> <span class="keywordtype">float</span> *x, <span class="keywordtype">float</span> *y,</div>
+<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span>__attribute__((target(<span class="stringliteral">&quot;avx2,fma&quot;</span>), used))</div>
+<div class="foldopen" id="foldopen00027" data-start="{" data-end="}">
+<div class="line"><a id="l00027" name="l00027"></a><span class="lineno"><a class="line" href="gemv__avx2_8c.html#a63b484c2984caeed7dfc9b5002444f57">   27</a></span>void <a class="code hl_function" href="gemv__avx2_8c.html#a63b484c2984caeed7dfc9b5002444f57">ie_gemv_f32_avx2_impl</a>(const <span class="keywordtype">float</span> *W, const <span class="keywordtype">float</span> *x, <span class="keywordtype">float</span> *y,</div>
 <div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>                           <span class="keywordtype">size_t</span> rows, <span class="keywordtype">size_t</span> cols,</div>
-<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span>                           <span class="keyword">const</span> <span class="keywordtype">float</span> *bias, <span class="keywordtype">size_t</span> blk_k) {</div>
+<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span>                           const <span class="keywordtype">float</span> *bias, <span class="keywordtype">size_t</span> blk_k) {</div>
 <div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span>  <span class="keyword">const</span> <span class="keywordtype">size_t</span> BK = (blk_k &gt; 0 ? blk_k : cols);</div>
 <div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span> </div>
 <div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span>  <span class="keywordflow">for</span> (<span class="keywordtype">size_t</span> r = 0; r &lt; rows; ++r) {</div>
@@ -170,7 +170,7 @@ $(function(){initNavTree('gemv__avx2_8c_source.html',''); initResizable(true); }
 <div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span>  }</div>
 <div class="line"><a id="l00087" name="l00087"></a><span class="lineno">   87</span>}</div>
 </div>
-<div class="ttc" id="agemv__avx2_8c_html_a10b6d8f580e16b56c1d2109f3d39000d"><div class="ttname"><a href="gemv__avx2_8c.html#a10b6d8f580e16b56c1d2109f3d39000d">__attribute__</a></div><div class="ttdeci">__attribute__((target(&quot;avx2,fma&quot;), used))</div><div class="ttdoc">AVX2 GEMV core (blocked-K aware) with bias epilogue.</div><div class="ttdef"><b>Definition</b> <a href="#l00026">gemv_avx2.c:26</a></div></div>
+<div class="ttc" id="agemv__avx2_8c_html_a63b484c2984caeed7dfc9b5002444f57"><div class="ttname"><a href="gemv__avx2_8c.html#a63b484c2984caeed7dfc9b5002444f57">ie_gemv_f32_avx2_impl</a></div><div class="ttdeci">void ie_gemv_f32_avx2_impl(const float *W, const float *x, float *y, size_t rows, size_t cols, const float *bias, size_t blk_k)</div><div class="ttdoc">AVX2 GEMV core (blocked-K aware) with bias epilogue.</div><div class="ttdef"><b>Definition</b> <a href="#l00027">gemv_avx2.c:27</a></div></div>
 <div class="ttc" id="aie__kernels_8h_html"><div class="ttname"><a href="ie__kernels_8h.html">ie_kernels.h</a></div><div class="ttdoc">Kernel dispatch points (generic/AVX2) for GEMV and vector ops.</div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->

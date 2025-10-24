@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['harness_0',['Clocher — CPU LLM Inference Baseline (C11 core + Python stdlib harness)',['../index.html',1,'']]]
+  ['engine_20clocher_0',['Inference Engine (Clocher)',['../index.html',1,'']]]
 ];

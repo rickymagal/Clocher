@@ -1,8 +1,19 @@
 var searchData=
 [
-  ['g_5fkv_0',['g_kv',['../ie__kv__instrumentation_8c.html#a37cc7552afd879b87e4dba0dfdcc607d',1,'ie_kv_instrumentation.c']]],
-  ['g_5fkv_5fhits_1',['g_kv_hits',['../util__metrics_8c.html#a2304e4230799c4132478704188bc8877',1,'util_metrics.c']]],
-  ['g_5fkv_5fmiss_2',['g_kv_miss',['../util__metrics_8c.html#a115dd2ed1a4c4c9987ad4c3b1e7ed6fa',1,'util_metrics.c']]],
-  ['g_5flog_5flevel_3',['g_log_level',['../util__logging_8c.html#ab80060ad0a06923e07f013630c67e2b1',1,'util_logging.c']]],
-  ['gemv_5ff32_4',['gemv_f32',['../structie__device__vtbl.html#af53f74e97e8a3331b3c9edd24a64e668',1,'ie_device_vtbl']]]
+  ['g_5fcl_0',['g_cl',['../ie__kernel__ze_8cpp.html#a930cdbd34cc3645d80df1dbb1272b3ec',1,'ie_kernel_ze.cpp']]],
+  ['g_5fctx_1',['g_ctx',['../ie__kernel__ze_8cpp.html#a6740b413dd6c90158d085ddad22ff3bf',1,'ie_kernel_ze.cpp']]],
+  ['g_5fdev_2',['g_dev',['../ie__kernel__ze_8cpp.html#a290181ef92eb797aa9773a37c475e712',1,'ie_kernel_ze.cpp']]],
+  ['g_5ferr_3',['g_err',['../ie__kernel__ze_8cpp.html#ae3daac237c099094b2f875f7946eb0f1',1,'ie_kernel_ze.cpp']]],
+  ['g_5fie_5fcuda_5ferr_4',['g_ie_cuda_err',['../ie__kernels__cuda_8cu.html#a5ab38bcd2467e982c68d46e66acfa9ef',1,'ie_kernels_cuda.cu']]],
+  ['g_5fk_5fgemv_5',['g_k_gemv',['../ie__kernel__ze_8cpp.html#a9a6ad3ad9e373b68f8c67318d93fb8c4',1,'ie_kernel_ze.cpp']]],
+  ['g_5fk_5fgemv_5fba_6',['g_k_gemv_ba',['../ie__kernel__ze_8cpp.html#a0e411d5a8807042d52fbc7f4e2d6f6f2',1,'ie_kernel_ze.cpp']]],
+  ['g_5fk_5fpack_7',['g_k_pack',['../ie__kernel__ze_8cpp.html#a3a59a1568fc326e835177098e2684674',1,'ie_kernel_ze.cpp']]],
+  ['g_5fk_5ftanh_8',['g_k_tanh',['../ie__kernel__ze_8cpp.html#a366a63bba391c37640746bcdbf0027b2',1,'ie_kernel_ze.cpp']]],
+  ['g_5fkv_9',['g_kv',['../ie__kv__instrumentation_8c.html#a37cc7552afd879b87e4dba0dfdcc607d',1,'ie_kv_instrumentation.c']]],
+  ['g_5fkv_5fhits_10',['g_kv_hits',['../util__metrics_8c.html#a2304e4230799c4132478704188bc8877',1,'util_metrics.c']]],
+  ['g_5fkv_5fmiss_11',['g_kv_miss',['../util__metrics_8c.html#a115dd2ed1a4c4c9987ad4c3b1e7ed6fa',1,'util_metrics.c']]],
+  ['g_5flog_5flevel_12',['g_log_level',['../util__logging_8c.html#ab80060ad0a06923e07f013630c67e2b1',1,'util_logging.c']]],
+  ['g_5fmod_13',['g_mod',['../ie__kernel__ze_8cpp.html#a6a2762a15d75a672378647807f942366',1,'ie_kernel_ze.cpp']]],
+  ['g_5fq_14',['g_q',['../ie__kernel__ze_8cpp.html#ac66ac202771941fb8b62741bbdbdae4d',1,'ie_kernel_ze.cpp']]],
+  ['gemv_5ff32_15',['gemv_f32',['../structie__device__vtbl.html#af53f74e97e8a3331b3c9edd24a64e668',1,'ie_device_vtbl']]]
 ];

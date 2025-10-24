@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['utilities_0',['Tensor Utilities',['../group__IE__TENSOR.html',1,'']]]
+  ['backend_0',['Level Zero (oneAPI) GPU backend',['../group__IE__GPU__ZE.html',1,'']]]
 ];
