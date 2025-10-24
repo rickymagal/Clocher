@@ -29,3 +29,33 @@
 
 **Status.** Accepted. Implemented across CPU and CUDA builds; scripts support end‑to‑end HF→IEBIN packing with `--q4-map`.
 
+
+---
+## Decision: Add INT4 (Weight-Only) Optional Pipeline (2025-10-24 21:04:23 UTC)
+
+**Context.** We already ship FP32/BF16/FP16 flows. We add a *weight-only* INT4 path to reduce bandwidth and model footprint while keeping API stability.
+
+**Decision.**
+- Introduce a manifest-driven INT4 packing step in export (`--q4-map`).
+- Expose runtime selection via `IE_PRECISION=int4w` (or `--precision int4w`).
+- Keep timing discipline: measure generation + work-touch only; sample metrics after.
+
+**Consequences.**
+- Lower I/O pressure when `IE_BYTES_PER_TOKEN` simulates large working sets.
+- Slight decode overhead for dequantization (amortized in GEMV paths).
+- No change to tokenization or batching semantics.
+
+**Status.** Accepted and implemented. Backward-compatible (FP paths unaffected).
+
+---
+
+## Appendix — INT4 (Weight‑Only) Step (Summary)
+- Convert HF shards → IEBIN with an INT4 manifest:
+  ```bash
+  python3 scripts/hf_to_iebin.py     --hf-dir models/gpt-oss-20b/hf     --out-dir models/gpt-oss-20b     --q4-map quant/q4_manifest.json
+  ```
+- Run benchmarks in strict mode with a **64 MB/token** work‑touch:
+  ```bash
+  PROMPTS=benchmarks/prompts_10..txt   IE_PRECISION=int4w IE_REQUIRE_MODEL=1   IE_BYTES_PER_TOKEN=64000000 IE_STRIDE_BYTES=256 RUNS=3   make bench           # or: make bench-cuda
+  ```
+- Precision hints: `PRECISION=fp32` (activates float path) and `IE_PRECISION=int4w` (weight‑only path).

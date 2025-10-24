@@ -59,3 +59,39 @@ This document describes the hot path, API boundaries, and precision modes.
 - Build: `make build-cuda` → `build/inference-engine.cuda`.
 - INT4 weight‑only support mirrors the CPU path; packing and scales are shared in `model.ie.json`.
 
+
+---
+## INT4 Weight-Only Path — Design Addendum (2025-10-24 21:04:23 UTC)
+
+### Goals
+- Introduce an **optional** path for *weight-only* INT4 (`int4w`) that:
+  1) Packs HF weights into IEBIN using a **manifest-driven** policy.
+  2) Leaves tokenization, shapes, and scheduling untouched.
+  3) Preserves benchmark comparability via *work-touch* instrumentation.
+
+### Design Choices
+- **Manifest-driven packing**: `--q4-map` lets us target only GEMV-heavy matrices (attn/MLP projections) and keep sensitive tensors (embeddings, layernorms) in FP formats.
+- **Separation of concerns**:
+  - Storage precision (`IE_PRECISION`) is passed through `ie_engine_params_t::precision` untouched.
+  - Host math precision (FP32/BF16/FP16) remains a separate selection.
+- **Compat with harness**: The CLI accepts soft hints (`--device`, `--model-dir`, `--rounds`) so existing scripts don’t break.
+
+### Data Flow (INT4 path)
+HF shards → `hf_to_iebin.py --q4-map` → IEBIN (`model.ie.json` + `model.ie.bin` with INT4-packed tensors) → Runtime `IE_PRECISION=int4w` → GEMV kernels read packed weights (or dequant on load), semantics unchanged.
+
+### Metrics Integrity
+- The timed window is **only**: `ie_engine_generate(...)` + optional *work-touch* loop.
+- RSS peak and KV counters are sampled **after** the window to avoid skewing TPS.
+
+---
+
+## Appendix — INT4 (Weight‑Only) Step (Summary)
+- Convert HF shards → IEBIN with an INT4 manifest:
+  ```bash
+  python3 scripts/hf_to_iebin.py     --hf-dir models/gpt-oss-20b/hf     --out-dir models/gpt-oss-20b     --q4-map quant/q4_manifest.json
+  ```
+- Run benchmarks in strict mode with a **64 MB/token** work‑touch:
+  ```bash
+  PROMPTS=benchmarks/prompts_10..txt   IE_PRECISION=int4w IE_REQUIRE_MODEL=1   IE_BYTES_PER_TOKEN=64000000 IE_STRIDE_BYTES=256 RUNS=3   make bench           # or: make bench-cuda
+  ```
+- Precision hints: `PRECISION=fp32` (activates float path) and `IE_PRECISION=int4w` (weight‑only path).

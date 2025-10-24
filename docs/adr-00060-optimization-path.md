@@ -27,3 +27,33 @@ INT4W yields **4× compression** over FP32 and **2× over INT8**, unlocking high
 - Simplified runtime: no activation quantization; scales live with the packed weights and are broadcast during compute.
 - Uniform harness & docs: packing is explicit and reproducible via scripts and environment flags.
 
+
+---
+## Addendum: INT4 (Weight-Only) Stage (2025-10-24 21:04:23 UTC)
+
+### Intent
+Amend ADR-00060 to include a fourth, optional stage: *post-training weight-only INT4* packing, applied during export, controlled by a manifest.
+
+### Pipeline Extension
+1. **Quantization policy (manifest)** — Select target matrices (attn/MLP projections), choose group size (e.g., 64), per-channel scales, and per-tensor zero.
+2. **Export** — `hf_to_iebin.py --q4-map quant/q4_manifest.json` writes IEBIN with packed INT4 data.
+3. **Runtime** — `IE_PRECISION=int4w` directs the engine to the weight layout; host math precision remains user-selectable.
+4. **Benchmarking** — Strict mode with `IE_REQUIRE_MODEL=1` and work-touch enabled to approximate bandwidth-bound regimes.
+
+### Risks & Mitigations
+- **Quality drift**: limit packing to projection matrices; keep embeddings/norms in FP.
+- **Debuggability**: store packing metadata in `model.ie.json` for audit.
+- **Ops**: provide a default manifest and a validation script to diff tensor dtypes post-export.
+
+---
+
+## Appendix — INT4 (Weight‑Only) Step (Summary)
+- Convert HF shards → IEBIN with an INT4 manifest:
+  ```bash
+  python3 scripts/hf_to_iebin.py     --hf-dir models/gpt-oss-20b/hf     --out-dir models/gpt-oss-20b     --q4-map quant/q4_manifest.json
+  ```
+- Run benchmarks in strict mode with a **64 MB/token** work‑touch:
+  ```bash
+  PROMPTS=benchmarks/prompts_10..txt   IE_PRECISION=int4w IE_REQUIRE_MODEL=1   IE_BYTES_PER_TOKEN=64000000 IE_STRIDE_BYTES=256 RUNS=3   make bench           # or: make bench-cuda
+  ```
+- Precision hints: `PRECISION=fp32` (activates float path) and `IE_PRECISION=int4w` (weight‑only path).
