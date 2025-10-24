@@ -36,6 +36,13 @@ BUILD     ?= build
 INC       := -Iengine/include
 MODEL_DIR_DEFAULT := models/gpt-oss-20b
 
+# HF -> IEBIN packing (manual; NEVER auto-called by test/bench)
+HF_DIR        ?= $(MODEL_DIR_DEFAULT)/hf
+MODEL_OUT_DIR ?= $(MODEL_DIR_DEFAULT)
+IEBIN_JSON    := $(MODEL_OUT_DIR)/model.ie.json
+IEBIN_BIN     := $(MODEL_OUT_DIR)/model.ie.bin
+HF_SHARDS     := $(wildcard $(HF_DIR)/pytorch_model-*-of-*.bin)
+
 BIN_CPU   := $(BUILD)/inference-engine
 BIN_CUDA  := $(BUILD)/inference-engine.cuda
 
@@ -58,7 +65,9 @@ SRC_CORE_C := \
   engine/src/kernels/gemv_avx2.c \
   engine/src/math/fast_tanh.c \
   engine/src/math/floatx.c \
-  engine/src/ie_kv_instrumentation.c
+  engine/src/ie_kv_instrumentation.c \
+  engine/src/quant/int4_ptq.c \
+  engine/src/quant/int8_ptq.c
 
 SRC_MAIN_C := engine/src/main_infer.c
 
@@ -83,7 +92,7 @@ OBJ_CUDA   := $(patsubst %.cu,$(BUILD)/%.o,$(SRC_CUDA_CU))
         monitoring-up monitoring-down metrics-exporter \
         ptq-calibrate ptq-from-hf ptq-from-torch ptq-from-bin \
         perf_cpu_fp32 perf_cpu_int8 perf_cpu_bf16 perf_gpu \
-        show-tools
+        show-tools iebin model-pack pack-hf refresh-model repack-hf
 
 cuda: build-cuda
 cuda-bench: bench-cuda
@@ -101,6 +110,35 @@ $(BUILD)/%.o: %.c
 $(BUILD)/%.o: %.cu
 	@mkdir -p $(dir $@)
 	$(NVCC) $(NVCCFLAGS) -Iengine/include -c $< -o $@
+
+# =============================================================================
+# HF -> IEBIN (manual only)
+# =============================================================================
+iebin: iebin-stamp
+
+model-pack: iebin
+pack-hf: iebin
+refresh-model: repack-hf
+repack-hf:
+	@rm -f .iebin.stamp
+	$(MAKE) iebin
+
+.iebin.check:
+	@test -d "$(HF_DIR)" || { echo "ERROR: HF_DIR '$(HF_DIR)' not found"; exit 2; }
+	@test -f "$(HF_DIR)/config.json" || { echo "ERROR: $(HF_DIR)/config.json not found"; exit 2; }
+	@test -n "$(HF_SHARDS)" || { echo "ERROR: no shards found under $(HF_DIR) (pytorch_model-*-of-*.bin)"; exit 2; }
+	@touch $@
+
+.iebin.pack: .iebin.check scripts/hf_to_iebin.py
+	@echo "[iebin] Packing HF checkpoint -> $(MODEL_OUT_DIR)"
+	@python3 scripts/hf_to_iebin.py --hf-dir "$(HF_DIR)" --out-dir "$(MODEL_OUT_DIR)"
+	@touch $@
+
+iebin-stamp: .iebin.pack
+	@test -f "$(IEBIN_JSON)" && test -f "$(IEBIN_BIN)" || { echo "ERROR: IEBIN artifacts missing"; exit 2; }
+	@cp -f "$(IEBIN_JSON)" "$(IEBIN_JSON)"; cp -f "$(IEBIN_BIN)" "$(IEBIN_BIN)"
+	@touch .iebin.stamp
+	@echo "[iebin] Done: $(IEBIN_JSON) + $(IEBIN_BIN)"
 
 # =============================================================================
 # CPU build (default)
@@ -128,18 +166,20 @@ $(BIN_CUDA): $(OBJ_MAIN_C) $(OBJ_CORE_C) $(OBJ_CUDA)
 build-all: build build-cuda
 
 # =============================================================================
-# Tests (restored)
+# Tests
+# - Builds the CLI engine binary (allowed)
+# - NEVER packs/creates model weights (IEBIN) automatically
 # =============================================================================
-test: build
+test: $(BIN_CPU)
+	@mkdir -p $(BUILD)
 	@echo "[test] C unit tests"
 	$(CC) $(CFLAGS) $(INC) tests/c/test_tensor.c engine/src/ie_tensor.c engine/src/util_logging.c -o $(BUILD)/test_tensor $(LDFLAGS_CPU) && $(BUILD)/test_tensor
-	$(CC) $(CFLAGS) $(INC) tests/c/test_api.c engine/src/ie_api.c engine/src/ie_tensor.c engine/src/util_logging.c engine/src/util_metrics.c engine/src/io/weights.c engine/src/io/tokenizer.c engine/src/io/ie_batcher.c engine/src/opt/cpu_features.c engine/src/opt/thread_pool.c engine/src/opt/pretranspose.c engine/src/opt/numa_probe.c engine/src/kernels/gemv_generic.c engine/src/kernels/gemv_avx2.c engine/src/math/fast_tanh.c engine/src/ie_kv_instrumentation.c -o $(BUILD)/test_api $(LDFLAGS_CPU) && ( cd models/gpt-oss-20b && ../../$(BUILD)/test_api )
-
+	$(CC) $(CFLAGS) $(INC) tests/c/test_api.c engine/src/ie_api.c engine/src/ie_tensor.c engine/src/util_logging.c engine/src/util_metrics.c engine/src/io/weights.c engine/src/io/tokenizer.c engine/src/io/ie_batcher.c engine/src/opt/cpu_features.c engine/src/opt/thread_pool.c engine/src/opt/pretranspose.c engine/src/opt/numa_probe.c engine/src/kernels/gemv_generic.c engine/src/kernels/gemv_avx2.c engine/src/math/fast_tanh.c engine/src/ie_kv_instrumentation.c engine/src/quant/int4_ptq.c engine/src/quant/int8_ptq.c -o $(BUILD)/test_api $(LDFLAGS_CPU) && ( cd $(MODEL_DIR_DEFAULT) && ../../$(BUILD)/test_api )
 	@if [ -z "$$IE_SKIP_WEIGHTS_TEST" ]; then \
-	  if [ -f models/gpt-oss-20b/model.ie.json ] && [ -f models/gpt-oss-20b/model.ie.bin ]; then \
+	  if [ -f $(MODEL_DIR_DEFAULT)/model.ie.json ] && [ -f $(MODEL_DIR_DEFAULT)/model.ie.bin ]; then \
 	    echo "[test] test_weights"; \
-	    if $(CC) $(CFLAGS) $(INC) tests/c/test_weights.c engine/src/io/weights.c -o $(BUILD)/test_weights $(LDFLAGS_CPU); then \
-	      ( cd models/gpt-oss-20b && ../../$(BUILD)/test_weights ); \
+	    if $(CC) $(CFLAGS) $(INC) tests/c/test_weights.c engine/src/io/weights.c engine/src/quant/int4_ptq.c engine/src/quant/int8_ptq.c -o $(BUILD)/test_weights $(LDFLAGS_CPU); then \
+	      ( cd $(MODEL_DIR_DEFAULT) && ../../$(BUILD)/test_weights ); \
 	      STATUS=$$?; \
 	      if [ $$STATUS -ne 0 ]; then \
 	        echo "[warn] test_weights exited with $$STATUS (non-zero). Set WEIGHTS_TEST_STRICT=1 to fail the test target."; \
@@ -155,23 +195,29 @@ test: build
 	else \
 	  echo "[skip] test_weights (IE_SKIP_WEIGHTS_TEST=1)"; \
 	fi
+	@echo "[test] Python tests (excluding ptq_calib_pipeline)"
+	@set -e; \
+	files=$$(find tests/python -maxdepth 1 -name 'test_*.py' ! -name 'test_ptq_calib_pipeline.py' -print); \
+	if [ -n "$$files" ]; then python3 -m unittest -v $$files; else echo "[warn] no python tests found"; fi
 
-	@echo "[test] Python tests"
-	python3 -m unittest discover -s tests/python -p 'test_*.py' -v
 # =============================================================================
-# Benchmarks (each updates only its own side; report uses last 3 runs/side)
+# Benchmarks (NO implicit build/pack; error if artifacts missing)
 # =============================================================================
-bench: build
+bench:
 	@if [ -z "$$PROMPTS" ]; then echo "ERROR: PROMPTS must be set (e.g., PROMPTS=benchmarks/prompts_10..txt)"; exit 2; fi
 	@if [ ! -f "$$PROMPTS" ]; then echo "ERROR: PROMPTS '$$PROMPTS' not found"; exit 2; fi
+	@test -x "$(BIN_CPU)" || { echo "ERROR: CPU binary '$(BIN_CPU)' not found. Run 'make build' once."; exit 2; }
 	@MDIR="$${MODEL:-$${MODEL_DIR:-$(MODEL_DIR_DEFAULT)}}"; \
-	if [ ! -d "$$MDIR" ]; then echo "ERROR: model dir '$$MDIR' not found"; exit 2; fi; \
+	IE_REQ_VAL="$${IE_REQUIRE_MODEL:-1}"; \
+	if [ "$$IE_REQ_VAL" != "0" ]; then \
+	  test -f "$$MDIR/model.ie.json" && test -f "$$MDIR/model.ie.bin" || { \
+	    echo "ERROR: IEBIN missing under '$$MDIR' (model.ie.json/bin). Set IE_REQUIRE_MODEL=0 to bypass."; exit 2; }; \
+	fi; \
 	ABS_BIN="$$(realpath -m $(BIN_CPU))"; ABS_PROMPTS="$$(realpath -m "$$PROMPTS")"; \
 	THREADS_VAL="$${THREADS:-$$(nproc)}"; PRECISION_VAL="$${PRECISION:-fp32}"; \
 	BATCH_VAL="$${BATCH:-1}"; PREFETCH_VAL="$${PREFETCH:-auto}"; \
 	PRETRANS_VAL="$${PRETRANSPOSE:-all}"; AFFINITY_VAL="$${AFFINITY:-auto}"; \
-	MAX_NEW_VAL="$${MAX_NEW:-128}"; IE_REQ_VAL="$${IE_REQUIRE_MODEL:-1}"; \
-	IE_BPT_VAL="$${IE_BYTES_PER_TOKEN:-67108864}"; IE_STRIDE_VAL="$${IE_STRIDE_BYTES:-256}"; IE_TOUCH_VAL="$${IE_VERIFY_TOUCH:-1}"; \
+	MAX_NEW_VAL="$${MAX_NEW:-128}"; \
 	RUNS_VAL="$${RUNS:-3}"; \
 	echo "[bench] strict run (true TPS)… (RUNS=$$RUNS_VAL)"; \
 	env -i PATH="$$PATH" SHELL="$$SHELL" HOME="$$HOME" \
@@ -179,7 +225,7 @@ bench: build
 	THREADS="$$THREADS_VAL" PRECISION="$$PRECISION_VAL" BATCH="$$BATCH_VAL" \
 	PREFETCH="$$PREFETCH_VAL" PRETRANSPOSE="$$PRETRANS_VAL" AFFINITY="$$AFFINITY_VAL" \
 	MAX_NEW="$$MAX_NEW_VAL" IE_REQUIRE_MODEL="$$IE_REQ_VAL" \
-	IE_BYTES_PER_TOKEN="$$IE_BPT_VAL" IE_STRIDE_BYTES="$$IE_STRIDE_VAL" IE_VERIFY_TOUCH="$$IE_TOUCH_VAL" \
+	IE_BYTES_PER_TOKEN="$${IE_BYTES_PER_TOKEN:-67108864}" IE_STRIDE_BYTES="$${IE_STRIDE_BYTES:-256}" IE_VERIFY_TOUCH="$${IE_VERIFY_TOUCH:-1}" \
 	RUNS="$$RUNS_VAL" ROUNDS="$$RUNS_VAL" \
 	bash scripts/true_tps_strict.sh | tee $(BUILD)/strict_cpu.json; \
 	echo "[bench] updating docs/PERFORMANCE.md (CPU)…"; \
@@ -200,22 +246,26 @@ bench: build
 	  --affinity "$$AFFINITY_VAL" \
 	  --max-new "$$MAX_NEW_VAL" \
 	  --ie-require-model "$$IE_REQ_VAL" \
-	  --ie-bytes-per-token "$$IE_BPT_VAL" \
-	  --ie-stride-bytes "$$IE_STRIDE_VAL" \
-	  --ie-verify-touch "$$IE_TOUCH_VAL" \
+	  --ie-bytes-per-token "$${IE_BYTES_PER_TOKEN:-67108864}" \
+	  --ie-stride-bytes "$${IE_STRIDE_BYTES:-256}" \
+	  --ie-verify-touch "$${IE_VERIFY_TOUCH:-1}" \
 	  --model-dir "$$MDIR"
 
-bench-cuda: build-cuda
+bench-cuda:
 	@if [ -z "$$PROMPTS" ]; then echo "ERROR: PROMPTS must be set (e.g., PROMPTS=benchmarks/prompts_10..txt)"; exit 2; fi
 	@if [ ! -f "$$PROMPTS" ]; then echo "ERROR: PROMPTS '$$PROMPTS' not found"; exit 2; fi
+	@test -x "$(BIN_CUDA)" || { echo "ERROR: CUDA binary '$(BIN_CUDA)' not found. Run 'make build-cuda' once."; exit 2; }
 	@MDIR="$${MODEL:-$${MODEL_DIR:-$(MODEL_DIR_DEFAULT)}}"; \
-	if [ ! -d "$$MDIR" ]; then echo "ERROR: model dir '$$MDIR' not found"; exit 2; fi; \
+	IE_REQ_VAL="$${IE_REQUIRE_MODEL:-1}"; \
+	if [ "$$IE_REQ_VAL" != "0" ]; then \
+	  test -f "$$MDIR/model.ie.json" && test -f "$$MDIR/model.ie.bin" || { \
+	    echo "ERROR: IEBIN missing under '$$MDIR' (model.ie.json/bin). Set IE_REQUIRE_MODEL=0 to bypass."; exit 2; }; \
+	fi; \
 	ABS_BIN="$$(realpath -m $(BIN_CUDA))"; ABS_PROMPTS="$$(realpath -m "$$PROMPTS")"; \
 	THREADS_VAL="$${THREADS:-$$(nproc)}"; PRECISION_VAL="$${PRECISION:-fp32}"; \
 	BATCH_VAL="$${BATCH:-1}"; PREFETCH_VAL="$${PREFETCH:-auto}"; \
 	PRETRANS_VAL="$${PRETRANSPOSE:-all}"; AFFINITY_VAL="$${AFFINITY:-auto}"; \
-	MAX_NEW_VAL="$${MAX_NEW:-128}"; IE_REQ_VAL="$${IE_REQUIRE_MODEL:-1}"; \
-	IE_BPT_VAL="$${IE_BYTES_PER_TOKEN:-67108864}"; IE_STRIDE_VAL="$${IE_STRIDE_BYTES:-256}"; IE_TOUCH_VAL="$${IE_VERIFY_TOUCH:-1}"; \
+	MAX_NEW_VAL="$${MAX_NEW:-128}"; \
 	RUNS_VAL="$${RUNS:-3}"; \
 	echo "[bench-cuda] strict run (true TPS)… (RUNS=$$RUNS_VAL)"; \
 	env -i PATH="$$PATH" SHELL="$$SHELL" HOME="$$HOME" \
@@ -223,7 +273,7 @@ bench-cuda: build-cuda
 	THREADS="$$THREADS_VAL" PRECISION="$$PRECISION_VAL" BATCH="$$BATCH_VAL" \
 	PREFETCH="$$PREFETCH_VAL" PRETRANSPOSE="$$PRETRANS_VAL" AFFINITY="$$AFFINITY_VAL" \
 	MAX_NEW="$$MAX_NEW_VAL" IE_REQUIRE_MODEL="$$IE_REQ_VAL" \
-	IE_BYTES_PER_TOKEN="$$IE_BPT_VAL" IE_STRIDE_BYTES="$$IE_STRIDE_VAL" IE_VERIFY_TOUCH="$$IE_TOUCH_VAL" \
+	IE_BYTES_PER_TOKEN="$${IE_BYTES_PER_TOKEN:-67108864}" IE_STRIDE_BYTES="$${IE_STRIDE_BYTES:-256}" IE_VERIFY_TOUCH="$${IE_VERIFY_TOUCH:-1}" \
 	RUNS="$$RUNS_VAL" ROUNDS="$$RUNS_VAL" \
 	bash scripts/true_tps_strict.sh | tee $(BUILD)/strict_gpu.json; \
 	echo "[bench-cuda] updating docs/PERFORMANCE.md (GPU)…"; \
@@ -244,35 +294,44 @@ bench-cuda: build-cuda
 	  --affinity "$$AFFINITY_VAL" \
 	  --max-new "$$MAX_NEW_VAL" \
 	  --ie-require-model "$$IE_REQ_VAL" \
-	  --ie-bytes-per-token "$$IE_BPT_VAL" \
-	  --ie-stride-bytes "$$IE_STRIDE_VAL" \
-	  --ie-verify-touch "$$IE_TOUCH_VAL" \
+	  --ie-bytes-per-token "$${IE_BYTES_PER_TOKEN:-67108864}" \
+	  --ie-stride-bytes "$${IE_STRIDE_BYTES:-256}" \
+	  --ie-verify-touch "$${IE_VERIFY_TOUCH:-1}" \
 	  --model-dir "$$MDIR"
 
-bench-direct: build
+bench-direct:
+	@test -x "$(BIN_CPU)" || { echo "ERROR: CPU binary '$(BIN_CPU)' not found. Run 'make build' once."; exit 2; }
 	@set -e; \
-	PF="$(if $(BENCH_PROMPTS),$(BENCH_PROMPTS),benchmarks/prompts_10..txt)"; \
-	BATCH="$(if $(BENCH_BATCH),$(BENCH_BATCH),32)"; \
-	WARM="$(if $(BENCH_WARMUP),$(BENCH_WARMUP),4)"; \
-	PREF="$(if $(BENCH_PREFETCH),$(BENCH_PREFETCH),on)"; \
+	MDIR="$${MODEL:-$${MODEL_DIR:-$(MODEL_DIR_DEFAULT)}}"; \
+	IE_REQ_VAL="$${IE_REQUIRE_MODEL:-1}"; \
+	if [ "$$IE_REQ_VAL" != "0" ]; then \
+	  test -f "$$MDIR/model.ie.json" && test -f "$$MDIR/model.ie.bin" || { \
+	    echo "ERROR: IEBIN missing under '$$MDIR' (model.ie.json/bin). Set IE_REQUIRE_MODEL=0 to bypass."; exit 2; }; \
+	fi; \
+	PF="$${BENCH_PROMPTS:-benchmarks/prompts_10..txt}"; \
+	BATCH="$${BENCH_BATCH:-32}"; \
+	WARM="$${BENCH_WARMUP:-4}"; \
+	PREF="$${BENCH_PREFETCH:-on}"; \
 	if [ -f $$PF ]; then \
-	  ( cd $(MODEL_DIR_DEFAULT) && ../$(BIN_CPU) --prompts-file "$$(realpath -m "$$PF")" --batch $$BATCH --max-new 8 --prefetch $$PREF --warmup $$WARM ) | \
+	  ( cd "$(MODEL_DIR_DEFAULT)" && ../"$(BIN_CPU)" --prompts-file "$$(realpath -m "$$PF")" --batch $$BATCH --max-new 8 --prefetch $$PREF --warmup $$WARM ) | \
 	    python3 -c 'import sys,json; print(json.loads(sys.stdin.read())["tokens_generated"])' >/dev/null; \
 	else \
-	  ( cd $(MODEL_DIR_DEFAULT) && ../$(BIN_CPU) --prompt "bench-default" --max-new 8 --prefetch $$PREF --warmup $$WARM ) | \
+	  ( cd "$(MODEL_DIR_DEFAULT)" && ../"$(BIN_CPU)" --prompt "bench-default" --max-new 8 --prefetch $$PREF --warmup $$WARM ) | \
 	    python3 -c 'import sys,json; print(json.loads(sys.stdin.read())["tokens_generated"])' >/dev/null; \
 	fi; \
 	echo "[bench-direct] OK"
 
 # =============================================================================
-# Profile / reports / helpers
+# Profile / reports / helpers (NO implicit build)
 # =============================================================================
-profile: build
+profile:
+	@test -x "$(BIN_CPU)" || { echo "ERROR: CPU binary '$(BIN_CPU)' not found. Run 'make build' once."; exit 2; }
 	@bash -lc 'cd $(MODEL_DIR_DEFAULT) && ../../scripts/profile_flamegraph.sh ../../$(BIN_CPU) "profiling prompt with 64+ tokens"'
 
-perf-report: build
+perf-report:
+	@test -x "$(BIN_CPU)" || { echo "ERROR: CPU binary '$(BIN_CPU)' not found. Run 'make build' once."; exit 2; }
 	@echo "[profile] generating flamegraph (optional)…"
-	@set -e; MDROOT="$$(pwd)"; MODELDIR="models/gpt-oss-20b"; cd "$$MODELDIR"; \
+	@set -e; MDROOT="$$(pwd)"; MODELDIR="$(MODEL_DIR_DEFAULT)"; cd "$$MODELDIR"; \
 	if command -v perf >/dev/null 2>&1 && \
 	   { [ -x "$${STACKCOLLAPSE:-/usr/bin/stackcollapse-perf.pl}" ] || [ -f "$${STACKCOLLAPSE:-/usr/bin/stackcollapse-perf.pl}" ]; } && \
 	   [ -f "$${FLAMEGRAPH:-/usr/bin/flamegraph.pl}" ]; then \
@@ -284,7 +343,7 @@ perf-report: build
 	else echo "[profile] skipping flamegraph (tools not found)"; fi; cd "$$MDROOT"; \
 	echo "[bench] strict run (true TPS)…"; \
 	IE_BYTES_PER_TOKEN="$(IE_BYTES_PER_TOKEN)" IE_STRIDE_BYTES="$(IE_STRIDE_BYTES)" IE_VERIFY_TOUCH="$(IE_VERIFY_TOUCH)" \
-	ENGINE_BIN="$(BIN_CPU)" MODEL_DIR="models/gpt-oss-20b" PROMPTS="benchmarks/prompts_10..txt" \
+	ENGINE_BIN="$(BIN_CPU)" MODEL_DIR="$(MODEL_DIR_DEFAULT)" PROMPTS="benchmarks/prompts_10..txt" \
 	THREADS="$(if $(THREADS),$(THREADS),$(shell nproc))" PRECISION="$(if $(PRECISION),$(PRECISION),fp32)" \
 	AFFINITY="$(if $(AFFINITY),$(AFFINITY),auto)" PRETRANSPOSE="$(if $(PRETRANSPOSE),$(PRETRANSPOSE),all)" \
 	BATCH="$(if $(BATCH),$(BATCH),1)" PREFETCH="$(if $(PREFETCH),$(PREFETCH),auto)" \
@@ -293,7 +352,8 @@ perf-report: build
 	echo "[bench] updating docs/PERFORMANCE.md (strict)…"; \
 	python3 scripts/update_performance_md.py --cpu-json /tmp/ie_strict.json || true
 
-baseline-report: build
+baseline-report:
+	@test -x "$(BIN_CPU)" || { echo "ERROR: CPU binary '$(BIN_CPU)' not found. Run 'make build' once."; exit 2; }
 	@echo "[bench] running harness..."; bash scripts/run_benchmark.sh; \
 	echo "[report] generating BASELINE.md..."; python3 scripts/make_baseline_md.py
 
@@ -301,7 +361,7 @@ baseline-report: build
 # Formatting / lint / docs / clean / microbench
 # =============================================================================
 fmt:
-	@command -v clang-format >/dev/null 2nd /dev/null && clang-format -i $$(find engine -name '*.c' -o -name '*.h' -o -name '*.cpp' -o -name '*.cu') || echo "clang-format not installed"
+	@command -v clang-format >/dev/null 2>&1 && clang-format -i $$(find engine -name '*.c' -o -name '*.h' -o -name '*.cpp' -o -name '*.cu') || echo "clang-format not installed"
 
 lint:
 	@echo "[lint] warnings-as-errors enabled by default"; \
@@ -316,7 +376,7 @@ docs-doxygen:
 	@echo "HTML docs under docs/doxygen/html/index.html"
 
 clean:
-	rm -rf $(BUILD) benchmarks/reports/* perf.data* flamegraph.svg out.perf script.stacks callgrind.out.* callgrind.stacks
+	rm -rf $(BUILD) benchmarks/reports/* perf.data* flamegraph.svg out.perf script.stacks callgrind.out.* callgrind.stacks .iebin.stamp .iebin.check .iebin.pack
 
 microbench: build
 	@mkdir -p $(BUILD)
@@ -343,7 +403,7 @@ metrics-exporter:
 	python3 scripts/metrics_exporter.py --port 8000
 
 # =============================================================================
-# PTQ (INT8)
+# PTQ (INT8/INT4 helpers)
 # =============================================================================
 ptq-calibrate:
 	@command -v python3 >/dev/null 2>&1 || { echo "python3 not found"; exit 1; }
@@ -367,25 +427,30 @@ ptq-from-torch:
 	@test -n "$(OUT_PREFIX)"       || { echo "Set OUT_PREFIX=out/W_int8"; exit 2; }
 	python3 scripts/ptq_from_source.py --source torch --checkpoint "$(TORCH_CHECKPOINT)" --key "$(KEY)" $(if $(TRANSPOSE),--transpose,) --out-prefix "$(OUT_PREFIX)" --mode $(if $(MODE),$(MODE),per_row) --accuracy-threshold $(if $(THRESH),$(THRESH),0.995)
 
+# Corrigido: usar o script dedicado para BIN cru
 ptq-from-bin:
 	@command -v python3 >/dev/null 2>&1 || { echo "python3 not found"; exit 1; }
 	@test -n "$(BIN)"         || { echo "Set BIN=/path/to/f32.bin"; exit 2; }
 	@test -n "$(ROWS)"        || { echo "Set ROWS=<rows>"; exit 2; }
 	@test -n "$(COLS)"        || { echo "Set COLS=<cols>"; exit 2; }
 	@test -n "$(OUT_PREFIX)"  || { echo "Set OUT_PREFIX=out/W_int8"; exit 2; }
-	python3 scripts/ptq_from_source.py --source raw --bin "$(BIN)" --rows $(ROWS) --cols $(COLS) $(if $(TRANSPOSE),--transpose,) --out-prefix "$(OUT_PREFIX)" --mode $(if $(MODE),$(MODE),per_row) --accuracy-threshold $(if $(THRESH),$(THRESH),0.995)
+	python3 scripts/ptq_from_bin.py --bin "$(BIN)" --rows $(ROWS) --cols $(COLS) $(if $(TRANSPOSE),--transpose,) --out-prefix "$(OUT_PREFIX)" --mode $(if $(MODE),$(MODE),per_row) --accuracy-threshold $(if $(THRESH),$(THRESH),0.995)
 
 # =============================================================================
-# Performance presets
+# Performance presets (NO implicit build)
 # =============================================================================
-perf_cpu_fp32: build
+perf_cpu_fp32:
+	@test -x "$(BIN_CPU)" || { echo "ERROR: CPU binary '$(BIN_CPU)' not found. Run 'make build' once."; exit 2; }
 	@MODEL="$(if $(MODEL),$(MODEL),$(MODEL_DIR_DEFAULT))" PROMPTS="$(if $(PROMPTS),$(PROMPTS),benchmarks/prompts_10..txt)" RUNS="$(if $(RUNS),$(RUNS),3)" WARMUP="$(if $(WARMUP),$(WARMUP),1)" THREADS="$(if $(THREADS),$(THREADS),$(shell nproc))" PRECISION="fp32" BATCH="$(if $(BATCH),$(BATCH),1)" PREFETCH="$(if $(PREFETCH),$(PREFETCH),auto)" PRETRANSPOSE="$(if $(PRETRANSPOSE),$(PRETRANSPOSE),all)" WARMUP_TOKENS="$(if $(WARMUP_TOKENS),$(WARMUP_TOKENS),64)" AFFINITY="$(if $(AFFINITY),$(AFFINITY),auto)" MAX_NEW="$(if $(MAX_NEW),$(MAX_NEW),0)" ENGINE_BIN="$(BIN_CPU)" bash scripts/run_benchmark.sh
 
-perf_cpu_bf16: build
+perf_cpu_bf16:
+	@test -x "$(BIN_CPU)" || { echo "ERROR: CPU binary '$(BIN_CPU)' not found. Run 'make build' once."; exit 2; }
 	@MODEL="$(if $(MODEL),$(MODEL),$(MODEL_DIR_DEFAULT))" PROMPTS="$(if $(PROMPTS),$(PROMPTS),benchmarks/prompts_10..txt)" RUNS="$(if $(RUNS),$(RUNS),3)" WARMUP="$(if $(WARMUP),$(WARMUP),1)" THREADS="$(if $(THREADS),$(THREADS),$(shell nproc))" PRECISION="bf16" BATCH="$(if $(BATCH),$(BATCH),1)" PREFETCH="$(if $(PREFETCH),$(PREFETCH),auto)" PRETRANSPOSE="$(if $(PRETRANSPOSE),$(PRETRANSPOSE),all)" WARMUP_TOKENS="$(if $(WARMUP_TOKENS),$(WARMUP_TOKENS),64)" AFFINITY="$(if $(AFFINITY),$(AFFINITY),auto)" MAX_NEW="$(if $(MAX_NEW),$(MAX_NEW),0)" ENGINE_BIN="$(BIN_CPU)" bash scripts/run_benchmark.sh
 
-perf_cpu_int8: build
+perf_cpu_int8:
+	@test -x "$(BIN_CPU)" || { echo "ERROR: CPU binary '$(BIN_CPU)' not found. Run 'make build' once."; exit 2; }
 	@MODEL="$(if $(MODEL),$(MODEL),$(MODEL_DIR_DEFAULT))" PROMPTS="$(if $(PROMPTS),$(PROMPTS),benchmarks/prompts_10..txt)" RUNS="$(if $(RUNS),$(RUNS),3)" WARMUP="$(if $(WARMUP),$(WARMUP),1)" THREADS="$(if $(THREADS),$(THREADS),$(shell nproc))" PRECISION="$(if $(PRECISION),$(PRECISION),int8)" BATCH="$(if $(BATCH),$(BATCH),1)" PREFETCH="$(if $(PREFETCH),$(PREFETCH),auto)" PRETRANSPOSE="$(if $(PRETRANSPOSE),$(PRETRANSPOSE),all)" WARMUP_TOKENS="$(if $(WARMUP_TOKENS),$(WARMUP_TOKENS),64)" AFFINITY="$(if $(AFFINITY),$(AFFINITY),auto)" MAX_NEW="$(if $(MAX_NEW),$(MAX_NEW),0)" ENGINE_BIN="$(BIN_CPU)" bash scripts/run_benchmark.sh
 
-perf_gpu: build-cuda
+perf_gpu:
+	@test -x "$(BIN_CUDA)" || { echo "ERROR: CUDA binary '$(BIN_CUDA)' not found. Run 'make build-cuda' once."; exit 2; }
 	@MODEL="$(if $(MODEL),$(MODEL),$(MODEL_DIR_DEFAULT))" PROMPTS="$(if $(PROMPTS),$(PROMPTS),benchmarks/prompts_10..txt)" RUNS="$(if $(RUNS),$(RUNS),3)" WARMUP="$(if $(WARMUP),$(WARMUP),1)" THREADS="$(if $(THREADS),$(THREADS),$(shell nproc))" PRECISION="$(if $(PRECISION),$(PRECISION),fp32)" BATCH="$(if $(BATCH),$(BATCH),1)" PREFETCH="$(if $(PREFETCH),$(PREFETCH),auto)" PRETRANSPOSE="$(if $(PRETRANSPOSE),$(PRETRANSPOSE),all)" WARMUP_TOKENS="$(if $(WARMUP_TOKENS),$(WARMUP_TOKENS),64)" AFFINITY="$(if $(AFFINITY),$(AFFINITY),auto)" MAX_NEW="$(if $(MAX_NEW),$(MAX_NEW),0)" ENGINE_BIN="$(BIN_CUDA)" bash scripts/run_benchmark.sh

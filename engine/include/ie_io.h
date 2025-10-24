@@ -1,28 +1,30 @@
 /**
  * @file ie_io.h
- * @brief Minimal public I/O interfaces: IEBIN v1 loader and tokenizer stubs.
+ * @brief Public I/O interfaces: IEBIN v1 loader and lightweight tokenizer.
  *
  * @details
- * This header exposes two small subsystems used by the CLI and tests:
+ * This header exposes two small subsystems used by the CLI, tests, and engine:
  *
- * 1) **IEBIN v1 weights loader** — opens `model.ie.json`, resolves
- *    `model.ie.bin`, captures basic metadata, and provides a light touch/read
- *    check. See @ref ie_weights_open and @ref ie_weights_touch.
+ * - **IEBIN v1 weights loader** — opens `model.ie.json`, resolves the
+ *   corresponding `model.ie.bin`, captures basic metadata, and provides a
+ *   light touch/read check. See @ref ie_weights_open and @ref ie_weights_touch.
  *
- * 2) **Tokenizer (stub)** — tiny, dependency-free tokenizer API used by tests
- *    and by the engine’s harness. The reference implementation in
- *    @ref tokenizer.c supports a whitespace splitter with hashed-token
- *    placeholders. Its purpose is to keep CI green and avoid large third-party
- *    dependencies. See @ref ie_vocab_load, @ref ie_tok_encode and
- *    @ref ie_tok_decode.
+ * - **Tokenizer (stub)** — tiny, dependency-free tokenizer API used by tests
+ *   and by the engine’s harness. The reference implementation in
+ *   `tokenizer.c` supports a whitespace splitter with hashed-token placeholders.
+ *   See @ref ie_vocab_load, @ref ie_tok_encode and @ref ie_tok_decode.
  *
- * The goal is a stable, warning-free C interface that works with `-Werror`.
+ * Goals:
+ * - Stable C interface that compiles cleanly with `-Wall -Wextra -Werror`.
+ * - No heap ownership in public structs; zero-init + explicit close/free.
  */
 
 #ifndef IE_IO_H_
 #define IE_IO_H_
 
-/* POSIX feature request: needed for some libc prototypes (e.g., pread) in impls. */
+/* Request POSIX features for some libc prototypes used by implementations
+ * (e.g., pread). This is safe in headers as it only widens feature visibility.
+ */
 #ifndef _POSIX_C_SOURCE
 #define _POSIX_C_SOURCE 200809L
 #endif
@@ -34,42 +36,59 @@ extern "C" {
 #include <stddef.h>  /* size_t */
 #include <stdint.h>  /* uint32_t */
 
-/* ========================================================================== */
-/* Status codes                                                               */
-/* ========================================================================== */
+/* ============================================================================
+ * Status codes
+ * ========================================================================== */
+/**
+ * @defgroup ie_io_status Status Codes
+ * @brief Error/status values shared by the I/O helpers.
+ * @{
+ */
 
 /**
  * @enum ie_io_status_e
- * @brief Status codes for I/O helpers.
+ * @brief Status codes for I/O helpers and lightweight subsystems.
  *
- * @var IE_IO_OK
- * Success.
- * @var IE_IO_ERR_ARGS
- * Invalid arguments.
- * @var IE_IO_ERR_JSON
- * Failed to read/parse JSON metadata.
- * @var IE_IO_ERR_BIN_UNSPEC
- * JSON missing `bin` key and no override provided.
- * @var IE_IO_ERR_STAT
- * Failed to stat the weights file.
- * @var IE_IO_ERR_OPEN
- * Failed to open the weights file.
- * @var IE_IO_ERR_READ
- * Failed to read the weights file.
+ * These values are returned by the IEBIN loader and related utilities.
  */
 typedef enum ie_io_status_e {
+  /** Success. */
   IE_IO_OK = 0,
-  IE_IO_ERR_ARGS = -1,
-  IE_IO_ERR_JSON = -2,
-  IE_IO_ERR_BIN_UNSPEC = -3,
-  IE_IO_ERR_STAT = -4,
-  IE_IO_ERR_OPEN = -5,
-  IE_IO_ERR_READ = -6
-} ie_io_status_t;
 
-/* ========================================================================== */
-/* Weights (IEBIN v1)                                                         */
-/* ========================================================================== */
+  /** Invalid arguments (NULL pointer, bad sizes, etc.). */
+  IE_IO_ERR_ARGS = -1,
+
+  /** Failed to read/parse JSON metadata. */
+  IE_IO_ERR_JSON = -2,
+
+  /** JSON missing `bin` key and no override provided. */
+  IE_IO_ERR_BIN_UNSPEC = -3,
+
+  /** Failed to stat() the weights file. */
+  IE_IO_ERR_STAT = -4,
+
+  /** Failed to open the weights file. */
+  IE_IO_ERR_OPEN = -5,
+
+  /** Failed to read from the weights file. */
+  IE_IO_ERR_READ = -6,
+
+  /** Allocation failure (OOM or NULL from malloc/calloc/realloc). */
+  IE_IO_ERR_ALLOC = -7,
+
+  /** Decode/format error (e.g., quantized weights decode failure). */
+  IE_IO_ERR_DECODE = -8
+} ie_io_status_t;
+/** @} */ /* end of ie_io_status */
+
+/* ============================================================================
+ * Weights (IEBIN v1)
+ * ========================================================================== */
+/**
+ * @defgroup ie_io_weights IEBIN v1 Weights Loader
+ * @brief Open/inspect lightweight model container files.
+ * @{
+ */
 
 /**
  * @struct ie_weights_s
@@ -77,22 +96,35 @@ typedef enum ie_io_status_e {
  *
  * @details
  * Instances are trivially copyable; no owned heap pointers are stored here.
- * Use @ref ie_weights_open to fill, and @ref ie_weights_close for symmetry.
+ * Use @ref ie_weights_open to fill the structure, and @ref ie_weights_close
+ * for symmetry. The binary is not kept open by this descriptor.
  */
 typedef struct ie_weights_s {
   /* ---- JSON header ---- */
-  int      version;                 /**< Parsed header `version` (>=1). */
-  char     dtype[16];               /**< Parsed header `dtype` (e.g., "float32"). */
+
+  /** Parsed header `version` (>= 1). */
+  int      version;
+
+  /** Parsed header `dtype` (e.g., "fp32", "int8", "mixed"). */
+  char     dtype[16];
 
   /* ---- Resolved locations ---- */
-  char     json_path[512];          /**< Path to the JSON metadata actually opened. */
-  char     weights_path[512];       /**< Resolved path to the weights binary. */
+
+  /** Absolute or canonical path to the JSON actually opened. */
+  char     json_path[512];
+
+  /** Resolved path to the weights binary (`model.ie.bin`). */
+  char     weights_path[512];
 
   /* ---- Binary info ---- */
-  size_t   bin_size_bytes;          /**< Size of `weights_path` in bytes. */
+
+  /** Size of `weights_path` in bytes (from stat). */
+  size_t   bin_size_bytes;
 
   /* ---- Bookkeeping ---- */
-  int      loaded;                  /**< Non-zero if open succeeded. */
+
+  /** Non-zero if @ref ie_weights_open succeeded. */
+  int      loaded;
 } ie_weights_t;
 
 /**
@@ -100,13 +132,13 @@ typedef struct ie_weights_s {
  *
  * @param json_path Path to `model.ie.json` (must be readable).
  * @param bin_path  Optional override path for the binary (`model.ie.bin`);
- *                  if NULL, the JSON `bin` field is used.
- * @param out       Output descriptor; the function zero-initializes it on entry.
- * @retval IE_IO_OK            on success.
- * @retval IE_IO_ERR_ARGS      if arguments are invalid.
- * @retval IE_IO_ERR_JSON      if JSON cannot be read/parsed.
+ *                  if NULL, the JSON `bin` field (or default) is used.
+ * @param out       Output descriptor; zero-initialized on entry by the function.
+ * @retval IE_IO_OK             on success.
+ * @retval IE_IO_ERR_ARGS       if arguments are invalid.
+ * @retval IE_IO_ERR_JSON       if JSON cannot be read/parsed.
  * @retval IE_IO_ERR_BIN_UNSPEC if a weights path cannot be determined.
- * @retval IE_IO_ERR_STAT      if the binary cannot be `stat()`-ed.
+ * @retval IE_IO_ERR_STAT       if the binary cannot be `stat()`-ed.
  */
 int ie_weights_open(const char *json_path, const char *bin_path, ie_weights_t *out);
 
@@ -114,9 +146,9 @@ int ie_weights_open(const char *json_path, const char *bin_path, ie_weights_t *o
  * @brief Touch the weights binary to verify readability (and optionally warm caches).
  *
  * @details
- * Performs a small positional read at offset 0 and at the end of file (if large
- * enough). Intended as a fast sanity check during startup or tests. The
- * implementation may be a no-op if the platform lacks `pread`.
+ * Performs a small positional read near offset 0 and near the end of the file
+ * (if large enough). Intended as a fast sanity check during startup or tests.
+ * The implementation may be a no-op on platforms without `pread`.
  *
  * @param w Opened weights descriptor (must come from @ref ie_weights_open).
  * @retval IE_IO_OK        on success (binary considered readable).
@@ -129,13 +161,19 @@ int ie_weights_touch(const ie_weights_t *w);
 /**
  * @brief Close weights resources (currently a no-op; reserved for future use).
  *
- * @param w Weights descriptor previously opened with @ref ie_weights_open.
+ * @param w Weights descriptor previously opened with @ref ie_weights_open (may be NULL).
  */
 void ie_weights_close(ie_weights_t *w);
+/** @} */ /* end of ie_io_weights */
 
-/* ========================================================================== */
-/* Tokenizer (stub API used by tests and harness)                              */
-/* ========================================================================== */
+/* ============================================================================
+ * Tokenizer (stub API used by tests and harness)
+ * ========================================================================== */
+/**
+ * @defgroup ie_io_tokenizer Tokenizer (Stub)
+ * @brief Lightweight, dependency-free tokenizer used in tests and harness.
+ * @{
+ */
 
 /**
  * @struct ie_vocab_s
@@ -145,10 +183,11 @@ void ie_weights_close(ie_weights_t *w);
  * The reference implementation accepts either a JSON-like file or a simple text
  * list; when absent, it falls back to a stub vocabulary with a positive
  * `vocab_size`. Internal fields are intentionally omitted to keep the public
- * surface small.
+ * surface small and stable.
  */
 typedef struct ie_vocab_s {
-  int vocab_size;       /**< Number of entries; stub sets this to a positive value. */
+  /** Number of entries; stub sets this to a positive value. */
+  int vocab_size;
   /* Internal fields are intentionally omitted to keep the public surface small. */
 } ie_vocab_t;
 
@@ -174,10 +213,10 @@ int ie_vocab_load(const char *vocab_path, ie_vocab_t *out);
  * **Size-only mode:** pass `ids == NULL` to compute the required length in
  * `*out_count` without writing token data.
  *
- * @param v         Loaded vocabulary.
- * @param text      NUL-terminated UTF-8 text.
+ * @param v         Loaded vocabulary (must have positive @c vocab_size).
+ * @param text      NUL-terminated UTF-8 input string.
  * @param ids       Output buffer of length `*out_count` (or NULL for size query).
- * @param out_count In: capacity of `ids` when `ids != NULL`.  
+ * @param out_count In: capacity of @p ids when `ids != NULL`.  
  *                  Out: number of tokens written (or needed).
  * @retval 0    on success.
  * @retval -1   on invalid arguments.
@@ -211,7 +250,6 @@ int ie_tok_decode(const ie_vocab_t *v,
                   char *out,
                   size_t out_sz);
 
-
 /**
  * @brief Release resources held by a vocabulary.
  *
@@ -223,7 +261,8 @@ int ie_tok_decode(const ie_vocab_t *v,
  * @param v Vocabulary pointer (may be NULL; no-op).
  */
 void ie_vocab_free(ie_vocab_t *v);
-  
+/** @} */ /* end of ie_io_tokenizer */
+
 #ifdef __cplusplus
 } /* extern "C" */
 #endif

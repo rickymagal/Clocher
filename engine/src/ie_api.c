@@ -10,43 +10,54 @@
  * unit tests and CLI smoke tests pass without requiring external GPU drivers
  * or model files. The CLI layer (see @ref main_infer.c) enforces "real model
  * required" gating via the environment/config when desired.
- *
- * @section design Design goals
- * - **Strict compatibility** with @ref ie_api.h (types, signatures, status).
- * - **Deterministic output** for identical inputs to keep CI stable.
- * - **Safe metrics**: always return a valid @ref ie_metrics_t snapshot; the
- *   harness fills timing/throughput fields measured externally.
- * - **No device coupling here**: GPU backends are compiled and linked by the
- *   build system, but this file does not declare device enums nor write to
- *   non-existent fields in @ref ie_metrics_t.
  */
 
 #include "ie_api.h"                /* Public types and prototypes */
 #include "ie_kv_instrumentation.h" /* KV hit/miss tracker (lightweight) */
 
+#include <ctype.h>   /* tolower */
 #include <inttypes.h>
 #include <stdint.h>
 #include <stdlib.h>  /* calloc, free */
-#include <string.h>  /* memset */
+#include <string.h>  /* memset, strlen */
 
-/* =============================================================================
- * Internal opaque type
- * ============================================================================= */
+/* -------------------------------------------------------------------------- */
+/* Internal opaque type                                                       */
+/* -------------------------------------------------------------------------- */
 /**
  * @brief Opaque engine object private to this module.
  *
  * We keep a by-value copy of the creation parameters to remain ABI-safe if the
- * header evolves. We **never** dereference unknown pointers (e.g., hint strings).
+ * header evolves. We never dereference unknown pointers (e.g., hint strings).
  */
 struct ie_engine {
   ie_engine_params_t cfg;   /**< Creation parameters (by value). */
   ie_metrics_t       last;  /**< Last metrics snapshot returned to callers.   */
   uint64_t           seed;  /**< PRNG seed used to derive token IDs.          */
+  int                uses_weight_int4; /**< 1 if precision hint == "int4w|int4". */
 };
 
-/* =============================================================================
- * Internal utilities
- * ============================================================================= */
+/* -------------------------------------------------------------------------- */
+/* Utilities                                                                  */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * @brief Case-insensitive ASCII string equality check (NULL-safe).
+ *
+ * @param a First string (may be NULL).
+ * @param b Second string (may be NULL).
+ * @return 1 if equal ignoring ASCII case; 0 otherwise.
+ */
+static int ascii_ieq(const char *a, const char *b) {
+  if (!a || !b) return 0;
+  for (;; ++a, ++b) {
+    unsigned char ca = (unsigned char)*a;
+    unsigned char cb = (unsigned char)*b;
+    if (tolower(ca) != tolower(cb)) return 0;
+    if (ca == '\0') return 1;
+  }
+}
+
 /**
  * @brief 32-bit FNV-1a hash for C strings (NULL-safe).
  *
@@ -79,34 +90,32 @@ static uint64_t xorshift64star(uint64_t *state) {
   return x * 2685821657736338717ULL;
 }
 
-/* =============================================================================
- * Public API implementation
- * ============================================================================= */
+/* -------------------------------------------------------------------------- */
+/* Public API                                                                 */
+/* -------------------------------------------------------------------------- */
 
 /**
  * @copydoc ie_engine_create
  *
  * @details
  * CI-friendly behavior:
- * - Does **not** open or validate model files.
+ * - Does not open or validate model files.
  * - Fails only on allocation/invalid-argument errors.
- * - “Model required” is enforced by the CLI when `IE_REQUIRE_MODEL=1`
- *   (outside of this module).
+ * - “Model required” is enforced by the CLI when IE_REQUIRE_MODEL=1.
  */
 ie_status_t ie_engine_create(const ie_engine_params_t *p, ie_engine_t **out) {
-  if (!out) return 1; /* Use 1 as generic error per header's status contract */
+  if (!out) return 1; /* generic error */
 
   ie_engine_t *e = (ie_engine_t *)calloc(1, sizeof(*e));
   if (!e) return 1;
 
   if (p) {
-    /* Copy by value to preserve ABI compatibility if the header evolves. */
-    e->cfg = *p;
+    e->cfg = *p; /* copy-by-value */
   } else {
     memset(&e->cfg, 0, sizeof(e->cfg));
   }
 
-  /* Initialize metrics snapshot to safe defaults. */
+  /* Safe defaults for metrics. */
   memset(&e->last, 0, sizeof(e->last));
 
   /* Derive a stable seed from a few string hints (all are NULL-safe). */
@@ -116,16 +125,16 @@ ie_status_t ie_engine_create(const ie_engine_params_t *p, ie_engine_t **out) {
   e->seed ^= (uint64_t)fnv1a32(e->cfg.pretranspose) << 16;
   e->seed ^= (uint64_t)fnv1a32(e->cfg.prefetch)     << 24;
 
+  /* Recognize "int4w" and the CLI alias "int4". */
+  e->uses_weight_int4 = (ascii_ieq(e->cfg.precision, IE_PREC_INT4W) ||
+                         ascii_ieq(e->cfg.precision, IE_PREC_INT4)) ? 1 : 0;
+
   *out = e;
   return IE_OK;
 }
 
 /**
  * @copydoc ie_engine_destroy
- *
- * @details
- * Frees the opaque handle. There are no nested allocations in this module,
- * so a raw `free()` is sufficient.
  */
 void ie_engine_destroy(ie_engine_t *h) {
   if (!h) return;
@@ -136,16 +145,9 @@ void ie_engine_destroy(ie_engine_t *h) {
  * @copydoc ie_engine_generate
  *
  * @par Write contract
- * - If `max_new_tokens == 0`, nothing is written to `out_tokens` and
- *   `*out_count` is set to 0; returns `IE_OK`.
+ * - If `max_new_tokens == 0`, nothing is written and `*out_count` becomes 0.
  * - On success, `*out_count` equals the number of tokens produced (≤ max).
  * - Output is deterministic for identical `(engine seed, prompt)`.
- *
- * @par Metrics note
- * This module does **not** measure time; callers (CLI/harness) compute wall-time
- * and TPS. Here we zero timing-related fields and leave `rss_peak_mb` at 0.
- * KV hits/misses are tracked @b live via ::ie_kv_on_token() so they are counted
- * inside the measured window.
  */
 ie_status_t ie_engine_generate(ie_engine_t *h,
                                const char *prompt,
@@ -172,12 +174,12 @@ ie_status_t ie_engine_generate(ie_engine_t *h,
     const uint64_t r   = xorshift64star(&rng);
     const uint32_t tok = (uint32_t)(r % 50000u); /* Compact ID space for tests. */
     out_tokens[i] = tok;
-    ie_kv_on_token(tok); /* count inside timing window */
+    ie_kv_on_token(tok); /* counted inside timing window */
     ++produced;
   }
   *out_count = produced;
 
-  /* Metrics snapshot placeholders (harness fills time-related values). */
+  /* Placeholders (harness fills time-related values). */
   h->last.tps_true       = 0.0;
   h->last.latency_p50_ms = 0.0;
   h->last.latency_p95_ms = 0.0;
@@ -188,9 +190,6 @@ ie_status_t ie_engine_generate(ie_engine_t *h,
 
 /**
  * @copydoc ie_engine_metrics
- *
- * @note Callers should **zero-initialize** `*out` before calling to preserve
- *       forward compatibility (as documented in the header).
  */
 ie_status_t ie_engine_metrics(const ie_engine_t *h, ie_metrics_t *out) {
   if (!h || !out) return 1;

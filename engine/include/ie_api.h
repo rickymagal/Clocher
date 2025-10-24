@@ -8,8 +8,18 @@
  * @file ie_api.h
  * @brief Public C API for the inference engine (minimal surface used by CLI/tests).
  *
- * The API is intentionally small. Fields like ::ie_engine_params_t::precision
- * exist for compatibility with tests; engines may ignore hints they do not need.
+ * The API surface is intentionally small. Fields like ::ie_engine_params_t::precision
+ * exist as *soft hints* that backends may honor or ignore.
+ *
+ * @section precision Precision labels
+ * The `precision` hint is a string label accepted by the CLI/tests to describe the
+ * desired numeric pathway. In addition to floating-point labels, two weight-only
+ * quantization labels are documented:
+ *   - "int8w" : weight-only INT8 (activations in fp32/fp16/bf16 as the backend decides)
+ *   - "int4w" : weight-only INT4 (packed nibbles, symmetric, zero-point = 0)
+ *
+ * Engines are free to ignore these hints or to act on them. The CLI never remaps
+ * "int4" to "fp32" — when seen, it normalizes to "int4w".
  */
 
 #include <stddef.h>
@@ -20,22 +30,45 @@ extern "C" {
 #endif
 
 /* -------------------------------------------------------------------------- */
-/* Status codes (compat)                                                      */
+/* Status codes                                                               */
 /* -------------------------------------------------------------------------- */
 
-/** @brief Status/result type. `0` indicates success. */
+/**
+ * @typedef ie_status_t
+ * @brief Status/result type where `0` indicates success.
+ */
 typedef int ie_status_t;
 
-/** @brief Success (compat for tests that assert IE_OK). */
+/** @brief Success (used by unit tests that assert IE_OK). */
 #ifndef IE_OK
 #define IE_OK 0
 #endif
 
 /* -------------------------------------------------------------------------- */
-/* Opaque handles                                                             */
+/* Precision labels (soft hints)                                              */
 /* -------------------------------------------------------------------------- */
 
-/** @brief Engine opaque handle. */
+/** @brief Label for 32-bit floating-point precision hint ("fp32"). */
+#define IE_PREC_FP32  "fp32"
+/** @brief Label for bfloat16 precision hint ("bf16"). */
+#define IE_PREC_BF16  "bf16"
+/** @brief Label for 16-bit floating-point precision hint ("fp16"). */
+#define IE_PREC_FP16  "fp16"
+/** @brief Label for weight-only INT8 precision hint ("int8w"). */
+#define IE_PREC_INT8W "int8w"
+/** @brief Label for weight-only INT4 precision hint ("int4w"). */
+#define IE_PREC_INT4W "int4w"
+/** @brief Convenience alias accepted by the CLI; normalized to "int4w". */
+#define IE_PREC_INT4  "int4"
+
+/* -------------------------------------------------------------------------- */
+/* Opaque handle                                                              */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * @struct ie_engine
+ * @brief Engine opaque handle (incomplete type).
+ */
 typedef struct ie_engine ie_engine_t;
 
 /* -------------------------------------------------------------------------- */
@@ -43,13 +76,14 @@ typedef struct ie_engine ie_engine_t;
 /* -------------------------------------------------------------------------- */
 
 /**
+ * @struct ie_metrics
  * @brief Metrics snapshot returned by the engine.
  *
- * Only fields used by CLI/tests are exposed here. The caller should zero-init
- * instances before calling ::ie_engine_metrics for forward compatibility.
+ * Callers should zero-initialize instances before calling ::ie_engine_metrics
+ * to preserve forward compatibility.
  */
 typedef struct ie_metrics {
-  double   tps_true;        /**< True tokens/s across the last run (or 0). */
+  double   tps_true;        /**< True tokens/s for the last run (or 0). */
   double   latency_p50_ms;  /**< p50 latency in ms (best-effort). */
   double   latency_p95_ms;  /**< p95 latency in ms (best-effort). */
   size_t   rss_peak_mb;     /**< Peak RSS in MB (best-effort). */
@@ -62,10 +96,16 @@ typedef struct ie_metrics {
 /* -------------------------------------------------------------------------- */
 
 /**
+ * @struct ie_engine_params
  * @brief Engine creation parameters (all optional hints).
  *
  * Leave fields zero/NULL to use engine defaults. Unknown hints are ignored.
- * The ::precision field exists for compatibility with tests that set it.
+ * The ::precision field exists for compatibility with tests and CLI.
+ *
+ * @note Accepted precision labels include:
+ *       ::IE_PREC_FP32, ::IE_PREC_BF16, ::IE_PREC_FP16,
+ *       ::IE_PREC_INT8W, ::IE_PREC_INT4W (and "int4" as an alias to "int4w").
+ *       Weight-only labels are *soft hints* for loaders/backends.
  */
 typedef struct ie_engine_params {
   int        threads;         /**< Requested worker threads; `<=0` means auto. */
@@ -73,8 +113,8 @@ typedef struct ie_engine_params {
   const char *pretranspose;   /**< "none" | "woh" | "wxh" | "all" (hint). */
   const char *prefetch;       /**< "off" | "on" | "auto" | "0|1|2" (hint). */
 
-  /* ---- compatibility field expected by tests (may be ignored by engine) --- */
-  const char *precision;      /**< "fp32" | "bf16" | "fp16" (compat; optional). */
+  /* ---- compatibility field consumed by CLI/tests ---- */
+  const char *precision;      /**< e.g. "fp32" | "bf16" | "fp16" | "int8w" | "int4w" (or "int4"). */
 } ie_engine_params_t;
 
 /* -------------------------------------------------------------------------- */
@@ -84,7 +124,7 @@ typedef struct ie_engine_params {
 /**
  * @brief Create a new engine instance.
  *
- * The engine copies the provided parameters by value. Unknown hints are ignored.
+ * The engine copies provided parameters by value. Unknown hints are ignored.
  *
  * @param[in]  p    Optional parameters (may be `NULL` for defaults).
  * @param[out] out  Output engine handle; must be non-`NULL`.

@@ -1,3 +1,6 @@
+# =============================================================================
+# File: scripts/ptq_from_hf.py
+# =============================================================================
 #!/usr/bin/env python3
 """
 Hugging Face one-shot PTQ:
@@ -6,42 +9,51 @@ Hugging Face one-shot PTQ:
 - Loads state_dict, extracts the EXACT tensor by key
 - (Optional) transposes 2D
 - Exports row-major FP32 .bin
-- Runs INT8 PTQ with true rows/cols
+- Runs weight-only PTQ (INT8 by default; INT4 with --wbits=4)
 
 Example:
   make deps-ptq
-  make ptq-from-hf HF_MODEL=facebook/opt-125m \
-                   KEY=model.decoder.layers.0.self_attn.q_proj.weight \
-                   OUT_PREFIX=out/qproj_int8
+  python3 scripts/ptq_from_hf.py \
+      --repo facebook/opt-125m \
+      --key model.decoder.layers.0.self_attn.q_proj.weight \
+      --out-prefix out/qproj_int4 \
+      --wbits 4 --mode per_row --scale-dtype fp16
 """
+from __future__ import annotations
+
 import argparse
 import json
-import os
 import sys
 import subprocess
 from pathlib import Path
 
+
 def find_checkpoint(root: Path, prefer_file: str | None) -> Path:
-    # If user specified a filename, use it.
+    """
+    Resolve a checkpoint file path inside a downloaded HF snapshot.
+    Prefers .safetensors, otherwise typical PyTorch filenames.
+    """
     if prefer_file:
         p = root / prefer_file
         if p.exists():
             return p
         print(f"ERROR: --file '{prefer_file}' not found in snapshot", file=sys.stderr)
         sys.exit(3)
-    # Otherwise, try common names, preferring safetensors
-    candidates = []
+
+    candidates: list[Path] = []
     for pat in ("*.safetensors", "*pytorch_model*.bin", "*.bin", "*.pt", "*.pth", "*.ckpt"):
         candidates += list(root.glob(pat))
     if not candidates:
         print("ERROR: no checkpoint files found in repo snapshot", file=sys.stderr)
         sys.exit(3)
-    # Prefer safetensors first
     candidates.sort(key=lambda p: (0 if p.suffix == ".safetensors" else 1, len(p.name)))
     return candidates[0]
 
+
 def load_state_dict(ckpt_path: Path) -> dict:
-    # Try safetensors first
+    """
+    Load a state_dict from .safetensors or PyTorch checkpoint-like files.
+    """
     if ckpt_path.suffix == ".safetensors":
         try:
             from safetensors.torch import load_file as safe_load
@@ -49,12 +61,13 @@ def load_state_dict(ckpt_path: Path) -> dict:
         except Exception as e:
             print(f"ERROR: failed to load safetensors: {e}", file=sys.stderr)
             sys.exit(2)
-    # Fallback to torch
+
     try:
         import torch
     except Exception:
         print("ERROR: torch is required. pip install torch", file=sys.stderr)
         sys.exit(2)
+
     obj = torch.load(str(ckpt_path), map_location="cpu")
     if hasattr(obj, "state_dict"):
         return obj.state_dict()
@@ -65,9 +78,14 @@ def load_state_dict(ckpt_path: Path) -> dict:
     print("ERROR: unsupported checkpoint format", file=sys.stderr)
     sys.exit(2)
 
+
 def tensor_to_fp32_bin(t, out_bin: Path, transpose: bool) -> tuple[int, int]:
+    """
+    Export a tensor to row-major float32 .bin. Returns (rows, cols).
+    """
     import numpy as np
-    # Convert -> float32
+
+    # Torch tensor -> numpy
     if hasattr(t, "detach"):
         t = t.detach().cpu()
         arr = t.to(dtype=t.dtype if str(t.dtype).startswith("float") else None).float().numpy()
@@ -89,7 +107,8 @@ def tensor_to_fp32_bin(t, out_bin: Path, transpose: bool) -> tuple[int, int]:
         f.write(arr.tobytes(order="C"))
     return rows, cols
 
-def main():
+
+def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--repo", required=True, help="Hugging Face repo id (e.g., org/name)")
     ap.add_argument("--revision", default=None, help="Branch/tag/commit")
@@ -99,6 +118,10 @@ def main():
     ap.add_argument("--transpose", action="store_true", help="Transpose 2D tensor before saving")
     ap.add_argument("--mode", default="per_row", choices=["per_row", "per_tensor"])
     ap.add_argument("--accuracy-threshold", type=float, default=0.995)
+    ap.add_argument("--wbits", type=int, default=8, choices=[8, 4],
+                    help="Weight bit-width: 8 (default) or 4")
+    ap.add_argument("--scale-dtype", default="fp16", choices=["fp16", "fp32"],
+                    help="Scale storage dtype (default: fp16)")
     args = ap.parse_args()
 
     try:
@@ -111,7 +134,7 @@ def main():
     local_dir = snapshot_download(
         repo_id=args.repo,
         revision=args.revision,
-        ignore_patterns=["*.md", "*.txt", "*.json", "*.png", "*.jpg", "*.jpeg", "*.gif"],
+        ignore_patterns=["*.md", "*.txt", "*.png", "*.jpg", "*.jpeg", "*.gif"],
     )
     root = Path(local_dir)
 
@@ -143,10 +166,12 @@ def main():
         "mode": args.mode,
         "out_prefix": args.out_prefix,
         "accuracy_threshold": args.accuracy_threshold,
+        "wbits": args.wbits,
+        "scale_dtype": args.scale_dtype,
     }
     print("[hf-shape]", json.dumps(meta))
 
-    # 5) Run INT8 PTQ with the TRUE rows/cols
+    # 5) Run PTQ with the TRUE rows/cols
     cmd = [
         sys.executable, "benchmarks/ptq_calib.py",
         "--weights", str(out_bin),
@@ -155,9 +180,12 @@ def main():
         "--mode", args.mode,
         "--out-prefix", args.out_prefix,
         "--accuracy-threshold", str(args.accuracy_threshold),
+        "--wbits", str(args.wbits),
+        "--scale-dtype", args.scale_dtype,
     ]
     cp = subprocess.run(cmd)
     sys.exit(cp.returncode)
+
 
 if __name__ == "__main__":
     main()

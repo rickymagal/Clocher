@@ -1,12 +1,23 @@
+# ============================================================================
+# File: configs/engine.toml
+# ============================================================================
 # Engine configuration (IEBIN v1)
-threads = 0                # 0=auto
-affinity = "auto"          # auto|compact|scatter|list:0,2,4
-precision = "fp32"         # fp32|bf16|int8w
-vector_width = "auto"      # auto|256|512
+
+threads = 0                # 0 = auto
+affinity = "auto"          # auto | compact | scatter | list:0,2,4
+precision = "fp32"         # fp32 | bf16 | fp16 | int8w | int4w  (soft hint)
+vector_width = "auto"      # auto | 256 | 512
 
 [tokenizer]
 vocab_path = "models/gpt-oss-20b/vocab.json"
 
 [model]
-weights_path      = "models/gpt-oss-20b/model.ie.bin"
-param_shape_file  = "models/gpt-oss-20b/model.ie.json"
+# IEBIN v1 artifact locations
+weights_path     = "models/gpt-oss-20b/model.ie.bin"
+param_shape_file = "models/gpt-oss-20b/model.ie.json"
+
+# Notes:
+# - Weight-only INT4/INT8 experiments are discovered via model.ie.json metadata
+#   (e.g., dtype="int4" and a quant block with scale_bin/pack info). The CLI's
+#   precision string is a soft hint and may be ignored by the backend.
+# - Paths may be absolute or relative to the process working directory.

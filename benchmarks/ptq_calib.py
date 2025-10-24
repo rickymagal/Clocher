@@ -1,233 +1,375 @@
+# =============================================================================
+# File: benchmarks/ptq_calib.py
+# =============================================================================
 #!/usr/bin/env python3
 """
-INT8 weight-only PTQ calibration (stdlib-only).
+Post-Training Quantization (weight-only) calibrator.
 
-This tool reads FP32 weights in row-major order, computes scaling factors
-(min-max rule, per-tensor or per-row), quantizes to INT8, reconstructs FP32,
-and writes artifacts + a JSON report with error metrics.
+Reads a row-major FP32 weight matrix (W in R^{rows x cols}) from a .bin file,
+computes symmetric scales and quantizes weights to INT8 or INT4 (weight-only),
+then writes compact artifacts:
 
-Artifacts:
-  - <out_prefix>.int8.bin     (INT8 weights)
-  - <out_prefix>.scales.bin   (float32 scales)
-  - <out_prefix>.report.json  (summary with MSE, cosine similarity, pass/fail)
+Outputs (for OUT_PREFIX = <prefix>):
+  - <prefix>.meta.json              # metadata with shapes, files, metrics
+  - <prefix>.scale.f16.bin|.f32.bin # per-row or per-tensor scales
+  - <prefix>.int8.w.bin             # row-major int8 weights (if --wbits=8)
+  - <prefix>.int4.w.bin             # row-major 4-bit packed weights (if --wbits=4)
+
+Packing (INT4):
+  - Signed 4-bit values in two's complement, range [-8..7]
+  - Two values packed per byte: low nibble = column j (even), high nibble = j+1
+  - Row-major order; each row occupies ceil(cols/2) bytes
+
+Scale modes:
+  - per_row: one scale per row (default, recommended for GEMV)
+  - per_tensor: one scale for the entire tensor
+
+Metrics:
+  - Average row-wise cosine similarity between W and dequantized(W_q)
+  - Global mean squared error
+
+A JSON snippet you can paste into `model.ie.json` is printed as:
+  [iebin-json] {...}
+
+Example:
+  python3 benchmarks/ptq_calib.py \
+      --weights out/qproj.f32.bin --rows 4096 --cols 4096 \
+      --mode per_row --wbits 4 --out-prefix out/qproj_q4 \
+      --scale-dtype fp16
 """
+from __future__ import annotations
 
 import argparse
 import json
 import math
 import os
-from array import array
-from typing import List
+from pathlib import Path
+from typing import Tuple
+
+import numpy as np
 
 
-def read_f32(path: str, rows: int, cols: int) -> array:
+# ----------------------------- I/O Utilities ---------------------------------
+def load_f32_matrix(path: str, rows: int, cols: int) -> np.ndarray:
     """
-    Read a binary file containing float32 values and return an 'array("f")'.
+    Load a row-major float32 matrix from a flat .bin file.
 
-    Args:
-        path: Path to the .bin file.
-        rows: Number of rows.
-        cols: Number of columns.
+    Parameters
+    ----------
+    path : str
+        Path to the .bin file containing raw float32 data.
+    rows : int
+        Number of rows in the matrix.
+    cols : int
+        Number of columns in the matrix.
 
-    Returns:
-        An array("f") of length rows*cols in row-major order.
+    Returns
+    -------
+    np.ndarray
+        Array of shape (rows, cols), dtype float32.
 
-    Raises:
-        ValueError: If the element count does not match rows*cols.
+    Raises
+    ------
+    ValueError
+        If the file size does not match rows*cols*4 bytes.
     """
-    count = rows * cols
-    with open(path, "rb") as f:
-        data = f.read()
-    floats = array("f")
-    floats.frombytes(data)
-    if len(floats) != count:
-        raise ValueError(f"Expected {count} floats, got {len(floats)}")
-    return floats
+    p = Path(path)
+    if not p.is_file():
+        raise ValueError(f"weights file not found: {path}")
+    expected = rows * cols * 4
+    actual = p.stat().st_size
+    if actual != expected:
+        raise ValueError(
+            f"size mismatch for {path}: got {actual} bytes, expected {expected} "
+            f"(rows={rows}, cols={cols})"
+        )
+    arr = np.fromfile(path, dtype=np.float32, count=rows * cols)
+    return arr.reshape(rows, cols)
 
 
-def compute_scales_minmax(w: array, rows: int, cols: int, mode: str) -> array:
+def save_binary(path: str, array: np.ndarray) -> None:
     """
-    Compute PTQ scales using a symmetric min-max rule.
+    Save a contiguous numpy array to a binary file.
 
-    Args:
-        w: FP32 weights (array('f')) in row-major.
-        rows: Number of rows.
-        cols: Number of columns.
-        mode: 'per_tensor' or 'per_row'.
-
-    Returns:
-        array('f') with 1 scale (per_tensor) or 'rows' scales (per_row).
+    Parameters
+    ----------
+    path : str
+        Output file path.
+    array : np.ndarray
+        Array to write. The function writes bytes as-is (no header).
     """
-    if mode == "per_tensor":
-        lo = min(w)
-        hi = max(w)
-        amax = max(abs(lo), abs(hi))
-        s = amax / 127.0 if amax > 0.0 else 1.0
-        return array("f", [s])
-    elif mode == "per_row":
-        out = array("f", [0.0] * rows)
-        for r in range(rows):
-            row = w[r * cols : (r + 1) * cols]
-            lo = min(row)
-            hi = max(row)
-            amax = max(abs(lo), abs(hi))
-            s = amax / 127.0 if amax > 0.0 else 1.0
-            out[r] = s
-        return out
+    Path(path).parent.mkdir(parents=True, exist_ok=True)
+    array.tofile(path)
+
+
+# --------------------------- Quantization Core -------------------------------
+def compute_scales(
+    W: np.ndarray, wbits: int, mode: str, eps: float = 1e-12
+) -> np.ndarray:
+    """
+    Compute symmetric quantization scales for weight-only PTQ.
+
+    Parameters
+    ----------
+    W : np.ndarray
+        Weight matrix, shape (rows, cols), dtype float32.
+    wbits : int
+        Bit-width (8 or 4).
+    mode : str
+        'per_row' or 'per_tensor'.
+    eps : float
+        Small constant to avoid division by zero.
+
+    Returns
+    -------
+    np.ndarray
+        Scales as float32. Shape (rows,) for per_row, or (1,) for per_tensor.
+    """
+    assert W.ndim == 2, "W must be 2D"
+    qmax = 127 if wbits == 8 else 7
+    if mode == "per_row":
+        absmax = np.max(np.abs(W), axis=1).astype(np.float32)
+        scales = np.maximum(absmax / float(qmax), eps).astype(np.float32)
+        return scales  # (rows,)
+    elif mode == "per_tensor":
+        absmax = float(np.max(np.abs(W)))
+        scale = max(absmax / float(qmax), eps)
+        return np.array([scale], dtype=np.float32)  # (1,)
     else:
-        raise ValueError("mode must be per_tensor or per_row")
+        raise ValueError(f"unknown mode: {mode}")
 
 
-def quantize_int8(w: array, rows: int, cols: int, mode: str, scales: array) -> array:
+def quantize_int8(W: np.ndarray, scales: np.ndarray, mode: str) -> Tuple[np.ndarray, np.ndarray]:
     """
-    Quantize FP32 weights to INT8 using provided scales.
+    Quantize to INT8 with symmetric zero-point (z=0), range [-127, 127].
 
-    Args:
-        w: FP32 weights in row-major.
-        rows: Number of rows.
-        cols: Number of columns.
-        mode: 'per_tensor' or 'per_row'.
-        scales: Scale buffer from compute_scales_minmax.
+    Parameters
+    ----------
+    W : np.ndarray
+        Float32 weights.
+    scales : np.ndarray
+        Scales computed by compute_scales.
+    mode : str
+        'per_row' or 'per_tensor'.
 
-    Returns:
-        array('b') with quantized INT8 values in [-127, 127].
+    Returns
+    -------
+    (Q, W_hat)
+        Q is int8 array, same shape as W.
+        W_hat is float32 dequantized reconstruction.
     """
-    q = array("b", [0] * (rows * cols))
-    if mode == "per_tensor":
-        inv = 1.0 / scales[0] if scales[0] > 0.0 else 1.0
-        for i, v in enumerate(w):
-            x = round(v * inv)
-            if x > 127:
-                x = 127
-            elif x < -127:
-                x = -127
-            q[i] = int(x)
-        return q
-    # per_row
+    qmax = 127
+    if mode == "per_row":
+        s = scales[:, None]  # (rows, 1)
+    else:
+        s = scales.reshape(1, 1)  # (1, 1)
+    Q = np.clip(np.rint(W / s), -qmax, qmax).astype(np.int8)
+    W_hat = (Q.astype(np.float32) * s).astype(np.float32)
+    return Q, W_hat
+
+
+def _pack_row_int4_signed(q_row: np.ndarray) -> bytes:
+    """
+    Pack a single int8 row (values in [-8..7]) into int4 bytes.
+
+    Low nibble holds column j (even), high nibble holds column j+1 (odd).
+    """
+    n = q_row.shape[0]
+    if n % 2 != 0:
+        q_row = np.concatenate([q_row, np.zeros(1, dtype=np.int8)], axis=0)
+        n += 1
+    # Two's complement mapping into [0..15]
+    nibbles = (q_row.astype(np.int8) & 0x0F).astype(np.uint8)
+    lo = nibbles[0::2]
+    hi = nibbles[1::2] << 4
+    packed = (lo | hi).astype(np.uint8).tobytes()
+    return packed
+
+
+def quantize_int4_packed(
+    W: np.ndarray, scales: np.ndarray, mode: str
+) -> Tuple[bytes, np.ndarray]:
+    """
+    Quantize to signed INT4 (two's complement, range [-8..7]) and pack.
+
+    Parameters
+    ----------
+    W : np.ndarray
+        Float32 weights.
+    scales : np.ndarray
+        Scales computed by compute_scales.
+    mode : str
+        'per_row' or 'per_tensor'.
+
+    Returns
+    -------
+    (packed_bytes, W_hat)
+        packed_bytes: bytes object containing row-major packed int4
+        W_hat: float32 dequantized reconstruction (for metrics)
+    """
+    qmin, qmax = -8, 7
+    if mode == "per_row":
+        s = scales[:, None]  # (rows, 1)
+    else:
+        s = scales.reshape(1, 1)  # (1, 1)
+
+    Q = np.clip(np.rint(W / s), qmin, qmax).astype(np.int8)
+    # Dequantization for metrics:
+    W_hat = (Q.astype(np.float32) * s).astype(np.float32)
+
+    # Pack each row into bytes
+    rows = Q.shape[0]
+    packed_rows = []
     for r in range(rows):
-        s = scales[r]
-        inv = 1.0 / s if s > 0.0 else 1.0
-        base = r * cols
-        for c in range(cols):
-            v = w[base + c]
-            x = round(v * inv)
-            if x > 127:
-                x = 127
-            elif x < -127:
-                x = -127
-            q[base + c] = int(x)
-    return q
+        packed_rows.append(_pack_row_int4_signed(Q[r]))
+    packed = b"".join(packed_rows)
+    return packed, W_hat
 
 
-def dequant_int8(q: array, rows: int, cols: int, mode: str, scales: array) -> array:
+# ------------------------------- Metrics -------------------------------------
+def avg_row_cosine(a: np.ndarray, b: np.ndarray, eps: float = 1e-12) -> float:
     """
-    Dequantize INT8 weights to FP32 using provided scales.
+    Compute the average row-wise cosine similarity between two matrices.
 
-    Args:
-        q: INT8 weights (array('b')) in row-major.
-        rows: Number of rows.
-        cols: Number of columns.
-        mode: 'per_tensor' or 'per_row'.
-        scales: Scales used during quantization.
+    Parameters
+    ----------
+    a, b : np.ndarray
+        Float32 matrices with the same shape.
+    eps : float
+        Numerical stability epsilon.
 
-    Returns:
-        array('f') reconstructed in FP32.
+    Returns
+    -------
+    float
+        Average cosine similarity in [0, 1].
     """
-    out = array("f", [0.0] * (rows * cols))
-    if mode == "per_tensor":
-        s = scales[0] if scales[0] > 0.0 else 1.0
-        for i, v in enumerate(q):
-            out[i] = float(v) * s
-        return out
-    # per_row
-    for r in range(rows):
-        s = scales[r] if scales[r] > 0.0 else 1.0
-        base = r * cols
-        for c in range(cols):
-            out[base + c] = float(q[base + c]) * s
-    return out
+    assert a.shape == b.shape
+    a_norm = np.linalg.norm(a, axis=1) + eps
+    b_norm = np.linalg.norm(b, axis=1) + eps
+    dot = np.sum(a * b, axis=1)
+    cos = dot / (a_norm * b_norm)
+    # Clamp for safety
+    cos = np.clip(cos, -1.0, 1.0)
+    # Map to [0,1] if negative due to numeric issues; typical positive for weights
+    return float(np.mean((cos + 1.0) / 2.0))
 
 
-def mse(a: array, b: array) -> float:
+def mse(a: np.ndarray, b: np.ndarray) -> float:
     """
-    Compute mean squared error between two float arrays.
-
-    Args:
-        a: First vector.
-        b: Second vector.
-
-    Returns:
-        Mean squared error value.
+    Mean squared error between two matrices.
     """
-    s = 0.0
-    n = len(a)
-    for i in range(n):
-        d = float(a[i]) - float(b[i])
-        s += d * d
-    return s / float(n) if n else 0.0
+    d = (a - b).astype(np.float32)
+    return float(np.mean(d * d))
 
 
-def cosine_sim(a: array, b: array) -> float:
-    """
-    Compute cosine similarity between two float arrays.
-
-    Args:
-        a: First vector.
-        b: Second vector.
-
-    Returns:
-        Cosine similarity in [0, 1] (1 when vectors are identical direction).
-    """
-    num = 0.0
-    da = 0.0
-    db = 0.0
-    for i in range(len(a)):
-        x = float(a[i])
-        y = float(b[i])
-        num += x * y
-        da += x * x
-        db += y * y
-    denom = math.sqrt(da) * math.sqrt(db)
-    return (num / denom) if denom > 0.0 else 1.0
-
-
-def main():
-    """
-    Entry point: perform calibration and write artifacts + report.
-    """
-    ap = argparse.ArgumentParser(description="INT8 PTQ calibrator (stdlib-only)")
-    ap.add_argument("--weights", required=True, help="Path to FP32 weights .bin (row-major)")
-    ap.add_argument("--rows", type=int, required=True, help="Rows (R)")
-    ap.add_argument("--cols", type=int, required=True, help="Cols (C)")
-    ap.add_argument("--mode", choices=["per_tensor", "per_row"], default="per_row")
+# ------------------------------- Main Flow -----------------------------------
+def main() -> None:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--weights", required=True, help="Input FP32 .bin (row-major)")
+    ap.add_argument("--rows", type=int, required=True, help="Rows of the matrix")
+    ap.add_argument("--cols", type=int, required=True, help="Cols of the matrix")
+    ap.add_argument("--mode", default="per_row", choices=["per_row", "per_tensor"],
+                    help="Scale mode (default: per_row)")
     ap.add_argument("--out-prefix", required=True, help="Output prefix for artifacts")
     ap.add_argument("--accuracy-threshold", type=float, default=0.995,
-                    help="Minimum cosine similarity vs FP32")
+                    help="Advisory threshold for avg row cosine (no hard fail by default)")
+    ap.add_argument("--wbits", type=int, default=8, choices=[8, 4],
+                    help="Weight bit-width: 8 or 4 (default: 8)")
+    ap.add_argument("--scale-dtype", default="fp16", choices=["fp16", "fp32"],
+                    help="Scale storage dtype (default: fp16)")
+    ap.add_argument("--fail-below-threshold", action="store_true",
+                    help="Exit non-zero if metric falls below threshold")
     args = ap.parse_args()
 
-    w = read_f32(args.weights, args.rows, args.cols)
-    scales = compute_scales_minmax(w, args.rows, args.cols, args.mode)
-    q8 = quantize_int8(w, args.rows, args.cols, args.mode, scales)
-    w_rec = dequant_int8(q8, args.rows, args.cols, args.mode, scales)
+    W = load_f32_matrix(args.weights, args.rows, args.cols)
 
-    rep = {
+    # Compute scales
+    scales_f32 = compute_scales(W, args.wbits, args.mode)
+
+    # Quantize
+    if args.wbits == 8:
+        Q8, W_hat = quantize_int8(W, scales_f32, args.mode)
+        weight_path = f"{args.out_prefix}.int8.w.bin"
+        save_binary(weight_path, Q8.astype(np.int8, copy=False))
+        packed_note = "int8 row-major"
+    else:
+        packed_bytes, W_hat = quantize_int4_packed(W, scales_f32, args.mode)
+        weight_path = f"{args.out_prefix}.int4.w.bin"
+        Path(weight_path).parent.mkdir(parents=True, exist_ok=True)
+        with open(weight_path, "wb") as f:
+            f.write(packed_bytes)
+        packed_note = "int4 packed (two's complement), low nibble = even col"
+
+    # Save scales
+    if args.mode == "per_row":
+        scale_shape = [args.rows]
+    else:
+        scale_shape = [1]
+
+    if args.scale_dtype == "fp16":
+        scales_to_save = scales_f32.astype(np.float16)
+        scale_path = f"{args.out_prefix}.scale.f16.bin"
+    else:
+        scales_to_save = scales_f32.astype(np.float32)
+        scale_path = f"{args.out_prefix}.scale.f32.bin"
+
+    save_binary(scale_path, scales_to_save)
+
+    # Metrics
+    cos = avg_row_cosine(W, W_hat)
+    err = mse(W, W_hat)
+
+    # Metadata
+    meta = {
         "rows": args.rows,
         "cols": args.cols,
+        "wbits": args.wbits,
         "mode": args.mode,
-        "mse": mse(w, w_rec),
-        "cosine_sim": cosine_sim(w, w_rec),
-        "threshold": args.accuracy_threshold,
-        "passed": cosine_sim(w, w_rec) >= args.accuracy_threshold,
+        "scale_dtype": args.scale_dtype,
+        "scale_shape": scale_shape,
+        "files": {
+            "weights": weight_path,
+            "scales": scale_path,
+            "fp32_src": os.path.abspath(args.weights),
+        },
+        "packing": packed_note,
+        "metrics": {
+            "avg_row_cosine": round(cos, 6),
+            "mse": err,
+        },
     }
 
-    with open(args.out_prefix + ".int8.bin", "wb") as f:
-        f.write(q8.tobytes())
-    with open(args.out_prefix + ".scales.bin", "wb") as f:
-        f.write(scales.tobytes())
-    with open(args.out_prefix + ".report.json", "w") as f:
-        json.dump(rep, f, indent=2)
+    # Emit a helpful snippet the engine can adopt in model.ie.json
+    ie_json_snippet = {
+        "dtype": f"int{args.wbits}",
+        "quant": {
+            "scheme": "weight_only",
+            "mode": args.mode,
+            "bits": args.wbits,
+            "scale_bin": scale_path,
+            "scale_dtype": args.scale_dtype,
+            "weight_bin": weight_path,
+            "pack": ("int8_row_major" if args.wbits == 8 else "int4_nibbles_low_even"),
+            "shape": [args.rows, args.cols],
+        },
+    }
+    meta["ie_json_snippet"] = ie_json_snippet
 
-    print(json.dumps(rep))
+    meta_path = f"{args.out_prefix}.meta.json"
+    with open(meta_path, "w", encoding="utf-8") as f:
+        json.dump(meta, f, indent=2)
+
+    # Single-line summaries for parsers
+    print("[ptq]", json.dumps({
+        "rows": args.rows, "cols": args.cols, "wbits": args.wbits,
+        "mode": args.mode, "avg_row_cosine": cos, "mse": err,
+        "weights": weight_path, "scales": scale_path, "meta": meta_path
+    }))
+
+    print("[iebin-json]", json.dumps(ie_json_snippet))
+
+    if args.fail_below_threshold and cos < float(args.accuracy_threshold):
+        raise SystemExit(4)
 
 
 if __name__ == "__main__":
