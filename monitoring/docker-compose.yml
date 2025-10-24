@@ -1,19 +1,22 @@
 version: "3.8"
 services:
+  pushgateway:
+    image: prom/pushgateway:v1.8.0
+    ports: ["9091:9091"]
+    command: ["--web.enable-admin-api"]
   prometheus:
-    image: prom/prometheus:latest
+    image: prom/prometheus:v2.54.1
+    ports: ["9090:9090"]
     volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
-    ports:
-      - "9090:9090"
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    depends_on: [pushgateway]
   grafana:
-    image: grafana/grafana-oss:latest
-    ports:
-      - "3000:3000"
+    image: grafana/grafana:11.2.0
+    ports: ["3000:3000"]
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - ./grafana/dashboards:/var/lib/grafana/dashboards
     environment:
       - GF_SECURITY_ADMIN_USER=admin
       - GF_SECURITY_ADMIN_PASSWORD=admin
-    volumes:
-      - grafana-storage:/var/lib/grafana
-volumes:
-  grafana-storage: {}
+    depends_on: [prometheus]
