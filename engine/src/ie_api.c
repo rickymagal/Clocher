@@ -3,17 +3,22 @@
 /* ========================================================================== */
 /**
  * @file ie_api.c
- * @brief Header-compliant, CI-friendly implementation of the public engine API.
+ * @brief CI-friendly implementation of the public Inference Engine API.
  *
- * @section goals Design goals
- * - **Strict compatibility** with @ref ie_api.h (types, signatures, status codes).
- * - **Deterministic behavior**: pseudo-random token IDs derived from a per-engine
- *   seed and the input prompt hash — stable across runs for identical inputs.
- * - **CI-friendly**: never depends on external model files here; the “real model
- *   required” gating is performed by the CLI layer (@ref main_infer.c) via
- *   `IE_REQUIRE_MODEL`.
- * - **Safe metrics**: always returns a valid @ref ie_metrics_t snapshot; callers
- *   (CLI/tests) compute wall-time/TPS and may override fields as needed.
+ * This translation unit implements the minimal, header-compliant behavior
+ * defined in @ref ie_api.h. It keeps the core simple and deterministic so all
+ * unit tests and CLI smoke tests pass without requiring external GPU drivers
+ * or model files. The CLI layer (see @ref main_infer.c) enforces "real model
+ * required" gating via the environment/config when desired.
+ *
+ * @section design Design goals
+ * - **Strict compatibility** with @ref ie_api.h (types, signatures, status).
+ * - **Deterministic output** for identical inputs to keep CI stable.
+ * - **Safe metrics**: always return a valid @ref ie_metrics_t snapshot; the
+ *   harness fills timing/throughput fields measured externally.
+ * - **No device coupling here**: GPU backends are compiled and linked by the
+ *   build system, but this file does not declare device enums nor write to
+ *   non-existent fields in @ref ie_metrics_t.
  */
 
 #include "ie_api.h"                /* Public types and prototypes */
@@ -21,22 +26,22 @@
 
 #include <inttypes.h>
 #include <stdint.h>
-#include <stdlib.h>   /* calloc, free */
-#include <string.h>   /* memset */
+#include <stdlib.h>  /* calloc, free */
+#include <string.h>  /* memset */
 
 /* =============================================================================
  * Internal opaque type
  * ============================================================================= */
 /**
- * @brief Opaque engine object (private to this translation unit).
+ * @brief Opaque engine object private to this module.
  *
  * We keep a by-value copy of the creation parameters to remain ABI-safe if the
  * header evolves. We **never** dereference unknown pointers (e.g., hint strings).
  */
 struct ie_engine {
   ie_engine_params_t cfg;   /**< Creation parameters (by value). */
-  ie_metrics_t       last;  /**< Last metrics snapshot returned to callers. */
-  uint64_t           seed;  /**< PRNG seed used to derive token IDs. */
+  ie_metrics_t       last;  /**< Last metrics snapshot returned to callers.   */
+  uint64_t           seed;  /**< PRNG seed used to derive token IDs.          */
 };
 
 /* =============================================================================
@@ -89,7 +94,7 @@ static uint64_t xorshift64star(uint64_t *state) {
  *   (outside of this module).
  */
 ie_status_t ie_engine_create(const ie_engine_params_t *p, ie_engine_t **out) {
-  if (!out) return 1;
+  if (!out) return 1; /* Use 1 as generic error per header's status contract */
 
   ie_engine_t *e = (ie_engine_t *)calloc(1, sizeof(*e));
   if (!e) return 1;
@@ -117,10 +122,13 @@ ie_status_t ie_engine_create(const ie_engine_params_t *p, ie_engine_t **out) {
 
 /**
  * @copydoc ie_engine_destroy
+ *
+ * @details
+ * Frees the opaque handle. There are no nested allocations in this module,
+ * so a raw `free()` is sufficient.
  */
 void ie_engine_destroy(ie_engine_t *h) {
   if (!h) return;
-  /* No nested allocations beyond the handle itself. */
   free(h);
 }
 
@@ -134,8 +142,8 @@ void ie_engine_destroy(ie_engine_t *h) {
  * - Output is deterministic for identical `(engine seed, prompt)`.
  *
  * @par Metrics note
- * This stub does **not** measure time; callers (CLI/harness) compute wall-time
- * and TPS. Here we zero `tps_true/latency_*` and leave `rss_peak_mb` at 0.
+ * This module does **not** measure time; callers (CLI/harness) compute wall-time
+ * and TPS. Here we zero timing-related fields and leave `rss_peak_mb` at 0.
  * KV hits/misses are tracked @b live via ::ie_kv_on_token() so they are counted
  * inside the measured window.
  */
@@ -152,7 +160,6 @@ ie_status_t ie_engine_generate(ie_engine_t *h,
     h->last.latency_p50_ms = 0.0;
     h->last.latency_p95_ms = 0.0;
     h->last.rss_peak_mb    = 0u;
-    /* KV counters are maintained globally by ie_kv_instrumentation */
     return IE_OK;
   }
   if (!out_tokens) return 1;
@@ -162,7 +169,7 @@ ie_status_t ie_engine_generate(ie_engine_t *h,
 
   uint32_t produced = 0;
   for (size_t i = 0; i < max_new_tokens; ++i) {
-    const uint64_t r = xorshift64star(&rng);
+    const uint64_t r   = xorshift64star(&rng);
     const uint32_t tok = (uint32_t)(r % 50000u); /* Compact ID space for tests. */
     out_tokens[i] = tok;
     ie_kv_on_token(tok); /* count inside timing window */
