@@ -1,13 +1,11 @@
 var searchData=
 [
-  ['g_5fkv_0',['g_kv',['../ie__kv__instrumentation_8c.html#a37cc7552afd879b87e4dba0dfdcc607d',1,'ie_kv_instrumentation.c']]],
-  ['g_5fkv_5fhits_1',['g_kv_hits',['../util__metrics_8c.html#a2304e4230799c4132478704188bc8877',1,'util_metrics.c']]],
-  ['g_5fkv_5fmiss_2',['g_kv_miss',['../util__metrics_8c.html#a115dd2ed1a4c4c9987ad4c3b1e7ed6fa',1,'util_metrics.c']]],
-  ['g_5flog_5flevel_3',['g_log_level',['../util__logging_8c.html#ab80060ad0a06923e07f013630c67e2b1',1,'util_logging.c']]],
-  ['gemv_5favx2_2ec_4',['gemv_avx2.c',['../gemv__avx2_8c.html',1,'']]],
-  ['gemv_5ff32_5',['gemv_f32',['../structie__device__vtbl.html#af53f74e97e8a3331b3c9edd24a64e668',1,'ie_device_vtbl']]],
-  ['gemv_5fgeneric_2ec_6',['gemv_generic.c',['../gemv__generic_8c.html',1,'']]],
-  ['gemv_5fgeneric_5fimpl_7',['gemv_generic_impl',['../gemv__generic_8c.html#a51096a373f5e5010d39cbf44e34b730d',1,'gemv_generic.c']]],
-  ['goals_8',['Design Goals',['../weights_8c.html#autotoc_md3',1,'']]],
-  ['goals_9',['goals',['../ie__api_8c.html#goals',1,'Design goals'],['../tokenizer_8c.html#autotoc_md2',1,'Design goals']]]
+  ['end_0',['end',['../structie__task__arg__t.html#a68e089a47b157f9398b8059269d6b95d',1,'ie_task_arg_t']]],
+  ['enqueue_5fitem_1',['enqueue_item',['../ie__batcher_8c.html#a9475e6883ae67815581f9573b97d2148',1,'ie_batcher.c']]],
+  ['ensure_5fmodule_5fready_2',['ensure_module_ready',['../ie__kernel__ze_8cpp.html#a46e8c280257654db04216d6acbefa0af',1,'ie_kernel_ze.cpp']]],
+  ['ensure_5fze_5fready_3',['ensure_ze_ready',['../ie__kernel__ze_8cpp.html#a88fa59032491ae8cb4c70d153fef5bb0',1,'ie_kernel_ze.cpp']]],
+  ['env_5flong_4',['env_long',['../main__infer_8c.html#a9675b1f5b8b73e24233f92cb11e31f6a',1,'main_infer.c']]],
+  ['env_5fsize_5',['env_size',['../ie__kv__instrumentation_8c.html#a886abd7a4ad752897b4469e29cc344e3',1,'ie_kv_instrumentation.c']]],
+  ['error_20model_6',['Error model',['../ie__kernels__cuda_8h.html#autotoc_md4',1,'Error model'],['..//home/ricky/Desktop/Clocher/engine/src/kernels/ze/ie_kernel_ze.cpp#autotoc_md16',1,'Error model']]],
+  ['example_7',['Example',['../index.html#autotoc_md28',1,'']]]
 ];

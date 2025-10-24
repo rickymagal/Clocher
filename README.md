@@ -228,3 +228,59 @@ All C functions (public and internal TUs) are documented with Doxygen-style comm
 - **Stable JSON output:** ensure exact field formatting used by the test harness (e.g., `"tokens_generated": 0` with a space after the colon).
 - **Batcher integration:** asynchronous prefetch + tokenization with order guarantees; micro-batch views from a ring buffer.
 - **Bench & perf:** `make bench` uses prompts file and batching; `make perf-report` autodetects FlameGraph tools or accepts `STACKCOLLAPSE`/`FLAMEGRAPH` env overrides.
+
+---
+
+## Updates — 2025-10-24 00:42:21 UTC
+
+### What changed
+- **Benchmarking workflow:** `make bench` (CPU) and `make bench-cuda` (GPU, CUDA-only). Each command updates `docs/PERFORMANCE.md` for its own device using **only the last 3 runs**; the report also keeps a **Best true TPS** banner (best across CPU/GPU to date).
+- **ZE (Level Zero) benchmarking removed** from the default workflow to avoid toolchain friction; GPU bench is **CUDA-only**.
+- **`scripts/update_performance_md.py`**: consolidated report writer that prints the **Run Parameters & Conditions** section (engine path, prompts file, threads, precision, batch, prefetch, pretranspose, affinity, max-new, IE_* knobs). It also surfaces **IE_BYTES_PER_TOKEN**, **IE_STRIDE_BYTES**, **IE_REQUIRE_MODEL**, **IE_VERIFY_TOUCH** when present.
+
+### Quickstart (3 runs, 64 MB / token)
+```bash
+make build
+make build-cuda
+
+# CPU (3 runs; 64 MiB/token)
+IE_BYTES_PER_TOKEN=67108864 RUNS=3 PROMPTS=benchmarks/prompts_10..txt make bench
+
+# GPU (3 runs; 64 MiB/token; CUDA-only)
+IE_BYTES_PER_TOKEN=67108864 RUNS=3 PROMPTS=benchmarks/prompts_10..txt make bench-cuda
+```
+
+### Where things land
+- Performance notes: `docs/PERFORMANCE.md` (auto-updated after each bench)
+- Flamegraph (optional): `flamegraph.svg` via `make profile`
+- API reference (Doxygen): `docs/doxygen/html/index.html`
+
+### Doxygen (C/CUDA/OpenCL)
+1. **Install** (Fedora/Ubuntu examples):
+   ```bash
+   # Fedora
+   sudo dnf install doxygen graphviz
+   # Ubuntu / Debian
+   sudo apt-get update && sudo apt-get install -y doxygen graphviz
+   ```
+2. **Configure** `docs/Doxyfile` (key diffs):
+   ```ini
+   INPUT                  = engine/include engine/src
+   RECURSIVE              = YES
+   FILE_PATTERNS          = *.h *.c *.cpp *.cu *.cl
+   EXTENSION_MAPPING      = cu=C++ cl=C
+   EXTRACT_ALL            = YES
+   EXTRACT_STATIC         = YES
+   SOURCE_BROWSER         = YES
+   WARN_IF_UNDOCUMENTED   = YES
+   GENERATE_LATEX         = NO
+   ```
+3. **Document new code**: every new TU should start with an `@file` block; each function should have `@brief`, `@param`, `@return`. For kernels, prefer a short “contract” section and launch assumptions.
+4. **Generate**:
+   ```bash
+   make docs-doxygen
+   # HTML at: docs/doxygen/html/index.html
+   ```
+
+### Troubleshooting
+- **`make test` → `test_weights` fails**: ensure `models/gpt-oss-20b/model.ie.json` & `model.ie.bin` exist. Temporarily skip with `IE_SKIP_WEIGHTS_TEST=1 make test` while assets are missing.

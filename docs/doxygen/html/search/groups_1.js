@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['utilities_0',['Tensor Utilities',['../group__IE__TENSOR.html',1,'']]]
+  ['cuda_20kernels_20launchers_0',['CUDA kernels &amp; launchers',['../group__IE__GPU.html',1,'']]]
 ];

@@ -1,13 +1,12 @@
 var searchData=
 [
-  ['h_5fcuda_0',['h_cuda',['../structcuda__impl.html#a7a17f68ddd44ad2253b3c0b70a53e4e6',1,'cuda_impl']]],
-  ['h_5fze_1',['h_ze',['../structze__impl.html#a60b05ff0fe4754563c9ca58df405adcc',1,'ze_impl']]],
-  ['harness_2',['Clocher — CPU LLM Inference Baseline (C11 core + Python stdlib harness)',['../index.html',1,'']]],
-  ['has_5fgemv_5ff32_3',['has_gemv_f32',['../structie__device__caps.html#a5ec80f9e6c45476f63cfb02e14b76996',1,'ie_device_caps']]],
-  ['has_5fmem_5fcopy_4',['has_mem_copy',['../structie__device__caps.html#a895a919343ce237ea1c3e4231e5c4ca2',1,'ie_device_caps']]],
-  ['has_5fstreams_5',['has_streams',['../structie__device__caps.html#acb89cfdb7c21e1b60d51e45d4faf39a7',1,'ie_device_caps']]],
-  ['head_6',['head',['../structie__kv__state__t.html#ab8bc75960c3a8b68d1e7d519222a423e',1,'ie_kv_state_t']]],
-  ['high_20level_7',['API surface (high level)',['../md_docs_2DESIGN.html#autotoc_md38',1,'']]],
-  ['hits_8',['hits',['../structie__kv__state__t.html#a25296c199f82f3f7ccde330a649d58d8',1,'ie_kv_state_t']]],
-  ['hot_20path_20layout_9',['Hot path layout',['../md_docs_2DESIGN.html#autotoc_md39',1,'']]]
+  ['fast_5ftanh_2ec_0',['fast_tanh.c',['../fast__tanh_8c.html',1,'']]],
+  ['features_1',['Features',['../index.html#autotoc_md19',1,'']]],
+  ['flags_2',['Notable flags',['../index.html#autotoc_md30',1,'']]],
+  ['flamegraphs_20linux_3',['Profiling &amp; flamegraphs (Linux)',['../index.html#autotoc_md34',1,'']]],
+  ['floatx_2ec_4',['floatx.c',['../floatx_8c.html',1,'']]],
+  ['fma_5',['fma',['../structie__cpu__features__t.html#ab186c528f9355396127156bf6e6ab099',1,'ie_cpu_features_t']]],
+  ['fnv1a32_6',['fnv1a32',['../ie__api_8c.html#aee4ab6bebc1781cfbfe821e0e89d8823',1,'ie_api.c']]],
+  ['fnv1a_5f32_7',['fnv1a_32',['../tokenizer_8c.html#ab65f36294d9d8ee9d8b027673b01de30',1,'tokenizer.c']]],
+  ['for_8',['for',['../ie__kernels__ze_8cl.html#af9d091f76ee32433ba4b7a33e2e38ab5',1,'for(int k=lr;k&lt; cols;k+=256):&#160;ie_kernels_ze.cl'],['../ie__kernels__ze_8cl.html#a7761b4b705dd138cfe1b7b0e69992334',1,'for(int s=256 &gt; &gt; 1;s &gt; 0;s &gt; &gt;=1):&#160;ie_kernels_ze.cl']]]
 ];

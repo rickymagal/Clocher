@@ -1,8 +1,4 @@
 var searchData=
 [
-  ['ze_5fcaps_5fc_0',['ze_caps_c',['../ie__device__common_8c.html#a324768d76bae88d6bb688d5598d1223a',1,'ie_device_common.c']]],
-  ['ze_5fdestroy_5fc_1',['ze_destroy_c',['../ie__device__common_8c.html#a94018036cde4e553d082aad200a3c4ff',1,'ie_device_common.c']]],
-  ['ze_5fgemv_5fc_2',['ze_gemv_c',['../ie__device__common_8c.html#a57f5ec5d8bd44ff5f04b6f581a33dfde',1,'ie_device_common.c']]],
-  ['ze_5fmemcpy_5fc_3',['ze_memcpy_c',['../ie__device__common_8c.html#a0e34398da92bf6645c6ee75e561ca526',1,'ie_device_common.c']]],
-  ['ze_5ftry_5fcreate_4',['ze_try_create',['../ie__device__common_8c.html#a6877d362577444879b41090af23950d6',1,'ie_device_common.c']]]
+  ['vec_5ftanh_5ff32_0',['vec_tanh_f32',['../ie__kernels__ze_8cl.html#a2261b0a1b8943ff014f3796d4d10d454',1,'ie_kernels_ze.cl']]]
 ];

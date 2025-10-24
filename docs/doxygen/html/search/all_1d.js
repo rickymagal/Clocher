@@ -1,6 +1,7 @@
 var searchData=
 [
-  ['—_202025_2010_2017_0',['— 2025 10 17',['../index.html#autotoc_md35',1,'Updates — 2025-10-17'],['../md_docs_2DESIGN.html#autotoc_md45',1,'Updates — 2025-10-17'],['../md_docs_2adr-00060-optimization-path.html#autotoc_md54',1,'Updates — 2025-10-17'],['../md_docs_2DECISIONS.html#autotoc_md56',1,'Updates — 2025-10-17']]],
-  ['—_20cpu_20llm_20inference_20baseline_20c11_20core_20python_20stdlib_20harness_1',['Clocher — CPU LLM Inference Baseline (C11 core + Python stdlib harness)',['../index.html',1,'']]],
-  ['—_20optimization_20path_20selection_20cpu_20baseline_2',['ADR-0006 — Optimization path selection (CPU baseline)',['../md_docs_2adr-00060-optimization-path.html',1,'']]]
+  ['x_0',['x',['../ie__kernels__ze_8cl.html#ad48b386850d1d2a5a51515ad676993a0',1,'ie_kernels_ze.cl']]],
+  ['xcalloc_1',['xcalloc',['../ie__batcher_8c.html#a981c4f4b5894b549eb0b2f0358810c67',1,'ie_batcher.c']]],
+  ['xgetbv_5fxcr0_2',['xgetbv_xcr0',['../cpu__features_8c.html#a5ec481b22364387e65264e28e0f81bf7',1,'cpu_features.c']]],
+  ['xorshift64star_3',['xorshift64star',['../ie__api_8c.html#a22d32f0b2752f3aa310c127054b03e22',1,'ie_api.c']]]
 ];

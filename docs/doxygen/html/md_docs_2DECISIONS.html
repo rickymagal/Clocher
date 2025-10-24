@@ -100,7 +100,7 @@ $(function(){initNavTree('md_docs_2DECISIONS.html',''); initResizable(true); });
   <div class="headertitle"><div class="title">Architectural Decision Records</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md55"></a></p>
+<div class="textblock"><p><a class="anchor" id="autotoc_md82"></a></p>
 <ul>
 <li><b>ADR-0001 (2025-10-13)</b>: Core in C11, zero third-party runtime; Python stdlib harness.</li>
 <li><b>ADR-0002 (2025-10-13)</b>: IEBIN v1 weights: <code>model.ie.json</code> + <code>model.ie.bin</code> + <code>vocab.json</code> (mmap-friendly).</li>
@@ -108,13 +108,20 @@ $(function(){initNavTree('md_docs_2DECISIONS.html',''); initResizable(true); });
 <li><b>ADR-0006 (2025-10-14)</b>: Optimization path selection (CPU baseline) — AVX2 microkernels, thread-pool with affinity, fast math, layout packing. See <code><a class="el" href="adr-00060-optimization-path_8md.html">adr-00060-optimization-path.md</a></code>.</li>
 <li><b>ADR-0010 (2025-10-16)</b>: INT8 PTQ min-max (per-tensor/per-row) with calibration script and accuracy budget gate (cosine ≥ threshold). </li>
 </ul>
-<h1><a class="anchor" id="autotoc_md56"></a>
+<h1><a class="anchor" id="autotoc_md83"></a>
 Updates — 2025-10-17</h1>
 <ul>
 <li><b>Adopted CLI batching/prefetch/warmup:</b> opted for simple on/off/auto prefetch policy and numeric <code>--batch</code> for micro-batching.</li>
 <li><b>Preserve input order in batcher:</b> required by tests and determinism; implemented ring index discipline.</li>
 <li><b>JSON formatting stability:</b> kept strict spacing for <code>"tokens_generated": N</code> to match tests.</li>
-<li><b>Perf tooling detection:</b> <code>make perf-report</code> now accepts environment hints (<code>STACKCOLLAPSE</code>, <code>FLAMEGRAPH</code>) and emits actionable guidance if tools are missing. </li>
+<li><b>Perf tooling detection:</b> <code>make perf-report</code> now accepts environment hints (<code>STACKCOLLAPSE</code>, <code>FLAMEGRAPH</code>) and emits actionable guidance if tools are missing.</li>
+</ul>
+<hr  />
+<h1><a class="anchor" id="autotoc_md85"></a>
+Updates — 2025-10-24 00:42:21 UTC</h1>
+<ul>
+<li><b>ADR-0011:</b> Drop Level Zero from default benchmarking; <b>GPU bench is CUDA-only</b>. Level Zero support can remain in-tree behind its own build flag but is <b>not</b> exercised by the standard workflow.</li>
+<li><b>ADR-0012:</b> Consolidate performance reporting: <b>update only the last 3 runs per device</b> (CPU/GPU) and keep a single <code>docs/PERFORMANCE.md</code> with a <b>Best true TPS</b> banner across devices. </li>
 </ul>
 </div></div><!-- contents -->
 </div><!-- PageDoc -->

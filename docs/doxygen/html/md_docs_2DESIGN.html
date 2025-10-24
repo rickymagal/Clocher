@@ -100,15 +100,15 @@ $(function(){initNavTree('md_docs_2DESIGN.html',''); initResizable(true); });
   <div class="headertitle"><div class="title">Design (CPU baseline)</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md36"></a></p>
-<h1><a class="anchor" id="autotoc_md37"></a>
+<div class="textblock"><p><a class="anchor" id="autotoc_md56"></a></p>
+<h1><a class="anchor" id="autotoc_md57"></a>
 Process and boundaries</h1>
 <ul>
 <li>Single binary <code>inference-engine</code>: create → generate → collect metrics → destroy.</li>
 <li>CLI prints exactly one JSON line per run so the Python harness can ingest results.</li>
 <li>No third-party runtime dependencies; only <code>pthread</code> and <code>libm</code>.</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md38"></a>
+<h1><a class="anchor" id="autotoc_md58"></a>
 API surface (high level)</h1>
 <ul>
 <li><code>ie_engine_create(cfg)</code> → initializes state (weights, buffers, thread-pool).</li>
@@ -116,7 +116,7 @@ API surface (high level)</h1>
 <li><code>ie_engine_get_metrics()</code> → returns p50/p95, TPS, RSS peak, KV hits/misses.</li>
 <li><code><a class="el" href="ie__api_8h.html#a8a724f7097b3e19da8d7dd97fba4415e" title="Destroy an engine and free its resources.">ie_engine_destroy()</a></code> → frees all resources.</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md39"></a>
+<h1><a class="anchor" id="autotoc_md59"></a>
 Hot path layout</h1>
 <ul>
 <li>GEMV microkernel:<ul>
@@ -135,7 +135,7 @@ Hot path layout</h1>
 </ul>
 </li>
 </ul>
-<h1><a class="anchor" id="autotoc_md40"></a>
+<h1><a class="anchor" id="autotoc_md60"></a>
 Threading model</h1>
 <ul>
 <li>Fixed thread-pool over <code>pthread</code>, contiguous sharding, grainsize control.</li>
@@ -146,36 +146,36 @@ Threading model</h1>
 </ul>
 </li>
 </ul>
-<h1><a class="anchor" id="autotoc_md41"></a>
+<h1><a class="anchor" id="autotoc_md61"></a>
 Layout and caching</h1>
 <ul>
 <li>Blocked-K packing with optional on-disk caching (content-addressed by shape + block size).</li>
 <li>CLI flag <code>--pretranspose</code> controls packing scope (<code>none|woh|wxh|all</code>).</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md42"></a>
+<h1><a class="anchor" id="autotoc_md62"></a>
 Metrics</h1>
 <ul>
 <li>Per-token latency ring (p50/p95).</li>
 <li>True TPS (<code>generated_tokens / wall_time_s</code>).</li>
 <li>Optional RSS peak, KV hits/misses counter stubs.</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md43"></a>
+<h1><a class="anchor" id="autotoc_md63"></a>
 Testing strategy</h1>
 <ul>
 <li>C unit tests for tensor ops, kernels, math, thread-pool, tokenizer, weights, quant.</li>
 <li>Python tests for CLI, harness, metrics integrity, PTQ pipeline.</li>
 <li>Microbenchmarks for GEMV and math kernels.</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md44"></a>
+<h1><a class="anchor" id="autotoc_md64"></a>
 Tooling</h1>
 <ul>
 <li>Makefile orchestrates build, test, bench, profile, docs.</li>
 <li>Doxygen for C API reference.</li>
 <li><code>perf + FlameGraph</code> → <code>flamegraph.svg</code> and <code>PERFORMANCE.md</code>. </li>
 </ul>
-<h1><a class="anchor" id="autotoc_md45"></a>
+<h1><a class="anchor" id="autotoc_md65"></a>
 Updates — 2025-10-17</h1>
-<h2><a class="anchor" id="autotoc_md46"></a>
+<h2><a class="anchor" id="autotoc_md66"></a>
 I/O Batching and Prefetch</h2>
 <ul>
 <li>Introduced a multi-worker <b>prefetch + tokenization batcher</b> feeding a ring buffer.</li>
@@ -183,12 +183,39 @@ I/O Batching and Prefetch</h2>
 <li><b>Backpressure:</b> producer blocks when the ring is full; consumer signals on advance; micro-batch size is tunable.</li>
 <li><b>Failure semantics:</b> tokenization status is carried per item; consumers free payloads on advance.</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md47"></a>
+<h2><a class="anchor" id="autotoc_md67"></a>
 CLI &amp; Pipeline Integration</h2>
 <ul>
 <li>New CLI knobs: <code>--prompts-file</code>, <code>--batch</code>, <code>--prefetch</code>, <code>--warmup</code>.</li>
 <li>Warmup performs a small generation before timed runs to stabilize caches.</li>
-<li>JSON output is a single stable line for automation with predictable field names and spacing. </li>
+<li>JSON output is a single stable line for automation with predictable field names and spacing.</li>
+</ul>
+<hr  />
+<h1><a class="anchor" id="autotoc_md69"></a>
+GPU integration &amp; performance reporting — 2025-10-24 00:42:21 UTC</h1>
+<h2><a class="anchor" id="autotoc_md70"></a>
+CUDA-only GPU path</h2>
+<ul>
+<li>Device layer: <code><a class="el" href="ie__device__cuda_8cu.html" title="CUDA backend implementation: device availability + FP32 GEMV kernel.">engine/src/devices/ie_device_cuda.cu</a></code> with kernels in <code><a class="el" href="ie__kernels__cuda_8cu.html" title="CUDA implementations of GEMV/activation/packing kernels + C-ABI launchers.">engine/src/kernels/ie_kernels_cuda.cu</a></code>.</li>
+<li>Build: <code>make build-cuda</code> → <code>build/inference-engine.cuda</code>. CPU build remains <code>build/inference-engine</code>.</li>
+<li>Runtime selection: the benchmark harness sets <code>DEVICE=cuda</code> for GPU runs; CPU runs leave device unset (<code>cpu</code>).</li>
+</ul>
+<h2><a class="anchor" id="autotoc_md71"></a>
+Reporting pipeline (last-3 policy)</h2>
+<ul>
+<li>The CLI still emits <b>one JSON line per run</b> with stable fields.</li>
+<li><code>scripts/update_performance_md.py</code> merges the <b>last 3 runs per device</b> (CPU and GPU) into one <code>docs/PERFORMANCE.md</code>:<ul>
+<li>Per-device <b>Summary</b>, <b>Latency</b>, and <b>Spatial Complexity</b>.</li>
+<li><b>Run Parameters &amp; Conditions</b> reproduced from the environment (engine path, threads, precision, batch, prefetch, pretranspose, affinity, max-new, and the <b>IE_* knobs</b>).</li>
+<li>A <b>Best true TPS</b> banner showing the overall best across devices.</li>
+</ul>
+</li>
+</ul>
+<h2><a class="anchor" id="autotoc_md72"></a>
+Doxygen coverage</h2>
+<ul>
+<li>Treat <code>.cu</code> as C++ and <code>.cl</code> as C via <code>EXTENSION_MAPPING</code> so cross-references work.</li>
+<li>Keep function contracts short and specific; avoid duplicating host-side comments inside kernels. </li>
 </ul>
 </div></div><!-- contents -->
 </div><!-- PageDoc -->

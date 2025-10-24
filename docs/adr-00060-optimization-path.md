@@ -31,3 +31,8 @@ We need deterministic, portable, zero-dependency CPU performance. Upstream runti
 - **Prefetch policy:** `auto` maps to enabled when `--prompts-file` is provided; otherwise conservative for single-prompt runs.
 - **Profiling workflow:** `make perf-report` records with `perf` and renders with FlameGraph; supports `ROUNDS`, `MAX_NEW`, `FREQ`, and `CALLGRAPH` envs.
 - **Limits observed:** if `perf.data` is empty, increase `ROUNDS/MAX_NEW/FREQ` or adjust kernel `perf_event_paranoid`.
+
+---
+
+## Updates — 2025-10-24 00:42:21 UTC
+This ADR remains **CPU-focused**. GPU benchmarking is tracked separately (see ADR-0011) and does not change the baseline CPU optimization path (AVX2 kernels, pthreads pool, blocked-K packing).

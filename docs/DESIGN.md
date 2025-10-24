@@ -59,3 +59,23 @@
 - New CLI knobs: `--prompts-file`, `--batch`, `--prefetch`, `--warmup`.
 - Warmup performs a small generation before timed runs to stabilize caches.
 - JSON output is a single stable line for automation with predictable field names and spacing.
+
+---
+
+## GPU integration & performance reporting — 2025-10-24 00:42:21 UTC
+
+### CUDA-only GPU path
+- Device layer: `engine/src/devices/ie_device_cuda.cu` with kernels in `engine/src/kernels/ie_kernels_cuda.cu`.
+- Build: `make build-cuda` → `build/inference-engine.cuda`. CPU build remains `build/inference-engine`.
+- Runtime selection: the benchmark harness sets `DEVICE=cuda` for GPU runs; CPU runs leave device unset (`cpu`).
+
+### Reporting pipeline (last-3 policy)
+- The CLI still emits **one JSON line per run** with stable fields.
+- `scripts/update_performance_md.py` merges the **last 3 runs per device** (CPU and GPU) into one `docs/PERFORMANCE.md`:
+  - Per-device **Summary**, **Latency**, and **Spatial Complexity**.
+  - **Run Parameters & Conditions** reproduced from the environment (engine path, threads, precision, batch, prefetch, pretranspose, affinity, max-new, and the **IE_* knobs**).
+  - A **Best true TPS** banner showing the overall best across devices.
+
+### Doxygen coverage
+- Treat `.cu` as C++ and `.cl` as C via `EXTENSION_MAPPING` so cross-references work.
+- Keep function contracts short and specific; avoid duplicating host-side comments inside kernels.

@@ -11,3 +11,10 @@
 - **Preserve input order in batcher:** required by tests and determinism; implemented ring index discipline.
 - **JSON formatting stability:** kept strict spacing for `"tokens_generated": N` to match tests.
 - **Perf tooling detection:** `make perf-report` now accepts environment hints (`STACKCOLLAPSE`, `FLAMEGRAPH`) and emits actionable guidance if tools are missing.
+
+---
+
+## Updates — 2025-10-24 00:42:21 UTC
+
+- **ADR-0011:** Drop Level Zero from default benchmarking; **GPU bench is CUDA-only**. Level Zero support can remain in-tree behind its own build flag but is **not** exercised by the standard workflow.
+- **ADR-0012:** Consolidate performance reporting: **update only the last 3 runs per device** (CPU/GPU) and keep a single `docs/PERFORMANCE.md` with a **Best true TPS** banner across devices.

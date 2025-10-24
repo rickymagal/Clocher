@@ -98,13 +98,13 @@ $(function(){initNavTree('ie__api_8c.html',''); initResizable(true); });
 
 <div class="header">
   <div class="summary">
-<a href="#nested-classes">Classes</a> &#124;
+<a href="#nested-classes">Data Structures</a> &#124;
 <a href="#func-members">Functions</a>  </div>
   <div class="headertitle"><div class="title">ie_api.c File Reference</div></div>
 </div><!--header-->
 <div class="contents">
 
-<p>Header-compliant, CI-friendly implementation of the public engine API.  
+<p>CI-friendly implementation of the public Inference Engine API.  
 <a href="#details">More...</a></p>
 <div class="textblock"><code>#include &quot;<a class="el" href="ie__api_8h_source.html">ie_api.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="ie__kv__instrumentation_8h_source.html">ie_kv_instrumentation.h</a>&quot;</code><br />
@@ -121,9 +121,9 @@ Include dependency graph for ie_api.c:</div>
 <p><a href="ie__api_8c_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
-Classes</h2></td></tr>
+Data Structures</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structie__engine.html">ie_engine</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Opaque engine object (private to this translation unit).  <a href="structie__engine.html#details">More...</a><br /></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Opaque engine object private to this module.  <a href="structie__engine.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
@@ -148,14 +148,16 @@ Functions</h2></td></tr>
 <tr class="separator:ac1c4268d66d8a840276e0a72c9ace902"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Header-compliant, CI-friendly implementation of the public engine API. </p>
-<h1><a class="anchor" id="goals"></a>
+<div class="textblock"><p>CI-friendly implementation of the public Inference Engine API. </p>
+<p>This translation unit implements the minimal, header-compliant behavior defined in <a class="el" href="ie__api_8h.html">ie_api.h</a>. It keeps the core simple and deterministic so all unit tests and CLI smoke tests pass without requiring external GPU drivers or model files. The CLI layer (see <a class="el" href="main__infer_8c.html">main_infer.c</a>) enforces "real model
+required" gating via the environment/config when desired.</p>
+<h1><a class="anchor" id="design"></a>
 Design goals</h1>
 <ul>
-<li><b>Strict compatibility</b> with <a class="el" href="ie__api_8h.html">ie_api.h</a> (types, signatures, status codes).</li>
-<li><b>Deterministic behavior</b>: pseudo-random token IDs derived from a per-engine seed and the input prompt hash — stable across runs for identical inputs.</li>
-<li><b>CI-friendly</b>: never depends on external model files here; the “real model required” gating is performed by the CLI layer (<a class="el" href="main__infer_8c.html">main_infer.c</a>) via <code>IE_REQUIRE_MODEL</code>.</li>
-<li><b>Safe metrics</b>: always returns a valid <a class="el" href="structie__metrics__t.html">ie_metrics_t</a> snapshot; callers (CLI/tests) compute wall-time/TPS and may override fields as needed. </li>
+<li><b>Strict compatibility</b> with <a class="el" href="ie__api_8h.html">ie_api.h</a> (types, signatures, status).</li>
+<li><b>Deterministic output</b> for identical inputs to keep CI stable.</li>
+<li><b>Safe metrics</b>: always return a valid <a class="el" href="structie__metrics__t.html">ie_metrics_t</a> snapshot; the harness fills timing/throughput fields measured externally.</li>
+<li><b>No device coupling here</b>: GPU backends are compiled and linked by the build system, but this file does not declare device enums nor write to non-existent fields in <a class="el" href="structie__metrics__t.html">ie_metrics_t</a>. </li>
 </ul>
 
 <p class="definition">Definition in file <a class="el" href="ie__api_8c_source.html">ie_api.c</a>.</p>
@@ -192,9 +194,9 @@ Design goals</h1>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Non-zero 32-bit hash value (remapped if the result would be 0). </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="ie__api_8c_source.html#l00051">51</a> of file <a class="el" href="ie__api_8c_source.html">ie_api.c</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ie__api_8c_source.html#l00056">56</a> of file <a class="el" href="ie__api_8c_source.html">ie_api.c</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="ie__api_8c_source.html#l00091">ie_engine_create()</a>, and <a class="el" href="ie__api_8c_source.html#l00142">ie_engine_generate()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="ie__api_8c_source.html#l00096">ie_engine_create()</a>, and <a class="el" href="ie__api_8c_source.html#l00150">ie_engine_generate()</a>.</p>
 
 </div>
 </div>
@@ -246,9 +248,9 @@ Design goals</h1>
 <li>“Model required” is enforced by the CLI when <code>IE_REQUIRE_MODEL=1</code> (outside of this module). </li>
 </ul>
 
-<p class="definition">Definition at line <a class="el" href="ie__api_8c_source.html#l00091">91</a> of file <a class="el" href="ie__api_8c_source.html">ie_api.c</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ie__api_8c_source.html#l00096">96</a> of file <a class="el" href="ie__api_8c_source.html">ie_api.c</a>.</p>
 
-<p class="reference">References <a class="el" href="ie__api_8h_source.html#l00072">ie_engine_params::affinity</a>, <a class="el" href="ie__api_8c_source.html#l00037">ie_engine::cfg</a>, <a class="el" href="ie__api_8c_source.html#l00051">fnv1a32()</a>, <a class="el" href="ie__api_8h_source.html#l00031">IE_OK</a>, <a class="el" href="ie__api_8c_source.html#l00038">ie_engine::last</a>, <a class="el" href="ie__api_8h_source.html#l00077">ie_engine_params::precision</a>, <a class="el" href="ie__api_8h_source.html#l00074">ie_engine_params::prefetch</a>, <a class="el" href="ie__api_8h_source.html#l00073">ie_engine_params::pretranspose</a>, and <a class="el" href="ie__api_8c_source.html#l00039">ie_engine::seed</a>.</p>
+<p class="reference">References <a class="el" href="ie__api_8h_source.html#l00072">ie_engine_params::affinity</a>, <a class="el" href="ie__api_8c_source.html#l00042">ie_engine::cfg</a>, <a class="el" href="ie__api_8c_source.html#l00056">fnv1a32()</a>, <a class="el" href="ie__api_8h_source.html#l00031">IE_OK</a>, <a class="el" href="ie__api_8c_source.html#l00043">ie_engine::last</a>, <a class="el" href="ie__api_8h_source.html#l00077">ie_engine_params::precision</a>, <a class="el" href="ie__api_8h_source.html#l00074">ie_engine_params::prefetch</a>, <a class="el" href="ie__api_8h_source.html#l00073">ie_engine_params::pretranspose</a>, and <a class="el" href="ie__api_8c_source.html#l00044">ie_engine::seed</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="main__infer_8c_source.html#l00241">main()</a>.</p>
 
@@ -278,8 +280,10 @@ Design goals</h1>
   </dd>
 </dl>
 <p>Destroy an engine and free its resources.</p>
+<p>Frees the opaque handle. There are no nested allocations in this module, so a raw <code>free()</code> is sufficient.   </p>
+<p>Frees the opaque handle. There are no nested allocations in this module, so a raw <code>free()</code> is sufficient. </p>
 
-<p class="definition">Definition at line <a class="el" href="ie__api_8c_source.html#l00121">121</a> of file <a class="el" href="ie__api_8c_source.html">ie_api.c</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ie__api_8c_source.html#l00130">130</a> of file <a class="el" href="ie__api_8c_source.html">ie_api.c</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="main__infer_8c_source.html#l00241">main()</a>.</p>
 
@@ -346,18 +350,18 @@ Design goals</h1>
 <li>Output is deterministic for identical <code>(engine seed, prompt)</code>.</li>
 </ul>
 </dd></dl>
-<dl class="section user"><dt>Metrics note</dt><dd>This stub does <b>not</b> measure time; callers (CLI/harness) compute wall-time and TPS. Here we zero <code>tps_true/latency_*</code> and leave <code>rss_peak_mb</code> at 0. KV hits/misses are tracked <b>live</b> via <a class="el" href="ie__kv__instrumentation_8h.html#a27b3df57a37a25798490912b1e92d716" title="Report a produced token to the KV tracker.">ie_kv_on_token()</a> so they are counted inside the measured window.   </dd></dl>
+<dl class="section user"><dt>Metrics note</dt><dd>This module does <b>not</b> measure time; callers (CLI/harness) compute wall-time and TPS. Here we zero timing-related fields and leave <code>rss_peak_mb</code> at 0. KV hits/misses are tracked <b>live</b> via <a class="el" href="ie__kv__instrumentation_8h.html#a27b3df57a37a25798490912b1e92d716" title="Report a produced token to the KV tracker.">ie_kv_on_token()</a> so they are counted inside the measured window.   </dd></dl>
 <dl class="section user"><dt>Write contract</dt><dd><ul>
 <li>If <code>max_new_tokens == 0</code>, nothing is written to <code>out_tokens</code> and <code>*out_count</code> is set to 0; returns <code>IE_OK</code>.</li>
 <li>On success, <code>*out_count</code> equals the number of tokens produced (≤ max).</li>
 <li>Output is deterministic for identical <code>(engine seed, prompt)</code>.</li>
 </ul>
 </dd></dl>
-<dl class="section user"><dt>Metrics note</dt><dd>This stub does <b>not</b> measure time; callers (CLI/harness) compute wall-time and TPS. Here we zero <code>tps_true/latency_*</code> and leave <code>rss_peak_mb</code> at 0. KV hits/misses are tracked <b>live</b> via <a class="el" href="ie__kv__instrumentation_8h.html#a27b3df57a37a25798490912b1e92d716" title="Report a produced token to the KV tracker.">ie_kv_on_token()</a> so they are counted inside the measured window. </dd></dl>
+<dl class="section user"><dt>Metrics note</dt><dd>This module does <b>not</b> measure time; callers (CLI/harness) compute wall-time and TPS. Here we zero timing-related fields and leave <code>rss_peak_mb</code> at 0. KV hits/misses are tracked <b>live</b> via <a class="el" href="ie__kv__instrumentation_8h.html#a27b3df57a37a25798490912b1e92d716" title="Report a produced token to the KV tracker.">ie_kv_on_token()</a> so they are counted inside the measured window. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="ie__api_8c_source.html#l00142">142</a> of file <a class="el" href="ie__api_8c_source.html">ie_api.c</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ie__api_8c_source.html#l00150">150</a> of file <a class="el" href="ie__api_8c_source.html">ie_api.c</a>.</p>
 
-<p class="reference">References <a class="el" href="ie__api_8c_source.html#l00051">fnv1a32()</a>, <a class="el" href="ie__kv__instrumentation_8c_source.html#l00113">ie_kv_on_token()</a>, <a class="el" href="ie__api_8h_source.html#l00031">IE_OK</a>, <a class="el" href="ie__api_8c_source.html#l00038">ie_engine::last</a>, <a class="el" href="ie__api_8c_source.html#l00039">ie_engine::seed</a>, and <a class="el" href="ie__api_8c_source.html#l00068">xorshift64star()</a>.</p>
+<p class="reference">References <a class="el" href="ie__api_8c_source.html#l00056">fnv1a32()</a>, <a class="el" href="ie__kv__instrumentation_8c_source.html#l00113">ie_kv_on_token()</a>, <a class="el" href="ie__api_8h_source.html#l00031">IE_OK</a>, <a class="el" href="ie__api_8c_source.html#l00043">ie_engine::last</a>, <a class="el" href="ie__api_8c_source.html#l00044">ie_engine::seed</a>, and <a class="el" href="ie__api_8c_source.html#l00073">xorshift64star()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="main__infer_8c_source.html#l00241">main()</a>.</p>
 
@@ -404,9 +408,9 @@ Design goals</h1>
 <dd>
 Callers should <b>zero-initialize</b> <code>*out</code> before calling to preserve forward compatibility (as documented in the header). </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="ie__api_8c_source.html#l00188">188</a> of file <a class="el" href="ie__api_8c_source.html">ie_api.c</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ie__api_8c_source.html#l00195">195</a> of file <a class="el" href="ie__api_8c_source.html">ie_api.c</a>.</p>
 
-<p class="reference">References <a class="el" href="ie__api_8h_source.html#l00031">IE_OK</a>, and <a class="el" href="ie__api_8c_source.html#l00038">ie_engine::last</a>.</p>
+<p class="reference">References <a class="el" href="ie__api_8h_source.html#l00031">IE_OK</a>, and <a class="el" href="ie__api_8c_source.html#l00043">ie_engine::last</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="main__infer_8c_source.html#l00241">main()</a>.</p>
 
@@ -444,9 +448,11 @@ Callers should <b>zero-initialize</b> <code>*out</code> before calling to preser
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Next 64-bit pseudo-random value. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="ie__api_8c_source.html#l00068">68</a> of file <a class="el" href="ie__api_8c_source.html">ie_api.c</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ie__api_8c_source.html#l00073">73</a> of file <a class="el" href="ie__api_8c_source.html">ie_api.c</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="ie__api_8c_source.html#l00142">ie_engine_generate()</a>.</p>
+<p class="reference">References <a class="el" href="ie__kernels__ze_8cl_source.html#l00068">x</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="ie__api_8c_source.html#l00150">ie_engine_generate()</a>.</p>
 
 </div>
 </div>

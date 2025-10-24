@@ -1,19 +1,4 @@
 var searchData=
 [
-  ['clamp_5fsym_5fint8_0',['clamp_sym_int8',['../int8__ptq_8c.html#ab92fcddda0d8b713e806a12f4208ec48',1,'int8_ptq.c']]],
-  ['clamp_5fto_5fpos31_1',['clamp_to_pos31',['../tokenizer_8c.html#a3ca2adb2290e006f09b1fb7f274bd371',1,'tokenizer.c']]],
-  ['clear_5fitem_2',['clear_item',['../ie__batcher_8c.html#a6b929aafa08b7ff2b55984965517f8cc',1,'ie_batcher.c']]],
-  ['cli_5fextras_5fdefaults_3',['cli_extras_defaults',['../main__infer_8c.html#a25c42477bc56f4eb2d2a5c53e4510d70',1,'main_infer.c']]],
-  ['cpu_5fcaps_4',['cpu_caps',['../ie__device__common_8c.html#a49b8c853d1b641c9402ed5e92d8af962',1,'ie_device_common.c']]],
-  ['cpu_5fdestroy_5',['cpu_destroy',['../ie__device__common_8c.html#a94f0164f6cb0f1f874ad9b18194cfbc2',1,'ie_device_common.c']]],
-  ['cpu_5fgemv_5ff32_6',['cpu_gemv_f32',['../ie__device__common_8c.html#a4fb9bb01bfbe71517f9df925ba9c93ec',1,'ie_device_common.c']]],
-  ['cpu_5fmemcpy_7',['cpu_memcpy',['../ie__device__common_8c.html#a4c7a3b8d7f7279d7680aa68e429e6206',1,'ie_device_common.c']]],
-  ['cpu_5fnew_8',['cpu_new',['../ie__device__common_8c.html#a4099e48a20d5155401706f728c99c435',1,'ie_device_common.c']]],
-  ['cpuid_5fex_9',['cpuid_ex',['../cpu__features_8c.html#a6ab0f83647cb70ad0043407f15992363',1,'cpu_features.c']]],
-  ['cpyz_10',['cpyz',['../weights_8c.html#ae3307b59271742c37862abf0b9698d23',1,'weights.c']]],
-  ['cuda_5fcaps_5fc_11',['cuda_caps_c',['../ie__device__common_8c.html#ad556dbc1215b961b5395a7948cd155a8',1,'ie_device_common.c']]],
-  ['cuda_5fdestroy_5fc_12',['cuda_destroy_c',['../ie__device__common_8c.html#ad163f65fc15c9ca98d2ced5bfead8a06',1,'ie_device_common.c']]],
-  ['cuda_5fgemv_5fc_13',['cuda_gemv_c',['../ie__device__common_8c.html#ab170c8ac731059b822713cd35cae51fe',1,'ie_device_common.c']]],
-  ['cuda_5fmemcpy_5fc_14',['cuda_memcpy_c',['../ie__device__common_8c.html#acca54ad8925643337a1bab31bdf4b4f8',1,'ie_device_common.c']]],
-  ['cuda_5ftry_5fcreate_15',['cuda_try_create',['../ie__device__common_8c.html#ae4ac15a3b8fea25568b8cdeb2cd781fe',1,'ie_device_common.c']]]
+  ['barrier_0',['barrier',['../ie__kernels__ze_8cl.html#a3e38c79e12e7a582014f8b0664301d74',1,'ie_kernels_ze.cl']]]
 ];

@@ -1,13 +1,17 @@
 var searchData=
 [
-  ['main_0',['main',['../main__infer_8c.html#a3c04138a5bfe5d72780bb7e82a18e627',1,'main_infer.c']]],
-  ['main_5finfer_2ec_1',['main_infer.c',['../main__infer_8c.html',1,'']]],
-  ['max_5fnew_2',['max_new',['../structcli__extras.html#a5eb0317aa09b90f400b657245b41e92c',1,'cli_extras']]],
-  ['memcpy_3',['memcpy',['../structie__device__vtbl.html#ad1dd16848b3443345765eba0a865a1b1',1,'ie_device_vtbl']]],
-  ['metrics_4',['Metrics',['../md_docs_2DESIGN.html#autotoc_md42',1,'']]],
-  ['microbatch_5',['microbatch',['../structie__batcher.html#a6634ddc5b22f958c4a965030d33ea01d',1,'ie_batcher']]],
-  ['misses_6',['misses',['../structie__kv__state__t.html#a1fa1e42d45d8cc9ac8305769f5afc259',1,'ie_kv_state_t']]],
-  ['model_7',['Threading model',['../md_docs_2DESIGN.html#autotoc_md40',1,'']]],
-  ['model_20and_20intent_8',['Model and intent',['../ie__kv__instrumentation_8h.html#autotoc_md0',1,'']]],
-  ['mu_9',['mu',['../structie__batcher.html#af9832623e01b36b40b66f1807c150053',1,'ie_batcher']]]
+  ['k_5fgemv_5fbias_5fact_5ff32_0',['k_gemv_bias_act_f32',['../ie__kernels__cuda_8cu.html#ab9150fe6fc7da507974bfdd38b262ce2',1,'ie_kernels_cuda.cu']]],
+  ['k_5fgemv_5frowwise_5ff32_1',['k_gemv_rowwise_f32',['../ie__kernels__cuda_8cu.html#af00402674d56c833c92c62df1cef1e84',1,'ie_kernels_cuda.cu']]],
+  ['k_5fpack_5fw_5fblockedk_5ff32_2',['k_pack_w_blockedk_f32',['../ie__kernels__cuda_8cu.html#ac440d51163bc9f16e835d00aedcb4b79',1,'ie_kernels_cuda.cu']]],
+  ['k_5fvec_5ftanh_5ff32_3',['k_vec_tanh_f32',['../ie__kernels__cuda_8cu.html#aea063f21d4bdf3ba4108f9677476aad4',1,'ie_kernels_cuda.cu']]],
+  ['kdefaultspvpath_4',['kDefaultSPVPath',['../ie__kernel__ze_8cpp.html#a1b4f5224f122671c62dd85d1b7e6eb20',1,'ie_kernel_ze.cpp']]],
+  ['kernel_20policy_20baseline_20safe_20defaults_5',['Kernel policy (baseline, safe defaults)',['../ie__kernels__cuda_8cu.html#autotoc_md12',1,'']]],
+  ['kernel_20strategy_6',['Kernel strategy',['../ie__device__cuda_8cu.html#autotoc_md8',1,'']]],
+  ['kernels_20are_20provided_7',['How kernels are provided',['..//home/ricky/Desktop/Clocher/engine/src/kernels/ze/ie_kernel_ze.cpp#autotoc_md14',1,'']]],
+  ['kernels_20launchers_8',['CUDA kernels &amp; launchers',['../group__IE__GPU.html',1,'']]],
+  ['kind_9',['kind',['../structie__device.html#a155ab991692fdcd2c49275a73416dfba',1,'ie_device']]],
+  ['kv_5fcontains_10',['kv_contains',['../ie__kv__instrumentation_8c.html#a37bd44541ec645006f436707ca67b407',1,'ie_kv_instrumentation.c']]],
+  ['kv_5fhits_11',['kv_hits',['../structie__metrics.html#a1583bee100f691bc5d673138373393c4',1,'ie_metrics::kv_hits'],['../structie__metrics__t.html#a8f046409ae21785342371064b2355ce1',1,'ie_metrics_t::kv_hits']]],
+  ['kv_5finsert_5ffifo_12',['kv_insert_fifo',['../ie__kv__instrumentation_8c.html#a83b5153f7145e76551b31ced07063538',1,'ie_kv_instrumentation.c']]],
+  ['kv_5fmisses_13',['kv_misses',['../structie__metrics.html#abdbfea4007d54a071049764a1b573af6',1,'ie_metrics::kv_misses'],['../structie__metrics__t.html#afc2a1bc5d415d0bdd29350f3d52aab6c',1,'ie_metrics_t::kv_misses']]]
 ];

@@ -100,14 +100,14 @@ $(function(){initNavTree('md_docs_2adr-00060-optimization-path.html',''); initRe
   <div class="headertitle"><div class="title">ADR-0006 — Optimization path selection (CPU baseline)</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md48"></a></p>
-<h1><a class="anchor" id="autotoc_md49"></a>
+<div class="textblock"><p><a class="anchor" id="autotoc_md73"></a></p>
+<h1><a class="anchor" id="autotoc_md74"></a>
 Status</h1>
 <p>Accepted — 2025-10-14</p>
-<h1><a class="anchor" id="autotoc_md50"></a>
+<h1><a class="anchor" id="autotoc_md75"></a>
 Context</h1>
 <p>We need deterministic, portable, zero-dependency CPU performance. Upstream runtimes (ORT/TVM/OpenVINO/TensorRT-CPU) bring heavy deps and reduce control over hot inner loops.</p>
-<h1><a class="anchor" id="autotoc_md51"></a>
+<h1><a class="anchor" id="autotoc_md76"></a>
 Decision</h1>
 <ol type="1">
 <li><b>Hand-written AVX2 microkernels</b> for GEMV/GEMM with block tiling + FMA.</li>
@@ -120,28 +120,32 @@ Decision</h1>
 <li><b>Layout</b> toggles (blocked-K packing) and prefetch hints in hot loops.</li>
 <li>Keep an <b>optional oneDNN fallback</b> behind a build flag (non-default) for validation.</li>
 </ol>
-<h1><a class="anchor" id="autotoc_md52"></a>
+<h1><a class="anchor" id="autotoc_md77"></a>
 Consequences</h1>
 <ul>
 <li>Maximum control and transparency of performance changes.</li>
 <li>Minimal external dependencies → easier reproducibility.</li>
 <li>Larger code surface maintained in-tree; unit tests and microbenches mandatory.</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md53"></a>
+<h1><a class="anchor" id="autotoc_md78"></a>
 Next</h1>
 <ul>
 <li>Complete AVX2 GEMV microkernel integration behind runtime gating.</li>
 <li>Validate scaling of thread-pool and NUMA effects with flamegraph evidence.</li>
 <li>Compare accuracy/latency impact of fast <code>tanh</code> vs libm baseline. </li>
 </ul>
-<h1><a class="anchor" id="autotoc_md54"></a>
+<h1><a class="anchor" id="autotoc_md79"></a>
 Updates — 2025-10-17</h1>
 <ul>
 <li><b>Batching impact:</b> amortizes tokenizer and scheduling overhead; reduces per-prompt latency variance for short prompts.</li>
 <li><b>Prefetch policy:</b> <code>auto</code> maps to enabled when <code>--prompts-file</code> is provided; otherwise conservative for single-prompt runs.</li>
 <li><b>Profiling workflow:</b> <code>make perf-report</code> records with <code>perf</code> and renders with FlameGraph; supports <code>ROUNDS</code>, <code>MAX_NEW</code>, <code>FREQ</code>, and <code>CALLGRAPH</code> envs.</li>
-<li><b>Limits observed:</b> if <code>perf.data</code> is empty, increase <code>ROUNDS/MAX_NEW/FREQ</code> or adjust kernel <code>perf_event_paranoid</code>. </li>
+<li><b>Limits observed:</b> if <code>perf.data</code> is empty, increase <code>ROUNDS/MAX_NEW/FREQ</code> or adjust kernel <code>perf_event_paranoid</code>.</li>
 </ul>
+<hr  />
+<h1><a class="anchor" id="autotoc_md81"></a>
+Updates — 2025-10-24 00:42:21 UTC</h1>
+<p>This ADR remains <b>CPU-focused</b>. GPU benchmarking is tracked separately (see ADR-0011) and does not change the baseline CPU optimization path (AVX2 kernels, pthreads pool, blocked-K packing). </p>
 </div></div><!-- contents -->
 </div><!-- PageDoc -->
 </div><!-- doc-content -->
