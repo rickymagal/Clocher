@@ -1,0 +1,26 @@
+{
+  "defaults": {
+    "dtype": "int4",
+    "scheme": "weight_only",
+    "mode": "per_row",
+    "bits": 4,
+    "pack": "nibble_lohi",
+    "scale_dtype": "fp16",
+    "zero_point": 0,
+    "symmetric": true,
+    "align": 256,
+    "int4_bin": "model.q4.bin"
+  },
+  "rules": [
+    { "include_re": [".*\\.weight$"] },
+    { "exclude_re": [
+        ".*(embed|embedding).*",
+        ".*(layernorm|layer_norm|rms_norm|ln).*",
+        ".*\\.bias$",
+        ".*(norm.*weight).*",
+        ".*(lm_head|final_linear)\\.weight$",
+        ".*embed_out\\.weight$"
+      ]
+    }
+  ]
+}
