@@ -1,6 +1,7 @@
-/* ========================================================================== */
-/* File: engine/src/io/weights.c                                              */
-/* ========================================================================== */
+/* ============================================================================
+ * File: engine/src/io/weights.c
+ * ============================================================================
+ */
 /**
  * @file weights.c
  * @brief Implementation of the IEBIN v1 loader with relaxed JSON parsing.
@@ -38,6 +39,7 @@
 #include <ctype.h>    /* tolower */
 #include <errno.h>
 #include <fcntl.h>
+#include <stdint.h>   /* uint16_t, uint32_t */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -53,6 +55,10 @@
  * @internal
  * @brief Copy C string @p src into @p dst (NUL-terminated), truncating if needed.
  * Ensures @p dst is always NUL-terminated if @p dstsz > 0.
+ *
+ * @param dst   Destination buffer.
+ * @param dstsz Destination buffer size in bytes.
+ * @param src   Source C string (may be NULL).
  */
 static void cpyz(char *dst, size_t dstsz, const char *src) {
   if (!dst || dstsz == 0) return;
@@ -66,6 +72,9 @@ static void cpyz(char *dst, size_t dstsz, const char *src) {
 /**
  * @internal
  * @brief Return pointer to the last slash '/' in @p p (or NULL if none).
+ *
+ * @param p Input path string.
+ * @return Pointer to last '/' inside @p p, or NULL.
  */
 static const char *last_slash(const char *p) {
   const char *s = NULL;
@@ -77,6 +86,11 @@ static const char *last_slash(const char *p) {
 /**
  * @internal
  * @brief Safe path join: `out = dir [/] file` with truncation and no `snprintf`.
+ *
+ * @param out   Output buffer.
+ * @param outsz Output buffer size in bytes.
+ * @param dir   Directory path (may be NULL/empty).
+ * @param file  File name (must not be NULL when used).
  */
 static void join_path(char *out, size_t outsz, const char *dir, const char *file) {
   if (!out || outsz == 0) return;
@@ -109,6 +123,10 @@ static void join_path(char *out, size_t outsz, const char *dir, const char *file
 /**
  * @internal
  * @brief Read entire text file into memory (NUL-terminated). Strips UTF-8 BOM.
+ *
+ * @param path     Path to the text file.
+ * @param buf      Output pointer to allocated buffer with contents (+NUL).
+ * @param len_out  Optional output length (excluding NUL).
  * @return 0 on success; negative on error.
  */
 static int read_all_text(const char *path, char **buf, size_t *len_out) {
@@ -149,6 +167,10 @@ static int read_all_text(const char *path, char **buf, size_t *len_out) {
 /**
  * @internal
  * @brief Find integer value of `"key": <int>` in JSON text via relaxed scan.
+ *
+ * @param json    JSON buffer (NUL-terminated).
+ * @param key     Key name without quotes.
+ * @param out_val Output integer.
  * @return 1 if found, 0 if not found, negative on bad args.
  */
 static int scan_json_key_int(const char *json, const char *key, int *out_val) {
@@ -174,6 +196,11 @@ static int scan_json_key_int(const char *json, const char *key, int *out_val) {
 /**
  * @internal
  * @brief Find string value of `"key": "<value>"` via relaxed scan.
+ *
+ * @param json  JSON buffer (NUL-terminated).
+ * @param key   Key name without quotes.
+ * @param dst   Output buffer for value.
+ * @param dstsz Output buffer size.
  * @return 1 if found, 0 if not found, negative on bad args.
  */
 static int scan_json_key_string(const char *json, const char *key, char *dst, size_t dstsz) {
@@ -207,6 +234,11 @@ static int scan_json_key_string(const char *json, const char *key, char *dst, si
  * @internal
  * @brief Locate the JSON object section for a given key (e.g., `"quant": { ... }`).
  * Returns pointers to the body range [`*out_begin`, `*out_end`).
+ *
+ * @param json      JSON buffer (NUL-terminated).
+ * @param key       Object key to search (without quotes).
+ * @param out_begin Output: pointer to first byte after '{'.
+ * @param out_end   Output: pointer to the matching '}'.
  * @return 1 if found, 0 if not found, negative on error.
  */
 static int scan_json_object_range(const char *json,
@@ -250,6 +282,12 @@ static int scan_json_object_range(const char *json,
 /**
  * @internal
  * @brief Find string value inside a known object range: `"key": "<value>"`.
+ *
+ * @param begin Start pointer of object body (first byte after '{').
+ * @param end   End pointer (position of matching '}').
+ * @param key   Key to search (without quotes).
+ * @param dst   Output buffer for the string value.
+ * @param dstsz Output buffer size.
  * @return 1 if found, 0 if not found, negative on bad args.
  */
 static int scan_json_key_string_in_range(const char *begin,
@@ -289,6 +327,12 @@ static int scan_json_key_string_in_range(const char *begin,
 /**
  * @internal
  * @brief Portable positional read helper. Uses pread(2) when available.
+ *
+ * @param fd     File descriptor.
+ * @param buf    Output buffer.
+ * @param count  Number of bytes to read.
+ * @param offset Offset from file start.
+ * @return Bytes read on success, -1 on error.
  */
 static ssize_t ie_pread(int fd, void *buf, size_t count, off_t offset) {
 #if defined(_XOPEN_SOURCE) || defined(_POSIX_C_SOURCE)
@@ -306,6 +350,10 @@ static ssize_t ie_pread(int fd, void *buf, size_t count, off_t offset) {
 /**
  * @internal
  * @brief Case-insensitive ASCII equality (NULL-safe).
+ *
+ * @param a First string.
+ * @param b Second string.
+ * @return 1 if equal (case-insensitive), 0 otherwise.
  */
 static int ascii_ieq(const char *a, const char *b) {
   if (!a || !b) return 0;
@@ -430,6 +478,11 @@ struct ie_int4_quant_meta {
 
 /**
  * @brief Read INT4 quantization metadata from an IEBIN v1 JSON header.
+ *
+ * The function scans a relaxed JSON header, locates the "quant" object and
+ * extracts fields relevant to INT4 decoding. It resolves @c scale_bin relative
+ * to @p json_path if needed.
+ *
  * @param json_path  Path to `model.ie.json`.
  * @param out_meta   Output metadata (must be non-NULL). On success,
  *                   `out_meta->present` is 1 when INT4 metadata is found.
@@ -504,15 +557,52 @@ int ie_weights_read_int4_meta(const char *json_path, struct ie_int4_quant_meta *
 }
 
 /**
+ * @internal
+ * @brief Convert IEEE754 half-precision (fp16) to single-precision float (fp32).
+ *
+ * This conversion handles zeros, subnormals, normals, infinities, and NaNs.
+ *
+ * @param h 16-bit half-precision bit pattern.
+ * @return Converted 32-bit float value.
+ */
+static float fp16_to_fp32(uint16_t h) {
+  uint32_t sign = (uint32_t)(h & 0x8000u) << 16;
+  uint32_t exp  = (h & 0x7C00u) >> 10;
+  uint32_t mant = (h & 0x03FFu);
+  uint32_t f;
+  if (exp == 0) {
+    if (mant == 0) {
+      f = sign;  /* zero */
+    } else {
+      /* subnormal: normalize mantissa */
+      int e = -1;
+      do { e++; mant <<= 1; } while ((mant & 0x0400u) == 0);
+      mant &= 0x03FFu;
+      f = sign | ((uint32_t)(127 - 15 - e) << 23) | (mant << 13);
+    }
+  } else if (exp == 0x1F) {
+    f = sign | 0x7F800000u | (mant << 13); /* Inf/NaN */
+  } else {
+    f = sign | ((exp + (127 - 15)) << 23) | (mant << 13);
+  }
+  float out;
+  memcpy(&out, &f, sizeof(out));
+  return out;
+}
+
+/**
  * @brief Dequantize a packed INT4 weight blob into a float32 matrix.
  *
  * Reads the packed INT4 blob and the associated scales from disk and produces a
  * row-major float32 matrix into @p dst (caller-allocated).
  *
+ * The function auto-detects scale dtype between fp16 and fp32 by comparing the
+ * file size with the expected number of elements.
+ *
  * @param packed_path  Path to packed INT4 weights (`*.int4.bin`).
  * @param scales_path  Path to scales file. For per-tensor it must contain
- *                     a single float32; for per-row it must contain `rows`
- *                     float32 values.
+ *                     a single float (fp16 or fp32); for per-row it must
+ *                     contain `rows` floats.
  * @param rows         Number of matrix rows.
  * @param cols         Number of matrix columns.
  * @param per_row      Non-zero for per-row scales; 0 for per-tensor.
@@ -544,22 +634,37 @@ int ie_weights_decode_int4(const char *packed_path,
   close(fdw);
   if (rd < 0 || (size_t)rd != need_packed) { free(buf_packed); return IE_IO_ERR_READ; }
 
-  /* Read scales */
+  /* Read scales (auto-detect fp16 or fp32) */
   int fds = open(scales_path, O_RDONLY);
   if (fds < 0) { free(buf_packed); return IE_IO_ERR_OPEN; }
 
   struct stat sts;
   if (fstat(fds, &sts) != 0) { close(fds); free(buf_packed); return IE_IO_ERR_STAT; }
 
-  size_t need_scales = per_row ? (rows * sizeof(float)) : sizeof(float);
-  if ((size_t)sts.st_size < need_scales) { close(fds); free(buf_packed); return IE_IO_ERR_READ; }
+  size_t nsc = per_row ? rows : 1;
+  size_t need16 = nsc * sizeof(uint16_t);
+  size_t need32 = nsc * sizeof(float);
 
-  float *buf_scales = (float*)malloc(need_scales);
+  int is16 = ((size_t)sts.st_size == need16);
+  int is32 = ((size_t)sts.st_size == need32);
+  if (!(is16 || is32)) { close(fds); free(buf_packed); return IE_IO_ERR_READ; }
+
+  float *buf_scales = (float*)malloc(need32);
   if (!buf_scales) { close(fds); free(buf_packed); return IE_IO_ERR_ALLOC; }
 
-  rd = ie_pread(fds, buf_scales, need_scales, 0);
-  close(fds);
-  if (rd < 0 || (size_t)rd != need_scales) { free(buf_scales); free(buf_packed); return IE_IO_ERR_READ; }
+  if (is32) {
+    ssize_t rds = ie_pread(fds, buf_scales, need32, 0);
+    close(fds);
+    if (rds < 0 || (size_t)rds != need32) { free(buf_scales); free(buf_packed); return IE_IO_ERR_READ; }
+  } else {
+    uint16_t *tmp = (uint16_t*)malloc(need16);
+    if (!tmp) { close(fds); free(buf_scales); free(buf_packed); return IE_IO_ERR_ALLOC; }
+    ssize_t rds = ie_pread(fds, tmp, need16, 0);
+    close(fds);
+    if (rds < 0 || (size_t)rds != need16) { free(tmp); free(buf_scales); free(buf_packed); return IE_IO_ERR_READ; }
+    for (size_t i = 0; i < nsc; ++i) buf_scales[i] = fp16_to_fp32(tmp[i]);
+    free(tmp);
+  }
 
   /* Dequantize */
   int qst = 0;
