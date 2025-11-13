@@ -7,10 +7,21 @@ threads = 0                # 0 = auto
 affinity = "auto"          # auto | compact | scatter | list:0,2,4
 precision = "fp32"         # fp32 | bf16 | fp16 | int8w | int4w  (soft hint)
 vector_width = "auto"      # auto | 256 | 512
+pretranspose = "all"       # none | woh | wxh | all
+prefetch = "auto"          # on | off | auto | N (legacy soft hint passed to the engine)
+device = "auto"            # auto | cpu | cuda | ze
+warmup_tokens = 1          # warmup tokens (outside timed window)
+rounds = 1                 # repeat the measured window N times (>=1)
 
+# ----------------------------------------------------------------------------
+# Tokenizer
+# ----------------------------------------------------------------------------
 [tokenizer]
 vocab_path = "models/gpt-oss-20b/vocab.json"
 
+# ----------------------------------------------------------------------------
+# Model locations
+# ----------------------------------------------------------------------------
 [model]
 # IEBIN v1 artifact locations
 weights_path     = "models/gpt-oss-20b/model.ie.bin"
@@ -21,3 +32,64 @@ param_shape_file = "models/gpt-oss-20b/model.ie.json"
 #   (e.g., dtype="int4" and a quant block with scale_bin/pack info). The CLI's
 #   precision string is a soft hint and may be ignored by the backend.
 # - Paths may be absolute or relative to the process working directory.
+
+# ----------------------------------------------------------------------------
+# Synthetic per-token work-touch (memory pressure emulator)
+# ----------------------------------------------------------------------------
+[work_touch]
+# Optional per-token "work touch" to emulate realistic memory pressure.
+# If bytes_per_token == 0 the touch loop is disabled.
+bytes_per_token = 67108864   # 64 MiB per token (0 disables)
+stride_bytes    = 256        # stride in bytes while touching
+verify_touch    = 1          # when non-zero, forces a side-effect barrier
+
+# ----------------------------------------------------------------------------
+# Mmap advice for the model.bin (best-effort)
+# ----------------------------------------------------------------------------
+[mmap]
+# Loader advice for the mapped model.bin (best-effort hints)
+# none | willneed | random | sequential
+advise    = "willneed"
+populate  = true     # if supported, request MAP_POPULATE and WILLNEED hints
+readahead = true     # if supported, issue a best-effort readahead(fd, 0, size)
+hugepage  = false    # if supported, request MADV_HUGEPAGE after mmap()
+
+# ----------------------------------------------------------------------------
+# Streaming / prefetch / non-temporal policy (new)
+# ----------------------------------------------------------------------------
+# These knobs are read by the stream/prefetch layer and may be ignored by
+# backends that do not implement them. They are additive to the legacy 'prefetch'
+# root string (kept for compatibility with existing harnesses).
+[stream]
+# Overall controller:
+mode = "auto"                # on | off | auto
+# Distance controls how far ahead to prefetch. It can be:
+#   - integer K-tiles ahead (when block_bytes > 0)
+#   - "auto" for heuristic selection per tensor
+distance = "auto"            # "auto" | <int>
+block_bytes = 4096           # size of the streaming block used by distance steps
+# Non-temporal loads policy:
+nt_loads = "auto"            # on | off | auto
+# If the estimated working set of the current phase exceeds L3 by this ratio
+# (and near-term reuse is not detected), enable non-temporal loads.
+l3_bytes = 0                 # 0 = auto-detect; else explicit L3 size in bytes
+nt_threshold_ratio = 1.10    # enable NT if working_set_bytes >= ratio * L3
+# Guard to avoid NT when reuse is imminent:
+reuse_guard_windows = 1      # if reuse detected within N next K-windows, suppress NT
+
+# Optional per-tensor overrides by name. Each entry may set {distance=<int>, nt=<bool>}.
+# Example:
+# [stream.tensors."decoder.block0.attn.Wq"]
+# distance = 2
+# nt = true
+[stream.tensors]
+
+# ----------------------------------------------------------------------------
+# Hot weights replication (NUMA/socket-aware)
+# ----------------------------------------------------------------------------
+[hot_weights]
+# Per-socket replication of the "hottest" blobs (used by replicate_hot.c)
+enable   = false   # set true to allocate per-socket replicas
+readonly = true    # mprotect replicas as read-only after copy
+willneed = true    # madvise(MADV_WILLNEED) after first-touch
+hugepage = false   # madvise(MADV_HUGEPAGE) request (best-effort)

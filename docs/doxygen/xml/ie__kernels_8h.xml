@@ -72,12 +72,13 @@
 </parameteritem>
 </parameterlist>
 Install the best available CPU kernels at runtime.</para>
+<para>On x86 with GCC/Clang, the dispatcher uses __builtin_cpu_supports(&quot;avx2&quot;) and prefers the AVX2 implementation when available; otherwise it installs the generic C fallback.</para>
 <para><parameterlist kind="param"><parameteritem>
 <parameternamelist>
 <parametername>use_avx2</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Non-zero to prefer AVX2 if available (handled in <ref refid="gemv__avx2_8c" kindref="compound">gemv_avx2.c</ref>). </para>
+<para>Non-zero to allow AVX2 selection when supported. </para>
 </parameterdescription>
 </parameteritem>
 </parameterlist>
@@ -85,9 +86,11 @@ Install the best available CPU kernels at runtime.</para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="engine/include/ie_kernels.h" line="19" column="6" bodyfile="engine/src/kernels/gemv_generic.c" bodystart="51" bodyend="54" declfile="engine/include/ie_kernels.h" declline="19" declcolumn="6"/>
-        <references refid="gemv__generic_8c_1a51096a373f5e5010d39cbf44e34b730d" compoundref="gemv__generic_8c" startline="24" endline="44">gemv_generic_impl</references>
-        <references refid="gemv__generic_8c_1aa80eb69d355054f1f8213721e72bec9a" compoundref="gemv__generic_8c" startline="11">s_gemv_f32</references>
+        <location file="engine/include/ie_kernels.h" line="19" column="6" bodyfile="engine/src/kernels/gemv_generic.c" bodystart="249" bodyend="266" declfile="engine/include/ie_kernels.h" declline="19" declcolumn="6"/>
+        <references refid="gemv__generic_8c_1a51096a373f5e5010d39cbf44e34b730d" compoundref="gemv__generic_8c" startline="73" endline="95">gemv_generic_impl</references>
+        <references refid="gemv__avx2_8c_1a63b484c2984caeed7dfc9b5002444f57" compoundref="gemv__avx2_8c" startline="39" endline="107">ie_gemv_f32_avx2_impl</references>
+        <references refid="gemv__generic_8c_1aa80eb69d355054f1f8213721e72bec9a" compoundref="gemv__generic_8c" startline="51">s_gemv_f32</references>
+        <referencedby refid="ie__kernels_8h_1a4e112b3396ed21919f404631c1d4d7fb" compoundref="gemv__generic_8c" startline="279" endline="283">ie_gemv_f32</referencedby>
         <referencedby refid="test__kernels_8c_1a840291bc02cba5474a4cb46a9b9566fe" compoundref="test__kernels_8c" startline="149" endline="163">main</referencedby>
       </memberdef>
       <memberdef kind="function" id="ie__kernels_8h_1a4e112b3396ed21919f404631c1d4d7fb" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
@@ -215,7 +218,7 @@ GEMV: y[r] = dot(W[r, :], x) [+ bias[r]] for r in [0, rows).</para>
 <parametername>rows</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Rows. </para>
+<para>Rows in W/y. </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -223,7 +226,7 @@ GEMV: y[r] = dot(W[r, :], x) [+ bias[r]] for r in [0, rows).</para>
 <parametername>cols</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Cols. </para>
+<para>Cols in W/x. </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -231,7 +234,7 @@ GEMV: y[r] = dot(W[r, :], x) [+ bias[r]] for r in [0, rows).</para>
 <parametername>bias</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Optional bias vector (may be NULL). </para>
+<para>Optional bias (may be NULL). </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -239,7 +242,7 @@ GEMV: y[r] = dot(W[r, :], x) [+ bias[r]] for r in [0, rows).</para>
 <parametername>blk_k</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Column-block size for blocked layout; 0 for plain row-major. </para>
+<para>Column-block size; 0 for plain row-major. </para>
 </parameterdescription>
 </parameteritem>
 </parameterlist>
@@ -247,8 +250,9 @@ GEMV: y[r] = dot(W[r, :], x) [+ bias[r]] for r in [0, rows).</para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="engine/include/ie_kernels.h" line="37" column="6" bodyfile="engine/src/kernels/gemv_generic.c" bodystart="67" bodyend="71" declfile="engine/include/ie_kernels.h" declline="37" declcolumn="6"/>
-        <references refid="gemv__generic_8c_1aa80eb69d355054f1f8213721e72bec9a" compoundref="gemv__generic_8c" startline="11">s_gemv_f32</references>
+        <location file="engine/include/ie_kernels.h" line="37" column="6" bodyfile="engine/src/kernels/gemv_generic.c" bodystart="279" bodyend="283" declfile="engine/include/ie_kernels.h" declline="37" declcolumn="6"/>
+        <references refid="gemv__generic_8c_1a1b919f71b86ec1791fe53bc68d5c240d" compoundref="gemv__generic_8c" startline="249" endline="266">ie_kernels_install</references>
+        <references refid="gemv__generic_8c_1aa80eb69d355054f1f8213721e72bec9a" compoundref="gemv__generic_8c" startline="51">s_gemv_f32</references>
         <referencedby refid="ie__device__common_8c_1a4fb9bb01bfbe71517f9df925ba9c93ec" compoundref="ie__device__common_8c" startline="164" endline="172">cpu_gemv_f32</referencedby>
         <referencedby refid="test__kernels_8c_1a0ac9b0c3b1d865ef69bd2bc69d14a685" compoundref="test__kernels_8c" startline="109" endline="122">test_gemv_rowmajor_no_bias</referencedby>
         <referencedby refid="test__kernels_8c_1a2305be22b4279f3ac4d55f90584569cb" compoundref="test__kernels_8c" startline="129" endline="142">test_gemv_rowmajor_with_bias</referencedby>

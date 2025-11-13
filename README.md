@@ -330,3 +330,102 @@ This running log summarizes meaningful doc/CLI changes for reproducibility.
 
 - **2025-10-24 21:08:40 UTC** — INT4 step added to docs; CLI grew `--device`, `--model-dir`, `--rounds`; strict RSS peak sampler now reads `/proc/self/status` `VmHWM` (Linux) with `getrusage` fallback; `bench`/`bench-cuda` examples updated for **64 MB/token** work‑touch.
 
+---
+## What’s new — 2025-11-10
+
+### Step 1 — NUMA‑aware topology & thread binding
+- Added `engine/include/ie_topology.h` + `engine/src/opt/topology.c` to discover sockets/CPUs from Linux sysfs and expose helpers:
+  - `ie_topology_init/destroy`, `ie_topology_sockets()`, `ie_topology_first_cpu_on_socket()`.
+- CLI/env integration (soft hints): `AFFINITY=auto|compact|scatter` and `IE_TP_USE_AFFINITY=1` (thread‑pool), plus `IE_HOT_REPLICATE` (see Step 2).
+- Fallback: on systems without sysfs or NUMA, we assume a single socket with `sysconf(_SC_NPROCESSORS_ONLN)` CPUs.
+
+### Step 2 — “Hot” weights replication per socket
+- New module `engine/src/opt/replicate_hot.c` replicates frequently‑touched (“hot”) weight pages **per socket** and pins worker threads on that socket for locality.
+- Optional prefetch hint via `madvise(..., MADV_WILLNEED)` (ignored if unsupported).
+- Enable at runtime:
+  ```bash
+  export IE_HOT_REPLICATE=1      # enable per‑socket replicas
+  export IE_HOT_REPL_LIMIT_MB=0  # (optional) cap replica size in MiB; 0 = no cap
+  ```
+
+### Activation precision (INT8 / FP8) — soft hint
+- Expose activation precision as a soft runtime hint (host math remains FP32 accumulate):
+  ```bash
+  export IE_ACT_PREC=int8   # or: fp8 | fp16 | bf16 | fp32
+  ```
+- Weight precision remains independent via `IE_PRECISION` (e.g., `int4w`, `int8w`, `fp32`, etc.).
+
+### Strict timing rule (re‑stated)
+Only the following are counted in the measured window:
+- `ie_engine_generate(...)`
+- optional “work‑touch” loop controlled by `IE_BYTES_PER_TOKEN`, `IE_STRIDE_BYTES`, `IE_VERIFY_TOUCH`
+
+### Quick run recipes
+Strict CPU run with INT4 weights, FP8 activations, NUMA‑aware binding + hot replication:
+```bash
+# Model & timing
+export MODEL_DIR=models/gpt-oss-20b
+export IE_REQUIRE_MODEL=1
+export IE_PRECISION=int4w
+export IE_ACT_PREC=fp8
+export IE_BYTES_PER_TOKEN=$((64*1024*1024))
+export IE_STRIDE_BYTES=256
+export IE_VERIFY_TOUCH=1
+
+# NUMA & replication
+export IE_HOT_REPLICATE=1
+export IE_TP_USE_AFFINITY=1
+export AFFINITY=compact
+
+# Run (CPU)
+PROMPTS=benchmarks/prompts_10..txt RUNS=3 make bench
+```
+
+CUDA run (same semantics; binary is different):
+```bash
+PROMPTS=benchmarks/prompts_10..txt RUNS=3 make bench-cuda
+```
+
+NUMA pinning from the shell (optional, only if multiple nodes exist):
+```bash
+if numactl -H | grep -q 'available:'; then
+  NODES=$(numactl -H | awk '/available:/{print $2}')
+  [ "$NODES" -gt 1 ] && exec numactl --cpunodebind=0 --membind=0 bash -lc 'PROMPTS=benchmarks/prompts_10..txt RUNS=3 make bench'
+fi
+```
+
+> Note: If `numactl -H` shows a single node, skip `numactl --cpunodebind/--membind`.
+---
+## What's new — Memory Phase (updated 2025-11-12 18:01:19 UTC)
+
+### New tuning knobs (memory/throughput)
+These are read by the CLI and/or harness. Backends may ignore unsupported hints safely.
+
+- `IE_PREFETCH_DISTANCE` — integer distance in bytes (or `auto`) for software prefetch of weight streams in GEMV.
+- `IE_NT_LOADS` — `0|1|auto`. When enabled, kernels attempt **non‑temporal loads** (streaming) on large, one‑time read paths.
+- `IE_L3_BYTES` — integer budget in bytes for L3‑resident “hot” slices (heuristic used by blocked‑K and replication).
+- `IE_NT_RATIO` — `0..100` (percentage) hint for the fraction of loads to mark non‑temporal in mixed patterns.
+- `IE_ACT_PREC` — activation precision hint: `int8|fp8|fp16|bf16|fp32` (host accumulators remain FP32).
+- `NUMA_POLICY` — `auto|compact|scatter|socket:<id>`. Works with the new topology detector for thread pinning.
+- `IE_HOT_REPLICATE` — `0|1` enable per‑socket replicas of “hot” weights; optional cap via `IE_HOT_REPL_LIMIT_MB` (MiB).
+
+### Harness sweep (benchmarks)
+The harness can **sweep** combinations of memory options to find stable TPS under bandwidth pressure:
+
+```bash
+python3 benchmarks/harness.py \
+  --sweep 'act_quant=int8,fp8|kv_quant=none|prefetch=off,auto,256|nt_loads=0,1|numa_policy=auto,compact,scatter' \
+  --prompts benchmarks/prompts.jsonl
+```
+Each configuration is labeled and exported to CSV/JSONL; `scripts/update_performance_md.py` now includes memory metrics
+(*MB/token, bytes touched, coverage vs model.bin, effective bandwidth GB/s*).
+
+### Monitoring
+- Added `monitoring/metrics_memory.toml` (recording rules/panels for **RSS peak**, **bytes touched**, **effective bandwidth**).
+- `scripts/metrics_exporter.py` exposes the new fields when present (see `ie_rss_peak_mb_*`, and the `ie_build_info` labels).
+
+### CUDA/CPU kernels
+- CUDA: added fused GEMV for **INT8 activations** and **FP8 activations** (E4M3/E5M2 decoders on‑device).
+- CPU: dispatcher keeps AVX2/FMA fast path; generic C path honors blocked‑K and activation dequant (INT8 per‑tensor / per‑group).
+
+> Tip: for strict, bandwidth‑bound tests use: `IE_REQUIRE_MODEL=1 IE_BYTES_PER_TOKEN=64000000 IE_STRIDE_BYTES=256`.

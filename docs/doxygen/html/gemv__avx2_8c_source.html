@@ -100,78 +100,146 @@ $(function(){initNavTree('gemv__avx2_8c_source.html',''); initResizable(true); }
   <div class="headertitle"><div class="title">gemv_avx2.c</div></div>
 </div><!--header-->
 <div class="contents">
-<a href="gemv__avx2_8c.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span></div>
-<div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span> </div>
-<div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span><span class="preprocessor">#include &quot;<a class="code" href="ie__kernels_8h.html">ie_kernels.h</a>&quot;</span></div>
-<div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span><span class="preprocessor">#include &lt;immintrin.h&gt;</span></div>
-<div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span><span class="preprocessor">#include &lt;stddef.h&gt;</span></div>
-<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span></div>
-<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span>__attribute__((target(<span class="stringliteral">&quot;avx2,fma&quot;</span>), used))</div>
-<div class="foldopen" id="foldopen00027" data-start="{" data-end="}">
-<div class="line"><a id="l00027" name="l00027"></a><span class="lineno"><a class="line" href="gemv__avx2_8c.html#a63b484c2984caeed7dfc9b5002444f57">   27</a></span>void <a class="code hl_function" href="gemv__avx2_8c.html#a63b484c2984caeed7dfc9b5002444f57">ie_gemv_f32_avx2_impl</a>(const <span class="keywordtype">float</span> *W, const <span class="keywordtype">float</span> *x, <span class="keywordtype">float</span> *y,</div>
-<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>                           <span class="keywordtype">size_t</span> rows, <span class="keywordtype">size_t</span> cols,</div>
-<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span>                           const <span class="keywordtype">float</span> *bias, <span class="keywordtype">size_t</span> blk_k) {</div>
-<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span>  <span class="keyword">const</span> <span class="keywordtype">size_t</span> BK = (blk_k &gt; 0 ? blk_k : cols);</div>
-<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span> </div>
-<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span>  <span class="keywordflow">for</span> (<span class="keywordtype">size_t</span> r = 0; r &lt; rows; ++r) {</div>
-<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span>    <span class="keyword">const</span> <span class="keywordtype">float</span> *wrow = W + r * cols;</div>
-<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span>    __m256 vacc = _mm256_setzero_ps();</div>
-<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span> </div>
-<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span>    <span class="keywordflow">for</span> (<span class="keywordtype">size_t</span> k0 = 0; k0 &lt; cols; k0 += BK) {</div>
-<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span>      <span class="keyword">const</span> <span class="keywordtype">size_t</span> klen = (k0 + BK &lt;= cols) ? BK : (cols - k0);</div>
-<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span>      <span class="keyword">const</span> <span class="keywordtype">float</span> *wblk = wrow + k0;</div>
-<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span>      <span class="keyword">const</span> <span class="keywordtype">float</span> *xblk = x + k0;</div>
-<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span> </div>
-<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>      <span class="comment">/* Prefetch next chunk (non-invasive hint) */</span></div>
-<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span>      <span class="keywordflow">if</span> (k0 + 2*BK &lt; cols) {</div>
-<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span>        _mm_prefetch((<span class="keyword">const</span> <span class="keywordtype">char</span>*)(wblk + BK), _MM_HINT_T0);</div>
-<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span>        _mm_prefetch((<span class="keyword">const</span> <span class="keywordtype">char</span>*)(xblk + BK), _MM_HINT_T0);</div>
-<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>      }</div>
+<a href="gemv__avx2_8c.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="comment">/* File: engine/src/kernels/gemv_avx2.c</span></div>
+<div class="line"><a id="l00002" name="l00002"></a><span class="lineno">    2</span><span class="comment"> * -----------------------------------------------------------------------------</span></div>
+<div class="line"><a id="l00003" name="l00003"></a><span class="lineno">    3</span><span class="comment"> * @file gemv_avx2.c</span></div>
+<div class="line"><a id="l00004" name="l00004"></a><span class="lineno">    4</span><span class="comment"> * @brief AVX2/FMA-accelerated kernels for GEMV (float) and INT8-activation GEMV.</span></div>
+<div class="line"><a id="l00005" name="l00005"></a><span class="lineno">    5</span><span class="comment"> *</span></div>
+<div class="line"><a id="l00006" name="l00006"></a><span class="lineno">    6</span><span class="comment"> * This translation unit exposes *only* AVX2 implementation symbols:</span></div>
+<div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span><span class="comment"> *  - ::ie_gemv_f32_avx2_impl</span></div>
+<div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span><span class="comment"> *  - ::ie_gemv_qi8_f32_avx2_impl</span></div>
+<div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span><span class="comment"> *</span></div>
+<div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span><span class="comment"> * The public API and the dispatcher live in gemv_generic.c.</span></div>
+<div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span><span class="comment"> */</span></div>
+<div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span> </div>
+<div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span><span class="preprocessor">#include &quot;<a class="code" href="ie__kernels_8h.html">ie_kernels.h</a>&quot;</span></div>
+<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span><span class="preprocessor">#include &quot;<a class="code" href="ie__quant__act_8h.html">ie_quant_act.h</a>&quot;</span></div>
+<div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span> </div>
+<div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span><span class="preprocessor">#include &lt;immintrin.h&gt;</span></div>
+<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span><span class="preprocessor">#include &lt;stddef.h&gt;</span></div>
+<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span><span class="preprocessor">#include &lt;stdint.h&gt;</span></div>
+<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span><span class="preprocessor">#include &lt;stdlib.h&gt;</span></div>
+<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span><span class="preprocessor">#include &lt;string.h&gt;</span></div>
+<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span></div>
+<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span>__attribute__((target(<span class="stringliteral">&quot;avx2,fma&quot;</span>), used)) <span class="keywordtype">void</span></div>
+<div class="foldopen" id="foldopen00039" data-start="{" data-end="}">
+<div class="line"><a id="l00039" name="l00039"></a><span class="lineno"><a class="line" href="gemv__avx2_8c.html#a63b484c2984caeed7dfc9b5002444f57">   39</a></span><a class="code hl_function" href="gemv__avx2_8c.html#a63b484c2984caeed7dfc9b5002444f57">ie_gemv_f32_avx2_impl</a>(<span class="keyword">const</span> <span class="keywordtype">float</span> *W, <span class="keyword">const</span> <span class="keywordtype">float</span> *x, <span class="keywordtype">float</span> *y, <span class="keywordtype">size_t</span> rows,</div>
+<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>                      <span class="keywordtype">size_t</span> cols, <span class="keyword">const</span> <span class="keywordtype">float</span> *bias, <span class="keywordtype">size_t</span> blk_k) {</div>
+<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>  <span class="keyword">const</span> <span class="keywordtype">size_t</span> BK = (blk_k &gt; 0 ? blk_k : cols);</div>
+<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span> </div>
+<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span>  <span class="keywordflow">for</span> (<span class="keywordtype">size_t</span> r = 0; r &lt; rows; ++r) {</div>
+<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span>    <span class="keyword">const</span> <span class="keywordtype">float</span> *wrow = W + r * cols;</div>
+<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>    <span class="keywordtype">float</span> acc_scalar = 0.0f;</div>
 <div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span> </div>
-<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>      <span class="keywordtype">size_t</span> k = 0;</div>
-<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>      <span class="keywordflow">for</span> (; k + 32 &lt;= klen; k += 32) {</div>
-<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span>        __m256 w0 = _mm256_loadu_ps(wblk + k + 0);</div>
-<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span>        __m256 x0 = _mm256_loadu_ps(xblk + k + 0);</div>
-<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>        vacc = _mm256_fmadd_ps(w0, x0, vacc);</div>
-<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span> </div>
-<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>        __m256 w1 = _mm256_loadu_ps(wblk + k + 8);</div>
-<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>        __m256 x1 = _mm256_loadu_ps(xblk + k + 8);</div>
-<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>        vacc = _mm256_fmadd_ps(w1, x1, vacc);</div>
+<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>    __m256 vacc0 = _mm256_setzero_ps();</div>
+<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>    __m256 vacc1 = _mm256_setzero_ps();</div>
+<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span>    __m256 vacc2 = _mm256_setzero_ps();</div>
+<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span>    __m256 vacc3 = _mm256_setzero_ps();</div>
+<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span> </div>
+<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>    <span class="keywordflow">for</span> (<span class="keywordtype">size_t</span> k0 = 0; k0 &lt; cols; k0 += BK) {</div>
+<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>      <span class="keyword">const</span> <span class="keywordtype">size_t</span> klen = (k0 + BK &lt;= cols) ? BK : (cols - k0);</div>
+<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>      <span class="keyword">const</span> <span class="keywordtype">float</span> *wblk = wrow + k0;</div>
+<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>      <span class="keyword">const</span> <span class="keywordtype">float</span> *xblk = x + k0;</div>
 <div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span> </div>
-<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span>        __m256 w2 = _mm256_loadu_ps(wblk + k + 16);</div>
-<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span>        __m256 x2 = _mm256_loadu_ps(xblk + k + 16);</div>
-<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span>        vacc = _mm256_fmadd_ps(w2, x2, vacc);</div>
-<div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span> </div>
-<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span>        __m256 w3 = _mm256_loadu_ps(wblk + k + 24);</div>
-<div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span>        __m256 x3 = _mm256_loadu_ps(xblk + k + 24);</div>
-<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span>        vacc = _mm256_fmadd_ps(w3, x3, vacc);</div>
-<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span>      }</div>
-<div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span>      <span class="keywordflow">for</span> (; k + 8 &lt;= klen; k += 8) {</div>
-<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span>        __m256 wv = _mm256_loadu_ps(wblk + k);</div>
-<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>        __m256 xv = _mm256_loadu_ps(xblk + k);</div>
-<div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span>        vacc = _mm256_fmadd_ps(wv, xv, vacc);</div>
-<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span>      }</div>
-<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span>      <span class="keywordtype">float</span> scalar = 0.0f;</div>
-<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span>      <span class="keywordflow">for</span> (; k &lt; klen; ++k) scalar += wblk[k] * xblk[k];</div>
+<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span>      <span class="comment">/* Prefetch next chunk (temporal hint) */</span></div>
+<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span>      <span class="keywordflow">if</span> (k0 + 2 * BK &lt; cols) {</div>
+<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span>        _mm_prefetch((<span class="keyword">const</span> <span class="keywordtype">char</span> *)(wblk + BK), _MM_HINT_T0);</div>
+<div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span>        _mm_prefetch((<span class="keyword">const</span> <span class="keywordtype">char</span> *)(xblk + BK), _MM_HINT_T0);</div>
+<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span>      }</div>
+<div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span> </div>
+<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span>      <span class="keywordtype">size_t</span> k = 0;</div>
+<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span>      <span class="keywordflow">for</span> (; k + 32 &lt;= klen; k += 32) {</div>
+<div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span>        __m256 w0 = _mm256_loadu_ps(wblk + k + 0);</div>
+<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span>        __m256 x0 = _mm256_loadu_ps(xblk + k + 0);</div>
+<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>        vacc0 = _mm256_fmadd_ps(w0, x0, vacc0);</div>
+<div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span> </div>
+<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span>        __m256 w1 = _mm256_loadu_ps(wblk + k + 8);</div>
+<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span>        __m256 x1 = _mm256_loadu_ps(xblk + k + 8);</div>
+<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span>        vacc1 = _mm256_fmadd_ps(w1, x1, vacc1);</div>
 <div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span> </div>
-<div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span>      <span class="comment">/* Horizontal sum of vacc + scalar tail */</span></div>
-<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span>      __m256 t1 = _mm256_hadd_ps(vacc, vacc);</div>
-<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span>      __m256 t2 = _mm256_hadd_ps(t1, t1);</div>
-<div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span>      __m128 low = _mm256_castps256_ps128(t2);</div>
-<div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span>      __m128 high = _mm256_extractf128_ps(t2, 1);</div>
-<div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span>      __m128 sum128 = _mm_add_ps(low, high);</div>
-<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span>      <span class="keywordtype">float</span> acc = ((<span class="keywordtype">float</span>*)&amp;sum128)[0] + scalar;</div>
-<div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span> </div>
-<div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span>      <span class="keywordflow">if</span> (bias) acc += bias[r];</div>
-<div class="line"><a id="l00082" name="l00082"></a><span class="lineno">   82</span>      y[r] = acc;</div>
-<div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span> </div>
-<div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span>      vacc = _mm256_setzero_ps();</div>
-<div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span>    }</div>
-<div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span>  }</div>
-<div class="line"><a id="l00087" name="l00087"></a><span class="lineno">   87</span>}</div>
+<div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span>        __m256 w2 = _mm256_loadu_ps(wblk + k + 16);</div>
+<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span>        __m256 x2 = _mm256_loadu_ps(xblk + k + 16);</div>
+<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span>        vacc2 = _mm256_fmadd_ps(w2, x2, vacc2);</div>
+<div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span> </div>
+<div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span>        __m256 w3 = _mm256_loadu_ps(wblk + k + 24);</div>
+<div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span>        __m256 x3 = _mm256_loadu_ps(xblk + k + 24);</div>
+<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span>        vacc3 = _mm256_fmadd_ps(w3, x3, vacc3);</div>
+<div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span>      }</div>
+<div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span>      <span class="keywordflow">for</span> (; k + 8 &lt;= klen; k += 8) {</div>
+<div class="line"><a id="l00082" name="l00082"></a><span class="lineno">   82</span>        __m256 wv = _mm256_loadu_ps(wblk + k);</div>
+<div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span>        __m256 xv = _mm256_loadu_ps(xblk + k);</div>
+<div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span>        vacc0 = _mm256_fmadd_ps(wv, xv, vacc0);</div>
+<div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span>      }</div>
+<div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span>      <span class="keywordflow">for</span> (; k &lt; klen; ++k) {</div>
+<div class="line"><a id="l00087" name="l00087"></a><span class="lineno">   87</span>        acc_scalar += wblk[k] * xblk[k];</div>
+<div class="line"><a id="l00088" name="l00088"></a><span class="lineno">   88</span>      }</div>
+<div class="line"><a id="l00089" name="l00089"></a><span class="lineno">   89</span>    }</div>
+<div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span> </div>
+<div class="line"><a id="l00091" name="l00091"></a><span class="lineno">   91</span>    <span class="comment">/* Reduce four accumulators to one scalar */</span></div>
+<div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span>    __m256 t01 = _mm256_add_ps(vacc0, vacc1);</div>
+<div class="line"><a id="l00093" name="l00093"></a><span class="lineno">   93</span>    __m256 t23 = _mm256_add_ps(vacc2, vacc3);</div>
+<div class="line"><a id="l00094" name="l00094"></a><span class="lineno">   94</span>    __m256 t = _mm256_add_ps(t01, t23);</div>
+<div class="line"><a id="l00095" name="l00095"></a><span class="lineno">   95</span>    __m128 low = _mm256_castps256_ps128(t);</div>
+<div class="line"><a id="l00096" name="l00096"></a><span class="lineno">   96</span>    __m128 high = _mm256_extractf128_ps(t, 1);</div>
+<div class="line"><a id="l00097" name="l00097"></a><span class="lineno">   97</span>    __m128 sum = _mm_add_ps(low, high);</div>
+<div class="line"><a id="l00098" name="l00098"></a><span class="lineno">   98</span>    __m128 shf = _mm_movehdup_ps(sum);</div>
+<div class="line"><a id="l00099" name="l00099"></a><span class="lineno">   99</span>    sum = _mm_add_ps(sum, shf);</div>
+<div class="line"><a id="l00100" name="l00100"></a><span class="lineno">  100</span>    shf = _mm_movehl_ps(shf, sum);</div>
+<div class="line"><a id="l00101" name="l00101"></a><span class="lineno">  101</span>    sum = _mm_add_ss(sum, shf);</div>
+<div class="line"><a id="l00102" name="l00102"></a><span class="lineno">  102</span> </div>
+<div class="line"><a id="l00103" name="l00103"></a><span class="lineno">  103</span>    <span class="keywordtype">float</span> acc = _mm_cvtss_f32(sum) + acc_scalar;</div>
+<div class="line"><a id="l00104" name="l00104"></a><span class="lineno">  104</span>    <span class="keywordflow">if</span> (bias) acc += bias[r];</div>
+<div class="line"><a id="l00105" name="l00105"></a><span class="lineno">  105</span>    y[r] = acc;</div>
+<div class="line"><a id="l00106" name="l00106"></a><span class="lineno">  106</span>  }</div>
+<div class="line"><a id="l00107" name="l00107"></a><span class="lineno">  107</span>}</div>
 </div>
-<div class="ttc" id="agemv__avx2_8c_html_a63b484c2984caeed7dfc9b5002444f57"><div class="ttname"><a href="gemv__avx2_8c.html#a63b484c2984caeed7dfc9b5002444f57">ie_gemv_f32_avx2_impl</a></div><div class="ttdeci">void ie_gemv_f32_avx2_impl(const float *W, const float *x, float *y, size_t rows, size_t cols, const float *bias, size_t blk_k)</div><div class="ttdoc">AVX2 GEMV core (blocked-K aware) with bias epilogue.</div><div class="ttdef"><b>Definition</b> <a href="#l00027">gemv_avx2.c:27</a></div></div>
+<div class="line"><a id="l00108" name="l00108"></a><span class="lineno">  108</span></div>
+<div class="line"><a id="l00126" name="l00126"></a><span class="lineno">  126</span>__attribute__((target(<span class="stringliteral">&quot;avx2,fma&quot;</span>), used)) <span class="keywordtype">void</span></div>
+<div class="foldopen" id="foldopen00127" data-start="{" data-end="}">
+<div class="line"><a id="l00127" name="l00127"></a><span class="lineno"><a class="line" href="gemv__avx2_8c.html#aa8a6c887be55a3af970b49855f86682d">  127</a></span><a class="code hl_function" href="gemv__avx2_8c.html#aa8a6c887be55a3af970b49855f86682d">ie_gemv_qi8_f32_avx2_impl</a>(<span class="keyword">const</span> <span class="keywordtype">float</span> *W, <span class="keyword">const</span> int8_t *x_q, <span class="keywordtype">float</span> *y,</div>
+<div class="line"><a id="l00128" name="l00128"></a><span class="lineno">  128</span>                          <span class="keywordtype">size_t</span> rows, <span class="keywordtype">size_t</span> cols, <span class="keyword">const</span> <span class="keywordtype">float</span> *bias,</div>
+<div class="line"><a id="l00129" name="l00129"></a><span class="lineno">  129</span>                          <span class="keywordtype">size_t</span> blk_k, <a class="code hl_struct" href="structie__act__i8__params.html">ie_act_i8_params</a> params,</div>
+<div class="line"><a id="l00130" name="l00130"></a><span class="lineno">  130</span>                          <span class="keywordtype">int</span> symmetric) {</div>
+<div class="line"><a id="l00131" name="l00131"></a><span class="lineno">  131</span>  (void)symmetric;</div>
+<div class="line"><a id="l00132" name="l00132"></a><span class="lineno">  132</span><span class="preprocessor">#if defined(_MSC_VER)</span></div>
+<div class="line"><a id="l00133" name="l00133"></a><span class="lineno">  133</span>  <span class="keywordtype">float</span> *x = (<span class="keywordtype">float</span> *)_aligned_malloc(cols * <span class="keyword">sizeof</span>(<span class="keywordtype">float</span>), 64);</div>
+<div class="line"><a id="l00134" name="l00134"></a><span class="lineno">  134</span>  <span class="keywordflow">if</span> (!x) <span class="keywordflow">return</span>;</div>
+<div class="line"><a id="l00135" name="l00135"></a><span class="lineno">  135</span><span class="preprocessor">#else</span></div>
+<div class="line"><a id="l00136" name="l00136"></a><span class="lineno">  136</span>  <span class="keywordtype">float</span> *x = (<span class="keywordtype">float</span> *)aligned_alloc(64, cols * <span class="keyword">sizeof</span>(<span class="keywordtype">float</span>));</div>
+<div class="line"><a id="l00137" name="l00137"></a><span class="lineno">  137</span>  <span class="keywordflow">if</span> (!x) <span class="keywordflow">return</span>;</div>
+<div class="line"><a id="l00138" name="l00138"></a><span class="lineno">  138</span><span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l00139" name="l00139"></a><span class="lineno">  139</span> </div>
+<div class="line"><a id="l00140" name="l00140"></a><span class="lineno">  140</span>  <span class="keyword">const</span> <span class="keywordtype">float</span> s = params.<a class="code hl_variable" href="structie__act__i8__params.html#ac0ec31737c16640ac332b562ea6be9a1">scale</a>;</div>
+<div class="line"><a id="l00141" name="l00141"></a><span class="lineno">  141</span>  <span class="keyword">const</span> <span class="keywordtype">int</span> z = (int)params.<a class="code hl_variable" href="structie__act__i8__params.html#ab19e71539ecb14b16a4c65b425be4c32">zero_point</a>;</div>
+<div class="line"><a id="l00142" name="l00142"></a><span class="lineno">  142</span> </div>
+<div class="line"><a id="l00143" name="l00143"></a><span class="lineno">  143</span>  <span class="keywordtype">size_t</span> i = 0;</div>
+<div class="line"><a id="l00144" name="l00144"></a><span class="lineno">  144</span>  <span class="keywordflow">for</span> (; i + 8 &lt;= cols; i += 8) {</div>
+<div class="line"><a id="l00145" name="l00145"></a><span class="lineno">  145</span>    __m128i q = _mm_loadl_epi64((<span class="keyword">const</span> __m128i *)(x_q + i)); <span class="comment">/* 8x i8 */</span></div>
+<div class="line"><a id="l00146" name="l00146"></a><span class="lineno">  146</span>    __m256i qi = _mm256_cvtepi8_epi32(q);                    <span class="comment">/* -&gt; 8x i32 */</span></div>
+<div class="line"><a id="l00147" name="l00147"></a><span class="lineno">  147</span>    __m256 qf = _mm256_cvtepi32_ps(qi);                      <span class="comment">/* -&gt; 8x f32 */</span></div>
+<div class="line"><a id="l00148" name="l00148"></a><span class="lineno">  148</span>    __m256 zf = _mm256_set1_ps((<span class="keywordtype">float</span>)z);</div>
+<div class="line"><a id="l00149" name="l00149"></a><span class="lineno">  149</span>    __m256 sf = _mm256_set1_ps(s);</div>
+<div class="line"><a id="l00150" name="l00150"></a><span class="lineno">  150</span>    __m256 xf = _mm256_mul_ps(sf, _mm256_sub_ps(qf, zf));</div>
+<div class="line"><a id="l00151" name="l00151"></a><span class="lineno">  151</span>    _mm256_storeu_ps(x + i, xf);</div>
+<div class="line"><a id="l00152" name="l00152"></a><span class="lineno">  152</span>  }</div>
+<div class="line"><a id="l00153" name="l00153"></a><span class="lineno">  153</span>  <span class="keywordflow">for</span> (; i &lt; cols; ++i) x[i] = s * ((<span class="keywordtype">int</span>)x_q[i] - z);</div>
+<div class="line"><a id="l00154" name="l00154"></a><span class="lineno">  154</span> </div>
+<div class="line"><a id="l00155" name="l00155"></a><span class="lineno">  155</span>  <a class="code hl_function" href="gemv__avx2_8c.html#a63b484c2984caeed7dfc9b5002444f57">ie_gemv_f32_avx2_impl</a>(W, x, y, rows, cols, bias, blk_k);</div>
+<div class="line"><a id="l00156" name="l00156"></a><span class="lineno">  156</span> </div>
+<div class="line"><a id="l00157" name="l00157"></a><span class="lineno">  157</span><span class="preprocessor">#if defined(_MSC_VER)</span></div>
+<div class="line"><a id="l00158" name="l00158"></a><span class="lineno">  158</span>  _aligned_free(x);</div>
+<div class="line"><a id="l00159" name="l00159"></a><span class="lineno">  159</span><span class="preprocessor">#else</span></div>
+<div class="line"><a id="l00160" name="l00160"></a><span class="lineno">  160</span>  free(x);</div>
+<div class="line"><a id="l00161" name="l00161"></a><span class="lineno">  161</span><span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l00162" name="l00162"></a><span class="lineno">  162</span>}</div>
+</div>
+<div class="ttc" id="agemv__avx2_8c_html_a63b484c2984caeed7dfc9b5002444f57"><div class="ttname"><a href="gemv__avx2_8c.html#a63b484c2984caeed7dfc9b5002444f57">ie_gemv_f32_avx2_impl</a></div><div class="ttdeci">void ie_gemv_f32_avx2_impl(const float *W, const float *x, float *y, size_t rows, size_t cols, const float *bias, size_t blk_k)</div><div class="ttdoc">AVX2/FMA GEMV (float path), blocked-K aware, with bias epilogue.</div><div class="ttdef"><b>Definition</b> <a href="#l00039">gemv_avx2.c:39</a></div></div>
+<div class="ttc" id="agemv__avx2_8c_html_aa8a6c887be55a3af970b49855f86682d"><div class="ttname"><a href="gemv__avx2_8c.html#aa8a6c887be55a3af970b49855f86682d">ie_gemv_qi8_f32_avx2_impl</a></div><div class="ttdeci">void ie_gemv_qi8_f32_avx2_impl(const float *W, const int8_t *x_q, float *y, size_t rows, size_t cols, const float *bias, size_t blk_k, ie_act_i8_params params, int symmetric)</div><div class="ttdoc">AVX2/FMA GEMV with per-tensor INT8 activations (two-pass: dequant then float GEMV).</div><div class="ttdef"><b>Definition</b> <a href="#l00127">gemv_avx2.c:127</a></div></div>
 <div class="ttc" id="aie__kernels_8h_html"><div class="ttname"><a href="ie__kernels_8h.html">ie_kernels.h</a></div><div class="ttdoc">Kernel dispatch points (generic/AVX2) for GEMV and vector ops.</div></div>
+<div class="ttc" id="aie__quant__act_8h_html"><div class="ttname"><a href="ie__quant__act_8h.html">ie_quant_act.h</a></div><div class="ttdoc">Activation quantization utilities (INT8 and FP8) for runtime paths.</div></div>
+<div class="ttc" id="astructie__act__i8__params_html"><div class="ttname"><a href="structie__act__i8__params.html">ie_act_i8_params</a></div><div class="ttdoc">Per-tensor INT8 affine parameters.</div><div class="ttdef"><b>Definition</b> <a href="ie__quant__act_8h_source.html#l00052">ie_quant_act.h:52</a></div></div>
+<div class="ttc" id="astructie__act__i8__params_html_ab19e71539ecb14b16a4c65b425be4c32"><div class="ttname"><a href="structie__act__i8__params.html#ab19e71539ecb14b16a4c65b425be4c32">ie_act_i8_params::zero_point</a></div><div class="ttdeci">int8_t zero_point</div><div class="ttdoc">Affine shift (0 for symmetric).</div><div class="ttdef"><b>Definition</b> <a href="ie__quant__act_8h_source.html#l00054">ie_quant_act.h:54</a></div></div>
+<div class="ttc" id="astructie__act__i8__params_html_ac0ec31737c16640ac332b562ea6be9a1"><div class="ttname"><a href="structie__act__i8__params.html#ac0ec31737c16640ac332b562ea6be9a1">ie_act_i8_params::scale</a></div><div class="ttdeci">float scale</div><div class="ttdoc">Positive real scaling factor.</div><div class="ttdef"><b>Definition</b> <a href="ie__quant__act_8h_source.html#l00053">ie_quant_act.h:53</a></div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->

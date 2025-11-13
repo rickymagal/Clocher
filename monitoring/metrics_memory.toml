@@ -1,0 +1,80 @@
+# ============================================================================
+# Memory Metrics Configuration for the Inference Engine
+# ----------------------------------------------------------------------------
+# Purpose:
+#   Configure a lightweight metrics collector (or your existing
+#   scripts/metrics_exporter.py) to expose system/process memory stats
+#   via Prometheus' textfile collector or a simple HTTP exporter.
+#
+# This file is intentionally generic and Linux-friendly. It relies only on
+# standard /proc and /sys interfaces and does not require root privileges.
+# ============================================================================
+
+[collector]
+# Sampling interval for memory polling.
+interval_sec = 2
+
+# Where to emit Prometheus textfile metrics (if your exporter supports it).
+# If you serve metrics over HTTP, you may ignore this and use in-memory
+# exposition in the exporter instead.
+textfile_enabled = true
+textfile_path    = "build/metrics/memory.prom"
+
+# Static labels to attach to all emitted metrics.
+[collector.labels]
+app     = "inference-engine"
+service = "benchmarks"
+
+# -----------------------------------------------------------------------------
+# System-level sources (/proc, /sys). All are optional, enable what you need.
+# -----------------------------------------------------------------------------
+[sources.system]
+meminfo   = true   # /proc/meminfo
+vmstat    = true   # /proc/vmstat
+psi       = true   # /proc/pressure/memory  (PSI: memory pressure stall)
+swap      = true   # /proc/swaps
+hugepages = true   # /sys/kernel/mm/hugepages
+numa      = true   # /sys/devices/system/node/node*/meminfo (if present)
+
+# -----------------------------------------------------------------------------
+# Process selection (the running inference process to monitor).
+# One of the selectors should resolve. The PID file path is preferred.
+# -----------------------------------------------------------------------------
+[process]
+pid_file        = "build/inference.pid"  # If your harness writes a PID file.
+exe_name        = "inference-engine"     # Fallback: match process name.
+match_cmd_regex = ""                     # Optional regex against /proc/*/cmdline.
+
+# -----------------------------------------------------------------------------
+# Process metrics toggles. Disable any you do not need.
+# -----------------------------------------------------------------------------
+[process.metrics]
+rss            = true  # Resident Set Size (MB)
+pss            = true  # Proportional Set Size (MB) via /proc/*/smaps_rollup (if available)
+vms            = true  # Virtual Memory Size (MB)
+minor_faults   = true  # /proc/*/stat::minflt
+major_faults   = true  # /proc/*/stat::majflt
+oom_score      = true  # /proc/*/oom_score
+numa_stats     = true  # /proc/*/numa_maps (if accessible)
+swap_in_out    = true  # Derived from /proc/vmstat (system-level deltas)
+rss_peaks      = true  # Track and export per-interval peak RSS/PSA/VMS
+
+# -----------------------------------------------------------------------------
+# Derived metrics configuration.
+# -----------------------------------------------------------------------------
+[derived]
+# Working-set coverage = bytes_per_token / model_file_size
+working_set_coverage = true
+
+# NUMA locality ratio, when numa_stats are enabled. The exporter should
+# estimate "local vs remote" pages based on numa_maps.
+numa_locality_ratio = true
+
+# -----------------------------------------------------------------------------
+# Thresholds for warnings (optional; exporters may expose *_warn metrics).
+# -----------------------------------------------------------------------------
+[thresholds]
+mem_available_pct_warn = 10.0  # warn when MemAvailable% < threshold
+swap_used_mb_warn      = 64.0  # warn when system swap used exceeds threshold
+psi_some_pct_warn      = 5.0   # warn when PSI "some" avg10 exceeds threshold
+psi_full_pct_warn      = 1.0   # warn when PSI "full" avg10 exceeds threshold

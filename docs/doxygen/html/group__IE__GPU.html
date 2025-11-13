@@ -284,17 +284,13 @@ Enumerations</h2></td></tr>
 <p>The pointer remains valid until the next launcher call on the same thread. An empty string means "no error".</p>
 <dl class="section return"><dt>Returns</dt><dd>NUL-terminated error message (never <code>NULL</code>).</dd></dl>
 <p>Return a thread-local message describing the last CUDA error.</p>
-<p>The pointer remains valid until the next launcher call on the same thread. An empty string means "no error".</p>
-<dl class="section return"><dt>Returns</dt><dd>NUL-terminated error message (never <code>NULL</code>).</dd></dl>
-<p>Return a thread-local message describing the last CUDA error.</p>
+<dl class="section return"><dt>Returns</dt><dd>Pointer to a thread-local, NUL-terminated message (may be ""). </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="ie__kernels__cuda_8cu_source.html#l00059">59</a> of file <a class="el" href="ie__kernels__cuda_8cu_source.html">ie_kernels_cuda.cu</a>.</p>
-<div class="fragment"><div class="line"><span class="lineno">   59</span>                                            {</div>
-<div class="line"><span class="lineno">   60</span>  <span class="keywordflow">return</span> <a class="code hl_variable" href="ie__kernels__cuda_8cu.html#a5ab38bcd2467e982c68d46e66acfa9ef">g_ie_cuda_err</a>;</div>
-<div class="line"><span class="lineno">   61</span>}</div>
-<div class="ttc" id="aie__kernels__cuda_8cu_html_a5ab38bcd2467e982c68d46e66acfa9ef"><div class="ttname"><a href="ie__kernels__cuda_8cu.html#a5ab38bcd2467e982c68d46e66acfa9ef">g_ie_cuda_err</a></div><div class="ttdeci">static __thread char g_ie_cuda_err[256]</div><div class="ttdoc">Thread-local buffer holding the most recent CUDA error message.</div><div class="ttdef"><b>Definition</b> <a href="ie__kernels__cuda_8cu_source.html#l00042">ie_kernels_cuda.cu:42</a></div></div>
+<p class="definition">Definition at line <a class="el" href="ie__kernels__cuda_8cu_source.html#l00057">57</a> of file <a class="el" href="ie__kernels__cuda_8cu_source.html">ie_kernels_cuda.cu</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">   57</span>{ <span class="keywordflow">return</span> <a class="code hl_variable" href="ie__kernels__cuda_8cu.html#a5ab38bcd2467e982c68d46e66acfa9ef">g_ie_cuda_err</a>; }</div>
+<div class="ttc" id="aie__kernels__cuda_8cu_html_a5ab38bcd2467e982c68d46e66acfa9ef"><div class="ttname"><a href="ie__kernels__cuda_8cu.html#a5ab38bcd2467e982c68d46e66acfa9ef">g_ie_cuda_err</a></div><div class="ttdeci">static __thread char g_ie_cuda_err[256]</div><div class="ttdef"><b>Definition</b> <a href="ie__kernels__cuda_8cu_source.html#l00037">ie_kernels_cuda.cu:37</a></div></div>
 </div><!-- fragment -->
-<p class="reference">References <a class="el" href="ie__kernels__cuda_8cu_source.html#l00042">g_ie_cuda_err</a>.</p>
+<p class="reference">References <a class="el" href="ie__kernels__cuda_8cu_source.html#l00037">g_ie_cuda_err</a>.</p>
 
 </div>
 </div>
@@ -391,53 +387,28 @@ Enumerations</h2></td></tr>
 <code>rows &gt; 0</code>, <code>cols &gt; 0</code>, <code>ldW &gt;= cols</code>. </dd></dl>
 <dl class="section post"><dt>Postcondition</dt><dd><code>y</code> contains the result with activation applied.</dd></dl>
 <p>Compute <code>y = act(alpha * W*x + bias + beta*y)</code> in one pass.</p>
-<ul>
-<li>Applies optional per-row <code>bias</code> (may be NULL → treated as zeros).</li>
-<li>Applies activation specified by <a class="el" href="#ga08ba1d3777f64c23e99124d2e460e701" title="Activation types supported by fused kernels.">ie_act_kind_t</a>.</li>
-</ul>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">W</td><td>Device pointer to row-major matrix <code>(rows x ldW)</code>. </td></tr>
-    <tr><td class="paramname">x</td><td>Device pointer to input vector (length <code>cols</code>). </td></tr>
-    <tr><td class="paramname">bias</td><td>Device pointer to per-row bias (length <code>rows</code>) or <code>NULL</code>. </td></tr>
-    <tr><td class="paramname">y</td><td>Device pointer to output vector (length <code>rows</code>). </td></tr>
-    <tr><td class="paramname">rows</td><td>Number of rows in <code>W</code>/<code>y</code>/<code>bias</code> (&gt;= 1). </td></tr>
-    <tr><td class="paramname">cols</td><td>Number of columns in <code>W</code> and elements in <code>x</code> (&gt;= 1). </td></tr>
-    <tr><td class="paramname">ldW</td><td>Leading dimension of <code>W</code> in elements (&gt;= <code>cols</code>). </td></tr>
-    <tr><td class="paramname">alpha</td><td>Scalar multiplier for <code>W*x</code>. </td></tr>
-    <tr><td class="paramname">beta</td><td>Scalar multiplier for existing <code>y</code> (use <code>0.f</code> to overwrite). </td></tr>
-    <tr><td class="paramname">act</td><td>Activation kind (see <a class="el" href="#ga08ba1d3777f64c23e99124d2e460e701" title="Activation types supported by fused kernels.">ie_act_kind_t</a>). </td></tr>
-    <tr><td class="paramname">stream</td><td>CUDA stream handle (may be <code>NULL</code>). </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd><code>0</code> on success, negative on error.</dd></dl>
-<dl class="section pre"><dt>Precondition</dt><dd>Pointers are non-NULL device pointers (except <code>bias</code>, which may be NULL). </dd>
-<dd>
-<code>rows &gt; 0</code>, <code>cols &gt; 0</code>, <code>ldW &gt;= cols</code>. </dd></dl>
-<dl class="section post"><dt>Postcondition</dt><dd><code>y</code> contains the result with activation applied.</dd></dl>
-<p>Compute <code>y = act(alpha * W*x + bias + beta*y)</code> in one pass.</p>
+<p>Same mapping as <a class="el" href="ie__kernels__cuda_8cu.html#af00402674d56c833c92c62df1cef1e84" title="Row-wise GEMV kernel: y = alpha * W * x + beta * y.">k_gemv_rowwise_f32</a> with an epilogue that adds bias and applies a simple activation (none/ReLU/tanh).    </p><dl class="section return"><dt>Returns</dt><dd>0 on success or negative CUDA error code on failure. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="ie__kernels__cuda_8cu_source.html#l00270">270</a> of file <a class="el" href="ie__kernels__cuda_8cu_source.html">ie_kernels_cuda.cu</a>.</p>
-<div class="fragment"><div class="line"><span class="lineno">  280</span>                                                              {</div>
-<div class="line"><span class="lineno">  281</span>  <a class="code hl_function" href="ie__kernels__cuda_8cu.html#a841d35ecb02f9850f311a5724d21deac">ie_cuda_set_err</a>(NULL);</div>
-<div class="line"><span class="lineno">  282</span>  <span class="keywordflow">if</span> (!W || !x || !y || rows &lt;= 0 || cols &lt;= 0 || ldW &lt; cols) {</div>
-<div class="line"><span class="lineno">  283</span>    <a class="code hl_function" href="ie__kernels__cuda_8cu.html#a841d35ecb02f9850f311a5724d21deac">ie_cuda_set_err</a>(<span class="stringliteral">&quot;invalid arguments&quot;</span>);</div>
-<div class="line"><span class="lineno">  284</span>    <span class="keywordflow">return</span> -1;</div>
-<div class="line"><span class="lineno">  285</span>  }</div>
-<div class="line"><span class="lineno">  286</span>  dim3 block(256, 1, 1);</div>
-<div class="line"><span class="lineno">  287</span>  dim3 grid(rows, 1, 1);</div>
-<div class="line"><span class="lineno">  288</span>  <a class="code hl_function" href="ie__kernels__cuda_8cu.html#ab9150fe6fc7da507974bfdd38b262ce2">k_gemv_bias_act_f32&lt;&lt;&lt;grid, block, 0, stream&gt;</a>&gt;&gt;(</div>
-<div class="line"><span class="lineno">  289</span>      W, x, bias, y, rows, cols, ldW, alpha, beta, act);</div>
-<div class="line"><span class="lineno">  290</span>  <a class="code hl_define" href="ie__kernels__cuda_8cu.html#af4c083462b1e956e6461aa246d2af9a6">CUDA_GUARD</a>(cudaGetLastError());</div>
-<div class="line"><span class="lineno">  291</span>  <span class="keywordflow">return</span> <a class="code hl_define" href="ie__kernels__cuda_8cu.html#afb3284f12e7d5038612ece3185920449">IE_CUDA_OK</a>;</div>
-<div class="line"><span class="lineno">  292</span>}</div>
-<div class="ttc" id="aie__kernels__cuda_8cu_html_a841d35ecb02f9850f311a5724d21deac"><div class="ttname"><a href="ie__kernels__cuda_8cu.html#a841d35ecb02f9850f311a5724d21deac">ie_cuda_set_err</a></div><div class="ttdeci">static void ie_cuda_set_err(const char *msg)</div><div class="ttdoc">Store an error message into the thread-local buffer (truncates).</div><div class="ttdef"><b>Definition</b> <a href="ie__kernels__cuda_8cu_source.html#l00049">ie_kernels_cuda.cu:49</a></div></div>
-<div class="ttc" id="aie__kernels__cuda_8cu_html_ab9150fe6fc7da507974bfdd38b262ce2"><div class="ttname"><a href="ie__kernels__cuda_8cu.html#ab9150fe6fc7da507974bfdd38b262ce2">k_gemv_bias_act_f32</a></div><div class="ttdeci">__global__ void k_gemv_bias_act_f32(const float *__restrict__ W, const float *__restrict__ x, const float *__restrict__ bias, float *__restrict__ y, int rows, int cols, int ldW, float alpha, float beta, ie_act_kind_t act)</div><div class="ttdoc">Kernel: fused GEMV + bias + activation.</div><div class="ttdef"><b>Definition</b> <a href="ie__kernels__cuda_8cu_source.html#l00163">ie_kernels_cuda.cu:163</a></div></div>
-<div class="ttc" id="aie__kernels__cuda_8cu_html_af4c083462b1e956e6461aa246d2af9a6"><div class="ttname"><a href="ie__kernels__cuda_8cu.html#af4c083462b1e956e6461aa246d2af9a6">CUDA_GUARD</a></div><div class="ttdeci">#define CUDA_GUARD(call)</div><div class="ttdoc">Guard macro for CUDA runtime calls inside launchers.</div><div class="ttdef"><b>Definition</b> <a href="ie__kernels__cuda_8cu_source.html#l00068">ie_kernels_cuda.cu:68</a></div></div>
-<div class="ttc" id="aie__kernels__cuda_8cu_html_afb3284f12e7d5038612ece3185920449"><div class="ttname"><a href="ie__kernels__cuda_8cu.html#afb3284f12e7d5038612ece3185920449">IE_CUDA_OK</a></div><div class="ttdeci">#define IE_CUDA_OK</div><div class="ttdef"><b>Definition</b> <a href="ie__kernels__cuda_8cu_source.html#l00024">ie_kernels_cuda.cu:24</a></div></div>
+<p class="definition">Definition at line <a class="el" href="ie__kernels__cuda_8cu_source.html#l00387">387</a> of file <a class="el" href="ie__kernels__cuda_8cu_source.html">ie_kernels_cuda.cu</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">  391</span>                                                              {</div>
+<div class="line"><span class="lineno">  392</span>  <a class="code hl_function" href="ie__kernels__cuda_8cu.html#a841d35ecb02f9850f311a5724d21deac">ie_cuda_set_err</a>(NULL);</div>
+<div class="line"><span class="lineno">  393</span>  <span class="keywordflow">if</span> (!W || !x || !y || rows &lt;= 0 || cols &lt;= 0 || ldW &lt; cols) {</div>
+<div class="line"><span class="lineno">  394</span>    <a class="code hl_function" href="ie__kernels__cuda_8cu.html#a841d35ecb02f9850f311a5724d21deac">ie_cuda_set_err</a>(<span class="stringliteral">&quot;invalid arguments&quot;</span>);</div>
+<div class="line"><span class="lineno">  395</span>    <span class="keywordflow">return</span> -1;</div>
+<div class="line"><span class="lineno">  396</span>  }</div>
+<div class="line"><span class="lineno">  397</span>  dim3 block(256, 1, 1);</div>
+<div class="line"><span class="lineno">  398</span>  dim3 grid(rows, 1, 1);</div>
+<div class="line"><span class="lineno">  399</span>  <a class="code hl_function" href="ie__kernels__cuda_8cu.html#ab9150fe6fc7da507974bfdd38b262ce2">k_gemv_bias_act_f32&lt;&lt;&lt;grid, block, 0, stream&gt;</a>&gt;&gt;(W, x, bias, y, rows, cols,</div>
+<div class="line"><span class="lineno">  400</span>                                                  ldW, alpha, beta, act);</div>
+<div class="line"><span class="lineno">  401</span>  <a class="code hl_define" href="ie__kernels__cuda_8cu.html#af4c083462b1e956e6461aa246d2af9a6">CUDA_GUARD</a>(cudaGetLastError());</div>
+<div class="line"><span class="lineno">  402</span>  <span class="keywordflow">return</span> <a class="code hl_define" href="ie__kernels__cuda_8cu.html#afb3284f12e7d5038612ece3185920449">IE_CUDA_OK</a>;</div>
+<div class="line"><span class="lineno">  403</span>}</div>
+<div class="ttc" id="aie__kernels__cuda_8cu_html_a841d35ecb02f9850f311a5724d21deac"><div class="ttname"><a href="ie__kernels__cuda_8cu.html#a841d35ecb02f9850f311a5724d21deac">ie_cuda_set_err</a></div><div class="ttdeci">static void ie_cuda_set_err(const char *msg)</div><div class="ttdoc">Set or clear the per-thread CUDA error string buffer.</div><div class="ttdef"><b>Definition</b> <a href="ie__kernels__cuda_8cu_source.html#l00043">ie_kernels_cuda.cu:43</a></div></div>
+<div class="ttc" id="aie__kernels__cuda_8cu_html_ab9150fe6fc7da507974bfdd38b262ce2"><div class="ttname"><a href="ie__kernels__cuda_8cu.html#ab9150fe6fc7da507974bfdd38b262ce2">k_gemv_bias_act_f32</a></div><div class="ttdeci">__global__ void k_gemv_bias_act_f32(const float *__restrict__ W, const float *__restrict__ x, const float *__restrict__ bias, float *__restrict__ y, int rows, int cols, int ldW, float alpha, float beta, ie_act_kind_t act)</div><div class="ttdoc">Fused GEMV + bias + activation kernel (float activations).</div><div class="ttdef"><b>Definition</b> <a href="ie__kernels__cuda_8cu_source.html#l00188">ie_kernels_cuda.cu:188</a></div></div>
+<div class="ttc" id="aie__kernels__cuda_8cu_html_af4c083462b1e956e6461aa246d2af9a6"><div class="ttname"><a href="ie__kernels__cuda_8cu.html#af4c083462b1e956e6461aa246d2af9a6">CUDA_GUARD</a></div><div class="ttdeci">#define CUDA_GUARD(call)</div><div class="ttdoc">CUDA error guard macro that stores the error string and returns.</div><div class="ttdef"><b>Definition</b> <a href="ie__kernels__cuda_8cu_source.html#l00066">ie_kernels_cuda.cu:66</a></div></div>
+<div class="ttc" id="aie__kernels__cuda_8cu_html_afb3284f12e7d5038612ece3185920449"><div class="ttname"><a href="ie__kernels__cuda_8cu.html#afb3284f12e7d5038612ece3185920449">IE_CUDA_OK</a></div><div class="ttdeci">#define IE_CUDA_OK</div><div class="ttdef"><b>Definition</b> <a href="ie__kernels__cuda_8cu_source.html#l00028">ie_kernels_cuda.cu:28</a></div></div>
 </div><!-- fragment -->
-<p class="reference">References <a class="el" href="ie__kernels__cuda_8cu_source.html#l00068">CUDA_GUARD</a>, <a class="el" href="ie__kernels__cuda_8cu_source.html#l00024">IE_CUDA_OK</a>, <a class="el" href="ie__kernels__cuda_8cu_source.html#l00049">ie_cuda_set_err()</a>, and <a class="el" href="ie__kernels__cuda_8cu_source.html#l00163">k_gemv_bias_act_f32()</a>.</p>
+<p class="reference">References <a class="el" href="ie__kernels__cuda_8cu_source.html#l00066">CUDA_GUARD</a>, <a class="el" href="ie__kernels__cuda_8cu_source.html#l00028">IE_CUDA_OK</a>, <a class="el" href="ie__kernels__cuda_8cu_source.html#l00043">ie_cuda_set_err()</a>, and <a class="el" href="ie__kernels__cuda_8cu_source.html#l00188">k_gemv_bias_act_f32()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -527,47 +498,39 @@ Here is the call graph for this function:</div>
 <code>rows &gt; 0</code>, <code>cols &gt; 0</code>, <code>ldW &gt;= cols</code>. </dd></dl>
 <dl class="section post"><dt>Postcondition</dt><dd><code>y</code> contains the result.</dd></dl>
 <p>Compute <code>y = alpha * W * x + beta * y</code> (row-wise GEMV).</p>
-<ul>
-<li><code>W</code> is dense row-major with <code>rows</code> rows and <code>ldW</code> columns stride.</li>
-<li>Each row is reduced in parallel; one block per output row.</li>
-</ul>
+<p><b>Mapping:</b> 1 block per row. Threads accumulate a strided reduction over K and reduce via shared memory. Assumes <code class="param">ldW</code> &gt;= <code class="param">cols</code>.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">W</td><td>Device pointer to row-major matrix <code>(rows x ldW)</code>. </td></tr>
-    <tr><td class="paramname">x</td><td>Device pointer to input vector (length <code>cols</code>). </td></tr>
-    <tr><td class="paramname">y</td><td>Device pointer to output vector (length <code>rows</code>). </td></tr>
-    <tr><td class="paramname">rows</td><td>Number of rows in <code>W</code> and elements in <code>y</code> (&gt;= 1). </td></tr>
-    <tr><td class="paramname">cols</td><td>Number of columns in <code>W</code> and elements in <code>x</code> (&gt;= 1). </td></tr>
-    <tr><td class="paramname">ldW</td><td>Leading dimension of <code>W</code> in elements (&gt;= <code>cols</code>). </td></tr>
-    <tr><td class="paramname">alpha</td><td>Scalar multiplier for <code>W*x</code>. </td></tr>
-    <tr><td class="paramname">beta</td><td>Scalar multiplier for existing <code>y</code> (use <code>0.f</code> to overwrite). </td></tr>
-    <tr><td class="paramname">stream</td><td>CUDA stream handle (may be <code>NULL</code>). </td></tr>
+    <tr><td class="paramname">W</td><td>Row-major matrix on device, size rows x ldW. </td></tr>
+    <tr><td class="paramname">x</td><td>Input vector on device, size cols. </td></tr>
+    <tr><td class="paramname">y</td><td>Output vector on device, size rows. </td></tr>
+    <tr><td class="paramname">rows</td><td>Number of rows / outputs. </td></tr>
+    <tr><td class="paramname">cols</td><td>Number of columns / inputs. </td></tr>
+    <tr><td class="paramname">ldW</td><td>Leading dimension (&gt;= cols). </td></tr>
+    <tr><td class="paramname">alpha</td><td>Scale for W*x. </td></tr>
+    <tr><td class="paramname">beta</td><td>Scale for existing y.    </td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd><code>0</code> on success, negative on error (see <a class="el" href="#ga6656c0ddd9df382048e7cd162e0c1d64" title="Return a thread-local message describing the last CUDA error.">ie_cuda_last_error_string()</a>).</dd></dl>
-<dl class="section pre"><dt>Precondition</dt><dd>Pointers are non-NULL and reference device memory. </dd>
-<dd>
-<code>rows &gt; 0</code>, <code>cols &gt; 0</code>, <code>ldW &gt;= cols</code>. </dd></dl>
-<dl class="section post"><dt>Postcondition</dt><dd><code>y</code> contains the result.</dd></dl>
-<p>Compute <code>y = alpha * W * x + beta * y</code> (row-wise GEMV).</p>
+<dl class="section return"><dt>Returns</dt><dd>0 on success or negative CUDA error code on failure. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="ie__kernels__cuda_8cu_source.html#l00246">246</a> of file <a class="el" href="ie__kernels__cuda_8cu_source.html">ie_kernels_cuda.cu</a>.</p>
-<div class="fragment"><div class="line"><span class="lineno">  254</span>                                                             {</div>
-<div class="line"><span class="lineno">  255</span>  <a class="code hl_function" href="ie__kernels__cuda_8cu.html#a841d35ecb02f9850f311a5724d21deac">ie_cuda_set_err</a>(NULL);</div>
-<div class="line"><span class="lineno">  256</span>  <span class="keywordflow">if</span> (!W || !x || !y || rows &lt;= 0 || cols &lt;= 0 || ldW &lt; cols) {</div>
-<div class="line"><span class="lineno">  257</span>    <a class="code hl_function" href="ie__kernels__cuda_8cu.html#a841d35ecb02f9850f311a5724d21deac">ie_cuda_set_err</a>(<span class="stringliteral">&quot;invalid arguments&quot;</span>);</div>
-<div class="line"><span class="lineno">  258</span>    <span class="keywordflow">return</span> -1;</div>
-<div class="line"><span class="lineno">  259</span>  }</div>
-<div class="line"><span class="lineno">  260</span>  dim3 block(256, 1, 1);</div>
-<div class="line"><span class="lineno">  261</span>  dim3 grid(rows, 1, 1);</div>
-<div class="line"><span class="lineno">  262</span>  <a class="code hl_function" href="ie__kernels__cuda_8cu.html#af00402674d56c833c92c62df1cef1e84">k_gemv_rowwise_f32&lt;&lt;&lt;grid, block, 0, stream&gt;</a>&gt;&gt;(W, x, y, rows, cols, ldW, alpha, beta);</div>
-<div class="line"><span class="lineno">  263</span>  <a class="code hl_define" href="ie__kernels__cuda_8cu.html#af4c083462b1e956e6461aa246d2af9a6">CUDA_GUARD</a>(cudaGetLastError());</div>
-<div class="line"><span class="lineno">  264</span>  <span class="keywordflow">return</span> <a class="code hl_define" href="ie__kernels__cuda_8cu.html#afb3284f12e7d5038612ece3185920449">IE_CUDA_OK</a>;</div>
-<div class="line"><span class="lineno">  265</span>}</div>
-<div class="ttc" id="aie__kernels__cuda_8cu_html_af00402674d56c833c92c62df1cef1e84"><div class="ttname"><a href="ie__kernels__cuda_8cu.html#af00402674d56c833c92c62df1cef1e84">k_gemv_rowwise_f32</a></div><div class="ttdeci">__global__ void k_gemv_rowwise_f32(const float *__restrict__ W, const float *__restrict__ x, float *__restrict__ y, int rows, int cols, int ldW, float alpha, float beta)</div><div class="ttdoc">Kernel: row-wise GEMV (computes y = alpha * W * x + beta * y).</div><div class="ttdef"><b>Definition</b> <a href="ie__kernels__cuda_8cu_source.html#l00116">ie_kernels_cuda.cu:116</a></div></div>
+<p class="definition">Definition at line <a class="el" href="ie__kernels__cuda_8cu_source.html#l00366">366</a> of file <a class="el" href="ie__kernels__cuda_8cu_source.html">ie_kernels_cuda.cu</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">  368</span>                                                                         {</div>
+<div class="line"><span class="lineno">  369</span>  <a class="code hl_function" href="ie__kernels__cuda_8cu.html#a841d35ecb02f9850f311a5724d21deac">ie_cuda_set_err</a>(NULL);</div>
+<div class="line"><span class="lineno">  370</span>  <span class="keywordflow">if</span> (!W || !x || !y || rows &lt;= 0 || cols &lt;= 0 || ldW &lt; cols) {</div>
+<div class="line"><span class="lineno">  371</span>    <a class="code hl_function" href="ie__kernels__cuda_8cu.html#a841d35ecb02f9850f311a5724d21deac">ie_cuda_set_err</a>(<span class="stringliteral">&quot;invalid arguments&quot;</span>);</div>
+<div class="line"><span class="lineno">  372</span>    <span class="keywordflow">return</span> -1;</div>
+<div class="line"><span class="lineno">  373</span>  }</div>
+<div class="line"><span class="lineno">  374</span>  dim3 block(256, 1, 1);</div>
+<div class="line"><span class="lineno">  375</span>  dim3 grid(rows, 1, 1);</div>
+<div class="line"><span class="lineno">  376</span>  <a class="code hl_function" href="ie__kernels__cuda_8cu.html#af00402674d56c833c92c62df1cef1e84">k_gemv_rowwise_f32&lt;&lt;&lt;grid, block, 0, stream&gt;</a>&gt;&gt;(W, x, y, rows, cols, ldW,</div>
+<div class="line"><span class="lineno">  377</span>                                                  alpha, beta);</div>
+<div class="line"><span class="lineno">  378</span>  <a class="code hl_define" href="ie__kernels__cuda_8cu.html#af4c083462b1e956e6461aa246d2af9a6">CUDA_GUARD</a>(cudaGetLastError());</div>
+<div class="line"><span class="lineno">  379</span>  <span class="keywordflow">return</span> <a class="code hl_define" href="ie__kernels__cuda_8cu.html#afb3284f12e7d5038612ece3185920449">IE_CUDA_OK</a>;</div>
+<div class="line"><span class="lineno">  380</span>}</div>
+<div class="ttc" id="aie__kernels__cuda_8cu_html_af00402674d56c833c92c62df1cef1e84"><div class="ttname"><a href="ie__kernels__cuda_8cu.html#af00402674d56c833c92c62df1cef1e84">k_gemv_rowwise_f32</a></div><div class="ttdeci">__global__ void k_gemv_rowwise_f32(const float *__restrict__ W, const float *__restrict__ x, float *__restrict__ y, int rows, int cols, int ldW, float alpha, float beta)</div><div class="ttdoc">Row-wise GEMV kernel: y = alpha * W * x + beta * y.</div><div class="ttdef"><b>Definition</b> <a href="ie__kernels__cuda_8cu_source.html#l00154">ie_kernels_cuda.cu:154</a></div></div>
 </div><!-- fragment -->
-<p class="reference">References <a class="el" href="ie__kernels__cuda_8cu_source.html#l00068">CUDA_GUARD</a>, <a class="el" href="ie__kernels__cuda_8cu_source.html#l00024">IE_CUDA_OK</a>, <a class="el" href="ie__kernels__cuda_8cu_source.html#l00049">ie_cuda_set_err()</a>, and <a class="el" href="ie__kernels__cuda_8cu_source.html#l00116">k_gemv_rowwise_f32()</a>.</p>
+<p class="reference">References <a class="el" href="ie__kernels__cuda_8cu_source.html#l00066">CUDA_GUARD</a>, <a class="el" href="ie__kernels__cuda_8cu_source.html#l00028">IE_CUDA_OK</a>, <a class="el" href="ie__kernels__cuda_8cu_source.html#l00043">ie_cuda_set_err()</a>, and <a class="el" href="ie__kernels__cuda_8cu_source.html#l00154">k_gemv_rowwise_f32()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -643,44 +606,37 @@ Here is the call graph for this function:</div>
 <dl class="section pre"><dt>Precondition</dt><dd><code>Wp</code> and <code>W</code> are device pointers with sufficient capacity. </dd></dl>
 <dl class="section post"><dt>Postcondition</dt><dd><code>Wp</code> contains the packed matrix in Blocked-K layout.</dd></dl>
 <p>Pack a row-major matrix into Blocked-K layout for better memory access.</p>
-<p>The K dimension (columns) is partitioned into tiles of size <code>block_k</code>. Data are stored as contiguous tiles: </p><div class="fragment"><div class="line"><span class="keywordtype">int</span> kb = k / block_k;  <span class="comment">// tile index along K</span></div>
-<div class="line"><span class="keywordtype">int</span> ko = k % block_k;  <span class="comment">// in-tile offset</span></div>
-<div class="line"><span class="keywordtype">size_t</span> dst = ((size_t)kb * rows + r) * (<span class="keywordtype">size_t</span>)block_k + (size_t)ko;</div>
-<div class="line">Wp[dst] = W[(size_t)r * ldW + (<span class="keywordtype">size_t</span>)k];</div>
-</div><!-- fragment --><dl class="params"><dt>Parameters</dt><dd>
+<p>Layout: for each (row r, column k) compute block index kb = k / block_k and offset ko = k % block_k, and store at: dst = ((kb * rows + r) * block_k + ko).</p>
+<dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">Wp</td><td>Device pointer to destination buffer (size = rows*cols). </td></tr>
-    <tr><td class="paramname">W</td><td>Device pointer to source row-major matrix. </td></tr>
-    <tr><td class="paramname">rows</td><td>Number of rows (&gt;= 1). </td></tr>
-    <tr><td class="paramname">cols</td><td>Number of columns (&gt;= 1). </td></tr>
-    <tr><td class="paramname">ldW</td><td>Leading dimension of <code>W</code> in elements (&gt;= <code>cols</code>). </td></tr>
-    <tr><td class="paramname">block_k</td><td>Tile size along K (e.g., 32/64/128; must be &gt; 0). </td></tr>
-    <tr><td class="paramname">stream</td><td>CUDA stream handle (may be <code>NULL</code>). </td></tr>
+    <tr><td class="paramname">Wp</td><td>Destination (blocked) on device. </td></tr>
+    <tr><td class="paramname">W</td><td>Source row-major on device (rows x ldW). </td></tr>
+    <tr><td class="paramname">rows</td><td>Number of rows. </td></tr>
+    <tr><td class="paramname">cols</td><td>Number of columns. </td></tr>
+    <tr><td class="paramname">ldW</td><td>Leading dimension (&gt;= cols). </td></tr>
+    <tr><td class="paramname">block_k</td><td>Block size in K (&gt;= 1).    </td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd><code>0</code> on success, negative on error.</dd></dl>
-<dl class="section pre"><dt>Precondition</dt><dd><code>Wp</code> and <code>W</code> are device pointers with sufficient capacity. </dd></dl>
-<dl class="section post"><dt>Postcondition</dt><dd><code>Wp</code> contains the packed matrix in Blocked-K layout.</dd></dl>
-<p>Pack a row-major matrix into Blocked-K layout for better memory access.</p>
+<dl class="section return"><dt>Returns</dt><dd>0 on success or negative CUDA error code on failure. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="ie__kernels__cuda_8cu_source.html#l00317">317</a> of file <a class="el" href="ie__kernels__cuda_8cu_source.html">ie_kernels_cuda.cu</a>.</p>
-<div class="fragment"><div class="line"><span class="lineno">  323</span>                                                                {</div>
-<div class="line"><span class="lineno">  324</span>  <a class="code hl_function" href="ie__kernels__cuda_8cu.html#a841d35ecb02f9850f311a5724d21deac">ie_cuda_set_err</a>(NULL);</div>
-<div class="line"><span class="lineno">  325</span>  <span class="keywordflow">if</span> (!Wp || !W || rows &lt;= 0 || cols &lt;= 0 || ldW &lt; cols || block_k &lt;= 0) {</div>
-<div class="line"><span class="lineno">  326</span>    <a class="code hl_function" href="ie__kernels__cuda_8cu.html#a841d35ecb02f9850f311a5724d21deac">ie_cuda_set_err</a>(<span class="stringliteral">&quot;invalid arguments&quot;</span>);</div>
-<div class="line"><span class="lineno">  327</span>    <span class="keywordflow">return</span> -1;</div>
-<div class="line"><span class="lineno">  328</span>  }</div>
-<div class="line"><span class="lineno">  329</span>  dim3 block(32, 8, 1);  <span class="comment">/* 256 threads per block */</span></div>
-<div class="line"><span class="lineno">  330</span>  dim3 grid((cols + block.x - 1) / block.x,</div>
-<div class="line"><span class="lineno">  331</span>            (rows + block.y - 1) / block.y, 1);</div>
-<div class="line"><span class="lineno">  332</span>  <a class="code hl_function" href="ie__kernels__cuda_8cu.html#ac440d51163bc9f16e835d00aedcb4b79">k_pack_w_blockedk_f32&lt;&lt;&lt;grid, block, 0, stream&gt;</a>&gt;&gt;(Wp, W, rows, cols, ldW, block_k);</div>
-<div class="line"><span class="lineno">  333</span>  <a class="code hl_define" href="ie__kernels__cuda_8cu.html#af4c083462b1e956e6461aa246d2af9a6">CUDA_GUARD</a>(cudaGetLastError());</div>
-<div class="line"><span class="lineno">  334</span>  <span class="keywordflow">return</span> <a class="code hl_define" href="ie__kernels__cuda_8cu.html#afb3284f12e7d5038612ece3185920449">IE_CUDA_OK</a>;</div>
-<div class="line"><span class="lineno">  335</span>}</div>
-<div class="ttc" id="aie__kernels__cuda_8cu_html_ac440d51163bc9f16e835d00aedcb4b79"><div class="ttname"><a href="ie__kernels__cuda_8cu.html#ac440d51163bc9f16e835d00aedcb4b79">k_pack_w_blockedk_f32</a></div><div class="ttdeci">__global__ void k_pack_w_blockedk_f32(float *__restrict__ Wp, const float *__restrict__ W, int rows, int cols, int ldW, int block_k)</div><div class="ttdoc">Kernel: pack row-major W into Blocked-K layout (see header docs).</div><div class="ttdef"><b>Definition</b> <a href="ie__kernels__cuda_8cu_source.html#l00222">ie_kernels_cuda.cu:222</a></div></div>
+<p class="definition">Definition at line <a class="el" href="ie__kernels__cuda_8cu_source.html#l00478">478</a> of file <a class="el" href="ie__kernels__cuda_8cu_source.html">ie_kernels_cuda.cu</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">  480</span>                                                                {</div>
+<div class="line"><span class="lineno">  481</span>  <a class="code hl_function" href="ie__kernels__cuda_8cu.html#a841d35ecb02f9850f311a5724d21deac">ie_cuda_set_err</a>(NULL);</div>
+<div class="line"><span class="lineno">  482</span>  <span class="keywordflow">if</span> (!Wp || !W || rows &lt;= 0 || cols &lt;= 0 || ldW &lt; cols || block_k &lt;= 0) {</div>
+<div class="line"><span class="lineno">  483</span>    <a class="code hl_function" href="ie__kernels__cuda_8cu.html#a841d35ecb02f9850f311a5724d21deac">ie_cuda_set_err</a>(<span class="stringliteral">&quot;invalid arguments&quot;</span>);</div>
+<div class="line"><span class="lineno">  484</span>    <span class="keywordflow">return</span> -1;</div>
+<div class="line"><span class="lineno">  485</span>  }</div>
+<div class="line"><span class="lineno">  486</span>  dim3 block(32, 8, 1); <span class="comment">/* 256 threads per block */</span></div>
+<div class="line"><span class="lineno">  487</span>  dim3 grid((cols + block.x - 1) / block.x, (rows + block.y - 1) / block.y, 1);</div>
+<div class="line"><span class="lineno">  488</span>  <a class="code hl_function" href="ie__kernels__cuda_8cu.html#ac440d51163bc9f16e835d00aedcb4b79">k_pack_w_blockedk_f32&lt;&lt;&lt;grid, block, 0, stream&gt;</a>&gt;&gt;(Wp, W, rows, cols, ldW,</div>
+<div class="line"><span class="lineno">  489</span>                                                    block_k);</div>
+<div class="line"><span class="lineno">  490</span>  <a class="code hl_define" href="ie__kernels__cuda_8cu.html#af4c083462b1e956e6461aa246d2af9a6">CUDA_GUARD</a>(cudaGetLastError());</div>
+<div class="line"><span class="lineno">  491</span>  <span class="keywordflow">return</span> <a class="code hl_define" href="ie__kernels__cuda_8cu.html#afb3284f12e7d5038612ece3185920449">IE_CUDA_OK</a>;</div>
+<div class="line"><span class="lineno">  492</span>}</div>
+<div class="ttc" id="aie__kernels__cuda_8cu_html_ac440d51163bc9f16e835d00aedcb4b79"><div class="ttname"><a href="ie__kernels__cuda_8cu.html#ac440d51163bc9f16e835d00aedcb4b79">k_pack_w_blockedk_f32</a></div><div class="ttdeci">__global__ void k_pack_w_blockedk_f32(float *__restrict__ Wp, const float *__restrict__ W, int rows, int cols, int ldW, int block_k)</div><div class="ttdoc">Pack row-major W into Blocked-K layout on device (see header docs).</div><div class="ttdef"><b>Definition</b> <a href="ie__kernels__cuda_8cu_source.html#l00340">ie_kernels_cuda.cu:340</a></div></div>
 </div><!-- fragment -->
-<p class="reference">References <a class="el" href="ie__kernels__cuda_8cu_source.html#l00068">CUDA_GUARD</a>, <a class="el" href="ie__kernels__cuda_8cu_source.html#l00024">IE_CUDA_OK</a>, <a class="el" href="ie__kernels__cuda_8cu_source.html#l00049">ie_cuda_set_err()</a>, and <a class="el" href="ie__kernels__cuda_8cu_source.html#l00222">k_pack_w_blockedk_f32()</a>.</p>
+<p class="reference">References <a class="el" href="ie__kernels__cuda_8cu_source.html#l00066">CUDA_GUARD</a>, <a class="el" href="ie__kernels__cuda_8cu_source.html#l00028">IE_CUDA_OK</a>, <a class="el" href="ie__kernels__cuda_8cu_source.html#l00043">ie_cuda_set_err()</a>, and <a class="el" href="ie__kernels__cuda_8cu_source.html#l00340">k_pack_w_blockedk_f32()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -736,35 +692,32 @@ Here is the call graph for this function:</div>
 <p>Compute <code>y[i] = tanh(x[i])</code> for <code>i in [0, n)</code>.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">y</td><td>Device pointer to output vector (length <code>n</code>). </td></tr>
-    <tr><td class="paramname">x</td><td>Device pointer to input vector (length <code>n</code>). </td></tr>
-    <tr><td class="paramname">n</td><td>Number of elements (&gt;= 1). </td></tr>
-    <tr><td class="paramname">stream</td><td>CUDA stream handle (may be <code>NULL</code>). </td></tr>
+    <tr><td class="paramname">y</td><td>Output pointer (device). </td></tr>
+    <tr><td class="paramname">x</td><td>Input pointer (device). </td></tr>
+    <tr><td class="paramname">n</td><td>Number of elements. </td></tr>
+    <tr><td class="paramname">stream</td><td>CUDA stream (may be 0). </td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd><code>0</code> on success, negative on error.</dd></dl>
-<dl class="section pre"><dt>Precondition</dt><dd><code>x</code> and <code>y</code> are valid device pointers with at least <code>n</code> elements. </dd></dl>
-<dl class="section post"><dt>Postcondition</dt><dd><code>y</code> contains elementwise <code>tanh(x)</code>.</dd></dl>
-<p>Compute <code>y[i] = tanh(x[i])</code> for <code>i in [0, n)</code>.</p>
+<dl class="section return"><dt>Returns</dt><dd>0 on success or negative CUDA error code on failure. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="ie__kernels__cuda_8cu_source.html#l00297">297</a> of file <a class="el" href="ie__kernels__cuda_8cu_source.html">ie_kernels_cuda.cu</a>.</p>
-<div class="fragment"><div class="line"><span class="lineno">  300</span>                                                         {</div>
-<div class="line"><span class="lineno">  301</span>  <a class="code hl_function" href="ie__kernels__cuda_8cu.html#a841d35ecb02f9850f311a5724d21deac">ie_cuda_set_err</a>(NULL);</div>
-<div class="line"><span class="lineno">  302</span>  <span class="keywordflow">if</span> (!x || !y || n &lt;= 0) {</div>
-<div class="line"><span class="lineno">  303</span>    <a class="code hl_function" href="ie__kernels__cuda_8cu.html#a841d35ecb02f9850f311a5724d21deac">ie_cuda_set_err</a>(<span class="stringliteral">&quot;invalid arguments&quot;</span>);</div>
-<div class="line"><span class="lineno">  304</span>    <span class="keywordflow">return</span> -1;</div>
-<div class="line"><span class="lineno">  305</span>  }</div>
-<div class="line"><span class="lineno">  306</span>  <span class="keyword">const</span> <span class="keywordtype">int</span> block = 256;</div>
-<div class="line"><span class="lineno">  307</span>  <span class="keywordtype">int</span> grid = (n + block - 1) / block;</div>
-<div class="line"><span class="lineno">  308</span>  <span class="keywordflow">if</span> (grid &gt; 65535) grid = 65535; <span class="comment">/* SM limit for 1D grids on many archs */</span></div>
-<div class="line"><span class="lineno">  309</span>  <a class="code hl_function" href="ie__kernels__cuda_8cu.html#aea063f21d4bdf3ba4108f9677476aad4">k_vec_tanh_f32&lt;&lt;&lt;grid, block, 0, stream&gt;</a>&gt;&gt;(y, x, n);</div>
-<div class="line"><span class="lineno">  310</span>  <a class="code hl_define" href="ie__kernels__cuda_8cu.html#af4c083462b1e956e6461aa246d2af9a6">CUDA_GUARD</a>(cudaGetLastError());</div>
-<div class="line"><span class="lineno">  311</span>  <span class="keywordflow">return</span> <a class="code hl_define" href="ie__kernels__cuda_8cu.html#afb3284f12e7d5038612ece3185920449">IE_CUDA_OK</a>;</div>
-<div class="line"><span class="lineno">  312</span>}</div>
-<div class="ttc" id="aie__kernels__cuda_8cu_html_aea063f21d4bdf3ba4108f9677476aad4"><div class="ttname"><a href="ie__kernels__cuda_8cu.html#aea063f21d4bdf3ba4108f9677476aad4">k_vec_tanh_f32</a></div><div class="ttdeci">__global__ void k_vec_tanh_f32(float *__restrict__ y, const float *__restrict__ x, int n)</div><div class="ttdoc">Kernel: elementwise tanh on a vector.</div><div class="ttdef"><b>Definition</b> <a href="ie__kernels__cuda_8cu_source.html#l00202">ie_kernels_cuda.cu:202</a></div></div>
+<p class="definition">Definition at line <a class="el" href="ie__kernels__cuda_8cu_source.html#l00458">458</a> of file <a class="el" href="ie__kernels__cuda_8cu_source.html">ie_kernels_cuda.cu</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">  459</span>                                                         {</div>
+<div class="line"><span class="lineno">  460</span>  <a class="code hl_function" href="ie__kernels__cuda_8cu.html#a841d35ecb02f9850f311a5724d21deac">ie_cuda_set_err</a>(NULL);</div>
+<div class="line"><span class="lineno">  461</span>  <span class="keywordflow">if</span> (!x || !y || n &lt;= 0) {</div>
+<div class="line"><span class="lineno">  462</span>    <a class="code hl_function" href="ie__kernels__cuda_8cu.html#a841d35ecb02f9850f311a5724d21deac">ie_cuda_set_err</a>(<span class="stringliteral">&quot;invalid arguments&quot;</span>);</div>
+<div class="line"><span class="lineno">  463</span>    <span class="keywordflow">return</span> -1;</div>
+<div class="line"><span class="lineno">  464</span>  }</div>
+<div class="line"><span class="lineno">  465</span>  <span class="keyword">const</span> <span class="keywordtype">int</span> block = 256;</div>
+<div class="line"><span class="lineno">  466</span>  <span class="keywordtype">int</span> grid = (n + block - 1) / block;</div>
+<div class="line"><span class="lineno">  467</span>  <span class="keywordflow">if</span> (grid &gt; 65535) grid = 65535;</div>
+<div class="line"><span class="lineno">  468</span>  <a class="code hl_function" href="ie__kernels__cuda_8cu.html#aea063f21d4bdf3ba4108f9677476aad4">k_vec_tanh_f32&lt;&lt;&lt;grid, block, 0, stream&gt;</a>&gt;&gt;(y, x, n);</div>
+<div class="line"><span class="lineno">  469</span>  <a class="code hl_define" href="ie__kernels__cuda_8cu.html#af4c083462b1e956e6461aa246d2af9a6">CUDA_GUARD</a>(cudaGetLastError());</div>
+<div class="line"><span class="lineno">  470</span>  <span class="keywordflow">return</span> <a class="code hl_define" href="ie__kernels__cuda_8cu.html#afb3284f12e7d5038612ece3185920449">IE_CUDA_OK</a>;</div>
+<div class="line"><span class="lineno">  471</span>}</div>
+<div class="ttc" id="aie__kernels__cuda_8cu_html_aea063f21d4bdf3ba4108f9677476aad4"><div class="ttname"><a href="ie__kernels__cuda_8cu.html#aea063f21d4bdf3ba4108f9677476aad4">k_vec_tanh_f32</a></div><div class="ttdeci">__global__ void k_vec_tanh_f32(float *__restrict__ y, const float *__restrict__ x, int n)</div><div class="ttdoc">Elementwise hyperbolic tangent on a vector.</div><div class="ttdef"><b>Definition</b> <a href="ie__kernels__cuda_8cu_source.html#l00318">ie_kernels_cuda.cu:318</a></div></div>
 </div><!-- fragment -->
-<p class="reference">References <a class="el" href="ie__kernels__cuda_8cu_source.html#l00068">CUDA_GUARD</a>, <a class="el" href="ie__kernels__cuda_8cu_source.html#l00024">IE_CUDA_OK</a>, <a class="el" href="ie__kernels__cuda_8cu_source.html#l00049">ie_cuda_set_err()</a>, and <a class="el" href="ie__kernels__cuda_8cu_source.html#l00202">k_vec_tanh_f32()</a>.</p>
+<p class="reference">References <a class="el" href="ie__kernels__cuda_8cu_source.html#l00066">CUDA_GUARD</a>, <a class="el" href="ie__kernels__cuda_8cu_source.html#l00028">IE_CUDA_OK</a>, <a class="el" href="ie__kernels__cuda_8cu_source.html#l00043">ie_cuda_set_err()</a>, and <a class="el" href="ie__kernels__cuda_8cu_source.html#l00318">k_vec_tanh_f32()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">

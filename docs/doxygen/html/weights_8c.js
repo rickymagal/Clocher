@@ -4,6 +4,7 @@ var weights_8c =
     [ "_POSIX_C_SOURCE", "weights_8c.html#a3024ccd4a9af5109d24e6c57565d74a1", null ],
     [ "ascii_ieq", "weights_8c.html#a72ab94aafe7740f1343d317daa89ca15", null ],
     [ "cpyz", "weights_8c.html#ae3307b59271742c37862abf0b9698d23", null ],
+    [ "fp16_to_fp32", "weights_8c.html#a45b3ddd20d46adc5338518e4d68a293d", null ],
     [ "ie_pread", "weights_8c.html#aabb19f4a5e5385962c6db57f611bb785", null ],
     [ "ie_weights_close", "group__ie__io__weights.html#ga06c2b7e35d1f82a11e4605e23a1976f5", null ],
     [ "ie_weights_decode_int4", "weights_8c.html#ab5498f6122af51af9b673e87a4049d19", null ],

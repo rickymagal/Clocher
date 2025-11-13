@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['gpu_20backend_0',['Level Zero (oneAPI) GPU backend',['../group__IE__GPU__ZE.html',1,'']]]
+  ['engine_20api_20compat_0',['Public Engine API (compat)',['../group__ie__engine.html',1,'']]]
 ];

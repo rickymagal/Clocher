@@ -1,5 +1,10 @@
 var searchData=
 [
-  ['2025_2010_2024_20_3a_20adopt_20int4_20weight_20only_20ptq_20manifest_20guided_20packing_20strong_0',['&lt;strong&gt;ADR-0013 (2025-10-24): Adopt INT4 weight-only PTQ &amp; manifest-guided packing&lt;/strong&gt;',['../md_docs_2DECISIONS.html#autotoc_md35',1,'']]],
-  ['24_20_3a_20adopt_20int4_20weight_20only_20ptq_20manifest_20guided_20packing_20strong_1',['&lt;strong&gt;ADR-0013 (2025-10-24): Adopt INT4 weight-only PTQ &amp; manifest-guided packing&lt;/strong&gt;',['../md_docs_2DECISIONS.html#autotoc_md35',1,'']]]
+  ['2_20—_20“hot”_20weights_20replication_20per_20socket_0',['Step 2 — “Hot” weights replication per socket',['../index.html#autotoc_md103',1,'']]],
+  ['2025_2010_2024_2021_3a04_3a23_20utc_1',['2025 10 24 21:04:23 UTC',['../md_docs_2DECISIONS.html#autotoc_md43',1,'Decision: Add INT4 (Weight-Only) Optional Pipeline (2025-10-24 21:04:23 UTC)'],['../index.html#autotoc_md82',1,'INT4 Weight-Only — Addendum (2025-10-24 21:04:23 UTC)'],['../md_docs_2DESIGN.html#autotoc_md26',1,'INT4 Weight-Only Path — Design Addendum (2025-10-24 21:04:23 UTC)']]],
+  ['2025_2010_2024_20_3a_20adopt_20int4_20weight_20only_20ptq_20manifest_20guided_20packing_20strong_2',['&lt;strong&gt;ADR-0013 (2025-10-24): Adopt INT4 weight-only PTQ &amp; manifest-guided packing&lt;/strong&gt;',['../md_docs_2DECISIONS.html#autotoc_md30',1,'']]],
+  ['2025_2011_2010_3',['2025 11 10',['../md_docs_2DESIGN.html#autotoc_md36',1,'Updates — 2025-11-10'],['../index.html#autotoc_md101',1,'What’s new — 2025-11-10']]],
+  ['21_3a04_3a23_20utc_4',['21:04:23 UTC',['../md_docs_2DECISIONS.html#autotoc_md43',1,'Decision: Add INT4 (Weight-Only) Optional Pipeline (2025-10-24 21:04:23 UTC)'],['../index.html#autotoc_md82',1,'INT4 Weight-Only — Addendum (2025-10-24 21:04:23 UTC)'],['../md_docs_2DESIGN.html#autotoc_md26',1,'INT4 Weight-Only Path — Design Addendum (2025-10-24 21:04:23 UTC)']]],
+  ['24_2021_3a04_3a23_20utc_5',['24 21:04:23 UTC',['../md_docs_2DECISIONS.html#autotoc_md43',1,'Decision: Add INT4 (Weight-Only) Optional Pipeline (2025-10-24 21:04:23 UTC)'],['../index.html#autotoc_md82',1,'INT4 Weight-Only — Addendum (2025-10-24 21:04:23 UTC)'],['../md_docs_2DESIGN.html#autotoc_md26',1,'INT4 Weight-Only Path — Design Addendum (2025-10-24 21:04:23 UTC)']]],
+  ['24_20_3a_20adopt_20int4_20weight_20only_20ptq_20manifest_20guided_20packing_20strong_6',['&lt;strong&gt;ADR-0013 (2025-10-24): Adopt INT4 weight-only PTQ &amp; manifest-guided packing&lt;/strong&gt;',['../md_docs_2DECISIONS.html#autotoc_md30',1,'']]]
 ];

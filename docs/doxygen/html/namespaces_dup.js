@@ -6,12 +6,43 @@ var namespaces_dup =
     [ "export_tensors_torch", "namespaceexport__tensors__torch.html", [
       [ "main", "namespaceexport__tensors__torch.html#a2433c23b09ef1937c4c1e1c8c4c0f796", null ]
     ] ],
+    [ "gen_q4_bytes_stream", "namespacegen__q4__bytes__stream.html", [
+      [ "main", "namespacegen__q4__bytes__stream.html#afa99129fbee72066f8340739bf0916c1", null ],
+      [ "pack_int4_rows", "namespacegen__q4__bytes__stream.html#a5747a5b8b90c71963e7ccac6bc16fc3b", null ],
+      [ "parse_args", "namespacegen__q4__bytes__stream.html#a9c210240851cd20010b592be966a6fab", null ],
+      [ "wanted", "namespacegen__q4__bytes__stream.html#a1919c9467f0437530567f57b4447e600", null ],
+      [ "EXC", "namespacegen__q4__bytes__stream.html#a08b4949b536e419535f7dab272759679", null ],
+      [ "INC_W", "namespacegen__q4__bytes__stream.html#a24922b6194d60bc735fcdfd5962c787a", null ]
+    ] ],
+    [ "gen_q4_bytes_worker", "namespacegen__q4__bytes__worker.html", [
+      [ "main", "namespacegen__q4__bytes__worker.html#ad8bac42fb7b7d5601691eaf3536eae1d", null ],
+      [ "pack_int4_rows", "namespacegen__q4__bytes__worker.html#a0466e5da205645c29771b11876255cbb", null ],
+      [ "wanted", "namespacegen__q4__bytes__worker.html#ae39d7d5811c239feecb2758e53af0f3e", null ],
+      [ "EXC", "namespacegen__q4__bytes__worker.html#a69f44b3a0b8cc9b79c3222706a888864", null ],
+      [ "INC_W", "namespacegen__q4__bytes__worker.html#a4913c7a381e8d26456eebd6c84bfbd99", null ]
+    ] ],
     [ "harness", "namespaceharness.html", [
-      [ "_ensure_outdir", "namespaceharness.html#a9fd9545352be0b506090c17d722b62a7", null ],
-      [ "_load_prompts_jsonl", "namespaceharness.html#a53f716db56d4ff87808bf25db4a217a9", null ],
+      [ "_combo_id", "namespaceharness.html#ad7476f60244e620d24fc97f5aac41d25", null ],
+      [ "_derive_bytes_touched", "namespaceharness.html#a28ad8ca35209c460cdb401c221aae7dd", null ],
+      [ "_discover_git", "namespaceharness.html#aea77adcd17ced76219c305b5d58588f4", null ],
+      [ "_ensure_dir", "namespaceharness.html#aecd190db3c2f9679f9b2657270c1205b", null ],
+      [ "_ensure_outdir", "namespaceharness.html#a6214165c6e926d2a6d9eee8e092aaf05", null ],
+      [ "_env_bool", "namespaceharness.html#a9dcfe13042b7e94d279194a10e8abbf2", null ],
+      [ "_env_json", "namespaceharness.html#a94bfd9bbb8e984be636e1a4363ae777d", null ],
+      [ "_escape_label_value", "namespaceharness.html#a1e44abe348994ef0001853e16c671393", null ],
+      [ "_fmt_labels", "namespaceharness.html#a13ee79cd9d8d8d527a2085b05cb1bb04", null ],
+      [ "_hostname", "namespaceharness.html#a06835702604d6d44d8a50798dff26a5d", null ],
+      [ "_load_prompts_jsonl", "namespaceharness.html#a78ab66e05089868e03a0bf8d1dd2a446", null ],
+      [ "_parse", "namespaceharness.html#af74096a05ed5982147faa1c7be9b3eca", null ],
+      [ "_pg_delete_series", "namespaceharness.html#a193517728d393d9b1e67120aaa99e36e", null ],
+      [ "_pg_endpoint", "namespaceharness.html#a49277e4bc8eb93aff1a9c8480882e114", null ],
+      [ "_split_list", "namespaceharness.html#ac86d67a920e4dc31a2cd9d0cf4747952", null ],
+      [ "_synthetic_evaluate", "namespaceharness.html#a5db6927b2a0861460d3ed910752ee752", null ],
+      [ "emit_metrics_text", "namespaceharness.html#a74669bfa6e74a83abe2b8fdcde52b0d7", null ],
       [ "main", "namespaceharness.html#a28af262c64af5578f03e77dc72cd52b2", null ],
+      [ "push_metrics_pg", "namespaceharness.html#a848001c6546fabab799285f3c771c0e8", null ],
       [ "encoding", "namespaceharness.html#af79b6ab75a064a069a2d6015029ae515", null ],
-      [ "outdir", "namespaceharness.html#adda3065cc67c324fbcea064daf527b57", null ]
+      [ "root", "namespaceharness.html#aa6b77445f1ba3bbeeec35eae16193ef3", null ]
     ] ],
     [ "hf_to_iebin", "namespacehf__to__iebin.html", [
       [ "_read_json", "namespacehf__to__iebin.html#a31f4d6cf12f537fbc82c75b1eef68f7a", null ],
@@ -38,7 +69,7 @@ var namespaces_dup =
     ] ],
     [ "metrics_exporter", "namespacemetrics__exporter.html", "namespacemetrics__exporter" ],
     [ "ptq_calib", "namespaceptq__calib.html", [
-      [ "_pack_row_int4_signed", "namespaceptq__calib.html#aa6020564afa3bb98f636c4a2bcfe7f25", null ],
+      [ "_pack_row_int4_biased", "namespaceptq__calib.html#a411585cffe038415fa4a50d31152a8fc", null ],
       [ "avg_row_cosine", "namespaceptq__calib.html#a9805c5526e7e404510096d4c348247e1", null ],
       [ "compute_scales", "namespaceptq__calib.html#af0f830db41d66b7dc2d9462dfc37133c", null ],
       [ "load_f32_matrix", "namespaceptq__calib.html#a3c61645c84bf45ea46988b90da7eacf2", null ],
@@ -62,6 +93,18 @@ var namespaces_dup =
       [ "export_torch", "namespaceptq__from__source.html#a99ee4ccbb68ff19b8ff08181557cc408", null ],
       [ "main", "namespaceptq__from__source.html#a74fd9f3663da6e0565d10c4d88520caa", null ]
     ] ],
+    [ "q4_pack_stream", "namespaceq4__pack__stream.html", [
+      [ "main", "namespaceq4__pack__stream.html#aa0eb42b018a2bb4a3104267f15b25322", null ],
+      [ "pack_row_int4_sym", "namespaceq4__pack__stream.html#a0c3ef43b0834f6d7d9172be7e1a35e20", null ],
+      [ "quantize_2d_per_row", "namespaceq4__pack__stream.html#a671b92b7622e9bd97a9da8b156f36e3d", null ],
+      [ "safe", "namespaceq4__pack__stream.html#af04a116ceeeea050e8f3eaa68343e08c", null ],
+      [ "wanted", "namespaceq4__pack__stream.html#afe4382db1822ac1cf96480dfe05efc9d", null ],
+      [ "exc_any", "namespaceq4__pack__stream.html#a0150289abb7d79ec7c3a62e9c5869f4c", null ],
+      [ "HF_DIR", "namespaceq4__pack__stream.html#affb5a75c11e1563570eb6ef216cab888", null ],
+      [ "inc_w", "namespaceq4__pack__stream.html#ad99ca0bacec90cbb582f778807e96ff2", null ],
+      [ "MAN_OUT", "namespaceq4__pack__stream.html#ac2a6f10e7b42a097bb9ef9f810acac74", null ],
+      [ "Q4_DIR", "namespaceq4__pack__stream.html#a511a4249dd1af185291e8a11bfd7eddf", null ]
+    ] ],
     [ "test_cli", "namespacetest__cli.html", "namespacetest__cli" ],
     [ "test_cli_error_paths", "namespacetest__cli__error__paths.html", "namespacetest__cli__error__paths" ],
     [ "test_cli_flags", "namespacetest__cli__flags.html", "namespacetest__cli__flags" ],
@@ -72,6 +115,8 @@ var namespaces_dup =
     [ "test_ptq_calib_pipeline", "namespacetest__ptq__calib__pipeline.html", "namespacetest__ptq__calib__pipeline" ],
     [ "update_performance_md", "namespaceupdate__performance__md.html", [
       [ "_agg", "namespaceupdate__performance__md.html#aa822beedd3ad900a093ef302f613dba7", null ],
+      [ "_agg_numeric", "namespaceupdate__performance__md.html#ad85fa0c1fbe674e652d3c7e25cb5476b", null ],
+      [ "_agg_sum", "namespaceupdate__performance__md.html#adba0036b37ceae9c03dfb96407283aeb", null ],
       [ "_bandwidth_gbps", "namespaceupdate__performance__md.html#a4093efa4a4b832d477bd5b012b9e36ca", null ],
       [ "_bytes_to_gb", "namespaceupdate__performance__md.html#a4ccc20cb0021ee1fdf18fa3d38860810", null ],
       [ "_bytes_to_mb", "namespaceupdate__performance__md.html#a81a2a466ef45e1472bad62ec4b513ddb", null ],
@@ -84,15 +129,18 @@ var namespaces_dup =
       [ "_filesize", "namespaceupdate__performance__md.html#a88eb703199878325a3c8eb44a6fca5ac", null ],
       [ "_find_model_bin", "namespaceupdate__performance__md.html#a686e7769dbdebc33f261f7596cb5cd18", null ],
       [ "_fmt_float", "namespaceupdate__performance__md.html#a15f1881e9bb3d7b11e0e25d2a1f76247", null ],
+      [ "_max_or_none", "namespaceupdate__performance__md.html#a91f019a522a78e6359ae3101f456bfa3", null ],
       [ "_mb_per_token", "namespaceupdate__performance__md.html#a0b02f8e320ad4008b806eb51735f3a34", null ],
       [ "_mean", "namespaceupdate__performance__md.html#a0a92266d40ea5f29cd6587638192c323", null ],
       [ "_merge_shared", "namespaceupdate__performance__md.html#abe82b6ec47b6fc78fb19bb37a6726fce", null ],
+      [ "_min_or_none", "namespaceupdate__performance__md.html#a324f3044150ad284473b7a900c0a2765", null ],
       [ "_now_utc_str", "namespaceupdate__performance__md.html#aabfd2fcbd91951cc329b904d3f67847a", null ],
       [ "_parse", "namespaceupdate__performance__md.html#a17ae6536535cdd081f87d0a1f28fe161", null ],
       [ "_partition_runs_and_summary", "namespaceupdate__performance__md.html#ac4d341cc6dc059359d9ed3dd061352d5", null ],
       [ "_pick_first", "namespaceupdate__performance__md.html#a58798198c090e92e0b0e5886cb68d58a", null ],
       [ "_read_json_lines", "namespaceupdate__performance__md.html#a9bc426f3865fd06809eade1e79ea91a4", null ],
       [ "_render_device", "namespaceupdate__performance__md.html#aa6279954597713b99c29f22496f5beb6", null ],
+      [ "_render_memory_details", "namespaceupdate__performance__md.html#abf22fbfdc994349f7c3f7dbdafde0ae1", null ],
       [ "_render_shared", "namespaceupdate__performance__md.html#a7638e6f2223e8b49afbcf5ef17a4eb8c", null ],
       [ "_render_system", "namespaceupdate__performance__md.html#ae2f704218ec574584f252cc8112f62f3", null ],
       [ "_render_table", "namespaceupdate__performance__md.html#ab6c1860d6b58938b3e07103ead71212c", null ],

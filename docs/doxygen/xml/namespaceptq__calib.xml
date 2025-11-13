@@ -177,12 +177,12 @@ Returns
         <location file="benchmarks/ptq_calib.py" line="142" column="1" bodyfile="benchmarks/ptq_calib.py" bodystart="142" bodyend="170"/>
         <referencedby refid="namespaceptq__calib_1a8c5f80e88cff2f08011a13e1a7b9ea6e" compoundref="ptq__calib_8py" startline="266" endline="374">main</referencedby>
       </memberdef>
-      <memberdef kind="function" id="namespaceptq__calib_1aa6020564afa3bb98f636c4a2bcfe7f25" prot="protected" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+      <memberdef kind="function" id="namespaceptq__calib_1a411585cffe038415fa4a50d31152a8fc" prot="protected" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>bytes</type>
-        <definition> bytes ptq_calib._pack_row_int4_signed</definition>
+        <definition> bytes ptq_calib._pack_row_int4_biased</definition>
         <argsstring>(np.ndarray q_row)</argsstring>
-        <name>_pack_row_int4_signed</name>
-        <qualifiedname>ptq_calib._pack_row_int4_signed</qualifiedname>
+        <name>_pack_row_int4_biased</name>
+        <qualifiedname>ptq_calib._pack_row_int4_biased</qualifiedname>
         <param>
           <type>np.ndarray</type>
           <declname>q_row</declname>
@@ -190,7 +190,7 @@ Returns
         <briefdescription>
         </briefdescription>
         <detaileddescription>
-<para><verbatim>Pack a single int8 row (values in [-8..7]) into int4 bytes.
+<para><verbatim>Pack a single int8 row using the +8 bias INT4 scheme (range [-7..+7]).
 
 Low nibble holds column j (even), high nibble holds column j+1 (odd).
 </verbatim> </para>
@@ -221,7 +221,7 @@ Low nibble holds column j (even), high nibble holds column j+1 (odd).
         <briefdescription>
         </briefdescription>
         <detaileddescription>
-<para><verbatim>Quantize to signed INT4 (two&apos;s complement, range [-8..7]) and pack.
+<para><verbatim>Quantize to INT4 using +8 bias scheme (range [-7..+7]) and pack to nibbles.
 
 Parameters
 ----------
@@ -242,7 +242,7 @@ Returns
         <inbodydescription>
         </inbodydescription>
         <location file="benchmarks/ptq_calib.py" line="189" column="1" bodyfile="benchmarks/ptq_calib.py" bodystart="191" bodyend="229"/>
-        <references refid="namespaceptq__calib_1aa6020564afa3bb98f636c4a2bcfe7f25" compoundref="ptq__calib_8py" startline="171" endline="188">_pack_row_int4_signed</references>
+        <references refid="namespaceptq__calib_1a411585cffe038415fa4a50d31152a8fc" compoundref="ptq__calib_8py" startline="171" endline="188">_pack_row_int4_biased</references>
         <referencedby refid="namespaceptq__calib_1a8c5f80e88cff2f08011a13e1a7b9ea6e" compoundref="ptq__calib_8py" startline="266" endline="374">main</referencedby>
       </memberdef>
       <memberdef kind="function" id="namespaceptq__calib_1a9805c5526e7e404510096d4c348247e1" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
@@ -352,7 +352,7 @@ Outputs (for OUT_PREFIX = &lt;prefix&gt;):
   - &lt;prefix&gt;.int4.w.bin             # row-major 4-bit packed weights (if --wbits=4)
 
 Packing (INT4):
-  - Signed 4-bit values in two&apos;s complement, range [-8..7]
+  - Signed 4-bit values using &quot;+8 bias&quot; scheme over range [-7..+7]
   - Two values packed per byte: low nibble = column j (even), high nibble = j+1
   - Row-major order; each row occupies ceil(cols/2) bytes
 

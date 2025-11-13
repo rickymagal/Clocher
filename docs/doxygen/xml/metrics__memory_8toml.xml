@@ -1,0 +1,93 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="metrics__memory_8toml" kind="file" language="C++">
+    <compoundname>metrics_memory.toml</compoundname>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline><highlight class="normal">#<sp/>============================================================================</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Memory<sp/>Metrics<sp/>Configuration<sp/>for<sp/>the<sp/>Inference<sp/>Engine</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>----------------------------------------------------------------------------</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Purpose:</highlight></codeline>
+<codeline><highlight class="normal">#<sp/><sp/><sp/>Configure<sp/>a<sp/>lightweight<sp/>metrics<sp/>collector<sp/>(or<sp/>your<sp/>existing</highlight></codeline>
+<codeline><highlight class="normal">#<sp/><sp/><sp/>scripts/metrics_exporter.py)<sp/>to<sp/>expose<sp/>system/process<sp/>memory<sp/>stats</highlight></codeline>
+<codeline><highlight class="normal">#<sp/><sp/><sp/>via<sp/>Prometheus&apos;<sp/>textfile<sp/>collector<sp/>or<sp/>a<sp/>simple<sp/>HTTP<sp/>exporter.</highlight></codeline>
+<codeline><highlight class="normal">#</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>This<sp/>file<sp/>is<sp/>intentionally<sp/>generic<sp/>and<sp/>Linux-friendly.<sp/>It<sp/>relies<sp/>only<sp/>on</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>standard<sp/>/proc<sp/>and<sp/>/sys<sp/>interfaces<sp/>and<sp/>does<sp/>not<sp/>require<sp/>root<sp/>privileges.</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>============================================================================</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">[collector]</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Sampling<sp/>interval<sp/>for<sp/>memory<sp/>polling.</highlight></codeline>
+<codeline><highlight class="normal">interval_sec<sp/>=<sp/>2</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Where<sp/>to<sp/>emit<sp/>Prometheus<sp/>textfile<sp/>metrics<sp/>(if<sp/>your<sp/>exporter<sp/>supports<sp/>it).</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>If<sp/>you<sp/>serve<sp/>metrics<sp/>over<sp/>HTTP,<sp/>you<sp/>may<sp/>ignore<sp/>this<sp/>and<sp/>use<sp/>in-memory</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>exposition<sp/>in<sp/>the<sp/>exporter<sp/>instead.</highlight></codeline>
+<codeline><highlight class="normal">textfile_enabled<sp/>=<sp/>true</highlight></codeline>
+<codeline><highlight class="normal">textfile_path<sp/><sp/><sp/><sp/>=<sp/>&quot;build/metrics/memory.prom&quot;</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Static<sp/>labels<sp/>to<sp/>attach<sp/>to<sp/>all<sp/>emitted<sp/>metrics.</highlight></codeline>
+<codeline><highlight class="normal">[collector.labels]</highlight></codeline>
+<codeline><highlight class="normal">app<sp/><sp/><sp/><sp/><sp/>=<sp/>&quot;inference-engine&quot;</highlight></codeline>
+<codeline><highlight class="normal">service<sp/>=<sp/>&quot;benchmarks&quot;</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>-----------------------------------------------------------------------------</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>System-level<sp/>sources<sp/>(/proc,<sp/>/sys).<sp/>All<sp/>are<sp/>optional,<sp/>enable<sp/>what<sp/>you<sp/>need.</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>-----------------------------------------------------------------------------</highlight></codeline>
+<codeline><highlight class="normal">[sources.system]</highlight></codeline>
+<codeline><highlight class="normal">meminfo<sp/><sp/><sp/>=<sp/>true<sp/><sp/><sp/>#<sp/>/proc/meminfo</highlight></codeline>
+<codeline><highlight class="normal">vmstat<sp/><sp/><sp/><sp/>=<sp/>true<sp/><sp/><sp/>#<sp/>/proc/vmstat</highlight></codeline>
+<codeline><highlight class="normal">psi<sp/><sp/><sp/><sp/><sp/><sp/><sp/>=<sp/>true<sp/><sp/><sp/>#<sp/>/proc/pressure/memory<sp/><sp/>(PSI:<sp/>memory<sp/>pressure<sp/>stall)</highlight></codeline>
+<codeline><highlight class="normal">swap<sp/><sp/><sp/><sp/><sp/><sp/>=<sp/>true<sp/><sp/><sp/>#<sp/>/proc/swaps</highlight></codeline>
+<codeline><highlight class="normal">hugepages<sp/>=<sp/>true<sp/><sp/><sp/>#<sp/>/sys/kernel/mm/hugepages</highlight></codeline>
+<codeline><highlight class="normal">numa<sp/><sp/><sp/><sp/><sp/><sp/>=<sp/>true<sp/><sp/><sp/>#<sp/>/sys/devices/system/node/node*/meminfo<sp/>(if<sp/>present)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>-----------------------------------------------------------------------------</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Process<sp/>selection<sp/>(the<sp/>running<sp/>inference<sp/>process<sp/>to<sp/>monitor).</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>One<sp/>of<sp/>the<sp/>selectors<sp/>should<sp/>resolve.<sp/>The<sp/>PID<sp/>file<sp/>path<sp/>is<sp/>preferred.</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>-----------------------------------------------------------------------------</highlight></codeline>
+<codeline><highlight class="normal">[process]</highlight></codeline>
+<codeline><highlight class="normal">pid_file<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>=<sp/>&quot;build/inference.pid&quot;<sp/><sp/>#<sp/>If<sp/>your<sp/>harness<sp/>writes<sp/>a<sp/>PID<sp/>file.</highlight></codeline>
+<codeline><highlight class="normal">exe_name<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>=<sp/>&quot;inference-engine&quot;<sp/><sp/><sp/><sp/><sp/>#<sp/>Fallback:<sp/>match<sp/>process<sp/>name.</highlight></codeline>
+<codeline><highlight class="normal">match_cmd_regex<sp/>=<sp/>&quot;&quot;<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>Optional<sp/>regex<sp/>against<sp/>/proc/*/cmdline.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>-----------------------------------------------------------------------------</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Process<sp/>metrics<sp/>toggles.<sp/>Disable<sp/>any<sp/>you<sp/>do<sp/>not<sp/>need.</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>-----------------------------------------------------------------------------</highlight></codeline>
+<codeline><highlight class="normal">[process.metrics]</highlight></codeline>
+<codeline><highlight class="normal">rss<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>=<sp/>true<sp/><sp/>#<sp/>Resident<sp/>Set<sp/>Size<sp/>(MB)</highlight></codeline>
+<codeline><highlight class="normal">pss<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>=<sp/>true<sp/><sp/>#<sp/>Proportional<sp/>Set<sp/>Size<sp/>(MB)<sp/>via<sp/>/proc/*/smaps_rollup<sp/>(if<sp/>available)</highlight></codeline>
+<codeline><highlight class="normal">vms<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>=<sp/>true<sp/><sp/>#<sp/>Virtual<sp/>Memory<sp/>Size<sp/>(MB)</highlight></codeline>
+<codeline><highlight class="normal">minor_faults<sp/><sp/><sp/>=<sp/>true<sp/><sp/>#<sp/>/proc/*/stat::minflt</highlight></codeline>
+<codeline><highlight class="normal">major_faults<sp/><sp/><sp/>=<sp/>true<sp/><sp/>#<sp/>/proc/*/stat::majflt</highlight></codeline>
+<codeline><highlight class="normal">oom_score<sp/><sp/><sp/><sp/><sp/><sp/>=<sp/>true<sp/><sp/>#<sp/>/proc/*/oom_score</highlight></codeline>
+<codeline><highlight class="normal">numa_stats<sp/><sp/><sp/><sp/><sp/>=<sp/>true<sp/><sp/>#<sp/>/proc/*/numa_maps<sp/>(if<sp/>accessible)</highlight></codeline>
+<codeline><highlight class="normal">swap_in_out<sp/><sp/><sp/><sp/>=<sp/>true<sp/><sp/>#<sp/>Derived<sp/>from<sp/>/proc/vmstat<sp/>(system-level<sp/>deltas)</highlight></codeline>
+<codeline><highlight class="normal">rss_peaks<sp/><sp/><sp/><sp/><sp/><sp/>=<sp/>true<sp/><sp/>#<sp/>Track<sp/>and<sp/>export<sp/>per-interval<sp/>peak<sp/>RSS/PSA/VMS</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>-----------------------------------------------------------------------------</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Derived<sp/>metrics<sp/>configuration.</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>-----------------------------------------------------------------------------</highlight></codeline>
+<codeline><highlight class="normal">[derived]</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Working-set<sp/>coverage<sp/>=<sp/>bytes_per_token<sp/>/<sp/>model_file_size</highlight></codeline>
+<codeline><highlight class="normal">working_set_coverage<sp/>=<sp/>true</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>NUMA<sp/>locality<sp/>ratio,<sp/>when<sp/>numa_stats<sp/>are<sp/>enabled.<sp/>The<sp/>exporter<sp/>should</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>estimate<sp/>&quot;local<sp/>vs<sp/>remote&quot;<sp/>pages<sp/>based<sp/>on<sp/>numa_maps.</highlight></codeline>
+<codeline><highlight class="normal">numa_locality_ratio<sp/>=<sp/>true</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>-----------------------------------------------------------------------------</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Thresholds<sp/>for<sp/>warnings<sp/>(optional;<sp/>exporters<sp/>may<sp/>expose<sp/>*_warn<sp/>metrics).</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>-----------------------------------------------------------------------------</highlight></codeline>
+<codeline><highlight class="normal">[thresholds]</highlight></codeline>
+<codeline><highlight class="normal">mem_available_pct_warn<sp/>=<sp/>10.0<sp/><sp/>#<sp/>warn<sp/>when<sp/>MemAvailable%<sp/>&lt;<sp/>threshold</highlight></codeline>
+<codeline><highlight class="normal">swap_used_mb_warn<sp/><sp/><sp/><sp/><sp/><sp/>=<sp/>64.0<sp/><sp/>#<sp/>warn<sp/>when<sp/>system<sp/>swap<sp/>used<sp/>exceeds<sp/>threshold</highlight></codeline>
+<codeline><highlight class="normal">psi_some_pct_warn<sp/><sp/><sp/><sp/><sp/><sp/>=<sp/>5.0<sp/><sp/><sp/>#<sp/>warn<sp/>when<sp/>PSI<sp/>&quot;some&quot;<sp/>avg10<sp/>exceeds<sp/>threshold</highlight></codeline>
+<codeline><highlight class="normal">psi_full_pct_warn<sp/><sp/><sp/><sp/><sp/><sp/>=<sp/>1.0<sp/><sp/><sp/>#<sp/>warn<sp/>when<sp/>PSI<sp/>&quot;full&quot;<sp/>avg10<sp/>exceeds<sp/>threshold</highlight></codeline>
+    </programlisting>
+    <location file="monitoring/metrics_memory.toml"/>
+  </compounddef>
+</doxygen>

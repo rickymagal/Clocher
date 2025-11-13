@@ -68,6 +68,83 @@
 <codeline><highlight class="normal">-<sp/>Build:<sp/>`make<sp/>build-cuda`<sp/>→<sp/>`build/inference-engine.cuda`.</highlight></codeline>
 <codeline><highlight class="normal">-<sp/>INT4<sp/>weight‑only<sp/>support<sp/>mirrors<sp/>the<sp/>CPU<sp/>path;<sp/>packing<sp/>and<sp/>scales<sp/>are<sp/>shared<sp/>in<sp/>`model.ie.json`.</highlight></codeline>
 <codeline></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">---</highlight></codeline>
+<codeline><highlight class="normal">##<sp/>INT4<sp/>Weight-Only<sp/>Path<sp/>—<sp/>Design<sp/>Addendum<sp/>(2025-10-24<sp/>21:04:23<sp/>UTC)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Goals</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Introduce<sp/>an<sp/>**optional**<sp/>path<sp/>for<sp/>*weight-only*<sp/>INT4<sp/>(`int4w`)<sp/>that:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>1)<sp/>Packs<sp/>HF<sp/>weights<sp/>into<sp/>IEBIN<sp/>using<sp/>a<sp/>**manifest-driven**<sp/>policy.</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>2)<sp/>Leaves<sp/>tokenization,<sp/>shapes,<sp/>and<sp/>scheduling<sp/>untouched.</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>3)<sp/>Preserves<sp/>benchmark<sp/>comparability<sp/>via<sp/>*work-touch*<sp/>instrumentation.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Design<sp/>Choices</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Manifest-driven<sp/>packing**:<sp/>`--q4-map`<sp/>lets<sp/>us<sp/>target<sp/>only<sp/>GEMV-heavy<sp/>matrices<sp/>(attn/MLP<sp/>projections)<sp/>and<sp/>keep<sp/>sensitive<sp/>tensors<sp/>(embeddings,<sp/>layernorms)<sp/>in<sp/>FP<sp/>formats.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Separation<sp/>of<sp/>concerns**:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Storage<sp/>precision<sp/>(`IE_PRECISION`)<sp/>is<sp/>passed<sp/>through<sp/>`ie_engine_params_t::precision`<sp/>untouched.</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Host<sp/>math<sp/>precision<sp/>(FP32/BF16/FP16)<sp/>remains<sp/>a<sp/>separate<sp/>selection.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Compat<sp/>with<sp/>harness**:<sp/>The<sp/>CLI<sp/>accepts<sp/>soft<sp/>hints<sp/>(`--device`,<sp/>`--model-dir`,<sp/>`--rounds`)<sp/>so<sp/>existing<sp/>scripts<sp/>don’t<sp/>break.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Data<sp/>Flow<sp/>(INT4<sp/>path)</highlight></codeline>
+<codeline><highlight class="normal">HF<sp/>shards<sp/>→<sp/>`hf_to_iebin.py<sp/>--q4-map`<sp/>→<sp/>IEBIN<sp/>(`model.ie.json`<sp/>+<sp/>`model.ie.bin`<sp/>with<sp/>INT4-packed<sp/>tensors)<sp/>→<sp/>Runtime<sp/>`IE_PRECISION=int4w`<sp/>→<sp/>GEMV<sp/>kernels<sp/>read<sp/>packed<sp/>weights<sp/>(or<sp/>dequant<sp/>on<sp/>load),<sp/>semantics<sp/>unchanged.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Metrics<sp/>Integrity</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>The<sp/>timed<sp/>window<sp/>is<sp/>**only**:<sp/>`ie_engine_generate(...)`<sp/>+<sp/>optional<sp/>*work-touch*<sp/>loop.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>RSS<sp/>peak<sp/>and<sp/>KV<sp/>counters<sp/>are<sp/>sampled<sp/>**after**<sp/>the<sp/>window<sp/>to<sp/>avoid<sp/>skewing<sp/>TPS.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">---</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Appendix<sp/>—<sp/>INT4<sp/>(Weight‑Only)<sp/>Step<sp/>(Summary)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Convert<sp/>HF<sp/>shards<sp/>→<sp/>IEBIN<sp/>with<sp/>an<sp/>INT4<sp/>manifest:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>```bash</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>python3<sp/>scripts/hf_to_iebin.py<sp/><sp/><sp/><sp/><sp/>--hf-dir<sp/>models/gpt-oss-20b/hf<sp/><sp/><sp/><sp/><sp/>--out-dir<sp/>models/gpt-oss-20b<sp/><sp/><sp/><sp/><sp/>--q4-map<sp/>quant/q4_manifest.json</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>```</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Run<sp/>benchmarks<sp/>in<sp/>strict<sp/>mode<sp/>with<sp/>a<sp/>**64<sp/>MB/token**<sp/>work‑touch:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>```bash</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>PROMPTS=benchmarks/prompts_10..txt<sp/><sp/><sp/>IE_PRECISION=int4w<sp/>IE_REQUIRE_MODEL=1<sp/><sp/><sp/>IE_BYTES_PER_TOKEN=64000000<sp/>IE_STRIDE_BYTES=256<sp/>RUNS=3<sp/><sp/><sp/>make<sp/>bench<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>or:<sp/>make<sp/>bench-cuda</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>```</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Precision<sp/>hints:<sp/>`PRECISION=fp32`<sp/>(activates<sp/>float<sp/>path)<sp/>and<sp/>`IE_PRECISION=int4w`<sp/>(weight‑only<sp/>path).</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">---</highlight></codeline>
+<codeline><highlight class="normal">##<sp/>Updates<sp/>—<sp/>2025-11-10</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>NUMA‑aware<sp/>topology<sp/>(`ie_topology`)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Discovers<sp/>sockets<sp/>and<sp/>CPUs<sp/>from<sp/>Linux<sp/>sysfs<sp/>and<sp/>exposes<sp/>a<sp/>compact<sp/>API:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>`ie_topology_init/destroy`<sp/>—<sp/>lifetime.</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>`ie_topology_sockets()`<sp/>—<sp/>number<sp/>of<sp/>sockets.</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>`ie_topology_first_cpu_on_socket(s)`<sp/>—<sp/>first<sp/>CPU<sp/>index<sp/>on<sp/>socket<sp/>`s`<sp/>(for<sp/>pinning).</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Integration:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Thread‑pool<sp/>honors<sp/>`IE_TP_USE_AFFINITY=1`<sp/>with<sp/>`AFFINITY=auto|compact|scatter`.</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>`ie_hot_replicate_by_socket(...)`<sp/>uses<sp/>topology<sp/>for<sp/>binding.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Hot<sp/>weights<sp/>replication</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>For<sp/>“hot”<sp/>tensors<sp/>(frequently<sp/>touched),<sp/>we<sp/>can<sp/>replicate<sp/>pages<sp/>**per<sp/>socket**<sp/>to<sp/>reduce<sp/>remote<sp/>memory<sp/>hits.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Implementation<sp/>sketch:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>`mmap`<sp/>replica<sp/>per<sp/>socket<sp/>→<sp/>optional<sp/>`madvise(...,<sp/>MADV_WILLNEED)`<sp/>→<sp/>worker<sp/>binding<sp/>→<sp/>socket‑local<sp/>access.</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>Controlled<sp/>by<sp/>`IE_HOT_REPLICATE=1`<sp/>and<sp/>an<sp/>optional<sp/>cap<sp/>`IE_HOT_REPL_LIMIT_MB`.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Trade‑offs:<sp/>additional<sp/>memory;<sp/>on<sp/>single‑socket<sp/>machines,<sp/>the<sp/>feature<sp/>is<sp/>a<sp/>no‑op<sp/>with<sp/>negligible<sp/>overhead.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Activation<sp/>precision<sp/>hint</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Runtime<sp/>hint<sp/>`IE_ACT_PREC=int8|fp8|fp16|bf16|fp32`<sp/>allows<sp/>experimenting<sp/>with<sp/>lower‑precision<sp/>activations<sp/>while<sp/>**keeping<sp/>FP32<sp/>accumulators**.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Weight<sp/>precision<sp/>remains<sp/>independent<sp/>(e.g.,<sp/>`IE_PRECISION=int4w`<sp/>for<sp/>nibble‑packed<sp/>weights).</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Timing<sp/>discipline<sp/>(unchanged<sp/>semantics)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>The<sp/>benchmark<sp/>**measured<sp/>window**<sp/>contains<sp/>only<sp/>`ie_engine_generate(...)`<sp/>+<sp/>optional<sp/>work‑touch<sp/>loop.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>All<sp/>metrics<sp/>collection<sp/>(RSS,<sp/>KV,<sp/>JSON<sp/>print)<sp/>happens<sp/>**after**<sp/>the<sp/>window.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Example<sp/>configurations</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>INT4<sp/>weights,<sp/>FP8<sp/>activations,<sp/>NUMA‑aware<sp/>with<sp/>hot<sp/>replication<sp/>(CPU):</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>```bash</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>export<sp/>IE_REQUIRE_MODEL=1<sp/>IE_PRECISION=int4w<sp/>IE_ACT_PREC=fp8</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>export<sp/>IE_BYTES_PER_TOKEN=$((64*1024*1024))<sp/>IE_STRIDE_BYTES=256<sp/>IE_VERIFY_TOUCH=1</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>export<sp/>IE_TP_USE_AFFINITY=1<sp/>AFFINITY=compact<sp/>IE_HOT_REPLICATE=1</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>PROMPTS=benchmarks/prompts_10..txt<sp/>RUNS=3<sp/>make<sp/>bench</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>```</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Same<sp/>with<sp/>CUDA:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>```bash</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>PROMPTS=benchmarks/prompts_10..txt<sp/>RUNS=3<sp/>make<sp/>bench-cuda</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>```</highlight></codeline>
+<codeline></codeline>
     </programlisting>
     <location file="docs/DESIGN.md"/>
   </compounddef>

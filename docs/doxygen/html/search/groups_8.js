@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['rss_20sampler_0',['Utilities: KV counters and RSS sampler',['../group__IE__METRICS.html',1,'']]]
+  ['oneapi_20gpu_20backend_0',['Level Zero (oneAPI) GPU backend',['../group__IE__GPU__ZE.html',1,'']]]
 ];

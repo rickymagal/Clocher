@@ -38,6 +38,58 @@
 <codeline></codeline>
 <codeline><highlight class="normal">**Status.**<sp/>Accepted.<sp/>Implemented<sp/>across<sp/>CPU<sp/>and<sp/>CUDA<sp/>builds;<sp/>scripts<sp/>support<sp/>end‑to‑end<sp/>HF→IEBIN<sp/>packing<sp/>with<sp/>`--q4-map`.</highlight></codeline>
 <codeline></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">---</highlight></codeline>
+<codeline><highlight class="normal">##<sp/>Decision:<sp/>Add<sp/>INT4<sp/>(Weight-Only)<sp/>Optional<sp/>Pipeline<sp/>(2025-10-24<sp/>21:04:23<sp/>UTC)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Context.**<sp/>We<sp/>already<sp/>ship<sp/>FP32/BF16/FP16<sp/>flows.<sp/>We<sp/>add<sp/>a<sp/>*weight-only*<sp/>INT4<sp/>path<sp/>to<sp/>reduce<sp/>bandwidth<sp/>and<sp/>model<sp/>footprint<sp/>while<sp/>keeping<sp/>API<sp/>stability.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Decision.**</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Introduce<sp/>a<sp/>manifest-driven<sp/>INT4<sp/>packing<sp/>step<sp/>in<sp/>export<sp/>(`--q4-map`).</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Expose<sp/>runtime<sp/>selection<sp/>via<sp/>`IE_PRECISION=int4w`<sp/>(or<sp/>`--precision<sp/>int4w`).</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Keep<sp/>timing<sp/>discipline:<sp/>measure<sp/>generation<sp/>+<sp/>work-touch<sp/>only;<sp/>sample<sp/>metrics<sp/>after.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Consequences.**</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Lower<sp/>I/O<sp/>pressure<sp/>when<sp/>`IE_BYTES_PER_TOKEN`<sp/>simulates<sp/>large<sp/>working<sp/>sets.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Slight<sp/>decode<sp/>overhead<sp/>for<sp/>dequantization<sp/>(amortized<sp/>in<sp/>GEMV<sp/>paths).</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>No<sp/>change<sp/>to<sp/>tokenization<sp/>or<sp/>batching<sp/>semantics.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Status.**<sp/>Accepted<sp/>and<sp/>implemented.<sp/>Backward-compatible<sp/>(FP<sp/>paths<sp/>unaffected).</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">---</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Appendix<sp/>—<sp/>INT4<sp/>(Weight‑Only)<sp/>Step<sp/>(Summary)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Convert<sp/>HF<sp/>shards<sp/>→<sp/>IEBIN<sp/>with<sp/>an<sp/>INT4<sp/>manifest:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>```bash</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>python3<sp/>scripts/hf_to_iebin.py<sp/><sp/><sp/><sp/><sp/>--hf-dir<sp/>models/gpt-oss-20b/hf<sp/><sp/><sp/><sp/><sp/>--out-dir<sp/>models/gpt-oss-20b<sp/><sp/><sp/><sp/><sp/>--q4-map<sp/>quant/q4_manifest.json</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>```</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Run<sp/>benchmarks<sp/>in<sp/>strict<sp/>mode<sp/>with<sp/>a<sp/>**64<sp/>MB/token**<sp/>work‑touch:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>```bash</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>PROMPTS=benchmarks/prompts_10..txt<sp/><sp/><sp/>IE_PRECISION=int4w<sp/>IE_REQUIRE_MODEL=1<sp/><sp/><sp/>IE_BYTES_PER_TOKEN=64000000<sp/>IE_STRIDE_BYTES=256<sp/>RUNS=3<sp/><sp/><sp/>make<sp/>bench<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>or:<sp/>make<sp/>bench-cuda</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>```</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Precision<sp/>hints:<sp/>`PRECISION=fp32`<sp/>(activates<sp/>float<sp/>path)<sp/>and<sp/>`IE_PRECISION=int4w`<sp/>(weight‑only<sp/>path).</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">---</highlight></codeline>
+<codeline><highlight class="normal">**Last<sp/>updated:**<sp/>2025-11-10<sp/>21:46:36<sp/>UTC</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>**ADR-0014<sp/>(2025-11-10)**:<sp/>NUMA‑aware<sp/>topology<sp/>and<sp/>thread<sp/>binding</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>**Context:**<sp/>We<sp/>need<sp/>consistent<sp/>socket<sp/>awareness<sp/>to<sp/>reduce<sp/>cross‑socket<sp/>traffic<sp/>and<sp/>stabilize<sp/>TPS.</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>**Decision:**<sp/>Introduce<sp/>`ie_topology`<sp/>(sysfs‑backed)<sp/>to<sp/>detect<sp/>sockets<sp/>and<sp/>map<sp/>threads→CPUs<sp/>with<sp/>`AFFINITY`<sp/>hints.</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>**Consequences:**<sp/>Lower<sp/>LLC<sp/>misses<sp/>and<sp/>cross‑node<sp/>memory,<sp/>improved<sp/>repeatability;<sp/>graceful<sp/>single‑socket<sp/>fallback.</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>**Status:**<sp/>Accepted.<sp/>Implemented<sp/>in<sp/>`engine/include/ie_topology.h`<sp/>and<sp/>`engine/src/opt/topology.c`.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>**ADR-0015<sp/>(2025-11-10)**:<sp/>Replicate<sp/>“hot”<sp/>weights<sp/>per<sp/>socket<sp/>and<sp/>bind<sp/>workers</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>**Context:**<sp/>For<sp/>bandwidth‑bound<sp/>models,<sp/>remote‑node<sp/>page<sp/>faults<sp/>throttle<sp/>TPS.<sp/>Replicating<sp/>hot<sp/>tensors<sp/>near<sp/>compute<sp/>reduces<sp/>latency.</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>**Decision:**<sp/>Add<sp/>`replicate_hot.c`<sp/>to<sp/>create<sp/>per‑socket<sp/>replicas<sp/>(mmap‑based),<sp/>then<sp/>bind<sp/>per‑socket<sp/>workers<sp/>to<sp/>CPUs<sp/>on<sp/>that<sp/>socket.</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>**Consequences:**<sp/>Higher<sp/>memory<sp/>footprint<sp/>when<sp/>enabled,<sp/>but<sp/>improved<sp/>locality<sp/>and<sp/>throughput<sp/>on<sp/>multi‑socket<sp/>hosts.</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>**Status:**<sp/>Accepted.<sp/>Guarded<sp/>by<sp/>`IE_HOT_REPLICATE=1`;<sp/>optional<sp/>`MADV_WILLNEED`<sp/>prefetch.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>**ADR-0016<sp/>(2025-11-10)**:<sp/>Activation<sp/>precision<sp/>soft<sp/>hint<sp/>(INT8/FP8)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>**Context:**<sp/>Allow<sp/>experimenting<sp/>with<sp/>lower‑precision<sp/>activations<sp/>without<sp/>entangling<sp/>storage<sp/>precision<sp/>for<sp/>weights.</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>**Decision:**<sp/>Add<sp/>`IE_ACT_PREC`<sp/>(values:<sp/>`int8|fp8|fp16|bf16|fp32`).<sp/>Host<sp/>accumulators<sp/>remain<sp/>FP32;<sp/>backends<sp/>may<sp/>ignore<sp/>unsupported<sp/>hints.</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>**Consequences:**<sp/>Decouples<sp/>storage<sp/>(e.g.,<sp/>`int4w`)<sp/>from<sp/>activation<sp/>math,<sp/>enabling<sp/>orthogonal<sp/>tuning.</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>**Status:**<sp/>Accepted.<sp/>Backward‑compatible;<sp/>default<sp/>remains<sp/>FP32<sp/>if<sp/>unset.</highlight></codeline>
+<codeline></codeline>
     </programlisting>
     <location file="docs/DECISIONS.md"/>
   </compounddef>

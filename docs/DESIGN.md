@@ -95,3 +95,74 @@ HF shards → `hf_to_iebin.py --q4-map` → IEBIN (`model.ie.json` + `model.ie.b
   PROMPTS=benchmarks/prompts_10..txt   IE_PRECISION=int4w IE_REQUIRE_MODEL=1   IE_BYTES_PER_TOKEN=64000000 IE_STRIDE_BYTES=256 RUNS=3   make bench           # or: make bench-cuda
   ```
 - Precision hints: `PRECISION=fp32` (activates float path) and `IE_PRECISION=int4w` (weight‑only path).
+
+---
+## Updates — 2025-11-10
+
+### NUMA‑aware topology (`ie_topology`)
+- Discovers sockets and CPUs from Linux sysfs and exposes a compact API:
+  - `ie_topology_init/destroy` — lifetime.
+  - `ie_topology_sockets()` — number of sockets.
+  - `ie_topology_first_cpu_on_socket(s)` — first CPU index on socket `s` (for pinning).
+- Integration:
+  - Thread‑pool honors `IE_TP_USE_AFFINITY=1` with `AFFINITY=auto|compact|scatter`.
+  - `ie_hot_replicate_by_socket(...)` uses topology for binding.
+
+### Hot weights replication
+- For “hot” tensors (frequently touched), we can replicate pages **per socket** to reduce remote memory hits.
+- Implementation sketch:
+  - `mmap` replica per socket → optional `madvise(..., MADV_WILLNEED)` → worker binding → socket‑local access.
+  - Controlled by `IE_HOT_REPLICATE=1` and an optional cap `IE_HOT_REPL_LIMIT_MB`.
+- Trade‑offs: additional memory; on single‑socket machines, the feature is a no‑op with negligible overhead.
+
+### Activation precision hint
+- Runtime hint `IE_ACT_PREC=int8|fp8|fp16|bf16|fp32` allows experimenting with lower‑precision activations while **keeping FP32 accumulators**.
+- Weight precision remains independent (e.g., `IE_PRECISION=int4w` for nibble‑packed weights).
+
+### Timing discipline (unchanged semantics)
+- The benchmark **measured window** contains only `ie_engine_generate(...)` + optional work‑touch loop.
+- All metrics collection (RSS, KV, JSON print) happens **after** the window.
+
+### Example configurations
+- INT4 weights, FP8 activations, NUMA‑aware with hot replication (CPU):
+  ```bash
+  export IE_REQUIRE_MODEL=1 IE_PRECISION=int4w IE_ACT_PREC=fp8
+  export IE_BYTES_PER_TOKEN=$((64*1024*1024)) IE_STRIDE_BYTES=256 IE_VERIFY_TOUCH=1
+  export IE_TP_USE_AFFINITY=1 AFFINITY=compact IE_HOT_REPLICATE=1
+  PROMPTS=benchmarks/prompts_10..txt RUNS=3 make bench
+  ```
+- Same with CUDA:
+  ```bash
+  PROMPTS=benchmarks/prompts_10..txt RUNS=3 make bench-cuda
+  ```
+---
+# Memory Phase Design Addendum (updated 2025-11-12 18:01:19 UTC)
+
+## Goals
+1. Reduce **DRAM traffic** on weight fetch via layout (`blocked‑K`), NUMA locality, and selective non‑temporal loads.
+2. Enable **activation down‑precision** (INT8/FP8) orthogonally to weight storage (e.g., INT4 weight‑only).
+3. Measure and visualize **spatial metrics** alongside TPS: MB/token, bytes touched, model coverage, effective bandwidth.
+
+## Components
+- **Topology & Binding (`ie_topology`)**: discovers sockets/CPUs from Linux sysfs. Exposes helpers for pinning (compact/scatter).
+- **Hot replication (`replicate_hot.c`)**: optional per‑socket replicas for frequently‑touched weights; uses `mmap` + `madvise`.
+- **Blocked‑K Pretranspose**: builds and caches a row‑major, **K‑blocked** layout; improves sequentiality and prefetch efficacy.
+- **Streaming heuristics**: `IE_PREFETCH_DISTANCE`, `IE_NT_LOADS`, and `IE_NT_RATIO` drive prefetch and non‑temporal load decisions.
+- **Activation precision**: runtime hint `IE_ACT_PREC` selects decode path (INT8 per‑tensor/per‑group, FP8 E4M3/E5M2). Accumulation is FP32.
+
+## Measurement
+The benchmark window includes **generation** and the **work‑touch** loop (controlled by `IE_BYTES_PER_TOKEN`, `IE_STRIDE_BYTES`).
+After the window, the engine samples **peak RSS (VmHWM)**. The docs generator now derives:
+- **MB/token** from `IE_BYTES_PER_TOKEN`
+- **Total bytes touched** = `tokens_sum * bytes_per_token`
+- **Coverage** = `bytes_per_token / size(model.ie.bin)`
+- **Effective bandwidth** = `bytes_touched / wall_time` (GB/s)
+
+## Backward Compatibility & Fallbacks
+- Single‑socket hosts: topology collapses to one socket; binding is a no‑op.
+- Unsupported backends ignore `IE_ACT_PREC`, `IE_NT_LOADS`, etc., without failing.
+- When `IE_REQUIRE_MODEL` is unset, CI stub mode continues to work (no mmap or spatial metrics).
+
+## Risks & Mitigations
+- **Over‑eager NT loads** can hurt on small working sets → guard via `auto` heuristics and `IE_NT_RATIO` throttle.
+- **Replica memory cost** on multi‑socket servers → gate with `IE_HOT_REPLICATE` and `IE_HOT_REPL_LIMIT_MB`.

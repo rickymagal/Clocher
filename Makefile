@@ -11,6 +11,15 @@ export ENGINE_BIN MODEL MODEL_DIR PROMPTS RUNS WARMUP THREADS AFFINITY BATCH PRE
 export TARGET_SECONDS IE_BYTES_PER_TOKEN IE_STRIDE_BYTES IE_VERIFY_TOUCH
 export DEVICE GPU_ID
 
+# New stream/prefetch knobs (picked up by engine if supported)
+export IE_PREFETCH_DISTANCE IE_NT_LOADS IE_L3_BYTES IE_NT_THRESHOLD_RATIO IE_STREAM_BLOCK_BYTES IE_REUSE_GUARD_WINDOWS
+
+# New activation-quant controls (read by engine/scripts if supported)
+export IE_ACTIVATIONS IE_FP8_FORMAT IE_ACT_SCALE_DTYPE IE_ACT_CLIP
+
+# Optional hot-weights replication toggle (NUMA/socket awareness)
+export IE_HOT_REPLICATE
+
 # =============================================================================
 # Toolchains
 # =============================================================================
@@ -57,10 +66,15 @@ SRC_CORE_C := \
   engine/src/io/weights.c \
   engine/src/io/tokenizer.c \
   engine/src/io/ie_batcher.c \
+  engine/src/io/loader_mmap.c \
+  engine/src/io/mmap_tuning.c \
   engine/src/opt/cpu_features.c \
   engine/src/opt/thread_pool.c \
   engine/src/opt/pretranspose.c \
   engine/src/opt/numa_probe.c \
+  engine/src/opt/topology.c \
+  engine/src/opt/replicate_hot.c \
+  engine/src/opt/stream.c \
   engine/src/kernels/gemv_generic.c \
   engine/src/kernels/gemv_avx2.c \
   engine/src/math/fast_tanh.c \
@@ -88,10 +102,11 @@ OBJ_CUDA   := $(patsubst %.cu,$(BUILD)/%.o,$(SRC_CUDA_CU))
 .PHONY: build build-release build-cuda build-all cuda \
         test bench bench-direct bench-cuda cuda-bench \
         profile perf-report baseline-report \
-        fmt lint docs docs-doxygen clean microbench \
+        fmt lint docs docs-doxygen clean microbench microbench-stream \
         monitoring-up monitoring-down metrics-exporter \
         ptq-calibrate ptq-from-hf ptq-from-torch ptq-from-bin \
         perf_cpu_fp32 perf_cpu_int8 perf_cpu_bf16 perf_gpu \
+        perf_cpu_act_int8 perf_gpu_act_fp8_e4m3 perf_gpu_act_fp8_e5m2 \
         show-tools iebin model-pack pack-hf refresh-model repack-hf
 
 cuda: build-cuda
@@ -110,6 +125,11 @@ $(BUILD)/%.o: %.c
 $(BUILD)/%.o: %.cu
 	@mkdir -p $(dir $@)
 	$(NVCC) $(NVCCFLAGS) -Iengine/include -c $< -o $@
+
+# ---- Per-file CFLAGS overrides ---------------------------------------------
+# Silence intentional helper variants in stream.c (selected at runtime/CPU);
+# keep -Werror for the rest of the tree.
+$(BUILD)/engine/src/opt/stream.o: CFLAGS += -Wno-unused-function
 
 # =============================================================================
 # HF -> IEBIN (manual only)
@@ -167,14 +187,16 @@ build-all: build build-cuda
 
 # =============================================================================
 # Tests
-# - Builds the CLI engine binary (allowed)
-# - NEVER packs/creates model weights (IEBIN) automatically
 # =============================================================================
 test: $(BIN_CPU)
 	@mkdir -p $(BUILD)
 	@echo "[test] C unit tests"
 	$(CC) $(CFLAGS) $(INC) tests/c/test_tensor.c engine/src/ie_tensor.c engine/src/util_logging.c -o $(BUILD)/test_tensor $(LDFLAGS_CPU) && $(BUILD)/test_tensor
 	$(CC) $(CFLAGS) $(INC) tests/c/test_api.c engine/src/ie_api.c engine/src/ie_tensor.c engine/src/util_logging.c engine/src/util_metrics.c engine/src/io/weights.c engine/src/io/tokenizer.c engine/src/io/ie_batcher.c engine/src/opt/cpu_features.c engine/src/opt/thread_pool.c engine/src/opt/pretranspose.c engine/src/opt/numa_probe.c engine/src/kernels/gemv_generic.c engine/src/kernels/gemv_avx2.c engine/src/math/fast_tanh.c engine/src/ie_kv_instrumentation.c engine/src/quant/int4_ptq.c engine/src/quant/int8_ptq.c -o $(BUILD)/test_api $(LDFLAGS_CPU) && ( cd $(MODEL_DIR_DEFAULT) && ../../$(BUILD)/test_api )
+	@echo "[test] topology"
+	$(CC) $(CFLAGS) $(INC) tests/c/test_topology.c engine/src/opt/topology.c engine/src/opt/thread_pool.c engine/src/opt/cpu_features.c engine/src/util_logging.c -o $(BUILD)/test_topology $(LDFLAGS_CPU) && $(BUILD)/test_topology
+	@echo "[test] mmap_tuning"
+	$(CC) $(CFLAGS) $(INC) tests/c/test_mmap_tuning.c engine/src/io/mmap_tuning.c engine/src/io/loader_mmap.c engine/src/util_logging.c -o $(BUILD)/test_mmap_tuning $(LDFLAGS_CPU) && $(BUILD)/test_mmap_tuning
 	@if [ -z "$$IE_SKIP_WEIGHTS_TEST" ]; then \
 	  if [ -f $(MODEL_DIR_DEFAULT)/model.ie.json ] && [ -f $(MODEL_DIR_DEFAULT)/model.ie.bin ]; then \
 	    echo "[test] test_weights"; \
@@ -201,7 +223,7 @@ test: $(BIN_CPU)
 	if [ -n "$$files" ]; then python3 -m unittest -v $$files; else echo "[warn] no python tests found"; fi
 
 # =============================================================================
-# Benchmarks (NO implicit build/pack; error if artifacts missing)
+# Benchmarks
 # =============================================================================
 bench:
 	@if [ -z "$$PROMPTS" ]; then echo "ERROR: PROMPTS must be set (e.g., PROMPTS=benchmarks/prompts_10..txt)"; exit 2; fi
@@ -227,6 +249,8 @@ bench:
 	MAX_NEW="$$MAX_NEW_VAL" IE_REQUIRE_MODEL="$$IE_REQ_VAL" \
 	IE_BYTES_PER_TOKEN="$${IE_BYTES_PER_TOKEN:-67108864}" IE_STRIDE_BYTES="$${IE_STRIDE_BYTES:-256}" IE_VERIFY_TOUCH="$${IE_VERIFY_TOUCH:-1}" \
 	RUNS="$$RUNS_VAL" ROUNDS="$$RUNS_VAL" \
+	IE_ACTIVATIONS="$$IE_ACTIVATIONS" IE_FP8_FORMAT="$$IE_FP8_FORMAT" IE_HOT_REPLICATE="$$IE_HOT_REPLICATE" \
+	IE_PREFETCH_DISTANCE="$$IE_PREFETCH_DISTANCE" IE_NT_LOADS="$$IE_NT_LOADS" IE_L3_BYTES="$$IE_L3_BYTES" IE_NT_THRESHOLD_RATIO="$$IE_NT_THRESHOLD_RATIO" IE_STREAM_BLOCK_BYTES="$$IE_STREAM_BLOCK_BYTES" IE_REUSE_GUARD_WINDOWS="$$IE_REUSE_GUARD_WINDOWS" \
 	bash scripts/true_tps_strict.sh | tee $(BUILD)/strict_cpu.json; \
 	echo "[bench] updating docs/PERFORMANCE.md (CPU)…"; \
 	if [ -f $(BUILD)/strict_gpu.json ]; then \
@@ -275,6 +299,8 @@ bench-cuda:
 	MAX_NEW="$$MAX_NEW_VAL" IE_REQUIRE_MODEL="$$IE_REQ_VAL" \
 	IE_BYTES_PER_TOKEN="$${IE_BYTES_PER_TOKEN:-67108864}" IE_STRIDE_BYTES="$${IE_STRIDE_BYTES:-256}" IE_VERIFY_TOUCH="$${IE_VERIFY_TOUCH:-1}" \
 	RUNS="$$RUNS_VAL" ROUNDS="$$RUNS_VAL" \
+	IE_ACTIVATIONS="$$IE_ACTIVATIONS" IE_FP8_FORMAT="$$IE_FP8_FORMAT" IE_HOT_REPLICATE="$$IE_HOT_REPLICATE" \
+	IE_PREFETCH_DISTANCE="$$IE_PREFETCH_DISTANCE" IE_NT_LOADS="$$IE_NT_LOADS" IE_L3_BYTES="$$IE_L3_BYTES" IE_NT_THRESHOLD_RATIO="$$IE_NT_THRESHOLD_RATIO" IE_STREAM_BLOCK_BYTES="$$IE_STREAM_BLOCK_BYTES" IE_REUSE_GUARD_WINDOWS="$$IE_REUSE_GUARD_WINDOWS" \
 	bash scripts/true_tps_strict.sh | tee $(BUILD)/strict_gpu.json; \
 	echo "[bench-cuda] updating docs/PERFORMANCE.md (GPU)…"; \
 	if [ -f $(BUILD)/strict_cpu.json ]; then \
@@ -322,7 +348,7 @@ bench-direct:
 	echo "[bench-direct] OK"
 
 # =============================================================================
-# Profile / reports / helpers (NO implicit build)
+# Profile / reports / helpers
 # =============================================================================
 profile:
 	@test -x "$(BIN_CPU)" || { echo "ERROR: CPU binary '$(BIN_CPU)' not found. Run 'make build' once."; exit 2; }
@@ -384,6 +410,12 @@ microbench: build
 	@echo "[run] microbench (H=256 V=1024 iters=200)"
 	@$(BUILD)/microbench_gemv 256 1024 200
 
+microbench-stream: build
+	@mkdir -p $(BUILD)
+	$(CC) $(CFLAGS) $(INC) benchmarks/src/microbench_stream.c engine/src/opt/stream.c engine/src/util_logging.c -o $(BUILD)/microbench_stream $(LDFLAGS_CPU)
+	@echo "[run] microbench_stream (default params)"
+	@$(BUILD)/microbench_stream
+
 # =============================================================================
 # Monitoring & metrics (optional)
 # =============================================================================
@@ -427,7 +459,7 @@ ptq-from-torch:
 	@test -n "$(OUT_PREFIX)"       || { echo "Set OUT_PREFIX=out/W_int8"; exit 2; }
 	python3 scripts/ptq_from_source.py --source torch --checkpoint "$(TORCH_CHECKPOINT)" --key "$(KEY)" $(if $(TRANSPOSE),--transpose,) --out-prefix "$(OUT_PREFIX)" --mode $(if $(MODE),$(MODE),per_row) --accuracy-threshold $(if $(THRESH),$(THRESH),0.995)
 
-# Corrigido: usar o script dedicado para BIN cru
+# Use the dedicated script for raw BIN inputs
 ptq-from-bin:
 	@command -v python3 >/dev/null 2>&1 || { echo "python3 not found"; exit 1; }
 	@test -n "$(BIN)"         || { echo "Set BIN=/path/to/f32.bin"; exit 2; }
@@ -437,7 +469,7 @@ ptq-from-bin:
 	python3 scripts/ptq_from_bin.py --bin "$(BIN)" --rows $(ROWS) --cols $(COLS) $(if $(TRANSPOSE),--transpose,) --out-prefix "$(OUT_PREFIX)" --mode $(if $(MODE),$(MODE),per_row) --accuracy-threshold $(if $(THRESH),$(THRESH),0.995)
 
 # =============================================================================
-# Performance presets (NO implicit build)
+# Performance presets
 # =============================================================================
 perf_cpu_fp32:
 	@test -x "$(BIN_CPU)" || { echo "ERROR: CPU binary '$(BIN_CPU)' not found. Run 'make build' once."; exit 2; }
@@ -454,3 +486,33 @@ perf_cpu_int8:
 perf_gpu:
 	@test -x "$(BIN_CUDA)" || { echo "ERROR: CUDA binary '$(BIN_CUDA)' not found. Run 'make build-cuda' once."; exit 2; }
 	@MODEL="$(if $(MODEL),$(MODEL),$(MODEL_DIR_DEFAULT))" PROMPTS="$(if $(PROMPTS),$(PROMPTS),benchmarks/prompts_10..txt)" RUNS="$(if $(RUNS),$(RUNS),3)" WARMUP="$(if $(WARMUP),$(WARMUP),1)" THREADS="$(if $(THREADS),$(THREADS),$(shell nproc))" PRECISION="$(if $(PRECISION),$(PRECISION),fp32)" BATCH="$(if $(BATCH),$(BATCH),1)" PREFETCH="$(if $(PREFETCH),$(PREFETCH),auto)" PRETRANSPOSE="$(if $(PRETRANSPOSE),$(PRETRANSPOSE),all)" WARMUP_TOKENS="$(if $(WARMUP_TOKENS),$(WARMUP_TOKENS),64)" AFFINITY="$(if $(AFFINITY),$(AFFINITY),auto)" MAX_NEW="$(if $(MAX_NEW),$(MAX_NEW),0)" ENGINE_BIN="$(BIN_CUDA)" bash scripts/run_benchmark.sh
+
+# === New presets: activation quantization (INT8 / FP8) =======================
+perf_cpu_act_int8:
+	@test -x "$(BIN_CPU)" || { echo "ERROR: CPU binary '$(BIN_CPU)' not found. Run 'make build' once."; exit 2; }
+	@MODEL="$(if $(MODEL),$(MODEL),$(MODEL_DIR_DEFAULT))" PROMPTS="$(if $(PROMPTS),$(PROMPTS),benchmarks/prompts_10..txt)" \
+	RUNS="$(if $(RUNS),$(RUNS),3)" WARMUP="$(if $(WARMUP),$(WARMUP),1)" THREADS="$(if $(THREADS),$(THREADS),$(shell nproc))" \
+	PRECISION="$(if $(PRECISION),$(PRECISION),int8)" IE_ACTIVATIONS="int8" IE_ACT_SCALE_DTYPE="$(if $(IE_ACT_SCALE_DTYPE),$(IE_ACT_SCALE_DTYPE),fp16)" \
+	BATCH="$(if $(BATCH),$(BATCH),1)" PREFETCH="$(if $(PREFETCH),$(PREFETCH),auto)" PRETRANSPOSE="$(if $(PRETRANSPOSE),$(PRETRANSPOSE),all)" \
+	WARMUP_TOKENS="$(if $(WARMUP_TOKENS),$(WARMUP_TOKENS),64)" AFFINITY="$(if $(AFFINITY),$(AFFINITY),auto)" \
+	ENGINE_BIN="$(BIN_CPU)" bash scripts/run_benchmark.sh
+
+# GPU with FP8 activations (E4M3)
+perf_gpu_act_fp8_e4m3:
+	@test -x "$(BIN_CUDA)" || { echo "ERROR: CUDA binary '$(BIN_CUDA)' not found. Run 'make build-cuda' once."; exit 2; }
+	@MODEL="$(if $(MODEL),$(MODEL),$(MODEL_DIR_DEFAULT))" PROMPTS="$(if $(PROMPTS),$(PROMPTS),benchmarks/prompts_10..txt)" \
+	RUNS="$(if $(RUNS),$(RUNS),3)" WARMUP="$(if $(WARMUP),$(WARMUP),1)" THREADS="$(if $(THREADS),$(THREADS),$(shell nproc))" \
+	PRECISION="$(if $(PRECISION),$(PRECISION),fp32)" IE_ACTIVATIONS="fp8" IE_FP8_FORMAT="e4m3" \
+	BATCH="$(if $(BATCH),$(BATCH),1)" PREFETCH="$(if $(PREFETCH),$(PREFETCH),auto)" PRETRANSPOSE="$(if $(PRETRANSPOSE),$(PRETRANSPOSE),all)" \
+	WARMUP_TOKENS="$(if $(WARMUP_TOKENS),$(WARMUP_TOKENS),64)" AFFINITY="$(if $(AFFINITY),$(AFFINITY),auto)" \
+	ENGINE_BIN="$(BIN_CUDA)" bash scripts/run_benchmark.sh
+
+# GPU with FP8 activations (E5M2)
+perf_gpu_act_fp8_e5m2:
+	@test -x "$(BIN_CUDA)" || { echo "ERROR: CUDA binary '$(BIN_CUDA)' not found. Run 'make build-cuda' once."; exit 2; }
+	@MODEL="$(if $(MODEL),$(MODEL),$(MODEL_DIR_DEFAULT))" PROMPTS="$(if $(PROMPTS),$(PROMPTS),benchmarks/prompts_10..txt)" \
+	RUNS="$(if $(RUNS),$(RUNS),3)" WARMUP="$(if $(WARMUP),$(WARMUP),1)" THREADS="$(if $(THREADS),$(THREADS),$(shell nproc))" \
+	PRECISION="$(if $(PRECISION),$(PRECISION),fp32)" IE_ACTIVATIONS="fp8" IE_FP8_FORMAT="e5m2" \
+	BATCH="$(if $(BATCH),$(BATCH),1)" PREFETCH="$(if $(PREFETCH),$(PREFETCH),auto)" PRETRANSPOSE="$(if $(PRETRANSPOSE),$(PRETRANSPOSE),all)" \
+	WARMUP_TOKENS="$(if $(WARMUP_TOKENS),$(WARMUP_TOKENS),64)" AFFINITY="$(if $(AFFINITY),$(AFFINITY),auto)" \
+	ENGINE_BIN="$(BIN_CUDA)" bash scripts/run_benchmark.sh

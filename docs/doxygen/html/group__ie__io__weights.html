@@ -184,12 +184,12 @@ Functions</h2></td></tr>
 </dl>
 <p>Close weights resources (currently a no-op; reserved for future use).</p>
 
-<p class="definition">Definition at line <a class="el" href="weights_8c_source.html#l00407">407</a> of file <a class="el" href="weights_8c_source.html">weights.c</a>.</p>
-<div class="fragment"><div class="line"><span class="lineno">  407</span>                                       {</div>
-<div class="line"><span class="lineno">  408</span>  (void)w; <span class="comment">/* currently a no-op */</span></div>
-<div class="line"><span class="lineno">  409</span>}</div>
+<p class="definition">Definition at line <a class="el" href="weights_8c_source.html#l00455">455</a> of file <a class="el" href="weights_8c_source.html">weights.c</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">  455</span>                                       {</div>
+<div class="line"><span class="lineno">  456</span>  (void)w; <span class="comment">/* currently a no-op */</span></div>
+<div class="line"><span class="lineno">  457</span>}</div>
 </div><!-- fragment -->
-<p class="reference">Referenced by <a class="el" href="main__infer_8c_source.html#l00474">main()</a>, and <a class="el" href="test__weights_8c_source.html#l00021">main()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="main__infer_8c_source.html#l00435">main()</a>, and <a class="el" href="test__weights_8c_source.html#l00021">main()</a>.</p>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
@@ -264,63 +264,63 @@ Here is the caller graph for this function:</div>
 </dl>
 <p>Open and parse IEBIN v1 metadata and resolve the weights path.</p>
 
-<p class="definition">Definition at line <a class="el" href="weights_8c_source.html#l00326">326</a> of file <a class="el" href="weights_8c_source.html">weights.c</a>.</p>
-<div class="fragment"><div class="line"><span class="lineno">  326</span>                                                                                    {</div>
-<div class="line"><span class="lineno">  327</span>  <span class="keywordflow">if</span> (!out) <span class="keywordflow">return</span> <a class="code hl_enumvalue" href="group__ie__io__status.html#gga4c501870bd45dbe373416745a03de987a579de46204c4454f99e9620965e58239">IE_IO_ERR_ARGS</a>;</div>
-<div class="line"><span class="lineno">  328</span>  memset(out, 0, <span class="keyword">sizeof</span>(*out));</div>
-<div class="line"><span class="lineno">  329</span> </div>
-<div class="line"><span class="lineno">  330</span>  <span class="keywordflow">if</span> (!json_path || !*json_path) <span class="keywordflow">return</span> <a class="code hl_enumvalue" href="group__ie__io__status.html#gga4c501870bd45dbe373416745a03de987a579de46204c4454f99e9620965e58239">IE_IO_ERR_ARGS</a>;</div>
-<div class="line"><span class="lineno">  331</span>  <a class="code hl_function" href="weights_8c.html#ae3307b59271742c37862abf0b9698d23">cpyz</a>(out-&gt;<a class="code hl_variable" href="structie__weights__s.html#a6d4bef9e704edd817ee473eb2685cdd4">json_path</a>, <span class="keyword">sizeof</span>(out-&gt;<a class="code hl_variable" href="structie__weights__s.html#a6d4bef9e704edd817ee473eb2685cdd4">json_path</a>), json_path);</div>
-<div class="line"><span class="lineno">  332</span> </div>
-<div class="line"><span class="lineno">  333</span>  <span class="comment">/* Read JSON text */</span></div>
-<div class="line"><span class="lineno">  334</span>  <span class="keywordtype">char</span> *jbuf = NULL; <span class="keywordtype">size_t</span> jlen = 0;</div>
-<div class="line"><span class="lineno">  335</span>  <span class="keywordflow">if</span> (<a class="code hl_function" href="weights_8c.html#a7d467c1ab0baceed9b0fdad7b5a8accf">read_all_text</a>(json_path, &amp;jbuf, &amp;jlen) != 0 || !jbuf || jlen == 0) {</div>
-<div class="line"><span class="lineno">  336</span>    <span class="keywordflow">return</span> <a class="code hl_enumvalue" href="group__ie__io__status.html#gga4c501870bd45dbe373416745a03de987aa02b300fcfbce31fe86de69090fc9fa9">IE_IO_ERR_JSON</a>;</div>
-<div class="line"><span class="lineno">  337</span>  }</div>
-<div class="line"><span class="lineno">  338</span> </div>
-<div class="line"><span class="lineno">  339</span>  <span class="comment">/* Parse relaxed header keys */</span></div>
-<div class="line"><span class="lineno">  340</span>  <span class="keywordtype">int</span> ver = 0; (void)<a class="code hl_function" href="weights_8c.html#a5c6ba72035c0c5110c91879350c8647f">scan_json_key_int</a>(jbuf, <span class="stringliteral">&quot;version&quot;</span>, &amp;ver);</div>
-<div class="line"><span class="lineno">  341</span>  <span class="keywordflow">if</span> (ver &lt;= 0) ver = 1;</div>
-<div class="line"><span class="lineno">  342</span>  out-&gt;<a class="code hl_variable" href="structie__weights__s.html#ae12c1b3b426321f6ba604f0a89673315">version</a> = ver;</div>
-<div class="line"><span class="lineno">  343</span> </div>
-<div class="line"><span class="lineno">  344</span>  <span class="keywordtype">char</span> dtype[16]; dtype[0] = <span class="charliteral">&#39;\0&#39;</span>;</div>
-<div class="line"><span class="lineno">  345</span>  (void)<a class="code hl_function" href="weights_8c.html#a3c438658d11f74ba4af8273c7e390311">scan_json_key_string</a>(jbuf, <span class="stringliteral">&quot;dtype&quot;</span>, dtype, <span class="keyword">sizeof</span>(dtype));</div>
-<div class="line"><span class="lineno">  346</span>  <span class="keywordflow">if</span> (dtype[0] == <span class="charliteral">&#39;\0&#39;</span>) strcpy(dtype, <span class="stringliteral">&quot;float32&quot;</span>);</div>
-<div class="line"><span class="lineno">  347</span>  <a class="code hl_function" href="weights_8c.html#ae3307b59271742c37862abf0b9698d23">cpyz</a>(out-&gt;<a class="code hl_variable" href="structie__weights__s.html#aaedc444c52d256720c4b4099604206a4">dtype</a>, <span class="keyword">sizeof</span>(out-&gt;<a class="code hl_variable" href="structie__weights__s.html#aaedc444c52d256720c4b4099604206a4">dtype</a>), dtype);</div>
-<div class="line"><span class="lineno">  348</span> </div>
-<div class="line"><span class="lineno">  349</span>  <span class="comment">/* Determine weights path (absolute or relative to JSON dir) */</span></div>
-<div class="line"><span class="lineno">  350</span>  <span class="keywordtype">char</span> resolved_bin[512]; resolved_bin[0] = <span class="charliteral">&#39;\0&#39;</span>;</div>
-<div class="line"><span class="lineno">  351</span>  <span class="keywordflow">if</span> (bin_path &amp;&amp; *bin_path) {</div>
-<div class="line"><span class="lineno">  352</span>    <a class="code hl_function" href="weights_8c.html#ae3307b59271742c37862abf0b9698d23">cpyz</a>(resolved_bin, <span class="keyword">sizeof</span>(resolved_bin), bin_path);</div>
-<div class="line"><span class="lineno">  353</span>  } <span class="keywordflow">else</span> {</div>
-<div class="line"><span class="lineno">  354</span>    <span class="keywordtype">char</span> bin_key[256]; bin_key[0] = <span class="charliteral">&#39;\0&#39;</span>;</div>
-<div class="line"><span class="lineno">  355</span>    (void)<a class="code hl_function" href="weights_8c.html#a3c438658d11f74ba4af8273c7e390311">scan_json_key_string</a>(jbuf, <span class="stringliteral">&quot;bin&quot;</span>, bin_key, <span class="keyword">sizeof</span>(bin_key));</div>
-<div class="line"><span class="lineno">  356</span>    <span class="keywordflow">if</span> (bin_key[0] == <span class="charliteral">&#39;\0&#39;</span>) { free(jbuf); <span class="keywordflow">return</span> <a class="code hl_enumvalue" href="group__ie__io__status.html#gga4c501870bd45dbe373416745a03de987a66046f2226981286e47bb2f33ab56862">IE_IO_ERR_BIN_UNSPEC</a>; }</div>
-<div class="line"><span class="lineno">  357</span> </div>
-<div class="line"><span class="lineno">  358</span>    <span class="keyword">const</span> <span class="keywordtype">char</span> *slash = <a class="code hl_function" href="weights_8c.html#a7415d89bc8bd657819e06ac0fc53da95">last_slash</a>(json_path);</div>
-<div class="line"><span class="lineno">  359</span>    <span class="keywordflow">if</span> (slash) {</div>
-<div class="line"><span class="lineno">  360</span>      <span class="keywordtype">char</span> dir[512]; <span class="keywordtype">size_t</span> dn = (size_t)(slash - json_path);</div>
-<div class="line"><span class="lineno">  361</span>      <span class="keywordflow">if</span> (dn &gt;= <span class="keyword">sizeof</span>(dir)) dn = <span class="keyword">sizeof</span>(dir) - 1;</div>
-<div class="line"><span class="lineno">  362</span>      memcpy(dir, json_path, dn); dir[dn] = <span class="charliteral">&#39;\0&#39;</span>;</div>
-<div class="line"><span class="lineno">  363</span>      <a class="code hl_function" href="weights_8c.html#a7bb1dd9958b072fc5d1a80373cc074ff">join_path</a>(resolved_bin, <span class="keyword">sizeof</span>(resolved_bin), dir, bin_key);</div>
-<div class="line"><span class="lineno">  364</span>    } <span class="keywordflow">else</span> {</div>
-<div class="line"><span class="lineno">  365</span>      <a class="code hl_function" href="weights_8c.html#ae3307b59271742c37862abf0b9698d23">cpyz</a>(resolved_bin, <span class="keyword">sizeof</span>(resolved_bin), bin_key);</div>
-<div class="line"><span class="lineno">  366</span>    }</div>
-<div class="line"><span class="lineno">  367</span>  }</div>
-<div class="line"><span class="lineno">  368</span>  <a class="code hl_function" href="weights_8c.html#ae3307b59271742c37862abf0b9698d23">cpyz</a>(out-&gt;<a class="code hl_variable" href="structie__weights__s.html#ab6a61099d0af4a47854d02dc4fef5b8f">weights_path</a>, <span class="keyword">sizeof</span>(out-&gt;<a class="code hl_variable" href="structie__weights__s.html#ab6a61099d0af4a47854d02dc4fef5b8f">weights_path</a>), resolved_bin);</div>
-<div class="line"><span class="lineno">  369</span> </div>
-<div class="line"><span class="lineno">  370</span>  <span class="comment">/* Stat the weights file to get its size */</span></div>
-<div class="line"><span class="lineno">  371</span>  <span class="keyword">struct </span>stat st;</div>
-<div class="line"><span class="lineno">  372</span>  <span class="keywordflow">if</span> (stat(out-&gt;<a class="code hl_variable" href="structie__weights__s.html#ab6a61099d0af4a47854d02dc4fef5b8f">weights_path</a>, &amp;st) != 0 || st.st_size &lt; 0) {</div>
-<div class="line"><span class="lineno">  373</span>    free(jbuf);</div>
-<div class="line"><span class="lineno">  374</span>    <span class="keywordflow">return</span> <a class="code hl_enumvalue" href="group__ie__io__status.html#gga4c501870bd45dbe373416745a03de987a82517853bf5084320fad8c88f67d29bb">IE_IO_ERR_STAT</a>;</div>
-<div class="line"><span class="lineno">  375</span>  }</div>
-<div class="line"><span class="lineno">  376</span>  out-&gt;<a class="code hl_variable" href="structie__weights__s.html#a19f9137cca00113908b495a70769805e">bin_size_bytes</a> = (size_t)st.st_size;</div>
-<div class="line"><span class="lineno">  377</span>  out-&gt;<a class="code hl_variable" href="structie__weights__s.html#a0e365369fa9f9920eda71bd9be50c5bb">loaded</a> = 1;</div>
-<div class="line"><span class="lineno">  378</span> </div>
-<div class="line"><span class="lineno">  379</span>  free(jbuf);</div>
-<div class="line"><span class="lineno">  380</span>  <span class="keywordflow">return</span> <a class="code hl_enumvalue" href="group__ie__io__status.html#gga4c501870bd45dbe373416745a03de987a81b076a3d2516e2f45170c664c0fa57d">IE_IO_OK</a>;</div>
-<div class="line"><span class="lineno">  381</span>}</div>
+<p class="definition">Definition at line <a class="el" href="weights_8c_source.html#l00374">374</a> of file <a class="el" href="weights_8c_source.html">weights.c</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">  374</span>                                                                                    {</div>
+<div class="line"><span class="lineno">  375</span>  <span class="keywordflow">if</span> (!out) <span class="keywordflow">return</span> <a class="code hl_enumvalue" href="group__ie__io__status.html#gga4c501870bd45dbe373416745a03de987a579de46204c4454f99e9620965e58239">IE_IO_ERR_ARGS</a>;</div>
+<div class="line"><span class="lineno">  376</span>  memset(out, 0, <span class="keyword">sizeof</span>(*out));</div>
+<div class="line"><span class="lineno">  377</span> </div>
+<div class="line"><span class="lineno">  378</span>  <span class="keywordflow">if</span> (!json_path || !*json_path) <span class="keywordflow">return</span> <a class="code hl_enumvalue" href="group__ie__io__status.html#gga4c501870bd45dbe373416745a03de987a579de46204c4454f99e9620965e58239">IE_IO_ERR_ARGS</a>;</div>
+<div class="line"><span class="lineno">  379</span>  <a class="code hl_function" href="weights_8c.html#ae3307b59271742c37862abf0b9698d23">cpyz</a>(out-&gt;<a class="code hl_variable" href="structie__weights__s.html#a6d4bef9e704edd817ee473eb2685cdd4">json_path</a>, <span class="keyword">sizeof</span>(out-&gt;<a class="code hl_variable" href="structie__weights__s.html#a6d4bef9e704edd817ee473eb2685cdd4">json_path</a>), json_path);</div>
+<div class="line"><span class="lineno">  380</span> </div>
+<div class="line"><span class="lineno">  381</span>  <span class="comment">/* Read JSON text */</span></div>
+<div class="line"><span class="lineno">  382</span>  <span class="keywordtype">char</span> *jbuf = NULL; <span class="keywordtype">size_t</span> jlen = 0;</div>
+<div class="line"><span class="lineno">  383</span>  <span class="keywordflow">if</span> (<a class="code hl_function" href="weights_8c.html#a7d467c1ab0baceed9b0fdad7b5a8accf">read_all_text</a>(json_path, &amp;jbuf, &amp;jlen) != 0 || !jbuf || jlen == 0) {</div>
+<div class="line"><span class="lineno">  384</span>    <span class="keywordflow">return</span> <a class="code hl_enumvalue" href="group__ie__io__status.html#gga4c501870bd45dbe373416745a03de987aa02b300fcfbce31fe86de69090fc9fa9">IE_IO_ERR_JSON</a>;</div>
+<div class="line"><span class="lineno">  385</span>  }</div>
+<div class="line"><span class="lineno">  386</span> </div>
+<div class="line"><span class="lineno">  387</span>  <span class="comment">/* Parse relaxed header keys */</span></div>
+<div class="line"><span class="lineno">  388</span>  <span class="keywordtype">int</span> ver = 0; (void)<a class="code hl_function" href="weights_8c.html#a5c6ba72035c0c5110c91879350c8647f">scan_json_key_int</a>(jbuf, <span class="stringliteral">&quot;version&quot;</span>, &amp;ver);</div>
+<div class="line"><span class="lineno">  389</span>  <span class="keywordflow">if</span> (ver &lt;= 0) ver = 1;</div>
+<div class="line"><span class="lineno">  390</span>  out-&gt;<a class="code hl_variable" href="structie__weights__s.html#ae12c1b3b426321f6ba604f0a89673315">version</a> = ver;</div>
+<div class="line"><span class="lineno">  391</span> </div>
+<div class="line"><span class="lineno">  392</span>  <span class="keywordtype">char</span> dtype[16]; dtype[0] = <span class="charliteral">&#39;\0&#39;</span>;</div>
+<div class="line"><span class="lineno">  393</span>  (void)<a class="code hl_function" href="weights_8c.html#a3c438658d11f74ba4af8273c7e390311">scan_json_key_string</a>(jbuf, <span class="stringliteral">&quot;dtype&quot;</span>, dtype, <span class="keyword">sizeof</span>(dtype));</div>
+<div class="line"><span class="lineno">  394</span>  <span class="keywordflow">if</span> (dtype[0] == <span class="charliteral">&#39;\0&#39;</span>) strcpy(dtype, <span class="stringliteral">&quot;float32&quot;</span>);</div>
+<div class="line"><span class="lineno">  395</span>  <a class="code hl_function" href="weights_8c.html#ae3307b59271742c37862abf0b9698d23">cpyz</a>(out-&gt;<a class="code hl_variable" href="structie__weights__s.html#aaedc444c52d256720c4b4099604206a4">dtype</a>, <span class="keyword">sizeof</span>(out-&gt;<a class="code hl_variable" href="structie__weights__s.html#aaedc444c52d256720c4b4099604206a4">dtype</a>), dtype);</div>
+<div class="line"><span class="lineno">  396</span> </div>
+<div class="line"><span class="lineno">  397</span>  <span class="comment">/* Determine weights path (absolute or relative to JSON dir) */</span></div>
+<div class="line"><span class="lineno">  398</span>  <span class="keywordtype">char</span> resolved_bin[512]; resolved_bin[0] = <span class="charliteral">&#39;\0&#39;</span>;</div>
+<div class="line"><span class="lineno">  399</span>  <span class="keywordflow">if</span> (bin_path &amp;&amp; *bin_path) {</div>
+<div class="line"><span class="lineno">  400</span>    <a class="code hl_function" href="weights_8c.html#ae3307b59271742c37862abf0b9698d23">cpyz</a>(resolved_bin, <span class="keyword">sizeof</span>(resolved_bin), bin_path);</div>
+<div class="line"><span class="lineno">  401</span>  } <span class="keywordflow">else</span> {</div>
+<div class="line"><span class="lineno">  402</span>    <span class="keywordtype">char</span> bin_key[256]; bin_key[0] = <span class="charliteral">&#39;\0&#39;</span>;</div>
+<div class="line"><span class="lineno">  403</span>    (void)<a class="code hl_function" href="weights_8c.html#a3c438658d11f74ba4af8273c7e390311">scan_json_key_string</a>(jbuf, <span class="stringliteral">&quot;bin&quot;</span>, bin_key, <span class="keyword">sizeof</span>(bin_key));</div>
+<div class="line"><span class="lineno">  404</span>    <span class="keywordflow">if</span> (bin_key[0] == <span class="charliteral">&#39;\0&#39;</span>) { free(jbuf); <span class="keywordflow">return</span> <a class="code hl_enumvalue" href="group__ie__io__status.html#gga4c501870bd45dbe373416745a03de987a66046f2226981286e47bb2f33ab56862">IE_IO_ERR_BIN_UNSPEC</a>; }</div>
+<div class="line"><span class="lineno">  405</span> </div>
+<div class="line"><span class="lineno">  406</span>    <span class="keyword">const</span> <span class="keywordtype">char</span> *slash = <a class="code hl_function" href="weights_8c.html#a7415d89bc8bd657819e06ac0fc53da95">last_slash</a>(json_path);</div>
+<div class="line"><span class="lineno">  407</span>    <span class="keywordflow">if</span> (slash) {</div>
+<div class="line"><span class="lineno">  408</span>      <span class="keywordtype">char</span> dir[512]; <span class="keywordtype">size_t</span> dn = (size_t)(slash - json_path);</div>
+<div class="line"><span class="lineno">  409</span>      <span class="keywordflow">if</span> (dn &gt;= <span class="keyword">sizeof</span>(dir)) dn = <span class="keyword">sizeof</span>(dir) - 1;</div>
+<div class="line"><span class="lineno">  410</span>      memcpy(dir, json_path, dn); dir[dn] = <span class="charliteral">&#39;\0&#39;</span>;</div>
+<div class="line"><span class="lineno">  411</span>      <a class="code hl_function" href="weights_8c.html#a7bb1dd9958b072fc5d1a80373cc074ff">join_path</a>(resolved_bin, <span class="keyword">sizeof</span>(resolved_bin), dir, bin_key);</div>
+<div class="line"><span class="lineno">  412</span>    } <span class="keywordflow">else</span> {</div>
+<div class="line"><span class="lineno">  413</span>      <a class="code hl_function" href="weights_8c.html#ae3307b59271742c37862abf0b9698d23">cpyz</a>(resolved_bin, <span class="keyword">sizeof</span>(resolved_bin), bin_key);</div>
+<div class="line"><span class="lineno">  414</span>    }</div>
+<div class="line"><span class="lineno">  415</span>  }</div>
+<div class="line"><span class="lineno">  416</span>  <a class="code hl_function" href="weights_8c.html#ae3307b59271742c37862abf0b9698d23">cpyz</a>(out-&gt;<a class="code hl_variable" href="structie__weights__s.html#ab6a61099d0af4a47854d02dc4fef5b8f">weights_path</a>, <span class="keyword">sizeof</span>(out-&gt;<a class="code hl_variable" href="structie__weights__s.html#ab6a61099d0af4a47854d02dc4fef5b8f">weights_path</a>), resolved_bin);</div>
+<div class="line"><span class="lineno">  417</span> </div>
+<div class="line"><span class="lineno">  418</span>  <span class="comment">/* Stat the weights file to get its size */</span></div>
+<div class="line"><span class="lineno">  419</span>  <span class="keyword">struct </span>stat st;</div>
+<div class="line"><span class="lineno">  420</span>  <span class="keywordflow">if</span> (stat(out-&gt;<a class="code hl_variable" href="structie__weights__s.html#ab6a61099d0af4a47854d02dc4fef5b8f">weights_path</a>, &amp;st) != 0 || st.st_size &lt; 0) {</div>
+<div class="line"><span class="lineno">  421</span>    free(jbuf);</div>
+<div class="line"><span class="lineno">  422</span>    <span class="keywordflow">return</span> <a class="code hl_enumvalue" href="group__ie__io__status.html#gga4c501870bd45dbe373416745a03de987a82517853bf5084320fad8c88f67d29bb">IE_IO_ERR_STAT</a>;</div>
+<div class="line"><span class="lineno">  423</span>  }</div>
+<div class="line"><span class="lineno">  424</span>  out-&gt;<a class="code hl_variable" href="structie__weights__s.html#a19f9137cca00113908b495a70769805e">bin_size_bytes</a> = (size_t)st.st_size;</div>
+<div class="line"><span class="lineno">  425</span>  out-&gt;<a class="code hl_variable" href="structie__weights__s.html#a0e365369fa9f9920eda71bd9be50c5bb">loaded</a> = 1;</div>
+<div class="line"><span class="lineno">  426</span> </div>
+<div class="line"><span class="lineno">  427</span>  free(jbuf);</div>
+<div class="line"><span class="lineno">  428</span>  <span class="keywordflow">return</span> <a class="code hl_enumvalue" href="group__ie__io__status.html#gga4c501870bd45dbe373416745a03de987a81b076a3d2516e2f45170c664c0fa57d">IE_IO_OK</a>;</div>
+<div class="line"><span class="lineno">  429</span>}</div>
 <div class="ttc" id="agroup__ie__io__status_html_gga4c501870bd45dbe373416745a03de987a579de46204c4454f99e9620965e58239"><div class="ttname"><a href="group__ie__io__status.html#gga4c501870bd45dbe373416745a03de987a579de46204c4454f99e9620965e58239">IE_IO_ERR_ARGS</a></div><div class="ttdeci">@ IE_IO_ERR_ARGS</div><div class="ttdoc">Invalid arguments (NULL pointer, bad sizes, etc.).</div><div class="ttdef"><b>Definition</b> <a href="ie__io_8h_source.html#l00059">ie_io.h:59</a></div></div>
 <div class="ttc" id="agroup__ie__io__status_html_gga4c501870bd45dbe373416745a03de987a66046f2226981286e47bb2f33ab56862"><div class="ttname"><a href="group__ie__io__status.html#gga4c501870bd45dbe373416745a03de987a66046f2226981286e47bb2f33ab56862">IE_IO_ERR_BIN_UNSPEC</a></div><div class="ttdeci">@ IE_IO_ERR_BIN_UNSPEC</div><div class="ttdoc">JSON missing bin key and no override provided.</div><div class="ttdef"><b>Definition</b> <a href="ie__io_8h_source.html#l00065">ie_io.h:65</a></div></div>
 <div class="ttc" id="agroup__ie__io__status_html_gga4c501870bd45dbe373416745a03de987a81b076a3d2516e2f45170c664c0fa57d"><div class="ttname"><a href="group__ie__io__status.html#gga4c501870bd45dbe373416745a03de987a81b076a3d2516e2f45170c664c0fa57d">IE_IO_OK</a></div><div class="ttdeci">@ IE_IO_OK</div><div class="ttdoc">Success.</div><div class="ttdef"><b>Definition</b> <a href="ie__io_8h_source.html#l00056">ie_io.h:56</a></div></div>
@@ -332,16 +332,16 @@ Here is the caller graph for this function:</div>
 <div class="ttc" id="astructie__weights__s_html_aaedc444c52d256720c4b4099604206a4"><div class="ttname"><a href="structie__weights__s.html#aaedc444c52d256720c4b4099604206a4">ie_weights_s::dtype</a></div><div class="ttdeci">char dtype[16]</div><div class="ttdoc">Parsed header dtype (e.g., &quot;fp32&quot;, &quot;int8&quot;, &quot;mixed&quot;).</div><div class="ttdef"><b>Definition</b> <a href="ie__io_8h_source.html#l00109">ie_io.h:109</a></div></div>
 <div class="ttc" id="astructie__weights__s_html_ab6a61099d0af4a47854d02dc4fef5b8f"><div class="ttname"><a href="structie__weights__s.html#ab6a61099d0af4a47854d02dc4fef5b8f">ie_weights_s::weights_path</a></div><div class="ttdeci">char weights_path[512]</div><div class="ttdoc">Resolved path to the weights binary (model.ie.bin).</div><div class="ttdef"><b>Definition</b> <a href="ie__io_8h_source.html#l00117">ie_io.h:117</a></div></div>
 <div class="ttc" id="astructie__weights__s_html_ae12c1b3b426321f6ba604f0a89673315"><div class="ttname"><a href="structie__weights__s.html#ae12c1b3b426321f6ba604f0a89673315">ie_weights_s::version</a></div><div class="ttdeci">int version</div><div class="ttdoc">Parsed header version (&gt;= 1).</div><div class="ttdef"><b>Definition</b> <a href="ie__io_8h_source.html#l00106">ie_io.h:106</a></div></div>
-<div class="ttc" id="aweights_8c_html_a3c438658d11f74ba4af8273c7e390311"><div class="ttname"><a href="weights_8c.html#a3c438658d11f74ba4af8273c7e390311">scan_json_key_string</a></div><div class="ttdeci">static int scan_json_key_string(const char *json, const char *key, char *dst, size_t dstsz)</div><div class="ttdef"><b>Definition</b> <a href="weights_8c_source.html#l00179">weights.c:179</a></div></div>
-<div class="ttc" id="aweights_8c_html_a5c6ba72035c0c5110c91879350c8647f"><div class="ttname"><a href="weights_8c.html#a5c6ba72035c0c5110c91879350c8647f">scan_json_key_int</a></div><div class="ttdeci">static int scan_json_key_int(const char *json, const char *key, int *out_val)</div><div class="ttdef"><b>Definition</b> <a href="weights_8c_source.html#l00154">weights.c:154</a></div></div>
-<div class="ttc" id="aweights_8c_html_a7415d89bc8bd657819e06ac0fc53da95"><div class="ttname"><a href="weights_8c.html#a7415d89bc8bd657819e06ac0fc53da95">last_slash</a></div><div class="ttdeci">static const char * last_slash(const char *p)</div><div class="ttdef"><b>Definition</b> <a href="weights_8c_source.html#l00070">weights.c:70</a></div></div>
-<div class="ttc" id="aweights_8c_html_a7bb1dd9958b072fc5d1a80373cc074ff"><div class="ttname"><a href="weights_8c.html#a7bb1dd9958b072fc5d1a80373cc074ff">join_path</a></div><div class="ttdeci">static void join_path(char *out, size_t outsz, const char *dir, const char *file)</div><div class="ttdef"><b>Definition</b> <a href="weights_8c_source.html#l00081">weights.c:81</a></div></div>
-<div class="ttc" id="aweights_8c_html_a7d467c1ab0baceed9b0fdad7b5a8accf"><div class="ttname"><a href="weights_8c.html#a7d467c1ab0baceed9b0fdad7b5a8accf">read_all_text</a></div><div class="ttdeci">static int read_all_text(const char *path, char **buf, size_t *len_out)</div><div class="ttdef"><b>Definition</b> <a href="weights_8c_source.html#l00114">weights.c:114</a></div></div>
-<div class="ttc" id="aweights_8c_html_ae3307b59271742c37862abf0b9698d23"><div class="ttname"><a href="weights_8c.html#ae3307b59271742c37862abf0b9698d23">cpyz</a></div><div class="ttdeci">static void cpyz(char *dst, size_t dstsz, const char *src)</div><div class="ttdef"><b>Definition</b> <a href="weights_8c_source.html#l00057">weights.c:57</a></div></div>
+<div class="ttc" id="aweights_8c_html_a3c438658d11f74ba4af8273c7e390311"><div class="ttname"><a href="weights_8c.html#a3c438658d11f74ba4af8273c7e390311">scan_json_key_string</a></div><div class="ttdeci">static int scan_json_key_string(const char *json, const char *key, char *dst, size_t dstsz)</div><div class="ttdef"><b>Definition</b> <a href="weights_8c_source.html#l00206">weights.c:206</a></div></div>
+<div class="ttc" id="aweights_8c_html_a5c6ba72035c0c5110c91879350c8647f"><div class="ttname"><a href="weights_8c.html#a5c6ba72035c0c5110c91879350c8647f">scan_json_key_int</a></div><div class="ttdeci">static int scan_json_key_int(const char *json, const char *key, int *out_val)</div><div class="ttdef"><b>Definition</b> <a href="weights_8c_source.html#l00176">weights.c:176</a></div></div>
+<div class="ttc" id="aweights_8c_html_a7415d89bc8bd657819e06ac0fc53da95"><div class="ttname"><a href="weights_8c.html#a7415d89bc8bd657819e06ac0fc53da95">last_slash</a></div><div class="ttdeci">static const char * last_slash(const char *p)</div><div class="ttdef"><b>Definition</b> <a href="weights_8c_source.html#l00079">weights.c:79</a></div></div>
+<div class="ttc" id="aweights_8c_html_a7bb1dd9958b072fc5d1a80373cc074ff"><div class="ttname"><a href="weights_8c.html#a7bb1dd9958b072fc5d1a80373cc074ff">join_path</a></div><div class="ttdeci">static void join_path(char *out, size_t outsz, const char *dir, const char *file)</div><div class="ttdef"><b>Definition</b> <a href="weights_8c_source.html#l00095">weights.c:95</a></div></div>
+<div class="ttc" id="aweights_8c_html_a7d467c1ab0baceed9b0fdad7b5a8accf"><div class="ttname"><a href="weights_8c.html#a7d467c1ab0baceed9b0fdad7b5a8accf">read_all_text</a></div><div class="ttdeci">static int read_all_text(const char *path, char **buf, size_t *len_out)</div><div class="ttdef"><b>Definition</b> <a href="weights_8c_source.html#l00132">weights.c:132</a></div></div>
+<div class="ttc" id="aweights_8c_html_ae3307b59271742c37862abf0b9698d23"><div class="ttname"><a href="weights_8c.html#ae3307b59271742c37862abf0b9698d23">cpyz</a></div><div class="ttdeci">static void cpyz(char *dst, size_t dstsz, const char *src)</div><div class="ttdef"><b>Definition</b> <a href="weights_8c_source.html#l00063">weights.c:63</a></div></div>
 </div><!-- fragment -->
-<p class="reference">References <a class="el" href="ie__io_8h_source.html#l00122">ie_weights_s::bin_size_bytes</a>, <a class="el" href="weights_8c_source.html#l00057">cpyz()</a>, <a class="el" href="ie__io_8h_source.html#l00109">ie_weights_s::dtype</a>, <a class="el" href="ie__io_8h_source.html#l00059">IE_IO_ERR_ARGS</a>, <a class="el" href="ie__io_8h_source.html#l00065">IE_IO_ERR_BIN_UNSPEC</a>, <a class="el" href="ie__io_8h_source.html#l00062">IE_IO_ERR_JSON</a>, <a class="el" href="ie__io_8h_source.html#l00068">IE_IO_ERR_STAT</a>, <a class="el" href="ie__io_8h_source.html#l00056">IE_IO_OK</a>, <a class="el" href="weights_8c_source.html#l00081">join_path()</a>, <a class="el" href="ie__io_8h_source.html#l00114">ie_weights_s::json_path</a>, <a class="el" href="weights_8c_source.html#l00070">last_slash()</a>, <a class="el" href="ie__io_8h_source.html#l00127">ie_weights_s::loaded</a>, <a class="el" href="weights_8c_source.html#l00114">read_all_text()</a>, <a class="el" href="weights_8c_source.html#l00154">scan_json_key_int()</a>, <a class="el" href="weights_8c_source.html#l00179">scan_json_key_string()</a>, <a class="el" href="ie__io_8h_source.html#l00106">ie_weights_s::version</a>, and <a class="el" href="ie__io_8h_source.html#l00117">ie_weights_s::weights_path</a>.</p>
+<p class="reference">References <a class="el" href="ie__io_8h_source.html#l00122">ie_weights_s::bin_size_bytes</a>, <a class="el" href="weights_8c_source.html#l00063">cpyz()</a>, <a class="el" href="ie__io_8h_source.html#l00109">ie_weights_s::dtype</a>, <a class="el" href="ie__io_8h_source.html#l00059">IE_IO_ERR_ARGS</a>, <a class="el" href="ie__io_8h_source.html#l00065">IE_IO_ERR_BIN_UNSPEC</a>, <a class="el" href="ie__io_8h_source.html#l00062">IE_IO_ERR_JSON</a>, <a class="el" href="ie__io_8h_source.html#l00068">IE_IO_ERR_STAT</a>, <a class="el" href="ie__io_8h_source.html#l00056">IE_IO_OK</a>, <a class="el" href="weights_8c_source.html#l00095">join_path()</a>, <a class="el" href="ie__io_8h_source.html#l00114">ie_weights_s::json_path</a>, <a class="el" href="weights_8c_source.html#l00079">last_slash()</a>, <a class="el" href="ie__io_8h_source.html#l00127">ie_weights_s::loaded</a>, <a class="el" href="weights_8c_source.html#l00132">read_all_text()</a>, <a class="el" href="weights_8c_source.html#l00176">scan_json_key_int()</a>, <a class="el" href="weights_8c_source.html#l00206">scan_json_key_string()</a>, <a class="el" href="ie__io_8h_source.html#l00106">ie_weights_s::version</a>, and <a class="el" href="ie__io_8h_source.html#l00117">ie_weights_s::weights_path</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="main__infer_8c_source.html#l00474">main()</a>, and <a class="el" href="test__weights_8c_source.html#l00021">main()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="main__infer_8c_source.html#l00435">main()</a>, and <a class="el" href="test__weights_8c_source.html#l00021">main()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -408,31 +408,31 @@ Here is the caller graph for this function:</div>
 </dl>
 <p>Touch the weights binary to verify readability (and optionally warm caches).</p>
 
-<p class="definition">Definition at line <a class="el" href="weights_8c_source.html#l00386">386</a> of file <a class="el" href="weights_8c_source.html">weights.c</a>.</p>
-<div class="fragment"><div class="line"><span class="lineno">  386</span>                                            {</div>
-<div class="line"><span class="lineno">  387</span>  <span class="keywordflow">if</span> (!w || !w-&gt;<a class="code hl_variable" href="structie__weights__s.html#ab6a61099d0af4a47854d02dc4fef5b8f">weights_path</a>[0]) <span class="keywordflow">return</span> <a class="code hl_enumvalue" href="group__ie__io__status.html#gga4c501870bd45dbe373416745a03de987a579de46204c4454f99e9620965e58239">IE_IO_ERR_ARGS</a>;</div>
-<div class="line"><span class="lineno">  388</span>  <span class="keywordtype">int</span> fd = open(w-&gt;<a class="code hl_variable" href="structie__weights__s.html#ab6a61099d0af4a47854d02dc4fef5b8f">weights_path</a>, O_RDONLY);</div>
-<div class="line"><span class="lineno">  389</span>  <span class="keywordflow">if</span> (fd &lt; 0) <span class="keywordflow">return</span> <a class="code hl_enumvalue" href="group__ie__io__status.html#gga4c501870bd45dbe373416745a03de987aba0321da4352c7a61ea1bda842bb64d0">IE_IO_ERR_OPEN</a>;</div>
-<div class="line"><span class="lineno">  390</span> </div>
-<div class="line"><span class="lineno">  391</span>  <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> buf[4096];</div>
-<div class="line"><span class="lineno">  392</span>  ssize_t r1 = <a class="code hl_function" href="weights_8c.html#aabb19f4a5e5385962c6db57f611bb785">ie_pread</a>(fd, buf, <span class="keyword">sizeof</span>(buf), 0);</div>
-<div class="line"><span class="lineno">  393</span>  ssize_t r2 = 0;</div>
-<div class="line"><span class="lineno">  394</span>  <span class="keywordflow">if</span> (w-&gt;<a class="code hl_variable" href="structie__weights__s.html#a19f9137cca00113908b495a70769805e">bin_size_bytes</a> &gt; <span class="keyword">sizeof</span>(buf)) {</div>
-<div class="line"><span class="lineno">  395</span>    off_t off = (off_t)(w-&gt;<a class="code hl_variable" href="structie__weights__s.html#a19f9137cca00113908b495a70769805e">bin_size_bytes</a> - <span class="keyword">sizeof</span>(buf));</div>
-<div class="line"><span class="lineno">  396</span>    r2 = <a class="code hl_function" href="weights_8c.html#aabb19f4a5e5385962c6db57f611bb785">ie_pread</a>(fd, buf, <span class="keyword">sizeof</span>(buf), off);</div>
-<div class="line"><span class="lineno">  397</span>  }</div>
-<div class="line"><span class="lineno">  398</span>  close(fd);</div>
-<div class="line"><span class="lineno">  399</span> </div>
-<div class="line"><span class="lineno">  400</span>  <span class="keywordflow">if</span> (r1 &lt; 0 || r2 &lt; 0) <span class="keywordflow">return</span> <a class="code hl_enumvalue" href="group__ie__io__status.html#gga4c501870bd45dbe373416745a03de987aa12fce48fd3eee2bd8a75dc61db150a7">IE_IO_ERR_READ</a>;</div>
-<div class="line"><span class="lineno">  401</span>  <span class="keywordflow">return</span> <a class="code hl_enumvalue" href="group__ie__io__status.html#gga4c501870bd45dbe373416745a03de987a81b076a3d2516e2f45170c664c0fa57d">IE_IO_OK</a>;</div>
-<div class="line"><span class="lineno">  402</span>}</div>
+<p class="definition">Definition at line <a class="el" href="weights_8c_source.html#l00434">434</a> of file <a class="el" href="weights_8c_source.html">weights.c</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">  434</span>                                            {</div>
+<div class="line"><span class="lineno">  435</span>  <span class="keywordflow">if</span> (!w || !w-&gt;<a class="code hl_variable" href="structie__weights__s.html#ab6a61099d0af4a47854d02dc4fef5b8f">weights_path</a>[0]) <span class="keywordflow">return</span> <a class="code hl_enumvalue" href="group__ie__io__status.html#gga4c501870bd45dbe373416745a03de987a579de46204c4454f99e9620965e58239">IE_IO_ERR_ARGS</a>;</div>
+<div class="line"><span class="lineno">  436</span>  <span class="keywordtype">int</span> fd = open(w-&gt;<a class="code hl_variable" href="structie__weights__s.html#ab6a61099d0af4a47854d02dc4fef5b8f">weights_path</a>, O_RDONLY);</div>
+<div class="line"><span class="lineno">  437</span>  <span class="keywordflow">if</span> (fd &lt; 0) <span class="keywordflow">return</span> <a class="code hl_enumvalue" href="group__ie__io__status.html#gga4c501870bd45dbe373416745a03de987aba0321da4352c7a61ea1bda842bb64d0">IE_IO_ERR_OPEN</a>;</div>
+<div class="line"><span class="lineno">  438</span> </div>
+<div class="line"><span class="lineno">  439</span>  <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> buf[4096];</div>
+<div class="line"><span class="lineno">  440</span>  ssize_t r1 = <a class="code hl_function" href="weights_8c.html#aabb19f4a5e5385962c6db57f611bb785">ie_pread</a>(fd, buf, <span class="keyword">sizeof</span>(buf), 0);</div>
+<div class="line"><span class="lineno">  441</span>  ssize_t r2 = 0;</div>
+<div class="line"><span class="lineno">  442</span>  <span class="keywordflow">if</span> (w-&gt;<a class="code hl_variable" href="structie__weights__s.html#a19f9137cca00113908b495a70769805e">bin_size_bytes</a> &gt; <span class="keyword">sizeof</span>(buf)) {</div>
+<div class="line"><span class="lineno">  443</span>    off_t off = (off_t)(w-&gt;<a class="code hl_variable" href="structie__weights__s.html#a19f9137cca00113908b495a70769805e">bin_size_bytes</a> - <span class="keyword">sizeof</span>(buf));</div>
+<div class="line"><span class="lineno">  444</span>    r2 = <a class="code hl_function" href="weights_8c.html#aabb19f4a5e5385962c6db57f611bb785">ie_pread</a>(fd, buf, <span class="keyword">sizeof</span>(buf), off);</div>
+<div class="line"><span class="lineno">  445</span>  }</div>
+<div class="line"><span class="lineno">  446</span>  close(fd);</div>
+<div class="line"><span class="lineno">  447</span> </div>
+<div class="line"><span class="lineno">  448</span>  <span class="keywordflow">if</span> (r1 &lt; 0 || r2 &lt; 0) <span class="keywordflow">return</span> <a class="code hl_enumvalue" href="group__ie__io__status.html#gga4c501870bd45dbe373416745a03de987aa12fce48fd3eee2bd8a75dc61db150a7">IE_IO_ERR_READ</a>;</div>
+<div class="line"><span class="lineno">  449</span>  <span class="keywordflow">return</span> <a class="code hl_enumvalue" href="group__ie__io__status.html#gga4c501870bd45dbe373416745a03de987a81b076a3d2516e2f45170c664c0fa57d">IE_IO_OK</a>;</div>
+<div class="line"><span class="lineno">  450</span>}</div>
 <div class="ttc" id="agroup__ie__io__status_html_gga4c501870bd45dbe373416745a03de987aa12fce48fd3eee2bd8a75dc61db150a7"><div class="ttname"><a href="group__ie__io__status.html#gga4c501870bd45dbe373416745a03de987aa12fce48fd3eee2bd8a75dc61db150a7">IE_IO_ERR_READ</a></div><div class="ttdeci">@ IE_IO_ERR_READ</div><div class="ttdoc">Failed to read from the weights file.</div><div class="ttdef"><b>Definition</b> <a href="ie__io_8h_source.html#l00074">ie_io.h:74</a></div></div>
 <div class="ttc" id="agroup__ie__io__status_html_gga4c501870bd45dbe373416745a03de987aba0321da4352c7a61ea1bda842bb64d0"><div class="ttname"><a href="group__ie__io__status.html#gga4c501870bd45dbe373416745a03de987aba0321da4352c7a61ea1bda842bb64d0">IE_IO_ERR_OPEN</a></div><div class="ttdeci">@ IE_IO_ERR_OPEN</div><div class="ttdoc">Failed to open the weights file.</div><div class="ttdef"><b>Definition</b> <a href="ie__io_8h_source.html#l00071">ie_io.h:71</a></div></div>
-<div class="ttc" id="aweights_8c_html_aabb19f4a5e5385962c6db57f611bb785"><div class="ttname"><a href="weights_8c.html#aabb19f4a5e5385962c6db57f611bb785">ie_pread</a></div><div class="ttdeci">static ssize_t ie_pread(int fd, void *buf, size_t count, off_t offset)</div><div class="ttdef"><b>Definition</b> <a href="weights_8c_source.html#l00293">weights.c:293</a></div></div>
+<div class="ttc" id="aweights_8c_html_aabb19f4a5e5385962c6db57f611bb785"><div class="ttname"><a href="weights_8c.html#aabb19f4a5e5385962c6db57f611bb785">ie_pread</a></div><div class="ttdeci">static ssize_t ie_pread(int fd, void *buf, size_t count, off_t offset)</div><div class="ttdef"><b>Definition</b> <a href="weights_8c_source.html#l00337">weights.c:337</a></div></div>
 </div><!-- fragment -->
-<p class="reference">References <a class="el" href="ie__io_8h_source.html#l00122">ie_weights_s::bin_size_bytes</a>, <a class="el" href="ie__io_8h_source.html#l00059">IE_IO_ERR_ARGS</a>, <a class="el" href="ie__io_8h_source.html#l00071">IE_IO_ERR_OPEN</a>, <a class="el" href="ie__io_8h_source.html#l00074">IE_IO_ERR_READ</a>, <a class="el" href="ie__io_8h_source.html#l00056">IE_IO_OK</a>, <a class="el" href="weights_8c_source.html#l00293">ie_pread()</a>, and <a class="el" href="ie__io_8h_source.html#l00117">ie_weights_s::weights_path</a>.</p>
+<p class="reference">References <a class="el" href="ie__io_8h_source.html#l00122">ie_weights_s::bin_size_bytes</a>, <a class="el" href="ie__io_8h_source.html#l00059">IE_IO_ERR_ARGS</a>, <a class="el" href="ie__io_8h_source.html#l00071">IE_IO_ERR_OPEN</a>, <a class="el" href="ie__io_8h_source.html#l00074">IE_IO_ERR_READ</a>, <a class="el" href="ie__io_8h_source.html#l00056">IE_IO_OK</a>, <a class="el" href="weights_8c_source.html#l00337">ie_pread()</a>, and <a class="el" href="ie__io_8h_source.html#l00117">ie_weights_s::weights_path</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="main__infer_8c_source.html#l00474">main()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="main__infer_8c_source.html#l00435">main()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">

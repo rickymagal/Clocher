@@ -100,17 +100,17 @@ $(function(){initNavTree('md_docs_2DESIGN.html',''); initResizable(true); });
   <div class="headertitle"><div class="title">Design (CPU baseline + INT4 path)</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md16"></a></p>
+<div class="textblock"><p><a class="anchor" id="autotoc_md9"></a></p>
 <p>This document describes the hot path, API boundaries, and precision modes. <br  />
  <b>Last updated:</b> 2025-10-24 21:00:48 UTC</p>
-<h1><a class="anchor" id="autotoc_md17"></a>
+<h1><a class="anchor" id="autotoc_md14"></a>
 Process and boundaries</h1>
 <ul>
 <li>Single binary <code>inference-engine</code>: create → generate → collect metrics → destroy.</li>
 <li>CLI prints exactly one JSON line per run so the Python harness can ingest results.</li>
 <li>No third‑party runtime dependencies; only <code>pthread</code> and <code>libm</code> (and CUDA for the GPU build).</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md18"></a>
+<h1><a class="anchor" id="autotoc_md15"></a>
 API surface (high level)</h1>
 <ul>
 <li><code>ie_engine_create(cfg)</code> → initializes state (weights, buffers, thread‑pool).</li>
@@ -118,7 +118,7 @@ API surface (high level)</h1>
 <li><code>ie_engine_metrics(out)</code> → returns latency p50/p95, true TPS, <b>RSS peak</b>, KV hits/misses.</li>
 <li><code><a class="el" href="ie__api_8h.html#a8a724f7097b3e19da8d7dd97fba4415e" title="Destroy an engine and free its resources.">ie_engine_destroy()</a></code> → frees all resources.</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md19"></a>
+<h1><a class="anchor" id="autotoc_md16"></a>
 Hot path layout</h1>
 <ul>
 <li>GEMV microkernel:<ul>
@@ -132,19 +132,19 @@ Hot path layout</h1>
 </ul>
 </li>
 </ul>
-<h1><a class="anchor" id="autotoc_md20"></a>
+<h1><a class="anchor" id="autotoc_md17"></a>
 Precision modes</h1>
-<h2><a class="anchor" id="autotoc_md21"></a>
+<h2><a class="anchor" id="autotoc_md18"></a>
 Floating point</h2>
 <ul>
 <li>FP32 baseline, optional BF16/FP16 round‑trip (accumulate FP32).</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md22"></a>
+<h2><a class="anchor" id="autotoc_md19"></a>
 INT8 PTQ (reference)</h2>
 <ul>
 <li>Per‑tensor/per‑row scales (min‑max); (de)quant helpers; task gate in scripts.</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md23"></a>
+<h2><a class="anchor" id="autotoc_md20"></a>
 <b>NEW — INT4 PTQ (weight‑only)</b></h2>
 <ul>
 <li><b>Format</b>: weights are <b>nibble‑packed</b> (2 values per byte). Each row (or group) carries a scale (and optional zero‑point if affine).</li>
@@ -153,7 +153,7 @@ INT8 PTQ (reference)</h2>
 <li><b>Manifests</b>: a <code>q4_manifest.json</code> enumerates which tensors use INT4 and their scale metadata. <code><a class="el" href="hf__to__iebin_8py.html">scripts/hf_to_iebin.py</a></code> consumes this manifest via <code>--q4-map</code> to emit <code>model.ie.bin</code>/<code>.json</code>.</li>
 <li><b>Selection</b>: at runtime choose <code>IE_PRECISION=int4w</code> (or <code>--precision int4w</code>), leaving activations in float. This is <b>bandwidth‑oriented</b> and preserves compute simplicity.</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md24"></a>
+<h1><a class="anchor" id="autotoc_md21"></a>
 Threading model</h1>
 <ul>
 <li>Fixed thread‑pool over <code>pthread</code>, contiguous sharding, grainsize control.</li>
@@ -164,13 +164,13 @@ Threading model</h1>
 </ul>
 </li>
 </ul>
-<h1><a class="anchor" id="autotoc_md25"></a>
+<h1><a class="anchor" id="autotoc_md22"></a>
 Layout and caching</h1>
 <ul>
 <li>Blocked‑K packing with optional on‑disk caching (content‑addressed by shape + block size).</li>
 <li>CLI flag <code>--pretranspose</code> controls packing scope (<code>none|woh|wxh|all</code>). INT4 can be cached per layout variant.</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md26"></a>
+<h1><a class="anchor" id="autotoc_md23"></a>
 Metrics</h1>
 <ul>
 <li>Per‑token latency ring (p50/p95).</li>
@@ -178,12 +178,102 @@ Metrics</h1>
 <li><b>Peak RSS</b> (Linux <code>/proc/self/status:VmHWM</code> → MiB; fallback <code>getrusage</code>).</li>
 <li>KV hits/misses counter stubs aggregated per round.</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md27"></a>
+<h1><a class="anchor" id="autotoc_md24"></a>
 GPU integration (CUDA path)</h1>
 <ul>
 <li>Device layer: <code><a class="el" href="ie__device__cuda_8cu.html" title="CUDA backend implementation: device availability + FP32 GEMV kernel.">engine/src/devices/ie_device_cuda.cu</a></code>, kernels in <code><a class="el" href="ie__kernels__cuda_8cu.html" title="CUDA implementations of GEMV/activation/packing kernels + C-ABI launchers.">engine/src/kernels/ie_kernels_cuda.cu</a></code>.</li>
 <li>Build: <code>make build-cuda</code> → <code>build/inference-engine.cuda</code>.</li>
-<li>INT4 weight‑only support mirrors the CPU path; packing and scales are shared in <code>model.ie.json</code>. </li>
+<li>INT4 weight‑only support mirrors the CPU path; packing and scales are shared in <code>model.ie.json</code>.</li>
+</ul>
+<hr  />
+ <h1><a class="anchor" id="autotoc_md26"></a>
+INT4 Weight-Only Path — Design Addendum (2025-10-24 21:04:23 UTC)</h1>
+<h2><a class="anchor" id="autotoc_md27"></a>
+Goals</h2>
+<ul>
+<li>Introduce an <b>optional</b> path for <em>weight-only</em> INT4 (<code>int4w</code>) that: 1) Packs HF weights into IEBIN using a <b>manifest-driven</b> policy. 2) Leaves tokenization, shapes, and scheduling untouched. 3) Preserves benchmark comparability via <em>work-touch</em> instrumentation.</li>
+</ul>
+<h2><a class="anchor" id="autotoc_md29"></a>
+Design Choices</h2>
+<ul>
+<li><b>Manifest-driven packing</b>: <code>--q4-map</code> lets us target only GEMV-heavy matrices (attn/MLP projections) and keep sensitive tensors (embeddings, layernorms) in FP formats.</li>
+<li><b>Separation of concerns</b>:<ul>
+<li>Storage precision (<code>IE_PRECISION</code>) is passed through <code><a class="el" href="structie__engine__params.html#a92b02bad12cb4e8173728311c00960b7" title="e.g.">ie_engine_params_t::precision</a></code> untouched.</li>
+<li>Host math precision (FP32/BF16/FP16) remains a separate selection.</li>
+</ul>
+</li>
+<li><b>Compat with harness</b>: The CLI accepts soft hints (<code>--device</code>, <code>--model-dir</code>, <code>--rounds</code>) so existing scripts don’t break.</li>
+</ul>
+<h2><a class="anchor" id="autotoc_md31"></a>
+Data Flow (INT4 path)</h2>
+<p>HF shards → <code><a class="el" href="hf__to__iebin_8py.html">hf_to_iebin.py</a> --q4-map</code> → IEBIN (<code>model.ie.json</code> + <code>model.ie.bin</code> with INT4-packed tensors) → Runtime <code>IE_PRECISION=int4w</code> → GEMV kernels read packed weights (or dequant on load), semantics unchanged.</p>
+<h2><a class="anchor" id="autotoc_md32"></a>
+Metrics Integrity</h2>
+<ul>
+<li>The timed window is <b>only</b>: <code>ie_engine_generate(...)</code> + optional <em>work-touch</em> loop.</li>
+<li>RSS peak and KV counters are sampled <b>after</b> the window to avoid skewing TPS.</li>
+</ul>
+<hr  />
+<h1><a class="anchor" id="autotoc_md34"></a>
+Appendix — INT4 (Weight‑Only) Step (Summary)</h1>
+<ul>
+<li>Convert HF shards → IEBIN with an INT4 manifest: <div class="fragment"><div class="line">python3 scripts/hf_to_iebin.py     --hf-dir models/gpt-oss-20b/hf     --out-dir models/gpt-oss-20b     --q4-map quant/q4_manifest.json</div>
+</div><!-- fragment --></li>
+<li>Run benchmarks in strict mode with a <b>64 MB/token</b> work‑touch: <div class="fragment"><div class="line">PROMPTS=benchmarks/prompts_10..txt   IE_PRECISION=int4w IE_REQUIRE_MODEL=1   IE_BYTES_PER_TOKEN=64000000 IE_STRIDE_BYTES=256 RUNS=3   make bench           # or: make bench-cuda</div>
+</div><!-- fragment --></li>
+<li>Precision hints: <code>PRECISION=fp32</code> (activates float path) and <code>IE_PRECISION=int4w</code> (weight‑only path).</li>
+</ul>
+<hr  />
+ <h1><a class="anchor" id="autotoc_md36"></a>
+Updates — 2025-11-10</h1>
+<h2><a class="anchor" id="autotoc_md37"></a>
+NUMA‑aware topology (<code>ie_topology</code>)</h2>
+<ul>
+<li>Discovers sockets and CPUs from Linux sysfs and exposes a compact API:<ul>
+<li><code>ie_topology_init/destroy</code> — lifetime.</li>
+<li><code><a class="el" href="ie__topology_8h.html#ae9fec2d245fb73d6c3e8e3cba38d4471" title="Return the number of sockets (physical packages).">ie_topology_sockets()</a></code> — number of sockets.</li>
+<li><code>ie_topology_first_cpu_on_socket(s)</code> — first CPU index on socket <code>s</code> (for pinning).</li>
+</ul>
+</li>
+<li>Integration:<ul>
+<li>Thread‑pool honors <code>IE_TP_USE_AFFINITY=1</code> with <code>AFFINITY=auto|compact|scatter</code>.</li>
+<li><code>ie_hot_replicate_by_socket(...)</code> uses topology for binding.</li>
+</ul>
+</li>
+</ul>
+<h2><a class="anchor" id="autotoc_md38"></a>
+Hot weights replication</h2>
+<ul>
+<li>For “hot” tensors (frequently touched), we can replicate pages <b>per socket</b> to reduce remote memory hits.</li>
+<li>Implementation sketch:<ul>
+<li><code>mmap</code> replica per socket → optional <code>madvise(..., MADV_WILLNEED)</code> → worker binding → socket‑local access.</li>
+<li>Controlled by <code>IE_HOT_REPLICATE=1</code> and an optional cap <code>IE_HOT_REPL_LIMIT_MB</code>.</li>
+</ul>
+</li>
+<li>Trade‑offs: additional memory; on single‑socket machines, the feature is a no‑op with negligible overhead.</li>
+</ul>
+<h2><a class="anchor" id="autotoc_md39"></a>
+Activation precision hint</h2>
+<ul>
+<li>Runtime hint <code>IE_ACT_PREC=int8|fp8|fp16|bf16|fp32</code> allows experimenting with lower‑precision activations while <b>keeping FP32 accumulators</b>.</li>
+<li>Weight precision remains independent (e.g., <code>IE_PRECISION=int4w</code> for nibble‑packed weights).</li>
+</ul>
+<h2><a class="anchor" id="autotoc_md40"></a>
+Timing discipline (unchanged semantics)</h2>
+<ul>
+<li>The benchmark <b>measured window</b> contains only <code>ie_engine_generate(...)</code> + optional work‑touch loop.</li>
+<li>All metrics collection (RSS, KV, JSON print) happens <b>after</b> the window.</li>
+</ul>
+<h2><a class="anchor" id="autotoc_md41"></a>
+Example configurations</h2>
+<ul>
+<li>INT4 weights, FP8 activations, NUMA‑aware with hot replication (CPU): <div class="fragment"><div class="line">export IE_REQUIRE_MODEL=1 IE_PRECISION=int4w IE_ACT_PREC=fp8</div>
+<div class="line">export IE_BYTES_PER_TOKEN=$((64*1024*1024)) IE_STRIDE_BYTES=256 IE_VERIFY_TOUCH=1</div>
+<div class="line">export IE_TP_USE_AFFINITY=1 AFFINITY=compact IE_HOT_REPLICATE=1</div>
+<div class="line">PROMPTS=benchmarks/prompts_10..txt RUNS=3 make bench</div>
+</div><!-- fragment --></li>
+<li>Same with CUDA: <div class="fragment"><div class="line">PROMPTS=benchmarks/prompts_10..txt RUNS=3 make bench-cuda</div>
+</div><!-- fragment --> </li>
 </ul>
 </div></div><!-- contents -->
 </div><!-- PageDoc -->

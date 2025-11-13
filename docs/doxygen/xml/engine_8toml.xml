@@ -16,10 +16,21 @@
 <codeline><highlight class="normal">affinity<sp/>=<sp/>&quot;auto&quot;<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>auto<sp/>|<sp/>compact<sp/>|<sp/>scatter<sp/>|<sp/>list:0,2,4</highlight></codeline>
 <codeline><highlight class="normal">precision<sp/>=<sp/>&quot;fp32&quot;<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>fp32<sp/>|<sp/>bf16<sp/>|<sp/>fp16<sp/>|<sp/>int8w<sp/>|<sp/>int4w<sp/><sp/>(soft<sp/>hint)</highlight></codeline>
 <codeline><highlight class="normal">vector_width<sp/>=<sp/>&quot;auto&quot;<sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>auto<sp/>|<sp/>256<sp/>|<sp/>512</highlight></codeline>
+<codeline><highlight class="normal">pretranspose<sp/>=<sp/>&quot;all&quot;<sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>none<sp/>|<sp/>woh<sp/>|<sp/>wxh<sp/>|<sp/>all</highlight></codeline>
+<codeline><highlight class="normal">prefetch<sp/>=<sp/>&quot;auto&quot;<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>on<sp/>|<sp/>off<sp/>|<sp/>auto<sp/>|<sp/>N<sp/>(legacy<sp/>soft<sp/>hint<sp/>passed<sp/>to<sp/>the<sp/>engine)</highlight></codeline>
+<codeline><highlight class="normal">device<sp/>=<sp/>&quot;auto&quot;<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>auto<sp/>|<sp/>cpu<sp/>|<sp/>cuda<sp/>|<sp/>ze</highlight></codeline>
+<codeline><highlight class="normal">warmup_tokens<sp/>=<sp/>1<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>warmup<sp/>tokens<sp/>(outside<sp/>timed<sp/>window)</highlight></codeline>
+<codeline><highlight class="normal">rounds<sp/>=<sp/>1<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>repeat<sp/>the<sp/>measured<sp/>window<sp/>N<sp/>times<sp/>(&gt;=1)</highlight></codeline>
 <codeline></codeline>
+<codeline><highlight class="normal">#<sp/>----------------------------------------------------------------------------</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Tokenizer</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>----------------------------------------------------------------------------</highlight></codeline>
 <codeline><highlight class="normal">[tokenizer]</highlight></codeline>
 <codeline><highlight class="normal">vocab_path<sp/>=<sp/>&quot;models/gpt-oss-20b/vocab.json&quot;</highlight></codeline>
 <codeline></codeline>
+<codeline><highlight class="normal">#<sp/>----------------------------------------------------------------------------</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Model<sp/>locations</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>----------------------------------------------------------------------------</highlight></codeline>
 <codeline><highlight class="normal">[model]</highlight></codeline>
 <codeline><highlight class="normal">#<sp/>IEBIN<sp/>v1<sp/>artifact<sp/>locations</highlight></codeline>
 <codeline><highlight class="normal">weights_path<sp/><sp/><sp/><sp/><sp/>=<sp/>&quot;models/gpt-oss-20b/model.ie.bin&quot;</highlight></codeline>
@@ -30,6 +41,67 @@
 <codeline><highlight class="normal">#<sp/><sp/><sp/>(e.g.,<sp/>dtype=&quot;int4&quot;<sp/>and<sp/>a<sp/>quant<sp/>block<sp/>with<sp/>scale_bin/pack<sp/>info).<sp/>The<sp/>CLI&apos;s</highlight></codeline>
 <codeline><highlight class="normal">#<sp/><sp/><sp/>precision<sp/>string<sp/>is<sp/>a<sp/>soft<sp/>hint<sp/>and<sp/>may<sp/>be<sp/>ignored<sp/>by<sp/>the<sp/>backend.</highlight></codeline>
 <codeline><highlight class="normal">#<sp/>-<sp/>Paths<sp/>may<sp/>be<sp/>absolute<sp/>or<sp/>relative<sp/>to<sp/>the<sp/>process<sp/>working<sp/>directory.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>----------------------------------------------------------------------------</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Synthetic<sp/>per-token<sp/>work-touch<sp/>(memory<sp/>pressure<sp/>emulator)</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>----------------------------------------------------------------------------</highlight></codeline>
+<codeline><highlight class="normal">[work_touch]</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Optional<sp/>per-token<sp/>&quot;work<sp/>touch&quot;<sp/>to<sp/>emulate<sp/>realistic<sp/>memory<sp/>pressure.</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>If<sp/>bytes_per_token<sp/>==<sp/>0<sp/>the<sp/>touch<sp/>loop<sp/>is<sp/>disabled.</highlight></codeline>
+<codeline><highlight class="normal">bytes_per_token<sp/>=<sp/>67108864<sp/><sp/><sp/>#<sp/>64<sp/>MiB<sp/>per<sp/>token<sp/>(0<sp/>disables)</highlight></codeline>
+<codeline><highlight class="normal">stride_bytes<sp/><sp/><sp/><sp/>=<sp/>256<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>stride<sp/>in<sp/>bytes<sp/>while<sp/>touching</highlight></codeline>
+<codeline><highlight class="normal">verify_touch<sp/><sp/><sp/><sp/>=<sp/>1<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>when<sp/>non-zero,<sp/>forces<sp/>a<sp/>side-effect<sp/>barrier</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>----------------------------------------------------------------------------</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Mmap<sp/>advice<sp/>for<sp/>the<sp/>model.bin<sp/>(best-effort)</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>----------------------------------------------------------------------------</highlight></codeline>
+<codeline><highlight class="normal">[mmap]</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Loader<sp/>advice<sp/>for<sp/>the<sp/>mapped<sp/>model.bin<sp/>(best-effort<sp/>hints)</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>none<sp/>|<sp/>willneed<sp/>|<sp/>random<sp/>|<sp/>sequential</highlight></codeline>
+<codeline><highlight class="normal">advise<sp/><sp/><sp/><sp/>=<sp/>&quot;willneed&quot;</highlight></codeline>
+<codeline><highlight class="normal">populate<sp/><sp/>=<sp/>true<sp/><sp/><sp/><sp/><sp/>#<sp/>if<sp/>supported,<sp/>request<sp/>MAP_POPULATE<sp/>and<sp/>WILLNEED<sp/>hints</highlight></codeline>
+<codeline><highlight class="normal">readahead<sp/>=<sp/>true<sp/><sp/><sp/><sp/><sp/>#<sp/>if<sp/>supported,<sp/>issue<sp/>a<sp/>best-effort<sp/>readahead(fd,<sp/>0,<sp/>size)</highlight></codeline>
+<codeline><highlight class="normal">hugepage<sp/><sp/>=<sp/>false<sp/><sp/><sp/><sp/>#<sp/>if<sp/>supported,<sp/>request<sp/>MADV_HUGEPAGE<sp/>after<sp/>mmap()</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>----------------------------------------------------------------------------</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Streaming<sp/>/<sp/>prefetch<sp/>/<sp/>non-temporal<sp/>policy<sp/>(new)</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>----------------------------------------------------------------------------</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>These<sp/>knobs<sp/>are<sp/>read<sp/>by<sp/>the<sp/>stream/prefetch<sp/>layer<sp/>and<sp/>may<sp/>be<sp/>ignored<sp/>by</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>backends<sp/>that<sp/>do<sp/>not<sp/>implement<sp/>them.<sp/>They<sp/>are<sp/>additive<sp/>to<sp/>the<sp/>legacy<sp/>&apos;prefetch&apos;</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>root<sp/>string<sp/>(kept<sp/>for<sp/>compatibility<sp/>with<sp/>existing<sp/>harnesses).</highlight></codeline>
+<codeline><highlight class="normal">[stream]</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Overall<sp/>controller:</highlight></codeline>
+<codeline><highlight class="normal">mode<sp/>=<sp/>&quot;auto&quot;<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>on<sp/>|<sp/>off<sp/>|<sp/>auto</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Distance<sp/>controls<sp/>how<sp/>far<sp/>ahead<sp/>to<sp/>prefetch.<sp/>It<sp/>can<sp/>be:</highlight></codeline>
+<codeline><highlight class="normal">#<sp/><sp/><sp/>-<sp/>integer<sp/>K-tiles<sp/>ahead<sp/>(when<sp/>block_bytes<sp/>&gt;<sp/>0)</highlight></codeline>
+<codeline><highlight class="normal">#<sp/><sp/><sp/>-<sp/>&quot;auto&quot;<sp/>for<sp/>heuristic<sp/>selection<sp/>per<sp/>tensor</highlight></codeline>
+<codeline><highlight class="normal">distance<sp/>=<sp/>&quot;auto&quot;<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>&quot;auto&quot;<sp/>|<sp/>&lt;int&gt;</highlight></codeline>
+<codeline><highlight class="normal">block_bytes<sp/>=<sp/>4096<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>size<sp/>of<sp/>the<sp/>streaming<sp/>block<sp/>used<sp/>by<sp/>distance<sp/>steps</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Non-temporal<sp/>loads<sp/>policy:</highlight></codeline>
+<codeline><highlight class="normal">nt_loads<sp/>=<sp/>&quot;auto&quot;<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>on<sp/>|<sp/>off<sp/>|<sp/>auto</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>If<sp/>the<sp/>estimated<sp/>working<sp/>set<sp/>of<sp/>the<sp/>current<sp/>phase<sp/>exceeds<sp/>L3<sp/>by<sp/>this<sp/>ratio</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>(and<sp/>near-term<sp/>reuse<sp/>is<sp/>not<sp/>detected),<sp/>enable<sp/>non-temporal<sp/>loads.</highlight></codeline>
+<codeline><highlight class="normal">l3_bytes<sp/>=<sp/>0<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>0<sp/>=<sp/>auto-detect;<sp/>else<sp/>explicit<sp/>L3<sp/>size<sp/>in<sp/>bytes</highlight></codeline>
+<codeline><highlight class="normal">nt_threshold_ratio<sp/>=<sp/>1.10<sp/><sp/><sp/><sp/>#<sp/>enable<sp/>NT<sp/>if<sp/>working_set_bytes<sp/>&gt;=<sp/>ratio<sp/>*<sp/>L3</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Guard<sp/>to<sp/>avoid<sp/>NT<sp/>when<sp/>reuse<sp/>is<sp/>imminent:</highlight></codeline>
+<codeline><highlight class="normal">reuse_guard_windows<sp/>=<sp/>1<sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>if<sp/>reuse<sp/>detected<sp/>within<sp/>N<sp/>next<sp/>K-windows,<sp/>suppress<sp/>NT</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Optional<sp/>per-tensor<sp/>overrides<sp/>by<sp/>name.<sp/>Each<sp/>entry<sp/>may<sp/>set<sp/>{distance=&lt;int&gt;,<sp/>nt=&lt;bool&gt;}.</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Example:</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>[stream.tensors.&quot;decoder.block0.attn.Wq&quot;]</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>distance<sp/>=<sp/>2</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>nt<sp/>=<sp/>true</highlight></codeline>
+<codeline><highlight class="normal">[stream.tensors]</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>----------------------------------------------------------------------------</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Hot<sp/>weights<sp/>replication<sp/>(NUMA/socket-aware)</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>----------------------------------------------------------------------------</highlight></codeline>
+<codeline><highlight class="normal">[hot_weights]</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Per-socket<sp/>replication<sp/>of<sp/>the<sp/>&quot;hottest&quot;<sp/>blobs<sp/>(used<sp/>by<sp/>replicate_hot.c)</highlight></codeline>
+<codeline><highlight class="normal">enable<sp/><sp/><sp/>=<sp/>false<sp/><sp/><sp/>#<sp/>set<sp/>true<sp/>to<sp/>allocate<sp/>per-socket<sp/>replicas</highlight></codeline>
+<codeline><highlight class="normal">readonly<sp/>=<sp/>true<sp/><sp/><sp/><sp/>#<sp/>mprotect<sp/>replicas<sp/>as<sp/>read-only<sp/>after<sp/>copy</highlight></codeline>
+<codeline><highlight class="normal">willneed<sp/>=<sp/>true<sp/><sp/><sp/><sp/>#<sp/>madvise(MADV_WILLNEED)<sp/>after<sp/>first-touch</highlight></codeline>
+<codeline><highlight class="normal">hugepage<sp/>=<sp/>false<sp/><sp/><sp/>#<sp/>madvise(MADV_HUGEPAGE)<sp/>request<sp/>(best-effort)</highlight></codeline>
     </programlisting>
     <location file="configs/engine.toml"/>
   </compounddef>

@@ -132,6 +132,279 @@
 <codeline><highlight class="normal">-<sp/>Detailed<sp/>design<sp/>and<sp/>optimization<sp/>path:<sp/>`docs/DESIGN.md`,<sp/>`docs/adr-00060-optimization-path.md`</highlight></codeline>
 <codeline><highlight class="normal">-<sp/>Decision<sp/>log:<sp/>`docs/DECISIONS.md`</highlight></codeline>
 <codeline></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">---</highlight></codeline>
+<codeline><highlight class="normal">##<sp/>INT4<sp/>Weight-Only<sp/>—<sp/>Addendum<sp/>(2025-10-24<sp/>21:04:23<sp/>UTC)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">This<sp/>addendum<sp/>**adds**<sp/>a<sp/>new<sp/>optional<sp/>path<sp/>to<sp/>the<sp/>existing<sp/>pipeline<sp/>for<sp/>**INT4<sp/>(weight-only)**<sp/>packing<sp/>and<sp/>benchmarking.<sp/>It<sp/>does<sp/>**not**<sp/>replace<sp/>the<sp/>FP32/BF16/FP16<sp/>flows.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Summary</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Quantization:<sp/>post-training<sp/>*weight-only*<sp/>INT4<sp/>(aka<sp/>`int4w`)<sp/>via<sp/>a<sp/>manifest.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Export:<sp/>`scripts/hf_to_iebin.py`<sp/>supports<sp/>`--q4-map`<sp/>to<sp/>pack<sp/>tensors<sp/>into<sp/>`model.ie.bin`<sp/>while<sp/>preserving<sp/>`model.ie.json`<sp/>meta.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Runtime:<sp/>select<sp/>precision<sp/>with<sp/>`IE_PRECISION=int4w`<sp/>(or<sp/>`--precision<sp/>int4w`),<sp/>independent<sp/>from<sp/>host<sp/>math<sp/>precision.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Benchmarks:<sp/>`make<sp/>bench`<sp/>/<sp/>`make<sp/>bench-cuda`<sp/>support<sp/>strict<sp/>runs<sp/>with<sp/>realistic<sp/>memory<sp/>pressure<sp/>via<sp/>`IE_BYTES_PER_TOKEN`.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Prerequisites</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>A<sp/>working<sp/>HF<sp/>model<sp/>directory<sp/>(already<sp/>used<sp/>in<sp/>your<sp/>FP32<sp/>flow),<sp/>e.g.<sp/>`models/gpt-oss-20b/hf`.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>A<sp/>quantization<sp/>manifest<sp/>(example<sp/>at<sp/>`quant/q4_manifest.json`).<sp/>See<sp/>**Manifest<sp/>template**<sp/>below.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Python<sp/>deps<sp/>already<sp/>used<sp/>by<sp/>`scripts/hf_to_iebin.py`<sp/>(torch,<sp/>numpy).</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Export<sp/>to<sp/>IEBIN<sp/>with<sp/>INT4</highlight></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">python3<sp/>scripts/hf_to_iebin.py<sp/><sp/><sp/>--hf-dir<sp/>models/gpt-oss-20b/hf<sp/><sp/><sp/>--out-dir<sp/>models/gpt-oss-20b<sp/><sp/><sp/>--q4-map<sp/>quant/q4_manifest.json</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline><highlight class="normal">This<sp/>produces<sp/>(or<sp/>updates)<sp/>`models/gpt-oss-20b/model.ie.json`<sp/>and<sp/>`models/gpt-oss-20b/model.ie.bin`<sp/>with<sp/>weight-only<sp/>INT4<sp/>packing<sp/>per<sp/>manifest.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">&gt;<sp/>Tip:<sp/>if<sp/>you<sp/>see<sp/>`ERROR:<sp/>--q4-map<sp/>not<sp/>found`,<sp/>double‑check<sp/>the<sp/>path<sp/>to<sp/>your<sp/>manifest.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Run<sp/>the<sp/>strict<sp/>benchmark<sp/>(CPU)</highlight></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">PROMPTS=benchmarks/prompts_10..txt<sp/>IE_PRECISION=int4w<sp/>IE_REQUIRE_MODEL=1<sp/>IE_BYTES_PER_TOKEN=64000000<sp/>IE_STRIDE_BYTES=256<sp/>RUNS=3<sp/>make<sp/>bench</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`IE_REQUIRE_MODEL=1`<sp/>makes<sp/>the<sp/>CLI<sp/>fail<sp/>if<sp/>`model.ie.{json,bin}`<sp/>are<sp/>missing.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`IE_BYTES_PER_TOKEN`<sp/>enables<sp/>the<sp/>per-token<sp/>*work-touch*<sp/>loop<sp/>over<sp/>`model.ie.bin`<sp/>to<sp/>mimic<sp/>bandwidth<sp/>pressure.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`IE_STRIDE_BYTES`<sp/>controls<sp/>the<sp/>touch<sp/>stride<sp/>(256<sp/>is<sp/>a<sp/>good<sp/>default).</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Run<sp/>the<sp/>strict<sp/>benchmark<sp/>(CUDA)</highlight></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">PROMPTS=benchmarks/prompts_10..txt<sp/>IE_PRECISION=int4w<sp/>IE_REQUIRE_MODEL=1<sp/>IE_BYTES_PER_TOKEN=64000000<sp/>IE_STRIDE_BYTES=256<sp/>RUNS=3<sp/>make<sp/>bench-cuda</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Manifest<sp/>template<sp/>(example)</highlight></codeline>
+<codeline><highlight class="normal">Save<sp/>as<sp/>`quant/q4_manifest.json`:</highlight></codeline>
+<codeline><highlight class="normal">```json</highlight></codeline>
+<codeline><highlight class="normal">{</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>&quot;version&quot;:<sp/>1,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>&quot;rules&quot;:<sp/>[</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>{</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>&quot;pattern&quot;:<sp/>&quot;.*attn.*(q_proj|k_proj|v_proj|o_proj).*&quot;,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>&quot;dtype&quot;:<sp/><sp/><sp/>&quot;int4w&quot;,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>&quot;group&quot;:<sp/><sp/><sp/><sp/>64,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>&quot;zero&quot;:<sp/><sp/><sp/><sp/><sp/>&quot;per-tensor&quot;,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>&quot;scale&quot;:<sp/><sp/><sp/><sp/>&quot;per-channel&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>},</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>{</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>&quot;pattern&quot;:<sp/>&quot;.*mlp.*(gate_proj|up_proj|down_proj).*&quot;,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>&quot;dtype&quot;:<sp/><sp/><sp/>&quot;int4w&quot;,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>&quot;group&quot;:<sp/><sp/><sp/><sp/>64,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>&quot;zero&quot;:<sp/><sp/><sp/><sp/><sp/>&quot;per-tensor&quot;,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>&quot;scale&quot;:<sp/><sp/><sp/><sp/>&quot;per-channel&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>]</highlight></codeline>
+<codeline><highlight class="normal">}</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Troubleshooting</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Unknown<sp/>flag<sp/>errors**:<sp/>The<sp/>CLI<sp/>now<sp/>accepts<sp/>`--device`,<sp/>`--model-dir`,<sp/>`--model-json`,<sp/>`--model-bin`,<sp/>and<sp/>`--rounds`<sp/>as<sp/>documented.<sp/>If<sp/>your<sp/>harness<sp/>still<sp/>injects<sp/>older<sp/>flags,<sp/>update<sp/>it,<sp/>or<sp/>run<sp/>the<sp/>engine<sp/>directly.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**RSS<sp/>peak<sp/>shows<sp/>0<sp/>MB**:<sp/>Ensure<sp/>you<sp/>are<sp/>on<sp/>Linux<sp/>and<sp/>that<sp/>the<sp/>engine<sp/>is<sp/>built<sp/>with<sp/>the<sp/>updated<sp/>`ie_metrics_sample_rss_peak()`<sp/>(reads<sp/>`/proc/self/status`<sp/>→<sp/>`VmHWM`,<sp/>then<sp/>falls<sp/>back<sp/>to<sp/>`getrusage`).<sp/>The<sp/>JSON<sp/>is<sp/>captured<sp/>*after*<sp/>the<sp/>measured<sp/>window;<sp/>the<sp/>value<sp/>will<sp/>be<sp/>`0`<sp/>only<sp/>if<sp/>the<sp/>OS<sp/>reports<sp/>`0`<sp/>or<sp/>if<sp/>the<sp/>sampling<sp/>failed.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Notes</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>The<sp/>**precision<sp/>label**<sp/>(`IE_PRECISION`)<sp/>is<sp/>a<sp/>*storage<sp/>/<sp/>weight*<sp/>hint,<sp/>not<sp/>necessarily<sp/>the<sp/>CPU<sp/>math<sp/>precision.<sp/>You<sp/>can<sp/>still<sp/>set<sp/>`PRECISION=fp32`<sp/>for<sp/>host<sp/>compute<sp/>while<sp/>using<sp/>`IE_PRECISION=int4w`<sp/>for<sp/>storage.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Deterministic<sp/>stub<sp/>mode<sp/>remains<sp/>available<sp/>when<sp/>`IE_REQUIRE_MODEL`<sp/>is<sp/>not<sp/>set;<sp/>strict<sp/>runs<sp/>require<sp/>a<sp/>valid<sp/>IEBIN<sp/>pair.</highlight></codeline>
+<codeline></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Repository<sp/>Layout</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```text</highlight></codeline>
+<codeline><highlight class="normal">.</highlight></codeline>
+<codeline><highlight class="normal">├──<sp/>benchmarks</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>├──<sp/>harness.py</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>├──<sp/>prompts_10..txt</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>├──<sp/>prompts.jsonl</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>├──<sp/>ptq_calib.py</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>├──<sp/>reports/</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>└──<sp/>src/</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/><sp/><sp/><sp/><sp/>└──<sp/>microbench_gemv.c</highlight></codeline>
+<codeline><highlight class="normal">├──<sp/>configs</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>├──<sp/>bench.toml</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>└──<sp/>engine.toml</highlight></codeline>
+<codeline><highlight class="normal">├──<sp/>docs</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>├──<sp/>Doxyfile</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>├──<sp/>DECISIONS.md</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>├──<sp/>DESIGN.md</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>├──<sp/>adr-00060-optimization-path.md</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>└──<sp/>doxygen/html/…</highlight></codeline>
+<codeline><highlight class="normal">├──<sp/>engine</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>├──<sp/>include/<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>public<sp/>headers</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>└──<sp/>src/<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>C/CUDA<sp/>sources</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/><sp/><sp/><sp/><sp/>├──<sp/>devices/</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/><sp/><sp/><sp/><sp/>├──<sp/>io/</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/><sp/><sp/><sp/><sp/>├──<sp/>kernels/</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/><sp/><sp/><sp/><sp/>├──<sp/>math/</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/><sp/><sp/><sp/><sp/>├──<sp/>opt/</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/><sp/><sp/><sp/><sp/>├──<sp/>quant/</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/><sp/><sp/><sp/><sp/>└──<sp/>main_infer.c</highlight></codeline>
+<codeline><highlight class="normal">├──<sp/>grafana</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>└──<sp/>dashboards/clocher.json</highlight></codeline>
+<codeline><highlight class="normal">├──<sp/>models</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>└──<sp/>gpt-oss-20b</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/><sp/><sp/><sp/><sp/>├──<sp/>hf/<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>original<sp/>HF<sp/>shards</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/><sp/><sp/><sp/><sp/>├──<sp/>model.ie.json</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/><sp/><sp/><sp/><sp/>└──<sp/>model.ie.bin</highlight></codeline>
+<codeline><highlight class="normal">├──<sp/>monitoring</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>├──<sp/>docker-compose.yml</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>└──<sp/>prometheus.yml</highlight></codeline>
+<codeline><highlight class="normal">├──<sp/>quant</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>└──<sp/>q4_manifest.json</highlight></codeline>
+<codeline><highlight class="normal">├──<sp/>scripts</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>├──<sp/>hf_to_iebin.py</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>├──<sp/>ptq_from_hf.py</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>├──<sp/>ptq_from_source.py</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>├──<sp/>ptq_from_bin.py</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>├──<sp/>true_tps_strict.sh</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>├──<sp/>run_benchmark.sh</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>└──<sp/>make_baseline_md.py</highlight></codeline>
+<codeline><highlight class="normal">├──<sp/>tests</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>├──<sp/>c/</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>└──<sp/>python/</highlight></codeline>
+<codeline><highlight class="normal">├──<sp/>Makefile</highlight></codeline>
+<codeline><highlight class="normal">└──<sp/>README.md</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Makefile<sp/>—<sp/>Complete<sp/>Reference</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">This<sp/>project<sp/>uses<sp/>a<sp/>single<sp/>`Makefile`<sp/>to<sp/>build<sp/>CPU/CUDA<sp/>binaries<sp/>and<sp/>run<sp/>reproducible<sp/>benchmarks.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Common<sp/>Targets</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`make<sp/>build`<sp/>—<sp/>build<sp/>**CPU**<sp/>binary<sp/>at<sp/>`build/inference-engine`.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`make<sp/>build-cuda`<sp/>—<sp/>build<sp/>**CUDA**<sp/>binary<sp/>at<sp/>`build/inference-engine.cuda`<sp/>(needs<sp/>NVCC<sp/>+<sp/>CUDA<sp/>toolkit).</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`make<sp/>clean`<sp/>—<sp/>remove<sp/>build<sp/>artifacts<sp/>and<sp/>reports.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`make<sp/>bench`<sp/>—<sp/>run<sp/>CPU<sp/>benchmark<sp/>harness<sp/>(updates<sp/>`docs/PERFORMANCE.md`).</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`make<sp/>bench-cuda`<sp/>—<sp/>run<sp/>CUDA<sp/>benchmark<sp/>harness<sp/>(updates<sp/>`docs/PERFORMANCE.md`).</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">&gt;<sp/>Tip:<sp/>these<sp/>benchmarks<sp/>call<sp/>the<sp/>*same*<sp/>CLI<sp/>under<sp/>the<sp/>hood<sp/>(`build/inference-engine*`).</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Environment<sp/>Variables<sp/>(consumed<sp/>by<sp/>`make<sp/>bench*`<sp/>and/or<sp/>the<sp/>CLI)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`PROMPTS`<sp/>:<sp/>path<sp/>to<sp/>a<sp/>prompts<sp/>file<sp/>(one<sp/>prompt<sp/>per<sp/>line).<sp/>Example:<sp/>`benchmarks/prompts_10..txt`.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`RUNS`<sp/>:<sp/>number<sp/>of<sp/>harness<sp/>repetitions<sp/>(default:<sp/>3).</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`IE_REQUIRE_MODEL`<sp/>:<sp/>`1`<sp/>to<sp/>enforce<sp/>strict<sp/>IEBIN<sp/>loading<sp/>(`model.ie.json`<sp/>+<sp/>`model.ie.bin`)<sp/>or<sp/>`0`<sp/>to<sp/>allow<sp/>stub<sp/>mode.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`IE_BYTES_PER_TOKEN`<sp/>:<sp/>**bytes<sp/>touched<sp/>per<sp/>generated<sp/>token**<sp/>during<sp/>the<sp/>work‑touch<sp/>loop<sp/>(simulates<sp/>model<sp/>working‑set).</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`IE_STRIDE_BYTES`<sp/>:<sp/>stride<sp/>for<sp/>the<sp/>work‑touch<sp/>pointer<sp/>(default<sp/>`256`).</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`IE_VERIFY_TOUCH`<sp/>:<sp/>`1`<sp/>to<sp/>prevent<sp/>the<sp/>compiler<sp/>from<sp/>optimizing<sp/>the<sp/>touch<sp/>accumulator<sp/>away.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`PRECISION`<sp/>:<sp/>float<sp/>precision<sp/>hint<sp/>to<sp/>the<sp/>CLI<sp/>(`fp32|bf16|fp16`).<sp/>(Alias<sp/>of<sp/>`IE_PRECISION`<sp/>when<sp/>using<sp/>float<sp/>modes.)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`IE_PRECISION`<sp/>:<sp/>raw<sp/>precision<sp/>label<sp/>passed<sp/>to<sp/>the<sp/>engine<sp/>(`fp32|bf16|fp16|int8w|int4|int4w`).</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`THREADS`<sp/>:<sp/>CPU<sp/>threads<sp/>hint<sp/>(e.g.,<sp/>`12`).</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`BATCH`<sp/>:<sp/>batch<sp/>size<sp/>hint<sp/>(default<sp/>`1`).</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">The<sp/>CLI<sp/>also<sp/>accepts<sp/>explicit<sp/>flags<sp/>that<sp/>benchmarks<sp/>may<sp/>forward:</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`--device<sp/>auto|cpu|cuda|ze`<sp/>(hint<sp/>only;<sp/>selection<sp/>occurs<sp/>at<sp/>build/link)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`--model-dir<sp/>PATH`<sp/>(chdir<sp/>before<sp/>loading<sp/>IEBIN)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`--model-json<sp/>PATH`,<sp/>`--model-bin<sp/>PATH`<sp/>(explicit<sp/>file<sp/>paths)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`--pretranspose<sp/>none|woh|wxh|all`</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`--prefetch<sp/>on|off|auto|N`</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`--warmup<sp/>N`</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`--rounds<sp/>N`</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`--prompts-file<sp/>PATH`</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`--aggregate`</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>End‑to‑End<sp/>Examples</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**CPU,<sp/>strict<sp/>mode,<sp/>64<sp/>MB<sp/>per<sp/>token,<sp/>int4w<sp/>weights:**</highlight></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">PROMPTS=benchmarks/prompts_10..txt<sp/>IE_PRECISION=int4w<sp/>IE_REQUIRE_MODEL=1<sp/>IE_BYTES_PER_TOKEN=64000000<sp/>IE_STRIDE_BYTES=256<sp/>RUNS=3<sp/>make<sp/>bench</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**CUDA,<sp/>same<sp/>settings:**</highlight></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">PROMPTS=benchmarks/prompts_10..txt<sp/>IE_PRECISION=int4w<sp/>IE_REQUIRE_MODEL=1<sp/>IE_BYTES_PER_TOKEN=64000000<sp/>IE_STRIDE_BYTES=256<sp/>RUNS=3<sp/>make<sp/>bench-cuda</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Direct<sp/>CLI<sp/>(bypass<sp/>Makefile),<sp/>model<sp/>in<sp/>`models/gpt-oss-20b`:**</highlight></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">./build/inference-engine<sp/><sp/><sp/>--model-dir<sp/>models/gpt-oss-20b<sp/><sp/><sp/>--precision<sp/>fp32<sp/><sp/><sp/>--pretranspose<sp/>all<sp/><sp/><sp/>--prompts-file<sp/>benchmarks/prompts_10..txt<sp/><sp/><sp/>--max-new<sp/>128<sp/>--threads<sp/>12<sp/>--rounds<sp/>1</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Return<sp/>Codes</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`0`<sp/>success,<sp/>JSON<sp/>line<sp/>printed.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`2`<sp/>bad<sp/>CLI<sp/>usage<sp/>/<sp/>invalid<sp/>integer.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`3`<sp/>strict<sp/>IEBIN<sp/>required<sp/>but<sp/>missing/unreadable.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`5`<sp/>engine<sp/>creation<sp/>failed.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`6`<sp/>OOM<sp/>allocating<sp/>token<sp/>buffer.</highlight></codeline>
+<codeline></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>RSS<sp/>Reporting</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>RSS<sp/>Reporting</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>We<sp/>sample<sp/>**peak<sp/>resident<sp/>set<sp/>size<sp/>(RSS)**<sp/>after<sp/>the<sp/>measured<sp/>window<sp/>to<sp/>avoid<sp/>skewing<sp/>TPS.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>On<sp/>Linux<sp/>we<sp/>prefer<sp/>`/proc/self/status`<sp/>→<sp/>`VmHWM`<sp/>(kB).<sp/>Fallback<sp/>is<sp/>`getrusage(RUSAGE_SELF).ru_maxrss`.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>On<sp/>macOS<sp/>we<sp/>use<sp/>`getrusage`<sp/>where<sp/>`ru_maxrss`<sp/>is<sp/>in<sp/>**bytes**.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>If<sp/>neither<sp/>is<sp/>available,<sp/>the<sp/>sampler<sp/>returns<sp/>**0<sp/>MB**.</highlight></codeline>
+<codeline></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Update<sp/>Journal</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">This<sp/>running<sp/>log<sp/>summarizes<sp/>meaningful<sp/>doc/CLI<sp/>changes<sp/>for<sp/>reproducibility.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>**2025-10-24<sp/>21:08:40<sp/>UTC**<sp/>—<sp/>INT4<sp/>step<sp/>added<sp/>to<sp/>docs;<sp/>CLI<sp/>grew<sp/>`--device`,<sp/>`--model-dir`,<sp/>`--rounds`;<sp/>strict<sp/>RSS<sp/>peak<sp/>sampler<sp/>now<sp/>reads<sp/>`/proc/self/status`<sp/>`VmHWM`<sp/>(Linux)<sp/>with<sp/>`getrusage`<sp/>fallback;<sp/>`bench`/`bench-cuda`<sp/>examples<sp/>updated<sp/>for<sp/>**64<sp/>MB/token**<sp/>work‑touch.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">---</highlight></codeline>
+<codeline><highlight class="normal">##<sp/>What’s<sp/>new<sp/>—<sp/>2025-11-10</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Step<sp/>1<sp/>—<sp/>NUMA‑aware<sp/>topology<sp/>&amp;<sp/>thread<sp/>binding</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Added<sp/>`engine/include/ie_topology.h`<sp/>+<sp/>`engine/src/opt/topology.c`<sp/>to<sp/>discover<sp/>sockets/CPUs<sp/>from<sp/>Linux<sp/>sysfs<sp/>and<sp/>expose<sp/>helpers:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>`ie_topology_init/destroy`,<sp/>`ie_topology_sockets()`,<sp/>`ie_topology_first_cpu_on_socket()`.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>CLI/env<sp/>integration<sp/>(soft<sp/>hints):<sp/>`AFFINITY=auto|compact|scatter`<sp/>and<sp/>`IE_TP_USE_AFFINITY=1`<sp/>(thread‑pool),<sp/>plus<sp/>`IE_HOT_REPLICATE`<sp/>(see<sp/>Step<sp/>2).</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Fallback:<sp/>on<sp/>systems<sp/>without<sp/>sysfs<sp/>or<sp/>NUMA,<sp/>we<sp/>assume<sp/>a<sp/>single<sp/>socket<sp/>with<sp/>`sysconf(_SC_NPROCESSORS_ONLN)`<sp/>CPUs.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Step<sp/>2<sp/>—<sp/>“Hot”<sp/>weights<sp/>replication<sp/>per<sp/>socket</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>New<sp/>module<sp/>`engine/src/opt/replicate_hot.c`<sp/>replicates<sp/>frequently‑touched<sp/>(“hot”)<sp/>weight<sp/>pages<sp/>**per<sp/>socket**<sp/>and<sp/>pins<sp/>worker<sp/>threads<sp/>on<sp/>that<sp/>socket<sp/>for<sp/>locality.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Optional<sp/>prefetch<sp/>hint<sp/>via<sp/>`madvise(...,<sp/>MADV_WILLNEED)`<sp/>(ignored<sp/>if<sp/>unsupported).</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Enable<sp/>at<sp/>runtime:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>```bash</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>export<sp/>IE_HOT_REPLICATE=1<sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>enable<sp/>per‑socket<sp/>replicas</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>export<sp/>IE_HOT_REPL_LIMIT_MB=0<sp/><sp/>#<sp/>(optional)<sp/>cap<sp/>replica<sp/>size<sp/>in<sp/>MiB;<sp/>0<sp/>=<sp/>no<sp/>cap</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Activation<sp/>precision<sp/>(INT8<sp/>/<sp/>FP8)<sp/>—<sp/>soft<sp/>hint</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Expose<sp/>activation<sp/>precision<sp/>as<sp/>a<sp/>soft<sp/>runtime<sp/>hint<sp/>(host<sp/>math<sp/>remains<sp/>FP32<sp/>accumulate):</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>```bash</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>export<sp/>IE_ACT_PREC=int8<sp/><sp/><sp/>#<sp/>or:<sp/>fp8<sp/>|<sp/>fp16<sp/>|<sp/>bf16<sp/>|<sp/>fp32</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>```</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Weight<sp/>precision<sp/>remains<sp/>independent<sp/>via<sp/>`IE_PRECISION`<sp/>(e.g.,<sp/>`int4w`,<sp/>`int8w`,<sp/>`fp32`,<sp/>etc.).</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Strict<sp/>timing<sp/>rule<sp/>(re‑stated)</highlight></codeline>
+<codeline><highlight class="normal">Only<sp/>the<sp/>following<sp/>are<sp/>counted<sp/>in<sp/>the<sp/>measured<sp/>window:</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`ie_engine_generate(...)`</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>optional<sp/>“work‑touch”<sp/>loop<sp/>controlled<sp/>by<sp/>`IE_BYTES_PER_TOKEN`,<sp/>`IE_STRIDE_BYTES`,<sp/>`IE_VERIFY_TOUCH`</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Quick<sp/>run<sp/>recipes</highlight></codeline>
+<codeline><highlight class="normal">Strict<sp/>CPU<sp/>run<sp/>with<sp/>INT4<sp/>weights,<sp/>FP8<sp/>activations,<sp/>NUMA‑aware<sp/>binding<sp/>+<sp/>hot<sp/>replication:</highlight></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Model<sp/>&amp;<sp/>timing</highlight></codeline>
+<codeline><highlight class="normal">export<sp/>MODEL_DIR=models/gpt-oss-20b</highlight></codeline>
+<codeline><highlight class="normal">export<sp/>IE_REQUIRE_MODEL=1</highlight></codeline>
+<codeline><highlight class="normal">export<sp/>IE_PRECISION=int4w</highlight></codeline>
+<codeline><highlight class="normal">export<sp/>IE_ACT_PREC=fp8</highlight></codeline>
+<codeline><highlight class="normal">export<sp/>IE_BYTES_PER_TOKEN=$((64*1024*1024))</highlight></codeline>
+<codeline><highlight class="normal">export<sp/>IE_STRIDE_BYTES=256</highlight></codeline>
+<codeline><highlight class="normal">export<sp/>IE_VERIFY_TOUCH=1</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>NUMA<sp/>&amp;<sp/>replication</highlight></codeline>
+<codeline><highlight class="normal">export<sp/>IE_HOT_REPLICATE=1</highlight></codeline>
+<codeline><highlight class="normal">export<sp/>IE_TP_USE_AFFINITY=1</highlight></codeline>
+<codeline><highlight class="normal">export<sp/>AFFINITY=compact</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Run<sp/>(CPU)</highlight></codeline>
+<codeline><highlight class="normal">PROMPTS=benchmarks/prompts_10..txt<sp/>RUNS=3<sp/>make<sp/>bench</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">CUDA<sp/>run<sp/>(same<sp/>semantics;<sp/>binary<sp/>is<sp/>different):</highlight></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">PROMPTS=benchmarks/prompts_10..txt<sp/>RUNS=3<sp/>make<sp/>bench-cuda</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">NUMA<sp/>pinning<sp/>from<sp/>the<sp/>shell<sp/>(optional,<sp/>only<sp/>if<sp/>multiple<sp/>nodes<sp/>exist):</highlight></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">if<sp/>numactl<sp/>-H<sp/>|<sp/>grep<sp/>-q<sp/>&apos;available:&apos;;<sp/>then</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>NODES=$(numactl<sp/>-H<sp/>|<sp/>awk<sp/>&apos;/available:/{print<sp/>$2}&apos;)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>[<sp/>&quot;$NODES&quot;<sp/>-gt<sp/>1<sp/>]<sp/>&amp;&amp;<sp/>exec<sp/>numactl<sp/>--cpunodebind=0<sp/>--membind=0<sp/>bash<sp/>-lc<sp/>&apos;PROMPTS=benchmarks/prompts_10..txt<sp/>RUNS=3<sp/>make<sp/>bench&apos;</highlight></codeline>
+<codeline><highlight class="normal">fi</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">&gt;<sp/>Note:<sp/>If<sp/>`numactl<sp/>-H`<sp/>shows<sp/>a<sp/>single<sp/>node,<sp/>skip<sp/>`numactl<sp/>--cpunodebind/--membind`.</highlight></codeline>
+<codeline></codeline>
     </programlisting>
     <location file="README.md"/>
   </compounddef>

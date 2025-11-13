@@ -3,7 +3,9 @@
   <compounddef id="gemv__generic_8c" kind="file" language="C++">
     <compoundname>gemv_generic.c</compoundname>
     <includes refid="ie__kernels_8h" local="yes">ie_kernels.h</includes>
+    <includes refid="ie__quant__act_8h" local="yes">ie_quant_act.h</includes>
     <includes local="no">stddef.h</includes>
+    <includes local="no">stdint.h</includes>
     <includes local="no">string.h</includes>
     <incdepgraph>
       <node id="2">
@@ -12,20 +14,35 @@
         <childnode refid="3" relation="include">
         </childnode>
       </node>
+      <node id="4">
+        <label>ie_quant_act.h</label>
+        <link refid="ie__quant__act_8h"/>
+        <childnode refid="3" relation="include">
+        </childnode>
+        <childnode refid="5" relation="include">
+        </childnode>
+      </node>
       <node id="1">
         <label>engine/src/kernels/gemv_generic.c</label>
         <link refid="gemv__generic_8c"/>
         <childnode refid="2" relation="include">
         </childnode>
+        <childnode refid="4" relation="include">
+        </childnode>
         <childnode refid="3" relation="include">
         </childnode>
-        <childnode refid="4" relation="include">
+        <childnode refid="5" relation="include">
+        </childnode>
+        <childnode refid="6" relation="include">
         </childnode>
       </node>
       <node id="3">
         <label>stddef.h</label>
       </node>
-      <node id="4">
+      <node id="5">
+        <label>stdint.h</label>
+      </node>
+      <node id="6">
         <label>string.h</label>
       </node>
     </incdepgraph>
@@ -37,18 +54,256 @@
         <name>s_gemv_f32</name>
         <initializer>= NULL</initializer>
         <briefdescription>
-<para>Installed function pointer for GEMV (generic by default). </para>
+<para>Installed float GEMV kernel (defaults to generic C). </para>
         </briefdescription>
         <detaileddescription>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="engine/src/kernels/gemv_generic.c" line="11" column="8" bodyfile="engine/src/kernels/gemv_generic.c" bodystart="11" bodyend="-1"/>
-        <referencedby refid="ie__kernels_8h_1a4e112b3396ed21919f404631c1d4d7fb" compoundref="gemv__generic_8c" startline="67" endline="71">ie_gemv_f32</referencedby>
-        <referencedby refid="ie__kernels_8h_1a1b919f71b86ec1791fe53bc68d5c240d" compoundref="gemv__generic_8c" startline="51" endline="54">ie_kernels_install</referencedby>
+        <location file="engine/src/kernels/gemv_generic.c" line="51" column="8" bodyfile="engine/src/kernels/gemv_generic.c" bodystart="51" bodyend="-1"/>
+        <referencedby refid="ie__kernels_8h_1a4e112b3396ed21919f404631c1d4d7fb" compoundref="gemv__generic_8c" startline="279" endline="283">ie_gemv_f32</referencedby>
+        <referencedby refid="ie__kernels_8h_1a1b919f71b86ec1791fe53bc68d5c240d" compoundref="gemv__generic_8c" startline="249" endline="266">ie_kernels_install</referencedby>
       </memberdef>
     </sectiondef>
     <sectiondef kind="func">
+      <memberdef kind="function" id="gemv__generic_8c_1a63b484c2984caeed7dfc9b5002444f57" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ie_gemv_f32_avx2_impl</definition>
+        <argsstring>(const float *W, const float *x, float *y, size_t rows, size_t cols, const float *bias, size_t blk_k)</argsstring>
+        <name>ie_gemv_f32_avx2_impl</name>
+        <param>
+          <type>const float *</type>
+          <declname>W</declname>
+        </param>
+        <param>
+          <type>const float *</type>
+          <declname>x</declname>
+        </param>
+        <param>
+          <type>float *</type>
+          <declname>y</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>rows</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>cols</declname>
+        </param>
+        <param>
+          <type>const float *</type>
+          <declname>bias</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>blk_k</declname>
+        </param>
+        <briefdescription>
+<para>AVX2/FMA GEMV (float path), provided by <ref refid="gemv__avx2_8c" kindref="compound">gemv_avx2.c</ref>. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="note"><para>This symbol is optional; the dispatcher checks CPU features before use.</para>
+</simplesect>
+AVX2/FMA GEMV (float path), provided by <ref refid="gemv__avx2_8c" kindref="compound">gemv_avx2.c</ref>.</para>
+<para>The implementation accepts either plain row-major W or rows packed as &quot;blocked-K contiguous&quot; (see pretranspose docs). In the latter case, each row still has <computeroutput>cols</computeroutput> elements but the inner loop can iterate in chunks of <computeroutput>blk_k</computeroutput> to promote cache locality.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>W</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Weights (row-major or blocked-K contiguous per row). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>x</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Input vector (length <computeroutput>cols</computeroutput>). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>y</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Output vector (length <computeroutput>rows</computeroutput>). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>rows</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of rows. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>cols</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of cols. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>bias</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Optional bias (length <computeroutput>rows</computeroutput>), may be NULL. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>blk_k</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Column block size; 0 =&gt; treat as single block of size <computeroutput>cols</computeroutput>. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/src/kernels/gemv_generic.c" line="33" column="6" bodyfile="engine/src/kernels/gemv_avx2.c" bodystart="39" bodyend="107" declfile="engine/src/kernels/gemv_generic.c" declline="33" declcolumn="6"/>
+        <referencedby refid="gemv__avx2_8c_1aa8a6c887be55a3af970b49855f86682d" compoundref="gemv__avx2_8c" startline="127" endline="162">ie_gemv_qi8_f32_avx2_impl</referencedby>
+        <referencedby refid="ie__kernels_8h_1a1b919f71b86ec1791fe53bc68d5c240d" compoundref="gemv__generic_8c" startline="249" endline="266">ie_kernels_install</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="gemv__generic_8c_1aa8a6c887be55a3af970b49855f86682d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ie_gemv_qi8_f32_avx2_impl</definition>
+        <argsstring>(const float *W, const int8_t *x_q, float *y, size_t rows, size_t cols, const float *bias, size_t blk_k, ie_act_i8_params params, int symmetric)</argsstring>
+        <name>ie_gemv_qi8_f32_avx2_impl</name>
+        <param>
+          <type>const float *</type>
+          <declname>W</declname>
+        </param>
+        <param>
+          <type>const int8_t *</type>
+          <declname>x_q</declname>
+        </param>
+        <param>
+          <type>float *</type>
+          <declname>y</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>rows</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>cols</declname>
+        </param>
+        <param>
+          <type>const float *</type>
+          <declname>bias</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>blk_k</declname>
+        </param>
+        <param>
+          <type><ref refid="structie__act__i8__params" kindref="compound">ie_act_i8_params</ref></type>
+          <declname>params</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>symmetric</declname>
+        </param>
+        <briefdescription>
+<para>AVX2/FMA GEMV with INT8 activations (per-tensor params). </para>
+        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="note"><para>Optional symbol. The dispatcher guards its use with a CPU feature test.</para>
+</simplesect>
+AVX2/FMA GEMV with INT8 activations (per-tensor params).</para>
+<para>This path dequantizes activations into a temporary aligned float buffer, then calls the AVX2 float GEMV core <ref refid="gemv__generic_8c_1a63b484c2984caeed7dfc9b5002444f57" kindref="member">ie_gemv_f32_avx2_impl()</ref>.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>W</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Weights (row-major). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>x_q</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>INT8 activations. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>y</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Output. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>rows</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Rows. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>cols</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Cols. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>bias</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Optional bias (may be NULL). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>blk_k</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Column block size; 0 =&gt; treat as single block. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>params</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>INT8 per-tensor params (scale, zero_point). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>symmetric</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Non-zero if symmetric (informational). </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/src/kernels/gemv_generic.c" line="41" column="6" bodyfile="engine/src/kernels/gemv_avx2.c" bodystart="127" bodyend="162" declfile="engine/src/kernels/gemv_generic.c" declline="41" declcolumn="6"/>
+        <references refid="gemv__avx2_8c_1a63b484c2984caeed7dfc9b5002444f57" compoundref="gemv__avx2_8c" startline="39" endline="107">ie_gemv_f32_avx2_impl</references>
+        <references refid="structie__act__i8__params_1ac0ec31737c16640ac332b562ea6be9a1" compoundref="ie__quant__act_8h" startline="53">ie_act_i8_params::scale</references>
+        <references refid="structie__act__i8__params_1ab19e71539ecb14b16a4c65b425be4c32" compoundref="ie__quant__act_8h" startline="54">ie_act_i8_params::zero_point</references>
+        <referencedby refid="gemv__generic_8c_1abd518beacb02189b5b640948ed348f25" compoundref="gemv__generic_8c" startline="298" endline="310">ie_gemv_qi8_f32</referencedby>
+      </memberdef>
       <memberdef kind="function" id="gemv__generic_8c_1a51096a373f5e5010d39cbf44e34b730d" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
         <definition>static void gemv_generic_impl</definition>
@@ -83,15 +338,16 @@
           <declname>blk_k</declname>
         </param>
         <briefdescription>
-<para>Generic C implementation: GEMV with optional blocked-K and bias epilogue. </para>
+<para>Generic C GEMV: y = W * x (+bias), optional blocked-K layout. </para>
         </briefdescription>
         <detaileddescription>
+<para>The routine multiplies a row-major (or &quot;blocked-K contiguous&quot;) matrix W by a dense vector x, accumulating into y. If <computeroutput>blk_k</computeroutput> is non-zero, the inner loop processes chunks of size <computeroutput>blk_k</computeroutput> to better match cache lines.</para>
 <para><parameterlist kind="param"><parameteritem>
 <parameternamelist>
 <parametername>W</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Pointer to weights (row-major or blocked-K). </para>
+<para>Pointer to weights (row-major; each row has <computeroutput>cols</computeroutput> floats). </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -99,7 +355,7 @@
 <parametername>x</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Input vector (length cols). </para>
+<para>Input vector (length <computeroutput>cols</computeroutput>). </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -107,7 +363,7 @@
 <parametername>y</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Output vector (length rows). </para>
+<para>Output vector (length <computeroutput>rows</computeroutput>). </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -115,7 +371,7 @@
 <parametername>rows</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Number of rows. </para>
+<para>Number of rows in W and y. </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -123,7 +379,7 @@
 <parametername>cols</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Number of columns. </para>
+<para>Number of columns in W and length of x. </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -131,7 +387,7 @@
 <parametername>bias</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Optional bias (length rows), may be NULL. </para>
+<para>Optional bias to add per-output row (may be NULL). </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -139,7 +395,7 @@
 <parametername>blk_k</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Column block size; 0 means plain row-major (no blocking). </para>
+<para>Column block size; set 0 to disable blocking. </para>
 </parameterdescription>
 </parameteritem>
 </parameterlist>
@@ -147,8 +403,348 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="engine/src/kernels/gemv_generic.c" line="24" column="13" bodyfile="engine/src/kernels/gemv_generic.c" bodystart="24" bodyend="44"/>
-        <referencedby refid="ie__kernels_8h_1a1b919f71b86ec1791fe53bc68d5c240d" compoundref="gemv__generic_8c" startline="51" endline="54">ie_kernels_install</referencedby>
+        <location file="engine/src/kernels/gemv_generic.c" line="73" column="13" bodyfile="engine/src/kernels/gemv_generic.c" bodystart="73" bodyend="95"/>
+        <referencedby refid="ie__kernels_8h_1a1b919f71b86ec1791fe53bc68d5c240d" compoundref="gemv__generic_8c" startline="249" endline="266">ie_kernels_install</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="gemv__generic_8c_1aae97939d123420c09e5c3d4d7575b934" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>static void gemv_qi8_f32_fused_c_impl</definition>
+        <argsstring>(const float *W, const int8_t *x_q, float *y, size_t rows, size_t cols, const float *bias, size_t blk_k, ie_act_i8_params params, int symmetric)</argsstring>
+        <name>gemv_qi8_f32_fused_c_impl</name>
+        <param>
+          <type>const float *</type>
+          <declname>W</declname>
+        </param>
+        <param>
+          <type>const int8_t *</type>
+          <declname>x_q</declname>
+        </param>
+        <param>
+          <type>float *</type>
+          <declname>y</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>rows</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>cols</declname>
+        </param>
+        <param>
+          <type>const float *</type>
+          <declname>bias</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>blk_k</declname>
+        </param>
+        <param>
+          <type><ref refid="structie__act__i8__params" kindref="compound">ie_act_i8_params</ref></type>
+          <declname>params</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>symmetric</declname>
+        </param>
+        <briefdescription>
+<para>GEMV with per-tensor INT8 activations (fused dequantization), C path. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Dequantization model: real = scale * (q - zero_point). This function multiplies float weights by dequantized INT8 activations without materializing a separate float vector.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>W</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Weights (row-major). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>x_q</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>INT8 activations (length <computeroutput>cols</computeroutput>). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>y</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Output (length <computeroutput>rows</computeroutput>). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>rows</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Rows. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>cols</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Cols. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>bias</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Optional bias (may be NULL). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>blk_k</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Column block size; 0 means plain row-major. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>params</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Per-tensor INT8 parameters (scale, zero_point). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>symmetric</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Non-zero if symmetric (zero_point=0). Informational only. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/src/kernels/gemv_generic.c" line="114" column="13" bodyfile="engine/src/kernels/gemv_generic.c" bodystart="114" bodyend="143"/>
+        <references refid="structie__act__i8__params_1ac0ec31737c16640ac332b562ea6be9a1" compoundref="ie__quant__act_8h" startline="53">ie_act_i8_params::scale</references>
+        <references refid="structie__act__i8__params_1ab19e71539ecb14b16a4c65b425be4c32" compoundref="ie__quant__act_8h" startline="54">ie_act_i8_params::zero_point</references>
+        <referencedby refid="gemv__generic_8c_1abd518beacb02189b5b640948ed348f25" compoundref="gemv__generic_8c" startline="298" endline="310">ie_gemv_qi8_f32</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="gemv__generic_8c_1a439a61ba39c741d7730f5615e540ca9c" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>static void gemv_qi8pg_f32_fused_c_impl</definition>
+        <argsstring>(const float *W, const int8_t *x_q, float *y, size_t rows, size_t cols, const float *bias, size_t blk_k, size_t group_size, const float *scales, const int8_t *zeros, int symmetric)</argsstring>
+        <name>gemv_qi8pg_f32_fused_c_impl</name>
+        <param>
+          <type>const float *</type>
+          <declname>W</declname>
+        </param>
+        <param>
+          <type>const int8_t *</type>
+          <declname>x_q</declname>
+        </param>
+        <param>
+          <type>float *</type>
+          <declname>y</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>rows</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>cols</declname>
+        </param>
+        <param>
+          <type>const float *</type>
+          <declname>bias</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>blk_k</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>group_size</declname>
+        </param>
+        <param>
+          <type>const float *</type>
+          <declname>scales</declname>
+        </param>
+        <param>
+          <type>const int8_t *</type>
+          <declname>zeros</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>symmetric</declname>
+        </param>
+        <briefdescription>
+<para>GEMV with per-group INT8 activations (fused dequantization), C path. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Each contiguous group of <computeroutput>group_size</computeroutput> elements in <computeroutput>x_q</computeroutput> uses its own (scale, zero). The last group may be shorter.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>W</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Weights (row-major). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>x_q</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>INT8 activations. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>y</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Output. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>rows</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Rows. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>cols</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Cols. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>bias</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Optional bias (may be NULL). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>blk_k</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Column block size. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>group_size</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Activation quantization group size. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>scales</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Scales array, length ceil(cols/group_size). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>zeros</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Zero-points array, length ceil(cols/group_size). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>symmetric</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Non-zero if symmetric (informational only). </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/src/kernels/gemv_generic.c" line="163" column="13" bodyfile="engine/src/kernels/gemv_generic.c" bodystart="163" bodyend="194"/>
+        <referencedby refid="gemv__generic_8c_1abf2b6125d5d567523a5d113f09dd73ee" compoundref="gemv__generic_8c" startline="327" endline="333">ie_gemv_qi8pg_f32</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="gemv__generic_8c_1ab15089960891cb16691529c685e7a96b" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>float</type>
+        <definition>static float ie_decode_fp8_e4m3</definition>
+        <argsstring>(uint8_t v)</argsstring>
+        <name>ie_decode_fp8_e4m3</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>v</declname>
+        </param>
+        <briefdescription>
+<para>Decode FP8 E4M3 value to float (flush subnormals). </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>v</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>8-bit FP8 E4M3 value. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>32-bit float approximation. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/src/kernels/gemv_generic.c" line="201" column="21" bodyfile="engine/src/kernels/gemv_generic.c" bodystart="201" bodyend="212"/>
+        <referencedby refid="gemv__generic_8c_1a7548a57990692513f283a22543688e1b" compoundref="gemv__generic_8c" startline="347" endline="374">ie_gemv_qfp8_f32</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="gemv__generic_8c_1a2caa51b99ab073c3a53146ca26153558" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>float</type>
+        <definition>static float ie_decode_fp8_e5m2</definition>
+        <argsstring>(uint8_t v)</argsstring>
+        <name>ie_decode_fp8_e5m2</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>v</declname>
+        </param>
+        <briefdescription>
+<para>Decode FP8 E5M2 value to float (IEEE-like; NaNs/Inf handled). </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>v</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>8-bit FP8 E5M2 value. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>32-bit float approximation (quiet NaN for FP8 NaN payloads). </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/src/kernels/gemv_generic.c" line="219" column="21" bodyfile="engine/src/kernels/gemv_generic.c" bodystart="219" bodyend="234"/>
+        <referencedby refid="gemv__generic_8c_1a7548a57990692513f283a22543688e1b" compoundref="gemv__generic_8c" startline="347" endline="374">ie_gemv_qfp8_f32</referencedby>
       </memberdef>
       <memberdef kind="function" id="gemv__generic_8c_1a1b919f71b86ec1791fe53bc68d5c240d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -160,16 +756,17 @@
           <declname>use_avx2</declname>
         </param>
         <briefdescription>
-<para>Install best kernels (generic fallback). </para>
+<para>Install the best available float GEMV kernel for this process. </para>
         </briefdescription>
         <detaileddescription>
 <para>Install the best available CPU kernels at runtime.</para>
+<para>On x86 with GCC/Clang, the dispatcher uses __builtin_cpu_supports(&quot;avx2&quot;) and prefers the AVX2 implementation when available; otherwise it installs the generic C fallback.</para>
 <para><parameterlist kind="param"><parameteritem>
 <parameternamelist>
 <parametername>use_avx2</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Non-zero to prefer AVX2 if available (handled in <ref refid="gemv__avx2_8c" kindref="compound">gemv_avx2.c</ref>). </para>
+<para>Non-zero to allow AVX2 selection when supported. </para>
 </parameterdescription>
 </parameteritem>
 </parameterlist>
@@ -177,9 +774,11 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="engine/src/kernels/gemv_generic.c" line="51" column="6" bodyfile="engine/src/kernels/gemv_generic.c" bodystart="51" bodyend="54"/>
-        <references refid="gemv__generic_8c_1a51096a373f5e5010d39cbf44e34b730d" compoundref="gemv__generic_8c" startline="24" endline="44">gemv_generic_impl</references>
-        <references refid="gemv__generic_8c_1aa80eb69d355054f1f8213721e72bec9a" compoundref="gemv__generic_8c" startline="11">s_gemv_f32</references>
+        <location file="engine/src/kernels/gemv_generic.c" line="249" column="6" bodyfile="engine/src/kernels/gemv_generic.c" bodystart="249" bodyend="266"/>
+        <references refid="gemv__generic_8c_1a51096a373f5e5010d39cbf44e34b730d" compoundref="gemv__generic_8c" startline="73" endline="95">gemv_generic_impl</references>
+        <references refid="gemv__avx2_8c_1a63b484c2984caeed7dfc9b5002444f57" compoundref="gemv__avx2_8c" startline="39" endline="107">ie_gemv_f32_avx2_impl</references>
+        <references refid="gemv__generic_8c_1aa80eb69d355054f1f8213721e72bec9a" compoundref="gemv__generic_8c" startline="51">s_gemv_f32</references>
+        <referencedby refid="ie__kernels_8h_1a4e112b3396ed21919f404631c1d4d7fb" compoundref="gemv__generic_8c" startline="279" endline="283">ie_gemv_f32</referencedby>
         <referencedby refid="test__kernels_8c_1a840291bc02cba5474a4cb46a9b9566fe" compoundref="test__kernels_8c" startline="149" endline="163">main</referencedby>
       </memberdef>
       <memberdef kind="function" id="gemv__generic_8c_1a4e112b3396ed21919f404631c1d4d7fb" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
@@ -216,7 +815,7 @@
           <declname>blk_k</declname>
         </param>
         <briefdescription>
-<para>Dispatch GEMV to the installed kernel. </para>
+<para>Dispatch GEMV (float path) to the installed kernel. </para>
         </briefdescription>
         <detaileddescription>
 <para>GEMV: y[r] = dot(W[r, :], x) [+ bias[r]] for r in [0, rows).</para>
@@ -249,6 +848,119 @@
 <parametername>rows</parametername>
 </parameternamelist>
 <parameterdescription>
+<para>Rows in W/y. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>cols</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Cols in W/x. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>bias</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Optional bias (may be NULL). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>blk_k</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Column-block size; 0 for plain row-major. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/src/kernels/gemv_generic.c" line="279" column="6" bodyfile="engine/src/kernels/gemv_generic.c" bodystart="279" bodyend="283"/>
+        <references refid="gemv__generic_8c_1a1b919f71b86ec1791fe53bc68d5c240d" compoundref="gemv__generic_8c" startline="249" endline="266">ie_kernels_install</references>
+        <references refid="gemv__generic_8c_1aa80eb69d355054f1f8213721e72bec9a" compoundref="gemv__generic_8c" startline="51">s_gemv_f32</references>
+        <referencedby refid="ie__device__common_8c_1a4fb9bb01bfbe71517f9df925ba9c93ec" compoundref="ie__device__common_8c" startline="164" endline="172">cpu_gemv_f32</referencedby>
+        <referencedby refid="test__kernels_8c_1a0ac9b0c3b1d865ef69bd2bc69d14a685" compoundref="test__kernels_8c" startline="109" endline="122">test_gemv_rowmajor_no_bias</referencedby>
+        <referencedby refid="test__kernels_8c_1a2305be22b4279f3ac4d55f90584569cb" compoundref="test__kernels_8c" startline="129" endline="142">test_gemv_rowmajor_with_bias</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="gemv__generic_8c_1abd518beacb02189b5b640948ed348f25" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ie_gemv_qi8_f32</definition>
+        <argsstring>(const float *W, const int8_t *x_q, float *y, size_t rows, size_t cols, const float *bias, size_t blk_k, ie_act_i8_params params, int symmetric)</argsstring>
+        <name>ie_gemv_qi8_f32</name>
+        <param>
+          <type>const float *</type>
+          <declname>W</declname>
+        </param>
+        <param>
+          <type>const int8_t *</type>
+          <declname>x_q</declname>
+        </param>
+        <param>
+          <type>float *</type>
+          <declname>y</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>rows</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>cols</declname>
+        </param>
+        <param>
+          <type>const float *</type>
+          <declname>bias</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>blk_k</declname>
+        </param>
+        <param>
+          <type><ref refid="structie__act__i8__params" kindref="compound">ie_act_i8_params</ref></type>
+          <declname>params</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>symmetric</declname>
+        </param>
+        <briefdescription>
+<para>GEMV with per-tensor INT8 activations, auto-dispatch (AVX2 or C). </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>W</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Weights (row-major or blocked-K). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>x_q</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>INT8 activations (length cols). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>y</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Output (length rows). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>rows</parametername>
+</parameternamelist>
+<parameterdescription>
 <para>Rows. </para>
 </parameterdescription>
 </parameteritem>
@@ -265,7 +977,7 @@
 <parametername>bias</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Optional bias vector (may be NULL). </para>
+<para>Optional bias (may be NULL). </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -273,7 +985,23 @@
 <parametername>blk_k</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Column-block size for blocked layout; 0 for plain row-major. </para>
+<para>Column block size; 0 means plain row-major. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>params</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Per-tensor INT8 parameters (scale, zero_point). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>symmetric</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Non-zero if symmetric (zero_point=0). Informational. </para>
 </parameterdescription>
 </parameteritem>
 </parameterlist>
@@ -281,59 +1009,525 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="engine/src/kernels/gemv_generic.c" line="67" column="6" bodyfile="engine/src/kernels/gemv_generic.c" bodystart="67" bodyend="71"/>
-        <references refid="gemv__generic_8c_1aa80eb69d355054f1f8213721e72bec9a" compoundref="gemv__generic_8c" startline="11">s_gemv_f32</references>
-        <referencedby refid="ie__device__common_8c_1a4fb9bb01bfbe71517f9df925ba9c93ec" compoundref="ie__device__common_8c" startline="164" endline="172">cpu_gemv_f32</referencedby>
-        <referencedby refid="test__kernels_8c_1a0ac9b0c3b1d865ef69bd2bc69d14a685" compoundref="test__kernels_8c" startline="109" endline="122">test_gemv_rowmajor_no_bias</referencedby>
-        <referencedby refid="test__kernels_8c_1a2305be22b4279f3ac4d55f90584569cb" compoundref="test__kernels_8c" startline="129" endline="142">test_gemv_rowmajor_with_bias</referencedby>
+        <location file="engine/src/kernels/gemv_generic.c" line="298" column="6" bodyfile="engine/src/kernels/gemv_generic.c" bodystart="298" bodyend="310"/>
+        <references refid="gemv__generic_8c_1aae97939d123420c09e5c3d4d7575b934" compoundref="gemv__generic_8c" startline="114" endline="143">gemv_qi8_f32_fused_c_impl</references>
+        <references refid="gemv__generic_8c_1aa8a6c887be55a3af970b49855f86682d" compoundref="gemv__avx2_8c" startline="127" endline="162">ie_gemv_qi8_f32_avx2_impl</references>
+      </memberdef>
+      <memberdef kind="function" id="gemv__generic_8c_1abf2b6125d5d567523a5d113f09dd73ee" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ie_gemv_qi8pg_f32</definition>
+        <argsstring>(const float *W, const int8_t *x_q, float *y, size_t rows, size_t cols, const float *bias, size_t blk_k, size_t group_size, const float *scales, const int8_t *zeros, int symmetric)</argsstring>
+        <name>ie_gemv_qi8pg_f32</name>
+        <param>
+          <type>const float *</type>
+          <declname>W</declname>
+        </param>
+        <param>
+          <type>const int8_t *</type>
+          <declname>x_q</declname>
+        </param>
+        <param>
+          <type>float *</type>
+          <declname>y</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>rows</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>cols</declname>
+        </param>
+        <param>
+          <type>const float *</type>
+          <declname>bias</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>blk_k</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>group_size</declname>
+        </param>
+        <param>
+          <type>const float *</type>
+          <declname>scales</declname>
+        </param>
+        <param>
+          <type>const int8_t *</type>
+          <declname>zeros</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>symmetric</declname>
+        </param>
+        <briefdescription>
+<para>GEMV with per-group INT8 activations (fused), C fallback. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>W</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Weights. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>x_q</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>INT8 activations. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>y</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Output. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>rows</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Rows. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>cols</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Cols. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>bias</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Optional bias (may be NULL). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>blk_k</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Column block size. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>group_size</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Activation quantization group size. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>scales</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Array of scales (ceil(cols/group_size)). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>zeros</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Array of zero points (ceil(cols/group_size)). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>symmetric</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Non-zero if symmetric (informational). </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/src/kernels/gemv_generic.c" line="327" column="6" bodyfile="engine/src/kernels/gemv_generic.c" bodystart="327" bodyend="333"/>
+        <references refid="gemv__generic_8c_1a439a61ba39c741d7730f5615e540ca9c" compoundref="gemv__generic_8c" startline="163" endline="194">gemv_qi8pg_f32_fused_c_impl</references>
+      </memberdef>
+      <memberdef kind="function" id="gemv__generic_8c_1a7548a57990692513f283a22543688e1b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ie_gemv_qfp8_f32</definition>
+        <argsstring>(const float *W, const uint8_t *x_fp8, float *y, size_t rows, size_t cols, const float *bias, size_t blk_k, ie_fp8_format fmt)</argsstring>
+        <name>ie_gemv_qfp8_f32</name>
+        <param>
+          <type>const float *</type>
+          <declname>W</declname>
+        </param>
+        <param>
+          <type>const uint8_t *</type>
+          <declname>x_fp8</declname>
+        </param>
+        <param>
+          <type>float *</type>
+          <declname>y</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>rows</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>cols</declname>
+        </param>
+        <param>
+          <type>const float *</type>
+          <declname>bias</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>blk_k</declname>
+        </param>
+        <param>
+          <type><ref refid="ie__quant__act_8h_1a67a1bdaa8281d1c69b6b76ecba79c52c" kindref="member">ie_fp8_format</ref></type>
+          <declname>fmt</declname>
+        </param>
+        <briefdescription>
+<para>GEMV with FP8 activations (E4M3/E5M2), fused decode (C fallback). </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>W</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Weights (row-major or blocked-K). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>x_fp8</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>FP8 activations (bytes). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>y</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Output. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>rows</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Rows. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>cols</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Cols. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>bias</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Optional bias (may be NULL). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>blk_k</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Column block size; 0 means plain row-major. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>fmt</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>FP8 format selector (<ref refid="ie__quant__act_8h_1a67a1bdaa8281d1c69b6b76ecba79c52ca67cfe56fcb473bed9a2f92388f2fc347" kindref="member">IE_FP8_E4M3</ref> or <ref refid="ie__quant__act_8h_1a67a1bdaa8281d1c69b6b76ecba79c52caa1844f8dd595aba744eb3243b127a3e0" kindref="member">IE_FP8_E5M2</ref>). </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/src/kernels/gemv_generic.c" line="347" column="6" bodyfile="engine/src/kernels/gemv_generic.c" bodystart="347" bodyend="374"/>
+        <references refid="gemv__generic_8c_1ab15089960891cb16691529c685e7a96b" compoundref="gemv__generic_8c" startline="201" endline="212">ie_decode_fp8_e4m3</references>
+        <references refid="gemv__generic_8c_1a2caa51b99ab073c3a53146ca26153558" compoundref="gemv__generic_8c" startline="219" endline="234">ie_decode_fp8_e5m2</references>
+        <references refid="ie__quant__act_8h_1a67a1bdaa8281d1c69b6b76ecba79c52ca67cfe56fcb473bed9a2f92388f2fc347" compoundref="ie__quant__act_8h" startline="41">IE_FP8_E4M3</references>
       </memberdef>
     </sectiondef>
     <briefdescription>
-<para>Portable C GEMV with optional column-blocking and epilogue bias. </para>
     </briefdescription>
     <detaileddescription>
     </detaileddescription>
     <programlisting>
-<codeline lineno="1"><highlight class="normal"></highlight></codeline>
-<codeline lineno="5"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;<ref refid="ie__kernels_8h" kindref="compound">ie_kernels.h</ref>&quot;</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="6"><highlight class="normal"></highlight></codeline>
-<codeline lineno="7"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stddef.h&gt;</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="8"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;string.h&gt;</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="9"><highlight class="normal"></highlight></codeline>
-<codeline lineno="11" refid="gemv__generic_8c_1aa80eb69d355054f1f8213721e72bec9a" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/>void<sp/>(*<ref refid="gemv__generic_8c_1aa80eb69d355054f1f8213721e72bec9a" kindref="member">s_gemv_f32</ref>)(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal">*,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal">*,<sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal">*,<sp/>size_t,<sp/>size_t,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal">*,<sp/>size_t)<sp/>=<sp/>NULL;</highlight></codeline>
-<codeline lineno="12"><highlight class="normal"></highlight></codeline>
-<codeline lineno="24" refid="gemv__generic_8c_1a51096a373f5e5010d39cbf44e34b730d" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="gemv__generic_8c_1a51096a373f5e5010d39cbf44e34b730d" kindref="member">gemv_generic_impl</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*W,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*x,<sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*y,</highlight></codeline>
-<codeline lineno="25"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>rows,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>cols,</highlight></codeline>
-<codeline lineno="26"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*bias,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>blk_k)<sp/>{</highlight></codeline>
-<codeline lineno="27"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>BK<sp/>=<sp/>(blk_k<sp/>&gt;<sp/>0<sp/>?<sp/>blk_k<sp/>:<sp/>cols);</highlight></codeline>
+<codeline lineno="1"><highlight class="comment">/*<sp/>File:<sp/>engine/src/kernels/gemv_generic.c</highlight></codeline>
+<codeline lineno="2"><highlight class="comment"><sp/>*<sp/>-----------------------------------------------------------------------------</highlight></codeline>
+<codeline lineno="3"><highlight class="comment"><sp/>*<sp/>@file<sp/>gemv_generic.c</highlight></codeline>
+<codeline lineno="4"><highlight class="comment"><sp/>*<sp/>@brief<sp/>Portable<sp/>GEMV<sp/>kernels<sp/>and<sp/>the<sp/>public<sp/>GEMV<sp/>API/dispatcher.</highlight></codeline>
+<codeline lineno="5"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="6"><highlight class="comment"><sp/>*<sp/>This<sp/>translation<sp/>unit<sp/>owns<sp/>the<sp/>public<sp/>entry<sp/>points:</highlight></codeline>
+<codeline lineno="7"><highlight class="comment"><sp/>*<sp/><sp/>-<sp/>::ie_kernels_install</highlight></codeline>
+<codeline lineno="8"><highlight class="comment"><sp/>*<sp/><sp/>-<sp/>::ie_gemv_f32</highlight></codeline>
+<codeline lineno="9"><highlight class="comment"><sp/>*<sp/><sp/>-<sp/>::ie_gemv_qi8_f32</highlight></codeline>
+<codeline lineno="10"><highlight class="comment"><sp/>*<sp/><sp/>-<sp/>::ie_gemv_qi8pg_f32</highlight></codeline>
+<codeline lineno="11"><highlight class="comment"><sp/>*<sp/><sp/>-<sp/>::ie_gemv_qfp8_f32</highlight></codeline>
+<codeline lineno="12"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="13"><highlight class="comment"><sp/>*<sp/>It<sp/>may<sp/>call<sp/>architecture-specialized<sp/>implementations<sp/>provided<sp/>by<sp/>other</highlight></codeline>
+<codeline lineno="14"><highlight class="comment"><sp/>*<sp/>translation<sp/>units<sp/>(e.g.,<sp/>AVX2)<sp/>when<sp/>the<sp/>platform<sp/>supports<sp/>them.</highlight></codeline>
+<codeline lineno="15"><highlight class="comment"><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="16"><highlight class="normal"></highlight></codeline>
+<codeline lineno="17"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;<ref refid="ie__kernels_8h" kindref="compound">ie_kernels.h</ref>&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="18"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;<ref refid="ie__quant__act_8h" kindref="compound">ie_quant_act.h</ref>&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="19"><highlight class="normal"></highlight></codeline>
+<codeline lineno="20"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stddef.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="21"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stdint.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="22"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;string.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="23"><highlight class="normal"></highlight></codeline>
+<codeline lineno="24"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>--------------------------------------------------------------------------<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="25"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>Forward<sp/>declarations<sp/>of<sp/>optional<sp/>arch-specific<sp/>implementations<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="26"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>(resolved<sp/>at<sp/>link<sp/>time<sp/>when<sp/>the<sp/>corresponding<sp/>TU<sp/>is<sp/>compiled).<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="27"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>--------------------------------------------------------------------------<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
 <codeline lineno="28"><highlight class="normal"></highlight></codeline>
-<codeline lineno="29"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>r<sp/>=<sp/>0;<sp/>r<sp/>&lt;<sp/>rows;<sp/>++r)<sp/>{</highlight></codeline>
-<codeline lineno="30"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*wrow<sp/>=<sp/>W<sp/>+<sp/>r<sp/>*<sp/>cols;<sp/></highlight><highlight class="comment">/*<sp/>blocked<sp/>row<sp/>is<sp/>still<sp/>contiguous<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="31"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>acc<sp/>=<sp/>0.0f;</highlight></codeline>
-<codeline lineno="32"><highlight class="normal"></highlight></codeline>
-<codeline lineno="33"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>kofs<sp/>=<sp/>0;</highlight></codeline>
-<codeline lineno="34"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>k0<sp/>=<sp/>0;<sp/>k0<sp/>&lt;<sp/>cols;<sp/>k0<sp/>+=<sp/>BK)<sp/>{</highlight></codeline>
-<codeline lineno="35"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>klen<sp/>=<sp/>(k0<sp/>+<sp/>BK<sp/>&lt;=<sp/>cols)<sp/>?<sp/>BK<sp/>:<sp/>(cols<sp/>-<sp/>k0);</highlight></codeline>
-<codeline lineno="36"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*wblk<sp/>=<sp/>wrow<sp/>+<sp/>kofs;</highlight></codeline>
-<codeline lineno="37"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*xblk<sp/>=<sp/>x<sp/>+<sp/>k0;</highlight></codeline>
-<codeline lineno="38"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>k<sp/>=<sp/>0;<sp/>k<sp/>&lt;<sp/>klen;<sp/>++k)<sp/>acc<sp/>+=<sp/>wblk[k]<sp/>*<sp/>xblk[k];</highlight></codeline>
-<codeline lineno="39"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>kofs<sp/>+=<sp/>klen;</highlight></codeline>
-<codeline lineno="40"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
-<codeline lineno="41"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(bias)<sp/>acc<sp/>+=<sp/>bias[r];</highlight></codeline>
-<codeline lineno="42"><highlight class="normal"><sp/><sp/><sp/><sp/>y[r]<sp/>=<sp/>acc;</highlight></codeline>
-<codeline lineno="43"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
-<codeline lineno="44"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="33"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="gemv__generic_8c_1a63b484c2984caeed7dfc9b5002444f57" kindref="member">ie_gemv_f32_avx2_impl</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*W,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*x,<sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*y,</highlight></codeline>
+<codeline lineno="34"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>rows,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>cols,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*bias,</highlight></codeline>
+<codeline lineno="35"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>blk_k);</highlight></codeline>
+<codeline lineno="36"><highlight class="normal"></highlight></codeline>
+<codeline lineno="41"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="gemv__generic_8c_1aa8a6c887be55a3af970b49855f86682d" kindref="member">ie_gemv_qi8_f32_avx2_impl</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*W,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>int8_t<sp/>*x_q,<sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*y,</highlight></codeline>
+<codeline lineno="42"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>rows,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>cols,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*bias,</highlight></codeline>
+<codeline lineno="43"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>blk_k,<sp/><ref refid="structie__act__i8__params" kindref="compound">ie_act_i8_params</ref><sp/>params,</highlight></codeline>
+<codeline lineno="44"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>symmetric);</highlight></codeline>
 <codeline lineno="45"><highlight class="normal"></highlight></codeline>
-<codeline lineno="51" refid="ie__kernels_8h_1a1b919f71b86ec1791fe53bc68d5c240d" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="gemv__generic_8c_1a1b919f71b86ec1791fe53bc68d5c240d" kindref="member">ie_kernels_install</ref>(</highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>use_avx2)<sp/>{</highlight></codeline>
-<codeline lineno="52"><highlight class="normal"><sp/><sp/>(void)use_avx2;</highlight></codeline>
-<codeline lineno="53"><highlight class="normal"><sp/><sp/><ref refid="gemv__generic_8c_1aa80eb69d355054f1f8213721e72bec9a" kindref="member">s_gemv_f32</ref><sp/>=<sp/><ref refid="gemv__generic_8c_1a51096a373f5e5010d39cbf44e34b730d" kindref="member">gemv_generic_impl</ref>;</highlight></codeline>
-<codeline lineno="54"><highlight class="normal">}</highlight></codeline>
-<codeline lineno="55"><highlight class="normal"></highlight></codeline>
-<codeline lineno="67" refid="ie__kernels_8h_1a4e112b3396ed21919f404631c1d4d7fb" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="gemv__generic_8c_1a4e112b3396ed21919f404631c1d4d7fb" kindref="member">ie_gemv_f32</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*W,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*x,<sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*y,</highlight></codeline>
-<codeline lineno="68"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>rows,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>cols,</highlight></codeline>
-<codeline lineno="69"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*bias,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>blk_k)<sp/>{</highlight></codeline>
-<codeline lineno="70"><highlight class="normal"><sp/><sp/><ref refid="gemv__generic_8c_1aa80eb69d355054f1f8213721e72bec9a" kindref="member">s_gemv_f32</ref>(W,<sp/>x,<sp/>y,<sp/>rows,<sp/>cols,<sp/>bias,<sp/>blk_k);</highlight></codeline>
-<codeline lineno="71"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="46"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>--------------------------------------------------------------------------<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="47"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>Internal<sp/>installed<sp/>function<sp/>pointer<sp/>(float<sp/>path)<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="48"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>--------------------------------------------------------------------------<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="49"><highlight class="normal"></highlight></codeline>
+<codeline lineno="51" refid="gemv__generic_8c_1aa80eb69d355054f1f8213721e72bec9a" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/>void<sp/>(*<ref refid="gemv__generic_8c_1aa80eb69d355054f1f8213721e72bec9a" kindref="member">s_gemv_f32</ref>)(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*,<sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*,<sp/>size_t,<sp/>size_t,</highlight></codeline>
+<codeline lineno="52"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*,<sp/>size_t)<sp/>=<sp/>NULL;</highlight></codeline>
+<codeline lineno="53"><highlight class="normal"></highlight></codeline>
+<codeline lineno="54"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>==========================================================================<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="55"><highlight class="normal"></highlight><highlight class="comment">/*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Generic<sp/>C<sp/>kernels<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="56"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>==========================================================================<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="57"><highlight class="normal"></highlight></codeline>
+<codeline lineno="73" refid="gemv__generic_8c_1a51096a373f5e5010d39cbf44e34b730d" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="gemv__generic_8c_1a51096a373f5e5010d39cbf44e34b730d" kindref="member">gemv_generic_impl</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*W,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*x,<sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*y,</highlight></codeline>
+<codeline lineno="74"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>rows,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>cols,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*bias,</highlight></codeline>
+<codeline lineno="75"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>blk_k)<sp/>{</highlight></codeline>
+<codeline lineno="76"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>BK<sp/>=<sp/>(blk_k<sp/>&gt;<sp/>0<sp/>?<sp/>blk_k<sp/>:<sp/>cols);</highlight></codeline>
+<codeline lineno="77"><highlight class="normal"></highlight></codeline>
+<codeline lineno="78"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>r<sp/>=<sp/>0;<sp/>r<sp/>&lt;<sp/>rows;<sp/>++r)<sp/>{</highlight></codeline>
+<codeline lineno="79"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*wrow<sp/>=<sp/>W<sp/>+<sp/>r<sp/>*<sp/>cols;</highlight></codeline>
+<codeline lineno="80"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>acc<sp/>=<sp/>0.0f;</highlight></codeline>
+<codeline lineno="81"><highlight class="normal"></highlight></codeline>
+<codeline lineno="82"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>kofs<sp/>=<sp/>0;</highlight></codeline>
+<codeline lineno="83"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>k0<sp/>=<sp/>0;<sp/>k0<sp/>&lt;<sp/>cols;<sp/>k0<sp/>+=<sp/>BK)<sp/>{</highlight></codeline>
+<codeline lineno="84"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>klen<sp/>=<sp/>(k0<sp/>+<sp/>BK<sp/>&lt;=<sp/>cols)<sp/>?<sp/>BK<sp/>:<sp/>(cols<sp/>-<sp/>k0);</highlight></codeline>
+<codeline lineno="85"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*wblk<sp/>=<sp/>wrow<sp/>+<sp/>kofs;</highlight></codeline>
+<codeline lineno="86"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*xblk<sp/>=<sp/>x<sp/>+<sp/>k0;</highlight></codeline>
+<codeline lineno="87"><highlight class="normal"></highlight></codeline>
+<codeline lineno="88"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>k<sp/>=<sp/>0;<sp/>k<sp/>&lt;<sp/>klen;<sp/>++k)<sp/>acc<sp/>+=<sp/>wblk[k]<sp/>*<sp/>xblk[k];</highlight></codeline>
+<codeline lineno="89"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>kofs<sp/>+=<sp/>klen;</highlight></codeline>
+<codeline lineno="90"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="91"><highlight class="normal"></highlight></codeline>
+<codeline lineno="92"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(bias)<sp/>acc<sp/>+=<sp/>bias[r];</highlight></codeline>
+<codeline lineno="93"><highlight class="normal"><sp/><sp/><sp/><sp/>y[r]<sp/>=<sp/>acc;</highlight></codeline>
+<codeline lineno="94"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="95"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="96"><highlight class="normal"></highlight></codeline>
+<codeline lineno="114" refid="gemv__generic_8c_1aae97939d123420c09e5c3d4d7575b934" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="gemv__generic_8c_1aae97939d123420c09e5c3d4d7575b934" kindref="member">gemv_qi8_f32_fused_c_impl</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*W,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>int8_t<sp/>*x_q,</highlight></codeline>
+<codeline lineno="115"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*y,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>rows,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>cols,</highlight></codeline>
+<codeline lineno="116"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*bias,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>blk_k,</highlight></codeline>
+<codeline lineno="117"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="structie__act__i8__params" kindref="compound">ie_act_i8_params</ref><sp/>params,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>symmetric)<sp/>{</highlight></codeline>
+<codeline lineno="118"><highlight class="normal"><sp/><sp/>(void)symmetric;</highlight></codeline>
+<codeline lineno="119"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>BK<sp/>=<sp/>(blk_k<sp/>&gt;<sp/>0<sp/>?<sp/>blk_k<sp/>:<sp/>cols);</highlight></codeline>
+<codeline lineno="120"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>s<sp/>=<sp/>params.<ref refid="structie__act__i8__params_1ac0ec31737c16640ac332b562ea6be9a1" kindref="member">scale</ref>;</highlight></codeline>
+<codeline lineno="121"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>z<sp/>=<sp/>(int)params.<ref refid="structie__act__i8__params_1ab19e71539ecb14b16a4c65b425be4c32" kindref="member">zero_point</ref>;</highlight></codeline>
+<codeline lineno="122"><highlight class="normal"></highlight></codeline>
+<codeline lineno="123"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>r<sp/>=<sp/>0;<sp/>r<sp/>&lt;<sp/>rows;<sp/>++r)<sp/>{</highlight></codeline>
+<codeline lineno="124"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*wrow<sp/>=<sp/>W<sp/>+<sp/>r<sp/>*<sp/>cols;</highlight></codeline>
+<codeline lineno="125"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>acc<sp/>=<sp/>0.0f;</highlight></codeline>
+<codeline lineno="126"><highlight class="normal"></highlight></codeline>
+<codeline lineno="127"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>kofs<sp/>=<sp/>0;</highlight></codeline>
+<codeline lineno="128"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>k0<sp/>=<sp/>0;<sp/>k0<sp/>&lt;<sp/>cols;<sp/>k0<sp/>+=<sp/>BK)<sp/>{</highlight></codeline>
+<codeline lineno="129"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>klen<sp/>=<sp/>(k0<sp/>+<sp/>BK<sp/>&lt;=<sp/>cols)<sp/>?<sp/>BK<sp/>:<sp/>(cols<sp/>-<sp/>k0);</highlight></codeline>
+<codeline lineno="130"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*wblk<sp/>=<sp/>wrow<sp/>+<sp/>kofs;</highlight></codeline>
+<codeline lineno="131"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>int8_t<sp/>*xblk<sp/>=<sp/>x_q<sp/>+<sp/>k0;</highlight></codeline>
+<codeline lineno="132"><highlight class="normal"></highlight></codeline>
+<codeline lineno="133"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>k<sp/>=<sp/>0;<sp/>k<sp/>&lt;<sp/>klen;<sp/>++k)<sp/>{</highlight></codeline>
+<codeline lineno="134"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>xv<sp/>=<sp/>s<sp/>*<sp/>((int)xblk[k]<sp/>-<sp/>z);</highlight></codeline>
+<codeline lineno="135"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>acc<sp/>+=<sp/>wblk[k]<sp/>*<sp/>xv;</highlight></codeline>
+<codeline lineno="136"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="137"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>kofs<sp/>+=<sp/>klen;</highlight></codeline>
+<codeline lineno="138"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="139"><highlight class="normal"></highlight></codeline>
+<codeline lineno="140"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(bias)<sp/>acc<sp/>+=<sp/>bias[r];</highlight></codeline>
+<codeline lineno="141"><highlight class="normal"><sp/><sp/><sp/><sp/>y[r]<sp/>=<sp/>acc;</highlight></codeline>
+<codeline lineno="142"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="143"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="144"><highlight class="normal"></highlight></codeline>
+<codeline lineno="163" refid="gemv__generic_8c_1a439a61ba39c741d7730f5615e540ca9c" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="gemv__generic_8c_1a439a61ba39c741d7730f5615e540ca9c" kindref="member">gemv_qi8pg_f32_fused_c_impl</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*W,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>int8_t<sp/>*x_q,</highlight></codeline>
+<codeline lineno="164"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*y,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>rows,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>cols,</highlight></codeline>
+<codeline lineno="165"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*bias,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>blk_k,</highlight></codeline>
+<codeline lineno="166"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>group_size,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*scales,</highlight></codeline>
+<codeline lineno="167"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>int8_t<sp/>*zeros,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>symmetric)<sp/>{</highlight></codeline>
+<codeline lineno="168"><highlight class="normal"><sp/><sp/>(void)symmetric;</highlight></codeline>
+<codeline lineno="169"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>BK<sp/>=<sp/>(blk_k<sp/>&gt;<sp/>0<sp/>?<sp/>blk_k<sp/>:<sp/>cols);</highlight></codeline>
+<codeline lineno="170"><highlight class="normal"></highlight></codeline>
+<codeline lineno="171"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>r<sp/>=<sp/>0;<sp/>r<sp/>&lt;<sp/>rows;<sp/>++r)<sp/>{</highlight></codeline>
+<codeline lineno="172"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*wrow<sp/>=<sp/>W<sp/>+<sp/>r<sp/>*<sp/>cols;</highlight></codeline>
+<codeline lineno="173"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>acc<sp/>=<sp/>0.0f;</highlight></codeline>
+<codeline lineno="174"><highlight class="normal"></highlight></codeline>
+<codeline lineno="175"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>kofs<sp/>=<sp/>0;</highlight></codeline>
+<codeline lineno="176"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>k0<sp/>=<sp/>0;<sp/>k0<sp/>&lt;<sp/>cols;<sp/>k0<sp/>+=<sp/>BK)<sp/>{</highlight></codeline>
+<codeline lineno="177"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>klen<sp/>=<sp/>(k0<sp/>+<sp/>BK<sp/>&lt;=<sp/>cols)<sp/>?<sp/>BK<sp/>:<sp/>(cols<sp/>-<sp/>k0);</highlight></codeline>
+<codeline lineno="178"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*wblk<sp/>=<sp/>wrow<sp/>+<sp/>kofs;</highlight></codeline>
+<codeline lineno="179"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>int8_t<sp/>*xblk<sp/>=<sp/>x_q<sp/>+<sp/>k0;</highlight></codeline>
+<codeline lineno="180"><highlight class="normal"></highlight></codeline>
+<codeline lineno="181"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>k<sp/>=<sp/>0;<sp/>k<sp/>&lt;<sp/>klen;<sp/>++k)<sp/>{</highlight></codeline>
+<codeline lineno="182"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>g<sp/>=<sp/>(k0<sp/>+<sp/>k)<sp/>/<sp/>group_size;</highlight></codeline>
+<codeline lineno="183"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>s<sp/>=<sp/>scales[g];</highlight></codeline>
+<codeline lineno="184"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>z<sp/>=<sp/>(int)zeros[g];</highlight></codeline>
+<codeline lineno="185"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>xv<sp/>=<sp/>s<sp/>*<sp/>((int)xblk[k]<sp/>-<sp/>z);</highlight></codeline>
+<codeline lineno="186"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>acc<sp/>+=<sp/>wblk[k]<sp/>*<sp/>xv;</highlight></codeline>
+<codeline lineno="187"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="188"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>kofs<sp/>+=<sp/>klen;</highlight></codeline>
+<codeline lineno="189"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="190"><highlight class="normal"></highlight></codeline>
+<codeline lineno="191"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(bias)<sp/>acc<sp/>+=<sp/>bias[r];</highlight></codeline>
+<codeline lineno="192"><highlight class="normal"><sp/><sp/><sp/><sp/>y[r]<sp/>=<sp/>acc;</highlight></codeline>
+<codeline lineno="193"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="194"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="195"><highlight class="normal"></highlight></codeline>
+<codeline lineno="201" refid="gemv__generic_8c_1ab15089960891cb16691529c685e7a96b" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">inline</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/><ref refid="gemv__generic_8c_1ab15089960891cb16691529c685e7a96b" kindref="member">ie_decode_fp8_e4m3</ref>(uint8_t<sp/>v)<sp/>{</highlight></codeline>
+<codeline lineno="202"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(v<sp/>==<sp/>0u)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>0.0f;</highlight></codeline>
+<codeline lineno="203"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>uint8_t<sp/>sign<sp/>=<sp/>(v<sp/>&gt;&gt;<sp/>7)<sp/>&amp;<sp/>0x1;</highlight></codeline>
+<codeline lineno="204"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>uint8_t<sp/>exp<sp/>=<sp/>(v<sp/>&gt;&gt;<sp/>3)<sp/>&amp;<sp/>0xF;</highlight></codeline>
+<codeline lineno="205"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>uint8_t<sp/>man<sp/>=<sp/>(v<sp/>&amp;<sp/>0x7);</highlight></codeline>
+<codeline lineno="206"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(exp<sp/>==<sp/>0)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>sign<sp/>?<sp/>-0.0f<sp/>:<sp/>0.0f;</highlight></codeline>
+<codeline lineno="207"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>bias<sp/>=<sp/>7;</highlight></codeline>
+<codeline lineno="208"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>e<sp/>=<sp/>(int)exp<sp/>-<sp/>bias;</highlight></codeline>
+<codeline lineno="209"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>frac<sp/>=<sp/>(float)man<sp/>/<sp/>8.0f;</highlight></codeline>
+<codeline lineno="210"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>val<sp/>=<sp/>(1.0f<sp/>+<sp/>frac)<sp/>*<sp/>(</highlight><highlight class="keywordtype">float</highlight><highlight class="normal">)(1u<sp/>&lt;&lt;<sp/>e);</highlight></codeline>
+<codeline lineno="211"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>sign<sp/>?<sp/>-val<sp/>:<sp/>val;</highlight></codeline>
+<codeline lineno="212"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="213"><highlight class="normal"></highlight></codeline>
+<codeline lineno="219" refid="gemv__generic_8c_1a2caa51b99ab073c3a53146ca26153558" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">inline</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/><ref refid="gemv__generic_8c_1a2caa51b99ab073c3a53146ca26153558" kindref="member">ie_decode_fp8_e5m2</ref>(uint8_t<sp/>v)<sp/>{</highlight></codeline>
+<codeline lineno="220"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>uint8_t<sp/>sign<sp/>=<sp/>(v<sp/>&gt;&gt;<sp/>7)<sp/>&amp;<sp/>0x1;</highlight></codeline>
+<codeline lineno="221"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>uint8_t<sp/>exp<sp/>=<sp/>(v<sp/>&gt;&gt;<sp/>2)<sp/>&amp;<sp/>0x1F;</highlight></codeline>
+<codeline lineno="222"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>uint8_t<sp/>man<sp/>=<sp/>(v<sp/>&amp;<sp/>0x3);</highlight></codeline>
+<codeline lineno="223"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(exp<sp/>==<sp/>0)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>sign<sp/>?<sp/>-0.0f<sp/>:<sp/>0.0f;</highlight></codeline>
+<codeline lineno="224"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(exp<sp/>==<sp/>0x1F)<sp/>{</highlight></codeline>
+<codeline lineno="225"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(man<sp/>==<sp/>0)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>sign<sp/>?<sp/>-(__builtin_inff())<sp/>:<sp/>(__builtin_inff());</highlight></codeline>
+<codeline lineno="226"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">volatile</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>qnan<sp/>=<sp/>__builtin_nanf(</highlight><highlight class="stringliteral">&quot;0x1&quot;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="227"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>qnan;</highlight></codeline>
+<codeline lineno="228"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="229"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>bias<sp/>=<sp/>15;</highlight></codeline>
+<codeline lineno="230"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>e<sp/>=<sp/>(int)exp<sp/>-<sp/>bias;</highlight></codeline>
+<codeline lineno="231"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>frac<sp/>=<sp/>(float)man<sp/>/<sp/>4.0f;</highlight></codeline>
+<codeline lineno="232"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>val<sp/>=<sp/>(1.0f<sp/>+<sp/>frac)<sp/>*<sp/>(</highlight><highlight class="keywordtype">float</highlight><highlight class="normal">)(1u<sp/>&lt;&lt;<sp/>e);</highlight></codeline>
+<codeline lineno="233"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>sign<sp/>?<sp/>-val<sp/>:<sp/>val;</highlight></codeline>
+<codeline lineno="234"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="235"><highlight class="normal"></highlight></codeline>
+<codeline lineno="236"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>==========================================================================<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="237"><highlight class="normal"></highlight><highlight class="comment">/*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Public<sp/>API<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="238"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>==========================================================================<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="239"><highlight class="normal"></highlight></codeline>
+<codeline lineno="249" refid="ie__kernels_8h_1a1b919f71b86ec1791fe53bc68d5c240d" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="gemv__generic_8c_1a1b919f71b86ec1791fe53bc68d5c240d" kindref="member">ie_kernels_install</ref>(</highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>use_avx2)<sp/>{</highlight></codeline>
+<codeline lineno="250"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>use_avx2_runtime<sp/>=<sp/>0;</highlight></codeline>
+<codeline lineno="251"><highlight class="normal"></highlight><highlight class="preprocessor">#if<sp/>defined(__x86_64__)<sp/>||<sp/>defined(_M_X64)<sp/>||<sp/>defined(__i386__)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="252"><highlight class="normal"></highlight><highlight class="preprocessor">#if<sp/>defined(__GNUC__)<sp/>||<sp/>defined(__clang__)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="253"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(use_avx2)<sp/>{</highlight></codeline>
+<codeline lineno="254"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(__builtin_cpu_supports(</highlight><highlight class="stringliteral">&quot;avx2&quot;</highlight><highlight class="normal">)<sp/>&amp;&amp;<sp/>__builtin_cpu_supports(</highlight><highlight class="stringliteral">&quot;fma&quot;</highlight><highlight class="normal">))<sp/>{</highlight></codeline>
+<codeline lineno="255"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>use_avx2_runtime<sp/>=<sp/>1;</highlight></codeline>
+<codeline lineno="256"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="257"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="258"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="259"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="260"><highlight class="normal"></highlight></codeline>
+<codeline lineno="261"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(use_avx2_runtime)<sp/>{</highlight></codeline>
+<codeline lineno="262"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="gemv__generic_8c_1aa80eb69d355054f1f8213721e72bec9a" kindref="member">s_gemv_f32</ref><sp/>=<sp/><ref refid="gemv__avx2_8c_1a63b484c2984caeed7dfc9b5002444f57" kindref="member">ie_gemv_f32_avx2_impl</ref>;</highlight></codeline>
+<codeline lineno="263"><highlight class="normal"><sp/><sp/>}<sp/></highlight><highlight class="keywordflow">else</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="264"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="gemv__generic_8c_1aa80eb69d355054f1f8213721e72bec9a" kindref="member">s_gemv_f32</ref><sp/>=<sp/><ref refid="gemv__generic_8c_1a51096a373f5e5010d39cbf44e34b730d" kindref="member">gemv_generic_impl</ref>;</highlight></codeline>
+<codeline lineno="265"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="266"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="267"><highlight class="normal"></highlight></codeline>
+<codeline lineno="279" refid="ie__kernels_8h_1a4e112b3396ed21919f404631c1d4d7fb" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="gemv__generic_8c_1a4e112b3396ed21919f404631c1d4d7fb" kindref="member">ie_gemv_f32</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*W,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*x,<sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*y,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>rows,</highlight></codeline>
+<codeline lineno="280"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>cols,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*bias,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>blk_k)<sp/>{</highlight></codeline>
+<codeline lineno="281"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!<ref refid="gemv__generic_8c_1aa80eb69d355054f1f8213721e72bec9a" kindref="member">s_gemv_f32</ref>)<sp/><ref refid="gemv__generic_8c_1a1b919f71b86ec1791fe53bc68d5c240d" kindref="member">ie_kernels_install</ref>(</highlight><highlight class="comment">/*use_avx2=*/</highlight><highlight class="normal">1);</highlight></codeline>
+<codeline lineno="282"><highlight class="normal"><sp/><sp/><ref refid="gemv__generic_8c_1aa80eb69d355054f1f8213721e72bec9a" kindref="member">s_gemv_f32</ref>(W,<sp/>x,<sp/>y,<sp/>rows,<sp/>cols,<sp/>bias,<sp/>blk_k);</highlight></codeline>
+<codeline lineno="283"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="284"><highlight class="normal"></highlight></codeline>
+<codeline lineno="298" refid="gemv__generic_8c_1abd518beacb02189b5b640948ed348f25" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="gemv__generic_8c_1abd518beacb02189b5b640948ed348f25" kindref="member">ie_gemv_qi8_f32</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*W,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>int8_t<sp/>*x_q,<sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*y,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>rows,</highlight></codeline>
+<codeline lineno="299"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>cols,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*bias,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>blk_k,</highlight></codeline>
+<codeline lineno="300"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="structie__act__i8__params" kindref="compound">ie_act_i8_params</ref><sp/>params,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>symmetric)<sp/>{</highlight></codeline>
+<codeline lineno="301"><highlight class="normal"></highlight><highlight class="preprocessor">#if<sp/>defined(__GNUC__)<sp/>||<sp/>defined(__clang__)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="302"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(__builtin_cpu_supports(</highlight><highlight class="stringliteral">&quot;avx2&quot;</highlight><highlight class="normal">)<sp/>&amp;&amp;<sp/>__builtin_cpu_supports(</highlight><highlight class="stringliteral">&quot;fma&quot;</highlight><highlight class="normal">))<sp/>{</highlight></codeline>
+<codeline lineno="303"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="gemv__generic_8c_1aa8a6c887be55a3af970b49855f86682d" kindref="member">ie_gemv_qi8_f32_avx2_impl</ref>(W,<sp/>x_q,<sp/>y,<sp/>rows,<sp/>cols,<sp/>bias,<sp/>blk_k,<sp/>params,</highlight></codeline>
+<codeline lineno="304"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>symmetric);</highlight></codeline>
+<codeline lineno="305"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="306"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="307"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="308"><highlight class="normal"><sp/><sp/><ref refid="gemv__generic_8c_1aae97939d123420c09e5c3d4d7575b934" kindref="member">gemv_qi8_f32_fused_c_impl</ref>(W,<sp/>x_q,<sp/>y,<sp/>rows,<sp/>cols,<sp/>bias,<sp/>blk_k,<sp/>params,</highlight></codeline>
+<codeline lineno="309"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>symmetric);</highlight></codeline>
+<codeline lineno="310"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="311"><highlight class="normal"></highlight></codeline>
+<codeline lineno="327" refid="gemv__generic_8c_1abf2b6125d5d567523a5d113f09dd73ee" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="gemv__generic_8c_1abf2b6125d5d567523a5d113f09dd73ee" kindref="member">ie_gemv_qi8pg_f32</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*W,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>int8_t<sp/>*x_q,<sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*y,</highlight></codeline>
+<codeline lineno="328"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>rows,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>cols,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*bias,</highlight></codeline>
+<codeline lineno="329"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>blk_k,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>group_size,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*scales,</highlight></codeline>
+<codeline lineno="330"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>int8_t<sp/>*zeros,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>symmetric)<sp/>{</highlight></codeline>
+<codeline lineno="331"><highlight class="normal"><sp/><sp/><ref refid="gemv__generic_8c_1a439a61ba39c741d7730f5615e540ca9c" kindref="member">gemv_qi8pg_f32_fused_c_impl</ref>(W,<sp/>x_q,<sp/>y,<sp/>rows,<sp/>cols,<sp/>bias,<sp/>blk_k,<sp/>group_size,</highlight></codeline>
+<codeline lineno="332"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>scales,<sp/>zeros,<sp/>symmetric);</highlight></codeline>
+<codeline lineno="333"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="334"><highlight class="normal"></highlight></codeline>
+<codeline lineno="347" refid="gemv__generic_8c_1a7548a57990692513f283a22543688e1b" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="gemv__generic_8c_1a7548a57990692513f283a22543688e1b" kindref="member">ie_gemv_qfp8_f32</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*W,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>uint8_t<sp/>*x_fp8,<sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*y,</highlight></codeline>
+<codeline lineno="348"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>rows,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>cols,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*bias,</highlight></codeline>
+<codeline lineno="349"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>blk_k,<sp/><ref refid="ie__quant__act_8h_1a67a1bdaa8281d1c69b6b76ecba79c52c" kindref="member">ie_fp8_format</ref><sp/>fmt)<sp/>{</highlight></codeline>
+<codeline lineno="350"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>BK<sp/>=<sp/>(blk_k<sp/>&gt;<sp/>0<sp/>?<sp/>blk_k<sp/>:<sp/>cols);</highlight></codeline>
+<codeline lineno="351"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>use_e4m3<sp/>=<sp/>(fmt<sp/>==<sp/><ref refid="ie__quant__act_8h_1a67a1bdaa8281d1c69b6b76ecba79c52ca67cfe56fcb473bed9a2f92388f2fc347" kindref="member">IE_FP8_E4M3</ref>);</highlight></codeline>
+<codeline lineno="352"><highlight class="normal"></highlight></codeline>
+<codeline lineno="353"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>r<sp/>=<sp/>0;<sp/>r<sp/>&lt;<sp/>rows;<sp/>++r)<sp/>{</highlight></codeline>
+<codeline lineno="354"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*wrow<sp/>=<sp/>W<sp/>+<sp/>r<sp/>*<sp/>cols;</highlight></codeline>
+<codeline lineno="355"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>acc<sp/>=<sp/>0.0f;</highlight></codeline>
+<codeline lineno="356"><highlight class="normal"></highlight></codeline>
+<codeline lineno="357"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>kofs<sp/>=<sp/>0;</highlight></codeline>
+<codeline lineno="358"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>k0<sp/>=<sp/>0;<sp/>k0<sp/>&lt;<sp/>cols;<sp/>k0<sp/>+=<sp/>BK)<sp/>{</highlight></codeline>
+<codeline lineno="359"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>klen<sp/>=<sp/>(k0<sp/>+<sp/>BK<sp/>&lt;=<sp/>cols)<sp/>?<sp/>BK<sp/>:<sp/>(cols<sp/>-<sp/>k0);</highlight></codeline>
+<codeline lineno="360"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*wblk<sp/>=<sp/>wrow<sp/>+<sp/>kofs;</highlight></codeline>
+<codeline lineno="361"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>uint8_t<sp/>*xblk<sp/>=<sp/>x_fp8<sp/>+<sp/>k0;</highlight></codeline>
+<codeline lineno="362"><highlight class="normal"></highlight></codeline>
+<codeline lineno="363"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>k<sp/>=<sp/>0;<sp/>k<sp/>&lt;<sp/>klen;<sp/>++k)<sp/>{</highlight></codeline>
+<codeline lineno="364"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>uint8_t<sp/>b<sp/>=<sp/>xblk[k];</highlight></codeline>
+<codeline lineno="365"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>xv<sp/>=</highlight></codeline>
+<codeline lineno="366"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>use_e4m3<sp/>?<sp/><ref refid="gemv__generic_8c_1ab15089960891cb16691529c685e7a96b" kindref="member">ie_decode_fp8_e4m3</ref>(b)<sp/>:<sp/><ref refid="gemv__generic_8c_1a2caa51b99ab073c3a53146ca26153558" kindref="member">ie_decode_fp8_e5m2</ref>(b);</highlight></codeline>
+<codeline lineno="367"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>acc<sp/>+=<sp/>wblk[k]<sp/>*<sp/>xv;</highlight></codeline>
+<codeline lineno="368"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="369"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>kofs<sp/>+=<sp/>klen;</highlight></codeline>
+<codeline lineno="370"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="371"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(bias)<sp/>acc<sp/>+=<sp/>bias[r];</highlight></codeline>
+<codeline lineno="372"><highlight class="normal"><sp/><sp/><sp/><sp/>y[r]<sp/>=<sp/>acc;</highlight></codeline>
+<codeline lineno="373"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="374"><highlight class="normal">}</highlight></codeline>
     </programlisting>
     <location file="engine/src/kernels/gemv_generic.c"/>
   </compounddef>

@@ -173,7 +173,7 @@ Functions</h2></td></tr>
 <li>Convenience utilities: row-bytes computation and simple error metrics.</li>
 </ul>
 <p>The API does not depend on any project-specific types. Callers supply plain pointers and sizes. No dynamic memory allocation occurs inside; the caller owns all buffers.</p>
-<h2><a class="anchor" id="autotoc_md39"></a>
+<h2><a class="anchor" id="autotoc_md53"></a>
 Packing layout (row-major)</h2>
 <p>For a matrix of shape (rows, cols):</p>
 <p>bytes_per_row = (cols + 1) / 2</p>
@@ -183,11 +183,11 @@ Packing layout (row-major)</h2>
 <li>q1_u = (uint8_t)(q1 + 8) // high nibble, column j+1</li>
 </ul>
 <p>When cols is odd, the last high nibble of the row is set to the encoding of 0 (i.e., 8) to keep the representation canonical.</p>
-<h2><a class="anchor" id="autotoc_md40"></a>
+<h2><a class="anchor" id="autotoc_md54"></a>
 Quantization rule</h2>
 <p>scale = max(|W|) / 7 q = round(W / scale) q = clamp(q, -7, +7)</p>
 <p>For per-row quantization, the scale is computed independently for each row.</p>
-<h2><a class="anchor" id="autotoc_md41"></a>
+<h2><a class="anchor" id="autotoc_md55"></a>
 Error handling</h2>
 <p>All functions return 0 on success and a negative value on failure:</p><ul>
 <li>IE_INT4_STATUS_OK (0)</li>

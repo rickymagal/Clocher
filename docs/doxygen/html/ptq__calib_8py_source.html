@@ -118,7 +118,7 @@ $(function(){initNavTree('ptq__calib_8py_source.html',''); initResizable(true); 
 <div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span><span class="stringliteral">  - &lt;prefix&gt;.int4.w.bin             # row-major 4-bit packed weights (if --wbits=4)</span></div>
 <div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span><span class="stringliteral"></span> </div>
 <div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span><span class="stringliteral">Packing (INT4):</span></div>
-<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span><span class="stringliteral">  - Signed 4-bit values in two&#39;s complement, range [-8..7]</span></div>
+<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span><span class="stringliteral">  - Signed 4-bit values using &quot;+8 bias&quot; scheme over range [-7..+7]</span></div>
 <div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span><span class="stringliteral">  - Two values packed per byte: low nibble = column j (even), high nibble = j+1</span></div>
 <div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span><span class="stringliteral">  - Row-major order; each row occupies ceil(cols/2) bytes</span></div>
 <div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span><span class="stringliteral"></span> </div>
@@ -279,9 +279,9 @@ $(function(){initNavTree('ptq__calib_8py_source.html',''); initResizable(true); 
 <div class="line"><a id="l00170" name="l00170"></a><span class="lineno">  170</span> </div>
 </div>
 <div class="foldopen" id="foldopen00171" data-start="" data-end="">
-<div class="line"><a id="l00171" name="l00171"></a><span class="lineno"><a class="line" href="namespaceptq__calib.html#aa6020564afa3bb98f636c4a2bcfe7f25">  171</a></span><span class="keyword">def </span><a class="code hl_function" href="namespaceptq__calib.html#aa6020564afa3bb98f636c4a2bcfe7f25">_pack_row_int4_signed</a>(q_row: np.ndarray) -&gt; bytes:</div>
+<div class="line"><a id="l00171" name="l00171"></a><span class="lineno"><a class="line" href="namespaceptq__calib.html#a411585cffe038415fa4a50d31152a8fc">  171</a></span><span class="keyword">def </span><a class="code hl_function" href="namespaceptq__calib.html#a411585cffe038415fa4a50d31152a8fc">_pack_row_int4_biased</a>(q_row: np.ndarray) -&gt; bytes:</div>
 <div class="line"><a id="l00172" name="l00172"></a><span class="lineno">  172</span>    <span class="stringliteral">&quot;&quot;&quot;</span></div>
-<div class="line"><a id="l00173" name="l00173"></a><span class="lineno">  173</span><span class="stringliteral">    Pack a single int8 row (values in [-8..7]) into int4 bytes.</span></div>
+<div class="line"><a id="l00173" name="l00173"></a><span class="lineno">  173</span><span class="stringliteral">    Pack a single int8 row using the +8 bias INT4 scheme (range [-7..+7]).</span></div>
 <div class="line"><a id="l00174" name="l00174"></a><span class="lineno">  174</span><span class="stringliteral"></span> </div>
 <div class="line"><a id="l00175" name="l00175"></a><span class="lineno">  175</span><span class="stringliteral">    Low nibble holds column j (even), high nibble holds column j+1 (odd).</span></div>
 <div class="line"><a id="l00176" name="l00176"></a><span class="lineno">  176</span><span class="stringliteral">    &quot;&quot;&quot;</span></div>
@@ -289,12 +289,12 @@ $(function(){initNavTree('ptq__calib_8py_source.html',''); initResizable(true); 
 <div class="line"><a id="l00178" name="l00178"></a><span class="lineno">  178</span>    <span class="keywordflow">if</span> n % 2 != 0:</div>
 <div class="line"><a id="l00179" name="l00179"></a><span class="lineno">  179</span>        q_row = np.concatenate([q_row, np.zeros(1, dtype=np.int8)], axis=0)</div>
 <div class="line"><a id="l00180" name="l00180"></a><span class="lineno">  180</span>        n += 1</div>
-<div class="line"><a id="l00181" name="l00181"></a><span class="lineno">  181</span>    <span class="comment"># Two&#39;s complement mapping into [0..15]</span></div>
-<div class="line"><a id="l00182" name="l00182"></a><span class="lineno">  182</span>    nibbles = (q_row.astype(np.int8) &amp; 0x0F).astype(np.uint8)</div>
-<div class="line"><a id="l00183" name="l00183"></a><span class="lineno">  183</span>    lo = nibbles[0::2]</div>
-<div class="line"><a id="l00184" name="l00184"></a><span class="lineno">  184</span>    hi = nibbles[1::2] &lt;&lt; 4</div>
-<div class="line"><a id="l00185" name="l00185"></a><span class="lineno">  185</span>    packed = (lo | hi).astype(np.uint8).tobytes()</div>
-<div class="line"><a id="l00186" name="l00186"></a><span class="lineno">  186</span>    <span class="keywordflow">return</span> packed</div>
+<div class="line"><a id="l00181" name="l00181"></a><span class="lineno">  181</span>    <span class="comment"># Clamp to [-7, +7], then add bias +8 to map into [1..15] (0 unused), mask to 4 bits.</span></div>
+<div class="line"><a id="l00182" name="l00182"></a><span class="lineno">  182</span>    q_row = np.clip(q_row, -7, 7).astype(np.int8, copy=<span class="keyword">False</span>)</div>
+<div class="line"><a id="l00183" name="l00183"></a><span class="lineno">  183</span>    nibbles = (q_row.astype(np.int16) + 8).astype(np.uint8) &amp; 0x0F</div>
+<div class="line"><a id="l00184" name="l00184"></a><span class="lineno">  184</span>    lo = nibbles[0::2]</div>
+<div class="line"><a id="l00185" name="l00185"></a><span class="lineno">  185</span>    hi = (nibbles[1::2] &lt;&lt; 4)</div>
+<div class="line"><a id="l00186" name="l00186"></a><span class="lineno">  186</span>    <span class="keywordflow">return</span> (lo | hi).astype(np.uint8).tobytes()</div>
 <div class="line"><a id="l00187" name="l00187"></a><span class="lineno">  187</span> </div>
 <div class="line"><a id="l00188" name="l00188"></a><span class="lineno">  188</span> </div>
 </div>
@@ -303,7 +303,7 @@ $(function(){initNavTree('ptq__calib_8py_source.html',''); initResizable(true); 
 <div class="line"><a id="l00190" name="l00190"></a><span class="lineno">  190</span>    W: np.ndarray, scales: np.ndarray, mode: str</div>
 <div class="line"><a id="l00191" name="l00191"></a><span class="lineno">  191</span>) -&gt; Tuple[bytes, np.ndarray]:</div>
 <div class="line"><a id="l00192" name="l00192"></a><span class="lineno">  192</span>    <span class="stringliteral">&quot;&quot;&quot;</span></div>
-<div class="line"><a id="l00193" name="l00193"></a><span class="lineno">  193</span><span class="stringliteral">    Quantize to signed INT4 (two&#39;s complement, range [-8..7]) and pack.</span></div>
+<div class="line"><a id="l00193" name="l00193"></a><span class="lineno">  193</span><span class="stringliteral">    Quantize to INT4 using +8 bias scheme (range [-7..+7]) and pack to nibbles.</span></div>
 <div class="line"><a id="l00194" name="l00194"></a><span class="lineno">  194</span><span class="stringliteral"></span> </div>
 <div class="line"><a id="l00195" name="l00195"></a><span class="lineno">  195</span><span class="stringliteral">    Parameters</span></div>
 <div class="line"><a id="l00196" name="l00196"></a><span class="lineno">  196</span><span class="stringliteral">    ----------</span></div>
@@ -320,7 +320,7 @@ $(function(){initNavTree('ptq__calib_8py_source.html',''); initResizable(true); 
 <div class="line"><a id="l00207" name="l00207"></a><span class="lineno">  207</span><span class="stringliteral">        packed_bytes: bytes object containing row-major packed int4</span></div>
 <div class="line"><a id="l00208" name="l00208"></a><span class="lineno">  208</span><span class="stringliteral">        W_hat: float32 dequantized reconstruction (for metrics)</span></div>
 <div class="line"><a id="l00209" name="l00209"></a><span class="lineno">  209</span><span class="stringliteral">    &quot;&quot;&quot;</span></div>
-<div class="line"><a id="l00210" name="l00210"></a><span class="lineno">  210</span>    qmin, qmax = -8, 7</div>
+<div class="line"><a id="l00210" name="l00210"></a><span class="lineno">  210</span>    qmin, qmax = -7, 7</div>
 <div class="line"><a id="l00211" name="l00211"></a><span class="lineno">  211</span>    <span class="keywordflow">if</span> mode == <span class="stringliteral">&quot;per_row&quot;</span>:</div>
 <div class="line"><a id="l00212" name="l00212"></a><span class="lineno">  212</span>        s = scales[:, <span class="keywordtype">None</span>]  <span class="comment"># (rows, 1)</span></div>
 <div class="line"><a id="l00213" name="l00213"></a><span class="lineno">  213</span>    <span class="keywordflow">else</span>:</div>
@@ -334,7 +334,7 @@ $(function(){initNavTree('ptq__calib_8py_source.html',''); initResizable(true); 
 <div class="line"><a id="l00221" name="l00221"></a><span class="lineno">  221</span>    rows = Q.shape[0]</div>
 <div class="line"><a id="l00222" name="l00222"></a><span class="lineno">  222</span>    packed_rows = []</div>
 <div class="line"><a id="l00223" name="l00223"></a><span class="lineno">  223</span>    <span class="keywordflow">for</span> r <span class="keywordflow">in</span> range(rows):</div>
-<div class="line"><a id="l00224" name="l00224"></a><span class="lineno">  224</span>        packed_rows.append(<a class="code hl_function" href="namespaceptq__calib.html#aa6020564afa3bb98f636c4a2bcfe7f25">_pack_row_int4_signed</a>(Q[r]))</div>
+<div class="line"><a id="l00224" name="l00224"></a><span class="lineno">  224</span>        packed_rows.append(<a class="code hl_function" href="namespaceptq__calib.html#a411585cffe038415fa4a50d31152a8fc">_pack_row_int4_biased</a>(Q[r]))</div>
 <div class="line"><a id="l00225" name="l00225"></a><span class="lineno">  225</span>    packed = b<span class="stringliteral">&quot;&quot;</span>.join(packed_rows)</div>
 <div class="line"><a id="l00226" name="l00226"></a><span class="lineno">  226</span>    <span class="keywordflow">return</span> packed, W_hat</div>
 <div class="line"><a id="l00227" name="l00227"></a><span class="lineno">  227</span> </div>
@@ -417,7 +417,7 @@ $(function(){initNavTree('ptq__calib_8py_source.html',''); initResizable(true); 
 <div class="line"><a id="l00298" name="l00298"></a><span class="lineno">  298</span>        Path(weight_path).parent.mkdir(parents=<span class="keyword">True</span>, exist_ok=<span class="keyword">True</span>)</div>
 <div class="line"><a id="l00299" name="l00299"></a><span class="lineno">  299</span>        <span class="keyword">with</span> open(weight_path, <span class="stringliteral">&quot;wb&quot;</span>) <span class="keyword">as</span> f:</div>
 <div class="line"><a id="l00300" name="l00300"></a><span class="lineno">  300</span>            f.write(packed_bytes)</div>
-<div class="line"><a id="l00301" name="l00301"></a><span class="lineno">  301</span>        packed_note = <span class="stringliteral">&quot;int4 packed (two&#39;s complement), low nibble = even col&quot;</span></div>
+<div class="line"><a id="l00301" name="l00301"></a><span class="lineno">  301</span>        packed_note = <span class="stringliteral">&quot;int4 packed (+8 bias), low nibble = even col&quot;</span></div>
 <div class="line"><a id="l00302" name="l00302"></a><span class="lineno">  302</span> </div>
 <div class="line"><a id="l00303" name="l00303"></a><span class="lineno">  303</span>    <span class="comment"># Save scales</span></div>
 <div class="line"><a id="l00304" name="l00304"></a><span class="lineno">  304</span>    <span class="keywordflow">if</span> args.mode == <span class="stringliteral">&quot;per_row&quot;</span>:</div>
@@ -468,7 +468,7 @@ $(function(){initNavTree('ptq__calib_8py_source.html',''); initResizable(true); 
 <div class="line"><a id="l00349" name="l00349"></a><span class="lineno">  349</span>            <span class="stringliteral">&quot;scale_bin&quot;</span>: scale_path,</div>
 <div class="line"><a id="l00350" name="l00350"></a><span class="lineno">  350</span>            <span class="stringliteral">&quot;scale_dtype&quot;</span>: args.scale_dtype,</div>
 <div class="line"><a id="l00351" name="l00351"></a><span class="lineno">  351</span>            <span class="stringliteral">&quot;weight_bin&quot;</span>: weight_path,</div>
-<div class="line"><a id="l00352" name="l00352"></a><span class="lineno">  352</span>            <span class="stringliteral">&quot;pack&quot;</span>: (<span class="stringliteral">&quot;int8_row_major&quot;</span> <span class="keywordflow">if</span> args.wbits == 8 <span class="keywordflow">else</span> <span class="stringliteral">&quot;int4_nibbles_low_even&quot;</span>),</div>
+<div class="line"><a id="l00352" name="l00352"></a><span class="lineno">  352</span>            <span class="stringliteral">&quot;pack&quot;</span>: (<span class="stringliteral">&quot;int8_row_major&quot;</span> <span class="keywordflow">if</span> args.wbits == 8 <span class="keywordflow">else</span> <span class="stringliteral">&quot;nibble_lohi&quot;</span>),</div>
 <div class="line"><a id="l00353" name="l00353"></a><span class="lineno">  353</span>            <span class="stringliteral">&quot;shape&quot;</span>: [args.rows, args.cols],</div>
 <div class="line"><a id="l00354" name="l00354"></a><span class="lineno">  354</span>        },</div>
 <div class="line"><a id="l00355" name="l00355"></a><span class="lineno">  355</span>    }</div>
@@ -497,11 +497,11 @@ $(function(){initNavTree('ptq__calib_8py_source.html',''); initResizable(true); 
 <div class="ttc" id="anamespaceptq__calib_html_a0ff53d4b3af1bcce6cc9aa70c71ad741"><div class="ttname"><a href="namespaceptq__calib.html#a0ff53d4b3af1bcce6cc9aa70c71ad741">ptq_calib.save_binary</a></div><div class="ttdeci">None save_binary(str path, np.ndarray array)</div><div class="ttdef"><b>Definition</b> <a href="#l00090">ptq_calib.py:90</a></div></div>
 <div class="ttc" id="anamespaceptq__calib_html_a15c1ec510d143c4356e29ed8922e51bc"><div class="ttname"><a href="namespaceptq__calib.html#a15c1ec510d143c4356e29ed8922e51bc">ptq_calib.quantize_int4_packed</a></div><div class="ttdeci">Tuple[bytes, np.ndarray] quantize_int4_packed(np.ndarray W, np.ndarray scales, str mode)</div><div class="ttdef"><b>Definition</b> <a href="#l00189">ptq_calib.py:191</a></div></div>
 <div class="ttc" id="anamespaceptq__calib_html_a3c61645c84bf45ea46988b90da7eacf2"><div class="ttname"><a href="namespaceptq__calib.html#a3c61645c84bf45ea46988b90da7eacf2">ptq_calib.load_f32_matrix</a></div><div class="ttdeci">np.ndarray load_f32_matrix(str path, int rows, int cols)</div><div class="ttdef"><b>Definition</b> <a href="#l00053">ptq_calib.py:53</a></div></div>
+<div class="ttc" id="anamespaceptq__calib_html_a411585cffe038415fa4a50d31152a8fc"><div class="ttname"><a href="namespaceptq__calib.html#a411585cffe038415fa4a50d31152a8fc">ptq_calib._pack_row_int4_biased</a></div><div class="ttdeci">bytes _pack_row_int4_biased(np.ndarray q_row)</div><div class="ttdef"><b>Definition</b> <a href="#l00171">ptq_calib.py:171</a></div></div>
 <div class="ttc" id="anamespaceptq__calib_html_a6855dfc7d067ff09439e3ea0902bbd25"><div class="ttname"><a href="namespaceptq__calib.html#a6855dfc7d067ff09439e3ea0902bbd25">ptq_calib.quantize_int8</a></div><div class="ttdeci">Tuple[np.ndarray, np.ndarray] quantize_int8(np.ndarray W, np.ndarray scales, str mode)</div><div class="ttdef"><b>Definition</b> <a href="#l00142">ptq_calib.py:142</a></div></div>
 <div class="ttc" id="anamespaceptq__calib_html_a8091bc9c066240fc12d193762c5c17f6"><div class="ttname"><a href="namespaceptq__calib.html#a8091bc9c066240fc12d193762c5c17f6">ptq_calib.mse</a></div><div class="ttdeci">float mse(np.ndarray a, np.ndarray b)</div><div class="ttdef"><b>Definition</b> <a href="#l00257">ptq_calib.py:257</a></div></div>
 <div class="ttc" id="anamespaceptq__calib_html_a8c5f80e88cff2f08011a13e1a7b9ea6e"><div class="ttname"><a href="namespaceptq__calib.html#a8c5f80e88cff2f08011a13e1a7b9ea6e">ptq_calib.main</a></div><div class="ttdeci">None main()</div><div class="ttdef"><b>Definition</b> <a href="#l00266">ptq_calib.py:266</a></div></div>
 <div class="ttc" id="anamespaceptq__calib_html_a9805c5526e7e404510096d4c348247e1"><div class="ttname"><a href="namespaceptq__calib.html#a9805c5526e7e404510096d4c348247e1">ptq_calib.avg_row_cosine</a></div><div class="ttdeci">float avg_row_cosine(np.ndarray a, np.ndarray b, float eps=1e-12)</div><div class="ttdef"><b>Definition</b> <a href="#l00230">ptq_calib.py:230</a></div></div>
-<div class="ttc" id="anamespaceptq__calib_html_aa6020564afa3bb98f636c4a2bcfe7f25"><div class="ttname"><a href="namespaceptq__calib.html#aa6020564afa3bb98f636c4a2bcfe7f25">ptq_calib._pack_row_int4_signed</a></div><div class="ttdeci">bytes _pack_row_int4_signed(np.ndarray q_row)</div><div class="ttdef"><b>Definition</b> <a href="#l00171">ptq_calib.py:171</a></div></div>
 <div class="ttc" id="anamespaceptq__calib_html_af0f830db41d66b7dc2d9462dfc37133c"><div class="ttname"><a href="namespaceptq__calib.html#af0f830db41d66b7dc2d9462dfc37133c">ptq_calib.compute_scales</a></div><div class="ttdeci">np.ndarray compute_scales(np.ndarray W, int wbits, str mode, float eps=1e-12)</div><div class="ttdef"><b>Definition</b> <a href="#l00106">ptq_calib.py:108</a></div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->

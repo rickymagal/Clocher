@@ -1,6 +1,6 @@
 var ptq__calib_8py =
 [
-    [ "ptq_calib._pack_row_int4_signed", "namespaceptq__calib.html#aa6020564afa3bb98f636c4a2bcfe7f25", null ],
+    [ "ptq_calib._pack_row_int4_biased", "namespaceptq__calib.html#a411585cffe038415fa4a50d31152a8fc", null ],
     [ "ptq_calib.avg_row_cosine", "namespaceptq__calib.html#a9805c5526e7e404510096d4c348247e1", null ],
     [ "ptq_calib.compute_scales", "namespaceptq__calib.html#af0f830db41d66b7dc2d9462dfc37133c", null ],
     [ "ptq_calib.load_f32_matrix", "namespaceptq__calib.html#a3c61645c84bf45ea46988b90da7eacf2", null ],

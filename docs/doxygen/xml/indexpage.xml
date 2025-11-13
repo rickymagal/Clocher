@@ -11,7 +11,7 @@
  <bold>Last updated:</bold> 2025-10-24 21:00:48 UTC</para>
 <para><hruler/>
 </para>
-<sect1 id="index_1autotoc_md49">
+<sect1 id="index_1autotoc_md68">
 <title>Quick start</title><para><programlisting filename=".bash"><codeline><highlight class="normal">#<sp/>Build<sp/>CPU<sp/>and<sp/>(optionally)<sp/>CUDA<sp/>binaries</highlight></codeline>
 <codeline><highlight class="normal">make<sp/>build</highlight></codeline>
 <codeline><highlight class="normal">make<sp/>build-cuda<sp/><sp/><sp/>#<sp/>requires<sp/>a<sp/>CUDA<sp/>toolchain;<sp/>produces<sp/>build/inference-engine.cuda</highlight></codeline>
@@ -19,7 +19,7 @@
 <codeline><highlight class="normal">#<sp/>Sanity:<sp/>show<sp/>CLI</highlight></codeline>
 <codeline><highlight class="normal">./build/inference-engine<sp/>--help</highlight></codeline>
 </programlisting></para>
-<sect2 id="index_1autotoc_md50">
+<sect2 id="index_1autotoc_md69">
 <title>Model format (IEBIN v1)</title><para>The engine consumes a pair of files in the current working directory:</para>
 <para><programlisting><codeline><highlight class="normal">model.ie.json<sp/><sp/><sp/>#<sp/>metadata<sp/>(tensor<sp/>names,<sp/>shapes,<sp/>dtypes,<sp/>scales)</highlight></codeline>
 <codeline><highlight class="normal">model.ie.bin<sp/><sp/><sp/><sp/>#<sp/>raw,<sp/>mmap‑friendly<sp/>tensor<sp/>blob</highlight></codeline>
@@ -29,9 +29,9 @@
 </para>
 </sect2>
 </sect1>
-<sect1 id="index_1autotoc_md52">
+<sect1 id="index_1autotoc_md71">
 <title>NEW: INT4 <bold>weight‑only</bold> PTQ path (Q4)</title><para>This repository now includes a <bold>4‑bit (INT4) weight‑only</bold> path that trades a small accuracy budget for <bold>4× smaller weights</bold> and a substantial <bold>memory‑bandwidth reduction</bold>. It is designed to be drop‑in with the existing build and harness.</para>
-<sect2 id="index_1autotoc_md53">
+<sect2 id="index_1autotoc_md72">
 <title>Pipeline overview</title><para>1) <bold>Prepare/locate a HF model</bold> (already sharded is fine):</para>
 <para><programlisting><codeline><highlight class="normal">models/gpt-oss-20b/hf/</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/>├──<sp/>config.json</highlight></codeline>
@@ -73,7 +73,7 @@
 </para>
 </sect2>
 </sect1>
-<sect1 id="index_1autotoc_md55">
+<sect1 id="index_1autotoc_md74">
 <title>Operational notes</title><para><itemizedlist>
 <listitem><para>The <computeroutput>--device</computeroutput> flag is accepted by the CLI as a <bold>no‑op hint</bold> (selection is a build‑time concern). CPU: <computeroutput>build/inference-engine</computeroutput>, CUDA: <computeroutput>build/inference-engine.cuda</computeroutput>.</para>
 </listitem><listitem><para><bold>Strict mode</bold>: set <computeroutput>IE_REQUIRE_MODEL=1</computeroutput> to require a valid <computeroutput>model.ie.json</computeroutput> + <computeroutput>model.ie.bin</computeroutput>. Otherwise the engine can operate in a deterministic <bold>stub</bold> mode for CI.</para>
@@ -84,7 +84,7 @@
 <para><hruler/>
 </para>
 </sect1>
-<sect1 id="index_1autotoc_md57">
+<sect1 id="index_1autotoc_md76">
 <title>Troubleshooting</title><para><itemizedlist>
 <listitem><para><computeroutput>ERROR: --q4-map not found</computeroutput>: pass a real path to your manifest, e.g. <computeroutput>quant/q4_manifest.json</computeroutput>.</para>
 </listitem><listitem><para><lsquo/>error: unknown flag <rsquo/><ndash/>model-dir&apos;<computeroutput>or</computeroutput>&apos;<ndash/>rounds&apos;<computeroutput>: you are using an older binary; rebuild with</computeroutput>make clean &amp;&amp; make build<computeroutput>. -</computeroutput>RSS peak = 0<computeroutput>: ensure the process reads enough memory while resident (set</computeroutput>IE_BYTES_PER_TOKEN<computeroutput>to a non‑zero value) and you are not running inside a constrained container namespace that suppresses</computeroutput>VmHWM<computeroutput>.</computeroutput></para>
@@ -94,7 +94,7 @@
 <para><hruler/>
 </para>
 </sect1>
-<sect1 id="index_1autotoc_md59">
+<sect1 id="index_1autotoc_md78">
 <title>What INT4 (weight‑only) means here</title><para><itemizedlist>
 <listitem><para><bold>Activations</bold> remain floating‑point; only <bold>weights</bold> are nibble‑packed (2 weights per byte) with per‑row scales.</para>
 </listitem><listitem><para>Dequantization is fused in the matmul kernels (see <computeroutput><ref refid="int4__ptq_8c" kindref="compound">engine/src/quant/int4_ptq.c</ref></computeroutput> and GPU equivalents). Pretranspose/blocked‑K packing are applied before/after quantization as configured.</para>
@@ -104,12 +104,291 @@
 <para><hruler/>
 </para>
 </sect1>
-<sect1 id="index_1autotoc_md61">
+<sect1 id="index_1autotoc_md80">
 <title>See also</title><para><itemizedlist>
-<listitem><para>Detailed design and optimization path: <computeroutput><ref refid="DESIGN_8md" kindref="compound">docs/DESIGN.md</ref></computeroutput>, <computeroutput><ref refid="adr-00060-optimization-path_8md" kindref="compound">docs/adr-00060-optimization-path.md</ref></computeroutput></para>
-</listitem><listitem><para>Decision log: <computeroutput><ref refid="DECISIONS_8md" kindref="compound">docs/DECISIONS.md</ref></computeroutput> </para>
+<listitem><para>Detailed design and optimization path: <computeroutput><ref refid="DESIGN_8md" kindref="compound">docs/DESIGN.md</ref></computeroutput>, <computeroutput>docs/adr-00060-optimization-path.md</computeroutput></para>
+</listitem><listitem><para>Decision log: <computeroutput><ref refid="DECISIONS_8md" kindref="compound">docs/DECISIONS.md</ref></computeroutput></para>
 </listitem></itemizedlist>
 </para>
+<para><hruler/>
+ </para>
+</sect1>
+<sect1 id="index_1autotoc_md82">
+<title>INT4 Weight-Only — Addendum (2025-10-24 21:04:23 UTC)</title><para>This addendum <bold>adds</bold> a new optional path to the existing pipeline for <bold>INT4 (weight-only)</bold> packing and benchmarking. It does <bold>not</bold> replace the FP32/BF16/FP16 flows.</para>
+<sect2 id="index_1autotoc_md83">
+<title>Summary</title><para><itemizedlist>
+<listitem><para>Quantization: post-training <emphasis>weight-only</emphasis> INT4 (aka <computeroutput>int4w</computeroutput>) via a manifest.</para>
+</listitem><listitem><para>Export: <computeroutput><ref refid="hf__to__iebin_8py" kindref="compound">scripts/hf_to_iebin.py</ref></computeroutput> supports <computeroutput>--q4-map</computeroutput> to pack tensors into <computeroutput>model.ie.bin</computeroutput> while preserving <computeroutput>model.ie.json</computeroutput> meta.</para>
+</listitem><listitem><para>Runtime: select precision with <computeroutput>IE_PRECISION=int4w</computeroutput> (or <computeroutput>--precision int4w</computeroutput>), independent from host math precision.</para>
+</listitem><listitem><para>Benchmarks: <computeroutput>make bench</computeroutput> / <computeroutput>make bench-cuda</computeroutput> support strict runs with realistic memory pressure via <computeroutput>IE_BYTES_PER_TOKEN</computeroutput>.</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+<sect2 id="index_1autotoc_md84">
+<title>Prerequisites</title><para><itemizedlist>
+<listitem><para>A working HF model directory (already used in your FP32 flow), e.g. <computeroutput>models/gpt-oss-20b/hf</computeroutput>.</para>
+</listitem><listitem><para>A quantization manifest (example at <computeroutput>quant/q4_manifest.json</computeroutput>). See <bold>Manifest template</bold> below.</para>
+</listitem><listitem><para>Python deps already used by <computeroutput><ref refid="hf__to__iebin_8py" kindref="compound">scripts/hf_to_iebin.py</ref></computeroutput> (torch, numpy).</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+<sect2 id="index_1autotoc_md85">
+<title>Export to IEBIN with INT4</title><para><programlisting filename=".bash"><codeline><highlight class="normal">python3<sp/>scripts/hf_to_iebin.py<sp/><sp/><sp/>--hf-dir<sp/>models/gpt-oss-20b/hf<sp/><sp/><sp/>--out-dir<sp/>models/gpt-oss-20b<sp/><sp/><sp/>--q4-map<sp/>quant/q4_manifest.json</highlight></codeline>
+</programlisting> This produces (or updates) <computeroutput>models/gpt-oss-20b/model.ie.json</computeroutput> and <computeroutput>models/gpt-oss-20b/model.ie.bin</computeroutput> with weight-only INT4 packing per manifest.</para>
+<para><blockquote><para>Tip: if you see <computeroutput>ERROR: --q4-map not found</computeroutput>, double‑check the path to your manifest. </para>
+</blockquote></para>
+</sect2>
+<sect2 id="index_1autotoc_md86">
+<title>Run the strict benchmark (CPU)</title><para><programlisting filename=".bash"><codeline><highlight class="normal">PROMPTS=benchmarks/prompts_10..txt<sp/>IE_PRECISION=int4w<sp/>IE_REQUIRE_MODEL=1<sp/>IE_BYTES_PER_TOKEN=64000000<sp/>IE_STRIDE_BYTES=256<sp/>RUNS=3<sp/>make<sp/>bench</highlight></codeline>
+</programlisting><itemizedlist>
+<listitem><para><computeroutput>IE_REQUIRE_MODEL=1</computeroutput> makes the CLI fail if <computeroutput>model.ie.{json,bin}</computeroutput> are missing.</para>
+</listitem><listitem><para><computeroutput>IE_BYTES_PER_TOKEN</computeroutput> enables the per-token <emphasis>work-touch</emphasis> loop over <computeroutput>model.ie.bin</computeroutput> to mimic bandwidth pressure.</para>
+</listitem><listitem><para><computeroutput>IE_STRIDE_BYTES</computeroutput> controls the touch stride (256 is a good default).</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+<sect2 id="index_1autotoc_md87">
+<title>Run the strict benchmark (CUDA)</title><para><programlisting filename=".bash"><codeline><highlight class="normal">PROMPTS=benchmarks/prompts_10..txt<sp/>IE_PRECISION=int4w<sp/>IE_REQUIRE_MODEL=1<sp/>IE_BYTES_PER_TOKEN=64000000<sp/>IE_STRIDE_BYTES=256<sp/>RUNS=3<sp/>make<sp/>bench-cuda</highlight></codeline>
+</programlisting></para>
+</sect2>
+<sect2 id="index_1autotoc_md88">
+<title>Manifest template (example)</title><para>Save as <computeroutput>quant/q4_manifest.json</computeroutput>: <programlisting filename=".json"><codeline><highlight class="normal">{</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>&quot;version&quot;:<sp/>1,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>&quot;rules&quot;:<sp/>[</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>{</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>&quot;pattern&quot;:<sp/>&quot;.*attn.*(q_proj|k_proj|v_proj|o_proj).*&quot;,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>&quot;dtype&quot;:<sp/><sp/><sp/>&quot;int4w&quot;,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>&quot;group&quot;:<sp/><sp/><sp/><sp/>64,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>&quot;zero&quot;:<sp/><sp/><sp/><sp/><sp/>&quot;per-tensor&quot;,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>&quot;scale&quot;:<sp/><sp/><sp/><sp/>&quot;per-channel&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>},</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>{</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>&quot;pattern&quot;:<sp/>&quot;.*mlp.*(gate_proj|up_proj|down_proj).*&quot;,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>&quot;dtype&quot;:<sp/><sp/><sp/>&quot;int4w&quot;,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>&quot;group&quot;:<sp/><sp/><sp/><sp/>64,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>&quot;zero&quot;:<sp/><sp/><sp/><sp/><sp/>&quot;per-tensor&quot;,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>&quot;scale&quot;:<sp/><sp/><sp/><sp/>&quot;per-channel&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>]</highlight></codeline>
+<codeline><highlight class="normal">}</highlight></codeline>
+</programlisting></para>
+</sect2>
+<sect2 id="index_1autotoc_md89">
+<title>Troubleshooting</title><para><itemizedlist>
+<listitem><para><bold>Unknown flag errors</bold>: The CLI now accepts <computeroutput>--device</computeroutput>, <computeroutput>--model-dir</computeroutput>, <computeroutput>--model-json</computeroutput>, <computeroutput>--model-bin</computeroutput>, and <computeroutput>--rounds</computeroutput> as documented. If your harness still injects older flags, update it, or run the engine directly.</para>
+</listitem><listitem><para><bold>RSS peak shows 0 MB</bold>: Ensure you are on Linux and that the engine is built with the updated <computeroutput><ref refid="ie__metrics_8h_1a0b083c9fbf90d02c9ef387ab34220a34" kindref="member">ie_metrics_sample_rss_peak()</ref></computeroutput> (reads <computeroutput>/proc/self/status</computeroutput> → <computeroutput>VmHWM</computeroutput>, then falls back to <computeroutput>getrusage</computeroutput>). The JSON is captured <emphasis>after</emphasis> the measured window; the value will be <computeroutput>0</computeroutput> only if the OS reports <computeroutput>0</computeroutput> or if the sampling failed.</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+<sect2 id="index_1autotoc_md90">
+<title>Notes</title><para><itemizedlist>
+<listitem><para>The <bold>precision label</bold> (<computeroutput>IE_PRECISION</computeroutput>) is a <emphasis>storage / weight</emphasis> hint, not necessarily the CPU math precision. You can still set <computeroutput>PRECISION=fp32</computeroutput> for host compute while using <computeroutput>IE_PRECISION=int4w</computeroutput> for storage.</para>
+</listitem><listitem><para>Deterministic stub mode remains available when <computeroutput>IE_REQUIRE_MODEL</computeroutput> is not set; strict runs require a valid IEBIN pair.</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+</sect1>
+<sect1 id="index_1autotoc_md91">
+<title>Repository Layout</title><para><programlisting filename=".text"><codeline><highlight class="normal">.</highlight></codeline>
+<codeline><highlight class="normal">├──<sp/>benchmarks</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>├──<sp/>harness.py</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>├──<sp/>prompts_10..txt</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>├──<sp/>prompts.jsonl</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>├──<sp/>ptq_calib.py</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>├──<sp/>reports/</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>└──<sp/>src/</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/><sp/><sp/><sp/><sp/>└──<sp/>microbench_gemv.c</highlight></codeline>
+<codeline><highlight class="normal">├──<sp/>configs</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>├──<sp/>bench.toml</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>└──<sp/>engine.toml</highlight></codeline>
+<codeline><highlight class="normal">├──<sp/>docs</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>├──<sp/>Doxyfile</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>├──<sp/>DECISIONS.md</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>├──<sp/>DESIGN.md</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>├──<sp/>adr-00060-optimization-path.md</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>└──<sp/>doxygen/html/…</highlight></codeline>
+<codeline><highlight class="normal">├──<sp/>engine</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>├──<sp/>include/<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>public<sp/>headers</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>└──<sp/>src/<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>C/CUDA<sp/>sources</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/><sp/><sp/><sp/><sp/>├──<sp/>devices/</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/><sp/><sp/><sp/><sp/>├──<sp/>io/</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/><sp/><sp/><sp/><sp/>├──<sp/>kernels/</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/><sp/><sp/><sp/><sp/>├──<sp/>math/</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/><sp/><sp/><sp/><sp/>├──<sp/>opt/</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/><sp/><sp/><sp/><sp/>├──<sp/>quant/</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/><sp/><sp/><sp/><sp/>└──<sp/>main_infer.c</highlight></codeline>
+<codeline><highlight class="normal">├──<sp/>grafana</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>└──<sp/>dashboards/clocher.json</highlight></codeline>
+<codeline><highlight class="normal">├──<sp/>models</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>└──<sp/>gpt-oss-20b</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/><sp/><sp/><sp/><sp/>├──<sp/>hf/<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>original<sp/>HF<sp/>shards</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/><sp/><sp/><sp/><sp/>├──<sp/>model.ie.json</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/><sp/><sp/><sp/><sp/>└──<sp/>model.ie.bin</highlight></codeline>
+<codeline><highlight class="normal">├──<sp/>monitoring</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>├──<sp/>docker-compose.yml</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>└──<sp/>prometheus.yml</highlight></codeline>
+<codeline><highlight class="normal">├──<sp/>quant</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>└──<sp/>q4_manifest.json</highlight></codeline>
+<codeline><highlight class="normal">├──<sp/>scripts</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>├──<sp/>hf_to_iebin.py</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>├──<sp/>ptq_from_hf.py</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>├──<sp/>ptq_from_source.py</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>├──<sp/>ptq_from_bin.py</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>├──<sp/>true_tps_strict.sh</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>├──<sp/>run_benchmark.sh</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>└──<sp/>make_baseline_md.py</highlight></codeline>
+<codeline><highlight class="normal">├──<sp/>tests</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>├──<sp/>c/</highlight></codeline>
+<codeline><highlight class="normal">│<sp/><sp/><sp/>└──<sp/>python/</highlight></codeline>
+<codeline><highlight class="normal">├──<sp/>Makefile</highlight></codeline>
+<codeline><highlight class="normal">└──<sp/>README.md</highlight></codeline>
+</programlisting></para>
+</sect1>
+<sect1 id="index_1autotoc_md92">
+<title>Makefile — Complete Reference</title><para>This project uses a single <computeroutput>Makefile</computeroutput> to build CPU/CUDA binaries and run reproducible benchmarks.</para>
+<sect2 id="index_1autotoc_md93">
+<title>Common Targets</title><para><itemizedlist>
+<listitem><para><computeroutput>make build</computeroutput> — build <bold>CPU</bold> binary at <computeroutput>build/inference-engine</computeroutput>.</para>
+</listitem><listitem><para><computeroutput>make build-cuda</computeroutput> — build <bold>CUDA</bold> binary at <computeroutput>build/inference-engine.cuda</computeroutput> (needs NVCC + CUDA toolkit).</para>
+</listitem><listitem><para><computeroutput>make clean</computeroutput> — remove build artifacts and reports.</para>
+</listitem><listitem><para><computeroutput>make bench</computeroutput> — run CPU benchmark harness (updates <computeroutput><ref refid="PERFORMANCE_8md" kindref="compound">docs/PERFORMANCE.md</ref></computeroutput>).</para>
+</listitem><listitem><para><computeroutput>make bench-cuda</computeroutput> — run CUDA benchmark harness (updates <computeroutput><ref refid="PERFORMANCE_8md" kindref="compound">docs/PERFORMANCE.md</ref></computeroutput>).</para>
+</listitem></itemizedlist>
+</para>
+<para><blockquote><para>Tip: these benchmarks call the <emphasis>same</emphasis> CLI under the hood (<computeroutput>build/inference-engine*</computeroutput>). </para>
+</blockquote></para>
+</sect2>
+<sect2 id="index_1autotoc_md94">
+<title>Environment Variables (consumed by <computeroutput>make bench*</computeroutput> and/or the CLI)</title><para><itemizedlist>
+<listitem><para><computeroutput>PROMPTS</computeroutput> : path to a prompts file (one prompt per line). Example: <computeroutput>benchmarks/prompts_10..txt</computeroutput>.</para>
+</listitem><listitem><para><computeroutput>RUNS</computeroutput> : number of harness repetitions (default: 3).</para>
+</listitem><listitem><para><computeroutput>IE_REQUIRE_MODEL</computeroutput> : <computeroutput>1</computeroutput> to enforce strict IEBIN loading (<computeroutput>model.ie.json</computeroutput> + <computeroutput>model.ie.bin</computeroutput>) or <computeroutput>0</computeroutput> to allow stub mode.</para>
+</listitem><listitem><para><computeroutput>IE_BYTES_PER_TOKEN</computeroutput> : <bold>bytes touched per generated token</bold> during the work‑touch loop (simulates model working‑set).</para>
+</listitem><listitem><para><computeroutput>IE_STRIDE_BYTES</computeroutput> : stride for the work‑touch pointer (default <computeroutput>256</computeroutput>).</para>
+</listitem><listitem><para><computeroutput>IE_VERIFY_TOUCH</computeroutput> : <computeroutput>1</computeroutput> to prevent the compiler from optimizing the touch accumulator away.</para>
+</listitem><listitem><para><computeroutput>PRECISION</computeroutput> : float precision hint to the CLI (<computeroutput>fp32|bf16|fp16</computeroutput>). (Alias of <computeroutput>IE_PRECISION</computeroutput> when using float modes.)</para>
+</listitem><listitem><para><computeroutput>IE_PRECISION</computeroutput> : raw precision label passed to the engine (<computeroutput>fp32|bf16|fp16|int8w|int4|int4w</computeroutput>).</para>
+</listitem><listitem><para><computeroutput>THREADS</computeroutput> : CPU threads hint (e.g., <computeroutput>12</computeroutput>).</para>
+</listitem><listitem><para><computeroutput>BATCH</computeroutput> : batch size hint (default <computeroutput>1</computeroutput>).</para>
+</listitem></itemizedlist>
+</para>
+<para>The CLI also accepts explicit flags that benchmarks may forward:<itemizedlist>
+<listitem><para><computeroutput>--device auto|cpu|cuda|ze</computeroutput> (hint only; selection occurs at build/link)</para>
+</listitem><listitem><para><computeroutput>--model-dir PATH</computeroutput> (chdir before loading IEBIN)</para>
+</listitem><listitem><para><computeroutput>--model-json PATH</computeroutput>, <computeroutput>--model-bin PATH</computeroutput> (explicit file paths)</para>
+</listitem><listitem><para><computeroutput>--pretranspose none|woh|wxh|all</computeroutput></para>
+</listitem><listitem><para><computeroutput>--prefetch on|off|auto|N</computeroutput></para>
+</listitem><listitem><para><computeroutput>--warmup N</computeroutput></para>
+</listitem><listitem><para><computeroutput>--rounds N</computeroutput></para>
+</listitem><listitem><para><computeroutput>--prompts-file PATH</computeroutput></para>
+</listitem><listitem><para><computeroutput>--aggregate</computeroutput></para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+<sect2 id="index_1autotoc_md95">
+<title>End‑to‑End Examples</title><para><bold>CPU, strict mode, 64 MB per token, int4w weights:</bold> <programlisting filename=".bash"><codeline><highlight class="normal">PROMPTS=benchmarks/prompts_10..txt<sp/>IE_PRECISION=int4w<sp/>IE_REQUIRE_MODEL=1<sp/>IE_BYTES_PER_TOKEN=64000000<sp/>IE_STRIDE_BYTES=256<sp/>RUNS=3<sp/>make<sp/>bench</highlight></codeline>
+</programlisting></para>
+<para><bold>CUDA, same settings:</bold> <programlisting filename=".bash"><codeline><highlight class="normal">PROMPTS=benchmarks/prompts_10..txt<sp/>IE_PRECISION=int4w<sp/>IE_REQUIRE_MODEL=1<sp/>IE_BYTES_PER_TOKEN=64000000<sp/>IE_STRIDE_BYTES=256<sp/>RUNS=3<sp/>make<sp/>bench-cuda</highlight></codeline>
+</programlisting></para>
+<para><bold>Direct CLI (bypass Makefile), model in <computeroutput>models/gpt-oss-20b</computeroutput>:</bold> <programlisting filename=".bash"><codeline><highlight class="normal">./build/inference-engine<sp/><sp/><sp/>--model-dir<sp/>models/gpt-oss-20b<sp/><sp/><sp/>--precision<sp/>fp32<sp/><sp/><sp/>--pretranspose<sp/>all<sp/><sp/><sp/>--prompts-file<sp/>benchmarks/prompts_10..txt<sp/><sp/><sp/>--max-new<sp/>128<sp/>--threads<sp/>12<sp/>--rounds<sp/>1</highlight></codeline>
+</programlisting></para>
+</sect2>
+<sect2 id="index_1autotoc_md96">
+<title>Return Codes</title><para><itemizedlist>
+<listitem><para><computeroutput>0</computeroutput> success, JSON line printed.</para>
+</listitem><listitem><para><computeroutput>2</computeroutput> bad CLI usage / invalid integer.</para>
+</listitem><listitem><para><computeroutput>3</computeroutput> strict IEBIN required but missing/unreadable.</para>
+</listitem><listitem><para><computeroutput>5</computeroutput> engine creation failed.</para>
+</listitem><listitem><para><computeroutput>6</computeroutput> OOM allocating token buffer.</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+</sect1>
+<sect1 id="index_1autotoc_md97">
+<title>RSS Reporting</title><sect2 id="index_1autotoc_md98">
+<title>RSS Reporting</title><para><itemizedlist>
+<listitem><para>We sample <bold>peak resident set size (RSS)</bold> after the measured window to avoid skewing TPS.</para>
+</listitem><listitem><para>On Linux we prefer <computeroutput>/proc/self/status</computeroutput> → <computeroutput>VmHWM</computeroutput> (kB). Fallback is <computeroutput>getrusage(RUSAGE_SELF).ru_maxrss</computeroutput>.</para>
+</listitem><listitem><para>On macOS we use <computeroutput>getrusage</computeroutput> where <computeroutput>ru_maxrss</computeroutput> is in <bold>bytes</bold>.</para>
+</listitem><listitem><para>If neither is available, the sampler returns <bold>0 MB</bold>.</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+</sect1>
+<sect1 id="index_1autotoc_md99">
+<title>Update Journal</title><para>This running log summarizes meaningful doc/CLI changes for reproducibility.</para>
+<para><itemizedlist>
+<listitem><para><bold>2025-10-24 21:08:40 UTC</bold> — INT4 step added to docs; CLI grew <computeroutput>--device</computeroutput>, <computeroutput>--model-dir</computeroutput>, <computeroutput>--rounds</computeroutput>; strict RSS peak sampler now reads <computeroutput>/proc/self/status</computeroutput> <computeroutput>VmHWM</computeroutput> (Linux) with <computeroutput>getrusage</computeroutput> fallback; <computeroutput>bench</computeroutput>/<computeroutput>bench-cuda</computeroutput> examples updated for <bold>64 MB/token</bold> work‑touch.</para>
+</listitem></itemizedlist>
+</para>
+<para><hruler/>
+ </para>
+</sect1>
+<sect1 id="index_1autotoc_md101">
+<title>What’s new — 2025-11-10</title><sect2 id="index_1autotoc_md102">
+<title>Step 1 — NUMA‑aware topology &amp; thread binding</title><para><itemizedlist>
+<listitem><para>Added <computeroutput><ref refid="ie__topology_8h" kindref="compound">engine/include/ie_topology.h</ref></computeroutput> + <computeroutput><ref refid="topology_8c" kindref="compound">engine/src/opt/topology.c</ref></computeroutput> to discover sockets/CPUs from Linux sysfs and expose helpers:<itemizedlist>
+<listitem><para><computeroutput>ie_topology_init/destroy</computeroutput>, <computeroutput><ref refid="ie__topology_8h_1ae9fec2d245fb73d6c3e8e3cba38d4471" kindref="member">ie_topology_sockets()</ref></computeroutput>, <computeroutput><ref refid="ie__topology_8h_1a69b006879441857f80d4c4f200376d11" kindref="member">ie_topology_first_cpu_on_socket()</ref></computeroutput>.</para>
+</listitem></itemizedlist>
+</para>
+</listitem><listitem><para>CLI/env integration (soft hints): <computeroutput>AFFINITY=auto|compact|scatter</computeroutput> and <computeroutput>IE_TP_USE_AFFINITY=1</computeroutput> (thread‑pool), plus <computeroutput>IE_HOT_REPLICATE</computeroutput> (see Step 2).</para>
+</listitem><listitem><para>Fallback: on systems without sysfs or NUMA, we assume a single socket with <computeroutput>sysconf(_SC_NPROCESSORS_ONLN)</computeroutput> CPUs.</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+<sect2 id="index_1autotoc_md103">
+<title>Step 2 — “Hot” weights replication per socket</title><para><itemizedlist>
+<listitem><para>New module <computeroutput><ref refid="replicate__hot_8c" kindref="compound">engine/src/opt/replicate_hot.c</ref></computeroutput> replicates frequently‑touched (“hot”) weight pages <bold>per socket</bold> and pins worker threads on that socket for locality.</para>
+</listitem><listitem><para>Optional prefetch hint via <computeroutput>madvise(..., MADV_WILLNEED)</computeroutput> (ignored if unsupported).</para>
+</listitem><listitem><para>Enable at runtime: <programlisting filename=".bash"><codeline><highlight class="normal">export<sp/>IE_HOT_REPLICATE=1<sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>enable<sp/>per‑socket<sp/>replicas</highlight></codeline>
+<codeline><highlight class="normal">export<sp/>IE_HOT_REPL_LIMIT_MB=0<sp/><sp/>#<sp/>(optional)<sp/>cap<sp/>replica<sp/>size<sp/>in<sp/>MiB;<sp/>0<sp/>=<sp/>no<sp/>cap</highlight></codeline>
+</programlisting></para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+<sect2 id="index_1autotoc_md104">
+<title>Activation precision (INT8 / FP8) — soft hint</title><para><itemizedlist>
+<listitem><para>Expose activation precision as a soft runtime hint (host math remains FP32 accumulate): <programlisting filename=".bash"><codeline><highlight class="normal">export<sp/>IE_ACT_PREC=int8<sp/><sp/><sp/>#<sp/>or:<sp/>fp8<sp/>|<sp/>fp16<sp/>|<sp/>bf16<sp/>|<sp/>fp32</highlight></codeline>
+</programlisting></para>
+</listitem><listitem><para>Weight precision remains independent via <computeroutput>IE_PRECISION</computeroutput> (e.g., <computeroutput>int4w</computeroutput>, <computeroutput>int8w</computeroutput>, <computeroutput>fp32</computeroutput>, etc.).</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+<sect2 id="index_1autotoc_md105">
+<title>Strict timing rule (re‑stated)</title><para>Only the following are counted in the measured window:<itemizedlist>
+<listitem><para><computeroutput>ie_engine_generate(...)</computeroutput></para>
+</listitem><listitem><para>optional “work‑touch” loop controlled by <computeroutput>IE_BYTES_PER_TOKEN</computeroutput>, <computeroutput>IE_STRIDE_BYTES</computeroutput>, <computeroutput>IE_VERIFY_TOUCH</computeroutput></para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+<sect2 id="index_1autotoc_md106">
+<title>Quick run recipes</title><para>Strict CPU run with INT4 weights, FP8 activations, NUMA‑aware binding + hot replication: <programlisting filename=".bash"><codeline><highlight class="normal">#<sp/>Model<sp/>&amp;<sp/>timing</highlight></codeline>
+<codeline><highlight class="normal">export<sp/>MODEL_DIR=models/gpt-oss-20b</highlight></codeline>
+<codeline><highlight class="normal">export<sp/>IE_REQUIRE_MODEL=1</highlight></codeline>
+<codeline><highlight class="normal">export<sp/>IE_PRECISION=int4w</highlight></codeline>
+<codeline><highlight class="normal">export<sp/>IE_ACT_PREC=fp8</highlight></codeline>
+<codeline><highlight class="normal">export<sp/>IE_BYTES_PER_TOKEN=$((64*1024*1024))</highlight></codeline>
+<codeline><highlight class="normal">export<sp/>IE_STRIDE_BYTES=256</highlight></codeline>
+<codeline><highlight class="normal">export<sp/>IE_VERIFY_TOUCH=1</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>NUMA<sp/>&amp;<sp/>replication</highlight></codeline>
+<codeline><highlight class="normal">export<sp/>IE_HOT_REPLICATE=1</highlight></codeline>
+<codeline><highlight class="normal">export<sp/>IE_TP_USE_AFFINITY=1</highlight></codeline>
+<codeline><highlight class="normal">export<sp/>AFFINITY=compact</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Run<sp/>(CPU)</highlight></codeline>
+<codeline><highlight class="normal">PROMPTS=benchmarks/prompts_10..txt<sp/>RUNS=3<sp/>make<sp/>bench</highlight></codeline>
+</programlisting></para>
+<para>CUDA run (same semantics; binary is different): <programlisting filename=".bash"><codeline><highlight class="normal">PROMPTS=benchmarks/prompts_10..txt<sp/>RUNS=3<sp/>make<sp/>bench-cuda</highlight></codeline>
+</programlisting></para>
+<para>NUMA pinning from the shell (optional, only if multiple nodes exist): <programlisting filename=".bash"><codeline><highlight class="normal">if<sp/>numactl<sp/>-H<sp/>|<sp/>grep<sp/>-q<sp/>&apos;available:&apos;;<sp/>then</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>NODES=$(numactl<sp/>-H<sp/>|<sp/>awk<sp/>&apos;/available:/{print<sp/>$2}&apos;)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>[<sp/>&quot;$NODES&quot;<sp/>-gt<sp/>1<sp/>]<sp/>&amp;&amp;<sp/>exec<sp/>numactl<sp/>--cpunodebind=0<sp/>--membind=0<sp/>bash<sp/>-lc<sp/>&apos;PROMPTS=benchmarks/prompts_10..txt<sp/>RUNS=3<sp/>make<sp/>bench&apos;</highlight></codeline>
+<codeline><highlight class="normal">fi</highlight></codeline>
+</programlisting></para>
+<para><blockquote><para>Note: If <computeroutput>numactl -H</computeroutput> shows a single node, skip <computeroutput>numactl --cpunodebind/--membind</computeroutput>. </para>
+</blockquote></para>
+</sect2>
 </sect1>
     </detaileddescription>
     <location file="README.md"/>

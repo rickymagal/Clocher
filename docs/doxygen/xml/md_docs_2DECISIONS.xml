@@ -6,20 +6,20 @@
     <briefdescription>
     </briefdescription>
     <detaileddescription>
-<para><anchor id="md_docs_2DECISIONS_1autotoc_md33"/></para>
+<para><anchor id="md_docs_2DECISIONS_1autotoc_md13"/></para>
 <para><bold>Last updated:</bold> 2025-10-24 21:00:48 UTC</para>
 <para><itemizedlist>
 <listitem><para><bold>ADR-0001 (2025-10-13)</bold>: Core in C11, zero third-party runtime; Python stdlib harness.</para>
 </listitem><listitem><para><bold>ADR-0002 (2025-10-13)</bold>: IEBIN v1 weights: <computeroutput>model.ie.json</computeroutput> + <computeroutput>model.ie.bin</computeroutput> + <computeroutput>vocab.json</computeroutput> (mmap-friendly).</para>
 </listitem><listitem><para><bold>ADR-0003 (2025-10-13)</bold>: Baseline = FP32 naive path; TPS = generated_tokens / wall_time.</para>
-</listitem><listitem><para><bold>ADR-0006 (2025-10-14)</bold>: Optimization path selection (CPU baseline) — AVX2 microkernels, thread-pool with affinity, fast math, layout packing. See <computeroutput><ref refid="adr-00060-optimization-path_8md" kindref="compound">adr-00060-optimization-path.md</ref></computeroutput>.</para>
+</listitem><listitem><para><bold>ADR-0006 (2025-10-14)</bold>: Optimization path selection (CPU baseline) — AVX2 microkernels, thread-pool with affinity, fast math, layout packing. See <computeroutput>adr-00060-optimization-path.md</computeroutput>.</para>
 </listitem><listitem><para><bold>ADR-0010 (2025-10-16)</bold>: INT8 PTQ min-max (per-tensor/per-row) with calibration script and accuracy budget gate (cosine ≥ threshold).</para>
 </listitem><listitem><para><bold>ADR-0011 (2025-10-24)</bold>: Drop Level Zero from default benchmarking; GPU bench is CUDA-only; CPU/GPU share a unified reporting pipeline.</para>
 </listitem></itemizedlist>
 </para>
 <para><hruler/>
 </para>
-<sect1 id="md_docs_2DECISIONS_1autotoc_md35">
+<sect1 id="md_docs_2DECISIONS_1autotoc_md30">
 <title><bold>ADR-0013 (2025-10-24): Adopt INT4 weight-only PTQ &amp; manifest-guided packing</bold></title><para><bold>Context.</bold> The engine is primarily <bold>memory-bandwidth bound</bold> at inference time. Even with blocked‑K packing and prefetch, large models remain limited by weight fetch. INT8 provided a 2× compression; we want a <bold>denser format</bold> while preserving a simple compute path.</para>
 <para><bold>Decision.</bold><itemizedlist>
 <listitem><para>Introduce <bold>INT4 weight‑only</bold> quantization with:<itemizedlist>
@@ -37,7 +37,63 @@
 </listitem><listitem><para>Kernel changes are incremental: dequant scale application in the matmul inner loop; packing integrates with existing pretranspose caches.</para>
 </listitem></itemizedlist>
 </para>
-<para><bold>Status.</bold> Accepted. Implemented across CPU and CUDA builds; scripts support end‑to‑end HF→IEBIN packing with <computeroutput>--q4-map</computeroutput>. </para>
+<para><bold>Status.</bold> Accepted. Implemented across CPU and CUDA builds; scripts support end‑to‑end HF→IEBIN packing with <computeroutput>--q4-map</computeroutput>.</para>
+<para><hruler/>
+ </para>
+</sect1>
+<sect1 id="md_docs_2DECISIONS_1autotoc_md43">
+<title>Decision: Add INT4 (Weight-Only) Optional Pipeline (2025-10-24 21:04:23 UTC)</title><para><bold>Context.</bold> We already ship FP32/BF16/FP16 flows. We add a <emphasis>weight-only</emphasis> INT4 path to reduce bandwidth and model footprint while keeping API stability.</para>
+<para><bold>Decision.</bold><itemizedlist>
+<listitem><para>Introduce a manifest-driven INT4 packing step in export (<computeroutput>--q4-map</computeroutput>).</para>
+</listitem><listitem><para>Expose runtime selection via <computeroutput>IE_PRECISION=int4w</computeroutput> (or <computeroutput>--precision int4w</computeroutput>).</para>
+</listitem><listitem><para>Keep timing discipline: measure generation + work-touch only; sample metrics after.</para>
+</listitem></itemizedlist>
+</para>
+<para><bold>Consequences.</bold><itemizedlist>
+<listitem><para>Lower I/O pressure when <computeroutput>IE_BYTES_PER_TOKEN</computeroutput> simulates large working sets.</para>
+</listitem><listitem><para>Slight decode overhead for dequantization (amortized in GEMV paths).</para>
+</listitem><listitem><para>No change to tokenization or batching semantics.</para>
+</listitem></itemizedlist>
+</para>
+<para><bold>Status.</bold> Accepted and implemented. Backward-compatible (FP paths unaffected).</para>
+<para><hruler/>
+</para>
+</sect1>
+<sect1 id="md_docs_2DECISIONS_1autotoc_md45">
+<title>Appendix — INT4 (Weight‑Only) Step (Summary)</title><para><itemizedlist>
+<listitem><para>Convert HF shards → IEBIN with an INT4 manifest: <programlisting filename=".bash"><codeline><highlight class="normal">python3<sp/>scripts/hf_to_iebin.py<sp/><sp/><sp/><sp/><sp/>--hf-dir<sp/>models/gpt-oss-20b/hf<sp/><sp/><sp/><sp/><sp/>--out-dir<sp/>models/gpt-oss-20b<sp/><sp/><sp/><sp/><sp/>--q4-map<sp/>quant/q4_manifest.json</highlight></codeline>
+</programlisting></para>
+</listitem><listitem><para>Run benchmarks in strict mode with a <bold>64 MB/token</bold> work‑touch: <programlisting filename=".bash"><codeline><highlight class="normal">PROMPTS=benchmarks/prompts_10..txt<sp/><sp/><sp/>IE_PRECISION=int4w<sp/>IE_REQUIRE_MODEL=1<sp/><sp/><sp/>IE_BYTES_PER_TOKEN=64000000<sp/>IE_STRIDE_BYTES=256<sp/>RUNS=3<sp/><sp/><sp/>make<sp/>bench<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>or:<sp/>make<sp/>bench-cuda</highlight></codeline>
+</programlisting></para>
+</listitem><listitem><para>Precision hints: <computeroutput>PRECISION=fp32</computeroutput> (activates float path) and <computeroutput>IE_PRECISION=int4w</computeroutput> (weight‑only path).</para>
+</listitem></itemizedlist>
+</para>
+<para><hruler/>
+ <bold>Last updated:</bold> 2025-11-10 21:46:36 UTC</para>
+<para><itemizedlist>
+<listitem><para><bold>ADR-0014 (2025-11-10)</bold>: NUMA‑aware topology and thread binding<itemizedlist>
+<listitem><para><bold>Context:</bold> We need consistent socket awareness to reduce cross‑socket traffic and stabilize TPS.</para>
+</listitem><listitem><para><bold>Decision:</bold> Introduce <computeroutput><ref refid="structie__topology" kindref="compound">ie_topology</ref></computeroutput> (sysfs‑backed) to detect sockets and map threads→CPUs with <computeroutput>AFFINITY</computeroutput> hints.</para>
+</listitem><listitem><para><bold>Consequences:</bold> Lower LLC misses and cross‑node memory, improved repeatability; graceful single‑socket fallback.</para>
+</listitem><listitem><para><bold>Status:</bold> Accepted. Implemented in <computeroutput><ref refid="ie__topology_8h" kindref="compound">engine/include/ie_topology.h</ref></computeroutput> and <computeroutput><ref refid="topology_8c" kindref="compound">engine/src/opt/topology.c</ref></computeroutput>.</para>
+</listitem></itemizedlist>
+</para>
+</listitem><listitem><para><bold>ADR-0015 (2025-11-10)</bold>: Replicate “hot” weights per socket and bind workers<itemizedlist>
+<listitem><para><bold>Context:</bold> For bandwidth‑bound models, remote‑node page faults throttle TPS. Replicating hot tensors near compute reduces latency.</para>
+</listitem><listitem><para><bold>Decision:</bold> Add <computeroutput><ref refid="replicate__hot_8c" kindref="compound">replicate_hot.c</ref></computeroutput> to create per‑socket replicas (mmap‑based), then bind per‑socket workers to CPUs on that socket.</para>
+</listitem><listitem><para><bold>Consequences:</bold> Higher memory footprint when enabled, but improved locality and throughput on multi‑socket hosts.</para>
+</listitem><listitem><para><bold>Status:</bold> Accepted. Guarded by <computeroutput>IE_HOT_REPLICATE=1</computeroutput>; optional <computeroutput>MADV_WILLNEED</computeroutput> prefetch.</para>
+</listitem></itemizedlist>
+</para>
+</listitem><listitem><para><bold>ADR-0016 (2025-11-10)</bold>: Activation precision soft hint (INT8/FP8)<itemizedlist>
+<listitem><para><bold>Context:</bold> Allow experimenting with lower‑precision activations without entangling storage precision for weights.</para>
+</listitem><listitem><para><bold>Decision:</bold> Add <computeroutput>IE_ACT_PREC</computeroutput> (values: <computeroutput>int8|fp8|fp16|bf16|fp32</computeroutput>). Host accumulators remain FP32; backends may ignore unsupported hints.</para>
+</listitem><listitem><para><bold>Consequences:</bold> Decouples storage (e.g., <computeroutput>int4w</computeroutput>) from activation math, enabling orthogonal tuning.</para>
+</listitem><listitem><para><bold>Status:</bold> Accepted. Backward‑compatible; default remains FP32 if unset. </para>
+</listitem></itemizedlist>
+</para>
+</listitem></itemizedlist>
+</para>
 </sect1>
     </detaileddescription>
     <location file="docs/DECISIONS.md"/>

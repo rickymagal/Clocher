@@ -102,16 +102,17 @@ $(function(){initNavTree('gemv__avx2_8c.html',''); initResizable(true); });
   <div class="headertitle"><div class="title">gemv_avx2.c File Reference</div></div>
 </div><!--header-->
 <div class="contents">
-
-<p>AVX2-accelerated GEMV with optional column-blocking and epilogue bias.  
-<a href="#details">More...</a></p>
 <div class="textblock"><code>#include &quot;<a class="el" href="ie__kernels_8h_source.html">ie_kernels.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="ie__quant__act_8h_source.html">ie_quant_act.h</a>&quot;</code><br />
 <code>#include &lt;immintrin.h&gt;</code><br />
 <code>#include &lt;stddef.h&gt;</code><br />
+<code>#include &lt;stdint.h&gt;</code><br />
+<code>#include &lt;stdlib.h&gt;</code><br />
+<code>#include &lt;string.h&gt;</code><br />
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for gemv_avx2.c:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="gemv__avx2_8c__incl.svg" width="283" height="207"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="gemv__avx2_8c__incl.svg" width="663" height="207"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 </div>
 <p><a href="gemv__avx2_8c_source.html">Go to the source code of this file.</a></p>
@@ -119,15 +120,13 @@ Include dependency graph for gemv_avx2.c:</div>
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
 <tr class="memitem:a63b484c2984caeed7dfc9b5002444f57" id="r_a63b484c2984caeed7dfc9b5002444f57"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a63b484c2984caeed7dfc9b5002444f57">ie_gemv_f32_avx2_impl</a> (const float *W, const float *x, float *y, size_t rows, size_t cols, const float *bias, size_t blk_k)</td></tr>
-<tr class="memdesc:a63b484c2984caeed7dfc9b5002444f57"><td class="mdescLeft">&#160;</td><td class="mdescRight">AVX2 GEMV core (blocked-K aware) with bias epilogue.  <br /></td></tr>
+<tr class="memdesc:a63b484c2984caeed7dfc9b5002444f57"><td class="mdescLeft">&#160;</td><td class="mdescRight">AVX2/FMA GEMV (float path), blocked-K aware, with bias epilogue.  <br /></td></tr>
 <tr class="separator:a63b484c2984caeed7dfc9b5002444f57"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa8a6c887be55a3af970b49855f86682d" id="r_aa8a6c887be55a3af970b49855f86682d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa8a6c887be55a3af970b49855f86682d">ie_gemv_qi8_f32_avx2_impl</a> (const float *W, const int8_t *x_q, float *y, size_t rows, size_t cols, const float *bias, size_t blk_k, <a class="el" href="structie__act__i8__params.html">ie_act_i8_params</a> params, int symmetric)</td></tr>
+<tr class="memdesc:aa8a6c887be55a3af970b49855f86682d"><td class="mdescLeft">&#160;</td><td class="mdescRight">AVX2/FMA GEMV with per-tensor INT8 activations (two-pass: dequant then float GEMV).  <br /></td></tr>
+<tr class="separator:aa8a6c887be55a3af970b49855f86682d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>AVX2-accelerated GEMV with optional column-blocking and epilogue bias. </p>
-<p>The generic dispatcher can use this implementation when AVX2/FMA is present. We mark the function with <code>__attribute__((used))</code> so that toolchains running with -Werror do not complain about “defined but not used” in translation units where the reference is resolved at link-time. </p>
-
-<p class="definition">Definition in file <a class="el" href="gemv__avx2_8c_source.html">gemv_avx2.c</a>.</p>
-</div><h2 class="groupheader">Function Documentation</h2>
+<h2 class="groupheader">Function Documentation</h2>
 <a id="a63b484c2984caeed7dfc9b5002444f57" name="a63b484c2984caeed7dfc9b5002444f57"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a63b484c2984caeed7dfc9b5002444f57">&#9670;&#160;</a></span>ie_gemv_f32_avx2_impl()</h2>
 
@@ -172,93 +171,223 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>AVX2 GEMV core (blocked-K aware) with bias epilogue. </p>
+<p>AVX2/FMA GEMV (float path), blocked-K aware, with bias epilogue. </p>
+<p>AVX2/FMA GEMV (float path), provided by <a class="el" href="gemv__avx2_8c.html">gemv_avx2.c</a>.</p>
+<p>The implementation accepts either plain row-major W or rows packed as "blocked-K contiguous" (see pretranspose docs). In the latter case, each row still has <code class="param">cols</code> elements but the inner loop can iterate in chunks of <code class="param">blk_k</code> to promote cache locality.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">W</td><td>Weights (row-major or blocked-K contiguous per row). </td></tr>
-    <tr><td class="paramname">x</td><td>Input vector (length cols). </td></tr>
-    <tr><td class="paramname">y</td><td>Output vector (length rows). </td></tr>
+    <tr><td class="paramname">x</td><td>Input vector (length <code class="param">cols</code>). </td></tr>
+    <tr><td class="paramname">y</td><td>Output vector (length <code class="param">rows</code>). </td></tr>
     <tr><td class="paramname">rows</td><td>Number of rows. </td></tr>
     <tr><td class="paramname">cols</td><td>Number of cols. </td></tr>
-    <tr><td class="paramname">bias</td><td>Optional bias (length rows), may be NULL. </td></tr>
-    <tr><td class="paramname">blk_k</td><td>Column block size; 0 =&gt; treat as single block of size cols. </td></tr>
+    <tr><td class="paramname">bias</td><td>Optional bias (length <code class="param">rows</code>), may be NULL. </td></tr>
+    <tr><td class="paramname">blk_k</td><td>Column block size; 0 =&gt; treat as single block of size <code class="param">cols</code>. </td></tr>
   </table>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="gemv__avx2_8c_source.html#l00027">27</a> of file <a class="el" href="gemv__avx2_8c_source.html">gemv_avx2.c</a>.</p>
-<div class="fragment"><div class="line"><span class="lineno">   29</span>                                                            {</div>
-<div class="line"><span class="lineno">   30</span>  <span class="keyword">const</span> <span class="keywordtype">size_t</span> BK = (blk_k &gt; 0 ? blk_k : cols);</div>
-<div class="line"><span class="lineno">   31</span> </div>
-<div class="line"><span class="lineno">   32</span>  <span class="keywordflow">for</span> (<span class="keywordtype">size_t</span> r = 0; r &lt; rows; ++r) {</div>
-<div class="line"><span class="lineno">   33</span>    <span class="keyword">const</span> <span class="keywordtype">float</span> *wrow = W + r * cols;</div>
-<div class="line"><span class="lineno">   34</span>    __m256 vacc = _mm256_setzero_ps();</div>
-<div class="line"><span class="lineno">   35</span> </div>
-<div class="line"><span class="lineno">   36</span>    <span class="keywordflow">for</span> (<span class="keywordtype">size_t</span> k0 = 0; k0 &lt; cols; k0 += BK) {</div>
-<div class="line"><span class="lineno">   37</span>      <span class="keyword">const</span> <span class="keywordtype">size_t</span> klen = (k0 + BK &lt;= cols) ? BK : (cols - k0);</div>
-<div class="line"><span class="lineno">   38</span>      <span class="keyword">const</span> <span class="keywordtype">float</span> *wblk = wrow + k0;</div>
-<div class="line"><span class="lineno">   39</span>      <span class="keyword">const</span> <span class="keywordtype">float</span> *xblk = x + k0;</div>
-<div class="line"><span class="lineno">   40</span> </div>
-<div class="line"><span class="lineno">   41</span>      <span class="comment">/* Prefetch next chunk (non-invasive hint) */</span></div>
-<div class="line"><span class="lineno">   42</span>      <span class="keywordflow">if</span> (k0 + 2*BK &lt; cols) {</div>
-<div class="line"><span class="lineno">   43</span>        _mm_prefetch((<span class="keyword">const</span> <span class="keywordtype">char</span>*)(wblk + BK), _MM_HINT_T0);</div>
-<div class="line"><span class="lineno">   44</span>        _mm_prefetch((<span class="keyword">const</span> <span class="keywordtype">char</span>*)(xblk + BK), _MM_HINT_T0);</div>
-<div class="line"><span class="lineno">   45</span>      }</div>
+<p class="definition">Definition at line <a class="el" href="gemv__avx2_8c_source.html#l00039">39</a> of file <a class="el" href="gemv__avx2_8c_source.html">gemv_avx2.c</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">   40</span>                                                                    {</div>
+<div class="line"><span class="lineno">   41</span>  <span class="keyword">const</span> <span class="keywordtype">size_t</span> BK = (blk_k &gt; 0 ? blk_k : cols);</div>
+<div class="line"><span class="lineno">   42</span> </div>
+<div class="line"><span class="lineno">   43</span>  <span class="keywordflow">for</span> (<span class="keywordtype">size_t</span> r = 0; r &lt; rows; ++r) {</div>
+<div class="line"><span class="lineno">   44</span>    <span class="keyword">const</span> <span class="keywordtype">float</span> *wrow = W + r * cols;</div>
+<div class="line"><span class="lineno">   45</span>    <span class="keywordtype">float</span> acc_scalar = 0.0f;</div>
 <div class="line"><span class="lineno">   46</span> </div>
-<div class="line"><span class="lineno">   47</span>      <span class="keywordtype">size_t</span> k = 0;</div>
-<div class="line"><span class="lineno">   48</span>      <span class="keywordflow">for</span> (; k + 32 &lt;= klen; k += 32) {</div>
-<div class="line"><span class="lineno">   49</span>        __m256 w0 = _mm256_loadu_ps(wblk + k + 0);</div>
-<div class="line"><span class="lineno">   50</span>        __m256 x0 = _mm256_loadu_ps(xblk + k + 0);</div>
-<div class="line"><span class="lineno">   51</span>        vacc = _mm256_fmadd_ps(w0, x0, vacc);</div>
-<div class="line"><span class="lineno">   52</span> </div>
-<div class="line"><span class="lineno">   53</span>        __m256 w1 = _mm256_loadu_ps(wblk + k + 8);</div>
-<div class="line"><span class="lineno">   54</span>        __m256 x1 = _mm256_loadu_ps(xblk + k + 8);</div>
-<div class="line"><span class="lineno">   55</span>        vacc = _mm256_fmadd_ps(w1, x1, vacc);</div>
+<div class="line"><span class="lineno">   47</span>    __m256 vacc0 = _mm256_setzero_ps();</div>
+<div class="line"><span class="lineno">   48</span>    __m256 vacc1 = _mm256_setzero_ps();</div>
+<div class="line"><span class="lineno">   49</span>    __m256 vacc2 = _mm256_setzero_ps();</div>
+<div class="line"><span class="lineno">   50</span>    __m256 vacc3 = _mm256_setzero_ps();</div>
+<div class="line"><span class="lineno">   51</span> </div>
+<div class="line"><span class="lineno">   52</span>    <span class="keywordflow">for</span> (<span class="keywordtype">size_t</span> k0 = 0; k0 &lt; cols; k0 += BK) {</div>
+<div class="line"><span class="lineno">   53</span>      <span class="keyword">const</span> <span class="keywordtype">size_t</span> klen = (k0 + BK &lt;= cols) ? BK : (cols - k0);</div>
+<div class="line"><span class="lineno">   54</span>      <span class="keyword">const</span> <span class="keywordtype">float</span> *wblk = wrow + k0;</div>
+<div class="line"><span class="lineno">   55</span>      <span class="keyword">const</span> <span class="keywordtype">float</span> *xblk = x + k0;</div>
 <div class="line"><span class="lineno">   56</span> </div>
-<div class="line"><span class="lineno">   57</span>        __m256 w2 = _mm256_loadu_ps(wblk + k + 16);</div>
-<div class="line"><span class="lineno">   58</span>        __m256 x2 = _mm256_loadu_ps(xblk + k + 16);</div>
-<div class="line"><span class="lineno">   59</span>        vacc = _mm256_fmadd_ps(w2, x2, vacc);</div>
-<div class="line"><span class="lineno">   60</span> </div>
-<div class="line"><span class="lineno">   61</span>        __m256 w3 = _mm256_loadu_ps(wblk + k + 24);</div>
-<div class="line"><span class="lineno">   62</span>        __m256 x3 = _mm256_loadu_ps(xblk + k + 24);</div>
-<div class="line"><span class="lineno">   63</span>        vacc = _mm256_fmadd_ps(w3, x3, vacc);</div>
-<div class="line"><span class="lineno">   64</span>      }</div>
-<div class="line"><span class="lineno">   65</span>      <span class="keywordflow">for</span> (; k + 8 &lt;= klen; k += 8) {</div>
-<div class="line"><span class="lineno">   66</span>        __m256 wv = _mm256_loadu_ps(wblk + k);</div>
-<div class="line"><span class="lineno">   67</span>        __m256 xv = _mm256_loadu_ps(xblk + k);</div>
-<div class="line"><span class="lineno">   68</span>        vacc = _mm256_fmadd_ps(wv, xv, vacc);</div>
-<div class="line"><span class="lineno">   69</span>      }</div>
-<div class="line"><span class="lineno">   70</span>      <span class="keywordtype">float</span> scalar = 0.0f;</div>
-<div class="line"><span class="lineno">   71</span>      <span class="keywordflow">for</span> (; k &lt; klen; ++k) scalar += wblk[k] * xblk[k];</div>
+<div class="line"><span class="lineno">   57</span>      <span class="comment">/* Prefetch next chunk (temporal hint) */</span></div>
+<div class="line"><span class="lineno">   58</span>      <span class="keywordflow">if</span> (k0 + 2 * BK &lt; cols) {</div>
+<div class="line"><span class="lineno">   59</span>        _mm_prefetch((<span class="keyword">const</span> <span class="keywordtype">char</span> *)(wblk + BK), _MM_HINT_T0);</div>
+<div class="line"><span class="lineno">   60</span>        _mm_prefetch((<span class="keyword">const</span> <span class="keywordtype">char</span> *)(xblk + BK), _MM_HINT_T0);</div>
+<div class="line"><span class="lineno">   61</span>      }</div>
+<div class="line"><span class="lineno">   62</span> </div>
+<div class="line"><span class="lineno">   63</span>      <span class="keywordtype">size_t</span> k = 0;</div>
+<div class="line"><span class="lineno">   64</span>      <span class="keywordflow">for</span> (; k + 32 &lt;= klen; k += 32) {</div>
+<div class="line"><span class="lineno">   65</span>        __m256 w0 = _mm256_loadu_ps(wblk + k + 0);</div>
+<div class="line"><span class="lineno">   66</span>        __m256 x0 = _mm256_loadu_ps(xblk + k + 0);</div>
+<div class="line"><span class="lineno">   67</span>        vacc0 = _mm256_fmadd_ps(w0, x0, vacc0);</div>
+<div class="line"><span class="lineno">   68</span> </div>
+<div class="line"><span class="lineno">   69</span>        __m256 w1 = _mm256_loadu_ps(wblk + k + 8);</div>
+<div class="line"><span class="lineno">   70</span>        __m256 x1 = _mm256_loadu_ps(xblk + k + 8);</div>
+<div class="line"><span class="lineno">   71</span>        vacc1 = _mm256_fmadd_ps(w1, x1, vacc1);</div>
 <div class="line"><span class="lineno">   72</span> </div>
-<div class="line"><span class="lineno">   73</span>      <span class="comment">/* Horizontal sum of vacc + scalar tail */</span></div>
-<div class="line"><span class="lineno">   74</span>      __m256 t1 = _mm256_hadd_ps(vacc, vacc);</div>
-<div class="line"><span class="lineno">   75</span>      __m256 t2 = _mm256_hadd_ps(t1, t1);</div>
-<div class="line"><span class="lineno">   76</span>      __m128 low = _mm256_castps256_ps128(t2);</div>
-<div class="line"><span class="lineno">   77</span>      __m128 high = _mm256_extractf128_ps(t2, 1);</div>
-<div class="line"><span class="lineno">   78</span>      __m128 sum128 = _mm_add_ps(low, high);</div>
-<div class="line"><span class="lineno">   79</span>      <span class="keywordtype">float</span> acc = ((<span class="keywordtype">float</span>*)&amp;sum128)[0] + scalar;</div>
-<div class="line"><span class="lineno">   80</span> </div>
-<div class="line"><span class="lineno">   81</span>      <span class="keywordflow">if</span> (bias) acc += bias[r];</div>
-<div class="line"><span class="lineno">   82</span>      y[r] = acc;</div>
-<div class="line"><span class="lineno">   83</span> </div>
-<div class="line"><span class="lineno">   84</span>      vacc = _mm256_setzero_ps();</div>
-<div class="line"><span class="lineno">   85</span>    }</div>
-<div class="line"><span class="lineno">   86</span>  }</div>
-<div class="line"><span class="lineno">   87</span>}</div>
+<div class="line"><span class="lineno">   73</span>        __m256 w2 = _mm256_loadu_ps(wblk + k + 16);</div>
+<div class="line"><span class="lineno">   74</span>        __m256 x2 = _mm256_loadu_ps(xblk + k + 16);</div>
+<div class="line"><span class="lineno">   75</span>        vacc2 = _mm256_fmadd_ps(w2, x2, vacc2);</div>
+<div class="line"><span class="lineno">   76</span> </div>
+<div class="line"><span class="lineno">   77</span>        __m256 w3 = _mm256_loadu_ps(wblk + k + 24);</div>
+<div class="line"><span class="lineno">   78</span>        __m256 x3 = _mm256_loadu_ps(xblk + k + 24);</div>
+<div class="line"><span class="lineno">   79</span>        vacc3 = _mm256_fmadd_ps(w3, x3, vacc3);</div>
+<div class="line"><span class="lineno">   80</span>      }</div>
+<div class="line"><span class="lineno">   81</span>      <span class="keywordflow">for</span> (; k + 8 &lt;= klen; k += 8) {</div>
+<div class="line"><span class="lineno">   82</span>        __m256 wv = _mm256_loadu_ps(wblk + k);</div>
+<div class="line"><span class="lineno">   83</span>        __m256 xv = _mm256_loadu_ps(xblk + k);</div>
+<div class="line"><span class="lineno">   84</span>        vacc0 = _mm256_fmadd_ps(wv, xv, vacc0);</div>
+<div class="line"><span class="lineno">   85</span>      }</div>
+<div class="line"><span class="lineno">   86</span>      <span class="keywordflow">for</span> (; k &lt; klen; ++k) {</div>
+<div class="line"><span class="lineno">   87</span>        acc_scalar += wblk[k] * xblk[k];</div>
+<div class="line"><span class="lineno">   88</span>      }</div>
+<div class="line"><span class="lineno">   89</span>    }</div>
+<div class="line"><span class="lineno">   90</span> </div>
+<div class="line"><span class="lineno">   91</span>    <span class="comment">/* Reduce four accumulators to one scalar */</span></div>
+<div class="line"><span class="lineno">   92</span>    __m256 t01 = _mm256_add_ps(vacc0, vacc1);</div>
+<div class="line"><span class="lineno">   93</span>    __m256 t23 = _mm256_add_ps(vacc2, vacc3);</div>
+<div class="line"><span class="lineno">   94</span>    __m256 t = _mm256_add_ps(t01, t23);</div>
+<div class="line"><span class="lineno">   95</span>    __m128 low = _mm256_castps256_ps128(t);</div>
+<div class="line"><span class="lineno">   96</span>    __m128 high = _mm256_extractf128_ps(t, 1);</div>
+<div class="line"><span class="lineno">   97</span>    __m128 sum = _mm_add_ps(low, high);</div>
+<div class="line"><span class="lineno">   98</span>    __m128 shf = _mm_movehdup_ps(sum);</div>
+<div class="line"><span class="lineno">   99</span>    sum = _mm_add_ps(sum, shf);</div>
+<div class="line"><span class="lineno">  100</span>    shf = _mm_movehl_ps(shf, sum);</div>
+<div class="line"><span class="lineno">  101</span>    sum = _mm_add_ss(sum, shf);</div>
+<div class="line"><span class="lineno">  102</span> </div>
+<div class="line"><span class="lineno">  103</span>    <span class="keywordtype">float</span> acc = _mm_cvtss_f32(sum) + acc_scalar;</div>
+<div class="line"><span class="lineno">  104</span>    <span class="keywordflow">if</span> (bias) acc += bias[r];</div>
+<div class="line"><span class="lineno">  105</span>    y[r] = acc;</div>
+<div class="line"><span class="lineno">  106</span>  }</div>
+<div class="line"><span class="lineno">  107</span>}</div>
 </div><!-- fragment -->
-<p class="reference">References <a class="el" href="gemv__avx2_8c_source.html#l00027">ie_gemv_f32_avx2_impl()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="gemv__avx2_8c_source.html#l00127">ie_gemv_qi8_f32_avx2_impl()</a>, and <a class="el" href="gemv__generic_8c_source.html#l00249">ie_kernels_install()</a>.</p>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="gemv__avx2_8c_a63b484c2984caeed7dfc9b5002444f57_icgraph.svg" width="100%" height="530"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
+</div>
 
-<p class="reference">Referenced by <a class="el" href="gemv__avx2_8c_source.html#l00027">ie_gemv_f32_avx2_impl()</a>.</p>
+</div>
+</div>
+<a id="aa8a6c887be55a3af970b49855f86682d" name="aa8a6c887be55a3af970b49855f86682d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa8a6c887be55a3af970b49855f86682d">&#9670;&#160;</a></span>ie_gemv_qi8_f32_avx2_impl()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void ie_gemv_qi8_f32_avx2_impl </td>
+          <td>(</td>
+          <td class="paramtype">const float *</td>          <td class="paramname"><span class="paramname"><em>W</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const int8_t *</td>          <td class="paramname"><span class="paramname"><em>x_q</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float *</td>          <td class="paramname"><span class="paramname"><em>y</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t</td>          <td class="paramname"><span class="paramname"><em>rows</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t</td>          <td class="paramname"><span class="paramname"><em>cols</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const float *</td>          <td class="paramname"><span class="paramname"><em>bias</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t</td>          <td class="paramname"><span class="paramname"><em>blk_k</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structie__act__i8__params.html">ie_act_i8_params</a></td>          <td class="paramname"><span class="paramname"><em>params</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>symmetric</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>AVX2/FMA GEMV with per-tensor INT8 activations (two-pass: dequant then float GEMV). </p>
+<p>AVX2/FMA GEMV with INT8 activations (per-tensor params).</p>
+<p>This path dequantizes activations into a temporary aligned float buffer, then calls the AVX2 float GEMV core <a class="el" href="gemv__generic_8c.html#a63b484c2984caeed7dfc9b5002444f57" title="AVX2/FMA GEMV (float path), provided by gemv_avx2.c.">ie_gemv_f32_avx2_impl()</a>.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">W</td><td>Weights (row-major). </td></tr>
+    <tr><td class="paramname">x_q</td><td>INT8 activations. </td></tr>
+    <tr><td class="paramname">y</td><td>Output. </td></tr>
+    <tr><td class="paramname">rows</td><td>Rows. </td></tr>
+    <tr><td class="paramname">cols</td><td>Cols. </td></tr>
+    <tr><td class="paramname">bias</td><td>Optional bias (may be NULL). </td></tr>
+    <tr><td class="paramname">blk_k</td><td>Column block size; 0 =&gt; treat as single block. </td></tr>
+    <tr><td class="paramname">params</td><td>INT8 per-tensor params (scale, zero_point). </td></tr>
+    <tr><td class="paramname">symmetric</td><td>Non-zero if symmetric (informational). </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="gemv__avx2_8c_source.html#l00127">127</a> of file <a class="el" href="gemv__avx2_8c_source.html">gemv_avx2.c</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">  130</span>                                         {</div>
+<div class="line"><span class="lineno">  131</span>  (void)symmetric;</div>
+<div class="line"><span class="lineno">  132</span><span class="preprocessor">#if defined(_MSC_VER)</span></div>
+<div class="line"><span class="lineno">  133</span>  <span class="keywordtype">float</span> *x = (<span class="keywordtype">float</span> *)_aligned_malloc(cols * <span class="keyword">sizeof</span>(<span class="keywordtype">float</span>), 64);</div>
+<div class="line"><span class="lineno">  134</span>  <span class="keywordflow">if</span> (!x) <span class="keywordflow">return</span>;</div>
+<div class="line"><span class="lineno">  135</span><span class="preprocessor">#else</span></div>
+<div class="line"><span class="lineno">  136</span>  <span class="keywordtype">float</span> *x = (<span class="keywordtype">float</span> *)aligned_alloc(64, cols * <span class="keyword">sizeof</span>(<span class="keywordtype">float</span>));</div>
+<div class="line"><span class="lineno">  137</span>  <span class="keywordflow">if</span> (!x) <span class="keywordflow">return</span>;</div>
+<div class="line"><span class="lineno">  138</span><span class="preprocessor">#endif</span></div>
+<div class="line"><span class="lineno">  139</span> </div>
+<div class="line"><span class="lineno">  140</span>  <span class="keyword">const</span> <span class="keywordtype">float</span> s = params.<a class="code hl_variable" href="structie__act__i8__params.html#ac0ec31737c16640ac332b562ea6be9a1">scale</a>;</div>
+<div class="line"><span class="lineno">  141</span>  <span class="keyword">const</span> <span class="keywordtype">int</span> z = (int)params.<a class="code hl_variable" href="structie__act__i8__params.html#ab19e71539ecb14b16a4c65b425be4c32">zero_point</a>;</div>
+<div class="line"><span class="lineno">  142</span> </div>
+<div class="line"><span class="lineno">  143</span>  <span class="keywordtype">size_t</span> i = 0;</div>
+<div class="line"><span class="lineno">  144</span>  <span class="keywordflow">for</span> (; i + 8 &lt;= cols; i += 8) {</div>
+<div class="line"><span class="lineno">  145</span>    __m128i q = _mm_loadl_epi64((<span class="keyword">const</span> __m128i *)(x_q + i)); <span class="comment">/* 8x i8 */</span></div>
+<div class="line"><span class="lineno">  146</span>    __m256i qi = _mm256_cvtepi8_epi32(q);                    <span class="comment">/* -&gt; 8x i32 */</span></div>
+<div class="line"><span class="lineno">  147</span>    __m256 qf = _mm256_cvtepi32_ps(qi);                      <span class="comment">/* -&gt; 8x f32 */</span></div>
+<div class="line"><span class="lineno">  148</span>    __m256 zf = _mm256_set1_ps((<span class="keywordtype">float</span>)z);</div>
+<div class="line"><span class="lineno">  149</span>    __m256 sf = _mm256_set1_ps(s);</div>
+<div class="line"><span class="lineno">  150</span>    __m256 xf = _mm256_mul_ps(sf, _mm256_sub_ps(qf, zf));</div>
+<div class="line"><span class="lineno">  151</span>    _mm256_storeu_ps(x + i, xf);</div>
+<div class="line"><span class="lineno">  152</span>  }</div>
+<div class="line"><span class="lineno">  153</span>  <span class="keywordflow">for</span> (; i &lt; cols; ++i) x[i] = s * ((<span class="keywordtype">int</span>)x_q[i] - z);</div>
+<div class="line"><span class="lineno">  154</span> </div>
+<div class="line"><span class="lineno">  155</span>  <a class="code hl_function" href="#a63b484c2984caeed7dfc9b5002444f57">ie_gemv_f32_avx2_impl</a>(W, x, y, rows, cols, bias, blk_k);</div>
+<div class="line"><span class="lineno">  156</span> </div>
+<div class="line"><span class="lineno">  157</span><span class="preprocessor">#if defined(_MSC_VER)</span></div>
+<div class="line"><span class="lineno">  158</span>  _aligned_free(x);</div>
+<div class="line"><span class="lineno">  159</span><span class="preprocessor">#else</span></div>
+<div class="line"><span class="lineno">  160</span>  free(x);</div>
+<div class="line"><span class="lineno">  161</span><span class="preprocessor">#endif</span></div>
+<div class="line"><span class="lineno">  162</span>}</div>
+<div class="ttc" id="agemv__avx2_8c_html_a63b484c2984caeed7dfc9b5002444f57"><div class="ttname"><a href="#a63b484c2984caeed7dfc9b5002444f57">ie_gemv_f32_avx2_impl</a></div><div class="ttdeci">void ie_gemv_f32_avx2_impl(const float *W, const float *x, float *y, size_t rows, size_t cols, const float *bias, size_t blk_k)</div><div class="ttdoc">AVX2/FMA GEMV (float path), blocked-K aware, with bias epilogue.</div><div class="ttdef"><b>Definition</b> <a href="gemv__avx2_8c_source.html#l00039">gemv_avx2.c:39</a></div></div>
+<div class="ttc" id="astructie__act__i8__params_html_ab19e71539ecb14b16a4c65b425be4c32"><div class="ttname"><a href="structie__act__i8__params.html#ab19e71539ecb14b16a4c65b425be4c32">ie_act_i8_params::zero_point</a></div><div class="ttdeci">int8_t zero_point</div><div class="ttdoc">Affine shift (0 for symmetric).</div><div class="ttdef"><b>Definition</b> <a href="ie__quant__act_8h_source.html#l00054">ie_quant_act.h:54</a></div></div>
+<div class="ttc" id="astructie__act__i8__params_html_ac0ec31737c16640ac332b562ea6be9a1"><div class="ttname"><a href="structie__act__i8__params.html#ac0ec31737c16640ac332b562ea6be9a1">ie_act_i8_params::scale</a></div><div class="ttdeci">float scale</div><div class="ttdoc">Positive real scaling factor.</div><div class="ttdef"><b>Definition</b> <a href="ie__quant__act_8h_source.html#l00053">ie_quant_act.h:53</a></div></div>
+</div><!-- fragment -->
+<p class="reference">References <a class="el" href="gemv__avx2_8c_source.html#l00039">ie_gemv_f32_avx2_impl()</a>, <a class="el" href="ie__quant__act_8h_source.html#l00053">ie_act_i8_params::scale</a>, and <a class="el" href="ie__quant__act_8h_source.html#l00054">ie_act_i8_params::zero_point</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="gemv__generic_8c_source.html#l00298">ie_gemv_qi8_f32()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="gemv__avx2_8c_a63b484c2984caeed7dfc9b5002444f57_cgraph.svg" width="191" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="gemv__avx2_8c_aa8a6c887be55a3af970b49855f86682d_cgraph.svg" width="447" height="39"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="gemv__avx2_8c_a63b484c2984caeed7dfc9b5002444f57_icgraph.svg" width="191" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="gemv__avx2_8c_aa8a6c887be55a3af970b49855f86682d_icgraph.svg" width="399" height="39"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

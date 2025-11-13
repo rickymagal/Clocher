@@ -1,5 +1,6 @@
 var topics =
 [
+    [ "Public Engine API (compat)", "group__ie__engine.html", null ],
     [ "Status Codes", "group__ie__io__status.html", "group__ie__io__status" ],
     [ "IEBIN v1 Weights Loader", "group__ie__io__weights.html", "group__ie__io__weights" ],
     [ "Tokenizer (Stub)", "group__ie__io__tokenizer.html", "group__ie__io__tokenizer" ],

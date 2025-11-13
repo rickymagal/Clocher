@@ -1,0 +1,1220 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="stream_8c" kind="file" language="C++">
+    <compoundname>stream.c</compoundname>
+    <includes refid="ie__stream_8h" local="yes">ie_stream.h</includes>
+    <includes local="no">string.h</includes>
+    <includes local="no">stdio.h</includes>
+    <includes local="no">stdlib.h</includes>
+    <includes local="no">errno.h</includes>
+    <includes local="no">time.h</includes>
+    <includes local="no">unistd.h</includes>
+    <includes local="no">inttypes.h</includes>
+    <includes local="no">sys/types.h</includes>
+    <incdepgraph>
+      <node id="2">
+        <label>ie_stream.h</label>
+        <link refid="ie__stream_8h"/>
+        <childnode refid="3" relation="include">
+        </childnode>
+        <childnode refid="4" relation="include">
+        </childnode>
+        <childnode refid="5" relation="include">
+        </childnode>
+      </node>
+      <node id="1">
+        <label>engine/src/opt/stream.c</label>
+        <link refid="stream_8c"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="6" relation="include">
+        </childnode>
+        <childnode refid="7" relation="include">
+        </childnode>
+        <childnode refid="8" relation="include">
+        </childnode>
+        <childnode refid="9" relation="include">
+        </childnode>
+        <childnode refid="10" relation="include">
+        </childnode>
+        <childnode refid="11" relation="include">
+        </childnode>
+        <childnode refid="12" relation="include">
+        </childnode>
+        <childnode refid="13" relation="include">
+        </childnode>
+      </node>
+      <node id="9">
+        <label>errno.h</label>
+      </node>
+      <node id="12">
+        <label>inttypes.h</label>
+      </node>
+      <node id="5">
+        <label>stdbool.h</label>
+      </node>
+      <node id="3">
+        <label>stddef.h</label>
+      </node>
+      <node id="4">
+        <label>stdint.h</label>
+      </node>
+      <node id="7">
+        <label>stdio.h</label>
+      </node>
+      <node id="8">
+        <label>stdlib.h</label>
+      </node>
+      <node id="6">
+        <label>string.h</label>
+      </node>
+      <node id="13">
+        <label>sys/types.h</label>
+      </node>
+      <node id="10">
+        <label>time.h</label>
+      </node>
+      <node id="11">
+        <label>unistd.h</label>
+      </node>
+    </incdepgraph>
+    <sectiondef kind="define">
+      <memberdef kind="define" id="stream_8c_1a05a8268ff42cadaea218ee67491c54e9" prot="public" static="no">
+        <name>IE_X86</name>
+        <initializer>0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/src/opt/stream.c" line="28" column="12" bodyfile="engine/src/opt/stream.c" bodystart="28" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="stream_8c_1aa8b9868ec9d59cff70ebebba0a0193cf" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>size_t</type>
+        <definition>static size_t ie_read_cache_size_file</definition>
+        <argsstring>(const char *path)</argsstring>
+        <name>ie_read_cache_size_file</name>
+        <param>
+          <type>const char *</type>
+          <declname>path</declname>
+        </param>
+        <briefdescription>
+<para>Parse a sysfs cache size file that looks like &quot;32K\n&quot; or &quot;12M\n&quot;. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>path</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>NUL-terminated file path. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>size in bytes (&gt;=0), or 0 if unavailable. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/src/opt/stream.c" line="39" column="15" bodyfile="engine/src/opt/stream.c" bodystart="39" bodyend="57"/>
+        <referencedby refid="stream_8c_1a6b3e804aea00c4b2e9a4d9c33d7d11d9" compoundref="stream_8c" startline="68" endline="89">ie_detect_caches_linux</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="stream_8c_1a6b3e804aea00c4b2e9a4d9c33d7d11d9" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>static void ie_detect_caches_linux</definition>
+        <argsstring>(size_t *l1, size_t *l2, size_t *l3)</argsstring>
+        <name>ie_detect_caches_linux</name>
+        <param>
+          <type>size_t *</type>
+          <declname>l1</declname>
+        </param>
+        <param>
+          <type>size_t *</type>
+          <declname>l2</declname>
+        </param>
+        <param>
+          <type>size_t *</type>
+          <declname>l3</declname>
+        </param>
+        <briefdescription>
+<para>Best-effort cache discovery on Linux sysfs. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Fills l1, l2, l3 with detected values or leaves zeros if not found.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>l1</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>out L1D size in bytes </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>l2</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>out L2 size in bytes </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>l3</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>out L3/LLC size in bytes </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/src/opt/stream.c" line="68" column="13" bodyfile="engine/src/opt/stream.c" bodystart="68" bodyend="89"/>
+        <references refid="stream_8c_1aa8b9868ec9d59cff70ebebba0a0193cf" compoundref="stream_8c" startline="39" endline="57">ie_read_cache_size_file</references>
+        <referencedby refid="ie__stream_8h_1a5f40dacb3d8b8372c8490a0276b951e8" compoundref="stream_8c" startline="102" endline="147">ie_stream_policy_init</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="stream_8c_1a209af35ff3b6ba68d29aa6cebd04a36c" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>double</type>
+        <definition>static double ie_clamp01</definition>
+        <argsstring>(double x)</argsstring>
+        <name>ie_clamp01</name>
+        <param>
+          <type>double</type>
+          <declname>x</declname>
+        </param>
+        <briefdescription>
+<para>Clamp a double to [0.0, 1.0]. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/src/opt/stream.c" line="94" column="15" bodyfile="engine/src/opt/stream.c" bodystart="94" bodyend="98"/>
+        <referencedby refid="ie__stream_8h_1a13ab8c04be7e2aad6764804916e21757" compoundref="stream_8c" startline="320" endline="339">ie_stream_copy_f32</referencedby>
+        <referencedby refid="ie__stream_8h_1ae7db5f748b4078d3d8064ee76d254353" compoundref="stream_8c" startline="341" endline="359">ie_stream_memset_f32</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="stream_8c_1a5f40dacb3d8b8372c8490a0276b951e8" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int ie_stream_policy_init</definition>
+        <argsstring>(struct ie_stream_policy *p)</argsstring>
+        <name>ie_stream_policy_init</name>
+        <param>
+          <type>struct <ref refid="structie__stream__policy" kindref="compound">ie_stream_policy</ref> *</type>
+          <declname>p</declname>
+        </param>
+        <briefdescription>
+<para>Initialize policy with detected cache sizes and sane defaults. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>The function attempts to read cache sizes from Linux sysfs and then applies internal heuristics to set prefetch_distance and nt_threshold_bytes. Environment variables listed in the file header override the computed values.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="out">p</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Non-null policy to be initialized. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>0 on success; negative value on error (e.g., invalid pointer). </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/src/opt/stream.c" line="102" column="5" bodyfile="engine/src/opt/stream.c" bodystart="102" bodyend="147"/>
+        <references refid="structie__stream__policy_1a9f4a87d9882adaf529a8c40b695e8e4d" compoundref="ie__stream_8h" startline="59">ie_stream_policy::enable_prefetch</references>
+        <references refid="structie__stream__policy_1aa6d06cd60477c50a52f9f06ef1369cb6" compoundref="ie__stream_8h" startline="63">ie_stream_policy::force_nt_off</references>
+        <references refid="structie__stream__policy_1a861e84e960aa92d5aaf192a79eec20b5" compoundref="ie__stream_8h" startline="61">ie_stream_policy::force_nt_on</references>
+        <references refid="ie__stream_8h_1a7e235a58fb3d711841be33f8fdf64905" compoundref="ie__stream_8h" startline="38">IE_CACHELINE_BYTES</references>
+        <references refid="stream_8c_1a6b3e804aea00c4b2e9a4d9c33d7d11d9" compoundref="stream_8c" startline="68" endline="89">ie_detect_caches_linux</references>
+        <references refid="structie__stream__policy_1ae6809aac957bc384749db8d23fd160ce" compoundref="ie__stream_8h" startline="44">ie_stream_policy::l1_bytes</references>
+        <references refid="structie__stream__policy_1a75f0a7fb9e8ba9febd2f961d1915ff07" compoundref="ie__stream_8h" startline="46">ie_stream_policy::l2_bytes</references>
+        <references refid="structie__stream__policy_1a93b26b01c6c413aad99cb8dbe3e546a8" compoundref="ie__stream_8h" startline="48">ie_stream_policy::l3_bytes</references>
+        <references refid="structie__stream__policy_1a482106e29e235d9dd7594b9564d733cd" compoundref="ie__stream_8h" startline="53">ie_stream_policy::nt_threshold_bytes</references>
+        <references refid="structie__stream__policy_1a5068fd9f871400a3905ae657f6a6c468" compoundref="ie__stream_8h" startline="51">ie_stream_policy::prefetch_distance</references>
+        <references refid="structie__stream__policy_1a3460579286e9f7c546a5e8e884257043" compoundref="ie__stream_8h" startline="56">ie_stream_policy::prefetch_hint</references>
+        <referencedby refid="microbench__stream_8c_1a3c04138a5bfe5d72780bb7e82a18e627" compoundref="microbench__stream_8c" startline="70" endline="136">main</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="stream_8c_1af51c48e8b0afa485e060090f734d1cb1" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool ie_stream_should_use_nt</definition>
+        <argsstring>(size_t bytes, const struct ie_stream_policy *p)</argsstring>
+        <name>ie_stream_should_use_nt</name>
+        <param>
+          <type>size_t</type>
+          <declname>bytes</declname>
+        </param>
+        <param>
+          <type>const struct <ref refid="structie__stream__policy" kindref="compound">ie_stream_policy</ref> *</type>
+          <declname>p</declname>
+        </param>
+        <briefdescription>
+<para>Decide if non-temporal stores should be used for a given transfer size. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>The decision observes force_nt_on and force_nt_off first; otherwise it compares <computeroutput>bytes</computeroutput> with nt_threshold_bytes.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>bytes</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Total transfer size in bytes. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>p</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Non-null policy pointer. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>true if non-temporal stores are recommended. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/src/opt/stream.c" line="151" column="6" bodyfile="engine/src/opt/stream.c" bodystart="151" bodyend="156"/>
+        <references refid="structie__stream__policy_1aa6d06cd60477c50a52f9f06ef1369cb6" compoundref="ie__stream_8h" startline="63">ie_stream_policy::force_nt_off</references>
+        <references refid="structie__stream__policy_1a861e84e960aa92d5aaf192a79eec20b5" compoundref="ie__stream_8h" startline="61">ie_stream_policy::force_nt_on</references>
+        <references refid="structie__stream__policy_1a482106e29e235d9dd7594b9564d733cd" compoundref="ie__stream_8h" startline="53">ie_stream_policy::nt_threshold_bytes</references>
+        <referencedby refid="ie__stream_8h_1a13ab8c04be7e2aad6764804916e21757" compoundref="stream_8c" startline="320" endline="339">ie_stream_copy_f32</referencedby>
+        <referencedby refid="ie__stream_8h_1ae7db5f748b4078d3d8064ee76d254353" compoundref="stream_8c" startline="341" endline="359">ie_stream_memset_f32</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="stream_8c_1a8d11fe312c553e8c7cfab6282a814c44" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>size_t</type>
+        <definition>size_t ie_stream_recommend_prefetch_distance</definition>
+        <argsstring>(const struct ie_stream_policy *p, size_t stride_bytes)</argsstring>
+        <name>ie_stream_recommend_prefetch_distance</name>
+        <param>
+          <type>const struct <ref refid="structie__stream__policy" kindref="compound">ie_stream_policy</ref> *</type>
+          <declname>p</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>stride_bytes</declname>
+        </param>
+        <briefdescription>
+<para>Recommend a prefetch distance in bytes for the given stride. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>The recommendation considers the policy prefetch distance, stride size, and attempts to keep the lead within a few cache lines.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>p</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Non-null policy pointer. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>stride_bytes</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Positive stride size in bytes. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Distance in bytes to pass to the prefetch helpers. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/src/opt/stream.c" line="158" column="8" bodyfile="engine/src/opt/stream.c" bodystart="158" bodyend="168"/>
+        <references refid="ie__stream_8h_1a7e235a58fb3d711841be33f8fdf64905" compoundref="ie__stream_8h" startline="38">IE_CACHELINE_BYTES</references>
+        <references refid="structie__stream__policy_1ae6809aac957bc384749db8d23fd160ce" compoundref="ie__stream_8h" startline="44">ie_stream_policy::l1_bytes</references>
+        <references refid="structie__stream__policy_1a5068fd9f871400a3905ae657f6a6c468" compoundref="ie__stream_8h" startline="51">ie_stream_policy::prefetch_distance</references>
+      </memberdef>
+      <memberdef kind="function" id="stream_8c_1a77afa6fcb0e13c92f024812038ba0291" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ie_stream_prefetch_t0</definition>
+        <argsstring>(const void *base, size_t distance)</argsstring>
+        <name>ie_stream_prefetch_t0</name>
+        <param>
+          <type>const void *</type>
+          <declname>base</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>distance</declname>
+        </param>
+        <briefdescription>
+<para>Issue a T0 (cache-hot) prefetch <computeroutput>distance</computeroutput> bytes ahead of <computeroutput>base</computeroutput>. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>base</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Base address (non-null). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>distance</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Lead distance in bytes (can be zero). </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/src/opt/stream.c" line="172" column="6" bodyfile="engine/src/opt/stream.c" bodystart="172" bodyend="179"/>
+        <referencedby refid="ie__stream_8h_1a9367e6cdfb8d095de13293228dc2cc38" compoundref="stream_8c" startline="190" endline="197">ie_stream_prefetch_range_t0</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="stream_8c_1af640ee60a75807d29d42d815a354f406" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ie_stream_prefetch_nta</definition>
+        <argsstring>(const void *base, size_t distance)</argsstring>
+        <name>ie_stream_prefetch_nta</name>
+        <param>
+          <type>const void *</type>
+          <declname>base</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>distance</declname>
+        </param>
+        <briefdescription>
+<para>Issue a non-temporal (NTA) prefetch <computeroutput>distance</computeroutput> bytes ahead of <computeroutput>base</computeroutput>. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>base</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Base address (non-null). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>distance</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Lead distance in bytes (can be zero). </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/src/opt/stream.c" line="181" column="6" bodyfile="engine/src/opt/stream.c" bodystart="181" bodyend="188"/>
+        <referencedby refid="ie__stream_8h_1ab3cba8ed9a68d055995c19d4de5775ad" compoundref="stream_8c" startline="199" endline="206">ie_stream_prefetch_range_nta</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="stream_8c_1a9367e6cdfb8d095de13293228dc2cc38" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ie_stream_prefetch_range_t0</definition>
+        <argsstring>(const void *base, size_t bytes, size_t stride, size_t distance)</argsstring>
+        <name>ie_stream_prefetch_range_t0</name>
+        <param>
+          <type>const void *</type>
+          <declname>base</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>bytes</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>stride</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>distance</declname>
+        </param>
+        <briefdescription>
+<para>Prefetch a range using T0 hint at a given stride and lead distance. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>base</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Range base (non-null). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>bytes</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Range size in bytes. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>stride</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Step in bytes between prefetches (&gt;= IE_CACHELINE_BYTES recommended). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>distance</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Lead distance in bytes (see <ref refid="ie__stream_8h_1a8d11fe312c553e8c7cfab6282a814c44" kindref="member">ie_stream_recommend_prefetch_distance</ref>). </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/src/opt/stream.c" line="190" column="6" bodyfile="engine/src/opt/stream.c" bodystart="190" bodyend="197"/>
+        <references refid="ie__stream_8h_1a7e235a58fb3d711841be33f8fdf64905" compoundref="ie__stream_8h" startline="38">IE_CACHELINE_BYTES</references>
+        <references refid="stream_8c_1a77afa6fcb0e13c92f024812038ba0291" compoundref="stream_8c" startline="172" endline="179">ie_stream_prefetch_t0</references>
+        <referencedby refid="microbench__stream_8c_1a3c04138a5bfe5d72780bb7e82a18e627" compoundref="microbench__stream_8c" startline="70" endline="136">main</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="stream_8c_1ab3cba8ed9a68d055995c19d4de5775ad" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ie_stream_prefetch_range_nta</definition>
+        <argsstring>(const void *base, size_t bytes, size_t stride, size_t distance)</argsstring>
+        <name>ie_stream_prefetch_range_nta</name>
+        <param>
+          <type>const void *</type>
+          <declname>base</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>bytes</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>stride</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>distance</declname>
+        </param>
+        <briefdescription>
+<para>Prefetch a range using NTA hint at a given stride and lead distance. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>base</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Range base (non-null). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>bytes</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Range size in bytes. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>stride</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Step in bytes between prefetches. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>distance</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Lead distance in bytes. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/src/opt/stream.c" line="199" column="6" bodyfile="engine/src/opt/stream.c" bodystart="199" bodyend="206"/>
+        <references refid="ie__stream_8h_1a7e235a58fb3d711841be33f8fdf64905" compoundref="ie__stream_8h" startline="38">IE_CACHELINE_BYTES</references>
+        <references refid="stream_8c_1af640ee60a75807d29d42d815a354f406" compoundref="stream_8c" startline="181" endline="188">ie_stream_prefetch_nta</references>
+      </memberdef>
+      <memberdef kind="function" id="stream_8c_1a595b79d2d4a2ee4b29b91ac03014dc86" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>static void ie_scalar_copy_f32</definition>
+        <argsstring>(float *dst, const float *src, size_t n)</argsstring>
+        <name>ie_scalar_copy_f32</name>
+        <param>
+          <type>float *</type>
+          <declname>dst</declname>
+        </param>
+        <param>
+          <type>const float *</type>
+          <declname>src</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>n</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/src/opt/stream.c" line="210" column="20" bodyfile="engine/src/opt/stream.c" bodystart="210" bodyend="212"/>
+        <referencedby refid="stream_8c_1a6caed8f050edb118d1b888b8b91b5549" compoundref="stream_8c" startline="248" endline="270">ie_nt_copy_f32_avx2</referencedby>
+        <referencedby refid="stream_8c_1a08dffd4006d1feb19beeaee81ff360b2" compoundref="stream_8c" startline="221" endline="243">ie_nt_copy_f32_avx512</referencedby>
+        <referencedby refid="ie__stream_8h_1a13ab8c04be7e2aad6764804916e21757" compoundref="stream_8c" startline="320" endline="339">ie_stream_copy_f32</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="stream_8c_1a83d5c209366c07cf4f9026c5d7769141" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>static void ie_scalar_set_f32</definition>
+        <argsstring>(float *dst, float v, size_t n)</argsstring>
+        <name>ie_scalar_set_f32</name>
+        <param>
+          <type>float *</type>
+          <declname>dst</declname>
+        </param>
+        <param>
+          <type>float</type>
+          <declname>v</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>n</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/src/opt/stream.c" line="214" column="20" bodyfile="engine/src/opt/stream.c" bodystart="214" bodyend="216"/>
+        <referencedby refid="stream_8c_1a62606c176a6edf9664ac03ded1ab2fa7" compoundref="stream_8c" startline="298" endline="316">ie_nt_set_f32_avx2</referencedby>
+        <referencedby refid="stream_8c_1a099c508cf40a9fa5f184c462badcf1fa" compoundref="stream_8c" startline="275" endline="293">ie_nt_set_f32_avx512</referencedby>
+        <referencedby refid="ie__stream_8h_1ae7db5f748b4078d3d8064ee76d254353" compoundref="stream_8c" startline="341" endline="359">ie_stream_memset_f32</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="stream_8c_1a08dffd4006d1feb19beeaee81ff360b2" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>static void ie_nt_copy_f32_avx512</definition>
+        <argsstring>(float *dst, const float *src, size_t n)</argsstring>
+        <name>ie_nt_copy_f32_avx512</name>
+        <param>
+          <type>float *</type>
+          <declname>dst</declname>
+        </param>
+        <param>
+          <type>const float *</type>
+          <declname>src</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>n</declname>
+        </param>
+        <briefdescription>
+<para>Streaming store copy (AVX-512 if available). </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/src/opt/stream.c" line="221" column="13" bodyfile="engine/src/opt/stream.c" bodystart="221" bodyend="243"/>
+        <references refid="stream_8c_1a595b79d2d4a2ee4b29b91ac03014dc86" compoundref="stream_8c" startline="210" endline="212">ie_scalar_copy_f32</references>
+        <referencedby refid="ie__stream_8h_1a13ab8c04be7e2aad6764804916e21757" compoundref="stream_8c" startline="320" endline="339">ie_stream_copy_f32</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="stream_8c_1a6caed8f050edb118d1b888b8b91b5549" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>static void ie_nt_copy_f32_avx2</definition>
+        <argsstring>(float *dst, const float *src, size_t n)</argsstring>
+        <name>ie_nt_copy_f32_avx2</name>
+        <param>
+          <type>float *</type>
+          <declname>dst</declname>
+        </param>
+        <param>
+          <type>const float *</type>
+          <declname>src</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>n</declname>
+        </param>
+        <briefdescription>
+<para>Streaming store copy (AVX2 if available). </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/src/opt/stream.c" line="248" column="13" bodyfile="engine/src/opt/stream.c" bodystart="248" bodyend="270"/>
+        <references refid="stream_8c_1a595b79d2d4a2ee4b29b91ac03014dc86" compoundref="stream_8c" startline="210" endline="212">ie_scalar_copy_f32</references>
+        <referencedby refid="ie__stream_8h_1a13ab8c04be7e2aad6764804916e21757" compoundref="stream_8c" startline="320" endline="339">ie_stream_copy_f32</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="stream_8c_1a099c508cf40a9fa5f184c462badcf1fa" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>static void ie_nt_set_f32_avx512</definition>
+        <argsstring>(float *dst, float value, size_t n)</argsstring>
+        <name>ie_nt_set_f32_avx512</name>
+        <param>
+          <type>float *</type>
+          <declname>dst</declname>
+        </param>
+        <param>
+          <type>float</type>
+          <declname>value</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>n</declname>
+        </param>
+        <briefdescription>
+<para>Streaming store set (AVX-512 if available). </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/src/opt/stream.c" line="275" column="13" bodyfile="engine/src/opt/stream.c" bodystart="275" bodyend="293"/>
+        <references refid="stream_8c_1a83d5c209366c07cf4f9026c5d7769141" compoundref="stream_8c" startline="214" endline="216">ie_scalar_set_f32</references>
+        <referencedby refid="ie__stream_8h_1ae7db5f748b4078d3d8064ee76d254353" compoundref="stream_8c" startline="341" endline="359">ie_stream_memset_f32</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="stream_8c_1a62606c176a6edf9664ac03ded1ab2fa7" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>static void ie_nt_set_f32_avx2</definition>
+        <argsstring>(float *dst, float value, size_t n)</argsstring>
+        <name>ie_nt_set_f32_avx2</name>
+        <param>
+          <type>float *</type>
+          <declname>dst</declname>
+        </param>
+        <param>
+          <type>float</type>
+          <declname>value</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>n</declname>
+        </param>
+        <briefdescription>
+<para>Streaming store set (AVX2 if available). </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/src/opt/stream.c" line="298" column="13" bodyfile="engine/src/opt/stream.c" bodystart="298" bodyend="316"/>
+        <references refid="stream_8c_1a83d5c209366c07cf4f9026c5d7769141" compoundref="stream_8c" startline="214" endline="216">ie_scalar_set_f32</references>
+        <referencedby refid="ie__stream_8h_1ae7db5f748b4078d3d8064ee76d254353" compoundref="stream_8c" startline="341" endline="359">ie_stream_memset_f32</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="stream_8c_1a13ab8c04be7e2aad6764804916e21757" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ie_stream_copy_f32</definition>
+        <argsstring>(float *dst, const float *src, size_t n, const struct ie_stream_policy *p, double nt_ratio)</argsstring>
+        <name>ie_stream_copy_f32</name>
+        <param>
+          <type>float *</type>
+          <declname>dst</declname>
+        </param>
+        <param>
+          <type>const float *</type>
+          <declname>src</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>n</declname>
+        </param>
+        <param>
+          <type>const struct <ref refid="structie__stream__policy" kindref="compound">ie_stream_policy</ref> *</type>
+          <declname>p</declname>
+        </param>
+        <param>
+          <type>double</type>
+          <declname>nt_ratio</declname>
+        </param>
+        <briefdescription>
+<para>Copy <computeroutput>n</computeroutput> floats from <computeroutput>src</computeroutput> to <computeroutput>dst</computeroutput> using optional non-temporal stores. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>If <ref refid="ie__stream_8h_1af51c48e8b0afa485e060090f734d1cb1" kindref="member">ie_stream_should_use_nt</ref> decides for streaming, the function uses wide non-temporal stores when available (AVX2/AVX-512). The <computeroutput>nt_ratio</computeroutput> allows mixing regular and streaming stores (e.g., 0.5 means half of the bulk uses streaming). For small tails or when features are unavailable, a scalar fallback is used.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>dst</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Destination pointer (non-null). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>src</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Source pointer (non-null). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>n</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of float elements to copy. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>p</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Non-null policy pointer. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>nt_ratio</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Fraction in [0,1]; 0=never stream, 1=always stream (when allowed). </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/src/opt/stream.c" line="320" column="6" bodyfile="engine/src/opt/stream.c" bodystart="320" bodyend="339"/>
+        <references refid="stream_8c_1a209af35ff3b6ba68d29aa6cebd04a36c" compoundref="stream_8c" startline="94" endline="98">ie_clamp01</references>
+        <references refid="stream_8c_1a6caed8f050edb118d1b888b8b91b5549" compoundref="stream_8c" startline="248" endline="270">ie_nt_copy_f32_avx2</references>
+        <references refid="stream_8c_1a08dffd4006d1feb19beeaee81ff360b2" compoundref="stream_8c" startline="221" endline="243">ie_nt_copy_f32_avx512</references>
+        <references refid="stream_8c_1a595b79d2d4a2ee4b29b91ac03014dc86" compoundref="stream_8c" startline="210" endline="212">ie_scalar_copy_f32</references>
+        <references refid="stream_8c_1af51c48e8b0afa485e060090f734d1cb1" compoundref="stream_8c" startline="151" endline="156">ie_stream_should_use_nt</references>
+        <referencedby refid="microbench__stream_8c_1a3c04138a5bfe5d72780bb7e82a18e627" compoundref="microbench__stream_8c" startline="70" endline="136">main</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="stream_8c_1ae7db5f748b4078d3d8064ee76d254353" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ie_stream_memset_f32</definition>
+        <argsstring>(float *dst, float value, size_t n, const struct ie_stream_policy *p, double nt_ratio)</argsstring>
+        <name>ie_stream_memset_f32</name>
+        <param>
+          <type>float *</type>
+          <declname>dst</declname>
+        </param>
+        <param>
+          <type>float</type>
+          <declname>value</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>n</declname>
+        </param>
+        <param>
+          <type>const struct <ref refid="structie__stream__policy" kindref="compound">ie_stream_policy</ref> *</type>
+          <declname>p</declname>
+        </param>
+        <param>
+          <type>double</type>
+          <declname>nt_ratio</declname>
+        </param>
+        <briefdescription>
+<para>Set <computeroutput>n</computeroutput> floats at <computeroutput>dst</computeroutput> to <computeroutput>value</computeroutput> using optional non-temporal stores. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>dst</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Destination pointer (non-null). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>value</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Value to set. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>n</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of float elements to set. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>p</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Non-null policy pointer. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>nt_ratio</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Fraction in [0,1] controlling the mix of streaming stores. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/src/opt/stream.c" line="341" column="6" bodyfile="engine/src/opt/stream.c" bodystart="341" bodyend="359"/>
+        <references refid="stream_8c_1a209af35ff3b6ba68d29aa6cebd04a36c" compoundref="stream_8c" startline="94" endline="98">ie_clamp01</references>
+        <references refid="stream_8c_1a62606c176a6edf9664ac03ded1ab2fa7" compoundref="stream_8c" startline="298" endline="316">ie_nt_set_f32_avx2</references>
+        <references refid="stream_8c_1a099c508cf40a9fa5f184c462badcf1fa" compoundref="stream_8c" startline="275" endline="293">ie_nt_set_f32_avx512</references>
+        <references refid="stream_8c_1a83d5c209366c07cf4f9026c5d7769141" compoundref="stream_8c" startline="214" endline="216">ie_scalar_set_f32</references>
+        <references refid="stream_8c_1af51c48e8b0afa485e060090f734d1cb1" compoundref="stream_8c" startline="151" endline="156">ie_stream_should_use_nt</references>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para>Heuristics and implementations for prefetch and non-temporal (streaming) stores. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>Implementation highlights:<itemizedlist>
+<listitem><para>Cache size detection on Linux via sysfs: &quot;/sys/devices/system/cpu/cpu0/cache/index&lt;N&gt;/size&quot; with units &quot;K&quot; or &quot;M&quot;.</para>
+</listitem><listitem><para>Environment overrides (see <ref refid="ie__stream_8h" kindref="compound">ie_stream.h</ref> header doc).</para>
+</listitem><listitem><para>Careful handling of alignment before issuing wide streaming stores. </para>
+</listitem></itemizedlist>
+</para>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="normal"></highlight></codeline>
+<codeline lineno="12"><highlight class="normal"></highlight></codeline>
+<codeline lineno="13"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;<ref refid="ie__stream_8h" kindref="compound">ie_stream.h</ref>&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="14"><highlight class="normal"></highlight></codeline>
+<codeline lineno="15"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;string.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="16"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stdio.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="17"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stdlib.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="18"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;errno.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="19"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;time.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="20"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;unistd.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="21"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;inttypes.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="22"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;sys/types.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="23"><highlight class="normal"></highlight></codeline>
+<codeline lineno="24"><highlight class="normal"></highlight><highlight class="preprocessor">#if<sp/>defined(__x86_64__)<sp/>||<sp/>defined(_M_X64)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="25"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/>#include<sp/>&lt;immintrin.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="26"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/>#define<sp/>IE_X86<sp/>1</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="27"><highlight class="normal"></highlight><highlight class="preprocessor">#else</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="28" refid="stream_8c_1a05a8268ff42cadaea218ee67491c54e9" refkind="member"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/>#define<sp/>IE_X86<sp/>0</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="29"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="30"><highlight class="normal"></highlight></codeline>
+<codeline lineno="31"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>---------------------------------<sp/>helpers<sp/>--------------------------------<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="32"><highlight class="normal"></highlight></codeline>
+<codeline lineno="39" refid="stream_8c_1aa8b9868ec9d59cff70ebebba0a0193cf" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/><ref refid="stream_8c_1aa8b9868ec9d59cff70ebebba0a0193cf" kindref="member">ie_read_cache_size_file</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*path)<sp/>{</highlight></codeline>
+<codeline lineno="40"><highlight class="normal"><sp/><sp/>FILE<sp/>*f<sp/>=<sp/>fopen(path,<sp/></highlight><highlight class="stringliteral">&quot;r&quot;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="41"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!f)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>0;</highlight></codeline>
+<codeline lineno="42"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>buf[64]<sp/>=<sp/>{0};</highlight></codeline>
+<codeline lineno="43"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!fgets(buf,<sp/></highlight><highlight class="keyword">sizeof</highlight><highlight class="normal"><sp/>buf,<sp/>f))<sp/>{<sp/>fclose(f);<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>0;<sp/>}</highlight></codeline>
+<codeline lineno="44"><highlight class="normal"><sp/><sp/>fclose(f);</highlight></codeline>
+<codeline lineno="45"><highlight class="normal"></highlight></codeline>
+<codeline lineno="46"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*end<sp/>=<sp/>buf;</highlight></codeline>
+<codeline lineno="47"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">while</highlight><highlight class="normal"><sp/>(*end<sp/>&amp;&amp;<sp/>(*end<sp/>==<sp/></highlight><highlight class="charliteral">&apos;<sp/>&apos;</highlight><highlight class="normal"><sp/>||<sp/>*end<sp/>==<sp/></highlight><highlight class="charliteral">&apos;\t&apos;</highlight><highlight class="normal">))<sp/>end++;</highlight></codeline>
+<codeline lineno="48"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">long</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">long</highlight><highlight class="normal"><sp/>v<sp/>=<sp/>0;</highlight></codeline>
+<codeline lineno="49"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>unit<sp/>=<sp/>0;</highlight></codeline>
+<codeline lineno="50"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(sscanf(end,<sp/></highlight><highlight class="stringliteral">&quot;%lld%c&quot;</highlight><highlight class="normal">,<sp/>&amp;v,<sp/>&amp;unit)<sp/>&lt;<sp/>1)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>0;</highlight></codeline>
+<codeline lineno="51"><highlight class="normal"></highlight></codeline>
+<codeline lineno="52"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>bytes<sp/>=<sp/>0;</highlight></codeline>
+<codeline lineno="53"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(unit<sp/>==<sp/></highlight><highlight class="charliteral">&apos;M&apos;</highlight><highlight class="normal"><sp/>||<sp/>unit<sp/>==<sp/></highlight><highlight class="charliteral">&apos;m&apos;</highlight><highlight class="normal">)<sp/>bytes<sp/>=<sp/>(size_t)v<sp/>*<sp/>1024ull<sp/>*<sp/>1024ull;</highlight></codeline>
+<codeline lineno="54"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">else</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(unit<sp/>==<sp/></highlight><highlight class="charliteral">&apos;K&apos;</highlight><highlight class="normal"><sp/>||<sp/>unit<sp/>==<sp/></highlight><highlight class="charliteral">&apos;k&apos;</highlight><highlight class="normal">)<sp/>bytes<sp/>=<sp/>(size_t)v<sp/>*<sp/>1024ull;</highlight></codeline>
+<codeline lineno="55"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">else</highlight><highlight class="normal"><sp/>bytes<sp/>=<sp/>(size_t)v;</highlight></codeline>
+<codeline lineno="56"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>bytes;</highlight></codeline>
+<codeline lineno="57"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="58"><highlight class="normal"></highlight></codeline>
+<codeline lineno="68" refid="stream_8c_1a6b3e804aea00c4b2e9a4d9c33d7d11d9" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="stream_8c_1a6b3e804aea00c4b2e9a4d9c33d7d11d9" kindref="member">ie_detect_caches_linux</ref>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>*l1,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>*l2,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>*l3)<sp/>{</highlight></codeline>
+<codeline lineno="69"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">/*<sp/>Common<sp/>indices:<sp/>0=L1D,<sp/>2=L2,<sp/>3=L3<sp/>on<sp/>many<sp/>systems,<sp/>but<sp/>vendor<sp/>layouts<sp/>vary.<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="70"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*paths[]<sp/>=<sp/>{</highlight></codeline>
+<codeline lineno="71"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;/sys/devices/system/cpu/cpu0/cache/index0/size&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="72"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;/sys/devices/system/cpu/cpu0/cache/index1/size&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="73"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;/sys/devices/system/cpu/cpu0/cache/index2/size&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="74"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;/sys/devices/system/cpu/cpu0/cache/index3/size&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="75"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;/sys/devices/system/cpu/cpu0/cache/index4/size&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="76"><highlight class="normal"><sp/><sp/>};</highlight></codeline>
+<codeline lineno="77"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>found[5]<sp/>=<sp/>{0};</highlight></codeline>
+<codeline lineno="78"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(</highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>i<sp/>=<sp/>0;<sp/>i<sp/>&lt;<sp/>5;<sp/>++i)<sp/>found[i]<sp/>=<sp/><ref refid="stream_8c_1aa8b9868ec9d59cff70ebebba0a0193cf" kindref="member">ie_read_cache_size_file</ref>(paths[i]);</highlight></codeline>
+<codeline lineno="79"><highlight class="normal"></highlight></codeline>
+<codeline lineno="80"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">/*<sp/>Pick<sp/>largest<sp/>as<sp/>L3,<sp/>next<sp/>as<sp/>L2,<sp/>next<sp/>as<sp/>L1D<sp/>(very<sp/>rough<sp/>but<sp/>robust<sp/>enough).<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="81"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>a[5];<sp/>memcpy(a,<sp/>found,<sp/></highlight><highlight class="keyword">sizeof</highlight><highlight class="normal"><sp/>a);</highlight></codeline>
+<codeline lineno="82"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">/*<sp/>Simple<sp/>selection<sp/>sort<sp/>for<sp/>5<sp/>elements.<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="83"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(</highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>i<sp/>=<sp/>0;<sp/>i<sp/>&lt;<sp/>5;<sp/>++i)<sp/>{</highlight></codeline>
+<codeline lineno="84"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(</highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>j<sp/>=<sp/>i<sp/>+<sp/>1;<sp/>j<sp/>&lt;<sp/>5;<sp/>++j)<sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(a[j]<sp/>&gt;<sp/>a[i])<sp/>{<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>t<sp/>=<sp/>a[i];<sp/>a[i]<sp/>=<sp/>a[j];<sp/>a[j]<sp/>=<sp/>t;<sp/>}</highlight></codeline>
+<codeline lineno="85"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="86"><highlight class="normal"><sp/><sp/>*l3<sp/>=<sp/>a[0];</highlight></codeline>
+<codeline lineno="87"><highlight class="normal"><sp/><sp/>*l2<sp/>=<sp/>a[1];</highlight></codeline>
+<codeline lineno="88"><highlight class="normal"><sp/><sp/>*l1<sp/>=<sp/>a[2];</highlight></codeline>
+<codeline lineno="89"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="90"><highlight class="normal"></highlight></codeline>
+<codeline lineno="94" refid="stream_8c_1a209af35ff3b6ba68d29aa6cebd04a36c" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">double</highlight><highlight class="normal"><sp/><ref refid="stream_8c_1a209af35ff3b6ba68d29aa6cebd04a36c" kindref="member">ie_clamp01</ref>(</highlight><highlight class="keywordtype">double</highlight><highlight class="normal"><sp/>x)<sp/>{</highlight></codeline>
+<codeline lineno="95"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(x<sp/>&lt;<sp/>0.0)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>0.0;</highlight></codeline>
+<codeline lineno="96"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(x<sp/>&gt;<sp/>1.0)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>1.0;</highlight></codeline>
+<codeline lineno="97"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>x;</highlight></codeline>
+<codeline lineno="98"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="99"><highlight class="normal"></highlight></codeline>
+<codeline lineno="100"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>-------------------------------<sp/>policy<sp/>init<sp/>------------------------------<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="101"><highlight class="normal"></highlight></codeline>
+<codeline lineno="102" refid="ie__stream_8h_1a5f40dacb3d8b8372c8490a0276b951e8" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="stream_8c_1a5f40dacb3d8b8372c8490a0276b951e8" kindref="member">ie_stream_policy_init</ref>(</highlight><highlight class="keyword">struct</highlight><highlight class="normal"><sp/><ref refid="structie__stream__policy" kindref="compound">ie_stream_policy</ref><sp/>*p)<sp/>{</highlight></codeline>
+<codeline lineno="103"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!p)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>-EINVAL;</highlight></codeline>
+<codeline lineno="104"><highlight class="normal"><sp/><sp/>memset(p,<sp/>0,<sp/></highlight><highlight class="keyword">sizeof</highlight><highlight class="normal"><sp/>*p);</highlight></codeline>
+<codeline lineno="105"><highlight class="normal"></highlight></codeline>
+<codeline lineno="106"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>l1<sp/>=<sp/>0,<sp/>l2<sp/>=<sp/>0,<sp/>l3<sp/>=<sp/>0;</highlight></codeline>
+<codeline lineno="107"><highlight class="normal"><sp/><sp/><ref refid="stream_8c_1a6b3e804aea00c4b2e9a4d9c33d7d11d9" kindref="member">ie_detect_caches_linux</ref>(&amp;l1,<sp/>&amp;l2,<sp/>&amp;l3);</highlight></codeline>
+<codeline lineno="108"><highlight class="normal"></highlight></codeline>
+<codeline lineno="109"><highlight class="normal"><sp/><sp/>p-&gt;<ref refid="structie__stream__policy_1ae6809aac957bc384749db8d23fd160ce" kindref="member">l1_bytes</ref><sp/>=<sp/>l1;</highlight></codeline>
+<codeline lineno="110"><highlight class="normal"><sp/><sp/>p-&gt;<ref refid="structie__stream__policy_1a75f0a7fb9e8ba9febd2f961d1915ff07" kindref="member">l2_bytes</ref><sp/>=<sp/>l2;</highlight></codeline>
+<codeline lineno="111"><highlight class="normal"><sp/><sp/>p-&gt;<ref refid="structie__stream__policy_1a93b26b01c6c413aad99cb8dbe3e546a8" kindref="member">l3_bytes</ref><sp/>=<sp/>l3;</highlight></codeline>
+<codeline lineno="112"><highlight class="normal"></highlight></codeline>
+<codeline lineno="113"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">/*<sp/>Defaults<sp/>if<sp/>unknown:<sp/>conservative<sp/>values.<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="114"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(p-&gt;<ref refid="structie__stream__policy_1ae6809aac957bc384749db8d23fd160ce" kindref="member">l1_bytes</ref><sp/>==<sp/>0)<sp/>p-&gt;<ref refid="structie__stream__policy_1ae6809aac957bc384749db8d23fd160ce" kindref="member">l1_bytes</ref><sp/>=<sp/>32u<sp/>*<sp/>1024u;</highlight></codeline>
+<codeline lineno="115"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(p-&gt;<ref refid="structie__stream__policy_1a75f0a7fb9e8ba9febd2f961d1915ff07" kindref="member">l2_bytes</ref><sp/>==<sp/>0)<sp/>p-&gt;<ref refid="structie__stream__policy_1a75f0a7fb9e8ba9febd2f961d1915ff07" kindref="member">l2_bytes</ref><sp/>=<sp/>1u<sp/>*<sp/>1024u<sp/>*<sp/>1024u;</highlight></codeline>
+<codeline lineno="116"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(p-&gt;<ref refid="structie__stream__policy_1a93b26b01c6c413aad99cb8dbe3e546a8" kindref="member">l3_bytes</ref><sp/>==<sp/>0)<sp/>p-&gt;<ref refid="structie__stream__policy_1a93b26b01c6c413aad99cb8dbe3e546a8" kindref="member">l3_bytes</ref><sp/>=<sp/>8u<sp/>*<sp/>1024u<sp/>*<sp/>1024u;</highlight></codeline>
+<codeline lineno="117"><highlight class="normal"></highlight></codeline>
+<codeline lineno="118"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">/*<sp/>Heuristic:<sp/>lead<sp/>~<sp/>6<sp/>cache<sp/>lines<sp/>unless<sp/>overridden.<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="119"><highlight class="normal"><sp/><sp/>p-&gt;<ref refid="structie__stream__policy_1a5068fd9f871400a3905ae657f6a6c468" kindref="member">prefetch_distance</ref><sp/>=<sp/>6u<sp/>*<sp/><ref refid="ie__stream_8h_1a7e235a58fb3d711841be33f8fdf64905" kindref="member">IE_CACHELINE_BYTES</ref>;</highlight></codeline>
+<codeline lineno="120"><highlight class="normal"></highlight></codeline>
+<codeline lineno="121"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">/*<sp/>Heuristic:<sp/>stream<sp/>when<sp/>larger<sp/>than<sp/>2x<sp/>LLC<sp/>(write-combining<sp/>likely<sp/>better).<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="122"><highlight class="normal"><sp/><sp/>p-&gt;<ref refid="structie__stream__policy_1a482106e29e235d9dd7594b9564d733cd" kindref="member">nt_threshold_bytes</ref><sp/>=<sp/>2u<sp/>*<sp/>p-&gt;<ref refid="structie__stream__policy_1a93b26b01c6c413aad99cb8dbe3e546a8" kindref="member">l3_bytes</ref>;</highlight></codeline>
+<codeline lineno="123"><highlight class="normal"></highlight></codeline>
+<codeline lineno="124"><highlight class="normal"><sp/><sp/>p-&gt;<ref refid="structie__stream__policy_1a3460579286e9f7c546a5e8e884257043" kindref="member">prefetch_hint</ref><sp/>=<sp/>0;<sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">/*<sp/>T0<sp/>by<sp/>default<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="125"><highlight class="normal"><sp/><sp/>p-&gt;<ref refid="structie__stream__policy_1a9f4a87d9882adaf529a8c40b695e8e4d" kindref="member">enable_prefetch</ref><sp/>=<sp/></highlight><highlight class="keyword">true</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="126"><highlight class="normal"><sp/><sp/>p-&gt;<ref refid="structie__stream__policy_1a861e84e960aa92d5aaf192a79eec20b5" kindref="member">force_nt_on</ref><sp/>=<sp/></highlight><highlight class="keyword">false</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="127"><highlight class="normal"><sp/><sp/>p-&gt;<ref refid="structie__stream__policy_1aa6d06cd60477c50a52f9f06ef1369cb6" kindref="member">force_nt_off</ref><sp/>=<sp/></highlight><highlight class="keyword">false</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="128"><highlight class="normal"></highlight></codeline>
+<codeline lineno="129"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">/*<sp/>Environment<sp/>overrides<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="130"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*s;</highlight></codeline>
+<codeline lineno="131"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>((s<sp/>=<sp/>getenv(</highlight><highlight class="stringliteral">&quot;IE_STREAM_PREFETCH&quot;</highlight><highlight class="normal">)))<sp/>{</highlight></codeline>
+<codeline lineno="132"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>v<sp/>=<sp/>(size_t)strtoull(s,<sp/>NULL,<sp/>10);</highlight></codeline>
+<codeline lineno="133"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(v<sp/>&gt;<sp/>0)<sp/>p-&gt;<ref refid="structie__stream__policy_1a5068fd9f871400a3905ae657f6a6c468" kindref="member">prefetch_distance</ref><sp/>=<sp/>v;</highlight></codeline>
+<codeline lineno="134"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="135"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>((s<sp/>=<sp/>getenv(</highlight><highlight class="stringliteral">&quot;IE_STREAM_NT_THRESHOLD&quot;</highlight><highlight class="normal">)))<sp/>{</highlight></codeline>
+<codeline lineno="136"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>v<sp/>=<sp/>(size_t)strtoull(s,<sp/>NULL,<sp/>10);</highlight></codeline>
+<codeline lineno="137"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(v<sp/>&gt;<sp/>0)<sp/>p-&gt;<ref refid="structie__stream__policy_1a482106e29e235d9dd7594b9564d733cd" kindref="member">nt_threshold_bytes</ref><sp/>=<sp/>v;</highlight></codeline>
+<codeline lineno="138"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="139"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>((s<sp/>=<sp/>getenv(</highlight><highlight class="stringliteral">&quot;IE_STREAM_FORCE_NT&quot;</highlight><highlight class="normal">)))<sp/>{</highlight></codeline>
+<codeline lineno="140"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>v<sp/>=<sp/>atoi(s);</highlight></codeline>
+<codeline lineno="141"><highlight class="normal"><sp/><sp/><sp/><sp/>p-&gt;<ref refid="structie__stream__policy_1a861e84e960aa92d5aaf192a79eec20b5" kindref="member">force_nt_on</ref><sp/><sp/>=<sp/>(v<sp/>==<sp/>1);</highlight></codeline>
+<codeline lineno="142"><highlight class="normal"><sp/><sp/><sp/><sp/>p-&gt;<ref refid="structie__stream__policy_1aa6d06cd60477c50a52f9f06ef1369cb6" kindref="member">force_nt_off</ref><sp/>=<sp/>(v<sp/>==<sp/>0)<sp/>?<sp/>p-&gt;<ref refid="structie__stream__policy_1aa6d06cd60477c50a52f9f06ef1369cb6" kindref="member">force_nt_off</ref><sp/>:<sp/>p-&gt;<ref refid="structie__stream__policy_1aa6d06cd60477c50a52f9f06ef1369cb6" kindref="member">force_nt_off</ref>;<sp/></highlight><highlight class="comment">/*<sp/>keep<sp/>default<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="143"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(v<sp/>==<sp/>0)<sp/>{<sp/>p-&gt;<ref refid="structie__stream__policy_1a861e84e960aa92d5aaf192a79eec20b5" kindref="member">force_nt_on</ref><sp/>=<sp/></highlight><highlight class="keyword">false</highlight><highlight class="normal">;<sp/>p-&gt;<ref refid="structie__stream__policy_1aa6d06cd60477c50a52f9f06ef1369cb6" kindref="member">force_nt_off</ref><sp/>=<sp/></highlight><highlight class="keyword">true</highlight><highlight class="normal">;<sp/>}</highlight></codeline>
+<codeline lineno="144"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="145"><highlight class="normal"></highlight></codeline>
+<codeline lineno="146"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>0;</highlight></codeline>
+<codeline lineno="147"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="148"><highlight class="normal"></highlight></codeline>
+<codeline lineno="149"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>--------------------------<sp/>decision<sp/>/<sp/>recommendation<sp/>---------------------<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="150"><highlight class="normal"></highlight></codeline>
+<codeline lineno="151" refid="ie__stream_8h_1af51c48e8b0afa485e060090f734d1cb1" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/><ref refid="stream_8c_1af51c48e8b0afa485e060090f734d1cb1" kindref="member">ie_stream_should_use_nt</ref>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>bytes,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct</highlight><highlight class="normal"><sp/><ref refid="structie__stream__policy" kindref="compound">ie_stream_policy</ref><sp/>*p)<sp/>{</highlight></codeline>
+<codeline lineno="152"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!p)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">false</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="153"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(p-&gt;<ref refid="structie__stream__policy_1a861e84e960aa92d5aaf192a79eec20b5" kindref="member">force_nt_on</ref>)<sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">true</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="154"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(p-&gt;<ref refid="structie__stream__policy_1aa6d06cd60477c50a52f9f06ef1369cb6" kindref="member">force_nt_off</ref>)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">false</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="155"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>bytes<sp/>&gt;=<sp/>p-&gt;<ref refid="structie__stream__policy_1a482106e29e235d9dd7594b9564d733cd" kindref="member">nt_threshold_bytes</ref>;</highlight></codeline>
+<codeline lineno="156"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="157"><highlight class="normal"></highlight></codeline>
+<codeline lineno="158" refid="ie__stream_8h_1a8d11fe312c553e8c7cfab6282a814c44" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/><ref refid="stream_8c_1a8d11fe312c553e8c7cfab6282a814c44" kindref="member">ie_stream_recommend_prefetch_distance</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct</highlight><highlight class="normal"><sp/><ref refid="structie__stream__policy" kindref="compound">ie_stream_policy</ref><sp/>*p,</highlight></codeline>
+<codeline lineno="159"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>stride_bytes)<sp/>{</highlight></codeline>
+<codeline lineno="160"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!p)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>4u<sp/>*<sp/><ref refid="ie__stream_8h_1a7e235a58fb3d711841be33f8fdf64905" kindref="member">IE_CACHELINE_BYTES</ref>;</highlight></codeline>
+<codeline lineno="161"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">/*<sp/>Do<sp/>not<sp/>lead<sp/>more<sp/>than<sp/>~<sp/>half<sp/>L1<sp/>by<sp/>default;<sp/>also<sp/>not<sp/>less<sp/>than<sp/>one<sp/>line.<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="162"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>lead<sp/>=<sp/>p-&gt;<ref refid="structie__stream__policy_1a5068fd9f871400a3905ae657f6a6c468" kindref="member">prefetch_distance</ref><sp/>?<sp/>p-&gt;<ref refid="structie__stream__policy_1a5068fd9f871400a3905ae657f6a6c468" kindref="member">prefetch_distance</ref><sp/>:<sp/>(6u<sp/>*<sp/><ref refid="ie__stream_8h_1a7e235a58fb3d711841be33f8fdf64905" kindref="member">IE_CACHELINE_BYTES</ref>);</highlight></codeline>
+<codeline lineno="163"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(lead<sp/>&lt;<sp/><ref refid="ie__stream_8h_1a7e235a58fb3d711841be33f8fdf64905" kindref="member">IE_CACHELINE_BYTES</ref>)<sp/>lead<sp/>=<sp/><ref refid="ie__stream_8h_1a7e235a58fb3d711841be33f8fdf64905" kindref="member">IE_CACHELINE_BYTES</ref>;</highlight></codeline>
+<codeline lineno="164"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(lead<sp/>&gt;<sp/>p-&gt;<ref refid="structie__stream__policy_1ae6809aac957bc384749db8d23fd160ce" kindref="member">l1_bytes</ref><sp/>/<sp/>2u)<sp/><sp/><sp/>lead<sp/>=<sp/>p-&gt;<ref refid="structie__stream__policy_1ae6809aac957bc384749db8d23fd160ce" kindref="member">l1_bytes</ref><sp/>/<sp/>2u;</highlight></codeline>
+<codeline lineno="165"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">/*<sp/>If<sp/>strides<sp/>are<sp/>large,<sp/>keep<sp/>at<sp/>least<sp/>one<sp/>stride<sp/>ahead.<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="166"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(stride_bytes<sp/>&gt;<sp/>0<sp/>&amp;&amp;<sp/>lead<sp/>&lt;<sp/>stride_bytes)<sp/>lead<sp/>=<sp/>stride_bytes;</highlight></codeline>
+<codeline lineno="167"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>lead;</highlight></codeline>
+<codeline lineno="168"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="169"><highlight class="normal"></highlight></codeline>
+<codeline lineno="170"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>--------------------------------<sp/>prefetch<sp/>--------------------------------<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="171"><highlight class="normal"></highlight></codeline>
+<codeline lineno="172" refid="ie__stream_8h_1a77afa6fcb0e13c92f024812038ba0291" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="stream_8c_1a77afa6fcb0e13c92f024812038ba0291" kindref="member">ie_stream_prefetch_t0</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*base,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>distance)<sp/>{</highlight></codeline>
+<codeline lineno="173"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*p<sp/>=<sp/>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*)base<sp/>+<sp/>distance;</highlight></codeline>
+<codeline lineno="174"><highlight class="normal"></highlight><highlight class="preprocessor">#if<sp/>IE_X86</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="175"><highlight class="normal"><sp/><sp/>_mm_prefetch(p,<sp/>_MM_HINT_T0);</highlight></codeline>
+<codeline lineno="176"><highlight class="normal"></highlight><highlight class="preprocessor">#else</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="177"><highlight class="normal"><sp/><sp/>(void)p;</highlight></codeline>
+<codeline lineno="178"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="179"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="180"><highlight class="normal"></highlight></codeline>
+<codeline lineno="181" refid="ie__stream_8h_1af640ee60a75807d29d42d815a354f406" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="stream_8c_1af640ee60a75807d29d42d815a354f406" kindref="member">ie_stream_prefetch_nta</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*base,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>distance)<sp/>{</highlight></codeline>
+<codeline lineno="182"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*p<sp/>=<sp/>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*)base<sp/>+<sp/>distance;</highlight></codeline>
+<codeline lineno="183"><highlight class="normal"></highlight><highlight class="preprocessor">#if<sp/>IE_X86</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="184"><highlight class="normal"><sp/><sp/>_mm_prefetch(p,<sp/>_MM_HINT_NTA);</highlight></codeline>
+<codeline lineno="185"><highlight class="normal"></highlight><highlight class="preprocessor">#else</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="186"><highlight class="normal"><sp/><sp/>(void)p;</highlight></codeline>
+<codeline lineno="187"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="188"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="189"><highlight class="normal"></highlight></codeline>
+<codeline lineno="190" refid="ie__stream_8h_1a9367e6cdfb8d095de13293228dc2cc38" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="stream_8c_1a9367e6cdfb8d095de13293228dc2cc38" kindref="member">ie_stream_prefetch_range_t0</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*base,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>bytes,</highlight></codeline>
+<codeline lineno="191"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>stride,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>distance)<sp/>{</highlight></codeline>
+<codeline lineno="192"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*c<sp/>=<sp/>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*)base;</highlight></codeline>
+<codeline lineno="193"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>step<sp/>=<sp/>(stride<sp/>&gt;<sp/>0<sp/>?<sp/>stride<sp/>:<sp/><ref refid="ie__stream_8h_1a7e235a58fb3d711841be33f8fdf64905" kindref="member">IE_CACHELINE_BYTES</ref>);</highlight></codeline>
+<codeline lineno="194"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>off<sp/>=<sp/>0;<sp/>off<sp/>&lt;<sp/>bytes;<sp/>off<sp/>+=<sp/>step)<sp/>{</highlight></codeline>
+<codeline lineno="195"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="stream_8c_1a77afa6fcb0e13c92f024812038ba0291" kindref="member">ie_stream_prefetch_t0</ref>(c<sp/>+<sp/>off,<sp/>distance);</highlight></codeline>
+<codeline lineno="196"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="197"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="198"><highlight class="normal"></highlight></codeline>
+<codeline lineno="199" refid="ie__stream_8h_1ab3cba8ed9a68d055995c19d4de5775ad" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="stream_8c_1ab3cba8ed9a68d055995c19d4de5775ad" kindref="member">ie_stream_prefetch_range_nta</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*base,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>bytes,</highlight></codeline>
+<codeline lineno="200"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>stride,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>distance)<sp/>{</highlight></codeline>
+<codeline lineno="201"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*c<sp/>=<sp/>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*)base;</highlight></codeline>
+<codeline lineno="202"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>step<sp/>=<sp/>(stride<sp/>&gt;<sp/>0<sp/>?<sp/>stride<sp/>:<sp/><ref refid="ie__stream_8h_1a7e235a58fb3d711841be33f8fdf64905" kindref="member">IE_CACHELINE_BYTES</ref>);</highlight></codeline>
+<codeline lineno="203"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>off<sp/>=<sp/>0;<sp/>off<sp/>&lt;<sp/>bytes;<sp/>off<sp/>+=<sp/>step)<sp/>{</highlight></codeline>
+<codeline lineno="204"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="stream_8c_1af640ee60a75807d29d42d815a354f406" kindref="member">ie_stream_prefetch_nta</ref>(c<sp/>+<sp/>off,<sp/>distance);</highlight></codeline>
+<codeline lineno="205"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="206"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="207"><highlight class="normal"></highlight></codeline>
+<codeline lineno="208"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>----------------------------<sp/>streaming<sp/>kernels<sp/>---------------------------<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="209"><highlight class="normal"></highlight></codeline>
+<codeline lineno="210" refid="stream_8c_1a595b79d2d4a2ee4b29b91ac03014dc86" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">inline</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="stream_8c_1a595b79d2d4a2ee4b29b91ac03014dc86" kindref="member">ie_scalar_copy_f32</ref>(</highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*dst,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*src,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>n)<sp/>{</highlight></codeline>
+<codeline lineno="211"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>i<sp/>=<sp/>0;<sp/>i<sp/>&lt;<sp/>n;<sp/>++i)<sp/>dst[i]<sp/>=<sp/>src[i];</highlight></codeline>
+<codeline lineno="212"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="213"><highlight class="normal"></highlight></codeline>
+<codeline lineno="214" refid="stream_8c_1a83d5c209366c07cf4f9026c5d7769141" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">inline</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="stream_8c_1a83d5c209366c07cf4f9026c5d7769141" kindref="member">ie_scalar_set_f32</ref>(</highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*dst,<sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>v,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>n)<sp/>{</highlight></codeline>
+<codeline lineno="215"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>i<sp/>=<sp/>0;<sp/>i<sp/>&lt;<sp/>n;<sp/>++i)<sp/>dst[i]<sp/>=<sp/>v;</highlight></codeline>
+<codeline lineno="216"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="217"><highlight class="normal"></highlight></codeline>
+<codeline lineno="221" refid="stream_8c_1a08dffd4006d1feb19beeaee81ff360b2" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="stream_8c_1a08dffd4006d1feb19beeaee81ff360b2" kindref="member">ie_nt_copy_f32_avx512</ref>(</highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*dst,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*src,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>n)<sp/>{</highlight></codeline>
+<codeline lineno="222"><highlight class="normal"></highlight><highlight class="preprocessor">#if<sp/>IE_X86<sp/>&amp;&amp;<sp/>defined(__AVX512F__)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="223"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>i<sp/>=<sp/>0;</highlight></codeline>
+<codeline lineno="224"><highlight class="normal"></highlight></codeline>
+<codeline lineno="225"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">/*<sp/>Prologue<sp/>until<sp/>destination<sp/>aligns<sp/>to<sp/>64B<sp/>(best<sp/>for<sp/>512-bit<sp/>streams).<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="226"><highlight class="normal"><sp/><sp/>uintptr_t<sp/>addr<sp/>=<sp/>(uintptr_t)dst;</highlight></codeline>
+<codeline lineno="227"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>mis<sp/>=<sp/>addr<sp/>&amp;<sp/>(64u<sp/>-<sp/>1u);</highlight></codeline>
+<codeline lineno="228"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(mis)<sp/>{</highlight></codeline>
+<codeline lineno="229"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>pro<sp/>=<sp/>(64u<sp/>-<sp/>mis)<sp/>/<sp/></highlight><highlight class="keyword">sizeof</highlight><highlight class="normal">(</highlight><highlight class="keywordtype">float</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="230"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(pro<sp/>&gt;<sp/>n)<sp/>pro<sp/>=<sp/>n;</highlight></codeline>
+<codeline lineno="231"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="stream_8c_1a595b79d2d4a2ee4b29b91ac03014dc86" kindref="member">ie_scalar_copy_f32</ref>(dst,<sp/>src,<sp/>pro);</highlight></codeline>
+<codeline lineno="232"><highlight class="normal"><sp/><sp/><sp/><sp/>dst<sp/>+=<sp/>pro;<sp/>src<sp/>+=<sp/>pro;<sp/>n<sp/>-=<sp/>pro;</highlight></codeline>
+<codeline lineno="233"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="234"><highlight class="normal"></highlight></codeline>
+<codeline lineno="235"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(;<sp/>i<sp/>+<sp/>16<sp/>&lt;=<sp/>n;<sp/>i<sp/>+=<sp/>16)<sp/>{</highlight></codeline>
+<codeline lineno="236"><highlight class="normal"><sp/><sp/><sp/><sp/>__m512<sp/>v<sp/>=<sp/>_mm512_loadu_ps(src<sp/>+<sp/>i);</highlight></codeline>
+<codeline lineno="237"><highlight class="normal"><sp/><sp/><sp/><sp/>_mm512_stream_ps(dst<sp/>+<sp/>i,<sp/>v);</highlight></codeline>
+<codeline lineno="238"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="239"><highlight class="normal"><sp/><sp/><ref refid="stream_8c_1a595b79d2d4a2ee4b29b91ac03014dc86" kindref="member">ie_scalar_copy_f32</ref>(dst<sp/>+<sp/>i,<sp/>src<sp/>+<sp/>i,<sp/>n<sp/>-<sp/>i);</highlight></codeline>
+<codeline lineno="240"><highlight class="normal"></highlight><highlight class="preprocessor">#else</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="241"><highlight class="normal"><sp/><sp/>(void)dst;<sp/>(void)src;<sp/>(void)n;</highlight></codeline>
+<codeline lineno="242"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="243"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="244"><highlight class="normal"></highlight></codeline>
+<codeline lineno="248" refid="stream_8c_1a6caed8f050edb118d1b888b8b91b5549" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="stream_8c_1a6caed8f050edb118d1b888b8b91b5549" kindref="member">ie_nt_copy_f32_avx2</ref>(</highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*dst,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*src,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>n)<sp/>{</highlight></codeline>
+<codeline lineno="249"><highlight class="normal"></highlight><highlight class="preprocessor">#if<sp/>IE_X86<sp/>&amp;&amp;<sp/>defined(__AVX2__)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="250"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>i<sp/>=<sp/>0;</highlight></codeline>
+<codeline lineno="251"><highlight class="normal"></highlight></codeline>
+<codeline lineno="252"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">/*<sp/>Align<sp/>to<sp/>32B<sp/>for<sp/>256-bit<sp/>streams.<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="253"><highlight class="normal"><sp/><sp/>uintptr_t<sp/>addr<sp/>=<sp/>(uintptr_t)dst;</highlight></codeline>
+<codeline lineno="254"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>mis<sp/>=<sp/>addr<sp/>&amp;<sp/>(32u<sp/>-<sp/>1u);</highlight></codeline>
+<codeline lineno="255"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(mis)<sp/>{</highlight></codeline>
+<codeline lineno="256"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>pro<sp/>=<sp/>(32u<sp/>-<sp/>mis)<sp/>/<sp/></highlight><highlight class="keyword">sizeof</highlight><highlight class="normal">(</highlight><highlight class="keywordtype">float</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="257"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(pro<sp/>&gt;<sp/>n)<sp/>pro<sp/>=<sp/>n;</highlight></codeline>
+<codeline lineno="258"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="stream_8c_1a595b79d2d4a2ee4b29b91ac03014dc86" kindref="member">ie_scalar_copy_f32</ref>(dst,<sp/>src,<sp/>pro);</highlight></codeline>
+<codeline lineno="259"><highlight class="normal"><sp/><sp/><sp/><sp/>dst<sp/>+=<sp/>pro;<sp/>src<sp/>+=<sp/>pro;<sp/>n<sp/>-=<sp/>pro;</highlight></codeline>
+<codeline lineno="260"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="261"><highlight class="normal"></highlight></codeline>
+<codeline lineno="262"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(;<sp/>i<sp/>+<sp/>8<sp/>&lt;=<sp/>n;<sp/>i<sp/>+=<sp/>8)<sp/>{</highlight></codeline>
+<codeline lineno="263"><highlight class="normal"><sp/><sp/><sp/><sp/>__m256<sp/>v<sp/>=<sp/>_mm256_loadu_ps(src<sp/>+<sp/>i);</highlight></codeline>
+<codeline lineno="264"><highlight class="normal"><sp/><sp/><sp/><sp/>_mm256_stream_ps(dst<sp/>+<sp/>i,<sp/>v);</highlight></codeline>
+<codeline lineno="265"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="266"><highlight class="normal"><sp/><sp/><ref refid="stream_8c_1a595b79d2d4a2ee4b29b91ac03014dc86" kindref="member">ie_scalar_copy_f32</ref>(dst<sp/>+<sp/>i,<sp/>src<sp/>+<sp/>i,<sp/>n<sp/>-<sp/>i);</highlight></codeline>
+<codeline lineno="267"><highlight class="normal"></highlight><highlight class="preprocessor">#else</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="268"><highlight class="normal"><sp/><sp/>(void)dst;<sp/>(void)src;<sp/>(void)n;</highlight></codeline>
+<codeline lineno="269"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="270"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="271"><highlight class="normal"></highlight></codeline>
+<codeline lineno="275" refid="stream_8c_1a099c508cf40a9fa5f184c462badcf1fa" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="stream_8c_1a099c508cf40a9fa5f184c462badcf1fa" kindref="member">ie_nt_set_f32_avx512</ref>(</highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*dst,<sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>value,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>n)<sp/>{</highlight></codeline>
+<codeline lineno="276"><highlight class="normal"></highlight><highlight class="preprocessor">#if<sp/>IE_X86<sp/>&amp;&amp;<sp/>defined(__AVX512F__)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="277"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>i<sp/>=<sp/>0;</highlight></codeline>
+<codeline lineno="278"><highlight class="normal"><sp/><sp/>uintptr_t<sp/>addr<sp/>=<sp/>(uintptr_t)dst;</highlight></codeline>
+<codeline lineno="279"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>mis<sp/>=<sp/>addr<sp/>&amp;<sp/>(64u<sp/>-<sp/>1u);</highlight></codeline>
+<codeline lineno="280"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(mis)<sp/>{</highlight></codeline>
+<codeline lineno="281"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>pro<sp/>=<sp/>(64u<sp/>-<sp/>mis)<sp/>/<sp/></highlight><highlight class="keyword">sizeof</highlight><highlight class="normal">(</highlight><highlight class="keywordtype">float</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="282"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(pro<sp/>&gt;<sp/>n)<sp/>pro<sp/>=<sp/>n;</highlight></codeline>
+<codeline lineno="283"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="stream_8c_1a83d5c209366c07cf4f9026c5d7769141" kindref="member">ie_scalar_set_f32</ref>(dst,<sp/>value,<sp/>pro);</highlight></codeline>
+<codeline lineno="284"><highlight class="normal"><sp/><sp/><sp/><sp/>dst<sp/>+=<sp/>pro;<sp/>n<sp/>-=<sp/>pro;</highlight></codeline>
+<codeline lineno="285"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="286"><highlight class="normal"></highlight></codeline>
+<codeline lineno="287"><highlight class="normal"><sp/><sp/>__m512<sp/>v<sp/>=<sp/>_mm512_set1_ps(value);</highlight></codeline>
+<codeline lineno="288"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(;<sp/>i<sp/>+<sp/>16<sp/>&lt;=<sp/>n;<sp/>i<sp/>+=<sp/>16)<sp/>_mm512_stream_ps(dst<sp/>+<sp/>i,<sp/>v);</highlight></codeline>
+<codeline lineno="289"><highlight class="normal"><sp/><sp/><ref refid="stream_8c_1a83d5c209366c07cf4f9026c5d7769141" kindref="member">ie_scalar_set_f32</ref>(dst<sp/>+<sp/>i,<sp/>value,<sp/>n<sp/>-<sp/>i);</highlight></codeline>
+<codeline lineno="290"><highlight class="normal"></highlight><highlight class="preprocessor">#else</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="291"><highlight class="normal"><sp/><sp/>(void)dst;<sp/>(void)value;<sp/>(void)n;</highlight></codeline>
+<codeline lineno="292"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="293"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="294"><highlight class="normal"></highlight></codeline>
+<codeline lineno="298" refid="stream_8c_1a62606c176a6edf9664ac03ded1ab2fa7" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="stream_8c_1a62606c176a6edf9664ac03ded1ab2fa7" kindref="member">ie_nt_set_f32_avx2</ref>(</highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*dst,<sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>value,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>n)<sp/>{</highlight></codeline>
+<codeline lineno="299"><highlight class="normal"></highlight><highlight class="preprocessor">#if<sp/>IE_X86<sp/>&amp;&amp;<sp/>defined(__AVX2__)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="300"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>i<sp/>=<sp/>0;</highlight></codeline>
+<codeline lineno="301"><highlight class="normal"><sp/><sp/>uintptr_t<sp/>addr<sp/>=<sp/>(uintptr_t)dst;</highlight></codeline>
+<codeline lineno="302"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>mis<sp/>=<sp/>addr<sp/>&amp;<sp/>(32u<sp/>-<sp/>1u);</highlight></codeline>
+<codeline lineno="303"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(mis)<sp/>{</highlight></codeline>
+<codeline lineno="304"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>pro<sp/>=<sp/>(32u<sp/>-<sp/>mis)<sp/>/<sp/></highlight><highlight class="keyword">sizeof</highlight><highlight class="normal">(</highlight><highlight class="keywordtype">float</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="305"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(pro<sp/>&gt;<sp/>n)<sp/>pro<sp/>=<sp/>n;</highlight></codeline>
+<codeline lineno="306"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="stream_8c_1a83d5c209366c07cf4f9026c5d7769141" kindref="member">ie_scalar_set_f32</ref>(dst,<sp/>value,<sp/>pro);</highlight></codeline>
+<codeline lineno="307"><highlight class="normal"><sp/><sp/><sp/><sp/>dst<sp/>+=<sp/>pro;<sp/>n<sp/>-=<sp/>pro;</highlight></codeline>
+<codeline lineno="308"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="309"><highlight class="normal"></highlight></codeline>
+<codeline lineno="310"><highlight class="normal"><sp/><sp/>__m256<sp/>v<sp/>=<sp/>_mm256_set1_ps(value);</highlight></codeline>
+<codeline lineno="311"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(;<sp/>i<sp/>+<sp/>8<sp/>&lt;=<sp/>n;<sp/>i<sp/>+=<sp/>8)<sp/>_mm256_stream_ps(dst<sp/>+<sp/>i,<sp/>v);</highlight></codeline>
+<codeline lineno="312"><highlight class="normal"><sp/><sp/><ref refid="stream_8c_1a83d5c209366c07cf4f9026c5d7769141" kindref="member">ie_scalar_set_f32</ref>(dst<sp/>+<sp/>i,<sp/>value,<sp/>n<sp/>-<sp/>i);</highlight></codeline>
+<codeline lineno="313"><highlight class="normal"></highlight><highlight class="preprocessor">#else</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="314"><highlight class="normal"><sp/><sp/>(void)dst;<sp/>(void)value;<sp/>(void)n;</highlight></codeline>
+<codeline lineno="315"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="316"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="317"><highlight class="normal"></highlight></codeline>
+<codeline lineno="318"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>-----------------------------<sp/>public<sp/>kernels<sp/>-----------------------------<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="319"><highlight class="normal"></highlight></codeline>
+<codeline lineno="320" refid="ie__stream_8h_1a13ab8c04be7e2aad6764804916e21757" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="stream_8c_1a13ab8c04be7e2aad6764804916e21757" kindref="member">ie_stream_copy_f32</ref>(</highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*dst,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*src,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>n,</highlight></codeline>
+<codeline lineno="321"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct</highlight><highlight class="normal"><sp/><ref refid="structie__stream__policy" kindref="compound">ie_stream_policy</ref><sp/>*p,<sp/></highlight><highlight class="keywordtype">double</highlight><highlight class="normal"><sp/>nt_ratio)<sp/>{</highlight></codeline>
+<codeline lineno="322"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!dst<sp/>||<sp/>!src<sp/>||<sp/>!p)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="323"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>bytes<sp/>=<sp/>n<sp/>*<sp/></highlight><highlight class="keyword">sizeof</highlight><highlight class="normal">(float);</highlight></codeline>
+<codeline lineno="324"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/>want_nt<sp/>=<sp/><ref refid="stream_8c_1af51c48e8b0afa485e060090f734d1cb1" kindref="member">ie_stream_should_use_nt</ref>(bytes,<sp/>p)<sp/>&amp;&amp;<sp/>(<ref refid="stream_8c_1a209af35ff3b6ba68d29aa6cebd04a36c" kindref="member">ie_clamp01</ref>(nt_ratio)<sp/>&gt;<sp/>0.0);</highlight></codeline>
+<codeline lineno="325"><highlight class="normal"></highlight></codeline>
+<codeline lineno="326"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!want_nt)<sp/>{</highlight></codeline>
+<codeline lineno="327"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="stream_8c_1a595b79d2d4a2ee4b29b91ac03014dc86" kindref="member">ie_scalar_copy_f32</ref>(dst,<sp/>src,<sp/>n);</highlight></codeline>
+<codeline lineno="328"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="329"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="330"><highlight class="normal"></highlight></codeline>
+<codeline lineno="331"><highlight class="normal"></highlight><highlight class="preprocessor">#if<sp/>IE_X86<sp/>&amp;&amp;<sp/>defined(__AVX512F__)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="332"><highlight class="normal"><sp/><sp/><ref refid="stream_8c_1a08dffd4006d1feb19beeaee81ff360b2" kindref="member">ie_nt_copy_f32_avx512</ref>(dst,<sp/>src,<sp/>n);</highlight></codeline>
+<codeline lineno="333"><highlight class="normal"></highlight><highlight class="preprocessor">#elif<sp/>IE_X86<sp/>&amp;&amp;<sp/>defined(__AVX2__)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="334"><highlight class="normal"><sp/><sp/><ref refid="stream_8c_1a6caed8f050edb118d1b888b8b91b5549" kindref="member">ie_nt_copy_f32_avx2</ref>(dst,<sp/>src,<sp/>n);</highlight></codeline>
+<codeline lineno="335"><highlight class="normal"></highlight><highlight class="preprocessor">#else</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="336"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">/*<sp/>No<sp/>streaming<sp/>stores<sp/>available<sp/>at<sp/>compile<sp/>time.<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="337"><highlight class="normal"><sp/><sp/><ref refid="stream_8c_1a595b79d2d4a2ee4b29b91ac03014dc86" kindref="member">ie_scalar_copy_f32</ref>(dst,<sp/>src,<sp/>n);</highlight></codeline>
+<codeline lineno="338"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="339"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="340"><highlight class="normal"></highlight></codeline>
+<codeline lineno="341" refid="ie__stream_8h_1ae7db5f748b4078d3d8064ee76d254353" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="stream_8c_1ae7db5f748b4078d3d8064ee76d254353" kindref="member">ie_stream_memset_f32</ref>(</highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*dst,<sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>value,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>n,</highlight></codeline>
+<codeline lineno="342"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct</highlight><highlight class="normal"><sp/><ref refid="structie__stream__policy" kindref="compound">ie_stream_policy</ref><sp/>*p,<sp/></highlight><highlight class="keywordtype">double</highlight><highlight class="normal"><sp/>nt_ratio)<sp/>{</highlight></codeline>
+<codeline lineno="343"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!dst<sp/>||<sp/>!p)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="344"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>bytes<sp/>=<sp/>n<sp/>*<sp/></highlight><highlight class="keyword">sizeof</highlight><highlight class="normal">(float);</highlight></codeline>
+<codeline lineno="345"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/>want_nt<sp/>=<sp/><ref refid="stream_8c_1af51c48e8b0afa485e060090f734d1cb1" kindref="member">ie_stream_should_use_nt</ref>(bytes,<sp/>p)<sp/>&amp;&amp;<sp/>(<ref refid="stream_8c_1a209af35ff3b6ba68d29aa6cebd04a36c" kindref="member">ie_clamp01</ref>(nt_ratio)<sp/>&gt;<sp/>0.0);</highlight></codeline>
+<codeline lineno="346"><highlight class="normal"></highlight></codeline>
+<codeline lineno="347"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!want_nt)<sp/>{</highlight></codeline>
+<codeline lineno="348"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="stream_8c_1a83d5c209366c07cf4f9026c5d7769141" kindref="member">ie_scalar_set_f32</ref>(dst,<sp/>value,<sp/>n);</highlight></codeline>
+<codeline lineno="349"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="350"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="351"><highlight class="normal"></highlight></codeline>
+<codeline lineno="352"><highlight class="normal"></highlight><highlight class="preprocessor">#if<sp/>IE_X86<sp/>&amp;&amp;<sp/>defined(__AVX512F__)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="353"><highlight class="normal"><sp/><sp/><ref refid="stream_8c_1a099c508cf40a9fa5f184c462badcf1fa" kindref="member">ie_nt_set_f32_avx512</ref>(dst,<sp/>value,<sp/>n);</highlight></codeline>
+<codeline lineno="354"><highlight class="normal"></highlight><highlight class="preprocessor">#elif<sp/>IE_X86<sp/>&amp;&amp;<sp/>defined(__AVX2__)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="355"><highlight class="normal"><sp/><sp/><ref refid="stream_8c_1a62606c176a6edf9664ac03ded1ab2fa7" kindref="member">ie_nt_set_f32_avx2</ref>(dst,<sp/>value,<sp/>n);</highlight></codeline>
+<codeline lineno="356"><highlight class="normal"></highlight><highlight class="preprocessor">#else</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="357"><highlight class="normal"><sp/><sp/><ref refid="stream_8c_1a83d5c209366c07cf4f9026c5d7769141" kindref="member">ie_scalar_set_f32</ref>(dst,<sp/>value,<sp/>n);</highlight></codeline>
+<codeline lineno="358"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="359"><highlight class="normal">}</highlight></codeline>
+    </programlisting>
+    <location file="engine/src/opt/stream.c"/>
+  </compounddef>
+</doxygen>

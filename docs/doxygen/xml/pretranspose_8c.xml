@@ -3,10 +3,10 @@
   <compounddef id="pretranspose_8c" kind="file" language="C++">
     <compoundname>pretranspose.c</compoundname>
     <includes refid="ie__layout_8h" local="yes">ie_layout.h</includes>
+    <includes local="no">errno.h</includes>
     <includes local="no">stdio.h</includes>
     <includes local="no">stdlib.h</includes>
     <includes local="no">string.h</includes>
-    <includes local="no">errno.h</includes>
     <incdepgraph>
       <node id="2">
         <label>ie_layout.h</label>
@@ -28,19 +28,19 @@
         <childnode refid="7" relation="include">
         </childnode>
       </node>
-      <node id="7">
+      <node id="4">
         <label>errno.h</label>
       </node>
       <node id="3">
         <label>stddef.h</label>
       </node>
-      <node id="4">
+      <node id="5">
         <label>stdio.h</label>
       </node>
-      <node id="5">
+      <node id="6">
         <label>stdlib.h</label>
       </node>
-      <node id="6">
+      <node id="7">
         <label>string.h</label>
       </node>
     </incdepgraph>
@@ -82,12 +82,13 @@
 <para>Create a filename for the on-disk cache of a blocked matrix. </para>
         </briefdescription>
         <detaileddescription>
+<para>The generated name is deterministic and includes the structural parameters so that changes in shape or block-size naturally invalidate older caches.</para>
 <para><parameterlist kind="param"><parameteritem>
 <parameternamelist>
 <parametername>base_path</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Path to original weights file (used to namespace cache). </para>
+<para>Path or stem to namespace the cache (may be NULL/empty). </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -95,7 +96,7 @@
 <parametername>tag</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Short tag like &quot;wxh&quot; or &quot;woh&quot;. </para>
+<para>Short, human-readable tag (e.g., &quot;wxh&quot;, &quot;woh&quot;). </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -103,7 +104,7 @@
 <parametername>rows</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Row count. </para>
+<para>Row count in the logical matrix. </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -111,7 +112,7 @@
 <parametername>cols</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Column count. </para>
+<para>Column count in the logical matrix. </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -119,7 +120,7 @@
 <parametername>blk_k</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Column block size. </para>
+<para>Column block size used for packing. </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -127,7 +128,7 @@
 <parametername>out_buf</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Output buffer for the resulting path string. </para>
+<para>Destination buffer for the resulting path. </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -135,17 +136,17 @@
 <parametername>out_cap</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Capacity of <computeroutput>out_buf</computeroutput> including NUL terminator. </para>
+<para>Capacity of <computeroutput>out_buf</computeroutput> in bytes (including NUL). </para>
 </parameterdescription>
 </parameteritem>
 </parameterlist>
-<simplesect kind="return"><para>0 on success; -1 on failure. </para>
+<simplesect kind="return"><para>0 on success; -1 on invalid arguments or buffer too small. </para>
 </simplesect>
 </para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="engine/src/opt/pretranspose.c" line="24" column="5" bodyfile="engine/src/opt/pretranspose.c" bodystart="24" bodyend="32"/>
+        <location file="engine/src/opt/pretranspose.c" line="48" column="5" bodyfile="engine/src/opt/pretranspose.c" bodystart="48" bodyend="56"/>
       </memberdef>
       <memberdef kind="function" id="pretranspose_8c_1a3b1361210ce0850cf868bc60c96d4b6e" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>int</type>
@@ -169,15 +170,16 @@
           <declname>data_out</declname>
         </param>
         <briefdescription>
-<para>Try loading a blocked buffer from disk cache. </para>
+<para>Load a blocked buffer from disk cache into a freshly malloc&apos;ed array. </para>
         </briefdescription>
         <detaileddescription>
+<para>The function validates the payload length by expecting exactly rows*cols floats. It does not validate content beyond size and returns the raw buffer as-is.</para>
 <para><parameterlist kind="param"><parameteritem>
 <parameternamelist>
 <parametername>path</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Cache file path. </para>
+<para>Cache file path (may be NULL to force a miss). </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -185,7 +187,7 @@
 <parametername>rows</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Rows. </para>
+<para>Expected number of rows. </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -193,7 +195,7 @@
 <parametername>cols</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Cols. </para>
+<para>Expected number of cols. </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -201,18 +203,18 @@
 <parametername>data_out</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>*data malloc&apos;ed on success. </para>
+<para>On success, *data_out points to a malloc&apos;ed float array of length rows*cols the caller owns. </para>
 </parameterdescription>
 </parameteritem>
 </parameterlist>
-<simplesect kind="return"><para>0 on success; -1 otherwise. </para>
+<simplesect kind="return"><para>0 on a successful load; -1 on any error (including cache miss). </para>
 </simplesect>
 </para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="engine/src/opt/pretranspose.c" line="43" column="12" bodyfile="engine/src/opt/pretranspose.c" bodystart="43" bodyend="55"/>
-        <referencedby refid="ie__layout_8h_1aec7ada5371889da8bd67de5f679f49e1" compoundref="pretranspose_8c" startline="98" endline="128">ie_layout_build_blockedK</referencedby>
+        <location file="engine/src/opt/pretranspose.c" line="76" column="12" bodyfile="engine/src/opt/pretranspose.c" bodystart="76" bodyend="95"/>
+        <referencedby refid="ie__layout_8h_1aec7ada5371889da8bd67de5f679f49e1" compoundref="pretranspose_8c" startline="169" endline="208">ie_layout_build_blockedK</referencedby>
       </memberdef>
       <memberdef kind="function" id="pretranspose_8c_1aa32af2b1dc7c23ae2f05e78492d5e71d" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>int</type>
@@ -236,9 +238,10 @@
           <declname>cols</declname>
         </param>
         <briefdescription>
-<para>Save a blocked buffer to disk cache (atomic via temp file). </para>
+<para>Save a blocked buffer to disk cache using an atomic rename. </para>
         </briefdescription>
         <detaileddescription>
+<para>The function writes to a temporary file &quot;&lt;path&gt;.tmp&quot; and then renames it to <computeroutput>path</computeroutput>. If any step fails, the temporary file is unlinked.</para>
 <para><parameterlist kind="param"><parameteritem>
 <parameternamelist>
 <parametername>path</parametername>
@@ -252,7 +255,7 @@
 <parametername>data</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Buffer pointer. </para>
+<para>Source buffer (length rows*cols floats). </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -260,7 +263,7 @@
 <parametername>rows</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Rows. </para>
+<para>Number of rows. </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -268,18 +271,18 @@
 <parametername>cols</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Cols. </para>
+<para>Number of cols. </para>
 </parameterdescription>
 </parameteritem>
 </parameterlist>
-<simplesect kind="return"><para>0 on success; -1 otherwise. </para>
+<simplesect kind="return"><para>0 on success; -1 on error. </para>
 </simplesect>
 </para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="engine/src/opt/pretranspose.c" line="66" column="12" bodyfile="engine/src/opt/pretranspose.c" bodystart="66" bodyend="81"/>
-        <referencedby refid="ie__layout_8h_1aec7ada5371889da8bd67de5f679f49e1" compoundref="pretranspose_8c" startline="98" endline="128">ie_layout_build_blockedK</referencedby>
+        <location file="engine/src/opt/pretranspose.c" line="109" column="12" bodyfile="engine/src/opt/pretranspose.c" bodystart="109" bodyend="136"/>
+        <referencedby refid="ie__layout_8h_1aec7ada5371889da8bd67de5f679f49e1" compoundref="pretranspose_8c" startline="169" endline="208">ie_layout_build_blockedK</referencedby>
       </memberdef>
       <memberdef kind="function" id="pretranspose_8c_1aec7ada5371889da8bd67de5f679f49e1" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>int</type>
@@ -311,17 +314,27 @@
           <declname>out</declname>
         </param>
         <briefdescription>
-<para>Build blocked-K layout from row-major W (rows x cols). </para>
+<para>Build a per-row Blocked-K layout from a row-major matrix. </para>
         </briefdescription>
         <detaileddescription>
 <para>Allocate and build a blocked-K copy of row-major <computeroutput>W</computeroutput>.</para>
-<para>Layout: for each row r, columns are stored in contiguous blocks of size blk_k: [W[r,0..blk_k-1] | W[r,blk_k..2*blk_k-1] | ...] The last block may be short if cols is not divisible by blk_k.</para>
+<para>Layout definition (per row): For k0 in {0, blk_k, 2*blk_k, ...} copy the contiguous slice W[r, k0 .. k0 + klen - 1] where klen = min(blk_k, cols - k0) into the destination row buffer. The order of elements within a row is unchanged, merely grouped by contiguous <computeroutput>blk_k</computeroutput> segments.</para>
+<para>Performance note:<itemizedlist>
+<listitem><para>This packing does not introduce padding; the last block is short.</para>
+</listitem><listitem><para>Consumers can use <computeroutput>blk_k</computeroutput> as an inner-loop tile when iterating K.</para>
+</listitem></itemizedlist>
+</para>
+<para>Cache interaction:<itemizedlist>
+<listitem><para>If <computeroutput>cache_path</computeroutput> is non-NULL and a readable file exists with exactly rows*cols floats, the function loads it and returns immediately.</para>
+</listitem><listitem><para>Otherwise the function computes the layout, attempts to save it atomically to <computeroutput>cache_path</computeroutput> (if provided), and returns the new buffer.</para>
+</listitem></itemizedlist>
+</para>
 <para><parameterlist kind="param"><parameteritem>
 <parameternamelist>
 <parametername>W</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Pointer to row-major matrix (rows x cols). </para>
+<para>Pointer to row-major input matrix (rows x cols). </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -329,7 +342,7 @@
 <parametername>rows</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Row count. </para>
+<para>Number of rows in <computeroutput>W</computeroutput>. </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -337,7 +350,7 @@
 <parametername>cols</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Column count. </para>
+<para>Number of columns in <computeroutput>W</computeroutput>. </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -345,7 +358,7 @@
 <parametername>blk_k</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Column block size (&gt;=1). </para>
+<para>Column block size (&gt;= 1). </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -353,7 +366,7 @@
 <parametername>cache_path</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Optional cache file to load/save; may be NULL. </para>
+<para>Optional filename for cache read/write (may be NULL). </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -361,23 +374,23 @@
 <parametername>out</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Output descriptor (allocated here). </para>
+<para>Output descriptor to be filled on success. </para>
 </parameterdescription>
 </parameteritem>
 </parameterlist>
-<simplesect kind="return"><para>0 on success; -1 on failure. </para>
+<simplesect kind="return"><para>0 on success (with <computeroutput>out-&gt;data</computeroutput> != NULL); -1 on invalid args or OOM. </para>
 </simplesect>
 </para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="engine/src/opt/pretranspose.c" line="98" column="5" bodyfile="engine/src/opt/pretranspose.c" bodystart="98" bodyend="128"/>
+        <location file="engine/src/opt/pretranspose.c" line="169" column="5" bodyfile="engine/src/opt/pretranspose.c" bodystart="169" bodyend="208"/>
         <references refid="structie__wblocked__desc_1aecbe9b5f97e69baf611e6b01a0b6b699" compoundref="ie__layout_8h" startline="18">ie_wblocked_desc::blk_k</references>
         <references refid="structie__wblocked__desc_1a7adf6c23e6798f2fae5ba7b6ddaadcd7" compoundref="ie__layout_8h" startline="17">ie_wblocked_desc::cols</references>
         <references refid="structie__wblocked__desc_1a8a4379a023f9a078a1f21c7fc7a48b09" compoundref="ie__layout_8h" startline="19">ie_wblocked_desc::data</references>
-        <references refid="pretranspose_8c_1a3b1361210ce0850cf868bc60c96d4b6e" compoundref="pretranspose_8c" startline="43" endline="55">load_cache</references>
+        <references refid="pretranspose_8c_1a3b1361210ce0850cf868bc60c96d4b6e" compoundref="pretranspose_8c" startline="76" endline="95">load_cache</references>
         <references refid="structie__wblocked__desc_1aad0e79d6b83fc4e2f15ae0d9b2dad038" compoundref="ie__layout_8h" startline="16">ie_wblocked_desc::rows</references>
-        <references refid="pretranspose_8c_1aa32af2b1dc7c23ae2f05e78492d5e71d" compoundref="pretranspose_8c" startline="66" endline="81">save_cache_atomic</references>
+        <references refid="pretranspose_8c_1aa32af2b1dc7c23ae2f05e78492d5e71d" compoundref="pretranspose_8c" startline="109" endline="136">save_cache_atomic</references>
       </memberdef>
       <memberdef kind="function" id="pretranspose_8c_1adfbda87f521cd3df6d9a2dc3118019dd" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -389,10 +402,11 @@
           <declname>desc</declname>
         </param>
         <briefdescription>
-<para>Free a blocked descriptor and its buffer. </para>
+<para>Release a blocked descriptor and reset its fields. </para>
         </briefdescription>
         <detaileddescription>
 <para>Free resources owned by a blocked descriptor.</para>
+<para>Safe to call with NULL. After the call, <computeroutput>desc</computeroutput> fields are zeroed.</para>
 <para><parameterlist kind="param"><parameteritem>
 <parameternamelist>
 <parametername>desc</parametername>
@@ -406,7 +420,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="engine/src/opt/pretranspose.c" line="135" column="6" bodyfile="engine/src/opt/pretranspose.c" bodystart="135" bodyend="140"/>
+        <location file="engine/src/opt/pretranspose.c" line="217" column="6" bodyfile="engine/src/opt/pretranspose.c" bodystart="217" bodyend="224"/>
         <references refid="structie__wblocked__desc_1aecbe9b5f97e69baf611e6b01a0b6b699" compoundref="ie__layout_8h" startline="18">ie_wblocked_desc::blk_k</references>
         <references refid="structie__wblocked__desc_1a7adf6c23e6798f2fae5ba7b6ddaadcd7" compoundref="ie__layout_8h" startline="17">ie_wblocked_desc::cols</references>
         <references refid="structie__wblocked__desc_1a8a4379a023f9a078a1f21c7fc7a48b09" compoundref="ie__layout_8h" startline="19">ie_wblocked_desc::data</references>
@@ -414,98 +428,159 @@
       </memberdef>
     </sectiondef>
     <briefdescription>
-<para>Build and cache blocked-K weight layout for GEMV. </para>
     </briefdescription>
     <detaileddescription>
     </detaileddescription>
     <programlisting>
-<codeline lineno="1"><highlight class="normal"></highlight></codeline>
-<codeline lineno="5"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;<ref refid="ie__layout_8h" kindref="compound">ie_layout.h</ref>&quot;</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="6"><highlight class="normal"></highlight></codeline>
-<codeline lineno="7"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stdio.h&gt;</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="8"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stdlib.h&gt;</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="9"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;string.h&gt;</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="10"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;errno.h&gt;</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="11"><highlight class="normal"></highlight></codeline>
-<codeline lineno="24" refid="ie__layout_8h_1a9298ca8a8a85ae81b7545bc4d1b78825" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="pretranspose_8c_1a9298ca8a8a85ae81b7545bc4d1b78825" kindref="member">ie_layout_cache_name</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*base_path,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*tag,</highlight></codeline>
-<codeline lineno="25"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>rows,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>cols,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>blk_k,</highlight></codeline>
-<codeline lineno="26"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*out_buf,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>out_cap)<sp/>{</highlight></codeline>
-<codeline lineno="27"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!tag<sp/>||<sp/>!out_buf<sp/>||<sp/>out_cap<sp/>&lt;<sp/>8)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>-1;</highlight></codeline>
-<codeline lineno="28"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*stem<sp/>=<sp/>(base_path<sp/>&amp;&amp;<sp/>*base_path)<sp/>?<sp/>base_path<sp/>:<sp/></highlight><highlight class="stringliteral">&quot;weights.bin&quot;</highlight><highlight class="normal">;</highlight></codeline>
-<codeline lineno="29"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>n<sp/>=<sp/>snprintf(out_buf,<sp/>out_cap,<sp/></highlight><highlight class="stringliteral">&quot;%s.%s.r%zu.c%zu.bk%zu.cache.bin&quot;</highlight><highlight class="normal">,</highlight></codeline>
-<codeline lineno="30"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>stem,<sp/>tag,<sp/>rows,<sp/>cols,<sp/>blk_k);</highlight></codeline>
-<codeline lineno="31"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>(n<sp/>&gt;<sp/>0<sp/>&amp;&amp;<sp/>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal">)n<sp/>&lt;<sp/>out_cap)<sp/>?<sp/>0<sp/>:<sp/>-1;</highlight></codeline>
-<codeline lineno="32"><highlight class="normal">}</highlight></codeline>
-<codeline lineno="33"><highlight class="normal"></highlight></codeline>
-<codeline lineno="43" refid="pretranspose_8c_1a3b1361210ce0850cf868bc60c96d4b6e" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="pretranspose_8c_1a3b1361210ce0850cf868bc60c96d4b6e" kindref="member">load_cache</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*path,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>rows,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>cols,<sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>**data_out)<sp/>{</highlight></codeline>
-<codeline lineno="44"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!path)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>-1;</highlight></codeline>
-<codeline lineno="45"><highlight class="normal"><sp/><sp/>FILE<sp/>*f<sp/>=<sp/>fopen(path,<sp/></highlight><highlight class="stringliteral">&quot;rb&quot;</highlight><highlight class="normal">);</highlight></codeline>
-<codeline lineno="46"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!f)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>-1;</highlight></codeline>
-<codeline lineno="47"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>count<sp/>=<sp/>rows<sp/>*<sp/>cols;</highlight></codeline>
-<codeline lineno="48"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*buf<sp/>=<sp/>(</highlight><highlight class="keywordtype">float</highlight><highlight class="normal">*)malloc(count<sp/>*<sp/></highlight><highlight class="keyword">sizeof</highlight><highlight class="normal">(</highlight><highlight class="keywordtype">float</highlight><highlight class="normal">));</highlight></codeline>
-<codeline lineno="49"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!buf)<sp/>{<sp/>fclose(f);<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>-1;<sp/>}</highlight></codeline>
-<codeline lineno="50"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>got<sp/>=<sp/>fread(buf,<sp/></highlight><highlight class="keyword">sizeof</highlight><highlight class="normal">(</highlight><highlight class="keywordtype">float</highlight><highlight class="normal">),<sp/>count,<sp/>f);</highlight></codeline>
-<codeline lineno="51"><highlight class="normal"><sp/><sp/>fclose(f);</highlight></codeline>
-<codeline lineno="52"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(got<sp/>!=<sp/>count)<sp/>{<sp/>free(buf);<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>-1;<sp/>}</highlight></codeline>
-<codeline lineno="53"><highlight class="normal"><sp/><sp/>*data_out<sp/>=<sp/>buf;</highlight></codeline>
-<codeline lineno="54"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>0;</highlight></codeline>
-<codeline lineno="55"><highlight class="normal">}</highlight></codeline>
-<codeline lineno="56"><highlight class="normal"></highlight></codeline>
-<codeline lineno="66" refid="pretranspose_8c_1aa32af2b1dc7c23ae2f05e78492d5e71d" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="pretranspose_8c_1aa32af2b1dc7c23ae2f05e78492d5e71d" kindref="member">save_cache_atomic</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*path,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*data,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>rows,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>cols)<sp/>{</highlight></codeline>
-<codeline lineno="67"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!path)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>-1;</highlight></codeline>
-<codeline lineno="68"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>tmp[4096];</highlight></codeline>
-<codeline lineno="69"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>n<sp/>=<sp/>snprintf(tmp,<sp/></highlight><highlight class="keyword">sizeof</highlight><highlight class="normal">(tmp),<sp/></highlight><highlight class="stringliteral">&quot;%s.tmp&quot;</highlight><highlight class="normal">,<sp/>path);</highlight></codeline>
-<codeline lineno="70"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(n<sp/>&lt;=<sp/>0<sp/>||<sp/>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal">)n<sp/>&gt;=<sp/></highlight><highlight class="keyword">sizeof</highlight><highlight class="normal">(tmp))<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>-1;</highlight></codeline>
-<codeline lineno="71"><highlight class="normal"></highlight></codeline>
-<codeline lineno="72"><highlight class="normal"><sp/><sp/>FILE<sp/>*f<sp/>=<sp/>fopen(tmp,<sp/></highlight><highlight class="stringliteral">&quot;wb&quot;</highlight><highlight class="normal">);</highlight></codeline>
-<codeline lineno="73"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!f)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>-1;</highlight></codeline>
-<codeline lineno="74"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>count<sp/>=<sp/>rows<sp/>*<sp/>cols;</highlight></codeline>
-<codeline lineno="75"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>put<sp/>=<sp/>fwrite(data,<sp/></highlight><highlight class="keyword">sizeof</highlight><highlight class="normal">(</highlight><highlight class="keywordtype">float</highlight><highlight class="normal">),<sp/>count,<sp/>f);</highlight></codeline>
-<codeline lineno="76"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(put<sp/>!=<sp/>count)<sp/>{<sp/>fclose(f);<sp/>remove(tmp);<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>-1;<sp/>}</highlight></codeline>
-<codeline lineno="77"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(fclose(f)<sp/>!=<sp/>0)<sp/>{<sp/>remove(tmp);<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>-1;<sp/>}</highlight></codeline>
-<codeline lineno="78"><highlight class="normal"></highlight></codeline>
-<codeline lineno="79"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(rename(tmp,<sp/>path)<sp/>!=<sp/>0)<sp/>{<sp/>remove(tmp);<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>-1;<sp/>}</highlight></codeline>
-<codeline lineno="80"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>0;</highlight></codeline>
-<codeline lineno="81"><highlight class="normal">}</highlight></codeline>
-<codeline lineno="82"><highlight class="normal"></highlight></codeline>
-<codeline lineno="98" refid="ie__layout_8h_1aec7ada5371889da8bd67de5f679f49e1" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="pretranspose_8c_1aec7ada5371889da8bd67de5f679f49e1" kindref="member">ie_layout_build_blockedK</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*W,</highlight></codeline>
-<codeline lineno="99"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>rows,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>cols,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>blk_k,</highlight></codeline>
-<codeline lineno="100"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*cache_path,</highlight></codeline>
-<codeline lineno="101"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="ie__layout_8h_1abaacf5a24d70c2d1f4efdcfbea99ce1b" kindref="member">ie_wblocked_desc_t</ref><sp/>*out)<sp/>{</highlight></codeline>
-<codeline lineno="102"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!W<sp/>||<sp/>!out<sp/>||<sp/>rows<sp/>==<sp/>0<sp/>||<sp/>cols<sp/>==<sp/>0<sp/>||<sp/>blk_k<sp/>==<sp/>0)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>-1;</highlight></codeline>
-<codeline lineno="103"><highlight class="normal"></highlight></codeline>
-<codeline lineno="104"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*buf<sp/>=<sp/>NULL;</highlight></codeline>
-<codeline lineno="105"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(<ref refid="pretranspose_8c_1a3b1361210ce0850cf868bc60c96d4b6e" kindref="member">load_cache</ref>(cache_path,<sp/>rows,<sp/>cols,<sp/>&amp;buf)<sp/>==<sp/>0)<sp/>{</highlight></codeline>
-<codeline lineno="106"><highlight class="normal"><sp/><sp/><sp/><sp/>out-&gt;<ref refid="structie__wblocked__desc_1aad0e79d6b83fc4e2f15ae0d9b2dad038" kindref="member">rows</ref><sp/>=<sp/>rows;<sp/>out-&gt;<ref refid="structie__wblocked__desc_1a7adf6c23e6798f2fae5ba7b6ddaadcd7" kindref="member">cols</ref><sp/>=<sp/>cols;<sp/>out-&gt;<ref refid="structie__wblocked__desc_1aecbe9b5f97e69baf611e6b01a0b6b699" kindref="member">blk_k</ref><sp/>=<sp/>blk_k;<sp/>out-&gt;<ref refid="structie__wblocked__desc_1a8a4379a023f9a078a1f21c7fc7a48b09" kindref="member">data</ref><sp/>=<sp/>buf;</highlight></codeline>
-<codeline lineno="107"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>0;</highlight></codeline>
-<codeline lineno="108"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
-<codeline lineno="109"><highlight class="normal"></highlight></codeline>
-<codeline lineno="110"><highlight class="normal"><sp/><sp/>buf<sp/>=<sp/>(</highlight><highlight class="keywordtype">float</highlight><highlight class="normal">*)malloc(rows<sp/>*<sp/>cols<sp/>*<sp/></highlight><highlight class="keyword">sizeof</highlight><highlight class="normal">(</highlight><highlight class="keywordtype">float</highlight><highlight class="normal">));</highlight></codeline>
-<codeline lineno="111"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!buf)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>-1;</highlight></codeline>
-<codeline lineno="112"><highlight class="normal"></highlight></codeline>
-<codeline lineno="113"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>r<sp/>=<sp/>0;<sp/>r<sp/>&lt;<sp/>rows;<sp/>++r)<sp/>{</highlight></codeline>
-<codeline lineno="114"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*src_row<sp/>=<sp/>W<sp/>+<sp/>r<sp/>*<sp/>cols;</highlight></codeline>
-<codeline lineno="115"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*dst_row<sp/>=<sp/>buf<sp/>+<sp/>r<sp/>*<sp/>cols;</highlight></codeline>
-<codeline lineno="116"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>written<sp/>=<sp/>0;</highlight></codeline>
-<codeline lineno="117"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>k0<sp/>=<sp/>0;<sp/>k0<sp/>&lt;<sp/>cols;<sp/>k0<sp/>+=<sp/>blk_k)<sp/>{</highlight></codeline>
-<codeline lineno="118"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>klen<sp/>=<sp/>(k0<sp/>+<sp/>blk_k<sp/>&lt;=<sp/>cols)<sp/>?<sp/>blk_k<sp/>:<sp/>(cols<sp/>-<sp/>k0);</highlight></codeline>
-<codeline lineno="119"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>memcpy(dst_row<sp/>+<sp/>written,<sp/>src_row<sp/>+<sp/>k0,<sp/>klen<sp/>*<sp/></highlight><highlight class="keyword">sizeof</highlight><highlight class="normal">(</highlight><highlight class="keywordtype">float</highlight><highlight class="normal">));</highlight></codeline>
-<codeline lineno="120"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>written<sp/>+=<sp/>klen;</highlight></codeline>
-<codeline lineno="121"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
-<codeline lineno="122"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
-<codeline lineno="123"><highlight class="normal"></highlight></codeline>
-<codeline lineno="124"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(cache_path)<sp/>(void)<ref refid="pretranspose_8c_1aa32af2b1dc7c23ae2f05e78492d5e71d" kindref="member">save_cache_atomic</ref>(cache_path,<sp/>buf,<sp/>rows,<sp/>cols);</highlight></codeline>
-<codeline lineno="125"><highlight class="normal"></highlight></codeline>
-<codeline lineno="126"><highlight class="normal"><sp/><sp/>out-&gt;<ref refid="structie__wblocked__desc_1aad0e79d6b83fc4e2f15ae0d9b2dad038" kindref="member">rows</ref><sp/>=<sp/>rows;<sp/>out-&gt;<ref refid="structie__wblocked__desc_1a7adf6c23e6798f2fae5ba7b6ddaadcd7" kindref="member">cols</ref><sp/>=<sp/>cols;<sp/>out-&gt;<ref refid="structie__wblocked__desc_1aecbe9b5f97e69baf611e6b01a0b6b699" kindref="member">blk_k</ref><sp/>=<sp/>blk_k;<sp/>out-&gt;<ref refid="structie__wblocked__desc_1a8a4379a023f9a078a1f21c7fc7a48b09" kindref="member">data</ref><sp/>=<sp/>buf;</highlight></codeline>
-<codeline lineno="127"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>0;</highlight></codeline>
-<codeline lineno="128"><highlight class="normal">}</highlight></codeline>
-<codeline lineno="129"><highlight class="normal"></highlight></codeline>
-<codeline lineno="135" refid="ie__layout_8h_1adfbda87f521cd3df6d9a2dc3118019dd" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="pretranspose_8c_1adfbda87f521cd3df6d9a2dc3118019dd" kindref="member">ie_layout_free</ref>(<ref refid="ie__layout_8h_1abaacf5a24d70c2d1f4efdcfbea99ce1b" kindref="member">ie_wblocked_desc_t</ref><sp/>*desc)<sp/>{</highlight></codeline>
-<codeline lineno="136"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!desc)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal">;</highlight></codeline>
-<codeline lineno="137"><highlight class="normal"><sp/><sp/>free(desc-&gt;<ref refid="structie__wblocked__desc_1a8a4379a023f9a078a1f21c7fc7a48b09" kindref="member">data</ref>);</highlight></codeline>
-<codeline lineno="138"><highlight class="normal"><sp/><sp/>desc-&gt;<ref refid="structie__wblocked__desc_1a8a4379a023f9a078a1f21c7fc7a48b09" kindref="member">data</ref><sp/>=<sp/>NULL;</highlight></codeline>
-<codeline lineno="139"><highlight class="normal"><sp/><sp/>desc-&gt;<ref refid="structie__wblocked__desc_1aad0e79d6b83fc4e2f15ae0d9b2dad038" kindref="member">rows</ref><sp/>=<sp/>desc-&gt;<ref refid="structie__wblocked__desc_1a7adf6c23e6798f2fae5ba7b6ddaadcd7" kindref="member">cols</ref><sp/>=<sp/>desc-&gt;<ref refid="structie__wblocked__desc_1aecbe9b5f97e69baf611e6b01a0b6b699" kindref="member">blk_k</ref><sp/>=<sp/>0;</highlight></codeline>
-<codeline lineno="140"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="1"><highlight class="comment">/*<sp/>File:<sp/>engine/src/opt/pretranspose.c</highlight></codeline>
+<codeline lineno="2"><highlight class="comment"><sp/>*<sp/>-----------------------------------------------------------------------------</highlight></codeline>
+<codeline lineno="3"><highlight class="comment"><sp/>*<sp/>@file<sp/>pretranspose.c</highlight></codeline>
+<codeline lineno="4"><highlight class="comment"><sp/>*<sp/>@brief<sp/>Build<sp/>and<sp/>cache<sp/>blocked-K<sp/>weight<sp/>layout<sp/>for<sp/>GEMV.</highlight></codeline>
+<codeline lineno="5"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="6"><highlight class="comment"><sp/>*<sp/>This<sp/>module<sp/>implements<sp/>a<sp/>light-weight<sp/>re-packing<sp/>of<sp/>a<sp/>row-major<sp/>weight</highlight></codeline>
+<codeline lineno="7"><highlight class="comment"><sp/>*<sp/>matrix<sp/>W<sp/>(rows<sp/>x<sp/>cols)<sp/>into<sp/>a<sp/>per-row,<sp/>contiguous<sp/>&quot;blocked-K&quot;<sp/>layout,</highlight></codeline>
+<codeline lineno="8"><highlight class="comment"><sp/>*<sp/>suitable<sp/>for<sp/>cache-friendly<sp/>inner<sp/>loops.<sp/>The<sp/>packing<sp/>is<sp/>stable<sp/>and</highlight></codeline>
+<codeline lineno="9"><highlight class="comment"><sp/>*<sp/>reversible:<sp/>each<sp/>output<sp/>row<sp/>preserves<sp/>the<sp/>original<sp/>order<sp/>of<sp/>columns,<sp/>only</highlight></codeline>
+<codeline lineno="10"><highlight class="comment"><sp/>*<sp/>grouped<sp/>by<sp/>contiguous<sp/>blocks<sp/>of<sp/>size<sp/>blk_k.</highlight></codeline>
+<codeline lineno="11"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="12"><highlight class="comment"><sp/>*<sp/>The<sp/>module<sp/>also<sp/>exposes<sp/>a<sp/>tiny<sp/>on-disk<sp/>cache<sp/>keyed<sp/>by<sp/>a<sp/>filename<sp/>stem,</highlight></codeline>
+<codeline lineno="13"><highlight class="comment"><sp/>*<sp/>a<sp/>layout<sp/>tag<sp/>(&quot;wxh&quot;,<sp/>&quot;woh&quot;,<sp/>etc.),<sp/>and<sp/>the<sp/>structural<sp/>parameters</highlight></codeline>
+<codeline lineno="14"><highlight class="comment"><sp/>*<sp/>(rows,<sp/>cols,<sp/>blk_k).<sp/>The<sp/>cache<sp/>is<sp/>optional<sp/>and<sp/>atomic<sp/>on<sp/>POSIX<sp/>via</highlight></codeline>
+<codeline lineno="15"><highlight class="comment"><sp/>*<sp/>rename(2).</highlight></codeline>
+<codeline lineno="16"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="17"><highlight class="comment"><sp/>*<sp/>Thread-safety:<sp/>all<sp/>functions<sp/>are<sp/>re-entrant;<sp/>no<sp/>global<sp/>state<sp/>is<sp/>modified.</highlight></codeline>
+<codeline lineno="18"><highlight class="comment"><sp/>*<sp/>Ownership:<sp/>the<sp/>returned<sp/>buffer<sp/>in<sp/>::ie_layout_build_blockedK<sp/>belongs<sp/>to<sp/>the</highlight></codeline>
+<codeline lineno="19"><highlight class="comment"><sp/>*<sp/>caller<sp/>and<sp/>must<sp/>be<sp/>released<sp/>with<sp/>::ie_layout_free<sp/>(or<sp/>free()).</highlight></codeline>
+<codeline lineno="20"><highlight class="comment"><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="21"><highlight class="normal"></highlight></codeline>
+<codeline lineno="22"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;<ref refid="ie__layout_8h" kindref="compound">ie_layout.h</ref>&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="23"><highlight class="normal"></highlight></codeline>
+<codeline lineno="24"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;errno.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="25"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stdio.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="26"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stdlib.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="27"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;string.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="28"><highlight class="normal"></highlight></codeline>
+<codeline lineno="29"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>--------------------------------------------------------------------------<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="30"><highlight class="normal"></highlight><highlight class="comment">/*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Public<sp/>utilities<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="31"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>--------------------------------------------------------------------------<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="32"><highlight class="normal"></highlight></codeline>
+<codeline lineno="48" refid="ie__layout_8h_1a9298ca8a8a85ae81b7545bc4d1b78825" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="pretranspose_8c_1a9298ca8a8a85ae81b7545bc4d1b78825" kindref="member">ie_layout_cache_name</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*base_path,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*tag,</highlight></codeline>
+<codeline lineno="49"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>rows,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>cols,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>blk_k,</highlight></codeline>
+<codeline lineno="50"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*out_buf,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>out_cap)<sp/>{</highlight></codeline>
+<codeline lineno="51"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!tag<sp/>||<sp/>!out_buf<sp/>||<sp/>out_cap<sp/>&lt;<sp/>8)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>-1;</highlight></codeline>
+<codeline lineno="52"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*stem<sp/>=<sp/>(base_path<sp/>&amp;&amp;<sp/>*base_path)<sp/>?<sp/>base_path<sp/>:<sp/></highlight><highlight class="stringliteral">&quot;weights.bin&quot;</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="53"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>n<sp/>=<sp/>snprintf(out_buf,<sp/>out_cap,<sp/></highlight><highlight class="stringliteral">&quot;%s.%s.r%zu.c%zu.bk%zu.cache.bin&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="54"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>stem,<sp/>tag,<sp/>rows,<sp/>cols,<sp/>blk_k);</highlight></codeline>
+<codeline lineno="55"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>(n<sp/>&gt;<sp/>0<sp/>&amp;&amp;<sp/>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal">)n<sp/>&lt;<sp/>out_cap)<sp/>?<sp/>0<sp/>:<sp/>-1;</highlight></codeline>
+<codeline lineno="56"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="57"><highlight class="normal"></highlight></codeline>
+<codeline lineno="58"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>--------------------------------------------------------------------------<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="59"><highlight class="normal"></highlight><highlight class="comment">/*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Internal<sp/>helpers<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="60"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>--------------------------------------------------------------------------<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="61"><highlight class="normal"></highlight></codeline>
+<codeline lineno="76" refid="pretranspose_8c_1a3b1361210ce0850cf868bc60c96d4b6e" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="pretranspose_8c_1a3b1361210ce0850cf868bc60c96d4b6e" kindref="member">load_cache</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*path,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>rows,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>cols,<sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>**data_out)<sp/>{</highlight></codeline>
+<codeline lineno="77"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!path<sp/>||<sp/>!*path<sp/>||<sp/>!data_out)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>-1;</highlight></codeline>
+<codeline lineno="78"><highlight class="normal"><sp/><sp/>FILE<sp/>*f<sp/>=<sp/>fopen(path,<sp/></highlight><highlight class="stringliteral">&quot;rb&quot;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="79"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!f)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>-1;</highlight></codeline>
+<codeline lineno="80"><highlight class="normal"></highlight></codeline>
+<codeline lineno="81"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>count<sp/>=<sp/>rows<sp/>*<sp/>cols;</highlight></codeline>
+<codeline lineno="82"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*buf<sp/>=<sp/>(</highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*)malloc(count<sp/>*<sp/></highlight><highlight class="keyword">sizeof</highlight><highlight class="normal">(</highlight><highlight class="keywordtype">float</highlight><highlight class="normal">));</highlight></codeline>
+<codeline lineno="83"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!buf)<sp/>{</highlight></codeline>
+<codeline lineno="84"><highlight class="normal"><sp/><sp/><sp/><sp/>fclose(f);</highlight></codeline>
+<codeline lineno="85"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>-1;</highlight></codeline>
+<codeline lineno="86"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="87"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>got<sp/>=<sp/>fread(buf,<sp/></highlight><highlight class="keyword">sizeof</highlight><highlight class="normal">(</highlight><highlight class="keywordtype">float</highlight><highlight class="normal">),<sp/>count,<sp/>f);</highlight></codeline>
+<codeline lineno="88"><highlight class="normal"><sp/><sp/>fclose(f);</highlight></codeline>
+<codeline lineno="89"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(got<sp/>!=<sp/>count)<sp/>{</highlight></codeline>
+<codeline lineno="90"><highlight class="normal"><sp/><sp/><sp/><sp/>free(buf);</highlight></codeline>
+<codeline lineno="91"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>-1;</highlight></codeline>
+<codeline lineno="92"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="93"><highlight class="normal"><sp/><sp/>*data_out<sp/>=<sp/>buf;</highlight></codeline>
+<codeline lineno="94"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>0;</highlight></codeline>
+<codeline lineno="95"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="96"><highlight class="normal"></highlight></codeline>
+<codeline lineno="109" refid="pretranspose_8c_1aa32af2b1dc7c23ae2f05e78492d5e71d" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="pretranspose_8c_1aa32af2b1dc7c23ae2f05e78492d5e71d" kindref="member">save_cache_atomic</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*path,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*data,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>rows,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>cols)<sp/>{</highlight></codeline>
+<codeline lineno="110"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!path<sp/>||<sp/>!*path<sp/>||<sp/>!data)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>-1;</highlight></codeline>
+<codeline lineno="111"><highlight class="normal"></highlight></codeline>
+<codeline lineno="112"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>tmp[4096];</highlight></codeline>
+<codeline lineno="113"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>n<sp/>=<sp/>snprintf(tmp,<sp/></highlight><highlight class="keyword">sizeof</highlight><highlight class="normal">(tmp),<sp/></highlight><highlight class="stringliteral">&quot;%s.tmp&quot;</highlight><highlight class="normal">,<sp/>path);</highlight></codeline>
+<codeline lineno="114"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(n<sp/>&lt;=<sp/>0<sp/>||<sp/>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal">)n<sp/>&gt;=<sp/></highlight><highlight class="keyword">sizeof</highlight><highlight class="normal">(tmp))<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>-1;</highlight></codeline>
+<codeline lineno="115"><highlight class="normal"></highlight></codeline>
+<codeline lineno="116"><highlight class="normal"><sp/><sp/>FILE<sp/>*f<sp/>=<sp/>fopen(tmp,<sp/></highlight><highlight class="stringliteral">&quot;wb&quot;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="117"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!f)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>-1;</highlight></codeline>
+<codeline lineno="118"><highlight class="normal"></highlight></codeline>
+<codeline lineno="119"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>count<sp/>=<sp/>rows<sp/>*<sp/>cols;</highlight></codeline>
+<codeline lineno="120"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>put<sp/>=<sp/>fwrite(data,<sp/></highlight><highlight class="keyword">sizeof</highlight><highlight class="normal">(</highlight><highlight class="keywordtype">float</highlight><highlight class="normal">),<sp/>count,<sp/>f);</highlight></codeline>
+<codeline lineno="121"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(put<sp/>!=<sp/>count)<sp/>{</highlight></codeline>
+<codeline lineno="122"><highlight class="normal"><sp/><sp/><sp/><sp/>fclose(f);</highlight></codeline>
+<codeline lineno="123"><highlight class="normal"><sp/><sp/><sp/><sp/>(void)remove(tmp);</highlight></codeline>
+<codeline lineno="124"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>-1;</highlight></codeline>
+<codeline lineno="125"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="126"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(fclose(f)<sp/>!=<sp/>0)<sp/>{</highlight></codeline>
+<codeline lineno="127"><highlight class="normal"><sp/><sp/><sp/><sp/>(void)remove(tmp);</highlight></codeline>
+<codeline lineno="128"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>-1;</highlight></codeline>
+<codeline lineno="129"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="130"><highlight class="normal"></highlight></codeline>
+<codeline lineno="131"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(rename(tmp,<sp/>path)<sp/>!=<sp/>0)<sp/>{</highlight></codeline>
+<codeline lineno="132"><highlight class="normal"><sp/><sp/><sp/><sp/>(void)remove(tmp);</highlight></codeline>
+<codeline lineno="133"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>-1;</highlight></codeline>
+<codeline lineno="134"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="135"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>0;</highlight></codeline>
+<codeline lineno="136"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="137"><highlight class="normal"></highlight></codeline>
+<codeline lineno="138"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>--------------------------------------------------------------------------<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="139"><highlight class="normal"></highlight><highlight class="comment">/*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>Public<sp/>packing<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="140"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>--------------------------------------------------------------------------<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="141"><highlight class="normal"></highlight></codeline>
+<codeline lineno="169" refid="ie__layout_8h_1aec7ada5371889da8bd67de5f679f49e1" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="pretranspose_8c_1aec7ada5371889da8bd67de5f679f49e1" kindref="member">ie_layout_build_blockedK</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*W,</highlight></codeline>
+<codeline lineno="170"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>rows,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>cols,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>blk_k,</highlight></codeline>
+<codeline lineno="171"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*cache_path,</highlight></codeline>
+<codeline lineno="172"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="ie__layout_8h_1abaacf5a24d70c2d1f4efdcfbea99ce1b" kindref="member">ie_wblocked_desc_t</ref><sp/>*out)<sp/>{</highlight></codeline>
+<codeline lineno="173"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!W<sp/>||<sp/>!out<sp/>||<sp/>rows<sp/>==<sp/>0<sp/>||<sp/>cols<sp/>==<sp/>0<sp/>||<sp/>blk_k<sp/>==<sp/>0)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>-1;</highlight></codeline>
+<codeline lineno="174"><highlight class="normal"></highlight></codeline>
+<codeline lineno="175"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*buf<sp/>=<sp/>NULL;</highlight></codeline>
+<codeline lineno="176"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(cache_path<sp/>&amp;&amp;<sp/><ref refid="pretranspose_8c_1a3b1361210ce0850cf868bc60c96d4b6e" kindref="member">load_cache</ref>(cache_path,<sp/>rows,<sp/>cols,<sp/>&amp;buf)<sp/>==<sp/>0)<sp/>{</highlight></codeline>
+<codeline lineno="177"><highlight class="normal"><sp/><sp/><sp/><sp/>out-&gt;<ref refid="structie__wblocked__desc_1aad0e79d6b83fc4e2f15ae0d9b2dad038" kindref="member">rows</ref><sp/>=<sp/>rows;</highlight></codeline>
+<codeline lineno="178"><highlight class="normal"><sp/><sp/><sp/><sp/>out-&gt;<ref refid="structie__wblocked__desc_1a7adf6c23e6798f2fae5ba7b6ddaadcd7" kindref="member">cols</ref><sp/>=<sp/>cols;</highlight></codeline>
+<codeline lineno="179"><highlight class="normal"><sp/><sp/><sp/><sp/>out-&gt;<ref refid="structie__wblocked__desc_1aecbe9b5f97e69baf611e6b01a0b6b699" kindref="member">blk_k</ref><sp/>=<sp/>blk_k;</highlight></codeline>
+<codeline lineno="180"><highlight class="normal"><sp/><sp/><sp/><sp/>out-&gt;<ref refid="structie__wblocked__desc_1a8a4379a023f9a078a1f21c7fc7a48b09" kindref="member">data</ref><sp/>=<sp/>buf;</highlight></codeline>
+<codeline lineno="181"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>0;</highlight></codeline>
+<codeline lineno="182"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="183"><highlight class="normal"></highlight></codeline>
+<codeline lineno="184"><highlight class="normal"><sp/><sp/>buf<sp/>=<sp/>(</highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*)malloc(rows<sp/>*<sp/>cols<sp/>*<sp/></highlight><highlight class="keyword">sizeof</highlight><highlight class="normal">(</highlight><highlight class="keywordtype">float</highlight><highlight class="normal">));</highlight></codeline>
+<codeline lineno="185"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!buf)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>-1;</highlight></codeline>
+<codeline lineno="186"><highlight class="normal"></highlight></codeline>
+<codeline lineno="187"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>r<sp/>=<sp/>0;<sp/>r<sp/>&lt;<sp/>rows;<sp/>++r)<sp/>{</highlight></codeline>
+<codeline lineno="188"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*src_row<sp/>=<sp/>W<sp/>+<sp/>r<sp/>*<sp/>cols;</highlight></codeline>
+<codeline lineno="189"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*dst_row<sp/>=<sp/>buf<sp/>+<sp/>r<sp/>*<sp/>cols;</highlight></codeline>
+<codeline lineno="190"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>written<sp/>=<sp/>0;</highlight></codeline>
+<codeline lineno="191"><highlight class="normal"></highlight></codeline>
+<codeline lineno="192"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>k0<sp/>=<sp/>0;<sp/>k0<sp/>&lt;<sp/>cols;<sp/>k0<sp/>+=<sp/>blk_k)<sp/>{</highlight></codeline>
+<codeline lineno="193"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>klen<sp/>=<sp/>(k0<sp/>+<sp/>blk_k<sp/>&lt;=<sp/>cols)<sp/>?<sp/>blk_k<sp/>:<sp/>(cols<sp/>-<sp/>k0);</highlight></codeline>
+<codeline lineno="194"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>memcpy(dst_row<sp/>+<sp/>written,<sp/>src_row<sp/>+<sp/>k0,<sp/>klen<sp/>*<sp/></highlight><highlight class="keyword">sizeof</highlight><highlight class="normal">(</highlight><highlight class="keywordtype">float</highlight><highlight class="normal">));</highlight></codeline>
+<codeline lineno="195"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>written<sp/>+=<sp/>klen;</highlight></codeline>
+<codeline lineno="196"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="197"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="198"><highlight class="normal"></highlight></codeline>
+<codeline lineno="199"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(cache_path)<sp/>{</highlight></codeline>
+<codeline lineno="200"><highlight class="normal"><sp/><sp/><sp/><sp/>(void)<ref refid="pretranspose_8c_1aa32af2b1dc7c23ae2f05e78492d5e71d" kindref="member">save_cache_atomic</ref>(cache_path,<sp/>buf,<sp/>rows,<sp/>cols);</highlight></codeline>
+<codeline lineno="201"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="202"><highlight class="normal"></highlight></codeline>
+<codeline lineno="203"><highlight class="normal"><sp/><sp/>out-&gt;<ref refid="structie__wblocked__desc_1aad0e79d6b83fc4e2f15ae0d9b2dad038" kindref="member">rows</ref><sp/>=<sp/>rows;</highlight></codeline>
+<codeline lineno="204"><highlight class="normal"><sp/><sp/>out-&gt;<ref refid="structie__wblocked__desc_1a7adf6c23e6798f2fae5ba7b6ddaadcd7" kindref="member">cols</ref><sp/>=<sp/>cols;</highlight></codeline>
+<codeline lineno="205"><highlight class="normal"><sp/><sp/>out-&gt;<ref refid="structie__wblocked__desc_1aecbe9b5f97e69baf611e6b01a0b6b699" kindref="member">blk_k</ref><sp/>=<sp/>blk_k;</highlight></codeline>
+<codeline lineno="206"><highlight class="normal"><sp/><sp/>out-&gt;<ref refid="structie__wblocked__desc_1a8a4379a023f9a078a1f21c7fc7a48b09" kindref="member">data</ref><sp/>=<sp/>buf;</highlight></codeline>
+<codeline lineno="207"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>0;</highlight></codeline>
+<codeline lineno="208"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="209"><highlight class="normal"></highlight></codeline>
+<codeline lineno="217" refid="ie__layout_8h_1adfbda87f521cd3df6d9a2dc3118019dd" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="pretranspose_8c_1adfbda87f521cd3df6d9a2dc3118019dd" kindref="member">ie_layout_free</ref>(<ref refid="ie__layout_8h_1abaacf5a24d70c2d1f4efdcfbea99ce1b" kindref="member">ie_wblocked_desc_t</ref><sp/>*desc)<sp/>{</highlight></codeline>
+<codeline lineno="218"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!desc)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="219"><highlight class="normal"><sp/><sp/>free(desc-&gt;<ref refid="structie__wblocked__desc_1a8a4379a023f9a078a1f21c7fc7a48b09" kindref="member">data</ref>);</highlight></codeline>
+<codeline lineno="220"><highlight class="normal"><sp/><sp/>desc-&gt;<ref refid="structie__wblocked__desc_1a8a4379a023f9a078a1f21c7fc7a48b09" kindref="member">data</ref><sp/>=<sp/>NULL;</highlight></codeline>
+<codeline lineno="221"><highlight class="normal"><sp/><sp/>desc-&gt;<ref refid="structie__wblocked__desc_1aad0e79d6b83fc4e2f15ae0d9b2dad038" kindref="member">rows</ref><sp/>=<sp/>0;</highlight></codeline>
+<codeline lineno="222"><highlight class="normal"><sp/><sp/>desc-&gt;<ref refid="structie__wblocked__desc_1a7adf6c23e6798f2fae5ba7b6ddaadcd7" kindref="member">cols</ref><sp/>=<sp/>0;</highlight></codeline>
+<codeline lineno="223"><highlight class="normal"><sp/><sp/>desc-&gt;<ref refid="structie__wblocked__desc_1aecbe9b5f97e69baf611e6b01a0b6b699" kindref="member">blk_k</ref><sp/>=<sp/>0;</highlight></codeline>
+<codeline lineno="224"><highlight class="normal">}</highlight></codeline>
     </programlisting>
     <location file="engine/src/opt/pretranspose.c"/>
   </compounddef>

@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['kernels_20launchers_0',['CUDA kernels &amp; launchers',['../group__IE__GPU.html',1,'']]],
-  ['kv_20counters_20and_20rss_20sampler_1',['Utilities: KV counters and RSS sampler',['../group__IE__METRICS.html',1,'']]]
+  ['ie_5fint4_5fquant_0',['Ie_int4_quant',['../group__ie__int4__quant.html',1,'']]],
+  ['iebin_20v1_20weights_20loader_1',['IEBIN v1 Weights Loader',['../group__ie__io__weights.html',1,'']]]
 ];

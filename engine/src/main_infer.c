@@ -5,22 +5,23 @@
  * @file main_infer.c
  * @brief CLI entry point for the inference engine (benchmark-friendly).
  *
+ * Additions in this revision:
+ *  - CLI flags to expose layer/tensor prefetch distances and streaming policy:
+ *        --pf-w N          : prefetch distance for weights (bytes)
+ *        --pf-x N          : prefetch distance for activations (bytes)
+ *        --force-ntw 0|1   : force-disable or force-enable NTA prefetch for weights
+ *    These are exported as environment variables that the GEMV kernels read:
+ *        IE_GEMV_PFDIST_W, IE_GEMV_PFDIST_X, IE_GEMV_FORCE_NTW
+ *
  * @section modes Execution modes
- * 1. @b CI/Stub mode (default) — does not require model files. The engine
- *    generates deterministic pseudo-token IDs (see ie_api.c).
- * 2. @b Strict mode (opt-in) — when `IE_REQUIRE_MODEL=1`, the program requires
- *    a valid IEBIN v1 pair in the current directory (`model.ie.json` +
- *    `model.ie.bin`). If `IE_BYTES_PER_TOKEN > 0`, it mmaps the weights and
- *    performs a @b per-token “work touch” loop to mimic realistic memory
- *    pressure. This work-touch loop is @b counted inside the timed window.
+ * 1. CI/Stub mode (default) — does not require model files; emits valid JSON.
+ * 2. Strict mode (IE_REQUIRE_MODEL=1) — requires model.ie.{json,bin}; includes
+ *    an optional “work-touch” loop (IE_BYTES_PER_TOKEN, IE_STRIDE_BYTES).
  *
  * @section timing Critical timing rule
  * The measured window includes only:
- *   - `ie_engine_generate(...)`
- *   - the optional per-token “work touch” over the model blob
- *
- * All instrumentation (RSS sampling, JSON printing, etc.) runs @b outside the
- * measured window to avoid skewing tokens/s measurements.
+ *   - ie_engine_generate(...)
+ *   - the optional per-token “work touch” loop
  */
 
 #define _POSIX_C_SOURCE 200809L
@@ -37,11 +38,11 @@
 #include <time.h>
 #include <unistd.h>
 
-#include "ie_api.h"                 /* engine API + ie_metrics_t */
+#include "ie_engine.h"              /* engine API + ie_metrics_t */
 #include "ie_io.h"                  /* IEBIN loader */
 #include "ie_kv_instrumentation.h"  /* KV round helpers (begin/finish/on_token) */
 #include "util_metrics.h"           /* KV & RSS helpers */
-#include "util_logging.h"           /* optional logging macros */
+#include "util_logging.h"           /* logging macros */
 
 #ifndef UNUSED
 #  define UNUSED(x) (void)(x)
@@ -73,8 +74,6 @@
 /**
  * @brief Get a monotonic wall-clock timestamp in seconds.
  *
- * The origin of the monotonic clock is unspecified; only deltas are meaningful.
- *
  * @return Seconds as a double, suitable for interval measurements.
  */
 static double now_sec(void) {
@@ -88,9 +87,6 @@ static double now_sec(void) {
 /* -------------------------------------------------------------------------- */
 /**
  * @brief Parse an environment variable as a long with a default fallback.
- *
- * If the variable is unset or cannot be parsed as a base-10 integer,
- * @p defv is returned.
  *
  * @param name Environment variable name (e.g., "IE_STRIDE_BYTES").
  * @param defv Default value when unset or invalid.
@@ -142,12 +138,8 @@ static int ascii_ieq(const char *a, const char *b) {
 /* -------------------------------------------------------------------------- */
 /* CLI options                                                                */
 /* -------------------------------------------------------------------------- */
-/**
- * @enum cli_precision_t
- * @brief Classic floating-point precision flags recognized as switches.
- *
- * Weight-only INTx labels are handled via a raw string to avoid proliferating
- * enum values.
+/** @enum cli_precision_t
+ *  @brief Classic floating-point precision flags recognized as switches.
  */
 typedef enum {
   CLI_PREC_FP32 = 0,  /**< 32-bit floating-point. */
@@ -155,9 +147,8 @@ typedef enum {
   CLI_PREC_FP16 = 2   /**< 16-bit floating-point. */
 } cli_precision_t;
 
-/**
- * @enum cli_pretranspose_t
- * @brief Pretranspose policy hint.
+/** @enum cli_pretranspose_t
+ *  @brief Pretranspose policy hint.
  */
 typedef enum {
   CLI_PRETX_NONE = 0, /**< No pretranspose. */
@@ -187,14 +178,19 @@ typedef struct cli_extras {
   int                aggregate;     /**< Aggregate mode: iterate prompts-file. */
   int                rounds;        /**< Repeat measured window N times (>=1). */
 
-  /* Model location options (for harness compatibility). */
-  const char        *model_dir;     /**< If set, chdir() here before loading IEBIN. */
-  const char        *model_json;    /**< Optional explicit model JSON path. */
-  const char        *model_bin;     /**< Optional explicit model BIN path. */
+  /* Model location options. */
+  const char        *model_dir;     /**< chdir() here before loading IEBIN. */
+  const char        *model_json;    /**< Explicit JSON path. */
+  const char        *model_bin;     /**< Explicit BIN path. */
 
   /* Raw precision label passed to engine (includes int8w/int4/int4w). */
-  const char        *precision_label;   /**< e.g. "fp32"|"bf16"|"fp16"|"int8w"|"int4w". */
-  int                precision_from_flag; /**< 1 if set via --precision, else 0 to allow env override. */
+  const char        *precision_label;
+  int                precision_from_flag;
+
+  /* New: per-tensor streaming/prefetch knobs forwarded to kernels via env. */
+  size_t             pf_w_bytes;    /**< Prefetch distance for weights (bytes). */
+  size_t             pf_x_bytes;    /**< Prefetch distance for activations (bytes). */
+  int                force_ntw;     /**< -1=unset, 0=force off, 1=force on. */
 } cli_extras_t;
 
 /* -------------------------------------------------------------------------- */
@@ -215,10 +211,10 @@ static void usage(void) {
     "                        [--model-json PATH] [--model-bin PATH]\n"
     "                        [--prompts-file PATH] [--batch N]\n"
     "                        [--prefetch on|off|auto|N] [--warmup N]\n"
-    "                        [--rounds N]\n"
-    "                        [--aggregate]\n"
+    "                        [--rounds N] [--aggregate]\n"
+    "                        [--pf-w BYTES] [--pf-x BYTES] [--force-ntw 0|1]\n"
     "\n"
-    "Env overrides: IE_PRECISION or PRECISION (same accepted values)\n");
+    "Env overrides: IE_PRECISION/PRECISION; IE_GEMV_PFDIST_W; IE_GEMV_PFDIST_X; IE_GEMV_FORCE_NTW\n");
 }
 
 /**
@@ -245,12 +241,16 @@ static void cli_extras_defaults(cli_extras_t *e) {
   e->model_bin      = NULL;
   e->precision_label = IE_PREC_FP32; /* "fp32" */
   e->precision_from_flag = 0;
+
+  e->pf_w_bytes     = 0;
+  e->pf_x_bytes     = 0;
+  e->force_ntw      = -1;
 }
 
 /**
  * @brief Convert a string to long with strict validation; exits with code 2 on failure.
  *
- * @param s NUL-terminated string.
+ * @param s NUL-terminated string to parse as base-10 integer.
  * @return Parsed long value.
  */
 static long safe_atoi(const char *s) {
@@ -262,28 +262,10 @@ static long safe_atoi(const char *s) {
 }
 
 /**
- * @brief Parse command-line flags into a ::cli_extras_t.
+ * @brief Parse command-line flags into a ::cli_extras_t container.
  *
- * Recognized flags:
- *  - `--prompt TEXT`
- *  - `--max-new N`
- *  - `--threads N`
- *  - `--precision fp32|bf16|fp16|int8w|int4|int4w`
- *  - `--affinity auto|compact|scatter`
- *  - `--pretranspose none|woh|wxh|all`
- *  - `--device auto|cpu|cuda|ze` (accepted as a no-op hint)
- *  - `--model-dir PATH` (changes working directory before loading)
- *  - `--model-json PATH` (explicit JSON path)
- *  - `--model-bin PATH`  (explicit BIN path)
- *  - `--prompts-file PATH`
- *  - `--batch N`
- *  - `--prefetch on|off|auto|N`
- *  - `--warmup N` (alias `--warmup-tokens`)
- *  - `--rounds N` (repeat measured window N times; N>=1)
- *  - `--aggregate`
- *  - `--help` / `-h`
- *
- * Non-flag positional text is treated as `--prompt TEXT`.
+ * Recognized flags include prefetch/streaming controls:
+ *  - --pf-w BYTES, --pf-x BYTES, --force-ntw 0|1
  *
  * @param argc Argument count.
  * @param argv Argument vector.
@@ -316,7 +298,7 @@ static int parse_flags(int argc, char **argv, cli_extras_t *out) {
       else if(!strcmp(p,"all")) out->pretx=CLI_PRETX_ALL;
       else { fprintf(stderr,"error: unknown pretranspose '%s'\n", p); return -1; }
     }
-    else if (!strcmp(a,"--device"))      { if (++i>=argc) { usage(); return -1; } out->device = argv[i]; /* accepted; no-op hint */ }
+    else if (!strcmp(a,"--device"))      { if (++i>=argc) { usage(); return -1; } out->device = argv[i]; }
     else if (!strcmp(a,"--model-dir"))   { if (++i>=argc) { usage(); return -1; } out->model_dir = argv[i]; }
     else if (!strcmp(a,"--model-json"))  { if (++i>=argc) { usage(); return -1; } out->model_json = argv[i]; }
     else if (!strcmp(a,"--model-bin"))   { if (++i>=argc) { usage(); return -1; } out->model_bin  = argv[i]; }
@@ -329,11 +311,12 @@ static int parse_flags(int argc, char **argv, cli_extras_t *out) {
     }
     else if (!strcmp(a,"--rounds"))      {
       if (++i>=argc) { usage(); return -1; }
-      long v = safe_atoi(argv[i]);
-      if (v < 1) v = 1;
-      out->rounds = (int)v;
+      long v = safe_atoi(argv[i]); if (v < 1) v = 1; out->rounds = (int)v;
     }
     else if (!strcmp(a,"--aggregate"))   { out->aggregate = 1; }
+    else if (!strcmp(a,"--pf-w"))        { if (++i>=argc) { usage(); return -1; } long v=safe_atoi(argv[i]); if(v<0){fprintf(stderr,"error: --pf-w >= 0\n");return -1;} out->pf_w_bytes=(size_t)v; }
+    else if (!strcmp(a,"--pf-x"))        { if (++i>=argc) { usage(); return -1; } long v=safe_atoi(argv[i]); if(v<0){fprintf(stderr,"error: --pf-x >= 0\n");return -1;} out->pf_x_bytes=(size_t)v; }
+    else if (!strcmp(a,"--force-ntw"))   { if (++i>=argc) { usage(); return -1; } long v=safe_atoi(argv[i]); if(v!=0 && v!=1){fprintf(stderr,"error: --force-ntw 0|1\n");return -1;} out->force_ntw=(int)v; }
     else if (a[0] == '-') { fprintf(stderr,"error: unknown flag '%s'\n", a); usage(); return -1; }
     else { out->prompt = a; } /* positional */
   }
@@ -346,14 +329,10 @@ static int parse_flags(int argc, char **argv, cli_extras_t *out) {
 /**
  * @brief Read the first non-empty line from a text file.
  *
- * Trailing `\n`/`\r` are stripped. On success, the result is copied into
- * @p buf (NUL-terminated).
- *
  * @param path  Path to the text file.
  * @param buf   Output buffer to receive the line.
  * @param bufsz Size of @p buf in bytes.
- * @return 1 if a line was read, 0 if the file had no non-empty lines,
- *         -1 on I/O error (also prints a warning).
+ * @return 1 if a line was read, 0 if the file had no non-empty lines, -1 on I/O error.
  */
 static int read_first_nonempty_line(const char *path, char *buf, size_t bufsz) {
   FILE *f = fopen(path, "r");
@@ -375,15 +354,6 @@ static int read_first_nonempty_line(const char *path, char *buf, size_t bufsz) {
 /**
  * @brief Print a single JSON summary line for the last run.
  *
- * The JSON object includes:
- *  - `tokens_generated` (uint)
- *  - `tokens` (array; empty if @p tokens is NULL)
- *  - `wall_time_s` (seconds)
- *  - `tps_true` (tokens/s)
- *  - `latency_p50_ms`, `latency_p95_ms`
- *  - `rss_peak_mb`
- *  - `kv_hits`, `kv_misses`
- *
  * @param n_tok         Number of tokens generated.
  * @param tokens        Pointer to tokens (may be NULL to print an empty array).
  * @param wall_s_in     Wall-clock seconds for the measured window.
@@ -397,14 +367,12 @@ static void print_json_result(uint32_t n_tok,
                               uint64_t kv_hits,
                               uint64_t kv_misses,
                               uint32_t rss_peak_mb) {
-  const double WALL_MIN = 3e-4; /* 0.0003 s */
+  const double WALL_MIN = 3e-4;
   double wall_s = wall_s_in;
   if (wall_s > 0.0 && wall_s < WALL_MIN) wall_s = WALL_MIN;
 
-  /* True TPS: by definition in this tool, it's n_tok / wall-time */
   const double tps_true = (wall_s > 0.0) ? ((double)n_tok / wall_s) : 0.0;
 
-  /* Simple latency proxies if caller didn't compute them elsewhere. */
   double p50 = 0.0, p95 = 0.0;
   if (n_tok > 0 && wall_s > 0.0) {
     double per_tok_ms = (wall_s * 1000.0) / (double)n_tok;
@@ -415,12 +383,10 @@ static void print_json_result(uint32_t n_tok,
 
   fprintf(stdout, "{\"tokens_generated\": %u,", (unsigned)n_tok);
 
-  /* tokens array: empty when tokens==NULL to avoid huge prints. */
   fputs("\"tokens\":[", stdout);
   if (tokens && n_tok > 0) {
     for (uint32_t i = 0; i < n_tok; ++i) {
-      const uint32_t v = tokens[i];
-      fprintf(stdout, "%u%s", v, (i + 1 < n_tok) ? "," : "");
+      fprintf(stdout, "%u%s", tokens[i], (i + 1 < n_tok) ? "," : "");
     }
   }
   fputs("],", stdout);
@@ -448,24 +414,19 @@ static void print_json_result(uint32_t n_tok,
 /**
  * @brief Program entry point.
  *
- * High-level flow:
+ * Flow:
  *  1. Parse CLI flags (or print usage).
- *  2. Optionally change into `--model-dir`.
- *  3. Optionally read `model.ie.json`/`model.ie.bin` and enforce strict mode
- *     via `IE_REQUIRE_MODEL=1`.
+ *  2. Optionally chdir into --model-dir.
+ *  3. Optionally open/validate IEBIN (strict mode via IE_REQUIRE_MODEL=1).
  *  4. Create the engine with soft hints (precision/affinity/etc).
  *  5. Optional warmup (not timed).
- *  6. Measured window: `ie_engine_generate(...)` and optional “work touch”
- *     repeated `--rounds` times.
- *  7. After timing: collect metrics, print JSON, teardown.
+ *  6. Measured window: ie_engine_generate(...) + optional “work touch”.
+ *  7. Print JSON and teardown.
  *
- * Environment variables:
- *  - `IE_REQUIRE_MODEL` (int): if `1`, strict mode is enforced.
- *  - `IE_BYTES_PER_TOKEN` (size_t): bytes to touch per token (work touch).
- *  - `IE_STRIDE_BYTES` (size_t): stride in bytes for work-touch loop.
- *  - `IE_VERIFY_TOUCH` (int): when non-zero, prevents the compiler from eliding
- *    the touch accumulator (side-effect barrier).
- *  - `IE_PRECISION` / `PRECISION` (string): precision label (fp32/bf16/fp16/int8w/int4w/int4).
+ * New behavior in step 1/4:
+ *  - If --pf-w/--pf-x/--force-ntw are provided, export:
+ *      IE_GEMV_PFDIST_W, IE_GEMV_PFDIST_X, IE_GEMV_FORCE_NTW
+ *    so that gemv_* kernels can pick them up.
  *
  * @param argc Argument count.
  * @param argv Argument vector.
@@ -475,6 +436,19 @@ int main(int argc, char **argv) {
   /* -------------------- parse CLI -------------------- */
   cli_extras_t opt;
   if (parse_flags(argc, argv, &opt) != 0) return 2;
+
+  /* Export per-tensor prefetch/stream overrides for kernels (if provided). */
+  if (opt.pf_w_bytes > 0) {
+    char buf[32]; snprintf(buf, sizeof buf, "%zu", opt.pf_w_bytes);
+    setenv("IE_GEMV_PFDIST_W", buf, 1);
+  }
+  if (opt.pf_x_bytes > 0) {
+    char buf[32]; snprintf(buf, sizeof buf, "%zu", opt.pf_x_bytes);
+    setenv("IE_GEMV_PFDIST_X", buf, 1);
+  }
+  if (opt.force_ntw == 0 || opt.force_ntw == 1) {
+    setenv("IE_GEMV_FORCE_NTW", opt.force_ntw ? "1" : "0", 1);
+  }
 
   /* Optional: change working dir early if requested. */
   if (opt.model_dir && *opt.model_dir) {
@@ -487,8 +461,7 @@ int main(int argc, char **argv) {
 
   /* Precision from env if not provided on the command line. */
   if (!opt.precision_from_flag) {
-    const char *envp = env_str("IE_PRECISION",
-                      env_str("PRECISION", IE_PREC_FP32));
+    const char *envp = env_str("IE_PRECISION", env_str("PRECISION", IE_PREC_FP32));
     if      (ascii_ieq(envp, IE_PREC_INT4W) || ascii_ieq(envp, IE_PREC_INT4))
       opt.precision_label = IE_PREC_INT4W;
     else if (ascii_ieq(envp, IE_PREC_INT8W))
@@ -510,7 +483,6 @@ int main(int argc, char **argv) {
     else             { opt.prompt = "bench"; }
   }
   if (!opt.prompt && !opt.prompts_file) {
-    /* Graceful empty run: print a valid JSON skeleton for tests. */
     ie_metrics_t mm; memset(&mm, 0, sizeof(mm));
     print_json_result(0, NULL, 0.0, 0, 0, 0);
     return 0;
@@ -542,14 +514,14 @@ int main(int argc, char **argv) {
 
   /* -------------------- create engine -------------------- */
   ie_engine_params_t params; memset(&params, 0, sizeof(params));
-  params.precision    = opt.precision_label; /* pass raw label (includes int4w/int8w) */
+  params.precision    = opt.precision_label;
   params.affinity     = opt.affinity;
   params.pretranspose = (opt.pretx==CLI_PRETX_NONE ? "none" :
-                         opt.pretx==CLI_PRETX_WOH  ? "woh"  :
-                         opt.pretx==CLI_PRETX_WXH  ? "wxh"  : "all");
+                         (opt.pretx==CLI_PRETX_WOH  ? "woh"  :
+                         (opt.pretx==CLI_PRETX_WXH  ? "wxh"  : "all")));
   params.prefetch     = opt.prefetch;
   params.threads      = opt.threads;
-  UNUSED(opt.device); /* Currently a no-op hint; selection happens at build/link time. */
+  UNUSED(opt.device);
 
   ie_engine_t *engine = NULL;
   ie_status_t st = ie_engine_create(&params, &engine);
@@ -570,7 +542,6 @@ int main(int argc, char **argv) {
   }
 
   /* -------------------- token output buffer -------------------- */
-  /* Always allocate a buffer so ie_engine_generate() never sees NULL. */
   uint32_t *tokens = NULL;
   size_t cap = (opt.max_new > 0 ? opt.max_new : 0);
   size_t cap_alloc = (cap > 0 ? cap : 1);
@@ -662,21 +633,17 @@ int main(int argc, char **argv) {
   uint64_t kv_hits_round = 0, kv_miss_round = 0;
   ie_kv_finish_round(total_tokens_this_round, &kv_hits_round, &kv_miss_round);
 
-  /* Snapshot engine-side metrics if available (kept in sync with API). */
   ie_metrics_t m; memset(&m, 0, sizeof(m));
   (void)ie_engine_metrics(engine, &m);
-  /* Prefer the round counters if non-zero (bench semantics). */
   if (kv_hits_round || kv_miss_round) {
     m.kv_hits   = kv_hits_round;
     m.kv_misses = kv_miss_round;
   }
 
-  /* Sample RSS peak outside timing window. */
   uint32_t rss_mib = ie_metrics_sample_rss_peak();
-  m.rss_peak_mb = rss_mib; /* ok even if the field is present or ignored otherwise */
+  m.rss_peak_mb = rss_mib;
 
   /* -------------------- print JSON & teardown ------------------------------ */
-  /* Only print tokens array when it is a single-run, non-aggregate case. */
   const uint32_t *tokens_to_print = (opt.aggregate || opt.rounds > 1) ? NULL : tokens;
 
   print_json_result(tokens_generated_total,

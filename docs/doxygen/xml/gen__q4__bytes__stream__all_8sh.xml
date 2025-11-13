@@ -1,0 +1,58 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="gen__q4__bytes__stream__all_8sh" kind="file" language="C++">
+    <compoundname>gen_q4_bytes_stream_all.sh</compoundname>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline><highlight class="normal">#!/usr/bin/env<sp/>bash</highlight></codeline>
+<codeline><highlight class="normal">set<sp/>-euo<sp/>pipefail</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">HF_DIR=&quot;${1:-models/gpt-oss-20b/hf}&quot;</highlight></codeline>
+<codeline><highlight class="normal">OUT_DIR=&quot;${2:-models/gpt-oss-20b}&quot;</highlight></codeline>
+<codeline><highlight class="normal">Q4=&quot;${OUT_DIR}/model.q4.bin&quot;</highlight></codeline>
+<codeline><highlight class="normal">SC=&quot;${OUT_DIR}/model.q4.scales.fp16.bin&quot;</highlight></codeline>
+<codeline><highlight class="normal">PARTS_DIR=&quot;quant/parts&quot;</highlight></codeline>
+<codeline><highlight class="normal">FINAL_MAN=&quot;quant/q4_manifest.expanded.json&quot;</highlight></codeline>
+<codeline><highlight class="normal">CHUNK=&quot;${CHUNK_ROWS:-128}&quot;</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">mkdir<sp/>-p<sp/>&quot;$(dirname<sp/>&quot;$Q4&quot;)&quot;<sp/>&quot;$PARTS_DIR&quot;<sp/>&quot;quant&quot;</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>zera<sp/>blobs<sp/>(recomeço<sp/>controlado)</highlight></codeline>
+<codeline><highlight class="normal">:<sp/>&gt;<sp/>&quot;$Q4&quot;</highlight></codeline>
+<codeline><highlight class="normal">:<sp/>&gt;<sp/>&quot;$SC&quot;</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>processa<sp/>cada<sp/>shard<sp/>em<sp/>processo<sp/>isolado<sp/>(RAM<sp/>zera<sp/>a<sp/>cada<sp/>shard)</highlight></codeline>
+<codeline><highlight class="normal">for<sp/>s<sp/>in<sp/>$(ls<sp/>-1<sp/>&quot;${HF_DIR}&quot;/pytorch_model-*.bin<sp/>|<sp/>sort);<sp/>do</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>p=&quot;$PARTS_DIR/$(basename<sp/>&quot;$s&quot;).json&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>echo<sp/>&quot;[driver]<sp/>shard=$(basename<sp/>&quot;$s&quot;)&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>/usr/bin/env<sp/>-i<sp/>PATH=&quot;$PATH&quot;<sp/>LC_ALL=C.UTF-8<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>OMP_NUM_THREADS=1<sp/>MKL_NUM_THREADS=1<sp/>MALLOC_ARENA_MAX=2<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>python3<sp/>-u<sp/>scripts/gen_q4_bytes_worker.py<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>--shard<sp/>&quot;$s&quot;<sp/>--q4-bytes<sp/>&quot;$Q4&quot;<sp/>--scales<sp/>&quot;$SC&quot;<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>--manifest-part<sp/>&quot;$p&quot;<sp/>--chunk-rows<sp/>&quot;$CHUNK&quot;</highlight></codeline>
+<codeline><highlight class="normal">done</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>merge<sp/>ordenado<sp/>dos<sp/>manifests</highlight></codeline>
+<codeline><highlight class="normal">python3<sp/>-<sp/>&lt;&lt;&apos;PY&apos;</highlight></codeline>
+<codeline><highlight class="normal">import<sp/>json,glob,sys</highlight></codeline>
+<codeline><highlight class="normal">parts<sp/>=<sp/>sorted(glob.glob(&quot;quant/parts/pytorch_model-*.json&quot;))</highlight></codeline>
+<codeline><highlight class="normal">merged<sp/>=<sp/>{}</highlight></codeline>
+<codeline><highlight class="normal">for<sp/>p<sp/>in<sp/>parts:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>with<sp/>open(p,&quot;r&quot;)<sp/>as<sp/>f:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>d<sp/>=<sp/>json.load(f)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>#<sp/>mantém<sp/>ordem<sp/>de<sp/>leitura<sp/>das<sp/>keys<sp/>por<sp/>shard;<sp/>dict<sp/>mantém<sp/>ordem<sp/>em<sp/>Py&gt;=3.7</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>for<sp/>k,v<sp/>in<sp/>d.items():</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>merged[k]=v</highlight></codeline>
+<codeline><highlight class="normal">with<sp/>open(&quot;quant/q4_manifest.expanded.json&quot;,&quot;w&quot;)<sp/>as<sp/>f:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>json.dump(merged,f,indent=2)</highlight></codeline>
+<codeline><highlight class="normal">print(f&quot;[driver]<sp/>wrote<sp/>quant/q4_manifest.expanded.json<sp/>with<sp/>{len(merged)}<sp/>entries&quot;)</highlight></codeline>
+<codeline><highlight class="normal">PY</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">echo<sp/>&quot;[driver]<sp/>done.<sp/>q4=$(du<sp/>-h<sp/>&quot;$Q4&quot;<sp/>|<sp/>awk<sp/>&apos;{print<sp/>$1}&apos;)<sp/>scales=$(du<sp/>-h<sp/>&quot;$SC&quot;<sp/>|<sp/>awk<sp/>&apos;{print<sp/>$1}&apos;)&quot;</highlight></codeline>
+    </programlisting>
+    <location file="scripts/gen_q4_bytes_stream_all.sh"/>
+  </compounddef>
+</doxygen>

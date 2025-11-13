@@ -16,7 +16,7 @@ Outputs (for OUT_PREFIX = <prefix>):
   - <prefix>.int4.w.bin             # row-major 4-bit packed weights (if --wbits=4)
 
 Packing (INT4):
-  - Signed 4-bit values in two's complement, range [-8..7]
+  - Signed 4-bit values using "+8 bias" scheme over range [-7..+7]
   - Two values packed per byte: low nibble = column j (even), high nibble = j+1
   - Row-major order; each row occupies ceil(cols/2) bytes
 
@@ -168,9 +168,9 @@ def quantize_int8(W: np.ndarray, scales: np.ndarray, mode: str) -> Tuple[np.ndar
     return Q, W_hat
 
 
-def _pack_row_int4_signed(q_row: np.ndarray) -> bytes:
+def _pack_row_int4_biased(q_row: np.ndarray) -> bytes:
     """
-    Pack a single int8 row (values in [-8..7]) into int4 bytes.
+    Pack a single int8 row using the +8 bias INT4 scheme (range [-7..+7]).
 
     Low nibble holds column j (even), high nibble holds column j+1 (odd).
     """
@@ -178,19 +178,19 @@ def _pack_row_int4_signed(q_row: np.ndarray) -> bytes:
     if n % 2 != 0:
         q_row = np.concatenate([q_row, np.zeros(1, dtype=np.int8)], axis=0)
         n += 1
-    # Two's complement mapping into [0..15]
-    nibbles = (q_row.astype(np.int8) & 0x0F).astype(np.uint8)
+    # Clamp to [-7, +7], then add bias +8 to map into [1..15] (0 unused), mask to 4 bits.
+    q_row = np.clip(q_row, -7, 7).astype(np.int8, copy=False)
+    nibbles = (q_row.astype(np.int16) + 8).astype(np.uint8) & 0x0F
     lo = nibbles[0::2]
-    hi = nibbles[1::2] << 4
-    packed = (lo | hi).astype(np.uint8).tobytes()
-    return packed
+    hi = (nibbles[1::2] << 4)
+    return (lo | hi).astype(np.uint8).tobytes()
 
 
 def quantize_int4_packed(
     W: np.ndarray, scales: np.ndarray, mode: str
 ) -> Tuple[bytes, np.ndarray]:
     """
-    Quantize to signed INT4 (two's complement, range [-8..7]) and pack.
+    Quantize to INT4 using +8 bias scheme (range [-7..+7]) and pack to nibbles.
 
     Parameters
     ----------
@@ -207,7 +207,7 @@ def quantize_int4_packed(
         packed_bytes: bytes object containing row-major packed int4
         W_hat: float32 dequantized reconstruction (for metrics)
     """
-    qmin, qmax = -8, 7
+    qmin, qmax = -7, 7
     if mode == "per_row":
         s = scales[:, None]  # (rows, 1)
     else:
@@ -221,7 +221,7 @@ def quantize_int4_packed(
     rows = Q.shape[0]
     packed_rows = []
     for r in range(rows):
-        packed_rows.append(_pack_row_int4_signed(Q[r]))
+        packed_rows.append(_pack_row_int4_biased(Q[r]))
     packed = b"".join(packed_rows)
     return packed, W_hat
 
@@ -298,7 +298,7 @@ def main() -> None:
         Path(weight_path).parent.mkdir(parents=True, exist_ok=True)
         with open(weight_path, "wb") as f:
             f.write(packed_bytes)
-        packed_note = "int4 packed (two's complement), low nibble = even col"
+        packed_note = "int4 packed (+8 bias), low nibble = even col"
 
     # Save scales
     if args.mode == "per_row":
@@ -349,7 +349,7 @@ def main() -> None:
             "scale_bin": scale_path,
             "scale_dtype": args.scale_dtype,
             "weight_bin": weight_path,
-            "pack": ("int8_row_major" if args.wbits == 8 else "int4_nibbles_low_even"),
+            "pack": ("int8_row_major" if args.wbits == 8 else "nibble_lohi"),
             "shape": [args.rows, args.cols],
         },
     }

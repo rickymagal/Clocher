@@ -1,52 +1,36 @@
 # Performance Notes
 
-_Last updated: **2025-10-28 14:12:59 UTC**_
+_Last updated: **2025-11-12 17:58:07 UTC**_
 
 
-**Best true TPS:** **GPU — 35.239**.
+**Best true TPS:** **CPU — 28.846**.
 
 ## CPU — Summary (latest benchmark)
 - Runs: **1**
 - Tokens generated (Σ): **384**
-- Wall time (Σ): **11.018 s**
-- True TPS (Σ tokens / Σ time): **34.852**
+- Wall time (Σ): **13.312 s**
+- True TPS (Σ tokens / Σ time): **28.846**
 
 ## Latency
-- p50 (mean across runs): **28.692 ms**
-- p95 (mean across runs): **57.385 ms**
+- p50 (mean across runs): **34.667 ms**
+- p95 (mean across runs): **69.334 ms**
 
 ## Spatial Complexity (Memory & Cache)
-- RSS peak (mean): **4391.000 MB**
-- RSS peak (max): **4391.000 MB**
+- RSS peak (mean): **5447.000 MB**
+- RSS peak (max): **5447.000 MB**
 - KV cache: **256 hits / 128 misses**
-- IE_BYTES_PER_TOKEN: **64.0 MB/token**
-- Bytes touched (Σ): **24.6 GB**
+- IE_BYTES_PER_TOKEN: **67.1 MB/token**
+- Bytes touched (Σ): **25.8 GB**
 - Working-set coverage (bytes_per_token / model.bin): **0.005**
-- Effective bandwidth: **2.23 GB/s**
+- Effective bandwidth: **1.94 GB/s**
 
-## GPU — Summary (latest benchmark)
-- Runs: **1**
-- Tokens generated (Σ): **384**
-- Wall time (Σ): **10.897 s**
-- True TPS (Σ tokens / Σ time): **35.239**
-
-## Latency
-- p50 (mean across runs): **28.378 ms**
-- p95 (mean across runs): **56.756 ms**
-
-## Spatial Complexity (Memory & Cache)
-- RSS peak (mean): **4392.000 MB**
-- RSS peak (max): **4392.000 MB**
-- KV cache: **256 hits / 128 misses**
-- IE_BYTES_PER_TOKEN: **64.0 MB/token**
-- Bytes touched (Σ): **24.6 GB**
-- Working-set coverage (bytes_per_token / model.bin): **0.005**
-- Effective bandwidth: **2.26 GB/s**
+### Memory Details
+- No extended memory metrics were present in the logs.
 
 ## Run Parameters & Conditions
 - Engine bin: `/home/ricky/Desktop/Clocher/build/inference-engine`
-- Prompts file: `/home/ricky/Desktop/Clocher/benchmarks/prompts_10..txt`
-- Threads: **1**
+- Prompts file: `/home/ricky/Desktop/Clocher/benchmarks/prompts_10.txt`
+- Threads: **12**
 - Precision: **fp32**
 - Batch: **1**
 - Prefetch: **auto**
@@ -54,7 +38,7 @@ _Last updated: **2025-10-28 14:12:59 UTC**_
 - Affinity: **auto**
 - Max new tokens: **128**
 - IE_REQUIRE_MODEL: **1**
-- IE_BYTES_PER_TOKEN: **64000000**
+- IE_BYTES_PER_TOKEN: **67108864**
 - IE_STRIDE_BYTES: **256**
 - IE_VERIFY_TOUCH: **1**
 
@@ -64,11 +48,12 @@ _Last updated: **2025-10-28 14:12:59 UTC**_
 - RAM (MemTotal): **8.1 GB**
 - OS: **Fedora Linux 42 (KDE Plasma Desktop Edition)**
 - Kernel: **6.16.9-200.fc42.x86_64-x86_64**
-- Git commit: **6d2f57e DIRTY**
+- Git commit: **fc06c17 DIRTY**
+- Model file: **models/gpt-oss-20b/model.ie.bin**
+- Model size: **13.197 GB**
 
 ## Comparative Runs
 
-| Device | Run | Tokens | Wall (s) | TPS | p50 (ms) | p95 (ms) | RSS peak (MB) | KV hits | KV misses |
-|:------:|----:|-------:|---------:|----:|---------:|---------:|--------------:|--------:|----------:|
-| CPU | 1 | 384 | 11.018 | 34.852 | 28.692 | 57.385 | 4391.000 | 256 | 128 |
-| GPU | 1 | 384 | 10.897 | 35.239 | 28.378 | 56.756 | 4392.000 | 256 | 128 |
+| Device | Run | Tokens | Wall (s) | TPS | p50 (ms) | p95 (ms) | RSS peak (MB) | PSS peak (MB) | VMS peak (MB) | minflt | majflt |
+|:------:|----:|-------:|---------:|----:|---------:|---------:|--------------:|--------------:|--------------:|------:|------:|
+| CPU | 1 | 384 | 13.312 | 28.846 | 34.667 | 69.334 | 5447.000 | n/a | n/a | 0 | 0 |

@@ -8,5 +8,8 @@ var searchData=
   ['has_5fmem_5fcopy_5',['has_mem_copy',['../structie__device__caps.html#a895a919343ce237ea1c3e4231e5c4ca2',1,'ie_device_caps']]],
   ['has_5fstreams_6',['has_streams',['../structie__device__caps.html#acb89cfdb7c21e1b60d51e45d4faf39a7',1,'ie_device_caps']]],
   ['head_7',['head',['../structie__kv__state__t.html#ab8bc75960c3a8b68d1e7d519222a423e',1,'ie_kv_state_t']]],
-  ['hits_8',['hits',['../structie__kv__state__t.html#a25296c199f82f3f7ccde330a649d58d8',1,'ie_kv_state_t']]]
+  ['head_5fdim_8',['head_dim',['../structie__kv__opts.html#a8b9255f78606b76462a20157c24c2bda',1,'ie_kv_opts::head_dim'],['../structie__kv__cache.html#a651ffe5e067714a367503a5127bdd61a',1,'ie_kv_cache::head_dim']]],
+  ['heads_9',['heads',['../structie__kv__opts.html#a60291f6cf5954a7d16fdaf981ddf9e7a',1,'ie_kv_opts::heads'],['../structie__kv__cache.html#a2e7da98c2fd80c84f468848ad63bb6cb',1,'ie_kv_cache::heads']]],
+  ['hf_5fdir_10',['HF_DIR',['../namespaceq4__pack__stream.html#affb5a75c11e1563570eb6ef216cab888',1,'q4_pack_stream']]],
+  ['hits_11',['hits',['../structie__kv__state__t.html#a25296c199f82f3f7ccde330a649d58d8',1,'ie_kv_state_t']]]
 ];

@@ -14,9 +14,23 @@ Behavior:
 - Spatial metrics include MB/token, total bytes touched, coverage vs model.bin, and effective bandwidth.
 - System & Model Info is discovered locally (Linux-friendly).
 
+New in this version:
+- Memory-Detail metrics support (aligned with monitoring/metrics_memory.toml):
+  Optional per-run fields are aggregated when present:
+    * pss_peak_mb, vms_peak_mb
+    * rss_floor_mb, rss_delta_mb
+    * minflt, majflt
+    * swap_in_mb, swap_out_mb
+    * psi_mem_some_pct, psi_mem_full_pct (PSI averages/percentiles)
+    * numa_locality_pct
+    * mem_available_mb, mem_available_pct
+  The renderer adds a "Memory Details" subsection under each device.
+
 Inputs (per device JSONL):
-- Per-run rows: include tokens_generated, wall_time_s, tps_true, latency_p50_ms, latency_p95_ms, rss_peak_mb, kv_hits, kv_misses.
-- Final summary row: includes aggregated fields and configuration (threads, precision, prompts, model_dir, etc.).
+- Per-run rows: include tokens_generated, wall_time_s, tps_true, latency_p50_ms, latency_p95_ms,
+  rss_peak_mb, kv_hits, kv_misses. Optionally include new memory keys above.
+- Final summary row: includes aggregated fields and configuration (threads, precision, prompts,
+  model_dir, etc.).
 """
 
 from __future__ import annotations
@@ -74,6 +88,12 @@ def _fmt_float(x: Optional[float], digits: int = 3, unit: str = "", na: str = "n
 
 def _mean(xs: List[float]) -> Optional[float]:
     return sum(xs) / len(xs) if xs else None
+
+def _max_or_none(xs: List[float]) -> Optional[float]:
+    return max(xs) if xs else None
+
+def _min_or_none(xs: List[float]) -> Optional[float]:
+    return min(xs) if xs else None
 
 def _sum_i(xs: List[int]) -> int:
     return int(sum(xs)) if xs else 0
@@ -168,19 +188,52 @@ def _filesize(path: Optional[str]) -> Optional[int]:
 def _take_last3(runs: List[Run]) -> List[Run]:
     return runs[-3:] if len(runs) > 3 else runs
 
+def _agg_numeric(runs: List[Run], key: str) -> Tuple[Optional[float], Optional[float], Optional[float]]:
+    vals = [float(r.get(key)) for r in runs if r.get(key) is not None]
+    if not vals:
+        return None, None, None
+    return _mean(vals), _min_or_none(vals), _max_or_none(vals)
+
+def _agg_sum(runs: List[Run], key: str) -> Optional[float]:
+    vals = [float(r.get(key)) for r in runs if r.get(key) is not None]
+    return _sum_f(vals) if vals else None
+
 def _agg(runs: List[Run]) -> Agg:
     tokens = [int(r.get("tokens_generated", 0)) for r in runs]
     wall   = [float(r.get("wall_time_s", 0.0)) for r in runs]
-    tps    = [float(r.get("tps_true", 0.0)) for r in runs]
     p50    = [float(r.get("latency_p50_ms", r.get("p50_ms", 0.0))) for r in runs if ("latency_p50_ms" in r or "p50_ms" in r)]
     p95    = [float(r.get("latency_p95_ms", r.get("p95_ms", 0.0))) for r in runs if ("latency_p95_ms" in r or "p95_ms" in r)]
-    rss    = [float(r.get("rss_peak_mb", 0.0)) for r in runs if "rss_peak_mb" in r]
-    kvh    = [int(r.get("kv_hits", 0)) for r in runs]
-    kvm    = [int(r.get("kv_misses", 0)) for r in runs]
 
+    # Core aggregates
     tokens_sum = _sum_i(tokens)
     wall_sum   = _sum_f(wall)
     tps_true   = (float(tokens_sum) / wall_sum) if wall_sum > 0 else None
+
+    # Memory aggregates (optional fields)
+    rss_mean, rss_min, rss_max = _agg_numeric(runs, "rss_peak_mb")
+    pss_mean, pss_min, pss_max = _agg_numeric(runs, "pss_peak_mb")
+    vms_mean, vms_min, vms_max = _agg_numeric(runs, "vms_peak_mb")
+
+    rss_floor_mean, _, rss_floor_max = _agg_numeric(runs, "rss_floor_mb")
+    rss_delta_mean, _, rss_delta_max = _agg_numeric(runs, "rss_delta_mb")
+
+    minflt_sum = _agg_sum(runs, "minflt")
+    majflt_sum = _agg_sum(runs, "majflt")
+
+    swap_in_sum_mb  = _agg_sum(runs, "swap_in_mb")
+    swap_out_sum_mb = _agg_sum(runs, "swap_out_mb")
+
+    psi_some_mean, _, psi_some_max = _agg_numeric(runs, "psi_mem_some_pct")
+    psi_full_mean, _, psi_full_max = _agg_numeric(runs, "psi_mem_full_pct")
+
+    numa_loc_mean, _, numa_loc_max = _agg_numeric(runs, "numa_locality_pct")
+
+    mem_avail_mb_mean, _, _ = _agg_numeric(runs, "mem_available_mb")
+    mem_avail_pct_mean, _, _ = _agg_numeric(runs, "mem_available_pct")
+
+    # KV cache / RSS kept for backwards compatibility
+    kvh = [int(r.get("kv_hits", 0)) for r in runs]
+    kvm = [int(r.get("kv_misses", 0)) for r in runs]
 
     return {
         "runs": len(runs),
@@ -189,8 +242,25 @@ def _agg(runs: List[Run]) -> Agg:
         "tps_true": tps_true,
         "p50_mean": _mean(p50),
         "p95_mean": _mean(p95),
-        "rss_mean": _mean(rss),
-        "rss_max": max(rss) if rss else None,
+
+        # Memory: classic
+        "rss_mean": rss_mean,
+        "rss_max": rss_max,
+
+        # Memory: extended
+        "pss_mean": pss_mean, "pss_max": pss_max,
+        "vms_mean": vms_mean, "vms_max": vms_max,
+        "rss_floor_mean": rss_floor_mean, "rss_floor_max": rss_floor_max,
+        "rss_delta_mean": rss_delta_mean, "rss_delta_max": rss_delta_max,
+        "minflt_sum": minflt_sum, "majflt_sum": majflt_sum,
+        "swap_in_sum_mb": swap_in_sum_mb, "swap_out_sum_mb": swap_out_sum_mb,
+        "psi_some_mean": psi_some_mean, "psi_some_max": psi_some_max,
+        "psi_full_mean": psi_full_mean, "psi_full_max": psi_full_max,
+        "numa_locality_mean": numa_loc_mean, "numa_locality_max": numa_loc_max,
+        "mem_available_mb_mean": mem_avail_mb_mean,
+        "mem_available_pct_mean": mem_avail_pct_mean,
+
+        # KV
         "kv_hits": _sum_i(kvh),
         "kv_misses": _sum_i(kvm),
     }
@@ -212,13 +282,50 @@ def _bandwidth_gbps(bytes_touched: Optional[float], wall_sum: Optional[float]) -
 
 # ------------------------- rendering helpers -----------------------
 
+def _render_memory_details(agg: Agg) -> str:
+    # Only show rows when values exist.
+    lines: List[str] = []
+    lines.append("### Memory Details")
+
+    if agg.get("pss_mean") is not None or agg.get("pss_max") is not None:
+        lines.append(f"- PSS peak (mean / max): **{_fmt_float(agg.get('pss_mean'), 3, 'MB')} / {_fmt_float(agg.get('pss_max'), 3, 'MB')}**")
+    if agg.get("vms_mean") is not None or agg.get("vms_max") is not None:
+        lines.append(f"- VMS peak (mean / max): **{_fmt_float(agg.get('vms_mean'), 3, 'MB')} / {_fmt_float(agg.get('vms_max'), 3, 'MB')}**")
+    if agg.get("rss_floor_mean") is not None or agg.get("rss_floor_max") is not None:
+        lines.append(f"- RSS floor (mean / max): **{_fmt_float(agg.get('rss_floor_mean'), 3, 'MB')} / {_fmt_float(agg.get('rss_floor_max'), 3, 'MB')}**")
+    if agg.get("rss_delta_mean") is not None or agg.get("rss_delta_max") is not None:
+        lines.append(f"- RSS delta vs baseline (mean / max): **{_fmt_float(agg.get('rss_delta_mean'), 3, 'MB')} / {_fmt_float(agg.get('rss_delta_max'), 3, 'MB')}**")
+
+    if agg.get("minflt_sum") is not None or agg.get("majflt_sum") is not None:
+        lines.append(f"- Page faults (minor Σ / major Σ): **{_fmt_float(agg.get('minflt_sum'), 0)} / {_fmt_float(agg.get('majflt_sum'), 0)}**")
+
+    if agg.get("swap_in_sum_mb") is not None or agg.get("swap_out_sum_mb") is not None:
+        lines.append(f"- Swap I/O (in Σ / out Σ): **{_fmt_float(agg.get('swap_in_sum_mb'), 1, 'MB')} / {_fmt_float(agg.get('swap_out_sum_mb'), 1, 'MB')}**")
+
+    if agg.get("psi_some_mean") is not None or agg.get("psi_some_max") is not None:
+        lines.append(f"- PSI memory 'some' (mean / max): **{_fmt_float(agg.get('psi_some_mean'), 2, '%')} / {_fmt_float(agg.get('psi_some_max'), 2, '%')}**")
+    if agg.get("psi_full_mean") is not None or agg.get("psi_full_max") is not None:
+        lines.append(f"- PSI memory 'full' (mean / max): **{_fmt_float(agg.get('psi_full_mean'), 2, '%')} / {_fmt_float(agg.get('psi_full_max'), 2, '%')}**")
+
+    if agg.get("numa_locality_mean") is not None or agg.get("numa_locality_max") is not None:
+        lines.append(f"- NUMA locality ratio (mean / max): **{_fmt_float(agg.get('numa_locality_mean'), 1, '%')} / {_fmt_float(agg.get('numa_locality_max'), 1, '%')}**")
+
+    if agg.get("mem_available_mb_mean") is not None or agg.get("mem_available_pct_mean") is not None:
+        lines.append(f"- System MemAvailable (mean): **{_fmt_float(agg.get('mem_available_mb_mean'), 1, 'MB')}**"
+                     f" — **{_fmt_float(agg.get('mem_available_pct_mean'), 1, '%')} of MemTotal**")
+
+    # Fallback message if nothing extra is available.
+    if len(lines) == 1:
+        lines.append("- No extended memory metrics were present in the logs.")
+    return "\n".join(lines) + "\n"
+
 def _render_device(title: str, agg: Agg, bpt: Optional[int], model_size: Optional[int]) -> str:
     bt = _bytes_touched(agg["tokens_sum"], bpt)
     bw = _bandwidth_gbps(bt, agg["wall_sum"])
     coverage = "n/a"
     if bpt and model_size and model_size > 0:
         coverage = f"{(float(bpt)/float(model_size)):.3f}"
-    return f"""## {title} — Summary (latest benchmark)
+    body = f"""## {title} — Summary (latest benchmark)
 - Runs: **{agg['runs']}**
 - Tokens generated (Σ): **{agg['tokens_sum']}**
 - Wall time (Σ): **{_fmt_float(agg['wall_sum'], 3, 's')}**
@@ -237,6 +344,9 @@ def _render_device(title: str, agg: Agg, bpt: Optional[int], model_size: Optiona
 - Working-set coverage (bytes_per_token / model.bin): **{coverage}**
 - Effective bandwidth: **{_fmt_float(bw, 2, 'GB/s')}**
 """
+    # Append extended memory details (if present)
+    body += "\n" + _render_memory_details(agg)
+    return body
 
 def _render_shared(shared: Dict[str, Any]) -> str:
     return f"""## Run Parameters & Conditions
@@ -262,6 +372,9 @@ def _render_system(model_dir: Optional[str]) -> str:
     os_name = _discover_os() or "n/a"
     kernel = _discover_kernel() or "n/a"
     git = _discover_git() or "n/a"
+    model_bin = _find_model_bin(model_dir)
+    model_size = _filesize(model_bin)
+
     return f"""## System & Model Info
 - CPU: **{cpu}**
 - Logical cores: **{cores if cores else 'n/a'}**
@@ -269,13 +382,15 @@ def _render_system(model_dir: Optional[str]) -> str:
 - OS: **{os_name}**
 - Kernel: **{kernel}**
 - Git commit: **{git}**
+- Model file: **{model_bin or 'n/a'}**
+- Model size: **{_fmt_float(_bytes_to_gb(float(model_size)) if model_size else None, 3, 'GB')}**
 """
 
 def _render_table(cpu_runs: List[Run], gpu_runs: List[Run]) -> str:
     lines = []
     lines.append("## Comparative Runs\n")
-    lines.append("| Device | Run | Tokens | Wall (s) | TPS | p50 (ms) | p95 (ms) | RSS peak (MB) | KV hits | KV misses |")
-    lines.append("|:------:|----:|-------:|---------:|----:|---------:|---------:|--------------:|--------:|----------:|")
+    lines.append("| Device | Run | Tokens | Wall (s) | TPS | p50 (ms) | p95 (ms) | RSS peak (MB) | PSS peak (MB) | VMS peak (MB) | minflt | majflt |")
+    lines.append("|:------:|----:|-------:|---------:|----:|---------:|---------:|--------------:|--------------:|--------------:|------:|------:|")
     def row(dv: str, r: Run, idx: int) -> str:
         return (
             f"| {dv} | {idx} | "
@@ -285,7 +400,9 @@ def _render_table(cpu_runs: List[Run], gpu_runs: List[Run]) -> str:
             f"{_fmt_float(float(r.get('latency_p50_ms', r.get('p50_ms', 0.0))), 3)} | "
             f"{_fmt_float(float(r.get('latency_p95_ms', r.get('p95_ms', 0.0))), 3)} | "
             f"{_fmt_float(float(r.get('rss_peak_mb', 0.0)), 3)} | "
-            f"{int(r.get('kv_hits', 0))} | {int(r.get('kv_misses', 0))} |"
+            f"{_fmt_float(float(r.get('pss_peak_mb', 0.0)) if r.get('pss_peak_mb') is not None else None, 3)} | "
+            f"{_fmt_float(float(r.get('vms_peak_mb', 0.0)) if r.get('vms_peak_mb') is not None else None, 3)} | "
+            f"{int(r.get('minflt', 0))} | {int(r.get('majflt', 0))} |"
         )
     for i, r in enumerate(cpu_runs, 1):
         lines.append(row("CPU", r, i))

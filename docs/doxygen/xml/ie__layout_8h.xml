@@ -141,12 +141,13 @@
 </parameterlist>
 <simplesect kind="return"><para>0 on success; -1 if arguments are invalid or buffer is too small.</para>
 </simplesect>
-<parameterlist kind="param"><parameteritem>
+The generated name is deterministic and includes the structural parameters so that changes in shape or block-size naturally invalidate older caches.</para>
+<para><parameterlist kind="param"><parameteritem>
 <parameternamelist>
 <parametername>base_path</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Path to original weights file (used to namespace cache). </para>
+<para>Path or stem to namespace the cache (may be NULL/empty). </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -154,7 +155,7 @@
 <parametername>tag</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Short tag like &quot;wxh&quot; or &quot;woh&quot;. </para>
+<para>Short, human-readable tag (e.g., &quot;wxh&quot;, &quot;woh&quot;). </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -162,7 +163,7 @@
 <parametername>rows</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Row count. </para>
+<para>Row count in the logical matrix. </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -170,7 +171,7 @@
 <parametername>cols</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Column count. </para>
+<para>Column count in the logical matrix. </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -178,7 +179,7 @@
 <parametername>blk_k</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Column block size. </para>
+<para>Column block size used for packing. </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -186,7 +187,7 @@
 <parametername>out_buf</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Output buffer for the resulting path string. </para>
+<para>Destination buffer for the resulting path. </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -194,17 +195,17 @@
 <parametername>out_cap</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Capacity of <computeroutput>out_buf</computeroutput> including NUL terminator. </para>
+<para>Capacity of <computeroutput>out_buf</computeroutput> in bytes (including NUL). </para>
 </parameterdescription>
 </parameteritem>
 </parameterlist>
-<simplesect kind="return"><para>0 on success; -1 on failure. </para>
+<simplesect kind="return"><para>0 on success; -1 on invalid arguments or buffer too small. </para>
 </simplesect>
 </para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="engine/include/ie_layout.h" line="34" column="5" bodyfile="engine/src/opt/pretranspose.c" bodystart="24" bodyend="32" declfile="engine/include/ie_layout.h" declline="34" declcolumn="5"/>
+        <location file="engine/include/ie_layout.h" line="34" column="5" bodyfile="engine/src/opt/pretranspose.c" bodystart="48" bodyend="56" declfile="engine/include/ie_layout.h" declline="34" declcolumn="5"/>
       </memberdef>
       <memberdef kind="function" id="ie__layout_8h_1aec7ada5371889da8bd67de5f679f49e1" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>int</type>
@@ -292,13 +293,23 @@
 <simplesect kind="return"><para>0 on success; -1 on failure.</para>
 </simplesect>
 Allocate and build a blocked-K copy of row-major <computeroutput>W</computeroutput>.</para>
-<para>Layout: for each row r, columns are stored in contiguous blocks of size blk_k: [W[r,0..blk_k-1] | W[r,blk_k..2*blk_k-1] | ...] The last block may be short if cols is not divisible by blk_k.</para>
+<para>Layout definition (per row): For k0 in {0, blk_k, 2*blk_k, ...} copy the contiguous slice W[r, k0 .. k0 + klen - 1] where klen = min(blk_k, cols - k0) into the destination row buffer. The order of elements within a row is unchanged, merely grouped by contiguous <computeroutput>blk_k</computeroutput> segments.</para>
+<para>Performance note:<itemizedlist>
+<listitem><para>This packing does not introduce padding; the last block is short.</para>
+</listitem><listitem><para>Consumers can use <computeroutput>blk_k</computeroutput> as an inner-loop tile when iterating K.</para>
+</listitem></itemizedlist>
+</para>
+<para>Cache interaction:<itemizedlist>
+<listitem><para>If <computeroutput>cache_path</computeroutput> is non-NULL and a readable file exists with exactly rows*cols floats, the function loads it and returns immediately.</para>
+</listitem><listitem><para>Otherwise the function computes the layout, attempts to save it atomically to <computeroutput>cache_path</computeroutput> (if provided), and returns the new buffer.</para>
+</listitem></itemizedlist>
+</para>
 <para><parameterlist kind="param"><parameteritem>
 <parameternamelist>
 <parametername>W</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Pointer to row-major matrix (rows x cols). </para>
+<para>Pointer to row-major input matrix (rows x cols). </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -306,7 +317,7 @@ Allocate and build a blocked-K copy of row-major <computeroutput>W</computeroutp
 <parametername>rows</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Row count. </para>
+<para>Number of rows in <computeroutput>W</computeroutput>. </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -314,7 +325,7 @@ Allocate and build a blocked-K copy of row-major <computeroutput>W</computeroutp
 <parametername>cols</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Column count. </para>
+<para>Number of columns in <computeroutput>W</computeroutput>. </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -322,7 +333,7 @@ Allocate and build a blocked-K copy of row-major <computeroutput>W</computeroutp
 <parametername>blk_k</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Column block size (&gt;=1). </para>
+<para>Column block size (&gt;= 1). </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -330,7 +341,7 @@ Allocate and build a blocked-K copy of row-major <computeroutput>W</computeroutp
 <parametername>cache_path</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Optional cache file to load/save; may be NULL. </para>
+<para>Optional filename for cache read/write (may be NULL). </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -338,23 +349,23 @@ Allocate and build a blocked-K copy of row-major <computeroutput>W</computeroutp
 <parametername>out</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Output descriptor (allocated here). </para>
+<para>Output descriptor to be filled on success. </para>
 </parameterdescription>
 </parameteritem>
 </parameterlist>
-<simplesect kind="return"><para>0 on success; -1 on failure. </para>
+<simplesect kind="return"><para>0 on success (with <computeroutput>out-&gt;data</computeroutput> != NULL); -1 on invalid args or OOM. </para>
 </simplesect>
 </para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="engine/include/ie_layout.h" line="53" column="5" bodyfile="engine/src/opt/pretranspose.c" bodystart="98" bodyend="128" declfile="engine/include/ie_layout.h" declline="53" declcolumn="5"/>
+        <location file="engine/include/ie_layout.h" line="53" column="5" bodyfile="engine/src/opt/pretranspose.c" bodystart="169" bodyend="208" declfile="engine/include/ie_layout.h" declline="53" declcolumn="5"/>
         <references refid="structie__wblocked__desc_1aecbe9b5f97e69baf611e6b01a0b6b699" compoundref="ie__layout_8h" startline="18">ie_wblocked_desc::blk_k</references>
         <references refid="structie__wblocked__desc_1a7adf6c23e6798f2fae5ba7b6ddaadcd7" compoundref="ie__layout_8h" startline="17">ie_wblocked_desc::cols</references>
         <references refid="structie__wblocked__desc_1a8a4379a023f9a078a1f21c7fc7a48b09" compoundref="ie__layout_8h" startline="19">ie_wblocked_desc::data</references>
-        <references refid="pretranspose_8c_1a3b1361210ce0850cf868bc60c96d4b6e" compoundref="pretranspose_8c" startline="43" endline="55">load_cache</references>
+        <references refid="pretranspose_8c_1a3b1361210ce0850cf868bc60c96d4b6e" compoundref="pretranspose_8c" startline="76" endline="95">load_cache</references>
         <references refid="structie__wblocked__desc_1aad0e79d6b83fc4e2f15ae0d9b2dad038" compoundref="ie__layout_8h" startline="16">ie_wblocked_desc::rows</references>
-        <references refid="pretranspose_8c_1aa32af2b1dc7c23ae2f05e78492d5e71d" compoundref="pretranspose_8c" startline="66" endline="81">save_cache_atomic</references>
+        <references refid="pretranspose_8c_1aa32af2b1dc7c23ae2f05e78492d5e71d" compoundref="pretranspose_8c" startline="109" endline="136">save_cache_atomic</references>
       </memberdef>
       <memberdef kind="function" id="ie__layout_8h_1adfbda87f521cd3df6d9a2dc3118019dd" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -379,6 +390,7 @@ Allocate and build a blocked-K copy of row-major <computeroutput>W</computeroutp
 </parameteritem>
 </parameterlist>
 Free resources owned by a blocked descriptor.</para>
+<para>Safe to call with NULL. After the call, <computeroutput>desc</computeroutput> fields are zeroed.</para>
 <para><parameterlist kind="param"><parameteritem>
 <parameternamelist>
 <parametername>desc</parametername>
@@ -392,7 +404,7 @@ Free resources owned by a blocked descriptor.</para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="engine/include/ie_layout.h" line="63" column="6" bodyfile="engine/src/opt/pretranspose.c" bodystart="135" bodyend="140" declfile="engine/include/ie_layout.h" declline="63" declcolumn="6"/>
+        <location file="engine/include/ie_layout.h" line="63" column="6" bodyfile="engine/src/opt/pretranspose.c" bodystart="217" bodyend="224" declfile="engine/include/ie_layout.h" declline="63" declcolumn="6"/>
         <references refid="structie__wblocked__desc_1aecbe9b5f97e69baf611e6b01a0b6b699" compoundref="ie__layout_8h" startline="18">ie_wblocked_desc::blk_k</references>
         <references refid="structie__wblocked__desc_1a7adf6c23e6798f2fae5ba7b6ddaadcd7" compoundref="ie__layout_8h" startline="17">ie_wblocked_desc::cols</references>
         <references refid="structie__wblocked__desc_1a8a4379a023f9a078a1f21c7fc7a48b09" compoundref="ie__layout_8h" startline="19">ie_wblocked_desc::data</references>
