@@ -1,6 +1,3 @@
-/* ========================================================================== */
-/* File: engine/src/main_infer.c                                              */
-/* ========================================================================== */
 /**
  * @file main_infer.c
  * @brief CLI entry point for the inference engine (benchmark-friendly).
@@ -12,6 +9,12 @@
  *        --force-ntw 0|1   : force-disable or force-enable NTA prefetch for weights
  *    These are exported as environment variables that the GEMV kernels read:
  *        IE_GEMV_PFDIST_W, IE_GEMV_PFDIST_X, IE_GEMV_FORCE_NTW
+ *
+ *  - CLI flag to hint sparsity policy:
+ *        --sparsity none|block|auto
+ *    This is passed through to ::ie_engine_params_t::sparsity and can be
+ *    overridden by IE_SPARSITY / SPARSITY environment variables when not
+ *    provided explicitly on the command line.
  *
  * @section modes Execution modes
  * 1. CI/Stub mode (default) — does not require model files; emits valid JSON.
@@ -160,6 +163,15 @@ typedef enum {
 /**
  * @struct cli_extras_t
  * @brief Parsed CLI options container (benchmark/harness compatible).
+ *
+ * This struct mirrors the soft hints consumed by ::ie_engine_params_t and
+ * extends them with CLI-only concerns (prompts file, batch size, etc.).
+ *
+ * The @ref sparsity and @ref sparsity_from_flag fields implement a simple
+ * precedence rule:
+ *   1. If --sparsity is provided, it wins.
+ *   2. Otherwise, IE_SPARSITY or SPARSITY environment variables are used.
+ *   3. When both are absent, "none" is used.
  */
 typedef struct cli_extras {
   const char        *prompt;        /**< Prompt text; may be NULL if using file. */
@@ -187,6 +199,23 @@ typedef struct cli_extras {
   const char        *precision_label;
   int                precision_from_flag;
 
+  /**
+   * @brief Raw sparsity label passed to the engine.
+   *
+   * Accepted values:
+   *  - "none"  : dense path (default).
+   *  - "block" : block-sparse (e.g. BSR) when available.
+   *  - "auto"  : backend decides based on metadata.
+   */
+  const char        *sparsity;
+  /**
+   * @brief Non-zero if `--sparsity` was provided on the command line.
+   *
+   * When this flag is zero, @ref sparsity may still be filled from
+   * IE_SPARSITY / SPARSITY environment variables.
+   */
+  int                sparsity_from_flag;
+
   /* New: per-tensor streaming/prefetch knobs forwarded to kernels via env. */
   size_t             pf_w_bytes;    /**< Prefetch distance for weights (bytes). */
   size_t             pf_x_bytes;    /**< Prefetch distance for activations (bytes). */
@@ -204,6 +233,7 @@ static void usage(void) {
     "Usage: inference-engine [--prompt TEXT] [--max-new N]\n"
     "                        [--threads N]\n"
     "                        [--precision fp32|bf16|fp16|int8w|int4|int4w]\n"
+    "                        [--sparsity none|block|auto]\n"
     "                        [--affinity auto|compact|scatter]\n"
     "                        [--pretranspose none|woh|wxh|all]\n"
     "                        [--device auto|cpu|cuda|ze]\n"
@@ -214,7 +244,8 @@ static void usage(void) {
     "                        [--rounds N] [--aggregate]\n"
     "                        [--pf-w BYTES] [--pf-x BYTES] [--force-ntw 0|1]\n"
     "\n"
-    "Env overrides: IE_PRECISION/PRECISION; IE_GEMV_PFDIST_W; IE_GEMV_PFDIST_X; IE_GEMV_FORCE_NTW\n");
+    "Env overrides: IE_PRECISION/PRECISION; IE_SPARSITY/SPARSITY;\n"
+    "               IE_GEMV_PFDIST_W; IE_GEMV_PFDIST_X; IE_GEMV_FORCE_NTW\n");
 }
 
 /**
@@ -242,6 +273,9 @@ static void cli_extras_defaults(cli_extras_t *e) {
   e->precision_label = IE_PREC_FP32; /* "fp32" */
   e->precision_from_flag = 0;
 
+  e->sparsity       = "none";
+  e->sparsity_from_flag = 0;
+
   e->pf_w_bytes     = 0;
   e->pf_x_bytes     = 0;
   e->force_ntw      = -1;
@@ -267,6 +301,9 @@ static long safe_atoi(const char *s) {
  * Recognized flags include prefetch/streaming controls:
  *  - --pf-w BYTES, --pf-x BYTES, --force-ntw 0|1
  *
+ * And sparsity controls:
+ *  - --sparsity none|block|auto
+ *
  * @param argc Argument count.
  * @param argv Argument vector.
  * @param out  Output structure; must be non-NULL.
@@ -289,6 +326,18 @@ static int parse_flags(int argc, char **argv, cli_extras_t *out) {
       else if (ascii_ieq(m, IE_PREC_INT8W)) { out->precision_label = IE_PREC_INT8W; out->precision_from_flag=1; }
       else if (ascii_ieq(m, IE_PREC_INT4W) || ascii_ieq(m, IE_PREC_INT4)) { out->precision_label = IE_PREC_INT4W; out->precision_from_flag=1; }
       else { fprintf(stderr,"error: unknown precision '%s'\n", m); return -1; }
+    }
+    else if (!strcmp(a,"--sparsity"))    {
+      if (++i>=argc) { usage(); return -1; }
+      const char *m = argv[i];
+      if      (ascii_ieq(m, "none") || ascii_ieq(m, "dense")) out->sparsity = "none";
+      else if (ascii_ieq(m, "block") || ascii_ieq(m, "blocksparse")) out->sparsity = "block";
+      else if (ascii_ieq(m, "auto")) out->sparsity = "auto";
+      else {
+        fprintf(stderr,"error: unknown sparsity '%s' (expected none|block|auto)\n", m);
+        return -1;
+      }
+      out->sparsity_from_flag = 1;
     }
     else if (!strcmp(a,"--affinity"))    { if (++i>=argc) { usage(); return -1; } out->affinity = argv[i]; }
     else if (!strcmp(a,"--pretranspose")){ if (++i>=argc) { usage(); return -1; } const char*p=argv[i];
@@ -427,6 +476,8 @@ static void print_json_result(uint32_t n_tok,
  *  - If --pf-w/--pf-x/--force-ntw are provided, export:
  *      IE_GEMV_PFDIST_W, IE_GEMV_PFDIST_X, IE_GEMV_FORCE_NTW
  *    so that gemv_* kernels can pick them up.
+ *  - If --sparsity or IE_SPARSITY|SPARSITY are provided, pass the resulting
+ *    label unchanged into ::ie_engine_params_t::sparsity.
  *
  * @param argc Argument count.
  * @param argv Argument vector.
@@ -472,6 +523,17 @@ int main(int argc, char **argv) {
       opt.precision_label = IE_PREC_FP16;
     else
       opt.precision_label = IE_PREC_FP32;
+  }
+
+  /* Sparsity from env if not provided on the command line. */
+  if (!opt.sparsity_from_flag) {
+    const char *envs = env_str("IE_SPARSITY", env_str("SPARSITY", "none"));
+    if      (ascii_ieq(envs, "block") || ascii_ieq(envs, "blocksparse"))
+      opt.sparsity = "block";
+    else if (ascii_ieq(envs, "auto"))
+      opt.sparsity = "auto";
+    else
+      opt.sparsity = "none";
   }
 
   /* If no explicit --prompt, try --prompts-file first non-empty line. */
@@ -521,6 +583,7 @@ int main(int argc, char **argv) {
                          (opt.pretx==CLI_PRETX_WXH  ? "wxh"  : "all")));
   params.prefetch     = opt.prefetch;
   params.threads      = opt.threads;
+  params.sparsity     = opt.sparsity;
   UNUSED(opt.device);
 
   ie_engine_t *engine = NULL;

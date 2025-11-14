@@ -1,6 +1,3 @@
-/* ========================================================================== */
-/* File: engine/include/ie_api.h                                              */
-/* ========================================================================== */
 #ifndef IE_API_H_
 #define IE_API_H_
 
@@ -20,6 +17,15 @@
  *
  * Engines are free to ignore these hints or to act on them. The CLI never remaps
  * "int4" to "fp32" — when seen, it normalizes to "int4w".
+ *
+ * @section sparsity Sparsity labels
+ * The optional `sparsity` hint describes whether the engine should attempt to use
+ * sparse kernels/layouts when available. This is a soft hint:
+ *   - "none"       : dense weights (default when unset).
+ *   - "block"      : block-sparse weights (e.g., BSR layout).
+ *   - "auto"       : let the backend decide based on model metadata.
+ *
+ * Backends that do not support sparsity should silently ignore this hint.
  */
 
 #include <stddef.h>
@@ -106,12 +112,29 @@ typedef struct ie_metrics {
  *       ::IE_PREC_FP32, ::IE_PREC_BF16, ::IE_PREC_FP16,
  *       ::IE_PREC_INT8W, ::IE_PREC_INT4W (and "int4" as an alias to "int4w").
  *       Weight-only labels are *soft hints* for loaders/backends.
+ *
+ * @note The optional ::sparsity field is a soft hint for sparse kernels:
+ *       - "none"  : dense (default when NULL).
+ *       - "block" : block-sparse layout when available.
+ *       - "auto"  : backend decides from metadata/model.
  */
 typedef struct ie_engine_params {
   int        threads;         /**< Requested worker threads; `<=0` means auto. */
   const char *affinity;       /**< "auto" | "compact" | "scatter" (hint). */
   const char *pretranspose;   /**< "none" | "woh" | "wxh" | "all" (hint). */
   const char *prefetch;       /**< "off" | "on" | "auto" | "0|1|2" (hint). */
+
+  /**
+   * @brief Sparsity policy hint for weights.
+   *
+   * Typical values:
+   *  - "none"  : dense layout (default when NULL).
+   *  - "block" : block-sparse layout (e.g., BSR) when supported.
+   *  - "auto"  : let backend decide based on model metadata.
+   *
+   * Backends that do not implement sparsity must ignore this field.
+   */
+  const char *sparsity;
 
   /* ---- compatibility field consumed by CLI/tests ---- */
   const char *precision;      /**< e.g. "fp32" | "bf16" | "fp16" | "int8w" | "int4w" (or "int4"). */

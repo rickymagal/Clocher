@@ -1,28 +1,50 @@
 # Performance Notes
 
-_Last updated: **2025-11-12 17:58:07 UTC**_
+_Last updated: **2025-11-14 02:16:51 UTC**_
 
 
-**Best true TPS:** **CPU — 28.846**.
+**Best true TPS:** **GPU — 32.848**.
 
 ## CPU — Summary (latest benchmark)
 - Runs: **1**
 - Tokens generated (Σ): **384**
-- Wall time (Σ): **13.312 s**
-- True TPS (Σ tokens / Σ time): **28.846**
+- Wall time (Σ): **13.494 s**
+- True TPS (Σ tokens / Σ time): **28.457**
 
 ## Latency
-- p50 (mean across runs): **34.667 ms**
-- p95 (mean across runs): **69.334 ms**
+- p50 (mean across runs): **35.141 ms**
+- p95 (mean across runs): **70.282 ms**
 
 ## Spatial Complexity (Memory & Cache)
-- RSS peak (mean): **5447.000 MB**
-- RSS peak (max): **5447.000 MB**
-- KV cache: **256 hits / 128 misses**
+- RSS peak (mean): **4908.000 MB**
+- RSS peak (max): **4908.000 MB**
+- KV cache: **257 hits / 127 misses**
 - IE_BYTES_PER_TOKEN: **67.1 MB/token**
 - Bytes touched (Σ): **25.8 GB**
 - Working-set coverage (bytes_per_token / model.bin): **0.005**
-- Effective bandwidth: **1.94 GB/s**
+- Effective bandwidth: **1.91 GB/s**
+
+### Memory Details
+- No extended memory metrics were present in the logs.
+
+## GPU — Summary (latest benchmark)
+- Runs: **1**
+- Tokens generated (Σ): **384**
+- Wall time (Σ): **11.690 s**
+- True TPS (Σ tokens / Σ time): **32.848**
+
+## Latency
+- p50 (mean across runs): **30.443 ms**
+- p95 (mean across runs): **60.886 ms**
+
+## Spatial Complexity (Memory & Cache)
+- RSS peak (mean): **4976.000 MB**
+- RSS peak (max): **4976.000 MB**
+- KV cache: **257 hits / 127 misses**
+- IE_BYTES_PER_TOKEN: **67.1 MB/token**
+- Bytes touched (Σ): **25.8 GB**
+- Working-set coverage (bytes_per_token / model.bin): **0.005**
+- Effective bandwidth: **2.20 GB/s**
 
 ### Memory Details
 - No extended memory metrics were present in the logs.
@@ -48,7 +70,7 @@ _Last updated: **2025-11-12 17:58:07 UTC**_
 - RAM (MemTotal): **8.1 GB**
 - OS: **Fedora Linux 42 (KDE Plasma Desktop Edition)**
 - Kernel: **6.16.9-200.fc42.x86_64-x86_64**
-- Git commit: **fc06c17 DIRTY**
+- Git commit: **d699e99 DIRTY**
 - Model file: **models/gpt-oss-20b/model.ie.bin**
 - Model size: **13.197 GB**
 
@@ -56,4 +78,5 @@ _Last updated: **2025-11-12 17:58:07 UTC**_
 
 | Device | Run | Tokens | Wall (s) | TPS | p50 (ms) | p95 (ms) | RSS peak (MB) | PSS peak (MB) | VMS peak (MB) | minflt | majflt |
 |:------:|----:|-------:|---------:|----:|---------:|---------:|--------------:|--------------:|--------------:|------:|------:|
-| CPU | 1 | 384 | 13.312 | 28.846 | 34.667 | 69.334 | 5447.000 | n/a | n/a | 0 | 0 |
+| CPU | 1 | 384 | 13.494 | 28.457 | 35.141 | 70.282 | 4908.000 | n/a | n/a | 0 | 0 |
+| GPU | 1 | 384 | 11.690 | 32.848 | 30.443 | 60.886 | 4976.000 | n/a | n/a | 0 | 0 |

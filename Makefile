@@ -81,7 +81,10 @@ SRC_CORE_C := \
   engine/src/math/floatx.c \
   engine/src/ie_kv_instrumentation.c \
   engine/src/quant/int4_ptq.c \
-  engine/src/quant/int8_ptq.c
+  engine/src/quant/int8_ptq.c \
+  engine/src/devices/ie_device_common.c \
+  engine/src/sparse_io.c \
+  engine/src/gemm_block_sparse.c
 
 SRC_MAIN_C := engine/src/main_infer.c
 
@@ -89,12 +92,19 @@ SRC_CUDA_CU := \
   engine/src/devices/ie_device_cuda.cu \
   engine/src/kernels/ie_kernels_cuda.cu
 
+# Optional tools (block-sparse converter)
+SRC_TOOLS_C := \
+  tools/convert_to_block_sparse.c
+
 # =============================================================================
 # Derived
 # =============================================================================
 OBJ_CORE_C := $(patsubst %.c,$(BUILD)/%.o,$(SRC_CORE_C))
 OBJ_MAIN_C := $(patsubst %.c,$(BUILD)/%.o,$(SRC_MAIN_C))
 OBJ_CUDA   := $(patsubst %.cu,$(BUILD)/%.o,$(SRC_CUDA_CU))
+OBJ_TOOLS  := $(patsubst %.c,$(BUILD)/%.o,$(SRC_TOOLS_C))
+
+CONVERT_BIN := $(BUILD)/tools/convert_to_block_sparse
 
 # =============================================================================
 # Phonies
@@ -102,12 +112,13 @@ OBJ_CUDA   := $(patsubst %.cu,$(BUILD)/%.o,$(SRC_CUDA_CU))
 .PHONY: build build-release build-cuda build-all cuda \
         test bench bench-direct bench-cuda cuda-bench \
         profile perf-report baseline-report \
-        fmt lint docs docs-doxygen clean microbench microbench-stream \
+        fmt lint docs docs-doxygen clean microbench microbench-stream microbench-block-sparse \
         monitoring-up monitoring-down metrics-exporter \
         ptq-calibrate ptq-from-hf ptq-from-torch ptq-from-bin \
         perf_cpu_fp32 perf_cpu_int8 perf_cpu_bf16 perf_gpu \
         perf_cpu_act_int8 perf_gpu_act_fp8_e4m3 perf_gpu_act_fp8_e5m2 \
-        show-tools iebin model-pack pack-hf refresh-model repack-hf
+        show-tools iebin model-pack pack-hf refresh-model repack-hf \
+        convert-to-block-sparse
 
 cuda: build-cuda
 cuda-bench: bench-cuda
@@ -186,6 +197,16 @@ $(BIN_CUDA): $(OBJ_MAIN_C) $(OBJ_CORE_C) $(OBJ_CUDA)
 build-all: build build-cuda
 
 # =============================================================================
+# Tools (block-sparse converter)
+# =============================================================================
+convert-to-block-sparse: $(CONVERT_BIN)
+
+$(CONVERT_BIN): $(OBJ_TOOLS)
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) $(INC) $(OBJ_TOOLS) -o $@ $(LDFLAGS_CPU)
+	@echo "[build] block-sparse converter -> $@"
+
+# =============================================================================
 # Tests
 # =============================================================================
 test: $(BIN_CPU)
@@ -197,6 +218,8 @@ test: $(BIN_CPU)
 	$(CC) $(CFLAGS) $(INC) tests/c/test_topology.c engine/src/opt/topology.c engine/src/opt/thread_pool.c engine/src/opt/cpu_features.c engine/src/util_logging.c -o $(BUILD)/test_topology $(LDFLAGS_CPU) && $(BUILD)/test_topology
 	@echo "[test] mmap_tuning"
 	$(CC) $(CFLAGS) $(INC) tests/c/test_mmap_tuning.c engine/src/io/mmap_tuning.c engine/src/io/loader_mmap.c engine/src/util_logging.c -o $(BUILD)/test_mmap_tuning $(LDFLAGS_CPU) && $(BUILD)/test_mmap_tuning
+	@echo "[test] block-sparse"
+	$(CC) $(CFLAGS) $(INC) tests/c/test_block_sparse.c engine/src/gemm_block_sparse.c engine/src/sparse_io.c engine/src/util_logging.c -o $(BUILD)/test_block_sparse $(LDFLAGS_CPU) && $(BUILD)/test_block_sparse
 	@if [ -z "$$IE_SKIP_WEIGHTS_TEST" ]; then \
 	  if [ -f $(MODEL_DIR_DEFAULT)/model.ie.json ] && [ -f $(MODEL_DIR_DEFAULT)/model.ie.bin ]; then \
 	    echo "[test] test_weights"; \
@@ -415,6 +438,12 @@ microbench-stream: build
 	$(CC) $(CFLAGS) $(INC) benchmarks/src/microbench_stream.c engine/src/opt/stream.c engine/src/util_logging.c -o $(BUILD)/microbench_stream $(LDFLAGS_CPU)
 	@echo "[run] microbench_stream (default params)"
 	@$(BUILD)/microbench_stream
+
+microbench-block-sparse: build
+	@mkdir -p $(BUILD)
+	$(CC) $(CFLAGS) $(INC) benchmarks/src/microbench_block_sparse.c engine/src/gemm_block_sparse.c engine/src/sparse_io.c engine/src/util_logging.c -o $(BUILD)/microbench_block_sparse $(LDFLAGS_CPU)
+	@echo "[run] microbench_block_sparse (rows=4096 cols=4096 iters=50)"
+	@$(BUILD)/microbench_block_sparse
 
 # =============================================================================
 # Monitoring & metrics (optional)

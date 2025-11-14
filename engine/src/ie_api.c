@@ -1,6 +1,3 @@
-/* ========================================================================== */
-/* File: engine/src/ie_api.c                                                  */
-/* ========================================================================== */
 /**
  * @file ie_api.c
  * @brief CI-friendly implementation of the public Inference Engine API.
@@ -29,12 +26,17 @@
  *
  * We keep a by-value copy of the creation parameters to remain ABI-safe if the
  * header evolves. We never dereference unknown pointers (e.g., hint strings).
+ *
+ * The @ref uses_weight_int4 and @ref uses_block_sparse fields are best-effort
+ * booleans derived from soft hints; they allow tests and backends to inspect
+ * requested pathways without changing the public API.
  */
 struct ie_engine {
   ie_engine_params_t cfg;   /**< Creation parameters (by value). */
   ie_metrics_t       last;  /**< Last metrics snapshot returned to callers.   */
   uint64_t           seed;  /**< PRNG seed used to derive token IDs.          */
-  int                uses_weight_int4; /**< 1 if precision hint == "int4w|int4". */
+  int                uses_weight_int4;  /**< 1 if precision hint == "int4w|int4".    */
+  int                uses_block_sparse; /**< 1 if sparsity hint == "block".          */
 };
 
 /* -------------------------------------------------------------------------- */
@@ -102,6 +104,13 @@ static uint64_t xorshift64star(uint64_t *state) {
  * - Does not open or validate model files.
  * - Fails only on allocation/invalid-argument errors.
  * - “Model required” is enforced by the CLI when IE_REQUIRE_MODEL=1.
+ *
+ * Additional behavior:
+ * - Derives a deterministic seed from soft hints (precision, affinity,
+ *   pretranspose, prefetch, sparsity) so that tests using different pathways
+ *   still remain reproducible.
+ * - Records @ref uses_weight_int4 and @ref uses_block_sparse based solely on
+ *   these hints; backends may later consult these flags without changing ABI.
  */
 ie_status_t ie_engine_create(const ie_engine_params_t *p, ie_engine_t **out) {
   if (!out) return 1; /* generic error */
@@ -124,10 +133,15 @@ ie_status_t ie_engine_create(const ie_engine_params_t *p, ie_engine_t **out) {
   e->seed ^= (uint64_t)fnv1a32(e->cfg.affinity)     <<  8;
   e->seed ^= (uint64_t)fnv1a32(e->cfg.pretranspose) << 16;
   e->seed ^= (uint64_t)fnv1a32(e->cfg.prefetch)     << 24;
+  e->seed ^= (uint64_t)fnv1a32(e->cfg.sparsity)     << 32;
 
   /* Recognize "int4w" and the CLI alias "int4". */
   e->uses_weight_int4 = (ascii_ieq(e->cfg.precision, IE_PREC_INT4W) ||
                          ascii_ieq(e->cfg.precision, IE_PREC_INT4)) ? 1 : 0;
+
+  /* Recognize block-sparse hint. */
+  e->uses_block_sparse = (ascii_ieq(e->cfg.sparsity, "block") ||
+                          ascii_ieq(e->cfg.sparsity, "blocksparse")) ? 1 : 0;
 
   *out = e;
   return IE_OK;

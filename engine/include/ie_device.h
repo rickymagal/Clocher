@@ -1,3 +1,4 @@
+/* File: engine/include/ie_device.h */
 /**
  * @file ie_device.h
  * @brief Device abstraction for CPU/GPU backends selected at runtime.
@@ -25,6 +26,14 @@ typedef enum ie_device_kind {
  * @brief Opaque device handle (implementation-specific).
  */
 typedef struct ie_device ie_device_t;
+
+/**
+ * @brief Forward declaration of block-sparse matrix descriptor.
+ *
+ * The full definition lives in `sparse_format.h`. This forward declaration
+ * is sufficient for pointer-based APIs.
+ */
+typedef struct ie_block_sparse_matrix ie_block_sparse_matrix_t;
 
 /**
  * @brief Capabilities reported by a device backend.
@@ -85,6 +94,27 @@ int ie_device_gemv_f32(ie_device_t *dev,
                        const float *W, const float *x, float *y,
                        size_t rows, size_t cols,
                        const float *bias, size_t blk_k);
+
+/**
+ * @brief Block-sparse GEMV (FP32): y = W * x (+ optional bias).
+ *
+ * This entry point operates on matrices stored in block-row CSR (BSR) layout
+ * described by @ref ie_block_sparse_matrix_t. Backends are free to implement
+ * native sparse kernels; if a backend does not implement this method, the
+ * implementation falls back to a CPU block-sparse kernel when possible.
+ *
+ * @param dev Device handle.
+ * @param m   Block-sparse matrix descriptor (must be fully initialized).
+ * @param x   Input vector of length m->cols.
+ * @param y   Output vector of length m->rows.
+ * @param bias Optional bias vector of length m->rows (may be NULL).
+ * @return 0 on success; non-zero if unimplemented or error.
+ */
+int ie_device_gemv_block_sparse_f32(ie_device_t *dev,
+                                    const ie_block_sparse_matrix_t *m,
+                                    const float *x,
+                                    float *y,
+                                    const float *bias);
 
 /**
  * @brief Copy memory using the device backend.
