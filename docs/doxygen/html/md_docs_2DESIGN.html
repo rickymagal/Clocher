@@ -100,7 +100,7 @@ $(function(){initNavTree('md_docs_2DESIGN.html',''); initResizable(true); });
   <div class="headertitle"><div class="title">Design (CPU baseline + INT4 path)</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md9"></a></p>
+<div class="textblock"><p><a class="anchor" id="autotoc_md1"></a></p>
 <p>This document describes the hot path, API boundaries, and precision modes. <br  />
  <b>Last updated:</b> 2025-10-24 21:00:48 UTC</p>
 <h1><a class="anchor" id="autotoc_md14"></a>
@@ -193,7 +193,7 @@ Goals</h2>
 <ul>
 <li>Introduce an <b>optional</b> path for <em>weight-only</em> INT4 (<code>int4w</code>) that: 1) Packs HF weights into IEBIN using a <b>manifest-driven</b> policy. 2) Leaves tokenization, shapes, and scheduling untouched. 3) Preserves benchmark comparability via <em>work-touch</em> instrumentation.</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md29"></a>
+<h2><a class="anchor" id="autotoc_md28"></a>
 Design Choices</h2>
 <ul>
 <li><b>Manifest-driven packing</b>: <code>--q4-map</code> lets us target only GEMV-heavy matrices (attn/MLP projections) and keep sensitive tensors (embeddings, layernorms) in FP formats.</li>
@@ -204,17 +204,17 @@ Design Choices</h2>
 </li>
 <li><b>Compat with harness</b>: The CLI accepts soft hints (<code>--device</code>, <code>--model-dir</code>, <code>--rounds</code>) so existing scripts don’t break.</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md31"></a>
+<h2><a class="anchor" id="autotoc_md29"></a>
 Data Flow (INT4 path)</h2>
 <p>HF shards → <code><a class="el" href="hf__to__iebin_8py.html">hf_to_iebin.py</a> --q4-map</code> → IEBIN (<code>model.ie.json</code> + <code>model.ie.bin</code> with INT4-packed tensors) → Runtime <code>IE_PRECISION=int4w</code> → GEMV kernels read packed weights (or dequant on load), semantics unchanged.</p>
-<h2><a class="anchor" id="autotoc_md32"></a>
+<h2><a class="anchor" id="autotoc_md30"></a>
 Metrics Integrity</h2>
 <ul>
 <li>The timed window is <b>only</b>: <code>ie_engine_generate(...)</code> + optional <em>work-touch</em> loop.</li>
 <li>RSS peak and KV counters are sampled <b>after</b> the window to avoid skewing TPS.</li>
 </ul>
 <hr  />
-<h1><a class="anchor" id="autotoc_md34"></a>
+<h1><a class="anchor" id="autotoc_md32"></a>
 Appendix — INT4 (Weight‑Only) Step (Summary)</h1>
 <ul>
 <li>Convert HF shards → IEBIN with an INT4 manifest: <div class="fragment"><div class="line">python3 scripts/hf_to_iebin.py     --hf-dir models/gpt-oss-20b/hf     --out-dir models/gpt-oss-20b     --q4-map quant/q4_manifest.json</div>
@@ -224,9 +224,9 @@ Appendix — INT4 (Weight‑Only) Step (Summary)</h1>
 <li>Precision hints: <code>PRECISION=fp32</code> (activates float path) and <code>IE_PRECISION=int4w</code> (weight‑only path).</li>
 </ul>
 <hr  />
- <h1><a class="anchor" id="autotoc_md36"></a>
+ <h1><a class="anchor" id="autotoc_md34"></a>
 Updates — 2025-11-10</h1>
-<h2><a class="anchor" id="autotoc_md37"></a>
+<h2><a class="anchor" id="autotoc_md35"></a>
 NUMA‑aware topology (<code>ie_topology</code>)</h2>
 <ul>
 <li>Discovers sockets and CPUs from Linux sysfs and exposes a compact API:<ul>
@@ -241,7 +241,7 @@ NUMA‑aware topology (<code>ie_topology</code>)</h2>
 </ul>
 </li>
 </ul>
-<h2><a class="anchor" id="autotoc_md38"></a>
+<h2><a class="anchor" id="autotoc_md36"></a>
 Hot weights replication</h2>
 <ul>
 <li>For “hot” tensors (frequently touched), we can replicate pages <b>per socket</b> to reduce remote memory hits.</li>
@@ -252,19 +252,19 @@ Hot weights replication</h2>
 </li>
 <li>Trade‑offs: additional memory; on single‑socket machines, the feature is a no‑op with negligible overhead.</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md39"></a>
+<h2><a class="anchor" id="autotoc_md37"></a>
 Activation precision hint</h2>
 <ul>
 <li>Runtime hint <code>IE_ACT_PREC=int8|fp8|fp16|bf16|fp32</code> allows experimenting with lower‑precision activations while <b>keeping FP32 accumulators</b>.</li>
 <li>Weight precision remains independent (e.g., <code>IE_PRECISION=int4w</code> for nibble‑packed weights).</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md40"></a>
+<h2><a class="anchor" id="autotoc_md38"></a>
 Timing discipline (unchanged semantics)</h2>
 <ul>
 <li>The benchmark <b>measured window</b> contains only <code>ie_engine_generate(...)</code> + optional work‑touch loop.</li>
 <li>All metrics collection (RSS, KV, JSON print) happens <b>after</b> the window.</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md41"></a>
+<h2><a class="anchor" id="autotoc_md39"></a>
 Example configurations</h2>
 <ul>
 <li>INT4 weights, FP8 activations, NUMA‑aware with hot replication (CPU): <div class="fragment"><div class="line">export IE_REQUIRE_MODEL=1 IE_PRECISION=int4w IE_ACT_PREC=fp8</div>
@@ -272,8 +272,49 @@ Example configurations</h2>
 <div class="line">export IE_TP_USE_AFFINITY=1 AFFINITY=compact IE_HOT_REPLICATE=1</div>
 <div class="line">PROMPTS=benchmarks/prompts_10..txt RUNS=3 make bench</div>
 </div><!-- fragment --></li>
-<li>Same with CUDA: <div class="fragment"><div class="line">PROMPTS=benchmarks/prompts_10..txt RUNS=3 make bench-cuda</div>
-</div><!-- fragment --> </li>
+<li>Same with CUDA: </li>
+</ul>
+<h1><a class="anchor" id="autotoc_md40"></a>
+autotoc_md40</h1>
+<div class="fragment"><div class="line">PROMPTS=benchmarks/prompts_10..txt RUNS=3 make bench-cuda</div>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md41"></a>
+Memory Phase Design Addendum (updated 2025-11-12 18:01:19 UTC)</h1>
+<h2><a class="anchor" id="autotoc_md42"></a>
+Goals</h2>
+<ol type="1">
+<li>Reduce <b>DRAM traffic</b> on weight fetch via layout (<code>blocked‑K</code>), NUMA locality, and selective non‑temporal loads.</li>
+<li>Enable <b>activation down‑precision</b> (INT8/FP8) orthogonally to weight storage (e.g., INT4 weight‑only).</li>
+<li>Measure and visualize <b>spatial metrics</b> alongside TPS: MB/token, bytes touched, model coverage, effective bandwidth.</li>
+</ol>
+<h2><a class="anchor" id="autotoc_md43"></a>
+Components</h2>
+<ul>
+<li><b>Topology &amp; Binding (<code><a class="el" href="structie__topology.html" title="Internal representation.">ie_topology</a></code>)</b>: discovers sockets/CPUs from Linux sysfs. Exposes helpers for pinning (compact/scatter).</li>
+<li><b>Hot replication (<code><a class="el" href="replicate__hot_8c.html" title="Replication of hot weights per socket using first-touch placement.">replicate_hot.c</a></code>)</b>: optional per‑socket replicas for frequently‑touched weights; uses <code>mmap</code> + <code>madvise</code>.</li>
+<li><b>Blocked‑K Pretranspose</b>: builds and caches a row‑major, <b>K‑blocked</b> layout; improves sequentiality and prefetch efficacy.</li>
+<li><b>Streaming heuristics</b>: <code>IE_PREFETCH_DISTANCE</code>, <code>IE_NT_LOADS</code>, and <code>IE_NT_RATIO</code> drive prefetch and non‑temporal load decisions.</li>
+<li><b>Activation precision</b>: runtime hint <code>IE_ACT_PREC</code> selects decode path (INT8 per‑tensor/per‑group, FP8 E4M3/E5M2). Accumulation is FP32.</li>
+</ul>
+<h2><a class="anchor" id="autotoc_md44"></a>
+Measurement</h2>
+<p>The benchmark window includes <b>generation</b> and the <b>work‑touch</b> loop (controlled by <code>IE_BYTES_PER_TOKEN</code>, <code>IE_STRIDE_BYTES</code>). After the window, the engine samples <b>peak RSS (VmHWM)</b>. The docs generator now derives:</p><ul>
+<li><b>MB/token</b> from <code>IE_BYTES_PER_TOKEN</code></li>
+<li><b>Total bytes touched</b> = <code>tokens_sum * bytes_per_token</code></li>
+<li><b>Coverage</b> = <code>bytes_per_token / size(model.ie.bin)</code></li>
+<li><b>Effective bandwidth</b> = <code>bytes_touched / wall_time</code> (GB/s)</li>
+</ul>
+<h2><a class="anchor" id="autotoc_md45"></a>
+Backward Compatibility &amp; Fallbacks</h2>
+<ul>
+<li>Single‑socket hosts: topology collapses to one socket; binding is a no‑op.</li>
+<li>Unsupported backends ignore <code>IE_ACT_PREC</code>, <code>IE_NT_LOADS</code>, etc., without failing.</li>
+<li>When <code>IE_REQUIRE_MODEL</code> is unset, CI stub mode continues to work (no mmap or spatial metrics).</li>
+</ul>
+<h2><a class="anchor" id="autotoc_md46"></a>
+Risks &amp; Mitigations</h2>
+<ul>
+<li><b>Over‑eager NT loads</b> can hurt on small working sets → guard via <code>auto</code> heuristics and <code>IE_NT_RATIO</code> throttle.</li>
+<li><b>Replica memory cost</b> on multi‑socket servers → gate with <code>IE_HOT_REPLICATE</code> and <code>IE_HOT_REPL_LIMIT_MB</code>. </li>
 </ul>
 </div></div><!-- contents -->
 </div><!-- PageDoc -->

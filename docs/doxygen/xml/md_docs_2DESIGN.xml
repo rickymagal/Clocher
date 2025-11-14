@@ -6,7 +6,7 @@
     <briefdescription>
     </briefdescription>
     <detaileddescription>
-<para><anchor id="md_docs_2DESIGN_1autotoc_md9"/></para>
+<para><anchor id="md_docs_2DESIGN_1autotoc_md1"/></para>
 <para>This document describes the hot path, API boundaries, and precision modes. <linebreak/>
  <bold>Last updated:</bold> 2025-10-24 21:00:48 UTC</para>
 <sect1 id="md_docs_2DESIGN_1autotoc_md14">
@@ -110,7 +110,7 @@
 </listitem></itemizedlist>
 </para>
 </sect2>
-<sect2 id="md_docs_2DESIGN_1autotoc_md29">
+<sect2 id="md_docs_2DESIGN_1autotoc_md28">
 <title>Design Choices</title><para><itemizedlist>
 <listitem><para><bold>Manifest-driven packing</bold>: <computeroutput>--q4-map</computeroutput> lets us target only GEMV-heavy matrices (attn/MLP projections) and keep sensitive tensors (embeddings, layernorms) in FP formats.</para>
 </listitem><listitem><para><bold>Separation of concerns</bold>:<itemizedlist>
@@ -122,10 +122,10 @@
 </listitem></itemizedlist>
 </para>
 </sect2>
-<sect2 id="md_docs_2DESIGN_1autotoc_md31">
+<sect2 id="md_docs_2DESIGN_1autotoc_md29">
 <title>Data Flow (INT4 path)</title><para>HF shards → <computeroutput><ref refid="hf__to__iebin_8py" kindref="compound">hf_to_iebin.py</ref> --q4-map</computeroutput> → IEBIN (<computeroutput>model.ie.json</computeroutput> + <computeroutput>model.ie.bin</computeroutput> with INT4-packed tensors) → Runtime <computeroutput>IE_PRECISION=int4w</computeroutput> → GEMV kernels read packed weights (or dequant on load), semantics unchanged.</para>
 </sect2>
-<sect2 id="md_docs_2DESIGN_1autotoc_md32">
+<sect2 id="md_docs_2DESIGN_1autotoc_md30">
 <title>Metrics Integrity</title><para><itemizedlist>
 <listitem><para>The timed window is <bold>only</bold>: <computeroutput>ie_engine_generate(...)</computeroutput> + optional <emphasis>work-touch</emphasis> loop.</para>
 </listitem><listitem><para>RSS peak and KV counters are sampled <bold>after</bold> the window to avoid skewing TPS.</para>
@@ -135,7 +135,7 @@
 </para>
 </sect2>
 </sect1>
-<sect1 id="md_docs_2DESIGN_1autotoc_md34">
+<sect1 id="md_docs_2DESIGN_1autotoc_md32">
 <title>Appendix — INT4 (Weight‑Only) Step (Summary)</title><para><itemizedlist>
 <listitem><para>Convert HF shards → IEBIN with an INT4 manifest: <programlisting filename=".bash"><codeline><highlight class="normal">python3<sp/>scripts/hf_to_iebin.py<sp/><sp/><sp/><sp/><sp/>--hf-dir<sp/>models/gpt-oss-20b/hf<sp/><sp/><sp/><sp/><sp/>--out-dir<sp/>models/gpt-oss-20b<sp/><sp/><sp/><sp/><sp/>--q4-map<sp/>quant/q4_manifest.json</highlight></codeline>
 </programlisting></para>
@@ -147,8 +147,8 @@
 <para><hruler/>
  </para>
 </sect1>
-<sect1 id="md_docs_2DESIGN_1autotoc_md36">
-<title>Updates — 2025-11-10</title><sect2 id="md_docs_2DESIGN_1autotoc_md37">
+<sect1 id="md_docs_2DESIGN_1autotoc_md34">
+<title>Updates — 2025-11-10</title><sect2 id="md_docs_2DESIGN_1autotoc_md35">
 <title>NUMA‑aware topology (<computeroutput>ie_topology</computeroutput>)</title><para><itemizedlist>
 <listitem><para>Discovers sockets and CPUs from Linux sysfs and exposes a compact API:<itemizedlist>
 <listitem><para><computeroutput>ie_topology_init/destroy</computeroutput> — lifetime.</para>
@@ -164,7 +164,7 @@
 </listitem></itemizedlist>
 </para>
 </sect2>
-<sect2 id="md_docs_2DESIGN_1autotoc_md38">
+<sect2 id="md_docs_2DESIGN_1autotoc_md36">
 <title>Hot weights replication</title><para><itemizedlist>
 <listitem><para>For “hot” tensors (frequently touched), we can replicate pages <bold>per socket</bold> to reduce remote memory hits.</para>
 </listitem><listitem><para>Implementation sketch:<itemizedlist>
@@ -176,29 +176,76 @@
 </listitem></itemizedlist>
 </para>
 </sect2>
-<sect2 id="md_docs_2DESIGN_1autotoc_md39">
+<sect2 id="md_docs_2DESIGN_1autotoc_md37">
 <title>Activation precision hint</title><para><itemizedlist>
 <listitem><para>Runtime hint <computeroutput>IE_ACT_PREC=int8|fp8|fp16|bf16|fp32</computeroutput> allows experimenting with lower‑precision activations while <bold>keeping FP32 accumulators</bold>.</para>
 </listitem><listitem><para>Weight precision remains independent (e.g., <computeroutput>IE_PRECISION=int4w</computeroutput> for nibble‑packed weights).</para>
 </listitem></itemizedlist>
 </para>
 </sect2>
-<sect2 id="md_docs_2DESIGN_1autotoc_md40">
+<sect2 id="md_docs_2DESIGN_1autotoc_md38">
 <title>Timing discipline (unchanged semantics)</title><para><itemizedlist>
 <listitem><para>The benchmark <bold>measured window</bold> contains only <computeroutput>ie_engine_generate(...)</computeroutput> + optional work‑touch loop.</para>
 </listitem><listitem><para>All metrics collection (RSS, KV, JSON print) happens <bold>after</bold> the window.</para>
 </listitem></itemizedlist>
 </para>
 </sect2>
-<sect2 id="md_docs_2DESIGN_1autotoc_md41">
+<sect2 id="md_docs_2DESIGN_1autotoc_md39">
 <title>Example configurations</title><para><itemizedlist>
 <listitem><para>INT4 weights, FP8 activations, NUMA‑aware with hot replication (CPU): <programlisting filename=".bash"><codeline><highlight class="normal">export<sp/>IE_REQUIRE_MODEL=1<sp/>IE_PRECISION=int4w<sp/>IE_ACT_PREC=fp8</highlight></codeline>
 <codeline><highlight class="normal">export<sp/>IE_BYTES_PER_TOKEN=$((64*1024*1024))<sp/>IE_STRIDE_BYTES=256<sp/>IE_VERIFY_TOUCH=1</highlight></codeline>
 <codeline><highlight class="normal">export<sp/>IE_TP_USE_AFFINITY=1<sp/>AFFINITY=compact<sp/>IE_HOT_REPLICATE=1</highlight></codeline>
 <codeline><highlight class="normal">PROMPTS=benchmarks/prompts_10..txt<sp/>RUNS=3<sp/>make<sp/>bench</highlight></codeline>
 </programlisting></para>
-</listitem><listitem><para>Same with CUDA: <programlisting filename=".bash"><codeline><highlight class="normal">PROMPTS=benchmarks/prompts_10..txt<sp/>RUNS=3<sp/>make<sp/>bench-cuda</highlight></codeline>
-</programlisting> </para>
+</listitem><listitem><para>Same with CUDA: </para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+</sect1>
+<sect1 id="md_docs_2DESIGN_1autotoc_md40">
+<title>autotoc_md40</title><para><programlisting filename=".bash"><codeline><highlight class="normal">PROMPTS=benchmarks/prompts_10..txt<sp/>RUNS=3<sp/>make<sp/>bench-cuda</highlight></codeline>
+</programlisting></para>
+</sect1>
+<sect1 id="md_docs_2DESIGN_1autotoc_md41">
+<title>Memory Phase Design Addendum (updated 2025-11-12 18:01:19 UTC)</title><sect2 id="md_docs_2DESIGN_1autotoc_md42">
+<title>Goals</title><para><orderedlist>
+<listitem><para>Reduce <bold>DRAM traffic</bold> on weight fetch via layout (<computeroutput>blocked‑K</computeroutput>), NUMA locality, and selective non‑temporal loads.</para>
+</listitem><listitem><para>Enable <bold>activation down‑precision</bold> (INT8/FP8) orthogonally to weight storage (e.g., INT4 weight‑only).</para>
+</listitem><listitem><para>Measure and visualize <bold>spatial metrics</bold> alongside TPS: MB/token, bytes touched, model coverage, effective bandwidth.</para>
+</listitem></orderedlist>
+</para>
+</sect2>
+<sect2 id="md_docs_2DESIGN_1autotoc_md43">
+<title>Components</title><para><itemizedlist>
+<listitem><para><bold>Topology &amp; Binding (<computeroutput><ref refid="structie__topology" kindref="compound">ie_topology</ref></computeroutput>)</bold>: discovers sockets/CPUs from Linux sysfs. Exposes helpers for pinning (compact/scatter).</para>
+</listitem><listitem><para><bold>Hot replication (<computeroutput><ref refid="replicate__hot_8c" kindref="compound">replicate_hot.c</ref></computeroutput>)</bold>: optional per‑socket replicas for frequently‑touched weights; uses <computeroutput>mmap</computeroutput> + <computeroutput>madvise</computeroutput>.</para>
+</listitem><listitem><para><bold>Blocked‑K Pretranspose</bold>: builds and caches a row‑major, <bold>K‑blocked</bold> layout; improves sequentiality and prefetch efficacy.</para>
+</listitem><listitem><para><bold>Streaming heuristics</bold>: <computeroutput>IE_PREFETCH_DISTANCE</computeroutput>, <computeroutput>IE_NT_LOADS</computeroutput>, and <computeroutput>IE_NT_RATIO</computeroutput> drive prefetch and non‑temporal load decisions.</para>
+</listitem><listitem><para><bold>Activation precision</bold>: runtime hint <computeroutput>IE_ACT_PREC</computeroutput> selects decode path (INT8 per‑tensor/per‑group, FP8 E4M3/E5M2). Accumulation is FP32.</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+<sect2 id="md_docs_2DESIGN_1autotoc_md44">
+<title>Measurement</title><para>The benchmark window includes <bold>generation</bold> and the <bold>work‑touch</bold> loop (controlled by <computeroutput>IE_BYTES_PER_TOKEN</computeroutput>, <computeroutput>IE_STRIDE_BYTES</computeroutput>). After the window, the engine samples <bold>peak RSS (VmHWM)</bold>. The docs generator now derives:<itemizedlist>
+<listitem><para><bold>MB/token</bold> from <computeroutput>IE_BYTES_PER_TOKEN</computeroutput></para>
+</listitem><listitem><para><bold>Total bytes touched</bold> = <computeroutput>tokens_sum * bytes_per_token</computeroutput></para>
+</listitem><listitem><para><bold>Coverage</bold> = <computeroutput>bytes_per_token / size(model.ie.bin)</computeroutput></para>
+</listitem><listitem><para><bold>Effective bandwidth</bold> = <computeroutput>bytes_touched / wall_time</computeroutput> (GB/s)</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+<sect2 id="md_docs_2DESIGN_1autotoc_md45">
+<title>Backward Compatibility &amp; Fallbacks</title><para><itemizedlist>
+<listitem><para>Single‑socket hosts: topology collapses to one socket; binding is a no‑op.</para>
+</listitem><listitem><para>Unsupported backends ignore <computeroutput>IE_ACT_PREC</computeroutput>, <computeroutput>IE_NT_LOADS</computeroutput>, etc., without failing.</para>
+</listitem><listitem><para>When <computeroutput>IE_REQUIRE_MODEL</computeroutput> is unset, CI stub mode continues to work (no mmap or spatial metrics).</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+<sect2 id="md_docs_2DESIGN_1autotoc_md46">
+<title>Risks &amp; Mitigations</title><para><itemizedlist>
+<listitem><para><bold>Over‑eager NT loads</bold> can hurt on small working sets → guard via <computeroutput>auto</computeroutput> heuristics and <computeroutput>IE_NT_RATIO</computeroutput> throttle.</para>
+</listitem><listitem><para><bold>Replica memory cost</bold> on multi‑socket servers → gate with <computeroutput>IE_HOT_REPLICATE</computeroutput> and <computeroutput>IE_HOT_REPL_LIMIT_MB</computeroutput>. </para>
 </listitem></itemizedlist>
 </para>
 </sect2>

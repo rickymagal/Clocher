@@ -19,6 +19,8 @@ var structcli__extras =
     [ "prompt", "structcli__extras.html#aa45c7376781454d767d2202800c27a3e", null ],
     [ "prompts_file", "structcli__extras.html#a992ba8185b17f227f60e2e570441b63f", null ],
     [ "rounds", "structcli__extras.html#a8c1b8fdbf9dc75a774e8b451608c961b", null ],
+    [ "sparsity", "structcli__extras.html#af5f02b3c69e6a0e4882a5427db0ab994", null ],
+    [ "sparsity_from_flag", "structcli__extras.html#aeac7b5044a46ca251e3414887e1e712e", null ],
     [ "threads", "structcli__extras.html#a4e8cdca32127b81f8fcb41047a320844", null ],
     [ "warmup_tokens", "structcli__extras.html#a628bf363ee35fe852bbb6510455647bd", null ]
 ];

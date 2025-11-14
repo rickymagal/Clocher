@@ -166,3 +166,229 @@ After the window, the engine samples **peak RSS (VmHWM)**. The docs generator no
 ## Risks & Mitigations
 - **Over‑eager NT loads** can hurt on small working sets → guard via `auto` heuristics and `IE_NT_RATIO` throttle.
 - **Replica memory cost** on multi‑socket servers → gate with `IE_HOT_REPLICATE` and `IE_HOT_REPL_LIMIT_MB`.
+
+# Block‑sparse weights (Phase 2, CPU only)
+
+This chapter describes the **block‑sparse weights prototype** implemented in the
+second phase of the memory work. The goal is to make *algorithmic sparsity*
+concrete and measurable while keeping the dense engine and IEBIN format intact.
+
+At this stage the implementation is **CPU‑only**, FP32‑only, and is exercised
+through C unit tests and a dedicated microbenchmark. It is deliberately small
+and self‑contained so that we can iterate on formats and policies without
+destabilizing the main inference path.
+
+## Goals
+
+- Provide a **well‑defined in‑memory descriptor** for block‑sparse matrices
+  (`ie_block_sparse_matrix_t`).
+- Define a **compact on‑disk format** that can be produced by a simple C tool
+  (`tools/convert_to_block_sparse.c`) and loaded by the engine.
+- Implement a **reference GEMV kernel** for block‑sparse matrices on CPU:
+  numerically equivalent to dense GEMV (modulo FP roundoff).
+- Wire this into the device abstraction so that:
+  - the CPU backend can execute block‑sparse GEMV; and
+  - other backends can safely report “unimplemented” and trigger a CPU
+    fallback.
+- Keep the feature fully **opt‑in**:
+  - No changes to `model.ie.bin` or the CLI.
+  - No new runtime flags required for existing workflows.
+
+## In‑memory layout: `ie_block_sparse_matrix_t`
+
+The new public descriptor lives in `engine/include/sparse_format.h`:
+
+- Global dimensions:
+  - `rows`, `cols` — dense matrix shape.
+  - `block_rows`, `block_cols` — tile shape (same for all blocks).
+- Block‑row CSR (BSR) structure:
+  - `n_block_rows` — number of block rows (typically
+    `ceil(rows / block_rows)`).
+  - `row_ptr` — length `n_block_rows + 1`; `row_ptr[br]..row_ptr[br+1]-1`
+    indexes the non‑zero blocks (`nnzb` total).
+  - `col_idx` — length `nnzb`; column index in block coordinates
+    (`0..ceil(cols / block_cols)-1`).
+- Values:
+  - `values` — contiguous FP32 array of length
+    `nnzb * block_rows * block_cols`, stored in row‑major order *within*
+    each block.
+
+Semantics:
+
+- Conceptually the matrix is partitioned into `block_rows x block_cols`
+  tiles. For each block row `br` we list all non‑zero tiles in ascending
+  block column order.
+- The actual dense dimensions are always taken from `rows` / `cols`. Tail
+  blocks near the bottom/right edges are automatically clipped in the
+  GEMV kernel.
+
+The helpers in `sparse_format.h` cover:
+
+- sanity checks for header fields;
+- allocation/free helpers; and
+- small utilities to compute block counts and strides.
+
+## On‑disk format and loader (`engine/src/sparse_io.c`)
+
+To keep experiments reproducible without touching the IEBIN format, we use a
+separate, compact binary format for block‑sparse matrices:
+
+- A fixed‑size header that records:
+  - magic / version;
+  - `rows`, `cols`, `block_rows`, `block_cols`;
+  - `n_block_rows`, `nnzb`;
+  - sizes of the three payload arrays (`row_ptr`, `col_idx`, `values`).
+- Payload sections, tightly packed:
+  1. `row_ptr` (`uint32_t` × `n_block_rows + 1`);
+  2. `col_idx` (`uint32_t` × `nnzb`);
+  3. `values` (`float` × `nnzb * block_rows * block_cols`).
+
+The loader `ie_block_sparse_load(const char *path, ie_block_sparse_matrix_t *out)`
+performs:
+
+1. open + read header;
+2. validate fields (non‑zero dimensions, monotonically increasing
+   `row_ptr`, etc.);
+3. allocate arrays for `row_ptr`, `col_idx`, `values`;
+4. read the three payload sections; and
+5. on success, fill `out` with owned pointers and return `IE_SPARSE_OK`.
+
+Error paths:
+
+- Any structural or I/O error returns a specific `ie_sparse_status_t`
+  (e.g. `IE_SPARSE_ERR_IO`, `IE_SPARSE_ERR_FORMAT`).
+- On error, partially allocated buffers are freed and `out` is zeroed.
+
+## CPU kernel (`engine/src/gemm_block_sparse.c`)
+
+The reference GEMV implementation:
+
+```c
+void ie_gemv_block_sparse_f32(const ie_block_sparse_matrix_t *m,
+                              const float *x,
+                              float *y,
+                              const float *bias);
+```
+
+Design:
+
+- Single‑threaded, straightforward loop structure:
+  - iterate over block rows (`br`);
+  - for each local row in the block (`local_r`), compute the dense row
+    index `row = br * block_rows + local_r`;
+  - iterate over non‑zero blocks in that block row using
+    `row_ptr[br]..row_ptr[br+1]`;
+  - for each block, compute the starting column and take an inner
+    product between the block row and the corresponding slice of `x`.
+- Tail safety:
+  - rows with `row >= rows` are skipped;
+  - columns with `col >= cols` are skipped inside the innermost loop.
+- Bias:
+  - `bias == NULL` is allowed; in that case the accumulator starts at
+    `0.0f`;
+  - otherwise we seed `acc` with `bias[row]`.
+
+This function is small and easy to inspect, prioritizing correctness and
+debuggability over clever micro‑optimizations. Higher‑level code can decide
+whether and how to shard block rows across threads.
+
+## Device abstraction (`engine/src/devices/ie_device_common.c`)
+
+The `ie_device` vtable gains a new entry:
+
+```c
+int  (*gemv_block_sparse_f32)(void *self,
+                              const ie_block_sparse_matrix_t *m,
+                              const float *x,
+                              float *y,
+                              const float *bias);
+```
+
+Backend implementations:
+
+- **CPU:**
+  - `cpu_gemv_block_sparse_f32` simply forwards to
+    `ie_gemv_block_sparse_f32`.
+  - `ie_device_gemv_block_sparse_f32` (public helper) routes through the
+    vtable and, on failure, can fall back to a CPU device if the current
+    device is not already CPU.
+- **CUDA / Level Zero:**
+  - for this phase they return an “unimplemented” error code;
+  - callers that use `ie_device_gemv_block_sparse_f32` will see the error
+    and can choose to fall back to CPU.
+  - No GPU kernels are required for tests to pass.
+
+This layout keeps the public API stable while allowing future ADRs to add
+true GPU implementations under the same method.
+
+## Tools and tests
+
+### Offline converter (`tools/convert_to_block_sparse.c`)
+
+The converter takes a dense, row‑major FP32 matrix and produces the
+block‑sparse binary format:
+
+- Inputs:
+  - path to a dense `.bin` (raw `float` array of shape `rows × cols`);
+  - `rows`, `cols`, `block_rows`, `block_cols`;
+  - optional threshold / sparsification policy (for now, the prototype
+    typically uses *exact* sparsity patterns produced upstream).
+- Steps:
+  1. read dense matrix into memory;
+  2. scan it by blocks, classify non‑zero blocks;
+  3. build `row_ptr` / `col_idx`;
+  4. emit the header + payload to an output path.
+
+This keeps sparsification an explicit, offline step: the engine never
+modifies weights at load time.
+
+### C unit tests (`tests/c/test_block_sparse.c`)
+
+The tests validate both the loader and the GEMV kernel:
+
+- Small 4×4 and 8×8 matrices with hand‑written dense values and known
+  products.
+- Construction of the corresponding block‑sparse structures in memory,
+  followed by calls to `ie_gemv_block_sparse_f32`.
+- Round‑trip tests for the on‑disk format: write block‑sparse payloads,
+  load via `ie_block_sparse_load`, compare against the in‑memory
+  structures, and re‑run GEMV.
+
+The test target is wired into `make test` alongside the existing C unit
+tests so regressions are caught early.
+
+### Microbenchmark (`benchmarks/src/microbench_gemv_block_sparse.c`)
+
+A dedicated microbenchmark compares dense vs block‑sparse GEMV on CPU:
+
+- Synthesizes a dense matrix and a block‑sparse version with a chosen
+  sparsity pattern.
+- Runs timed loops for both kernels and prints:
+  - runtime, ns/element, and effective GB/s;
+  - any basic correctness statistics (e.g. max absolute difference).
+- Built and run via `make microbench-block-sparse`.
+
+This is a **local** measurement tool; it does not depend on real model
+weights or the CLI.
+
+## Integration strategy and future work
+
+This phase intentionally stops short of wiring block‑sparse weights into
+`model.ie.bin` and the inference CLI:
+
+- existing users see no change in behavior;
+- sparsity experiments use their own binaries and scripts; and
+- the code paths remain small enough to refactor without churn.
+
+Follow‑up work (future ADRs) may cover:
+
+- extending the IEBIN format (or adding a sidecar) to carry block‑sparse
+  weights for specific layers;
+- heuristics for which layers to sparsify (e.g. MLP vs attention);
+- GPU kernels for popular architectures; and
+- interaction with quantization and activation formats.
+
+For now, the block‑sparse prototype gives us a solid, CPU‑only baseline to
+reason about algorithmic sparsity independently of lower‑level memory and
+topology tricks introduced in the first phase.
+

@@ -137,6 +137,9 @@ Typedefs</h2></td></tr>
 <tr class="memitem:a7c50deaca4d796966353da1769279628" id="r_a7c50deaca4d796966353da1769279628"><td class="memItemLeft" align="right" valign="top">typedef struct <a class="el" href="structie__device.html">ie_device</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a7c50deaca4d796966353da1769279628">ie_device_t</a></td></tr>
 <tr class="memdesc:a7c50deaca4d796966353da1769279628"><td class="mdescLeft">&#160;</td><td class="mdescRight">Opaque device handle (implementation-specific).  <br /></td></tr>
 <tr class="separator:a7c50deaca4d796966353da1769279628"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8d9448c57baf817aa19d0fc32d383b38" id="r_a8d9448c57baf817aa19d0fc32d383b38"><td class="memItemLeft" align="right" valign="top">typedef struct <a class="el" href="structie__block__sparse__matrix.html">ie_block_sparse_matrix</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a8d9448c57baf817aa19d0fc32d383b38">ie_block_sparse_matrix_t</a></td></tr>
+<tr class="memdesc:a8d9448c57baf817aa19d0fc32d383b38"><td class="mdescLeft">&#160;</td><td class="mdescRight">Forward declaration of block-sparse matrix descriptor.  <br /></td></tr>
+<tr class="separator:a8d9448c57baf817aa19d0fc32d383b38"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa2d298e25d7b01728fa80d92778822ff" id="r_aa2d298e25d7b01728fa80d92778822ff"><td class="memItemLeft" align="right" valign="top">typedef struct <a class="el" href="structie__device__caps.html">ie_device_caps</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa2d298e25d7b01728fa80d92778822ff">ie_device_caps_t</a></td></tr>
 <tr class="memdesc:aa2d298e25d7b01728fa80d92778822ff"><td class="mdescLeft">&#160;</td><td class="mdescRight">Capabilities reported by a device backend.  <br /></td></tr>
 <tr class="separator:aa2d298e25d7b01728fa80d92778822ff"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -164,6 +167,9 @@ Functions</h2></td></tr>
 <tr class="memitem:af9a99d92974f072775057b5def388b77" id="r_af9a99d92974f072775057b5def388b77"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af9a99d92974f072775057b5def388b77">ie_device_gemv_f32</a> (<a class="el" href="#a7c50deaca4d796966353da1769279628">ie_device_t</a> *dev, const float *W, const float *x, float *y, size_t rows, size_t cols, const float *bias, size_t blk_k)</td></tr>
 <tr class="memdesc:af9a99d92974f072775057b5def388b77"><td class="mdescLeft">&#160;</td><td class="mdescRight">Device-side GEMV (FP32): y = W * x (+ optional bias).  <br /></td></tr>
 <tr class="separator:af9a99d92974f072775057b5def388b77"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae46eb0813b9477e0f3f2084c4d52d33e" id="r_ae46eb0813b9477e0f3f2084c4d52d33e"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ae46eb0813b9477e0f3f2084c4d52d33e">ie_device_gemv_block_sparse_f32</a> (<a class="el" href="#a7c50deaca4d796966353da1769279628">ie_device_t</a> *dev, const <a class="el" href="#a8d9448c57baf817aa19d0fc32d383b38">ie_block_sparse_matrix_t</a> *m, const float *x, float *y, const float *bias)</td></tr>
+<tr class="memdesc:ae46eb0813b9477e0f3f2084c4d52d33e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Block-sparse GEMV (FP32): y = W * x (+ optional bias).  <br /></td></tr>
+<tr class="separator:ae46eb0813b9477e0f3f2084c4d52d33e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad8fe47f93fa5e18c7cf07a153f1de2fb" id="r_ad8fe47f93fa5e18c7cf07a153f1de2fb"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad8fe47f93fa5e18c7cf07a153f1de2fb">ie_device_memcpy</a> (<a class="el" href="#a7c50deaca4d796966353da1769279628">ie_device_t</a> *dev, void *dst, const void *src, size_t nbytes)</td></tr>
 <tr class="memdesc:ad8fe47f93fa5e18c7cf07a153f1de2fb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Copy memory using the device backend.  <br /></td></tr>
 <tr class="separator:ad8fe47f93fa5e18c7cf07a153f1de2fb"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -176,6 +182,25 @@ Functions</h2></td></tr>
 
 <p class="definition">Definition in file <a class="el" href="ie__device_8h_source.html">ie_device.h</a>.</p>
 </div><h2 class="groupheader">Typedef Documentation</h2>
+<a id="a8d9448c57baf817aa19d0fc32d383b38" name="a8d9448c57baf817aa19d0fc32d383b38"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8d9448c57baf817aa19d0fc32d383b38">&#9670;&#160;</a></span>ie_block_sparse_matrix_t</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef struct <a class="el" href="structie__block__sparse__matrix.html">ie_block_sparse_matrix</a> <a class="el" href="#a8d9448c57baf817aa19d0fc32d383b38">ie_block_sparse_matrix_t</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Forward declaration of block-sparse matrix descriptor. </p>
+<p>The full definition lives in <code><a class="el" href="sparse__format_8h.html" title="In-memory representation and loader interface for block-sparse matrices.">sparse_format.h</a></code>. This forward declaration is sufficient for pointer-based APIs. </p>
+
+<p class="definition">Definition at line <a class="el" href="ie__device_8h_source.html#l00036">36</a> of file <a class="el" href="ie__device_8h_source.html">ie_device.h</a>.</p>
+
+</div>
+</div>
 <a id="aa2d298e25d7b01728fa80d92778822ff" name="aa2d298e25d7b01728fa80d92778822ff"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aa2d298e25d7b01728fa80d92778822ff">&#9670;&#160;</a></span>ie_device_caps_t</h2>
 
@@ -222,7 +247,7 @@ Functions</h2></td></tr>
 
 <p>Opaque device handle (implementation-specific). </p>
 
-<p class="definition">Definition at line <a class="el" href="ie__device_8h_source.html#l00027">27</a> of file <a class="el" href="ie__device_8h_source.html">ie_device.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ie__device_8h_source.html#l00028">28</a> of file <a class="el" href="ie__device_8h_source.html">ie_device.h</a>.</p>
 
 </div>
 </div>
@@ -249,16 +274,16 @@ Functions</h2></td></tr>
 </td></tr>
 </table>
 
-<p class="definition">Definition at line <a class="el" href="ie__device_8h_source.html#l00018">18</a> of file <a class="el" href="ie__device_8h_source.html">ie_device.h</a>.</p>
-<div class="fragment"><div class="line"><span class="lineno">   18</span>                            {</div>
-<div class="line"><span class="lineno">   19</span>  <a class="code hl_enumvalue" href="#ab70318bd3a8798846b5fe0f5f493499fae69c547c69799190aba83e121c0986b5">IE_DEV_CPU</a> = 0,   </div>
-<div class="line"><span class="lineno">   20</span>  <a class="code hl_enumvalue" href="#ab70318bd3a8798846b5fe0f5f493499fad76933c12c638e9ceb8afb2420154948">IE_DEV_CUDA</a> = 1,  </div>
-<div class="line"><span class="lineno">   21</span>  <a class="code hl_enumvalue" href="#ab70318bd3a8798846b5fe0f5f493499fa3a29450e9feabd789030b167dc34fbd7">IE_DEV_ZE</a>   = 2   </div>
-<div class="line"><span class="lineno">   22</span>} <a class="code hl_typedef" href="#a3bcf315cedd0fd154b55784585a9f1ec">ie_device_kind_t</a>;</div>
+<p class="definition">Definition at line <a class="el" href="ie__device_8h_source.html#l00019">19</a> of file <a class="el" href="ie__device_8h_source.html">ie_device.h</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">   19</span>                            {</div>
+<div class="line"><span class="lineno">   20</span>  <a class="code hl_enumvalue" href="#ab70318bd3a8798846b5fe0f5f493499fae69c547c69799190aba83e121c0986b5">IE_DEV_CPU</a> = 0,   </div>
+<div class="line"><span class="lineno">   21</span>  <a class="code hl_enumvalue" href="#ab70318bd3a8798846b5fe0f5f493499fad76933c12c638e9ceb8afb2420154948">IE_DEV_CUDA</a> = 1,  </div>
+<div class="line"><span class="lineno">   22</span>  <a class="code hl_enumvalue" href="#ab70318bd3a8798846b5fe0f5f493499fa3a29450e9feabd789030b167dc34fbd7">IE_DEV_ZE</a>   = 2   </div>
+<div class="line"><span class="lineno">   23</span>} <a class="code hl_typedef" href="#a3bcf315cedd0fd154b55784585a9f1ec">ie_device_kind_t</a>;</div>
 <div class="ttc" id="aie__device_8h_html_a3bcf315cedd0fd154b55784585a9f1ec"><div class="ttname"><a href="#a3bcf315cedd0fd154b55784585a9f1ec">ie_device_kind_t</a></div><div class="ttdeci">enum ie_device_kind ie_device_kind_t</div><div class="ttdoc">Device kinds supported by the abstraction layer.</div></div>
-<div class="ttc" id="aie__device_8h_html_ab70318bd3a8798846b5fe0f5f493499fa3a29450e9feabd789030b167dc34fbd7"><div class="ttname"><a href="#ab70318bd3a8798846b5fe0f5f493499fa3a29450e9feabd789030b167dc34fbd7">IE_DEV_ZE</a></div><div class="ttdeci">@ IE_DEV_ZE</div><div class="ttdoc">oneAPI Level Zero backend (loaded via dlopen).</div><div class="ttdef"><b>Definition</b> <a href="ie__device_8h_source.html#l00021">ie_device.h:21</a></div></div>
-<div class="ttc" id="aie__device_8h_html_ab70318bd3a8798846b5fe0f5f493499fad76933c12c638e9ceb8afb2420154948"><div class="ttname"><a href="#ab70318bd3a8798846b5fe0f5f493499fad76933c12c638e9ceb8afb2420154948">IE_DEV_CUDA</a></div><div class="ttdeci">@ IE_DEV_CUDA</div><div class="ttdoc">NVIDIA CUDA backend (loaded via dlopen at runtime).</div><div class="ttdef"><b>Definition</b> <a href="ie__device_8h_source.html#l00020">ie_device.h:20</a></div></div>
-<div class="ttc" id="aie__device_8h_html_ab70318bd3a8798846b5fe0f5f493499fae69c547c69799190aba83e121c0986b5"><div class="ttname"><a href="#ab70318bd3a8798846b5fe0f5f493499fae69c547c69799190aba83e121c0986b5">IE_DEV_CPU</a></div><div class="ttdeci">@ IE_DEV_CPU</div><div class="ttdoc">CPU backend (always available).</div><div class="ttdef"><b>Definition</b> <a href="ie__device_8h_source.html#l00019">ie_device.h:19</a></div></div>
+<div class="ttc" id="aie__device_8h_html_ab70318bd3a8798846b5fe0f5f493499fa3a29450e9feabd789030b167dc34fbd7"><div class="ttname"><a href="#ab70318bd3a8798846b5fe0f5f493499fa3a29450e9feabd789030b167dc34fbd7">IE_DEV_ZE</a></div><div class="ttdeci">@ IE_DEV_ZE</div><div class="ttdoc">oneAPI Level Zero backend (loaded via dlopen).</div><div class="ttdef"><b>Definition</b> <a href="ie__device_8h_source.html#l00022">ie_device.h:22</a></div></div>
+<div class="ttc" id="aie__device_8h_html_ab70318bd3a8798846b5fe0f5f493499fad76933c12c638e9ceb8afb2420154948"><div class="ttname"><a href="#ab70318bd3a8798846b5fe0f5f493499fad76933c12c638e9ceb8afb2420154948">IE_DEV_CUDA</a></div><div class="ttdeci">@ IE_DEV_CUDA</div><div class="ttdoc">NVIDIA CUDA backend (loaded via dlopen at runtime).</div><div class="ttdef"><b>Definition</b> <a href="ie__device_8h_source.html#l00021">ie_device.h:21</a></div></div>
+<div class="ttc" id="aie__device_8h_html_ab70318bd3a8798846b5fe0f5f493499fae69c547c69799190aba83e121c0986b5"><div class="ttname"><a href="#ab70318bd3a8798846b5fe0f5f493499fae69c547c69799190aba83e121c0986b5">IE_DEV_CPU</a></div><div class="ttdeci">@ IE_DEV_CPU</div><div class="ttdoc">CPU backend (always available).</div><div class="ttdef"><b>Definition</b> <a href="ie__device_8h_source.html#l00020">ie_device.h:20</a></div></div>
 </div><!-- fragment -->
 </div>
 </div>
@@ -290,27 +315,18 @@ Functions</h2></td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>0 on success; non-zero on error.</dd></dl>
-<p>Query device capabilities.</p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">dev</td><td>Device handle. </td></tr>
-    <tr><td class="paramname">out_caps</td><td>Output capabilities structure (non-NULL). </td></tr>
-  </table>
-  </dd>
-</dl>
 <dl class="section return"><dt>Returns</dt><dd>0 on success; non-zero on error. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="ie__device__common_8c_source.html#l00426">426</a> of file <a class="el" href="ie__device__common_8c_source.html">ie_device_common.c</a>.</p>
-<div class="fragment"><div class="line"><span class="lineno">  426</span>                                                                       {</div>
-<div class="line"><span class="lineno">  427</span>  <span class="keywordflow">if</span> (!dev || !out_caps) <span class="keywordflow">return</span> -1;</div>
-<div class="line"><span class="lineno">  428</span>  <span class="keywordflow">return</span> dev-&gt;<a class="code hl_variable" href="structie__device.html#aeff992a5f5e1b29e4648d630565b6c71">vt</a>.<a class="code hl_variable" href="structie__device__vtbl.html#a44354d7416675f3c11452b5767d392ff">caps</a> ? dev-&gt;<a class="code hl_variable" href="structie__device.html#aeff992a5f5e1b29e4648d630565b6c71">vt</a>.<a class="code hl_variable" href="structie__device__vtbl.html#a44354d7416675f3c11452b5767d392ff">caps</a>(dev-&gt;<a class="code hl_variable" href="structie__device.html#a909547212afb6612e8d4e0c2fbeaa768">impl</a>, out_caps) : -2;</div>
-<div class="line"><span class="lineno">  429</span>}</div>
-<div class="ttc" id="astructie__device__vtbl_html_a44354d7416675f3c11452b5767d392ff"><div class="ttname"><a href="structie__device__vtbl.html#a44354d7416675f3c11452b5767d392ff">ie_device_vtbl::caps</a></div><div class="ttdeci">int(* caps)(const void *self, ie_device_caps_t *out)</div><div class="ttdef"><b>Definition</b> <a href="ie__device__common_8c_source.html#l00021">ie_device_common.c:21</a></div></div>
-<div class="ttc" id="astructie__device_html_a909547212afb6612e8d4e0c2fbeaa768"><div class="ttname"><a href="structie__device.html#a909547212afb6612e8d4e0c2fbeaa768">ie_device::impl</a></div><div class="ttdeci">void * impl</div><div class="ttdoc">Backend-specific implementation pointer.</div><div class="ttdef"><b>Definition</b> <a href="ie__device__common_8c_source.html#l00033">ie_device_common.c:33</a></div></div>
-<div class="ttc" id="astructie__device_html_aeff992a5f5e1b29e4648d630565b6c71"><div class="ttname"><a href="structie__device.html#aeff992a5f5e1b29e4648d630565b6c71">ie_device::vt</a></div><div class="ttdeci">ie_device_vtbl_t vt</div><div class="ttdoc">Virtual method table.</div><div class="ttdef"><b>Definition</b> <a href="ie__device__common_8c_source.html#l00032">ie_device_common.c:32</a></div></div>
+<p class="definition">Definition at line <a class="el" href="ie__device__common_8c_source.html#l00427">427</a> of file <a class="el" href="ie__device__common_8c_source.html">ie_device_common.c</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">  427</span>                                                                       {</div>
+<div class="line"><span class="lineno">  428</span>  <span class="keywordflow">if</span> (!dev || !out_caps) <span class="keywordflow">return</span> -1;</div>
+<div class="line"><span class="lineno">  429</span>  <span class="keywordflow">return</span> dev-&gt;<a class="code hl_variable" href="structie__device.html#aeff992a5f5e1b29e4648d630565b6c71">vt</a>.<a class="code hl_variable" href="structie__device__vtbl.html#a44354d7416675f3c11452b5767d392ff">caps</a> ? dev-&gt;<a class="code hl_variable" href="structie__device.html#aeff992a5f5e1b29e4648d630565b6c71">vt</a>.<a class="code hl_variable" href="structie__device__vtbl.html#a44354d7416675f3c11452b5767d392ff">caps</a>(dev-&gt;<a class="code hl_variable" href="structie__device.html#a909547212afb6612e8d4e0c2fbeaa768">impl</a>, out_caps) : -2;</div>
+<div class="line"><span class="lineno">  430</span>}</div>
+<div class="ttc" id="astructie__device__vtbl_html_a44354d7416675f3c11452b5767d392ff"><div class="ttname"><a href="structie__device__vtbl.html#a44354d7416675f3c11452b5767d392ff">ie_device_vtbl::caps</a></div><div class="ttdeci">int(* caps)(const void *self, ie_device_caps_t *out)</div><div class="ttdef"><b>Definition</b> <a href="ie__device__common_8c_source.html#l00025">ie_device_common.c:25</a></div></div>
+<div class="ttc" id="astructie__device_html_a909547212afb6612e8d4e0c2fbeaa768"><div class="ttname"><a href="structie__device.html#a909547212afb6612e8d4e0c2fbeaa768">ie_device::impl</a></div><div class="ttdeci">void * impl</div><div class="ttdoc">Backend-specific implementation struct.</div><div class="ttdef"><b>Definition</b> <a href="ie__device__common_8c_source.html#l00042">ie_device_common.c:42</a></div></div>
+<div class="ttc" id="astructie__device_html_aeff992a5f5e1b29e4648d630565b6c71"><div class="ttname"><a href="structie__device.html#aeff992a5f5e1b29e4648d630565b6c71">ie_device::vt</a></div><div class="ttdeci">ie_device_vtbl_t vt</div><div class="ttdoc">Virtual function table.</div><div class="ttdef"><b>Definition</b> <a href="ie__device__common_8c_source.html#l00041">ie_device_common.c:41</a></div></div>
 </div><!-- fragment -->
-<p class="reference">References <a class="el" href="ie__device__common_8c_source.html#l00021">ie_device_vtbl::caps</a>, <a class="el" href="ie__device__common_8c_source.html#l00033">ie_device::impl</a>, and <a class="el" href="ie__device__common_8c_source.html#l00032">ie_device::vt</a>.</p>
+<p class="reference">References <a class="el" href="ie__device__common_8c_source.html#l00025">ie_device_vtbl::caps</a>, <a class="el" href="ie__device__common_8c_source.html#l00042">ie_device::impl</a>, and <a class="el" href="ie__device__common_8c_source.html#l00041">ie_device::vt</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="test__device_8c_source.html#l00024">test_cpu_caps()</a>.</p>
 <div class="dynheader">
@@ -351,63 +367,59 @@ Here is the caller graph for this function:</div>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>0 on success; non-zero on error.</dd></dl>
 <p>Create a device handle for the requested kind (with fallback).</p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">kind</td><td>Requested kind. </td></tr>
-    <tr><td class="paramname">out_dev</td><td>Output: allocated device handle on success. </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd>0 on success; non-zero on error. </dd></dl>
+<p>Falls back to CPU if GPU backend fails. </p>
 
-<p class="definition">Definition at line <a class="el" href="ie__device__common_8c_source.html#l00377">377</a> of file <a class="el" href="ie__device__common_8c_source.html">ie_device_common.c</a>.</p>
-<div class="fragment"><div class="line"><span class="lineno">  377</span>                                                                   {</div>
-<div class="line"><span class="lineno">  378</span>  <span class="keywordflow">if</span> (!out_dev) <span class="keywordflow">return</span> -1;</div>
-<div class="line"><span class="lineno">  379</span> </div>
-<div class="line"><span class="lineno">  380</span>  <a class="code hl_typedef" href="#a7c50deaca4d796966353da1769279628">ie_device_t</a> *d = (<a class="code hl_typedef" href="#a7c50deaca4d796966353da1769279628">ie_device_t</a>*)calloc(1, <span class="keyword">sizeof</span>(*d));</div>
-<div class="line"><span class="lineno">  381</span>  <span class="keywordflow">if</span> (!d) <span class="keywordflow">return</span> -2;</div>
-<div class="line"><span class="lineno">  382</span> </div>
-<div class="line"><span class="lineno">  383</span>  <span class="keywordtype">int</span> ok = -1;</div>
-<div class="line"><span class="lineno">  384</span>  <span class="keywordflow">if</span> (kind == <a class="code hl_enumvalue" href="#ab70318bd3a8798846b5fe0f5f493499fad76933c12c638e9ceb8afb2420154948">IE_DEV_CUDA</a>) {</div>
-<div class="line"><span class="lineno">  385</span>    ok = <a class="code hl_function" href="ie__device__common_8c.html#ae4ac15a3b8fea25568b8cdeb2cd781fe">cuda_try_create</a>(&amp;d-&gt;<a class="code hl_variable" href="structie__device.html#a909547212afb6612e8d4e0c2fbeaa768">impl</a>, &amp;d-&gt;<a class="code hl_variable" href="structie__device.html#aeff992a5f5e1b29e4648d630565b6c71">vt</a>);</div>
-<div class="line"><span class="lineno">  386</span>  } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (kind == <a class="code hl_enumvalue" href="#ab70318bd3a8798846b5fe0f5f493499fa3a29450e9feabd789030b167dc34fbd7">IE_DEV_ZE</a>) {</div>
-<div class="line"><span class="lineno">  387</span>    ok = <a class="code hl_function" href="ie__device__common_8c.html#a6877d362577444879b41090af23950d6">ze_try_create</a>(&amp;d-&gt;<a class="code hl_variable" href="structie__device.html#a909547212afb6612e8d4e0c2fbeaa768">impl</a>, &amp;d-&gt;<a class="code hl_variable" href="structie__device.html#aeff992a5f5e1b29e4648d630565b6c71">vt</a>);</div>
-<div class="line"><span class="lineno">  388</span>  }</div>
-<div class="line"><span class="lineno">  389</span> </div>
-<div class="line"><span class="lineno">  390</span>  <span class="keywordflow">if</span> (ok != 0) {</div>
-<div class="line"><span class="lineno">  391</span>    <span class="comment">/* Fallback to CPU */</span></div>
-<div class="line"><span class="lineno">  392</span>    <a class="code hl_typedef" href="ie__device__common_8c.html#ad0e84ba338f0896e7f95f359de2d8765">cpu_impl_t</a> *ci = <a class="code hl_function" href="ie__device__common_8c.html#a4099e48a20d5155401706f728c99c435">cpu_new</a>();</div>
-<div class="line"><span class="lineno">  393</span>    <span class="keywordflow">if</span> (!ci) { free(d); <span class="keywordflow">return</span> -3; }</div>
-<div class="line"><span class="lineno">  394</span>    d-&gt;<a class="code hl_variable" href="structie__device.html#a909547212afb6612e8d4e0c2fbeaa768">impl</a> = ci;</div>
-<div class="line"><span class="lineno">  395</span>    d-&gt;<a class="code hl_variable" href="structie__device.html#aeff992a5f5e1b29e4648d630565b6c71">vt</a>.<a class="code hl_variable" href="structie__device__vtbl.html#a44354d7416675f3c11452b5767d392ff">caps</a>     = <a class="code hl_function" href="ie__device__common_8c.html#a49b8c853d1b641c9402ed5e92d8af962">cpu_caps</a>;</div>
-<div class="line"><span class="lineno">  396</span>    d-&gt;<a class="code hl_variable" href="structie__device.html#aeff992a5f5e1b29e4648d630565b6c71">vt</a>.<a class="code hl_variable" href="structie__device__vtbl.html#af53f74e97e8a3331b3c9edd24a64e668">gemv_f32</a> = <a class="code hl_function" href="ie__device__common_8c.html#a4fb9bb01bfbe71517f9df925ba9c93ec">cpu_gemv_f32</a>;</div>
-<div class="line"><span class="lineno">  397</span>    d-&gt;<a class="code hl_variable" href="structie__device.html#aeff992a5f5e1b29e4648d630565b6c71">vt</a>.<a class="code hl_variable" href="structie__device__vtbl.html#ad1dd16848b3443345765eba0a865a1b1">memcpy</a>   = <a class="code hl_function" href="ie__device__common_8c.html#a4c7a3b8d7f7279d7680aa68e429e6206">cpu_memcpy</a>;</div>
-<div class="line"><span class="lineno">  398</span>    d-&gt;<a class="code hl_variable" href="structie__device.html#aeff992a5f5e1b29e4648d630565b6c71">vt</a>.<a class="code hl_variable" href="structie__device__vtbl.html#a646d8353c3ebf1ba47f4a4ac37efac33">destroy</a>  = <a class="code hl_function" href="ie__device__common_8c.html#a94f0164f6cb0f1f874ad9b18194cfbc2">cpu_destroy</a>;</div>
-<div class="line"><span class="lineno">  399</span>    d-&gt;<a class="code hl_variable" href="structie__device.html#a155ab991692fdcd2c49275a73416dfba">kind</a>        = <a class="code hl_enumvalue" href="#ab70318bd3a8798846b5fe0f5f493499fae69c547c69799190aba83e121c0986b5">IE_DEV_CPU</a>;</div>
-<div class="line"><span class="lineno">  400</span>  } <span class="keywordflow">else</span> {</div>
-<div class="line"><span class="lineno">  401</span>    d-&gt;<a class="code hl_variable" href="structie__device.html#a155ab991692fdcd2c49275a73416dfba">kind</a> = kind;</div>
-<div class="line"><span class="lineno">  402</span>  }</div>
-<div class="line"><span class="lineno">  403</span> </div>
-<div class="line"><span class="lineno">  404</span>  *out_dev = d;</div>
-<div class="line"><span class="lineno">  405</span>  <span class="keywordflow">return</span> 0;</div>
-<div class="line"><span class="lineno">  406</span>}</div>
-<div class="ttc" id="aie__device_8h_html_a7c50deaca4d796966353da1769279628"><div class="ttname"><a href="#a7c50deaca4d796966353da1769279628">ie_device_t</a></div><div class="ttdeci">struct ie_device ie_device_t</div><div class="ttdoc">Opaque device handle (implementation-specific).</div><div class="ttdef"><b>Definition</b> <a href="ie__device_8h_source.html#l00027">ie_device.h:27</a></div></div>
-<div class="ttc" id="aie__device__common_8c_html_a4099e48a20d5155401706f728c99c435"><div class="ttname"><a href="ie__device__common_8c.html#a4099e48a20d5155401706f728c99c435">cpu_new</a></div><div class="ttdeci">static cpu_impl_t * cpu_new(void)</div><div class="ttdoc">Allocate and initialize the CPU backend implementation.</div><div class="ttdef"><b>Definition</b> <a href="ie__device__common_8c_source.html#l00125">ie_device_common.c:125</a></div></div>
-<div class="ttc" id="aie__device__common_8c_html_a49b8c853d1b641c9402ed5e92d8af962"><div class="ttname"><a href="ie__device__common_8c.html#a49b8c853d1b641c9402ed5e92d8af962">cpu_caps</a></div><div class="ttdeci">static int cpu_caps(const void *self, ie_device_caps_t *out)</div><div class="ttdoc">Report CPU device capabilities.</div><div class="ttdef"><b>Definition</b> <a href="ie__device__common_8c_source.html#l00139">ie_device_common.c:139</a></div></div>
-<div class="ttc" id="aie__device__common_8c_html_a4c7a3b8d7f7279d7680aa68e429e6206"><div class="ttname"><a href="ie__device__common_8c.html#a4c7a3b8d7f7279d7680aa68e429e6206">cpu_memcpy</a></div><div class="ttdeci">static int cpu_memcpy(void *self, void *dst, const void *src, size_t nbytes)</div><div class="ttdoc">CPU implementation of memcpy wrapper.</div><div class="ttdef"><b>Definition</b> <a href="ie__device__common_8c_source.html#l00183">ie_device_common.c:183</a></div></div>
-<div class="ttc" id="aie__device__common_8c_html_a4fb9bb01bfbe71517f9df925ba9c93ec"><div class="ttname"><a href="ie__device__common_8c.html#a4fb9bb01bfbe71517f9df925ba9c93ec">cpu_gemv_f32</a></div><div class="ttdeci">static int cpu_gemv_f32(void *self, const float *W, const float *x, float *y, size_t rows, size_t cols, const float *bias, size_t blk_k)</div><div class="ttdoc">CPU implementation of GEMV FP32 via existing kernels.</div><div class="ttdef"><b>Definition</b> <a href="ie__device__common_8c_source.html#l00164">ie_device_common.c:164</a></div></div>
-<div class="ttc" id="aie__device__common_8c_html_a6877d362577444879b41090af23950d6"><div class="ttname"><a href="ie__device__common_8c.html#a6877d362577444879b41090af23950d6">ze_try_create</a></div><div class="ttdeci">static int ze_try_create(void **out_impl, ie_device_vtbl_t *out_vt)</div><div class="ttdoc">Attempt to construct a Level Zero backend via dlopen (stub).</div><div class="ttdef"><b>Definition</b> <a href="ie__device__common_8c_source.html#l00295">ie_device_common.c:295</a></div></div>
-<div class="ttc" id="aie__device__common_8c_html_a94f0164f6cb0f1f874ad9b18194cfbc2"><div class="ttname"><a href="ie__device__common_8c.html#a94f0164f6cb0f1f874ad9b18194cfbc2">cpu_destroy</a></div><div class="ttdeci">static void cpu_destroy(void *self)</div><div class="ttdoc">Destroy CPU implementation object.</div><div class="ttdef"><b>Definition</b> <a href="ie__device__common_8c_source.html#l00195">ie_device_common.c:195</a></div></div>
+<p class="definition">Definition at line <a class="el" href="ie__device__common_8c_source.html#l00383">383</a> of file <a class="el" href="ie__device__common_8c_source.html">ie_device_common.c</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">  383</span>                                                                   {</div>
+<div class="line"><span class="lineno">  384</span>  <span class="keywordflow">if</span> (!out_dev) <span class="keywordflow">return</span> -1;</div>
+<div class="line"><span class="lineno">  385</span> </div>
+<div class="line"><span class="lineno">  386</span>  <a class="code hl_typedef" href="#a7c50deaca4d796966353da1769279628">ie_device_t</a> *d = (<a class="code hl_typedef" href="#a7c50deaca4d796966353da1769279628">ie_device_t</a>*)calloc(1, <span class="keyword">sizeof</span>(*d));</div>
+<div class="line"><span class="lineno">  387</span>  <span class="keywordflow">if</span> (!d) <span class="keywordflow">return</span> -2;</div>
+<div class="line"><span class="lineno">  388</span> </div>
+<div class="line"><span class="lineno">  389</span>  <span class="keywordtype">int</span> ok = -1;</div>
+<div class="line"><span class="lineno">  390</span> </div>
+<div class="line"><span class="lineno">  391</span>  <span class="keywordflow">if</span> (kind == <a class="code hl_enumvalue" href="#ab70318bd3a8798846b5fe0f5f493499fad76933c12c638e9ceb8afb2420154948">IE_DEV_CUDA</a>) ok = <a class="code hl_function" href="ie__device__common_8c.html#ae4ac15a3b8fea25568b8cdeb2cd781fe">cuda_try_create</a>(&amp;d-&gt;<a class="code hl_variable" href="structie__device.html#a909547212afb6612e8d4e0c2fbeaa768">impl</a>, &amp;d-&gt;<a class="code hl_variable" href="structie__device.html#aeff992a5f5e1b29e4648d630565b6c71">vt</a>);</div>
+<div class="line"><span class="lineno">  392</span>  <span class="keywordflow">else</span> <span class="keywordflow">if</span> (kind == <a class="code hl_enumvalue" href="#ab70318bd3a8798846b5fe0f5f493499fa3a29450e9feabd789030b167dc34fbd7">IE_DEV_ZE</a>) ok = <a class="code hl_function" href="ie__device__common_8c.html#a6877d362577444879b41090af23950d6">ze_try_create</a>(&amp;d-&gt;<a class="code hl_variable" href="structie__device.html#a909547212afb6612e8d4e0c2fbeaa768">impl</a>, &amp;d-&gt;<a class="code hl_variable" href="structie__device.html#aeff992a5f5e1b29e4648d630565b6c71">vt</a>);</div>
+<div class="line"><span class="lineno">  393</span> </div>
+<div class="line"><span class="lineno">  394</span>  <span class="keywordflow">if</span> (ok != 0) {</div>
+<div class="line"><span class="lineno">  395</span>    <a class="code hl_typedef" href="ie__device__common_8c.html#ad0e84ba338f0896e7f95f359de2d8765">cpu_impl_t</a> *ci = <a class="code hl_function" href="ie__device__common_8c.html#a4099e48a20d5155401706f728c99c435">cpu_new</a>();</div>
+<div class="line"><span class="lineno">  396</span>    <span class="keywordflow">if</span> (!ci) {</div>
+<div class="line"><span class="lineno">  397</span>      free(d);</div>
+<div class="line"><span class="lineno">  398</span>      <span class="keywordflow">return</span> -3;</div>
+<div class="line"><span class="lineno">  399</span>    }</div>
+<div class="line"><span class="lineno">  400</span>    d-&gt;<a class="code hl_variable" href="structie__device.html#a909547212afb6612e8d4e0c2fbeaa768">impl</a>                    = ci;</div>
+<div class="line"><span class="lineno">  401</span>    d-&gt;<a class="code hl_variable" href="structie__device.html#aeff992a5f5e1b29e4648d630565b6c71">vt</a>.<a class="code hl_variable" href="structie__device__vtbl.html#a44354d7416675f3c11452b5767d392ff">caps</a>                 = <a class="code hl_function" href="ie__device__common_8c.html#a49b8c853d1b641c9402ed5e92d8af962">cpu_caps</a>;</div>
+<div class="line"><span class="lineno">  402</span>    d-&gt;<a class="code hl_variable" href="structie__device.html#aeff992a5f5e1b29e4648d630565b6c71">vt</a>.<a class="code hl_variable" href="structie__device__vtbl.html#af53f74e97e8a3331b3c9edd24a64e668">gemv_f32</a>             = <a class="code hl_function" href="ie__device__common_8c.html#a4fb9bb01bfbe71517f9df925ba9c93ec">cpu_gemv_f32</a>;</div>
+<div class="line"><span class="lineno">  403</span>    d-&gt;<a class="code hl_variable" href="structie__device.html#aeff992a5f5e1b29e4648d630565b6c71">vt</a>.<a class="code hl_variable" href="structie__device__vtbl.html#ad1dd16848b3443345765eba0a865a1b1">memcpy</a>               = <a class="code hl_function" href="ie__device__common_8c.html#a4c7a3b8d7f7279d7680aa68e429e6206">cpu_memcpy</a>;</div>
+<div class="line"><span class="lineno">  404</span>    d-&gt;<a class="code hl_variable" href="structie__device.html#aeff992a5f5e1b29e4648d630565b6c71">vt</a>.<a class="code hl_variable" href="structie__device__vtbl.html#a6b8640bbc9081164b1640375b1206a4b">gemv_block_sparse_f32</a> = <a class="code hl_function" href="ie__device__common_8c.html#a4cf6c8ed666278da8fdaf7f0b953138c">cpu_gemv_block_sparse_f32</a>;</div>
+<div class="line"><span class="lineno">  405</span>    d-&gt;<a class="code hl_variable" href="structie__device.html#aeff992a5f5e1b29e4648d630565b6c71">vt</a>.<a class="code hl_variable" href="structie__device__vtbl.html#a646d8353c3ebf1ba47f4a4ac37efac33">destroy</a>              = <a class="code hl_function" href="ie__device__common_8c.html#a94f0164f6cb0f1f874ad9b18194cfbc2">cpu_destroy</a>;</div>
+<div class="line"><span class="lineno">  406</span>    d-&gt;<a class="code hl_variable" href="structie__device.html#a155ab991692fdcd2c49275a73416dfba">kind</a>                    = <a class="code hl_enumvalue" href="#ab70318bd3a8798846b5fe0f5f493499fae69c547c69799190aba83e121c0986b5">IE_DEV_CPU</a>;</div>
+<div class="line"><span class="lineno">  407</span>  } <span class="keywordflow">else</span> {</div>
+<div class="line"><span class="lineno">  408</span>    d-&gt;<a class="code hl_variable" href="structie__device.html#a155ab991692fdcd2c49275a73416dfba">kind</a> = kind;</div>
+<div class="line"><span class="lineno">  409</span>  }</div>
+<div class="line"><span class="lineno">  410</span> </div>
+<div class="line"><span class="lineno">  411</span>  *out_dev = d;</div>
+<div class="line"><span class="lineno">  412</span>  <span class="keywordflow">return</span> 0;</div>
+<div class="line"><span class="lineno">  413</span>}</div>
+<div class="ttc" id="aie__device_8h_html_a7c50deaca4d796966353da1769279628"><div class="ttname"><a href="#a7c50deaca4d796966353da1769279628">ie_device_t</a></div><div class="ttdeci">struct ie_device ie_device_t</div><div class="ttdoc">Opaque device handle (implementation-specific).</div><div class="ttdef"><b>Definition</b> <a href="ie__device_8h_source.html#l00028">ie_device.h:28</a></div></div>
+<div class="ttc" id="aie__device__common_8c_html_a4099e48a20d5155401706f728c99c435"><div class="ttname"><a href="ie__device__common_8c.html#a4099e48a20d5155401706f728c99c435">cpu_new</a></div><div class="ttdeci">static cpu_impl_t * cpu_new(void)</div><div class="ttdoc">Allocate a CPU backend instance.</div><div class="ttdef"><b>Definition</b> <a href="ie__device__common_8c_source.html#l00059">ie_device_common.c:59</a></div></div>
+<div class="ttc" id="aie__device__common_8c_html_a49b8c853d1b641c9402ed5e92d8af962"><div class="ttname"><a href="ie__device__common_8c.html#a49b8c853d1b641c9402ed5e92d8af962">cpu_caps</a></div><div class="ttdeci">static int cpu_caps(const void *self, ie_device_caps_t *out)</div><div class="ttdoc">Report CPU device capabilities.</div><div class="ttdef"><b>Definition</b> <a href="ie__device__common_8c_source.html#l00071">ie_device_common.c:71</a></div></div>
+<div class="ttc" id="aie__device__common_8c_html_a4c7a3b8d7f7279d7680aa68e429e6206"><div class="ttname"><a href="ie__device__common_8c.html#a4c7a3b8d7f7279d7680aa68e429e6206">cpu_memcpy</a></div><div class="ttdeci">static int cpu_memcpy(void *self, void *dst, const void *src, size_t nbytes)</div><div class="ttdoc">CPU memcpy implementation.</div><div class="ttdef"><b>Definition</b> <a href="ie__device__common_8c_source.html#l00100">ie_device_common.c:100</a></div></div>
+<div class="ttc" id="aie__device__common_8c_html_a4cf6c8ed666278da8fdaf7f0b953138c"><div class="ttname"><a href="ie__device__common_8c.html#a4cf6c8ed666278da8fdaf7f0b953138c">cpu_gemv_block_sparse_f32</a></div><div class="ttdeci">static int cpu_gemv_block_sparse_f32(void *self, const ie_block_sparse_matrix_t *m, const float *x, float *y, const float *bias)</div><div class="ttdoc">CPU implementation of block-sparse GEMV FP32.</div><div class="ttdef"><b>Definition</b> <a href="ie__device__common_8c_source.html#l00110">ie_device_common.c:110</a></div></div>
+<div class="ttc" id="aie__device__common_8c_html_a4fb9bb01bfbe71517f9df925ba9c93ec"><div class="ttname"><a href="ie__device__common_8c.html#a4fb9bb01bfbe71517f9df925ba9c93ec">cpu_gemv_f32</a></div><div class="ttdeci">static int cpu_gemv_f32(void *self, const float *W, const float *x, float *y, size_t rows, size_t cols, const float *bias, size_t blk_k)</div><div class="ttdoc">Execute dense GEMV FP32 on CPU using existing kernels.</div><div class="ttdef"><b>Definition</b> <a href="ie__device__common_8c_source.html#l00086">ie_device_common.c:86</a></div></div>
+<div class="ttc" id="aie__device__common_8c_html_a6877d362577444879b41090af23950d6"><div class="ttname"><a href="ie__device__common_8c.html#a6877d362577444879b41090af23950d6">ze_try_create</a></div><div class="ttdeci">static int ze_try_create(void **out_impl, ie_device_vtbl_t *out_vt)</div><div class="ttdoc">Try to initialize Level Zero backend via dlopen.</div><div class="ttdef"><b>Definition</b> <a href="ie__device__common_8c_source.html#l00351">ie_device_common.c:351</a></div></div>
+<div class="ttc" id="aie__device__common_8c_html_a94f0164f6cb0f1f874ad9b18194cfbc2"><div class="ttname"><a href="ie__device__common_8c.html#a94f0164f6cb0f1f874ad9b18194cfbc2">cpu_destroy</a></div><div class="ttdeci">static void cpu_destroy(void *self)</div><div class="ttdoc">Destroy CPU backend instance.</div><div class="ttdef"><b>Definition</b> <a href="ie__device__common_8c_source.html#l00124">ie_device_common.c:124</a></div></div>
 <div class="ttc" id="aie__device__common_8c_html_ad0e84ba338f0896e7f95f359de2d8765"><div class="ttname"><a href="ie__device__common_8c.html#ad0e84ba338f0896e7f95f359de2d8765">cpu_impl_t</a></div><div class="ttdeci">struct cpu_impl cpu_impl_t</div></div>
-<div class="ttc" id="aie__device__common_8c_html_ae4ac15a3b8fea25568b8cdeb2cd781fe"><div class="ttname"><a href="ie__device__common_8c.html#ae4ac15a3b8fea25568b8cdeb2cd781fe">cuda_try_create</a></div><div class="ttdeci">static int cuda_try_create(void **out_impl, ie_device_vtbl_t *out_vt)</div><div class="ttdoc">Attempt to construct a CUDA backend via dlopen (stub).</div><div class="ttdef"><b>Definition</b> <a href="ie__device__common_8c_source.html#l00211">ie_device_common.c:211</a></div></div>
-<div class="ttc" id="astructie__device__vtbl_html_a646d8353c3ebf1ba47f4a4ac37efac33"><div class="ttname"><a href="structie__device__vtbl.html#a646d8353c3ebf1ba47f4a4ac37efac33">ie_device_vtbl::destroy</a></div><div class="ttdeci">void(* destroy)(void *self)</div><div class="ttdef"><b>Definition</b> <a href="ie__device__common_8c_source.html#l00025">ie_device_common.c:25</a></div></div>
-<div class="ttc" id="astructie__device__vtbl_html_ad1dd16848b3443345765eba0a865a1b1"><div class="ttname"><a href="structie__device__vtbl.html#ad1dd16848b3443345765eba0a865a1b1">ie_device_vtbl::memcpy</a></div><div class="ttdeci">int(* memcpy)(void *self, void *dst, const void *src, size_t nbytes)</div><div class="ttdef"><b>Definition</b> <a href="ie__device__common_8c_source.html#l00024">ie_device_common.c:24</a></div></div>
-<div class="ttc" id="astructie__device__vtbl_html_af53f74e97e8a3331b3c9edd24a64e668"><div class="ttname"><a href="structie__device__vtbl.html#af53f74e97e8a3331b3c9edd24a64e668">ie_device_vtbl::gemv_f32</a></div><div class="ttdeci">int(* gemv_f32)(void *self, const float *W, const float *x, float *y, size_t rows, size_t cols, const float *bias, size_t blk_k)</div><div class="ttdef"><b>Definition</b> <a href="ie__device__common_8c_source.html#l00022">ie_device_common.c:22</a></div></div>
-<div class="ttc" id="astructie__device_html_a155ab991692fdcd2c49275a73416dfba"><div class="ttname"><a href="structie__device.html#a155ab991692fdcd2c49275a73416dfba">ie_device::kind</a></div><div class="ttdeci">ie_device_kind_t kind</div><div class="ttdoc">Kind requested or resolved.</div><div class="ttdef"><b>Definition</b> <a href="ie__device__common_8c_source.html#l00034">ie_device_common.c:34</a></div></div>
+<div class="ttc" id="aie__device__common_8c_html_ae4ac15a3b8fea25568b8cdeb2cd781fe"><div class="ttname"><a href="ie__device__common_8c.html#ae4ac15a3b8fea25568b8cdeb2cd781fe">cuda_try_create</a></div><div class="ttdeci">static int cuda_try_create(void **out_impl, ie_device_vtbl_t *out_vt)</div><div class="ttdoc">Try to initialize CUDA backend via dlopen.</div><div class="ttdef"><b>Definition</b> <a href="ie__device__common_8c_source.html#l00236">ie_device_common.c:236</a></div></div>
+<div class="ttc" id="astructie__device__vtbl_html_a646d8353c3ebf1ba47f4a4ac37efac33"><div class="ttname"><a href="structie__device__vtbl.html#a646d8353c3ebf1ba47f4a4ac37efac33">ie_device_vtbl::destroy</a></div><div class="ttdeci">void(* destroy)(void *self)</div><div class="ttdef"><b>Definition</b> <a href="ie__device__common_8c_source.html#l00034">ie_device_common.c:34</a></div></div>
+<div class="ttc" id="astructie__device__vtbl_html_a6b8640bbc9081164b1640375b1206a4b"><div class="ttname"><a href="structie__device__vtbl.html#a6b8640bbc9081164b1640375b1206a4b">ie_device_vtbl::gemv_block_sparse_f32</a></div><div class="ttdeci">int(* gemv_block_sparse_f32)(void *self, const ie_block_sparse_matrix_t *m, const float *x, float *y, const float *bias)</div><div class="ttdef"><b>Definition</b> <a href="ie__device__common_8c_source.html#l00029">ie_device_common.c:29</a></div></div>
+<div class="ttc" id="astructie__device__vtbl_html_ad1dd16848b3443345765eba0a865a1b1"><div class="ttname"><a href="structie__device__vtbl.html#ad1dd16848b3443345765eba0a865a1b1">ie_device_vtbl::memcpy</a></div><div class="ttdeci">int(* memcpy)(void *self, void *dst, const void *src, size_t nbytes)</div><div class="ttdef"><b>Definition</b> <a href="ie__device__common_8c_source.html#l00028">ie_device_common.c:28</a></div></div>
+<div class="ttc" id="astructie__device__vtbl_html_af53f74e97e8a3331b3c9edd24a64e668"><div class="ttname"><a href="structie__device__vtbl.html#af53f74e97e8a3331b3c9edd24a64e668">ie_device_vtbl::gemv_f32</a></div><div class="ttdeci">int(* gemv_f32)(void *self, const float *W, const float *x, float *y, size_t rows, size_t cols, const float *bias, size_t blk_k)</div><div class="ttdef"><b>Definition</b> <a href="ie__device__common_8c_source.html#l00026">ie_device_common.c:26</a></div></div>
+<div class="ttc" id="astructie__device_html_a155ab991692fdcd2c49275a73416dfba"><div class="ttname"><a href="structie__device.html#a155ab991692fdcd2c49275a73416dfba">ie_device::kind</a></div><div class="ttdeci">ie_device_kind_t kind</div><div class="ttdoc">Logical device kind (CPU, CUDA, ZE).</div><div class="ttdef"><b>Definition</b> <a href="ie__device__common_8c_source.html#l00043">ie_device_common.c:43</a></div></div>
 </div><!-- fragment -->
-<p class="reference">References <a class="el" href="ie__device__common_8c_source.html#l00021">ie_device_vtbl::caps</a>, <a class="el" href="ie__device__common_8c_source.html#l00139">cpu_caps()</a>, <a class="el" href="ie__device__common_8c_source.html#l00195">cpu_destroy()</a>, <a class="el" href="ie__device__common_8c_source.html#l00164">cpu_gemv_f32()</a>, <a class="el" href="ie__device__common_8c_source.html#l00183">cpu_memcpy()</a>, <a class="el" href="ie__device__common_8c_source.html#l00125">cpu_new()</a>, <a class="el" href="ie__device__common_8c_source.html#l00211">cuda_try_create()</a>, <a class="el" href="ie__device__common_8c_source.html#l00025">ie_device_vtbl::destroy</a>, <a class="el" href="ie__device__common_8c_source.html#l00022">ie_device_vtbl::gemv_f32</a>, <a class="el" href="ie__device_8h_source.html#l00019">IE_DEV_CPU</a>, <a class="el" href="ie__device_8h_source.html#l00020">IE_DEV_CUDA</a>, <a class="el" href="ie__device_8h_source.html#l00021">IE_DEV_ZE</a>, <a class="el" href="ie__device__common_8c_source.html#l00033">ie_device::impl</a>, <a class="el" href="ie__device__common_8c_source.html#l00034">ie_device::kind</a>, <a class="el" href="ie__device__common_8c_source.html#l00024">ie_device_vtbl::memcpy</a>, <a class="el" href="ie__device__common_8c_source.html#l00032">ie_device::vt</a>, and <a class="el" href="ie__device__common_8c_source.html#l00295">ze_try_create()</a>.</p>
+<p class="reference">References <a class="el" href="ie__device__common_8c_source.html#l00025">ie_device_vtbl::caps</a>, <a class="el" href="ie__device__common_8c_source.html#l00071">cpu_caps()</a>, <a class="el" href="ie__device__common_8c_source.html#l00124">cpu_destroy()</a>, <a class="el" href="ie__device__common_8c_source.html#l00110">cpu_gemv_block_sparse_f32()</a>, <a class="el" href="ie__device__common_8c_source.html#l00086">cpu_gemv_f32()</a>, <a class="el" href="ie__device__common_8c_source.html#l00100">cpu_memcpy()</a>, <a class="el" href="ie__device__common_8c_source.html#l00059">cpu_new()</a>, <a class="el" href="ie__device__common_8c_source.html#l00236">cuda_try_create()</a>, <a class="el" href="ie__device__common_8c_source.html#l00034">ie_device_vtbl::destroy</a>, <a class="el" href="ie__device__common_8c_source.html#l00029">ie_device_vtbl::gemv_block_sparse_f32</a>, <a class="el" href="ie__device__common_8c_source.html#l00026">ie_device_vtbl::gemv_f32</a>, <a class="el" href="ie__device_8h_source.html#l00020">IE_DEV_CPU</a>, <a class="el" href="ie__device_8h_source.html#l00021">IE_DEV_CUDA</a>, <a class="el" href="ie__device_8h_source.html#l00022">IE_DEV_ZE</a>, <a class="el" href="ie__device__common_8c_source.html#l00042">ie_device::impl</a>, <a class="el" href="ie__device__common_8c_source.html#l00043">ie_device::kind</a>, <a class="el" href="ie__device__common_8c_source.html#l00028">ie_device_vtbl::memcpy</a>, <a class="el" href="ie__device__common_8c_source.html#l00041">ie_device::vt</a>, and <a class="el" href="ie__device__common_8c_source.html#l00351">ze_try_create()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="ie__device__common_8c_source.html#l00444">ie_device_gemv_f32()</a>, <a class="el" href="ie__device__common_8c_source.html#l00473">ie_device_memcpy()</a>, <a class="el" href="test__device_8c_source.html#l00024">test_cpu_caps()</a>, and <a class="el" href="test__device_8c_source.html#l00039">test_gpu_fallback()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="ie__device__common_8c_source.html#l00458">ie_device_gemv_block_sparse_f32()</a>, <a class="el" href="ie__device__common_8c_source.html#l00435">ie_device_gemv_f32()</a>, <a class="el" href="ie__device__common_8c_source.html#l00482">ie_device_memcpy()</a>, <a class="el" href="test__device_8c_source.html#l00024">test_cpu_caps()</a>, and <a class="el" href="test__device_8c_source.html#l00039">test_gpu_fallback()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -416,7 +428,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ie__device_8h_a3e42fcc4b9579a9bf14520cb1afe733b_icgraph.svg" width="632" height="211"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="ie__device_8h_a3e42fcc4b9579a9bf14520cb1afe733b_icgraph.svg" width="647" height="310"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -443,28 +455,108 @@ Here is the caller graph for this function:</div>
   </table>
   </dd>
 </dl>
-<p>Destroy a device handle and release resources.</p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">dev</td><td>Device handle created by <a class="el" href="#a3e42fcc4b9579a9bf14520cb1afe733b" title="Create a device handle for the requested kind (with fallback).">ie_device_create()</a>. </td></tr>
-  </table>
-  </dd>
-</dl>
+<p>Destroy a device handle and release resources. </p>
 
-<p class="definition">Definition at line <a class="el" href="ie__device__common_8c_source.html#l00413">413</a> of file <a class="el" href="ie__device__common_8c_source.html">ie_device_common.c</a>.</p>
-<div class="fragment"><div class="line"><span class="lineno">  413</span>                                         {</div>
-<div class="line"><span class="lineno">  414</span>  <span class="keywordflow">if</span> (!dev) <span class="keywordflow">return</span>;</div>
-<div class="line"><span class="lineno">  415</span>  <span class="keywordflow">if</span> (dev-&gt;<a class="code hl_variable" href="structie__device.html#aeff992a5f5e1b29e4648d630565b6c71">vt</a>.<a class="code hl_variable" href="structie__device__vtbl.html#a646d8353c3ebf1ba47f4a4ac37efac33">destroy</a>) dev-&gt;<a class="code hl_variable" href="structie__device.html#aeff992a5f5e1b29e4648d630565b6c71">vt</a>.<a class="code hl_variable" href="structie__device__vtbl.html#a646d8353c3ebf1ba47f4a4ac37efac33">destroy</a>(dev-&gt;<a class="code hl_variable" href="structie__device.html#a909547212afb6612e8d4e0c2fbeaa768">impl</a>);</div>
-<div class="line"><span class="lineno">  416</span>  free(dev);</div>
-<div class="line"><span class="lineno">  417</span>}</div>
+<p class="definition">Definition at line <a class="el" href="ie__device__common_8c_source.html#l00418">418</a> of file <a class="el" href="ie__device__common_8c_source.html">ie_device_common.c</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">  418</span>                                         {</div>
+<div class="line"><span class="lineno">  419</span>  <span class="keywordflow">if</span> (!dev) <span class="keywordflow">return</span>;</div>
+<div class="line"><span class="lineno">  420</span>  <span class="keywordflow">if</span> (dev-&gt;<a class="code hl_variable" href="structie__device.html#aeff992a5f5e1b29e4648d630565b6c71">vt</a>.<a class="code hl_variable" href="structie__device__vtbl.html#a646d8353c3ebf1ba47f4a4ac37efac33">destroy</a>) dev-&gt;<a class="code hl_variable" href="structie__device.html#aeff992a5f5e1b29e4648d630565b6c71">vt</a>.<a class="code hl_variable" href="structie__device__vtbl.html#a646d8353c3ebf1ba47f4a4ac37efac33">destroy</a>(dev-&gt;<a class="code hl_variable" href="structie__device.html#a909547212afb6612e8d4e0c2fbeaa768">impl</a>);</div>
+<div class="line"><span class="lineno">  421</span>  free(dev);</div>
+<div class="line"><span class="lineno">  422</span>}</div>
 </div><!-- fragment -->
-<p class="reference">References <a class="el" href="ie__device__common_8c_source.html#l00025">ie_device_vtbl::destroy</a>, <a class="el" href="ie__device__common_8c_source.html#l00033">ie_device::impl</a>, and <a class="el" href="ie__device__common_8c_source.html#l00032">ie_device::vt</a>.</p>
+<p class="reference">References <a class="el" href="ie__device__common_8c_source.html#l00034">ie_device_vtbl::destroy</a>, <a class="el" href="ie__device__common_8c_source.html#l00042">ie_device::impl</a>, and <a class="el" href="ie__device__common_8c_source.html#l00041">ie_device::vt</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="ie__device__common_8c_source.html#l00444">ie_device_gemv_f32()</a>, <a class="el" href="ie__device__common_8c_source.html#l00473">ie_device_memcpy()</a>, <a class="el" href="test__device_8c_source.html#l00024">test_cpu_caps()</a>, and <a class="el" href="test__device_8c_source.html#l00039">test_gpu_fallback()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="ie__device__common_8c_source.html#l00458">ie_device_gemv_block_sparse_f32()</a>, <a class="el" href="ie__device__common_8c_source.html#l00435">ie_device_gemv_f32()</a>, <a class="el" href="ie__device__common_8c_source.html#l00482">ie_device_memcpy()</a>, <a class="el" href="test__device_8c_source.html#l00024">test_cpu_caps()</a>, and <a class="el" href="test__device_8c_source.html#l00039">test_gpu_fallback()</a>.</p>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ie__device_8h_a8f8a88a7dd6a58749275d2f3dea9a0ab_icgraph.svg" width="640" height="211"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="ie__device_8h_a8f8a88a7dd6a58749275d2f3dea9a0ab_icgraph.svg" width="655" height="310"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="ae46eb0813b9477e0f3f2084c4d52d33e" name="ae46eb0813b9477e0f3f2084c4d52d33e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae46eb0813b9477e0f3f2084c4d52d33e">&#9670;&#160;</a></span>ie_device_gemv_block_sparse_f32()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int ie_device_gemv_block_sparse_f32 </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="#a7c50deaca4d796966353da1769279628">ie_device_t</a> *</td>          <td class="paramname"><span class="paramname"><em>dev</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="#a8d9448c57baf817aa19d0fc32d383b38">ie_block_sparse_matrix_t</a> *</td>          <td class="paramname"><span class="paramname"><em>m</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const float *</td>          <td class="paramname"><span class="paramname"><em>x</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float *</td>          <td class="paramname"><span class="paramname"><em>y</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const float *</td>          <td class="paramname"><span class="paramname"><em>bias</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Block-sparse GEMV (FP32): y = W * x (+ optional bias). </p>
+<p>This entry point operates on matrices stored in block-row CSR (BSR) layout described by <a class="el" href="#a8d9448c57baf817aa19d0fc32d383b38">ie_block_sparse_matrix_t</a>. Backends are free to implement native sparse kernels; if a backend does not implement this method, the implementation falls back to a CPU block-sparse kernel when possible.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">dev</td><td>Device handle. </td></tr>
+    <tr><td class="paramname">m</td><td>Block-sparse matrix descriptor (must be fully initialized). </td></tr>
+    <tr><td class="paramname">x</td><td>Input vector of length m-&gt;cols. </td></tr>
+    <tr><td class="paramname">y</td><td>Output vector of length m-&gt;rows. </td></tr>
+    <tr><td class="paramname">bias</td><td>Optional bias vector of length m-&gt;rows (may be NULL). </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>0 on success; non-zero if unimplemented or error.</dd></dl>
+<p>Block-sparse GEMV (FP32): y = W * x (+ optional bias). </p>
+
+<p class="definition">Definition at line <a class="el" href="ie__device__common_8c_source.html#l00458">458</a> of file <a class="el" href="ie__device__common_8c_source.html">ie_device_common.c</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">  462</span>                                                       {</div>
+<div class="line"><span class="lineno">  463</span>  <span class="keywordflow">if</span> (!dev || !dev-&gt;<a class="code hl_variable" href="structie__device.html#aeff992a5f5e1b29e4648d630565b6c71">vt</a>.<a class="code hl_variable" href="structie__device__vtbl.html#a6b8640bbc9081164b1640375b1206a4b">gemv_block_sparse_f32</a>) <span class="keywordflow">return</span> -1;</div>
+<div class="line"><span class="lineno">  464</span>  <span class="keywordtype">int</span> rc = dev-&gt;<a class="code hl_variable" href="structie__device.html#aeff992a5f5e1b29e4648d630565b6c71">vt</a>.<a class="code hl_variable" href="structie__device__vtbl.html#a6b8640bbc9081164b1640375b1206a4b">gemv_block_sparse_f32</a>(dev-&gt;<a class="code hl_variable" href="structie__device.html#a909547212afb6612e8d4e0c2fbeaa768">impl</a>, m, x, y, bias);</div>
+<div class="line"><span class="lineno">  465</span>  <span class="keywordflow">if</span> (rc == 0) <span class="keywordflow">return</span> 0;</div>
+<div class="line"><span class="lineno">  466</span> </div>
+<div class="line"><span class="lineno">  467</span>  <span class="comment">/* Fallback */</span></div>
+<div class="line"><span class="lineno">  468</span>  <span class="keywordflow">if</span> (dev-&gt;<a class="code hl_variable" href="structie__device.html#a155ab991692fdcd2c49275a73416dfba">kind</a> != <a class="code hl_enumvalue" href="#ab70318bd3a8798846b5fe0f5f493499fae69c547c69799190aba83e121c0986b5">IE_DEV_CPU</a>) {</div>
+<div class="line"><span class="lineno">  469</span>    <a class="code hl_typedef" href="#a7c50deaca4d796966353da1769279628">ie_device_t</a> *cpu = NULL;</div>
+<div class="line"><span class="lineno">  470</span>    <span class="keywordflow">if</span> (<a class="code hl_function" href="ie__device__common_8c.html#a3e42fcc4b9579a9bf14520cb1afe733b">ie_device_create</a>(<a class="code hl_enumvalue" href="#ab70318bd3a8798846b5fe0f5f493499fae69c547c69799190aba83e121c0986b5">IE_DEV_CPU</a>, &amp;cpu) == 0) {</div>
+<div class="line"><span class="lineno">  471</span>      <span class="keywordtype">int</span> rc2 = <a class="code hl_function" href="ie__device__common_8c.html#ae46eb0813b9477e0f3f2084c4d52d33e">ie_device_gemv_block_sparse_f32</a>(cpu, m, x, y, bias);</div>
+<div class="line"><span class="lineno">  472</span>      <a class="code hl_function" href="ie__device__common_8c.html#a8f8a88a7dd6a58749275d2f3dea9a0ab">ie_device_destroy</a>(cpu);</div>
+<div class="line"><span class="lineno">  473</span>      <span class="keywordflow">return</span> rc2;</div>
+<div class="line"><span class="lineno">  474</span>    }</div>
+<div class="line"><span class="lineno">  475</span>  }</div>
+<div class="line"><span class="lineno">  476</span>  <span class="keywordflow">return</span> rc;</div>
+<div class="line"><span class="lineno">  477</span>}</div>
+<div class="ttc" id="aie__device__common_8c_html_a3e42fcc4b9579a9bf14520cb1afe733b"><div class="ttname"><a href="ie__device__common_8c.html#a3e42fcc4b9579a9bf14520cb1afe733b">ie_device_create</a></div><div class="ttdeci">int ie_device_create(ie_device_kind_t kind, ie_device_t **out_dev)</div><div class="ttdoc">Create a device backend.</div><div class="ttdef"><b>Definition</b> <a href="ie__device__common_8c_source.html#l00383">ie_device_common.c:383</a></div></div>
+<div class="ttc" id="aie__device__common_8c_html_a8f8a88a7dd6a58749275d2f3dea9a0ab"><div class="ttname"><a href="ie__device__common_8c.html#a8f8a88a7dd6a58749275d2f3dea9a0ab">ie_device_destroy</a></div><div class="ttdeci">void ie_device_destroy(ie_device_t *dev)</div><div class="ttdoc">Destroy a device instance.</div><div class="ttdef"><b>Definition</b> <a href="ie__device__common_8c_source.html#l00418">ie_device_common.c:418</a></div></div>
+<div class="ttc" id="aie__device__common_8c_html_ae46eb0813b9477e0f3f2084c4d52d33e"><div class="ttname"><a href="ie__device__common_8c.html#ae46eb0813b9477e0f3f2084c4d52d33e">ie_device_gemv_block_sparse_f32</a></div><div class="ttdeci">int ie_device_gemv_block_sparse_f32(ie_device_t *dev, const ie_block_sparse_matrix_t *m, const float *x, float *y, const float *bias)</div><div class="ttdoc">Execute block-sparse GEMV FP32 or CPU fallback.</div><div class="ttdef"><b>Definition</b> <a href="ie__device__common_8c_source.html#l00458">ie_device_common.c:458</a></div></div>
+</div><!-- fragment -->
+<p class="reference">References <a class="el" href="ie__device__common_8c_source.html#l00029">ie_device_vtbl::gemv_block_sparse_f32</a>, <a class="el" href="ie__device_8h_source.html#l00020">IE_DEV_CPU</a>, <a class="el" href="ie__device__common_8c_source.html#l00383">ie_device_create()</a>, <a class="el" href="ie__device__common_8c_source.html#l00418">ie_device_destroy()</a>, <a class="el" href="ie__device__common_8c_source.html#l00458">ie_device_gemv_block_sparse_f32()</a>, <a class="el" href="ie__device__common_8c_source.html#l00042">ie_device::impl</a>, <a class="el" href="ie__device__common_8c_source.html#l00043">ie_device::kind</a>, and <a class="el" href="ie__device__common_8c_source.html#l00041">ie_device::vt</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="ie__device__common_8c_source.html#l00458">ie_device_gemv_block_sparse_f32()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="ie__device_8h_ae46eb0813b9477e0f3f2084c4d52d33e_cgraph.svg" width="100%" height="600"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
+</div>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="ie__device_8h_ae46eb0813b9477e0f3f2084c4d52d33e_icgraph.svg" width="180" height="80"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -534,46 +626,30 @@ Here is the caller graph for this function:</div>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>0 on success; non-zero if unimplemented or error.</dd></dl>
-<p>Device-side GEMV (FP32): y = W * x (+ optional bias).</p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">dev</td><td>Device handle. </td></tr>
-    <tr><td class="paramname">W</td><td>Row-major weights. </td></tr>
-    <tr><td class="paramname">x</td><td>Input vector. </td></tr>
-    <tr><td class="paramname">y</td><td>Output vector. </td></tr>
-    <tr><td class="paramname">rows</td><td>Rows in W / length of y. </td></tr>
-    <tr><td class="paramname">cols</td><td>Cols in W / length of x. </td></tr>
-    <tr><td class="paramname">bias</td><td>Optional bias or NULL. </td></tr>
-    <tr><td class="paramname">blk_k</td><td>Optional blocked-K hint (backend-specific). </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd>0 on success; non-zero on error. </dd></dl>
+<p>Device-side GEMV (FP32): y = W * x (+ optional bias). </p>
 
-<p class="definition">Definition at line <a class="el" href="ie__device__common_8c_source.html#l00444">444</a> of file <a class="el" href="ie__device__common_8c_source.html">ie_device_common.c</a>.</p>
-<div class="fragment"><div class="line"><span class="lineno">  447</span>                                                        {</div>
-<div class="line"><span class="lineno">  448</span>  <span class="keywordflow">if</span> (!dev || !dev-&gt;<a class="code hl_variable" href="structie__device.html#aeff992a5f5e1b29e4648d630565b6c71">vt</a>.<a class="code hl_variable" href="structie__device__vtbl.html#af53f74e97e8a3331b3c9edd24a64e668">gemv_f32</a>) <span class="keywordflow">return</span> -1;</div>
-<div class="line"><span class="lineno">  449</span>  <span class="keywordtype">int</span> rc = dev-&gt;<a class="code hl_variable" href="structie__device.html#aeff992a5f5e1b29e4648d630565b6c71">vt</a>.<a class="code hl_variable" href="structie__device__vtbl.html#af53f74e97e8a3331b3c9edd24a64e668">gemv_f32</a>(dev-&gt;<a class="code hl_variable" href="structie__device.html#a909547212afb6612e8d4e0c2fbeaa768">impl</a>, W, x, y, rows, cols, bias, blk_k);</div>
-<div class="line"><span class="lineno">  450</span>  <span class="keywordflow">if</span> (rc == 0) <span class="keywordflow">return</span> 0;</div>
-<div class="line"><span class="lineno">  451</span> </div>
-<div class="line"><span class="lineno">  452</span>  <span class="comment">/* If GPU backend is stubbed, transparently fall back to CPU once. */</span></div>
-<div class="line"><span class="lineno">  453</span>  <span class="keywordflow">if</span> (dev-&gt;<a class="code hl_variable" href="structie__device.html#a155ab991692fdcd2c49275a73416dfba">kind</a> != <a class="code hl_enumvalue" href="#ab70318bd3a8798846b5fe0f5f493499fae69c547c69799190aba83e121c0986b5">IE_DEV_CPU</a>) {</div>
-<div class="line"><span class="lineno">  454</span>    <a class="code hl_typedef" href="#a7c50deaca4d796966353da1769279628">ie_device_t</a> *cpu = NULL;</div>
-<div class="line"><span class="lineno">  455</span>    <span class="keywordflow">if</span> (<a class="code hl_function" href="ie__device__common_8c.html#a3e42fcc4b9579a9bf14520cb1afe733b">ie_device_create</a>(<a class="code hl_enumvalue" href="#ab70318bd3a8798846b5fe0f5f493499fae69c547c69799190aba83e121c0986b5">IE_DEV_CPU</a>, &amp;cpu) == 0) {</div>
-<div class="line"><span class="lineno">  456</span>      <span class="keywordtype">int</span> rc2 = <a class="code hl_function" href="ie__device__common_8c.html#af9a99d92974f072775057b5def388b77">ie_device_gemv_f32</a>(cpu, W, x, y, rows, cols, bias, blk_k);</div>
-<div class="line"><span class="lineno">  457</span>      <a class="code hl_function" href="ie__device__common_8c.html#a8f8a88a7dd6a58749275d2f3dea9a0ab">ie_device_destroy</a>(cpu);</div>
-<div class="line"><span class="lineno">  458</span>      <span class="keywordflow">return</span> rc2;</div>
-<div class="line"><span class="lineno">  459</span>    }</div>
-<div class="line"><span class="lineno">  460</span>  }</div>
-<div class="line"><span class="lineno">  461</span>  <span class="keywordflow">return</span> rc;</div>
-<div class="line"><span class="lineno">  462</span>}</div>
-<div class="ttc" id="aie__device__common_8c_html_a3e42fcc4b9579a9bf14520cb1afe733b"><div class="ttname"><a href="ie__device__common_8c.html#a3e42fcc4b9579a9bf14520cb1afe733b">ie_device_create</a></div><div class="ttdeci">int ie_device_create(ie_device_kind_t kind, ie_device_t **out_dev)</div><div class="ttdoc">Create a device for the requested kind, with CPU fallback.</div><div class="ttdef"><b>Definition</b> <a href="ie__device__common_8c_source.html#l00377">ie_device_common.c:377</a></div></div>
-<div class="ttc" id="aie__device__common_8c_html_a8f8a88a7dd6a58749275d2f3dea9a0ab"><div class="ttname"><a href="ie__device__common_8c.html#a8f8a88a7dd6a58749275d2f3dea9a0ab">ie_device_destroy</a></div><div class="ttdeci">void ie_device_destroy(ie_device_t *dev)</div><div class="ttdoc">Destroy a device handle and its backend implementation.</div><div class="ttdef"><b>Definition</b> <a href="ie__device__common_8c_source.html#l00413">ie_device_common.c:413</a></div></div>
-<div class="ttc" id="aie__device__common_8c_html_af9a99d92974f072775057b5def388b77"><div class="ttname"><a href="ie__device__common_8c.html#af9a99d92974f072775057b5def388b77">ie_device_gemv_f32</a></div><div class="ttdeci">int ie_device_gemv_f32(ie_device_t *dev, const float *W, const float *x, float *y, size_t rows, size_t cols, const float *bias, size_t blk_k)</div><div class="ttdoc">Execute GEMV on the device, with CPU fallback if unimplemented.</div><div class="ttdef"><b>Definition</b> <a href="ie__device__common_8c_source.html#l00444">ie_device_common.c:444</a></div></div>
+<p class="definition">Definition at line <a class="el" href="ie__device__common_8c_source.html#l00435">435</a> of file <a class="el" href="ie__device__common_8c_source.html">ie_device_common.c</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">  438</span>                                                        {</div>
+<div class="line"><span class="lineno">  439</span>  <span class="keywordflow">if</span> (!dev || !dev-&gt;<a class="code hl_variable" href="structie__device.html#aeff992a5f5e1b29e4648d630565b6c71">vt</a>.<a class="code hl_variable" href="structie__device__vtbl.html#af53f74e97e8a3331b3c9edd24a64e668">gemv_f32</a>) <span class="keywordflow">return</span> -1;</div>
+<div class="line"><span class="lineno">  440</span>  <span class="keywordtype">int</span> rc = dev-&gt;<a class="code hl_variable" href="structie__device.html#aeff992a5f5e1b29e4648d630565b6c71">vt</a>.<a class="code hl_variable" href="structie__device__vtbl.html#af53f74e97e8a3331b3c9edd24a64e668">gemv_f32</a>(dev-&gt;<a class="code hl_variable" href="structie__device.html#a909547212afb6612e8d4e0c2fbeaa768">impl</a>, W, x, y, rows, cols, bias, blk_k);</div>
+<div class="line"><span class="lineno">  441</span>  <span class="keywordflow">if</span> (rc == 0) <span class="keywordflow">return</span> 0;</div>
+<div class="line"><span class="lineno">  442</span> </div>
+<div class="line"><span class="lineno">  443</span>  <span class="comment">/* Fallback to CPU if backend is stubbed */</span></div>
+<div class="line"><span class="lineno">  444</span>  <span class="keywordflow">if</span> (dev-&gt;<a class="code hl_variable" href="structie__device.html#a155ab991692fdcd2c49275a73416dfba">kind</a> != <a class="code hl_enumvalue" href="#ab70318bd3a8798846b5fe0f5f493499fae69c547c69799190aba83e121c0986b5">IE_DEV_CPU</a>) {</div>
+<div class="line"><span class="lineno">  445</span>    <a class="code hl_typedef" href="#a7c50deaca4d796966353da1769279628">ie_device_t</a> *cpu = NULL;</div>
+<div class="line"><span class="lineno">  446</span>    <span class="keywordflow">if</span> (<a class="code hl_function" href="ie__device__common_8c.html#a3e42fcc4b9579a9bf14520cb1afe733b">ie_device_create</a>(<a class="code hl_enumvalue" href="#ab70318bd3a8798846b5fe0f5f493499fae69c547c69799190aba83e121c0986b5">IE_DEV_CPU</a>, &amp;cpu) == 0) {</div>
+<div class="line"><span class="lineno">  447</span>      <span class="keywordtype">int</span> rc2 = <a class="code hl_function" href="ie__device__common_8c.html#af9a99d92974f072775057b5def388b77">ie_device_gemv_f32</a>(cpu, W, x, y, rows, cols, bias, blk_k);</div>
+<div class="line"><span class="lineno">  448</span>      <a class="code hl_function" href="ie__device__common_8c.html#a8f8a88a7dd6a58749275d2f3dea9a0ab">ie_device_destroy</a>(cpu);</div>
+<div class="line"><span class="lineno">  449</span>      <span class="keywordflow">return</span> rc2;</div>
+<div class="line"><span class="lineno">  450</span>    }</div>
+<div class="line"><span class="lineno">  451</span>  }</div>
+<div class="line"><span class="lineno">  452</span>  <span class="keywordflow">return</span> rc;</div>
+<div class="line"><span class="lineno">  453</span>}</div>
+<div class="ttc" id="aie__device__common_8c_html_af9a99d92974f072775057b5def388b77"><div class="ttname"><a href="ie__device__common_8c.html#af9a99d92974f072775057b5def388b77">ie_device_gemv_f32</a></div><div class="ttdeci">int ie_device_gemv_f32(ie_device_t *dev, const float *W, const float *x, float *y, size_t rows, size_t cols, const float *bias, size_t blk_k)</div><div class="ttdoc">Execute dense GEMV FP32 through backend or CPU fallback.</div><div class="ttdef"><b>Definition</b> <a href="ie__device__common_8c_source.html#l00435">ie_device_common.c:435</a></div></div>
 </div><!-- fragment -->
-<p class="reference">References <a class="el" href="ie__device__common_8c_source.html#l00022">ie_device_vtbl::gemv_f32</a>, <a class="el" href="ie__device_8h_source.html#l00019">IE_DEV_CPU</a>, <a class="el" href="ie__device__common_8c_source.html#l00377">ie_device_create()</a>, <a class="el" href="ie__device__common_8c_source.html#l00413">ie_device_destroy()</a>, <a class="el" href="ie__device__common_8c_source.html#l00444">ie_device_gemv_f32()</a>, <a class="el" href="ie__device__common_8c_source.html#l00033">ie_device::impl</a>, <a class="el" href="ie__device__common_8c_source.html#l00034">ie_device::kind</a>, and <a class="el" href="ie__device__common_8c_source.html#l00032">ie_device::vt</a>.</p>
+<p class="reference">References <a class="el" href="ie__device__common_8c_source.html#l00026">ie_device_vtbl::gemv_f32</a>, <a class="el" href="ie__device_8h_source.html#l00020">IE_DEV_CPU</a>, <a class="el" href="ie__device__common_8c_source.html#l00383">ie_device_create()</a>, <a class="el" href="ie__device__common_8c_source.html#l00418">ie_device_destroy()</a>, <a class="el" href="ie__device__common_8c_source.html#l00435">ie_device_gemv_f32()</a>, <a class="el" href="ie__device__common_8c_source.html#l00042">ie_device::impl</a>, <a class="el" href="ie__device__common_8c_source.html#l00043">ie_device::kind</a>, and <a class="el" href="ie__device__common_8c_source.html#l00041">ie_device::vt</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="ie__device__common_8c_source.html#l00444">ie_device_gemv_f32()</a>, and <a class="el" href="test__device_8c_source.html#l00039">test_gpu_fallback()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="ie__device__common_8c_source.html#l00435">ie_device_gemv_f32()</a>, and <a class="el" href="test__device_8c_source.html#l00039">test_gpu_fallback()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -611,30 +687,23 @@ Here is the caller graph for this function:</div>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Parsed device kind (defaults to IE_DEV_CPU).</dd></dl>
-<p>Parse a device kind from a string.</p>
-<p>Accepts "cpu", "cuda", "ze". Unknown strings return IE_DEV_CPU.</p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">s</td><td>Input string (may be NULL). </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd>Parsed device kind. </dd></dl>
+<p>Parse a device kind from a string. </p>
 
-<p class="definition">Definition at line <a class="el" href="ie__device__common_8c_source.html#l00106">106</a> of file <a class="el" href="ie__device__common_8c_source.html">ie_device_common.c</a>.</p>
-<div class="fragment"><div class="line"><span class="lineno">  106</span>                                                        {</div>
-<div class="line"><span class="lineno">  107</span>  <span class="keywordflow">if</span> (!s || !*s) <span class="keywordflow">return</span> <a class="code hl_enumvalue" href="#ab70318bd3a8798846b5fe0f5f493499fae69c547c69799190aba83e121c0986b5">IE_DEV_CPU</a>;</div>
-<div class="line"><span class="lineno">  108</span>  <span class="keywordtype">char</span> buf[16] = {0};</div>
-<div class="line"><span class="lineno">  109</span>  <span class="keywordtype">size_t</span> n = strlen(s);</div>
-<div class="line"><span class="lineno">  110</span>  <span class="keywordflow">if</span> (n &gt;= <span class="keyword">sizeof</span>(buf)) n = <span class="keyword">sizeof</span>(buf) - 1;</div>
-<div class="line"><span class="lineno">  111</span>  <span class="keywordflow">for</span> (<span class="keywordtype">size_t</span> i = 0; i &lt; n; ++i) buf[i] = (<span class="keywordtype">char</span>)tolower((<span class="keywordtype">unsigned</span> <span class="keywordtype">char</span>)s[i]);</div>
-<div class="line"><span class="lineno">  112</span>  <span class="keywordflow">if</span> (strcmp(buf, <span class="stringliteral">&quot;cpu&quot;</span>) == 0)  <span class="keywordflow">return</span> <a class="code hl_enumvalue" href="#ab70318bd3a8798846b5fe0f5f493499fae69c547c69799190aba83e121c0986b5">IE_DEV_CPU</a>;</div>
-<div class="line"><span class="lineno">  113</span>  <span class="keywordflow">if</span> (strcmp(buf, <span class="stringliteral">&quot;cuda&quot;</span>) == 0) <span class="keywordflow">return</span> <a class="code hl_enumvalue" href="#ab70318bd3a8798846b5fe0f5f493499fad76933c12c638e9ceb8afb2420154948">IE_DEV_CUDA</a>;</div>
-<div class="line"><span class="lineno">  114</span>  <span class="keywordflow">if</span> (strcmp(buf, <span class="stringliteral">&quot;ze&quot;</span>) == 0)   <span class="keywordflow">return</span> <a class="code hl_enumvalue" href="#ab70318bd3a8798846b5fe0f5f493499fa3a29450e9feabd789030b167dc34fbd7">IE_DEV_ZE</a>;</div>
-<div class="line"><span class="lineno">  115</span>  <span class="keywordflow">return</span> <a class="code hl_enumvalue" href="#ab70318bd3a8798846b5fe0f5f493499fae69c547c69799190aba83e121c0986b5">IE_DEV_CPU</a>;</div>
-<div class="line"><span class="lineno">  116</span>}</div>
+<p class="definition">Definition at line <a class="el" href="ie__device__common_8c_source.html#l00501">501</a> of file <a class="el" href="ie__device__common_8c_source.html">ie_device_common.c</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">  501</span>                                                        {</div>
+<div class="line"><span class="lineno">  502</span>  <span class="keywordflow">if</span> (!s) <span class="keywordflow">return</span> <a class="code hl_enumvalue" href="#ab70318bd3a8798846b5fe0f5f493499fae69c547c69799190aba83e121c0986b5">IE_DEV_CPU</a>;</div>
+<div class="line"><span class="lineno">  503</span>  <span class="keywordtype">char</span> tmp[16] = {0};</div>
+<div class="line"><span class="lineno">  504</span>  <span class="keywordtype">size_t</span> n = strlen(s);</div>
+<div class="line"><span class="lineno">  505</span>  <span class="keywordflow">if</span> (n &gt;= <span class="keyword">sizeof</span>(tmp)) n = <span class="keyword">sizeof</span>(tmp) - 1;</div>
+<div class="line"><span class="lineno">  506</span>  <span class="keywordflow">for</span> (<span class="keywordtype">size_t</span> i = 0; i &lt; n; ++i)</div>
+<div class="line"><span class="lineno">  507</span>    tmp[i] = (<span class="keywordtype">char</span>)tolower((<span class="keywordtype">unsigned</span> <span class="keywordtype">char</span>)s[i]);</div>
+<div class="line"><span class="lineno">  508</span>  <span class="keywordflow">if</span> (!strcmp(tmp, <span class="stringliteral">&quot;cpu&quot;</span>))  <span class="keywordflow">return</span> <a class="code hl_enumvalue" href="#ab70318bd3a8798846b5fe0f5f493499fae69c547c69799190aba83e121c0986b5">IE_DEV_CPU</a>;</div>
+<div class="line"><span class="lineno">  509</span>  <span class="keywordflow">if</span> (!strcmp(tmp, <span class="stringliteral">&quot;cuda&quot;</span>)) <span class="keywordflow">return</span> <a class="code hl_enumvalue" href="#ab70318bd3a8798846b5fe0f5f493499fad76933c12c638e9ceb8afb2420154948">IE_DEV_CUDA</a>;</div>
+<div class="line"><span class="lineno">  510</span>  <span class="keywordflow">if</span> (!strcmp(tmp, <span class="stringliteral">&quot;ze&quot;</span>))   <span class="keywordflow">return</span> <a class="code hl_enumvalue" href="#ab70318bd3a8798846b5fe0f5f493499fa3a29450e9feabd789030b167dc34fbd7">IE_DEV_ZE</a>;</div>
+<div class="line"><span class="lineno">  511</span>  <span class="keywordflow">return</span> <a class="code hl_enumvalue" href="#ab70318bd3a8798846b5fe0f5f493499fae69c547c69799190aba83e121c0986b5">IE_DEV_CPU</a>;</div>
+<div class="line"><span class="lineno">  512</span>}</div>
 </div><!-- fragment -->
-<p class="reference">References <a class="el" href="ie__device_8h_source.html#l00019">IE_DEV_CPU</a>, <a class="el" href="ie__device_8h_source.html#l00020">IE_DEV_CUDA</a>, and <a class="el" href="ie__device_8h_source.html#l00021">IE_DEV_ZE</a>.</p>
+<p class="reference">References <a class="el" href="ie__device_8h_source.html#l00020">IE_DEV_CPU</a>, <a class="el" href="ie__device_8h_source.html#l00021">IE_DEV_CUDA</a>, and <a class="el" href="ie__device_8h_source.html#l00022">IE_DEV_ZE</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="test__device_8c_source.html#l00013">test_kind_parse()</a>.</p>
 <div class="dynheader">
@@ -686,39 +755,29 @@ Here is the caller graph for this function:</div>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>0 on success; non-zero on error.</dd></dl>
-<p>Copy memory using the device backend.</p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">dev</td><td>Device handle. </td></tr>
-    <tr><td class="paramname">dst</td><td>Destination pointer. </td></tr>
-    <tr><td class="paramname">src</td><td>Source pointer. </td></tr>
-    <tr><td class="paramname">nbytes</td><td>Number of bytes to copy. </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd>0 on success; non-zero on error. </dd></dl>
+<p>Copy memory using the device backend. </p>
 
-<p class="definition">Definition at line <a class="el" href="ie__device__common_8c_source.html#l00473">473</a> of file <a class="el" href="ie__device__common_8c_source.html">ie_device_common.c</a>.</p>
-<div class="fragment"><div class="line"><span class="lineno">  473</span>                                                                                  {</div>
-<div class="line"><span class="lineno">  474</span>  <span class="keywordflow">if</span> (!dev || !dev-&gt;<a class="code hl_variable" href="structie__device.html#aeff992a5f5e1b29e4648d630565b6c71">vt</a>.<a class="code hl_variable" href="structie__device__vtbl.html#ad1dd16848b3443345765eba0a865a1b1">memcpy</a>) <span class="keywordflow">return</span> -1;</div>
-<div class="line"><span class="lineno">  475</span>  <span class="keywordtype">int</span> rc = dev-&gt;<a class="code hl_variable" href="structie__device.html#aeff992a5f5e1b29e4648d630565b6c71">vt</a>.<a class="code hl_variable" href="structie__device__vtbl.html#ad1dd16848b3443345765eba0a865a1b1">memcpy</a>(dev-&gt;<a class="code hl_variable" href="structie__device.html#a909547212afb6612e8d4e0c2fbeaa768">impl</a>, dst, src, nbytes);</div>
-<div class="line"><span class="lineno">  476</span>  <span class="keywordflow">if</span> (rc == 0) <span class="keywordflow">return</span> 0;</div>
-<div class="line"><span class="lineno">  477</span> </div>
-<div class="line"><span class="lineno">  478</span>  <span class="keywordflow">if</span> (dev-&gt;<a class="code hl_variable" href="structie__device.html#a155ab991692fdcd2c49275a73416dfba">kind</a> != <a class="code hl_enumvalue" href="#ab70318bd3a8798846b5fe0f5f493499fae69c547c69799190aba83e121c0986b5">IE_DEV_CPU</a>) {</div>
-<div class="line"><span class="lineno">  479</span>    <a class="code hl_typedef" href="#a7c50deaca4d796966353da1769279628">ie_device_t</a> *cpu = NULL;</div>
-<div class="line"><span class="lineno">  480</span>    <span class="keywordflow">if</span> (<a class="code hl_function" href="ie__device__common_8c.html#a3e42fcc4b9579a9bf14520cb1afe733b">ie_device_create</a>(<a class="code hl_enumvalue" href="#ab70318bd3a8798846b5fe0f5f493499fae69c547c69799190aba83e121c0986b5">IE_DEV_CPU</a>, &amp;cpu) == 0) {</div>
-<div class="line"><span class="lineno">  481</span>      <span class="keywordtype">int</span> rc2 = <a class="code hl_function" href="ie__device__common_8c.html#ad8fe47f93fa5e18c7cf07a153f1de2fb">ie_device_memcpy</a>(cpu, dst, src, nbytes);</div>
-<div class="line"><span class="lineno">  482</span>      <a class="code hl_function" href="ie__device__common_8c.html#a8f8a88a7dd6a58749275d2f3dea9a0ab">ie_device_destroy</a>(cpu);</div>
-<div class="line"><span class="lineno">  483</span>      <span class="keywordflow">return</span> rc2;</div>
-<div class="line"><span class="lineno">  484</span>    }</div>
-<div class="line"><span class="lineno">  485</span>  }</div>
-<div class="line"><span class="lineno">  486</span>  <span class="keywordflow">return</span> rc;</div>
-<div class="line"><span class="lineno">  487</span>}</div>
-<div class="ttc" id="aie__device__common_8c_html_ad8fe47f93fa5e18c7cf07a153f1de2fb"><div class="ttname"><a href="ie__device__common_8c.html#ad8fe47f93fa5e18c7cf07a153f1de2fb">ie_device_memcpy</a></div><div class="ttdeci">int ie_device_memcpy(ie_device_t *dev, void *dst, const void *src, size_t nbytes)</div><div class="ttdoc">Perform a memcpy using the device backend, with CPU fallback.</div><div class="ttdef"><b>Definition</b> <a href="ie__device__common_8c_source.html#l00473">ie_device_common.c:473</a></div></div>
+<p class="definition">Definition at line <a class="el" href="ie__device__common_8c_source.html#l00482">482</a> of file <a class="el" href="ie__device__common_8c_source.html">ie_device_common.c</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">  482</span>                                                                                  {</div>
+<div class="line"><span class="lineno">  483</span>  <span class="keywordflow">if</span> (!dev || !dev-&gt;<a class="code hl_variable" href="structie__device.html#aeff992a5f5e1b29e4648d630565b6c71">vt</a>.<a class="code hl_variable" href="structie__device__vtbl.html#ad1dd16848b3443345765eba0a865a1b1">memcpy</a>) <span class="keywordflow">return</span> -1;</div>
+<div class="line"><span class="lineno">  484</span>  <span class="keywordtype">int</span> rc = dev-&gt;<a class="code hl_variable" href="structie__device.html#aeff992a5f5e1b29e4648d630565b6c71">vt</a>.<a class="code hl_variable" href="structie__device__vtbl.html#ad1dd16848b3443345765eba0a865a1b1">memcpy</a>(dev-&gt;<a class="code hl_variable" href="structie__device.html#a909547212afb6612e8d4e0c2fbeaa768">impl</a>, dst, src, nbytes);</div>
+<div class="line"><span class="lineno">  485</span>  <span class="keywordflow">if</span> (rc == 0) <span class="keywordflow">return</span> 0;</div>
+<div class="line"><span class="lineno">  486</span> </div>
+<div class="line"><span class="lineno">  487</span>  <span class="keywordflow">if</span> (dev-&gt;<a class="code hl_variable" href="structie__device.html#a155ab991692fdcd2c49275a73416dfba">kind</a> != <a class="code hl_enumvalue" href="#ab70318bd3a8798846b5fe0f5f493499fae69c547c69799190aba83e121c0986b5">IE_DEV_CPU</a>) {</div>
+<div class="line"><span class="lineno">  488</span>    <a class="code hl_typedef" href="#a7c50deaca4d796966353da1769279628">ie_device_t</a> *cpu = NULL;</div>
+<div class="line"><span class="lineno">  489</span>    <span class="keywordflow">if</span> (<a class="code hl_function" href="ie__device__common_8c.html#a3e42fcc4b9579a9bf14520cb1afe733b">ie_device_create</a>(<a class="code hl_enumvalue" href="#ab70318bd3a8798846b5fe0f5f493499fae69c547c69799190aba83e121c0986b5">IE_DEV_CPU</a>, &amp;cpu) == 0) {</div>
+<div class="line"><span class="lineno">  490</span>      <span class="keywordtype">int</span> rc2 = <a class="code hl_function" href="ie__device__common_8c.html#ad8fe47f93fa5e18c7cf07a153f1de2fb">ie_device_memcpy</a>(cpu, dst, src, nbytes);</div>
+<div class="line"><span class="lineno">  491</span>      <a class="code hl_function" href="ie__device__common_8c.html#a8f8a88a7dd6a58749275d2f3dea9a0ab">ie_device_destroy</a>(cpu);</div>
+<div class="line"><span class="lineno">  492</span>      <span class="keywordflow">return</span> rc2;</div>
+<div class="line"><span class="lineno">  493</span>    }</div>
+<div class="line"><span class="lineno">  494</span>  }</div>
+<div class="line"><span class="lineno">  495</span>  <span class="keywordflow">return</span> rc;</div>
+<div class="line"><span class="lineno">  496</span>}</div>
+<div class="ttc" id="aie__device__common_8c_html_ad8fe47f93fa5e18c7cf07a153f1de2fb"><div class="ttname"><a href="ie__device__common_8c.html#ad8fe47f93fa5e18c7cf07a153f1de2fb">ie_device_memcpy</a></div><div class="ttdeci">int ie_device_memcpy(ie_device_t *dev, void *dst, const void *src, size_t nbytes)</div><div class="ttdoc">Execute memcpy via backend or CPU fallback.</div><div class="ttdef"><b>Definition</b> <a href="ie__device__common_8c_source.html#l00482">ie_device_common.c:482</a></div></div>
 </div><!-- fragment -->
-<p class="reference">References <a class="el" href="ie__device_8h_source.html#l00019">IE_DEV_CPU</a>, <a class="el" href="ie__device__common_8c_source.html#l00377">ie_device_create()</a>, <a class="el" href="ie__device__common_8c_source.html#l00413">ie_device_destroy()</a>, <a class="el" href="ie__device__common_8c_source.html#l00473">ie_device_memcpy()</a>, <a class="el" href="ie__device__common_8c_source.html#l00033">ie_device::impl</a>, <a class="el" href="ie__device__common_8c_source.html#l00034">ie_device::kind</a>, <a class="el" href="ie__device__common_8c_source.html#l00024">ie_device_vtbl::memcpy</a>, and <a class="el" href="ie__device__common_8c_source.html#l00032">ie_device::vt</a>.</p>
+<p class="reference">References <a class="el" href="ie__device_8h_source.html#l00020">IE_DEV_CPU</a>, <a class="el" href="ie__device__common_8c_source.html#l00383">ie_device_create()</a>, <a class="el" href="ie__device__common_8c_source.html#l00418">ie_device_destroy()</a>, <a class="el" href="ie__device__common_8c_source.html#l00482">ie_device_memcpy()</a>, <a class="el" href="ie__device__common_8c_source.html#l00042">ie_device::impl</a>, <a class="el" href="ie__device__common_8c_source.html#l00043">ie_device::kind</a>, <a class="el" href="ie__device__common_8c_source.html#l00028">ie_device_vtbl::memcpy</a>, and <a class="el" href="ie__device__common_8c_source.html#l00041">ie_device::vt</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="ie__device__common_8c_source.html#l00473">ie_device_memcpy()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="ie__device__common_8c_source.html#l00482">ie_device_memcpy()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">

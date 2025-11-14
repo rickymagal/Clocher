@@ -1,0 +1,276 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="gemm__block__sparse_8c" kind="file" language="C++">
+    <compoundname>gemm_block_sparse.c</compoundname>
+    <includes refid="sparse__format_8h" local="yes">sparse_format.h</includes>
+    <includes local="no">stddef.h</includes>
+    <incdepgraph>
+      <node id="5">
+        <label>platform.h</label>
+        <link refid="platform_8h"/>
+      </node>
+      <node id="2">
+        <label>sparse_format.h</label>
+        <link refid="sparse__format_8h"/>
+        <childnode refid="3" relation="include">
+        </childnode>
+        <childnode refid="4" relation="include">
+        </childnode>
+        <childnode refid="5" relation="include">
+        </childnode>
+      </node>
+      <node id="1">
+        <label>engine/src/gemm_block_sparse.c</label>
+        <link refid="gemm__block__sparse_8c"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="3" relation="include">
+        </childnode>
+      </node>
+      <node id="3">
+        <label>stddef.h</label>
+      </node>
+      <node id="4">
+        <label>stdint.h</label>
+      </node>
+    </incdepgraph>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="gemm__block__sparse_8c_1a05f40c15c1dabe19a303a4d5a897b212" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>const float *</type>
+        <definition>static const float * block_values_ptr</definition>
+        <argsstring>(const ie_block_sparse_matrix_t *m, uint32_t blk_id)</argsstring>
+        <name>block_values_ptr</name>
+        <param>
+          <type>const <ref refid="ie__device_8h_1a8d9448c57baf817aa19d0fc32d383b38" kindref="member">ie_block_sparse_matrix_t</ref> *</type>
+          <declname>m</declname>
+        </param>
+        <param>
+          <type>uint32_t</type>
+          <declname>blk_id</declname>
+        </param>
+        <briefdescription>
+<para>Compute the pointer to the first element of a given block. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>m</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Block-sparse matrix descriptor (must not be NULL). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>blk_id</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Block index in the [0, m-&gt;nnzb) range. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Pointer into <ref refid="structie__block__sparse__matrix_1af5c7c7b79def98eb4d9285b39718444f" kindref="member">ie_block_sparse_matrix_t::values</ref> for the first element of the requested block. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/src/gemm_block_sparse.c" line="40" column="27" bodyfile="engine/src/gemm_block_sparse.c" bodystart="40" bodyend="45"/>
+        <references refid="structie__block__sparse__matrix_1a25206375c5fd501aff86f47dd3c52005" compoundref="sparse__format_8h" startline="127">ie_block_sparse_matrix::block_cols</references>
+        <references refid="structie__block__sparse__matrix_1a13f4d4b069d046ba790eeb68425f11d8" compoundref="sparse__format_8h" startline="125">ie_block_sparse_matrix::block_rows</references>
+        <references refid="structie__block__sparse__matrix_1af5c7c7b79def98eb4d9285b39718444f" compoundref="sparse__format_8h" startline="168">ie_block_sparse_matrix::values</references>
+        <referencedby refid="sparse__format_8h_1ae9a2aad0ec5332237097030acf034961" compoundref="gemm__block__sparse_8c" startline="77" endline="138">ie_gemv_block_sparse_f32</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="gemm__block__sparse_8c_1ae9a2aad0ec5332237097030acf034961" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ie_gemv_block_sparse_f32</definition>
+        <argsstring>(const ie_block_sparse_matrix_t *m, const float *x, float *y, const float *bias)</argsstring>
+        <name>ie_gemv_block_sparse_f32</name>
+        <param>
+          <type>const <ref refid="ie__device_8h_1a8d9448c57baf817aa19d0fc32d383b38" kindref="member">ie_block_sparse_matrix_t</ref> *</type>
+          <declname>m</declname>
+        </param>
+        <param>
+          <type>const float *</type>
+          <declname>x</declname>
+        </param>
+        <param>
+          <type>float *</type>
+          <declname>y</declname>
+        </param>
+        <param>
+          <type>const float *</type>
+          <declname>bias</declname>
+        </param>
+        <briefdescription>
+<para>Perform a single-precision block-sparse matrix-vector product. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>This function computes: <programlisting><codeline><highlight class="normal">y<sp/>=<sp/>W<sp/>*<sp/>x<sp/><sp/>(+<sp/>bias,<sp/>if<sp/>provided)</highlight></codeline>
+</programlisting> where <computeroutput>W</computeroutput> is represented in block-sparse form using <ref refid="ie__device_8h_1a8d9448c57baf817aa19d0fc32d383b38" kindref="member">ie_block_sparse_matrix_t</ref>. The input vector <computeroutput>x</computeroutput> has length <computeroutput>m-&gt;cols</computeroutput>, and the output <computeroutput>y</computeroutput> has length <computeroutput>m-&gt;rows</computeroutput>.</para>
+<para>Tail blocks:<itemizedlist>
+<listitem><para>If the matrix size is not an exact multiple of the block dimensions, the implementation clips accesses to <computeroutput>rows</computeroutput> and <computeroutput>cols</computeroutput>, ensuring no out-of-bounds reads/writes occur.</para>
+</listitem></itemizedlist>
+</para>
+<para>Threading:<itemizedlist>
+<listitem><para>This function is intentionally single-threaded. Thread-level parallelism should be managed by higher-level components (e.g., a thread pool).</para>
+</listitem></itemizedlist>
+</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>m</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Block-sparse matrix descriptor (must be fully initialized). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>x</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Input vector of length <computeroutput>m-&gt;cols</computeroutput> (must not be NULL). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>y</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Output vector of length <computeroutput>m-&gt;rows</computeroutput> (must not be NULL). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>bias</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Optional bias vector of length <computeroutput>m-&gt;rows</computeroutput> (may be NULL). </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/src/gemm_block_sparse.c" line="77" column="6" bodyfile="engine/src/gemm_block_sparse.c" bodystart="77" bodyend="138"/>
+        <references refid="structie__block__sparse__matrix_1a25206375c5fd501aff86f47dd3c52005" compoundref="sparse__format_8h" startline="127">ie_block_sparse_matrix::block_cols</references>
+        <references refid="structie__block__sparse__matrix_1a13f4d4b069d046ba790eeb68425f11d8" compoundref="sparse__format_8h" startline="125">ie_block_sparse_matrix::block_rows</references>
+        <references refid="gemm__block__sparse_8c_1a05f40c15c1dabe19a303a4d5a897b212" compoundref="gemm__block__sparse_8c" startline="40" endline="45">block_values_ptr</references>
+        <references refid="structie__block__sparse__matrix_1adaacfdccbe3af8af266235880acc72e1" compoundref="sparse__format_8h" startline="154">ie_block_sparse_matrix::col_idx</references>
+        <references refid="structie__block__sparse__matrix_1a153358c4549c88a51c341e9ed55ec367" compoundref="sparse__format_8h" startline="122">ie_block_sparse_matrix::cols</references>
+        <references refid="structie__block__sparse__matrix_1ae07fcb7d88ab31f89fdcc3bcdcdb021f" compoundref="sparse__format_8h" startline="130">ie_block_sparse_matrix::n_block_rows</references>
+        <references refid="structie__block__sparse__matrix_1aa696fff26774fa9945c5f93ce9154c4f" compoundref="sparse__format_8h" startline="145">ie_block_sparse_matrix::row_ptr</references>
+        <references refid="structie__block__sparse__matrix_1a2e874338bccc653f32f1e9378e78e8d4" compoundref="sparse__format_8h" startline="120">ie_block_sparse_matrix::rows</references>
+        <referencedby refid="ie__device__common_8c_1a4cf6c8ed666278da8fdaf7f0b953138c" compoundref="ie__device__common_8c" startline="110" endline="119">cpu_gemv_block_sparse_f32</referencedby>
+        <referencedby refid="microbench__block__sparse_8c_1a3c04138a5bfe5d72780bb7e82a18e627" compoundref="microbench__block__sparse_8c" startline="308" endline="440">main</referencedby>
+        <referencedby refid="test__block__sparse_8c_1afc3a88a7b32a1f93e76c3aaee2910866" compoundref="test__block__sparse_8c" startline="214" endline="253">test_block_sparse_gemv_basic</referencedby>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para>Block-sparse GEMV kernel for single-precision weights. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>This translation unit implements a reference GEMV kernel for matrices stored in <ref refid="ie__device_8h_1a8d9448c57baf817aa19d0fc32d383b38" kindref="member">ie_block_sparse_matrix_t</ref> (block-row CSR / BSR format). It is intended as a baseline, portable implementation:</para>
+<para><itemizedlist>
+<listitem><para>Single-threaded by design; higher-level code is responsible for sharding work across threads if desired.</para>
+</listitem><listitem><para>Numerically identical to the dense product (up to floating-point roundoff) when the block-sparse representation is exact.</para>
+</listitem><listitem><para>Safe in the presence of tail blocks (partial coverage at the edges).</para>
+</listitem></itemizedlist>
+</para>
+<para>The main entry point is:<itemizedlist>
+<listitem><para><ref refid="sparse__format_8h_1ae9a2aad0ec5332237097030acf034961" kindref="member">ie_gemv_block_sparse_f32</ref> </para>
+</listitem></itemizedlist>
+</para>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="comment">/*<sp/>============================================================================</highlight></codeline>
+<codeline lineno="2"><highlight class="comment"><sp/>*<sp/>File:<sp/>engine/src/gemm_block_sparse.c</highlight></codeline>
+<codeline lineno="3"><highlight class="comment"><sp/>*<sp/>============================================================================</highlight></codeline>
+<codeline lineno="4"><highlight class="comment"><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="23"><highlight class="normal"></highlight></codeline>
+<codeline lineno="24"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;<ref refid="sparse__format_8h" kindref="compound">sparse_format.h</ref>&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="25"><highlight class="normal"></highlight></codeline>
+<codeline lineno="26"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stddef.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="27"><highlight class="normal"></highlight></codeline>
+<codeline lineno="28"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>--------------------------------------------------------------------------<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="29"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>Internal<sp/>helpers<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="30"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>--------------------------------------------------------------------------<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="31"><highlight class="normal"></highlight></codeline>
+<codeline lineno="40" refid="gemm__block__sparse_8c_1a05f40c15c1dabe19a303a4d5a897b212" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">inline</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*<ref refid="gemm__block__sparse_8c_1a05f40c15c1dabe19a303a4d5a897b212" kindref="member">block_values_ptr</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="ie__device_8h_1a8d9448c57baf817aa19d0fc32d383b38" kindref="member">ie_block_sparse_matrix_t</ref><sp/>*m,</highlight></codeline>
+<codeline lineno="41"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>uint32_t<sp/>blk_id)<sp/>{</highlight></codeline>
+<codeline lineno="42"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>block_elems<sp/>=</highlight></codeline>
+<codeline lineno="43"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>(size_t)m-&gt;<ref refid="structie__block__sparse__matrix_1a13f4d4b069d046ba790eeb68425f11d8" kindref="member">block_rows</ref><sp/>*<sp/>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal">)m-&gt;<ref refid="structie__block__sparse__matrix_1a25206375c5fd501aff86f47dd3c52005" kindref="member">block_cols</ref>;</highlight></codeline>
+<codeline lineno="44"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>m-&gt;<ref refid="structie__block__sparse__matrix_1af5c7c7b79def98eb4d9285b39718444f" kindref="member">values</ref><sp/>+<sp/>(size_t)blk_id<sp/>*<sp/>block_elems;</highlight></codeline>
+<codeline lineno="45"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="46"><highlight class="normal"></highlight></codeline>
+<codeline lineno="47"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>--------------------------------------------------------------------------<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="48"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>Public<sp/>GEMV<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="49"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>--------------------------------------------------------------------------<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="50"><highlight class="normal"></highlight></codeline>
+<codeline lineno="77" refid="sparse__format_8h_1ae9a2aad0ec5332237097030acf034961" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="gemm__block__sparse_8c_1ae9a2aad0ec5332237097030acf034961" kindref="member">ie_gemv_block_sparse_f32</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="ie__device_8h_1a8d9448c57baf817aa19d0fc32d383b38" kindref="member">ie_block_sparse_matrix_t</ref><sp/>*m,</highlight></codeline>
+<codeline lineno="78"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*x,</highlight></codeline>
+<codeline lineno="79"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*y,</highlight></codeline>
+<codeline lineno="80"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*bias)<sp/>{</highlight></codeline>
+<codeline lineno="81"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!m<sp/>||<sp/>!x<sp/>||<sp/>!y)<sp/>{</highlight></codeline>
+<codeline lineno="82"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="83"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="84"><highlight class="normal"></highlight></codeline>
+<codeline lineno="85"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>uint32_t<sp/>rows<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>=<sp/>m-&gt;<ref refid="structie__block__sparse__matrix_1a2e874338bccc653f32f1e9378e78e8d4" kindref="member">rows</ref>;</highlight></codeline>
+<codeline lineno="86"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>uint32_t<sp/>cols<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>=<sp/>m-&gt;<ref refid="structie__block__sparse__matrix_1a153358c4549c88a51c341e9ed55ec367" kindref="member">cols</ref>;</highlight></codeline>
+<codeline lineno="87"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>uint32_t<sp/>block_rows<sp/><sp/><sp/>=<sp/>m-&gt;<ref refid="structie__block__sparse__matrix_1a13f4d4b069d046ba790eeb68425f11d8" kindref="member">block_rows</ref>;</highlight></codeline>
+<codeline lineno="88"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>uint32_t<sp/>block_cols<sp/><sp/><sp/>=<sp/>m-&gt;<ref refid="structie__block__sparse__matrix_1a25206375c5fd501aff86f47dd3c52005" kindref="member">block_cols</ref>;</highlight></codeline>
+<codeline lineno="89"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>uint32_t<sp/>n_block_rows<sp/>=<sp/>m-&gt;<ref refid="structie__block__sparse__matrix_1ae07fcb7d88ab31f89fdcc3bcdcdb021f" kindref="member">n_block_rows</ref>;</highlight></codeline>
+<codeline lineno="90"><highlight class="normal"></highlight></codeline>
+<codeline lineno="91"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(rows<sp/>==<sp/>0u<sp/>||<sp/>cols<sp/>==<sp/>0u<sp/>||</highlight></codeline>
+<codeline lineno="92"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>block_rows<sp/>==<sp/>0u<sp/>||<sp/>block_cols<sp/>==<sp/>0u<sp/>||</highlight></codeline>
+<codeline lineno="93"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>n_block_rows<sp/>==<sp/>0u)<sp/>{</highlight></codeline>
+<codeline lineno="94"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="95"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="96"><highlight class="normal"></highlight></codeline>
+<codeline lineno="97"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">/*<sp/>For<sp/>each<sp/>block-row,<sp/>process<sp/>its<sp/>constituent<sp/>row<sp/>stripes.<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="98"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(uint32_t<sp/>br<sp/>=<sp/>0u;<sp/>br<sp/>&lt;<sp/>n_block_rows;<sp/>++br)<sp/>{</highlight></codeline>
+<codeline lineno="99"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>uint32_t<sp/>row_start<sp/>=<sp/>br<sp/>*<sp/>block_rows;</highlight></codeline>
+<codeline lineno="100"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>uint32_t<sp/>row_end<sp/><sp/><sp/>=<sp/>row_start<sp/>+<sp/>block_rows;</highlight></codeline>
+<codeline lineno="101"><highlight class="normal"></highlight></codeline>
+<codeline lineno="102"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">/*<sp/>Iterate<sp/>within<sp/>the<sp/>block-row<sp/>over<sp/>actual<sp/>rows<sp/>(tail-safe).<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="103"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(uint32_t<sp/>local_r<sp/>=<sp/>0u;<sp/>local_r<sp/>&lt;<sp/>block_rows;<sp/>++local_r)<sp/>{</highlight></codeline>
+<codeline lineno="104"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>uint32_t<sp/>row<sp/>=<sp/>row_start<sp/>+<sp/>local_r;</highlight></codeline>
+<codeline lineno="105"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(row<sp/>&gt;=<sp/>rows)<sp/>{</highlight></codeline>
+<codeline lineno="106"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">break</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="107"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="108"><highlight class="normal"></highlight></codeline>
+<codeline lineno="109"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>acc<sp/>=<sp/>bias<sp/>?<sp/>bias[row]<sp/>:<sp/>0.0f;</highlight></codeline>
+<codeline lineno="110"><highlight class="normal"></highlight></codeline>
+<codeline lineno="111"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>uint32_t<sp/>blk_begin<sp/>=<sp/>m-&gt;<ref refid="structie__block__sparse__matrix_1aa696fff26774fa9945c5f93ce9154c4f" kindref="member">row_ptr</ref>[br];</highlight></codeline>
+<codeline lineno="112"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>uint32_t<sp/>blk_end<sp/><sp/><sp/>=<sp/>m-&gt;<ref refid="structie__block__sparse__matrix_1aa696fff26774fa9945c5f93ce9154c4f" kindref="member">row_ptr</ref>[br<sp/>+<sp/>1u];</highlight></codeline>
+<codeline lineno="113"><highlight class="normal"></highlight></codeline>
+<codeline lineno="114"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">/*<sp/>Accumulate<sp/>contributions<sp/>from<sp/>all<sp/>non-zero<sp/>blocks<sp/>in<sp/>this<sp/>block-row.<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="115"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(uint32_t<sp/>bi<sp/>=<sp/>blk_begin;<sp/>bi<sp/>&lt;<sp/>blk_end;<sp/>++bi)<sp/>{</highlight></codeline>
+<codeline lineno="116"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>uint32_t<sp/>bc<sp/>=<sp/>m-&gt;<ref refid="structie__block__sparse__matrix_1adaacfdccbe3af8af266235880acc72e1" kindref="member">col_idx</ref>[bi];</highlight></codeline>
+<codeline lineno="117"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>uint32_t<sp/>col_block_start<sp/>=<sp/>bc<sp/>*<sp/>block_cols;</highlight></codeline>
+<codeline lineno="118"><highlight class="normal"></highlight></codeline>
+<codeline lineno="119"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*block<sp/>=<sp/><ref refid="gemm__block__sparse_8c_1a05f40c15c1dabe19a303a4d5a897b212" kindref="member">block_values_ptr</ref>(m,<sp/>bi);</highlight></codeline>
+<codeline lineno="120"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*block_row<sp/>=<sp/>block<sp/>+<sp/>(size_t)local_r<sp/>*<sp/>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal">)block_cols;</highlight></codeline>
+<codeline lineno="121"><highlight class="normal"></highlight></codeline>
+<codeline lineno="122"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">/*<sp/>Inner<sp/>product<sp/>of<sp/>the<sp/>local<sp/>block<sp/>row<sp/>with<sp/>the<sp/>corresponding</highlight></codeline>
+<codeline lineno="123"><highlight class="comment"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>*<sp/>slice<sp/>of<sp/>x,<sp/>with<sp/>clipping<sp/>for<sp/>tail<sp/>columns.<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="124"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(uint32_t<sp/>local_c<sp/>=<sp/>0u;<sp/>local_c<sp/>&lt;<sp/>block_cols;<sp/>++local_c)<sp/>{</highlight></codeline>
+<codeline lineno="125"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>uint32_t<sp/>col<sp/>=<sp/>col_block_start<sp/>+<sp/>local_c;</highlight></codeline>
+<codeline lineno="126"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(col<sp/>&gt;=<sp/>cols)<sp/>{</highlight></codeline>
+<codeline lineno="127"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">break</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="128"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="129"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>acc<sp/>+=<sp/>block_row[local_c]<sp/>*<sp/>x[col];</highlight></codeline>
+<codeline lineno="130"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="131"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="132"><highlight class="normal"></highlight></codeline>
+<codeline lineno="133"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>y[row]<sp/>=<sp/>acc;</highlight></codeline>
+<codeline lineno="134"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="135"><highlight class="normal"></highlight></codeline>
+<codeline lineno="136"><highlight class="normal"><sp/><sp/><sp/><sp/>(void)row_end;<sp/></highlight><highlight class="comment">/*<sp/>suppress<sp/>unused-variable<sp/>warning<sp/>if<sp/>not<sp/>referenced<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="137"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="138"><highlight class="normal">}</highlight></codeline>
+    </programlisting>
+    <location file="engine/src/gemm_block_sparse.c"/>
+  </compounddef>
+</doxygen>

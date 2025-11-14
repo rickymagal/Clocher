@@ -144,7 +144,37 @@
 <codeline><highlight class="normal"><sp/><sp/>```bash</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/>PROMPTS=benchmarks/prompts_10..txt<sp/>RUNS=3<sp/>make<sp/>bench-cuda</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/>```</highlight></codeline>
+<codeline><highlight class="normal">---</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Memory<sp/>Phase<sp/>Design<sp/>Addendum<sp/>(updated<sp/>2025-11-12<sp/>18:01:19<sp/>UTC)</highlight></codeline>
 <codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Goals</highlight></codeline>
+<codeline><highlight class="normal">1.<sp/>Reduce<sp/>**DRAM<sp/>traffic**<sp/>on<sp/>weight<sp/>fetch<sp/>via<sp/>layout<sp/>(`blocked‑K`),<sp/>NUMA<sp/>locality,<sp/>and<sp/>selective<sp/>non‑temporal<sp/>loads.</highlight></codeline>
+<codeline><highlight class="normal">2.<sp/>Enable<sp/>**activation<sp/>down‑precision**<sp/>(INT8/FP8)<sp/>orthogonally<sp/>to<sp/>weight<sp/>storage<sp/>(e.g.,<sp/>INT4<sp/>weight‑only).</highlight></codeline>
+<codeline><highlight class="normal">3.<sp/>Measure<sp/>and<sp/>visualize<sp/>**spatial<sp/>metrics**<sp/>alongside<sp/>TPS:<sp/>MB/token,<sp/>bytes<sp/>touched,<sp/>model<sp/>coverage,<sp/>effective<sp/>bandwidth.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Components</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Topology<sp/>&amp;<sp/>Binding<sp/>(`ie_topology`)**:<sp/>discovers<sp/>sockets/CPUs<sp/>from<sp/>Linux<sp/>sysfs.<sp/>Exposes<sp/>helpers<sp/>for<sp/>pinning<sp/>(compact/scatter).</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Hot<sp/>replication<sp/>(`replicate_hot.c`)**:<sp/>optional<sp/>per‑socket<sp/>replicas<sp/>for<sp/>frequently‑touched<sp/>weights;<sp/>uses<sp/>`mmap`<sp/>+<sp/>`madvise`.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Blocked‑K<sp/>Pretranspose**:<sp/>builds<sp/>and<sp/>caches<sp/>a<sp/>row‑major,<sp/>**K‑blocked**<sp/>layout;<sp/>improves<sp/>sequentiality<sp/>and<sp/>prefetch<sp/>efficacy.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Streaming<sp/>heuristics**:<sp/>`IE_PREFETCH_DISTANCE`,<sp/>`IE_NT_LOADS`,<sp/>and<sp/>`IE_NT_RATIO`<sp/>drive<sp/>prefetch<sp/>and<sp/>non‑temporal<sp/>load<sp/>decisions.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Activation<sp/>precision**:<sp/>runtime<sp/>hint<sp/>`IE_ACT_PREC`<sp/>selects<sp/>decode<sp/>path<sp/>(INT8<sp/>per‑tensor/per‑group,<sp/>FP8<sp/>E4M3/E5M2).<sp/>Accumulation<sp/>is<sp/>FP32.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Measurement</highlight></codeline>
+<codeline><highlight class="normal">The<sp/>benchmark<sp/>window<sp/>includes<sp/>**generation**<sp/>and<sp/>the<sp/>**work‑touch**<sp/>loop<sp/>(controlled<sp/>by<sp/>`IE_BYTES_PER_TOKEN`,<sp/>`IE_STRIDE_BYTES`).</highlight></codeline>
+<codeline><highlight class="normal">After<sp/>the<sp/>window,<sp/>the<sp/>engine<sp/>samples<sp/>**peak<sp/>RSS<sp/>(VmHWM)**.<sp/>The<sp/>docs<sp/>generator<sp/>now<sp/>derives:</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**MB/token**<sp/>from<sp/>`IE_BYTES_PER_TOKEN`</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Total<sp/>bytes<sp/>touched**<sp/>=<sp/>`tokens_sum<sp/>*<sp/>bytes_per_token`</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Coverage**<sp/>=<sp/>`bytes_per_token<sp/>/<sp/>size(model.ie.bin)`</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Effective<sp/>bandwidth**<sp/>=<sp/>`bytes_touched<sp/>/<sp/>wall_time`<sp/>(GB/s)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Backward<sp/>Compatibility<sp/>&amp;<sp/>Fallbacks</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Single‑socket<sp/>hosts:<sp/>topology<sp/>collapses<sp/>to<sp/>one<sp/>socket;<sp/>binding<sp/>is<sp/>a<sp/>no‑op.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Unsupported<sp/>backends<sp/>ignore<sp/>`IE_ACT_PREC`,<sp/>`IE_NT_LOADS`,<sp/>etc.,<sp/>without<sp/>failing.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>When<sp/>`IE_REQUIRE_MODEL`<sp/>is<sp/>unset,<sp/>CI<sp/>stub<sp/>mode<sp/>continues<sp/>to<sp/>work<sp/>(no<sp/>mmap<sp/>or<sp/>spatial<sp/>metrics).</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Risks<sp/>&amp;<sp/>Mitigations</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Over‑eager<sp/>NT<sp/>loads**<sp/>can<sp/>hurt<sp/>on<sp/>small<sp/>working<sp/>sets<sp/>→<sp/>guard<sp/>via<sp/>`auto`<sp/>heuristics<sp/>and<sp/>`IE_NT_RATIO`<sp/>throttle.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Replica<sp/>memory<sp/>cost**<sp/>on<sp/>multi‑socket<sp/>servers<sp/>→<sp/>gate<sp/>with<sp/>`IE_HOT_REPLICATE`<sp/>and<sp/>`IE_HOT_REPL_LIMIT_MB`.</highlight></codeline>
     </programlisting>
     <location file="docs/DESIGN.md"/>
   </compounddef>

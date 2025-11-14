@@ -70,7 +70,7 @@
         <location file="engine/include/ie_kv_instrumentation.h" line="47" column="5" bodyfile="engine/src/ie_kv_instrumentation.c" bodystart="87" bodyend="111" declfile="engine/include/ie_kv_instrumentation.h" declline="47" declcolumn="5"/>
         <references refid="ie__kv__instrumentation_8c_1a886abd7a4ad752897b4469e29cc344e3" compoundref="ie__kv__instrumentation_8c" startline="45" endline="53">env_size</references>
         <references refid="ie__kv__instrumentation_8c_1a37cc7552afd879b87e4dba0dfdcc607d" compoundref="ie__kv__instrumentation_8c" startline="33">g_kv</references>
-        <referencedby refid="main__infer_8c_1a3c04138a5bfe5d72780bb7e82a18e627" compoundref="main__infer_8c" startline="435" endline="662">main</referencedby>
+        <referencedby refid="main__infer_8c_1a3c04138a5bfe5d72780bb7e82a18e627" compoundref="main__infer_8c" startline="486" endline="725">main</referencedby>
       </memberdef>
       <memberdef kind="function" id="ie__kv__instrumentation_8h_1a27b3df57a37a25798490912b1e92d716" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -103,7 +103,7 @@
         <references refid="ie__kv__instrumentation_8c_1a37cc7552afd879b87e4dba0dfdcc607d" compoundref="ie__kv__instrumentation_8c" startline="33">g_kv</references>
         <references refid="ie__kv__instrumentation_8c_1a37bd44541ec645006f436707ca67b407" compoundref="ie__kv__instrumentation_8c" startline="61" endline="66">kv_contains</references>
         <references refid="ie__kv__instrumentation_8c_1a83b5153f7145e76551b31ced07063538" compoundref="ie__kv__instrumentation_8c" startline="73" endline="82">kv_insert_fifo</references>
-        <referencedby refid="ie__api_8h_1a21ab40e22d9192fe353ad6640610a01d" compoundref="ie__api_8c" startline="152" endline="189">ie_engine_generate</referencedby>
+        <referencedby refid="ie__api_8h_1a21ab40e22d9192fe353ad6640610a01d" compoundref="ie__api_8c" startline="166" endline="203">ie_engine_generate</referencedby>
       </memberdef>
       <memberdef kind="function" id="ie__kv__instrumentation_8h_1a2c9789a487a67ebc8e6054aa0b991e4e" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -159,7 +159,7 @@
         </inbodydescription>
         <location file="engine/include/ie_kv_instrumentation.h" line="72" column="6" bodyfile="engine/src/ie_kv_instrumentation.c" bodystart="123" bodyend="150" declfile="engine/include/ie_kv_instrumentation.h" declline="72" declcolumn="6"/>
         <references refid="ie__kv__instrumentation_8c_1a37cc7552afd879b87e4dba0dfdcc607d" compoundref="ie__kv__instrumentation_8c" startline="33">g_kv</references>
-        <referencedby refid="main__infer_8c_1a3c04138a5bfe5d72780bb7e82a18e627" compoundref="main__infer_8c" startline="435" endline="662">main</referencedby>
+        <referencedby refid="main__infer_8c_1a3c04138a5bfe5d72780bb7e82a18e627" compoundref="main__infer_8c" startline="486" endline="725">main</referencedby>
       </memberdef>
     </sectiondef>
     <briefdescription>
@@ -167,7 +167,7 @@
     </briefdescription>
     <detaileddescription>
 <para>This module provides a very small, header-only friendly API used by the CLI and by the engine core to count &quot;KV cache&quot; hits and misses during generation.</para>
-<sect1 id="ie__kv__instrumentation_8h_1autotoc_md47_1s1"><sect2 id="ie__kv__instrumentation_8h_1autotoc_md47_1s2"><sect3 id="ie__kv__instrumentation_8h_1autotoc_md47">
+<sect1 id="ie__kv__instrumentation_8h_1autotoc_md62_1s1"><sect2 id="ie__kv__instrumentation_8h_1autotoc_md62_1s2"><sect3 id="ie__kv__instrumentation_8h_1autotoc_md62">
 <title>Model and intent</title><para><itemizedlist>
 <listitem><para>We model the KV as a fixed-capacity FIFO set of 32-bit token IDs.</para>
 </listitem><listitem><para>A token is a <bold>hit</bold> if it is already present in the set; otherwise it&apos;s a <bold>miss</bold>, and the token is inserted (evicting the oldest when full).</para>
@@ -175,7 +175,7 @@
 </listitem></itemizedlist>
 </para>
 </sect3></sect2></sect1>
-<sect1 id="ie__kv__instrumentation_8h_1autotoc_md48_1s1"><sect2 id="ie__kv__instrumentation_8h_1autotoc_md48_1s2"><sect3 id="ie__kv__instrumentation_8h_1autotoc_md48">
+<sect1 id="ie__kv__instrumentation_8h_1autotoc_md63_1s1"><sect2 id="ie__kv__instrumentation_8h_1autotoc_md63_1s2"><sect3 id="ie__kv__instrumentation_8h_1autotoc_md63">
 <title>Lifecycle</title><para><itemizedlist>
 <listitem><para>Call <ref refid="ie__kv__instrumentation_8h_1a0a8ac6ff4fa3502470774c6cb9e6f488" kindref="member">ie_kv_begin_round()</ref> exactly once before the first token of a round.</para>
 </listitem><listitem><para>For each produced token, call <ref refid="ie__kv__instrumentation_8h_1a27b3df57a37a25798490912b1e92d716" kindref="member">ie_kv_on_token()</ref>.</para>

@@ -404,7 +404,40 @@
 <codeline><highlight class="normal">```</highlight></codeline>
 <codeline></codeline>
 <codeline><highlight class="normal">&gt;<sp/>Note:<sp/>If<sp/>`numactl<sp/>-H`<sp/>shows<sp/>a<sp/>single<sp/>node,<sp/>skip<sp/>`numactl<sp/>--cpunodebind/--membind`.</highlight></codeline>
+<codeline><highlight class="normal">---</highlight></codeline>
+<codeline><highlight class="normal">##<sp/>What&apos;s<sp/>new<sp/>—<sp/>Memory<sp/>Phase<sp/>(updated<sp/>2025-11-12<sp/>18:01:19<sp/>UTC)</highlight></codeline>
 <codeline></codeline>
+<codeline><highlight class="normal">###<sp/>New<sp/>tuning<sp/>knobs<sp/>(memory/throughput)</highlight></codeline>
+<codeline><highlight class="normal">These<sp/>are<sp/>read<sp/>by<sp/>the<sp/>CLI<sp/>and/or<sp/>harness.<sp/>Backends<sp/>may<sp/>ignore<sp/>unsupported<sp/>hints<sp/>safely.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>`IE_PREFETCH_DISTANCE`<sp/>—<sp/>integer<sp/>distance<sp/>in<sp/>bytes<sp/>(or<sp/>`auto`)<sp/>for<sp/>software<sp/>prefetch<sp/>of<sp/>weight<sp/>streams<sp/>in<sp/>GEMV.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`IE_NT_LOADS`<sp/>—<sp/>`0|1|auto`.<sp/>When<sp/>enabled,<sp/>kernels<sp/>attempt<sp/>**non‑temporal<sp/>loads**<sp/>(streaming)<sp/>on<sp/>large,<sp/>one‑time<sp/>read<sp/>paths.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`IE_L3_BYTES`<sp/>—<sp/>integer<sp/>budget<sp/>in<sp/>bytes<sp/>for<sp/>L3‑resident<sp/>“hot”<sp/>slices<sp/>(heuristic<sp/>used<sp/>by<sp/>blocked‑K<sp/>and<sp/>replication).</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`IE_NT_RATIO`<sp/>—<sp/>`0..100`<sp/>(percentage)<sp/>hint<sp/>for<sp/>the<sp/>fraction<sp/>of<sp/>loads<sp/>to<sp/>mark<sp/>non‑temporal<sp/>in<sp/>mixed<sp/>patterns.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`IE_ACT_PREC`<sp/>—<sp/>activation<sp/>precision<sp/>hint:<sp/>`int8|fp8|fp16|bf16|fp32`<sp/>(host<sp/>accumulators<sp/>remain<sp/>FP32).</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`NUMA_POLICY`<sp/>—<sp/>`auto|compact|scatter|socket:&lt;id&gt;`.<sp/>Works<sp/>with<sp/>the<sp/>new<sp/>topology<sp/>detector<sp/>for<sp/>thread<sp/>pinning.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`IE_HOT_REPLICATE`<sp/>—<sp/>`0|1`<sp/>enable<sp/>per‑socket<sp/>replicas<sp/>of<sp/>“hot”<sp/>weights;<sp/>optional<sp/>cap<sp/>via<sp/>`IE_HOT_REPL_LIMIT_MB`<sp/>(MiB).</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Harness<sp/>sweep<sp/>(benchmarks)</highlight></codeline>
+<codeline><highlight class="normal">The<sp/>harness<sp/>can<sp/>**sweep**<sp/>combinations<sp/>of<sp/>memory<sp/>options<sp/>to<sp/>find<sp/>stable<sp/>TPS<sp/>under<sp/>bandwidth<sp/>pressure:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">python3<sp/>benchmarks/harness.py<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>--sweep<sp/>&apos;act_quant=int8,fp8|kv_quant=none|prefetch=off,auto,256|nt_loads=0,1|numa_policy=auto,compact,scatter&apos;<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>--prompts<sp/>benchmarks/prompts.jsonl</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline><highlight class="normal">Each<sp/>configuration<sp/>is<sp/>labeled<sp/>and<sp/>exported<sp/>to<sp/>CSV/JSONL;<sp/>`scripts/update_performance_md.py`<sp/>now<sp/>includes<sp/>memory<sp/>metrics</highlight></codeline>
+<codeline><highlight class="normal">(*MB/token,<sp/>bytes<sp/>touched,<sp/>coverage<sp/>vs<sp/>model.bin,<sp/>effective<sp/>bandwidth<sp/>GB/s*).</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Monitoring</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Added<sp/>`monitoring/metrics_memory.toml`<sp/>(recording<sp/>rules/panels<sp/>for<sp/>**RSS<sp/>peak**,<sp/>**bytes<sp/>touched**,<sp/>**effective<sp/>bandwidth**).</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`scripts/metrics_exporter.py`<sp/>exposes<sp/>the<sp/>new<sp/>fields<sp/>when<sp/>present<sp/>(see<sp/>`ie_rss_peak_mb_*`,<sp/>and<sp/>the<sp/>`ie_build_info`<sp/>labels).</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>CUDA/CPU<sp/>kernels</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>CUDA:<sp/>added<sp/>fused<sp/>GEMV<sp/>for<sp/>**INT8<sp/>activations**<sp/>and<sp/>**FP8<sp/>activations**<sp/>(E4M3/E5M2<sp/>decoders<sp/>on‑device).</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>CPU:<sp/>dispatcher<sp/>keeps<sp/>AVX2/FMA<sp/>fast<sp/>path;<sp/>generic<sp/>C<sp/>path<sp/>honors<sp/>blocked‑K<sp/>and<sp/>activation<sp/>dequant<sp/>(INT8<sp/>per‑tensor<sp/>/<sp/>per‑group).</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">&gt;<sp/>Tip:<sp/>for<sp/>strict,<sp/>bandwidth‑bound<sp/>tests<sp/>use:<sp/>`IE_REQUIRE_MODEL=1<sp/>IE_BYTES_PER_TOKEN=64000000<sp/>IE_STRIDE_BYTES=256`.</highlight></codeline>
     </programlisting>
     <location file="README.md"/>
   </compounddef>

@@ -1,0 +1,884 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+  <compounddef id="microbench__block__sparse_8c" kind="file" language="C++">
+    <compoundname>microbench_block_sparse.c</compoundname>
+    <includes local="no">math.h</includes>
+    <includes local="no">stdio.h</includes>
+    <includes local="no">stdlib.h</includes>
+    <includes local="no">string.h</includes>
+    <includes local="no">time.h</includes>
+    <includes refid="sparse__format_8h" local="yes">sparse_format.h</includes>
+    <incdepgraph>
+      <node id="1">
+        <label>benchmarks/src/microbench_block_sparse.c</label>
+        <link refid="microbench__block__sparse_8c"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="3" relation="include">
+        </childnode>
+        <childnode refid="4" relation="include">
+        </childnode>
+        <childnode refid="5" relation="include">
+        </childnode>
+        <childnode refid="6" relation="include">
+        </childnode>
+        <childnode refid="7" relation="include">
+        </childnode>
+      </node>
+      <node id="10">
+        <label>platform.h</label>
+        <link refid="platform_8h"/>
+      </node>
+      <node id="7">
+        <label>sparse_format.h</label>
+        <link refid="sparse__format_8h"/>
+        <childnode refid="8" relation="include">
+        </childnode>
+        <childnode refid="9" relation="include">
+        </childnode>
+        <childnode refid="10" relation="include">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>math.h</label>
+      </node>
+      <node id="8">
+        <label>stddef.h</label>
+      </node>
+      <node id="9">
+        <label>stdint.h</label>
+      </node>
+      <node id="3">
+        <label>stdio.h</label>
+      </node>
+      <node id="4">
+        <label>stdlib.h</label>
+      </node>
+      <node id="5">
+        <label>string.h</label>
+      </node>
+      <node id="6">
+        <label>time.h</label>
+      </node>
+    </incdepgraph>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="microbench__block__sparse_8c_1a8a295707b83706041868cd34f3c663d5" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>double</type>
+        <definition>static double now_s</definition>
+        <argsstring>(void)</argsstring>
+        <name>now_s</name>
+        <param>
+          <type>void</type>
+        </param>
+        <briefdescription>
+<para>Portable timestamp in seconds using C11 timespec_get. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="return"><para>Current time as double seconds. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="benchmarks/src/microbench_block_sparse.c" line="56" column="15" bodyfile="benchmarks/src/microbench_block_sparse.c" bodystart="56" bodyend="60"/>
+        <referencedby refid="microbench__block__sparse_8c_1a3c04138a5bfe5d72780bb7e82a18e627" compoundref="microbench__block__sparse_8c" startline="308" endline="440">main</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="microbench__block__sparse_8c_1ac2fb7e70bd8769725c6e8c3aed17bf50" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>static void init_rand</definition>
+        <argsstring>(float *p, size_t n, unsigned *seed, float scale)</argsstring>
+        <name>init_rand</name>
+        <param>
+          <type>float *</type>
+          <declname>p</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>n</declname>
+        </param>
+        <param>
+          <type>unsigned *</type>
+          <declname>seed</declname>
+        </param>
+        <param>
+          <type>float</type>
+          <declname>scale</declname>
+        </param>
+        <briefdescription>
+<para>Initialize an array with pseudo-random FP32 in [-scale, +scale]. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>p</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Destination pointer. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>n</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of elements. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>seed</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Seed (modified internally). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>scale</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Half-range for uniform distribution. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="benchmarks/src/microbench_block_sparse.c" line="73" column="13" bodyfile="benchmarks/src/microbench_block_sparse.c" bodystart="73" bodyend="79"/>
+        <referencedby refid="microbench__block__sparse_8c_1a3c04138a5bfe5d72780bb7e82a18e627" compoundref="microbench__block__sparse_8c" startline="308" endline="440">main</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="microbench__block__sparse_8c_1a0bb86ae3f74d09b38ea3c1e35b8cdf9e" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>static void gemv_rowmajor</definition>
+        <argsstring>(const float *W, const float *x, float *y, size_t rows, size_t cols)</argsstring>
+        <name>gemv_rowmajor</name>
+        <param>
+          <type>const float *</type>
+          <declname>W</declname>
+        </param>
+        <param>
+          <type>const float *</type>
+          <declname>x</declname>
+        </param>
+        <param>
+          <type>float *</type>
+          <declname>y</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>rows</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>cols</declname>
+        </param>
+        <briefdescription>
+<para>Row-major GEMV: y = W * x. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>W</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Weights [rows x cols], row-major. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>x</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Input vector [cols]. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>y</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Output vector [rows]. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>rows</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of rows. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>cols</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of columns. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="benchmarks/src/microbench_block_sparse.c" line="89" column="13" bodyfile="benchmarks/src/microbench_block_sparse.c" bodystart="89" bodyend="99"/>
+        <referencedby refid="microbench__block__sparse_8c_1a3c04138a5bfe5d72780bb7e82a18e627" compoundref="microbench__block__sparse_8c" startline="308" endline="440">main</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="microbench__block__sparse_8c_1aa9d2cb46eeb965c3408c4de94ae65e07" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>static int block_is_nonzero</definition>
+        <argsstring>(const float *W, size_t rows, size_t cols, size_t br, size_t bc, size_t block_rows, size_t block_cols, float threshold)</argsstring>
+        <name>block_is_nonzero</name>
+        <param>
+          <type>const float *</type>
+          <declname>W</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>rows</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>cols</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>br</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>bc</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>block_rows</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>block_cols</declname>
+        </param>
+        <param>
+          <type>float</type>
+          <declname>threshold</declname>
+        </param>
+        <briefdescription>
+<para>Decide whether a block is non-zero under a simple max-abs rule. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>W</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Dense matrix (row-major, rows x cols). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>rows</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Total rows. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>cols</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Total cols. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>br</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Block row index. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>bc</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Block col index. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>block_rows</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Block height. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>block_cols</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Block width. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>threshold</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Minimum |w| to consider a value &quot;non-zero&quot;. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>1 if block is non-zero, 0 otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="benchmarks/src/microbench_block_sparse.c" line="118" column="12" bodyfile="benchmarks/src/microbench_block_sparse.c" bodystart="118" bodyend="147"/>
+        <referencedby refid="microbench__block__sparse_8c_1a1151a97db14a549537170c84ed1fc692" compoundref="microbench__block__sparse_8c" startline="161" endline="302">dense_to_block_sparse</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="microbench__block__sparse_8c_1a1151a97db14a549537170c84ed1fc692" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>static int dense_to_block_sparse</definition>
+        <argsstring>(const float *W, uint32_t rows, uint32_t cols, uint32_t block_rows, uint32_t block_cols, float threshold, ie_block_sparse_matrix_t *out)</argsstring>
+        <name>dense_to_block_sparse</name>
+        <param>
+          <type>const float *</type>
+          <declname>W</declname>
+        </param>
+        <param>
+          <type>uint32_t</type>
+          <declname>rows</declname>
+        </param>
+        <param>
+          <type>uint32_t</type>
+          <declname>cols</declname>
+        </param>
+        <param>
+          <type>uint32_t</type>
+          <declname>block_rows</declname>
+        </param>
+        <param>
+          <type>uint32_t</type>
+          <declname>block_cols</declname>
+        </param>
+        <param>
+          <type>float</type>
+          <declname>threshold</declname>
+        </param>
+        <param>
+          <type><ref refid="ie__device_8h_1a8d9448c57baf817aa19d0fc32d383b38" kindref="member">ie_block_sparse_matrix_t</ref> *</type>
+          <declname>out</declname>
+        </param>
+        <briefdescription>
+<para>Build an <ref refid="ie__device_8h_1a8d9448c57baf817aa19d0fc32d383b38" kindref="member">ie_block_sparse_matrix_t</ref> from a dense matrix in memory. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>W</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Dense input (row-major, rows x cols). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>rows</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Total rows. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>cols</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Total cols. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>block_rows</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Block height. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>block_cols</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Block width. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>threshold</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Min |w| to keep a block. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>out</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Destination descriptor. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>0 on success, non-zero on failure. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="benchmarks/src/microbench_block_sparse.c" line="161" column="12" bodyfile="benchmarks/src/microbench_block_sparse.c" bodystart="161" bodyend="302"/>
+        <references refid="structie__block__sparse__matrix_1a25206375c5fd501aff86f47dd3c52005" compoundref="sparse__format_8h" startline="127">ie_block_sparse_matrix::block_cols</references>
+        <references refid="microbench__block__sparse_8c_1aa9d2cb46eeb965c3408c4de94ae65e07" compoundref="microbench__block__sparse_8c" startline="118" endline="147">block_is_nonzero</references>
+        <references refid="structie__block__sparse__matrix_1a13f4d4b069d046ba790eeb68425f11d8" compoundref="sparse__format_8h" startline="125">ie_block_sparse_matrix::block_rows</references>
+        <references refid="structie__block__sparse__matrix_1adaacfdccbe3af8af266235880acc72e1" compoundref="sparse__format_8h" startline="154">ie_block_sparse_matrix::col_idx</references>
+        <references refid="structie__block__sparse__matrix_1a153358c4549c88a51c341e9ed55ec367" compoundref="sparse__format_8h" startline="122">ie_block_sparse_matrix::cols</references>
+        <references refid="sparse__format_8h_1ace3311d6d76dd6a9b17488b66311b98a" compoundref="sparse__io_8c" startline="129" endline="134">ie_block_sparse_init</references>
+        <references refid="sparse__format_8h_1afcc239def447f7ccdf07b59ce0e47467" compoundref="sparse__io_8c" startline="153" endline="158">ie_block_sparse_n_block_cols</references>
+        <references refid="sparse__format_8h_1a2df04db78871f064e33eb709ed62ed4f" compoundref="sparse__io_8c" startline="146" endline="151">ie_block_sparse_n_block_rows</references>
+        <references refid="structie__block__sparse__matrix_1a7df64b3120302415724bf9f70846616a" compoundref="sparse__format_8h" startline="132">ie_block_sparse_matrix::n_block_cols</references>
+        <references refid="structie__block__sparse__matrix_1ae07fcb7d88ab31f89fdcc3bcdcdb021f" compoundref="sparse__format_8h" startline="130">ie_block_sparse_matrix::n_block_rows</references>
+        <references refid="structie__block__sparse__matrix_1a8f73164fd4166248801d695c668e8764" compoundref="sparse__format_8h" startline="135">ie_block_sparse_matrix::nnzb</references>
+        <references refid="structie__block__sparse__matrix_1aa696fff26774fa9945c5f93ce9154c4f" compoundref="sparse__format_8h" startline="145">ie_block_sparse_matrix::row_ptr</references>
+        <references refid="structie__block__sparse__matrix_1a2e874338bccc653f32f1e9378e78e8d4" compoundref="sparse__format_8h" startline="120">ie_block_sparse_matrix::rows</references>
+        <references refid="structie__block__sparse__matrix_1af5c7c7b79def98eb4d9285b39718444f" compoundref="sparse__format_8h" startline="168">ie_block_sparse_matrix::values</references>
+        <referencedby refid="microbench__block__sparse_8c_1a3c04138a5bfe5d72780bb7e82a18e627" compoundref="microbench__block__sparse_8c" startline="308" endline="440">main</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="microbench__block__sparse_8c_1a3c04138a5bfe5d72780bb7e82a18e627" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int main</definition>
+        <argsstring>(int argc, char **argv)</argsstring>
+        <name>main</name>
+        <param>
+          <type>int</type>
+          <declname>argc</declname>
+        </param>
+        <param>
+          <type>char **</type>
+          <declname>argv</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="benchmarks/src/microbench_block_sparse.c" line="308" column="5" bodyfile="benchmarks/src/microbench_block_sparse.c" bodystart="308" bodyend="440"/>
+        <references refid="structie__block__sparse__matrix_1a25206375c5fd501aff86f47dd3c52005" compoundref="sparse__format_8h" startline="127">ie_block_sparse_matrix::block_cols</references>
+        <references refid="structie__block__sparse__matrix_1a13f4d4b069d046ba790eeb68425f11d8" compoundref="sparse__format_8h" startline="125">ie_block_sparse_matrix::block_rows</references>
+        <references refid="structie__block__sparse__matrix_1a153358c4549c88a51c341e9ed55ec367" compoundref="sparse__format_8h" startline="122">ie_block_sparse_matrix::cols</references>
+        <references refid="microbench__block__sparse_8c_1a1151a97db14a549537170c84ed1fc692" compoundref="microbench__block__sparse_8c" startline="161" endline="302">dense_to_block_sparse</references>
+        <references refid="microbench__block__sparse_8c_1a0bb86ae3f74d09b38ea3c1e35b8cdf9e" compoundref="microbench__block__sparse_8c" startline="89" endline="99">gemv_rowmajor</references>
+        <references refid="sparse__format_8h_1aabe296f29c7c70d44eab337b8a0f1a8c" compoundref="sparse__io_8c" startline="160" endline="174">ie_block_sparse_density</references>
+        <references refid="sparse__format_8h_1ac8f8ef0741fb1ea4ea51a9e41414c318" compoundref="sparse__io_8c" startline="136" endline="144">ie_block_sparse_release</references>
+        <references refid="sparse__format_8h_1ae9a2aad0ec5332237097030acf034961" compoundref="gemm__block__sparse_8c" startline="77" endline="138">ie_gemv_block_sparse_f32</references>
+        <references refid="microbench__block__sparse_8c_1ac2fb7e70bd8769725c6e8c3aed17bf50" compoundref="microbench__block__sparse_8c" startline="73" endline="79">init_rand</references>
+        <references refid="structie__block__sparse__matrix_1a7df64b3120302415724bf9f70846616a" compoundref="sparse__format_8h" startline="132">ie_block_sparse_matrix::n_block_cols</references>
+        <references refid="structie__block__sparse__matrix_1ae07fcb7d88ab31f89fdcc3bcdcdb021f" compoundref="sparse__format_8h" startline="130">ie_block_sparse_matrix::n_block_rows</references>
+        <references refid="structie__block__sparse__matrix_1a8f73164fd4166248801d695c668e8764" compoundref="sparse__format_8h" startline="135">ie_block_sparse_matrix::nnzb</references>
+        <references refid="microbench__block__sparse_8c_1a8a295707b83706041868cd34f3c663d5" compoundref="microbench__block__sparse_8c" startline="56" endline="60">now_s</references>
+        <references refid="structie__block__sparse__matrix_1a2e874338bccc653f32f1e9378e78e8d4" compoundref="sparse__format_8h" startline="120">ie_block_sparse_matrix::rows</references>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para>Microbenchmark comparing dense vs block-sparse GEMV (FP32). </para>
+    </briefdescription>
+    <detaileddescription>
+<para>This benchmark:<itemizedlist>
+<listitem><para>Synthesizes a large dense matrix W (rows x cols) and input vector x.</para>
+</listitem><listitem><para>Converts W into a block-sparse representation (BSR) in-memory using the same layout as defined in <ref refid="sparse__format_8h" kindref="compound">sparse_format.h</ref>.</para>
+</listitem><listitem><para>Runs repeated GEMV operations using: (a) a naive dense row-major GEMV, and (b) ie_gemv_block_sparse_f32 on the block-sparse matrix.</para>
+</listitem><listitem><para>Reports timings, effective density, and a rough memory-traffic estimate.</para>
+</listitem></itemizedlist>
+</para>
+<para>The goal is to provide a standalone way to measure the potential benefit of block sparsity for large matrices under a simple max-abs block pruning rule.</para>
+<para>Usage: ./build/microbench_block_sparse [rows] [cols] [iters] [block_rows] [block_cols] [threshold]</para>
+<para>Defaults: rows = 4096 cols = 4096 iters = 50 block_rows = 16 block_cols = 16 threshold = 1e-3</para>
+<para>The pruning rule is:<itemizedlist>
+<listitem><para>A block is kept if any element has |w| &gt;= threshold.</para>
+</listitem><listitem><para>Otherwise the block is dropped.</para>
+</listitem></itemizedlist>
+</para>
+<para>Notes:<itemizedlist>
+<listitem><para>This is CPU-only and single-threaded on purpose.</para>
+</listitem><listitem><para>It uses the same BSR format as the engine (see <ref refid="sparse__format_8h" kindref="compound">sparse_format.h</ref>) and calls ie_gemv_block_sparse_f32 from <ref refid="gemm__block__sparse_8c" kindref="compound">gemm_block_sparse.c</ref>. </para>
+</listitem></itemizedlist>
+</para>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="normal"></highlight></codeline>
+<codeline lineno="39"><highlight class="normal"></highlight></codeline>
+<codeline lineno="40"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;math.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="41"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stdio.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="42"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stdlib.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="43"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;string.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="44"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;time.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="45"><highlight class="normal"></highlight></codeline>
+<codeline lineno="46"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;<ref refid="sparse__format_8h" kindref="compound">sparse_format.h</ref>&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="47"><highlight class="normal"></highlight></codeline>
+<codeline lineno="48"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>--------------------------------------------------------------------------<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="49"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>Timing<sp/>helpers<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="50"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>--------------------------------------------------------------------------<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="51"><highlight class="normal"></highlight></codeline>
+<codeline lineno="56" refid="microbench__block__sparse_8c_1a8a295707b83706041868cd34f3c663d5" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">double</highlight><highlight class="normal"><sp/><ref refid="microbench__block__sparse_8c_1a8a295707b83706041868cd34f3c663d5" kindref="member">now_s</ref>(</highlight><highlight class="keywordtype">void</highlight><highlight class="normal">)<sp/>{</highlight></codeline>
+<codeline lineno="57"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal">timespec<sp/>ts;</highlight></codeline>
+<codeline lineno="58"><highlight class="normal"><sp/><sp/>timespec_get(&amp;ts,<sp/>TIME_UTC);</highlight></codeline>
+<codeline lineno="59"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>(</highlight><highlight class="keywordtype">double</highlight><highlight class="normal">)ts.tv_sec<sp/>+<sp/>(double)ts.tv_nsec<sp/>/<sp/>1e9;</highlight></codeline>
+<codeline lineno="60"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="61"><highlight class="normal"></highlight></codeline>
+<codeline lineno="62"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>--------------------------------------------------------------------------<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="63"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>Dense<sp/>helpers<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="64"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>--------------------------------------------------------------------------<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="65"><highlight class="normal"></highlight></codeline>
+<codeline lineno="73" refid="microbench__block__sparse_8c_1ac2fb7e70bd8769725c6e8c3aed17bf50" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="microbench__block__sparse_8c_1ac2fb7e70bd8769725c6e8c3aed17bf50" kindref="member">init_rand</ref>(</highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*p,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>n,<sp/></highlight><highlight class="keywordtype">unsigned</highlight><highlight class="normal"><sp/>*seed,<sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>scale)<sp/>{</highlight></codeline>
+<codeline lineno="74"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>i<sp/>=<sp/>0;<sp/>i<sp/>&lt;<sp/>n;<sp/>++i)<sp/>{</highlight></codeline>
+<codeline lineno="75"><highlight class="normal"><sp/><sp/><sp/><sp/>*seed<sp/>=<sp/>*seed<sp/>*<sp/>1664525u<sp/>+<sp/>1013904223u;</highlight></codeline>
+<codeline lineno="76"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>u<sp/>=<sp/>(float)((*seed<sp/>&amp;<sp/>0xFFFFFFu)<sp/>/<sp/>16777216.0f);</highlight></codeline>
+<codeline lineno="77"><highlight class="normal"><sp/><sp/><sp/><sp/>p[i]<sp/>=<sp/>(u<sp/>*<sp/>2.0f<sp/>-<sp/>1.0f)<sp/>*<sp/>scale;</highlight></codeline>
+<codeline lineno="78"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="79"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="80"><highlight class="normal"></highlight></codeline>
+<codeline lineno="89" refid="microbench__block__sparse_8c_1a0bb86ae3f74d09b38ea3c1e35b8cdf9e" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="microbench__block__sparse_8c_1a0bb86ae3f74d09b38ea3c1e35b8cdf9e" kindref="member">gemv_rowmajor</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*W,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*x,<sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*y,</highlight></codeline>
+<codeline lineno="90"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>rows,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>cols)<sp/>{</highlight></codeline>
+<codeline lineno="91"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>r<sp/>=<sp/>0;<sp/>r<sp/>&lt;<sp/>rows;<sp/>++r)<sp/>{</highlight></codeline>
+<codeline lineno="92"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>acc<sp/>=<sp/>0.0f;</highlight></codeline>
+<codeline lineno="93"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*w<sp/>=<sp/>W<sp/>+<sp/>r<sp/>*<sp/>cols;</highlight></codeline>
+<codeline lineno="94"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>c<sp/>=<sp/>0;<sp/>c<sp/>&lt;<sp/>cols;<sp/>++c)<sp/>{</highlight></codeline>
+<codeline lineno="95"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>acc<sp/>+=<sp/>w[c]<sp/>*<sp/>x[c];</highlight></codeline>
+<codeline lineno="96"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="97"><highlight class="normal"><sp/><sp/><sp/><sp/>y[r]<sp/>=<sp/>acc;</highlight></codeline>
+<codeline lineno="98"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="99"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="100"><highlight class="normal"></highlight></codeline>
+<codeline lineno="101"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>--------------------------------------------------------------------------<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="102"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>Dense<sp/>-&gt;<sp/>block-sparse<sp/>conversion<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="103"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>--------------------------------------------------------------------------<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="104"><highlight class="normal"></highlight></codeline>
+<codeline lineno="118" refid="microbench__block__sparse_8c_1aa9d2cb46eeb965c3408c4de94ae65e07" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="microbench__block__sparse_8c_1aa9d2cb46eeb965c3408c4de94ae65e07" kindref="member">block_is_nonzero</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*W,</highlight></codeline>
+<codeline lineno="119"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>rows,</highlight></codeline>
+<codeline lineno="120"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>cols,</highlight></codeline>
+<codeline lineno="121"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>br,</highlight></codeline>
+<codeline lineno="122"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>bc,</highlight></codeline>
+<codeline lineno="123"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>block_rows,</highlight></codeline>
+<codeline lineno="124"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>block_cols,</highlight></codeline>
+<codeline lineno="125"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>threshold)<sp/>{</highlight></codeline>
+<codeline lineno="126"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>row_start<sp/>=<sp/>br<sp/>*<sp/>block_rows;</highlight></codeline>
+<codeline lineno="127"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>col_start<sp/>=<sp/>bc<sp/>*<sp/>block_cols;</highlight></codeline>
+<codeline lineno="128"><highlight class="normal"></highlight></codeline>
+<codeline lineno="129"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>lr<sp/>=<sp/>0;<sp/>lr<sp/>&lt;<sp/>block_rows;<sp/>++lr)<sp/>{</highlight></codeline>
+<codeline lineno="130"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>r<sp/>=<sp/>row_start<sp/>+<sp/>lr;</highlight></codeline>
+<codeline lineno="131"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(r<sp/>&gt;=<sp/>rows)<sp/>{</highlight></codeline>
+<codeline lineno="132"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">break</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="133"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="134"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*row<sp/>=<sp/>W<sp/>+<sp/>r<sp/>*<sp/>cols;</highlight></codeline>
+<codeline lineno="135"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>lc<sp/>=<sp/>0;<sp/>lc<sp/>&lt;<sp/>block_cols;<sp/>++lc)<sp/>{</highlight></codeline>
+<codeline lineno="136"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>c<sp/>=<sp/>col_start<sp/>+<sp/>lc;</highlight></codeline>
+<codeline lineno="137"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(c<sp/>&gt;=<sp/>cols)<sp/>{</highlight></codeline>
+<codeline lineno="138"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">break</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="139"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="140"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>v<sp/>=<sp/>row[c];</highlight></codeline>
+<codeline lineno="141"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(fabsf(v)<sp/>&gt;=<sp/>threshold)<sp/>{</highlight></codeline>
+<codeline lineno="142"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>1;</highlight></codeline>
+<codeline lineno="143"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="144"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="145"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="146"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>0;</highlight></codeline>
+<codeline lineno="147"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="148"><highlight class="normal"></highlight></codeline>
+<codeline lineno="161" refid="microbench__block__sparse_8c_1a1151a97db14a549537170c84ed1fc692" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="microbench__block__sparse_8c_1a1151a97db14a549537170c84ed1fc692" kindref="member">dense_to_block_sparse</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*W,</highlight></codeline>
+<codeline lineno="162"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>uint32_t<sp/>rows,</highlight></codeline>
+<codeline lineno="163"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>uint32_t<sp/>cols,</highlight></codeline>
+<codeline lineno="164"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>uint32_t<sp/>block_rows,</highlight></codeline>
+<codeline lineno="165"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>uint32_t<sp/>block_cols,</highlight></codeline>
+<codeline lineno="166"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>threshold,</highlight></codeline>
+<codeline lineno="167"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="ie__device_8h_1a8d9448c57baf817aa19d0fc32d383b38" kindref="member">ie_block_sparse_matrix_t</ref><sp/>*out)<sp/>{</highlight></codeline>
+<codeline lineno="168"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!W<sp/>||<sp/>!out<sp/>||<sp/>rows<sp/>==<sp/>0u<sp/>||<sp/>cols<sp/>==<sp/>0u<sp/>||</highlight></codeline>
+<codeline lineno="169"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>block_rows<sp/>==<sp/>0u<sp/>||<sp/>block_cols<sp/>==<sp/>0u)<sp/>{</highlight></codeline>
+<codeline lineno="170"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>-1;</highlight></codeline>
+<codeline lineno="171"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="172"><highlight class="normal"></highlight></codeline>
+<codeline lineno="173"><highlight class="normal"><sp/><sp/><ref refid="sparse__format_8h_1ace3311d6d76dd6a9b17488b66311b98a" kindref="member">ie_block_sparse_init</ref>(out);</highlight></codeline>
+<codeline lineno="174"><highlight class="normal"></highlight></codeline>
+<codeline lineno="175"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>uint32_t<sp/>n_block_rows<sp/>=</highlight></codeline>
+<codeline lineno="176"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="sparse__format_8h_1a2df04db78871f064e33eb709ed62ed4f" kindref="member">ie_block_sparse_n_block_rows</ref>(rows,<sp/>block_rows);</highlight></codeline>
+<codeline lineno="177"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>uint32_t<sp/>n_block_cols<sp/>=</highlight></codeline>
+<codeline lineno="178"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="sparse__format_8h_1afcc239def447f7ccdf07b59ce0e47467" kindref="member">ie_block_sparse_n_block_cols</ref>(cols,<sp/>block_cols);</highlight></codeline>
+<codeline lineno="179"><highlight class="normal"></highlight></codeline>
+<codeline lineno="180"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(n_block_rows<sp/>==<sp/>0u<sp/>||<sp/>n_block_cols<sp/>==<sp/>0u)<sp/>{</highlight></codeline>
+<codeline lineno="181"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>-1;</highlight></codeline>
+<codeline lineno="182"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="183"><highlight class="normal"></highlight></codeline>
+<codeline lineno="184"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>total_blocks<sp/>=</highlight></codeline>
+<codeline lineno="185"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>(size_t)n_block_rows<sp/>*<sp/>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal">)n_block_cols;</highlight></codeline>
+<codeline lineno="186"><highlight class="normal"></highlight></codeline>
+<codeline lineno="187"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">unsigned</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*nonzero<sp/>=</highlight></codeline>
+<codeline lineno="188"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>(</highlight><highlight class="keywordtype">unsigned</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*)calloc(total_blocks,<sp/></highlight><highlight class="keyword">sizeof</highlight><highlight class="normal">(</highlight><highlight class="keywordtype">unsigned</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal">));</highlight></codeline>
+<codeline lineno="189"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!nonzero)<sp/>{</highlight></codeline>
+<codeline lineno="190"><highlight class="normal"><sp/><sp/><sp/><sp/>fprintf(stderr,<sp/></highlight><highlight class="stringliteral">&quot;microbench_block_sparse:<sp/>allocation<sp/>failure<sp/>(nonzero)\n&quot;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="191"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>-1;</highlight></codeline>
+<codeline lineno="192"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="193"><highlight class="normal"></highlight></codeline>
+<codeline lineno="194"><highlight class="normal"><sp/><sp/>uint32_t<sp/>nnzb<sp/>=<sp/>0u;</highlight></codeline>
+<codeline lineno="195"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(uint32_t<sp/>br<sp/>=<sp/>0;<sp/>br<sp/>&lt;<sp/>n_block_rows;<sp/>++br)<sp/>{</highlight></codeline>
+<codeline lineno="196"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(uint32_t<sp/>bc<sp/>=<sp/>0;<sp/>bc<sp/>&lt;<sp/>n_block_cols;<sp/>++bc)<sp/>{</highlight></codeline>
+<codeline lineno="197"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>idx<sp/>=<sp/>(size_t)br<sp/>*<sp/>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal">)n_block_cols<sp/>+<sp/>(size_t)bc;</highlight></codeline>
+<codeline lineno="198"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>nz<sp/>=<sp/><ref refid="microbench__block__sparse_8c_1aa9d2cb46eeb965c3408c4de94ae65e07" kindref="member">block_is_nonzero</ref>(W,</highlight></codeline>
+<codeline lineno="199"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal">)rows,</highlight></codeline>
+<codeline lineno="200"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal">)cols,</highlight></codeline>
+<codeline lineno="201"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal">)br,</highlight></codeline>
+<codeline lineno="202"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal">)bc,</highlight></codeline>
+<codeline lineno="203"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal">)block_rows,</highlight></codeline>
+<codeline lineno="204"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal">)block_cols,</highlight></codeline>
+<codeline lineno="205"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>threshold);</highlight></codeline>
+<codeline lineno="206"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(nz)<sp/>{</highlight></codeline>
+<codeline lineno="207"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>nonzero[idx]<sp/>=<sp/>1u;</highlight></codeline>
+<codeline lineno="208"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>++nnzb;</highlight></codeline>
+<codeline lineno="209"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="210"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="211"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="212"><highlight class="normal"></highlight></codeline>
+<codeline lineno="213"><highlight class="normal"><sp/><sp/>uint32_t<sp/>*row_ptr<sp/>=</highlight></codeline>
+<codeline lineno="214"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>(uint32_t<sp/>*)malloc((</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal">)(n_block_rows<sp/>+<sp/>1u)<sp/>*<sp/></highlight><highlight class="keyword">sizeof</highlight><highlight class="normal">(uint32_t));</highlight></codeline>
+<codeline lineno="215"><highlight class="normal"><sp/><sp/>uint32_t<sp/>*col_idx<sp/>=</highlight></codeline>
+<codeline lineno="216"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>(uint32_t<sp/>*)malloc((</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal">)nnzb<sp/>*<sp/></highlight><highlight class="keyword">sizeof</highlight><highlight class="normal">(uint32_t));</highlight></codeline>
+<codeline lineno="217"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*values<sp/>=<sp/>NULL;</highlight></codeline>
+<codeline lineno="218"><highlight class="normal"></highlight></codeline>
+<codeline lineno="219"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!row_ptr<sp/>||<sp/>(!col_idx<sp/>&amp;&amp;<sp/>nnzb<sp/>&gt;<sp/>0u))<sp/>{</highlight></codeline>
+<codeline lineno="220"><highlight class="normal"><sp/><sp/><sp/><sp/>fprintf(stderr,<sp/></highlight><highlight class="stringliteral">&quot;microbench_block_sparse:<sp/>allocation<sp/>failure<sp/>(csr)\n&quot;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="221"><highlight class="normal"><sp/><sp/><sp/><sp/>free(row_ptr);</highlight></codeline>
+<codeline lineno="222"><highlight class="normal"><sp/><sp/><sp/><sp/>free(col_idx);</highlight></codeline>
+<codeline lineno="223"><highlight class="normal"><sp/><sp/><sp/><sp/>free(nonzero);</highlight></codeline>
+<codeline lineno="224"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>-1;</highlight></codeline>
+<codeline lineno="225"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="226"><highlight class="normal"></highlight></codeline>
+<codeline lineno="227"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(nnzb<sp/>&gt;<sp/>0u)<sp/>{</highlight></codeline>
+<codeline lineno="228"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>block_elems<sp/>=</highlight></codeline>
+<codeline lineno="229"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>(size_t)block_rows<sp/>*<sp/>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal">)block_cols;</highlight></codeline>
+<codeline lineno="230"><highlight class="normal"><sp/><sp/><sp/><sp/>values<sp/>=<sp/>(</highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*)calloc((</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal">)nnzb<sp/>*<sp/>block_elems,<sp/></highlight><highlight class="keyword">sizeof</highlight><highlight class="normal">(</highlight><highlight class="keywordtype">float</highlight><highlight class="normal">));</highlight></codeline>
+<codeline lineno="231"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!values)<sp/>{</highlight></codeline>
+<codeline lineno="232"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>fprintf(stderr,<sp/></highlight><highlight class="stringliteral">&quot;microbench_block_sparse:<sp/>allocation<sp/>failure<sp/>(values)\n&quot;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="233"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>free(row_ptr);</highlight></codeline>
+<codeline lineno="234"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>free(col_idx);</highlight></codeline>
+<codeline lineno="235"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>free(nonzero);</highlight></codeline>
+<codeline lineno="236"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>-1;</highlight></codeline>
+<codeline lineno="237"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="238"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="239"><highlight class="normal"></highlight></codeline>
+<codeline lineno="240"><highlight class="normal"><sp/><sp/>uint32_t<sp/>cursor<sp/>=<sp/>0u;</highlight></codeline>
+<codeline lineno="241"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(uint32_t<sp/>br<sp/>=<sp/>0;<sp/>br<sp/>&lt;<sp/>n_block_rows;<sp/>++br)<sp/>{</highlight></codeline>
+<codeline lineno="242"><highlight class="normal"><sp/><sp/><sp/><sp/>row_ptr[br]<sp/>=<sp/>cursor;</highlight></codeline>
+<codeline lineno="243"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(uint32_t<sp/>bc<sp/>=<sp/>0;<sp/>bc<sp/>&lt;<sp/>n_block_cols;<sp/>++bc)<sp/>{</highlight></codeline>
+<codeline lineno="244"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>idx<sp/>=<sp/>(size_t)br<sp/>*<sp/>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal">)n_block_cols<sp/>+<sp/>(size_t)bc;</highlight></codeline>
+<codeline lineno="245"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!nonzero[idx])<sp/>{</highlight></codeline>
+<codeline lineno="246"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">continue</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="247"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="248"><highlight class="normal"></highlight></codeline>
+<codeline lineno="249"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>uint32_t<sp/>blk_id<sp/>=<sp/>cursor;</highlight></codeline>
+<codeline lineno="250"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>col_idx[blk_id]<sp/>=<sp/>bc;</highlight></codeline>
+<codeline lineno="251"><highlight class="normal"></highlight></codeline>
+<codeline lineno="252"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>uint32_t<sp/>row_start<sp/>=<sp/>br<sp/>*<sp/>block_rows;</highlight></codeline>
+<codeline lineno="253"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>uint32_t<sp/>col_start<sp/>=<sp/>bc<sp/>*<sp/>block_cols;</highlight></codeline>
+<codeline lineno="254"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*blk<sp/>=<sp/>values<sp/>+<sp/>(size_t)blk_id<sp/>*</highlight></codeline>
+<codeline lineno="255"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal">)block_rows<sp/>*<sp/>(size_t)block_cols;</highlight></codeline>
+<codeline lineno="256"><highlight class="normal"></highlight></codeline>
+<codeline lineno="257"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(uint32_t<sp/>lr<sp/>=<sp/>0;<sp/>lr<sp/>&lt;<sp/>block_rows;<sp/>++lr)<sp/>{</highlight></codeline>
+<codeline lineno="258"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>uint32_t<sp/>r<sp/>=<sp/>row_start<sp/>+<sp/>lr;</highlight></codeline>
+<codeline lineno="259"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(r<sp/>&gt;=<sp/>rows)<sp/>{</highlight></codeline>
+<codeline lineno="260"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">break</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="261"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="262"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*row<sp/>=<sp/>W<sp/>+<sp/>(size_t)r<sp/>*<sp/>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal">)cols;</highlight></codeline>
+<codeline lineno="263"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(uint32_t<sp/>lc<sp/>=<sp/>0;<sp/>lc<sp/>&lt;<sp/>block_cols;<sp/>++lc)<sp/>{</highlight></codeline>
+<codeline lineno="264"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>uint32_t<sp/>c<sp/>=<sp/>col_start<sp/>+<sp/>lc;</highlight></codeline>
+<codeline lineno="265"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(c<sp/>&gt;=<sp/>cols)<sp/>{</highlight></codeline>
+<codeline lineno="266"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">break</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="267"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="268"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>blk[(size_t)lr<sp/>*<sp/>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal">)block_cols<sp/>+<sp/>(size_t)lc]<sp/>=<sp/>row[c];</highlight></codeline>
+<codeline lineno="269"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="270"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="271"><highlight class="normal"></highlight></codeline>
+<codeline lineno="272"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>++cursor;</highlight></codeline>
+<codeline lineno="273"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="274"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="275"><highlight class="normal"><sp/><sp/>row_ptr[n_block_rows]<sp/>=<sp/>cursor;</highlight></codeline>
+<codeline lineno="276"><highlight class="normal"></highlight></codeline>
+<codeline lineno="277"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(cursor<sp/>!=<sp/>nnzb)<sp/>{</highlight></codeline>
+<codeline lineno="278"><highlight class="normal"><sp/><sp/><sp/><sp/>fprintf(stderr,</highlight></codeline>
+<codeline lineno="279"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;microbench_block_sparse:<sp/>nnzb<sp/>mismatch<sp/>(expected<sp/>%u,<sp/>built<sp/>%u)\n&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="280"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>nnzb,<sp/>cursor);</highlight></codeline>
+<codeline lineno="281"><highlight class="normal"><sp/><sp/><sp/><sp/>free(row_ptr);</highlight></codeline>
+<codeline lineno="282"><highlight class="normal"><sp/><sp/><sp/><sp/>free(col_idx);</highlight></codeline>
+<codeline lineno="283"><highlight class="normal"><sp/><sp/><sp/><sp/>free(values);</highlight></codeline>
+<codeline lineno="284"><highlight class="normal"><sp/><sp/><sp/><sp/>free(nonzero);</highlight></codeline>
+<codeline lineno="285"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>-1;</highlight></codeline>
+<codeline lineno="286"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="287"><highlight class="normal"></highlight></codeline>
+<codeline lineno="288"><highlight class="normal"><sp/><sp/>free(nonzero);</highlight></codeline>
+<codeline lineno="289"><highlight class="normal"></highlight></codeline>
+<codeline lineno="290"><highlight class="normal"><sp/><sp/>out-&gt;<ref refid="structie__block__sparse__matrix_1a2e874338bccc653f32f1e9378e78e8d4" kindref="member">rows</ref><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>=<sp/>rows;</highlight></codeline>
+<codeline lineno="291"><highlight class="normal"><sp/><sp/>out-&gt;<ref refid="structie__block__sparse__matrix_1a153358c4549c88a51c341e9ed55ec367" kindref="member">cols</ref><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>=<sp/>cols;</highlight></codeline>
+<codeline lineno="292"><highlight class="normal"><sp/><sp/>out-&gt;<ref refid="structie__block__sparse__matrix_1a13f4d4b069d046ba790eeb68425f11d8" kindref="member">block_rows</ref><sp/><sp/><sp/>=<sp/>block_rows;</highlight></codeline>
+<codeline lineno="293"><highlight class="normal"><sp/><sp/>out-&gt;<ref refid="structie__block__sparse__matrix_1a25206375c5fd501aff86f47dd3c52005" kindref="member">block_cols</ref><sp/><sp/><sp/>=<sp/>block_cols;</highlight></codeline>
+<codeline lineno="294"><highlight class="normal"><sp/><sp/>out-&gt;<ref refid="structie__block__sparse__matrix_1ae07fcb7d88ab31f89fdcc3bcdcdb021f" kindref="member">n_block_rows</ref><sp/>=<sp/>n_block_rows;</highlight></codeline>
+<codeline lineno="295"><highlight class="normal"><sp/><sp/>out-&gt;<ref refid="structie__block__sparse__matrix_1a7df64b3120302415724bf9f70846616a" kindref="member">n_block_cols</ref><sp/>=<sp/>n_block_cols;</highlight></codeline>
+<codeline lineno="296"><highlight class="normal"><sp/><sp/>out-&gt;<ref refid="structie__block__sparse__matrix_1a8f73164fd4166248801d695c668e8764" kindref="member">nnzb</ref><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>=<sp/>nnzb;</highlight></codeline>
+<codeline lineno="297"><highlight class="normal"><sp/><sp/>out-&gt;<ref refid="structie__block__sparse__matrix_1aa696fff26774fa9945c5f93ce9154c4f" kindref="member">row_ptr</ref><sp/><sp/><sp/><sp/><sp/><sp/>=<sp/>row_ptr;</highlight></codeline>
+<codeline lineno="298"><highlight class="normal"><sp/><sp/>out-&gt;<ref refid="structie__block__sparse__matrix_1adaacfdccbe3af8af266235880acc72e1" kindref="member">col_idx</ref><sp/><sp/><sp/><sp/><sp/><sp/>=<sp/>col_idx;</highlight></codeline>
+<codeline lineno="299"><highlight class="normal"><sp/><sp/>out-&gt;<ref refid="structie__block__sparse__matrix_1af5c7c7b79def98eb4d9285b39718444f" kindref="member">values</ref><sp/><sp/><sp/><sp/><sp/><sp/><sp/>=<sp/>values;</highlight></codeline>
+<codeline lineno="300"><highlight class="normal"></highlight></codeline>
+<codeline lineno="301"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>0;</highlight></codeline>
+<codeline lineno="302"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="303"><highlight class="normal"></highlight></codeline>
+<codeline lineno="304"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>--------------------------------------------------------------------------<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="305"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>Main<sp/>benchmark<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="306"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>--------------------------------------------------------------------------<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="307"><highlight class="normal"></highlight></codeline>
+<codeline lineno="308" refid="microbench__block__sparse_8c_1a3c04138a5bfe5d72780bb7e82a18e627" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="test__act__quant_8c_1a840291bc02cba5474a4cb46a9b9566fe" kindref="member">main</ref>(</highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>argc,<sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>**argv)<sp/>{</highlight></codeline>
+<codeline lineno="309"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">/*<sp/>Defaults:<sp/>&quot;large&quot;<sp/>weights<sp/>by<sp/>default.<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="310"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>rows<sp/>=<sp/>(argc<sp/>&gt;<sp/>1)<sp/>?<sp/>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal">)strtoul(argv[1],<sp/>NULL,<sp/>10)<sp/>:<sp/>4096;</highlight></codeline>
+<codeline lineno="311"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>cols<sp/>=<sp/>(argc<sp/>&gt;<sp/>2)<sp/>?<sp/>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal">)strtoul(argv[2],<sp/>NULL,<sp/>10)<sp/>:<sp/>4096;</highlight></codeline>
+<codeline lineno="312"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>iters<sp/>=<sp/>(argc<sp/>&gt;<sp/>3)<sp/>?<sp/>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal">)strtoul(argv[3],<sp/>NULL,<sp/>10)<sp/>:<sp/>50;</highlight></codeline>
+<codeline lineno="313"><highlight class="normal"><sp/><sp/>uint32_t<sp/>block_rows<sp/>=<sp/>(argc<sp/>&gt;<sp/>4)<sp/>?<sp/>(uint32_t)strtoul(argv[4],<sp/>NULL,<sp/>10)<sp/>:<sp/>16u;</highlight></codeline>
+<codeline lineno="314"><highlight class="normal"><sp/><sp/>uint32_t<sp/>block_cols<sp/>=<sp/>(argc<sp/>&gt;<sp/>5)<sp/>?<sp/>(uint32_t)strtoul(argv[5],<sp/>NULL,<sp/>10)<sp/>:<sp/>16u;</highlight></codeline>
+<codeline lineno="315"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>threshold<sp/>=</highlight></codeline>
+<codeline lineno="316"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>(argc<sp/>&gt;<sp/>6)<sp/>?<sp/>(</highlight><highlight class="keywordtype">float</highlight><highlight class="normal">)strtod(argv[6],<sp/>NULL)<sp/>:<sp/>1e-3f;</highlight></codeline>
+<codeline lineno="317"><highlight class="normal"></highlight></codeline>
+<codeline lineno="318"><highlight class="normal"><sp/><sp/>printf(</highlight><highlight class="stringliteral">&quot;microbench_block_sparse:\n&quot;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="319"><highlight class="normal"><sp/><sp/>printf(</highlight><highlight class="stringliteral">&quot;<sp/><sp/>rows<sp/><sp/><sp/><sp/><sp/><sp/><sp/>=<sp/>%zu\n&quot;</highlight><highlight class="normal">,<sp/>rows);</highlight></codeline>
+<codeline lineno="320"><highlight class="normal"><sp/><sp/>printf(</highlight><highlight class="stringliteral">&quot;<sp/><sp/>cols<sp/><sp/><sp/><sp/><sp/><sp/><sp/>=<sp/>%zu\n&quot;</highlight><highlight class="normal">,<sp/>cols);</highlight></codeline>
+<codeline lineno="321"><highlight class="normal"><sp/><sp/>printf(</highlight><highlight class="stringliteral">&quot;<sp/><sp/>iters<sp/><sp/><sp/><sp/><sp/><sp/>=<sp/>%zu\n&quot;</highlight><highlight class="normal">,<sp/>iters);</highlight></codeline>
+<codeline lineno="322"><highlight class="normal"><sp/><sp/>printf(</highlight><highlight class="stringliteral">&quot;<sp/><sp/>block_rows<sp/>=<sp/>%u\n&quot;</highlight><highlight class="normal">,<sp/>block_rows);</highlight></codeline>
+<codeline lineno="323"><highlight class="normal"><sp/><sp/>printf(</highlight><highlight class="stringliteral">&quot;<sp/><sp/>block_cols<sp/>=<sp/>%u\n&quot;</highlight><highlight class="normal">,<sp/>block_cols);</highlight></codeline>
+<codeline lineno="324"><highlight class="normal"><sp/><sp/>printf(</highlight><highlight class="stringliteral">&quot;<sp/><sp/>threshold<sp/><sp/>=<sp/>%g\n&quot;</highlight><highlight class="normal">,<sp/>(</highlight><highlight class="keywordtype">double</highlight><highlight class="normal">)threshold);</highlight></codeline>
+<codeline lineno="325"><highlight class="normal"></highlight></codeline>
+<codeline lineno="326"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>nW<sp/>=<sp/>rows<sp/>*<sp/>cols;</highlight></codeline>
+<codeline lineno="327"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>nx<sp/>=<sp/>cols;</highlight></codeline>
+<codeline lineno="328"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>ny<sp/>=<sp/>rows;</highlight></codeline>
+<codeline lineno="329"><highlight class="normal"></highlight></codeline>
+<codeline lineno="330"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*W_dense<sp/>=<sp/>(</highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*)malloc(nW<sp/>*<sp/></highlight><highlight class="keyword">sizeof</highlight><highlight class="normal">(</highlight><highlight class="keywordtype">float</highlight><highlight class="normal">));</highlight></codeline>
+<codeline lineno="331"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*x<sp/><sp/><sp/><sp/><sp/><sp/><sp/>=<sp/>(</highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*)malloc(nx<sp/>*<sp/></highlight><highlight class="keyword">sizeof</highlight><highlight class="normal">(</highlight><highlight class="keywordtype">float</highlight><highlight class="normal">));</highlight></codeline>
+<codeline lineno="332"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*y_dense<sp/>=<sp/>(</highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*)malloc(ny<sp/>*<sp/></highlight><highlight class="keyword">sizeof</highlight><highlight class="normal">(</highlight><highlight class="keywordtype">float</highlight><highlight class="normal">));</highlight></codeline>
+<codeline lineno="333"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*y_sparse<sp/>=<sp/>(</highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*)malloc(ny<sp/>*<sp/></highlight><highlight class="keyword">sizeof</highlight><highlight class="normal">(</highlight><highlight class="keywordtype">float</highlight><highlight class="normal">));</highlight></codeline>
+<codeline lineno="334"><highlight class="normal"></highlight></codeline>
+<codeline lineno="335"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!W_dense<sp/>||<sp/>!x<sp/>||<sp/>!y_dense<sp/>||<sp/>!y_sparse)<sp/>{</highlight></codeline>
+<codeline lineno="336"><highlight class="normal"><sp/><sp/><sp/><sp/>fprintf(stderr,<sp/></highlight><highlight class="stringliteral">&quot;microbench_block_sparse:<sp/>allocation<sp/>failure\n&quot;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="337"><highlight class="normal"><sp/><sp/><sp/><sp/>free(W_dense);</highlight></codeline>
+<codeline lineno="338"><highlight class="normal"><sp/><sp/><sp/><sp/>free(x);</highlight></codeline>
+<codeline lineno="339"><highlight class="normal"><sp/><sp/><sp/><sp/>free(y_dense);</highlight></codeline>
+<codeline lineno="340"><highlight class="normal"><sp/><sp/><sp/><sp/>free(y_sparse);</highlight></codeline>
+<codeline lineno="341"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>1;</highlight></codeline>
+<codeline lineno="342"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="343"><highlight class="normal"></highlight></codeline>
+<codeline lineno="344"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">unsigned</highlight><highlight class="normal"><sp/>seed<sp/>=<sp/>12345u;</highlight></codeline>
+<codeline lineno="345"><highlight class="normal"><sp/><sp/><ref refid="microbench__block__sparse_8c_1ac2fb7e70bd8769725c6e8c3aed17bf50" kindref="member">init_rand</ref>(W_dense,<sp/>nW,<sp/>&amp;seed,<sp/>1.0f<sp/>/<sp/>32.0f);</highlight></codeline>
+<codeline lineno="346"><highlight class="normal"><sp/><sp/><ref refid="microbench__block__sparse_8c_1ac2fb7e70bd8769725c6e8c3aed17bf50" kindref="member">init_rand</ref>(x,<sp/>nx,<sp/>&amp;seed,<sp/>1.0f);</highlight></codeline>
+<codeline lineno="347"><highlight class="normal"></highlight></codeline>
+<codeline lineno="348"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">/*<sp/>Convert<sp/>dense<sp/>-&gt;<sp/>block-sparse<sp/>(this<sp/>is<sp/>our<sp/>&quot;large<sp/>weight&quot;<sp/>conversion).<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="349"><highlight class="normal"><sp/><sp/><ref refid="ie__device_8h_1a8d9448c57baf817aa19d0fc32d383b38" kindref="member">ie_block_sparse_matrix_t</ref><sp/>m;</highlight></codeline>
+<codeline lineno="350"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(<ref refid="microbench__block__sparse_8c_1a1151a97db14a549537170c84ed1fc692" kindref="member">dense_to_block_sparse</ref>(W_dense,</highlight></codeline>
+<codeline lineno="351"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>(uint32_t)rows,</highlight></codeline>
+<codeline lineno="352"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>(uint32_t)cols,</highlight></codeline>
+<codeline lineno="353"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>block_rows,</highlight></codeline>
+<codeline lineno="354"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>block_cols,</highlight></codeline>
+<codeline lineno="355"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>threshold,</highlight></codeline>
+<codeline lineno="356"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&amp;m)<sp/>!=<sp/>0)<sp/>{</highlight></codeline>
+<codeline lineno="357"><highlight class="normal"><sp/><sp/><sp/><sp/>fprintf(stderr,<sp/></highlight><highlight class="stringliteral">&quot;microbench_block_sparse:<sp/>dense_to_block_sparse<sp/>failed\n&quot;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="358"><highlight class="normal"><sp/><sp/><sp/><sp/>free(W_dense);</highlight></codeline>
+<codeline lineno="359"><highlight class="normal"><sp/><sp/><sp/><sp/>free(x);</highlight></codeline>
+<codeline lineno="360"><highlight class="normal"><sp/><sp/><sp/><sp/>free(y_dense);</highlight></codeline>
+<codeline lineno="361"><highlight class="normal"><sp/><sp/><sp/><sp/>free(y_sparse);</highlight></codeline>
+<codeline lineno="362"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>1;</highlight></codeline>
+<codeline lineno="363"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="364"><highlight class="normal"></highlight></codeline>
+<codeline lineno="365"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>density<sp/>=<sp/><ref refid="sparse__format_8h_1aabe296f29c7c70d44eab337b8a0f1a8c" kindref="member">ie_block_sparse_density</ref>(m.<ref refid="structie__block__sparse__matrix_1a8f73164fd4166248801d695c668e8764" kindref="member">nnzb</ref>,</highlight></codeline>
+<codeline lineno="366"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>m.<ref refid="structie__block__sparse__matrix_1ae07fcb7d88ab31f89fdcc3bcdcdb021f" kindref="member">n_block_rows</ref>,</highlight></codeline>
+<codeline lineno="367"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>m.<ref refid="structie__block__sparse__matrix_1a7df64b3120302415724bf9f70846616a" kindref="member">n_block_cols</ref>);</highlight></codeline>
+<codeline lineno="368"><highlight class="normal"><sp/><sp/>printf(</highlight><highlight class="stringliteral">&quot;<sp/><sp/>nnzb<sp/><sp/><sp/><sp/><sp/><sp/><sp/>=<sp/>%u<sp/>/<sp/>%u<sp/>blocks<sp/>(density<sp/>=<sp/>%.6f)\n&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="369"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>m.<ref refid="structie__block__sparse__matrix_1a8f73164fd4166248801d695c668e8764" kindref="member">nnzb</ref>,</highlight></codeline>
+<codeline lineno="370"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>m.<ref refid="structie__block__sparse__matrix_1ae07fcb7d88ab31f89fdcc3bcdcdb021f" kindref="member">n_block_rows</ref><sp/>*<sp/>m.<ref refid="structie__block__sparse__matrix_1a7df64b3120302415724bf9f70846616a" kindref="member">n_block_cols</ref>,</highlight></codeline>
+<codeline lineno="371"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>(</highlight><highlight class="keywordtype">double</highlight><highlight class="normal">)density);</highlight></codeline>
+<codeline lineno="372"><highlight class="normal"></highlight></codeline>
+<codeline lineno="373"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">/*<sp/>Quick<sp/>correctness<sp/>check<sp/>on<sp/>a<sp/>single<sp/>multiply.<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="374"><highlight class="normal"><sp/><sp/><ref refid="microbench__block__sparse_8c_1a0bb86ae3f74d09b38ea3c1e35b8cdf9e" kindref="member">gemv_rowmajor</ref>(W_dense,<sp/>x,<sp/>y_dense,<sp/>rows,<sp/>cols);</highlight></codeline>
+<codeline lineno="375"><highlight class="normal"><sp/><sp/><ref refid="sparse__format_8h_1ae9a2aad0ec5332237097030acf034961" kindref="member">ie_gemv_block_sparse_f32</ref>(&amp;m,<sp/>x,<sp/>y_sparse,<sp/>NULL);</highlight></codeline>
+<codeline lineno="376"><highlight class="normal"></highlight></codeline>
+<codeline lineno="377"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">double</highlight><highlight class="normal"><sp/>max_abs_diff<sp/>=<sp/>0.0;</highlight></codeline>
+<codeline lineno="378"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>i<sp/>=<sp/>0;<sp/>i<sp/>&lt;<sp/>ny;<sp/>++i)<sp/>{</highlight></codeline>
+<codeline lineno="379"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">double</highlight><highlight class="normal"><sp/>d<sp/>=<sp/>fabs((</highlight><highlight class="keywordtype">double</highlight><highlight class="normal">)y_dense[i]<sp/>-<sp/>(</highlight><highlight class="keywordtype">double</highlight><highlight class="normal">)y_sparse[i]);</highlight></codeline>
+<codeline lineno="380"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(d<sp/>&gt;<sp/>max_abs_diff)<sp/>{</highlight></codeline>
+<codeline lineno="381"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>max_abs_diff<sp/>=<sp/>d;</highlight></codeline>
+<codeline lineno="382"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="383"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="384"><highlight class="normal"><sp/><sp/>printf(</highlight><highlight class="stringliteral">&quot;<sp/><sp/>max_abs_diff(dense<sp/>vs<sp/>sparse)<sp/>=<sp/>%.6g\n&quot;</highlight><highlight class="normal">,<sp/>max_abs_diff);</highlight></codeline>
+<codeline lineno="385"><highlight class="normal"></highlight></codeline>
+<codeline lineno="386"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">/*<sp/>Warmup.<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="387"><highlight class="normal"><sp/><sp/><ref refid="microbench__block__sparse_8c_1a0bb86ae3f74d09b38ea3c1e35b8cdf9e" kindref="member">gemv_rowmajor</ref>(W_dense,<sp/>x,<sp/>y_dense,<sp/>rows,<sp/>cols);</highlight></codeline>
+<codeline lineno="388"><highlight class="normal"><sp/><sp/><ref refid="sparse__format_8h_1ae9a2aad0ec5332237097030acf034961" kindref="member">ie_gemv_block_sparse_f32</ref>(&amp;m,<sp/>x,<sp/>y_sparse,<sp/>NULL);</highlight></codeline>
+<codeline lineno="389"><highlight class="normal"></highlight></codeline>
+<codeline lineno="390"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">/*<sp/>Timed<sp/>loop:<sp/>dense.<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="391"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">double</highlight><highlight class="normal"><sp/>t0_dense<sp/>=<sp/><ref refid="microbench__block__sparse_8c_1a8a295707b83706041868cd34f3c663d5" kindref="member">now_s</ref>();</highlight></codeline>
+<codeline lineno="392"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>it<sp/>=<sp/>0;<sp/>it<sp/>&lt;<sp/>iters;<sp/>++it)<sp/>{</highlight></codeline>
+<codeline lineno="393"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="microbench__block__sparse_8c_1a0bb86ae3f74d09b38ea3c1e35b8cdf9e" kindref="member">gemv_rowmajor</ref>(W_dense,<sp/>x,<sp/>y_dense,<sp/>rows,<sp/>cols);</highlight></codeline>
+<codeline lineno="394"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="395"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">double</highlight><highlight class="normal"><sp/>t1_dense<sp/>=<sp/><ref refid="microbench__block__sparse_8c_1a8a295707b83706041868cd34f3c663d5" kindref="member">now_s</ref>();</highlight></codeline>
+<codeline lineno="396"><highlight class="normal"></highlight></codeline>
+<codeline lineno="397"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">/*<sp/>Timed<sp/>loop:<sp/>block-sparse.<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="398"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">double</highlight><highlight class="normal"><sp/>t0_sparse<sp/>=<sp/><ref refid="microbench__block__sparse_8c_1a8a295707b83706041868cd34f3c663d5" kindref="member">now_s</ref>();</highlight></codeline>
+<codeline lineno="399"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>it<sp/>=<sp/>0;<sp/>it<sp/>&lt;<sp/>iters;<sp/>++it)<sp/>{</highlight></codeline>
+<codeline lineno="400"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="sparse__format_8h_1ae9a2aad0ec5332237097030acf034961" kindref="member">ie_gemv_block_sparse_f32</ref>(&amp;m,<sp/>x,<sp/>y_sparse,<sp/>NULL);</highlight></codeline>
+<codeline lineno="401"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="402"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">double</highlight><highlight class="normal"><sp/>t1_sparse<sp/>=<sp/><ref refid="microbench__block__sparse_8c_1a8a295707b83706041868cd34f3c663d5" kindref="member">now_s</ref>();</highlight></codeline>
+<codeline lineno="403"><highlight class="normal"></highlight></codeline>
+<codeline lineno="404"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">double</highlight><highlight class="normal"><sp/>dt_dense<sp/>=<sp/>t1_dense<sp/>-<sp/>t0_dense;</highlight></codeline>
+<codeline lineno="405"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">double</highlight><highlight class="normal"><sp/>dt_sparse<sp/>=<sp/>t1_sparse<sp/>-<sp/>t0_sparse;</highlight></codeline>
+<codeline lineno="406"><highlight class="normal"></highlight></codeline>
+<codeline lineno="407"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">double</highlight><highlight class="normal"><sp/>us_per_iter_dense<sp/>=<sp/>(dt_dense<sp/>*<sp/>1e6)<sp/>/<sp/>(</highlight><highlight class="keywordtype">double</highlight><highlight class="normal">)iters;</highlight></codeline>
+<codeline lineno="408"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">double</highlight><highlight class="normal"><sp/>us_per_iter_sparse<sp/>=<sp/>(dt_sparse<sp/>*<sp/>1e6)<sp/>/<sp/>(</highlight><highlight class="keywordtype">double</highlight><highlight class="normal">)iters;</highlight></codeline>
+<codeline lineno="409"><highlight class="normal"></highlight></codeline>
+<codeline lineno="410"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">/*<sp/>Rough<sp/>memory<sp/>traffic:<sp/>assume<sp/>read<sp/>of<sp/>W<sp/>and<sp/>x<sp/>and<sp/>write<sp/>of<sp/>y<sp/>per<sp/>iter.<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="411"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">double</highlight><highlight class="normal"><sp/>bytes_dense<sp/>=</highlight></codeline>
+<codeline lineno="412"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>(double)(rows<sp/>*<sp/>cols<sp/>+<sp/>cols<sp/>+<sp/>rows)<sp/>*<sp/></highlight><highlight class="keyword">sizeof</highlight><highlight class="normal">(float);</highlight></codeline>
+<codeline lineno="413"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">double</highlight><highlight class="normal"><sp/>bytes_sparse<sp/>=</highlight></codeline>
+<codeline lineno="414"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>(double)m.<ref refid="structie__block__sparse__matrix_1a8f73164fd4166248801d695c668e8764" kindref="member">nnzb</ref><sp/>*</highlight></codeline>
+<codeline lineno="415"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>(</highlight><highlight class="keywordtype">double</highlight><highlight class="normal">)m.<ref refid="structie__block__sparse__matrix_1a13f4d4b069d046ba790eeb68425f11d8" kindref="member">block_rows</ref><sp/>*<sp/>(double)m.<ref refid="structie__block__sparse__matrix_1a25206375c5fd501aff86f47dd3c52005" kindref="member">block_cols</ref><sp/>*<sp/></highlight><highlight class="keyword">sizeof</highlight><highlight class="normal">(</highlight><highlight class="keywordtype">float</highlight><highlight class="normal">)<sp/>+</highlight></codeline>
+<codeline lineno="416"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>(double)m.<ref refid="structie__block__sparse__matrix_1a153358c4549c88a51c341e9ed55ec367" kindref="member">cols</ref><sp/>*<sp/></highlight><highlight class="keyword">sizeof</highlight><highlight class="normal">(</highlight><highlight class="keywordtype">float</highlight><highlight class="normal">)<sp/>+</highlight></codeline>
+<codeline lineno="417"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>(double)m.<ref refid="structie__block__sparse__matrix_1a2e874338bccc653f32f1e9378e78e8d4" kindref="member">rows</ref><sp/>*<sp/></highlight><highlight class="keyword">sizeof</highlight><highlight class="normal">(</highlight><highlight class="keywordtype">float</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="418"><highlight class="normal"></highlight></codeline>
+<codeline lineno="419"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">double</highlight><highlight class="normal"><sp/>gbps_dense<sp/>=</highlight></codeline>
+<codeline lineno="420"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>(bytes_dense<sp/>*<sp/>(double)iters<sp/>/<sp/>dt_dense)<sp/>/<sp/>1e9;</highlight></codeline>
+<codeline lineno="421"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">double</highlight><highlight class="normal"><sp/>gbps_sparse<sp/>=</highlight></codeline>
+<codeline lineno="422"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>(bytes_sparse<sp/>*<sp/>(double)iters<sp/>/<sp/>dt_sparse)<sp/>/<sp/>1e9;</highlight></codeline>
+<codeline lineno="423"><highlight class="normal"></highlight></codeline>
+<codeline lineno="424"><highlight class="normal"><sp/><sp/>printf(</highlight><highlight class="stringliteral">&quot;\n===<sp/>Results<sp/>===\n&quot;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="425"><highlight class="normal"><sp/><sp/>printf(</highlight><highlight class="stringliteral">&quot;dense:<sp/><sp/><sp/>%.3f<sp/>ms<sp/>total,<sp/>%.2f<sp/>us/iter,<sp/>~%.2f<sp/>GB/s\n&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="426"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>dt_dense<sp/>*<sp/>1000.0,<sp/>us_per_iter_dense,<sp/>gbps_dense);</highlight></codeline>
+<codeline lineno="427"><highlight class="normal"><sp/><sp/>printf(</highlight><highlight class="stringliteral">&quot;sparse:<sp/><sp/>%.3f<sp/>ms<sp/>total,<sp/>%.2f<sp/>us/iter,<sp/>~%.2f<sp/>GB/s\n&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="428"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>dt_sparse<sp/>*<sp/>1000.0,<sp/>us_per_iter_sparse,<sp/>gbps_sparse);</highlight></codeline>
+<codeline lineno="429"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(dt_sparse<sp/>&gt;<sp/>0.0)<sp/>{</highlight></codeline>
+<codeline lineno="430"><highlight class="normal"><sp/><sp/><sp/><sp/>printf(</highlight><highlight class="stringliteral">&quot;speedup<sp/>(dense/sparse):<sp/>%.3fx\n&quot;</highlight><highlight class="normal">,<sp/>dt_dense<sp/>/<sp/>dt_sparse);</highlight></codeline>
+<codeline lineno="431"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="432"><highlight class="normal"></highlight></codeline>
+<codeline lineno="433"><highlight class="normal"><sp/><sp/><ref refid="sparse__format_8h_1ac8f8ef0741fb1ea4ea51a9e41414c318" kindref="member">ie_block_sparse_release</ref>(&amp;m);</highlight></codeline>
+<codeline lineno="434"><highlight class="normal"><sp/><sp/>free(W_dense);</highlight></codeline>
+<codeline lineno="435"><highlight class="normal"><sp/><sp/>free(x);</highlight></codeline>
+<codeline lineno="436"><highlight class="normal"><sp/><sp/>free(y_dense);</highlight></codeline>
+<codeline lineno="437"><highlight class="normal"><sp/><sp/>free(y_sparse);</highlight></codeline>
+<codeline lineno="438"><highlight class="normal"></highlight></codeline>
+<codeline lineno="439"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>0;</highlight></codeline>
+<codeline lineno="440"><highlight class="normal">}</highlight></codeline>
+    </programlisting>
+    <location file="benchmarks/src/microbench_block_sparse.c"/>
+  </compounddef>
+</doxygen>

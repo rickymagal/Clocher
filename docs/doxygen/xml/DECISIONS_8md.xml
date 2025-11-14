@@ -89,7 +89,37 @@
 <codeline><highlight class="normal"><sp/><sp/>-<sp/>**Decision:**<sp/>Add<sp/>`IE_ACT_PREC`<sp/>(values:<sp/>`int8|fp8|fp16|bf16|fp32`).<sp/>Host<sp/>accumulators<sp/>remain<sp/>FP32;<sp/>backends<sp/>may<sp/>ignore<sp/>unsupported<sp/>hints.</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/>-<sp/>**Consequences:**<sp/>Decouples<sp/>storage<sp/>(e.g.,<sp/>`int4w`)<sp/>from<sp/>activation<sp/>math,<sp/>enabling<sp/>orthogonal<sp/>tuning.</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/>-<sp/>**Status:**<sp/>Accepted.<sp/>Backward‑compatible;<sp/>default<sp/>remains<sp/>FP32<sp/>if<sp/>unset.</highlight></codeline>
+<codeline><highlight class="normal">---</highlight></codeline>
+<codeline><highlight class="normal">##<sp/>ADR‑0017<sp/>(Memory<sp/>Streaming<sp/>Heuristics):<sp/>Prefetch<sp/>&amp;<sp/>Non‑Temporal<sp/>Loads<sp/>—<sp/>2025-11-12<sp/>18:01:19<sp/>UTC</highlight></codeline>
 <codeline></codeline>
+<codeline><highlight class="normal">**Context.**<sp/>GEMV<sp/>paths<sp/>are<sp/>bandwidth‑bound.<sp/>Sequential<sp/>blocked‑K<sp/>layouts<sp/>help,<sp/>but<sp/>cache<sp/>pollution<sp/>and<sp/>late<sp/>prefetch<sp/>still<sp/>cap<sp/>TPS.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Decision.**</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Adopt<sp/>tunables<sp/>`IE_PREFETCH_DISTANCE`,<sp/>`IE_NT_LOADS`,<sp/>`IE_NT_RATIO`,<sp/>and<sp/>`IE_L3_BYTES`<sp/>to<sp/>steer<sp/>prefetch<sp/>distance,<sp/>streaming<sp/>loads,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>and<sp/>an<sp/>approximate<sp/>L3<sp/>budget<sp/>for<sp/>“hot”<sp/>slices.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Default<sp/>is<sp/>**conservative**<sp/>(`auto`)<sp/>with<sp/>architecture<sp/>checks;<sp/>explicit<sp/>values<sp/>override.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Consequences.**</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Wins<sp/>on<sp/>large<sp/>models/long<sp/>K<sp/>with<sp/>single‑touch<sp/>patterns.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Small<sp/>rows<sp/>or<sp/>re‑use‑heavy<sp/>layers<sp/>may<sp/>regress<sp/>if<sp/>NT<sp/>is<sp/>forced<sp/>→<sp/>keep<sp/>`auto`<sp/>as<sp/>default<sp/>and<sp/>expose<sp/>per‑run<sp/>sweeps<sp/>in<sp/>the<sp/>harness.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Status.**<sp/>Accepted.<sp/>Implemented<sp/>in<sp/>CPU<sp/>AVX2<sp/>and<sp/>CUDA<sp/>pack/GEMV<sp/>call<sp/>sites<sp/>with<sp/>guarded<sp/>paths.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">---</highlight></codeline>
+<codeline><highlight class="normal">##<sp/>ADR‑0018<sp/>(Metrics<sp/>&amp;<sp/>Reporting):<sp/>Spatial<sp/>Metrics<sp/>in<sp/>PERFORMANCE.md<sp/>—<sp/>2025-11-12<sp/>18:01:19<sp/>UTC</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Context.**<sp/>Throughput<sp/>alone<sp/>hides<sp/>memory<sp/>behavior.<sp/>We<sp/>need<sp/>bytes/token,<sp/>coverage<sp/>vs<sp/>model,<sp/>RSS<sp/>peak,<sp/>and<sp/>effective<sp/>bandwidth.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Decision.**</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Extend<sp/>the<sp/>JSON<sp/>summary<sp/>and<sp/>the<sp/>Markdown<sp/>generator<sp/>to<sp/>compute<sp/>spatial<sp/>fields<sp/>from<sp/>`IE_BYTES_PER_TOKEN`,<sp/>run<sp/>totals,<sp/>and<sp/>model<sp/>size.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Update<sp/>Prometheus<sp/>exporter<sp/>with<sp/>a<sp/>`ie_build_info`<sp/>gauge<sp/>(labels)<sp/>and<sp/>RSS<sp/>gauges.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Consequences.**</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Comparable<sp/>runs<sp/>across<sp/>machines<sp/>now<sp/>capture<sp/>memory<sp/>pressure<sp/>explicitly.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Grafana<sp/>dashboards<sp/>can<sp/>plot<sp/>GB/s<sp/>alongside<sp/>TPS<sp/>for<sp/>stability<sp/>analysis.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Status.**<sp/>Accepted.<sp/>Shipped<sp/>with<sp/>`monitoring/metrics_memory.toml`,<sp/>updated<sp/>`scripts/metrics_exporter.py`,</highlight></codeline>
+<codeline><highlight class="normal">and<sp/>harness<sp/>sweep<sp/>labels<sp/>for<sp/>memory<sp/>knobs.</highlight></codeline>
     </programlisting>
     <location file="docs/DECISIONS.md"/>
   </compounddef>

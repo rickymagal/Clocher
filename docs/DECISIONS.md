@@ -111,3 +111,45 @@
 
 **Status.** Accepted. Shipped with `monitoring/metrics_memory.toml`, updated `scripts/metrics_exporter.py`,
 and harness sweep labels for memory knobs.
+
+## ADR‑0019 (Sparsity): Block‑sparse weights, CPU‑only prototype — 2025‑11‑14 23:00:00 UTC
+
+**Context.**
+- Phase 1 of the memory work focused on *dense* optimizations: INT4/INT8 activations, NUMA‑aware topology, hot‑weights replication, and streaming loads.
+- The next natural axis is **algorithmic sparsity**: skip zero blocks instead of streaming everything.
+- We want a conservative, inspectable prototype that:
+  - lives entirely on the CPU path;
+  - does **not** disturb the existing dense loading/CLI;
+  - is testable in isolation (C unit tests + microbench).
+
+**Decision.**
+- Introduce a small, self‑contained **block‑sparse format** and CPU kernel:
+  - New descriptor type `ie_block_sparse_matrix_t` in `engine/include/sparse_format.h`.
+  - Loader in `engine/src/sparse_io.c` that reads a compact binary header and BSR payload.
+  - Reference GEMV in `engine/src/gemm_block_sparse.c` operating on FP32 weights.
+- Extend the device abstraction:
+  - Add `gemv_block_sparse_f32` to the `ie_device` vtable.
+  - Provide a CPU implementation wired to `ie_gemv_block_sparse_f32`.
+  - Keep CUDA/Level‑Zero entries as stubs that return “unimplemented”; the public helpers fall back to CPU.
+- Add offline and benchmarking tools:
+  - `tools/convert_to_block_sparse.c` to convert dense row‑major weights into the on‑disk BSR format.
+  - `tests/c/test_block_sparse.c` with small hand‑built matrices to validate loader + GEMV.
+  - `benchmarks/src/microbench_gemv_block_sparse.c` to compare dense vs block‑sparse GEMV on CPU.
+- Restrict scope explicitly:
+  - **CPU only** for this ADR; no GPU kernels are required to pass tests.
+  - **FP32 weights only**; quantized/specialized paths remain dense.
+
+**Consequences.**
+- We have a **concrete, repeatable** sparsity experiment:
+  - Same repository, same Makefile; add a dense `.bin`, run the converter, microbench the result.
+  - Unit tests ensure correctness on small matrices.
+- The device layer remains forward‑compatible:
+  - Future GPU support can fill in the existing vtable slot without touching the public API.
+  - Callers can ask for block‑sparse GEMV and still get a correct CPU fallback today.
+- No risk to existing users:
+  - CLI behavior and `model.ie.bin` format are unchanged.
+  - All new code is opt‑in and exercised only by tests/microbench/scripts introduced in this phase.
+
+**Status.**
+- Accepted. Implemented as a **CPU‑only prototype**; further ADRs will cover wiring full‑model weights and any GPU/quantized variants.
+

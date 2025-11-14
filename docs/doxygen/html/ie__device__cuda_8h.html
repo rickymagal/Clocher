@@ -146,17 +146,17 @@ Functions</h2></td></tr>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>CUDA backend entry points (first-party, no cuBLAS). </p>
 <p>This header exposes a minimal C ABI to offload FP32 GEMV to CUDA. It is backend-agnostic for the engine core: you can call these utilities opportunistically when CUDA is present, and fall back to the CPU path otherwise. No global state is leaked.</p>
-<h2><a class="anchor" id="autotoc_md10"></a>
+<h2><a class="anchor" id="autotoc_md48"></a>
 Design goals</h2>
 <ul>
 <li>Keep the ABI in plain C for easy inclusion in C11 code.</li>
 <li>Avoid third-party libraries (no cuBLAS); ship a simple kernel.</li>
 <li>Permit "one-shot" usage (alloc/copy/launch/free) for correctness first; later we can add persistent buffers for performance.</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md11"></a>
+<h2><a class="anchor" id="autotoc_md49"></a>
 Thread safety</h2>
 <p>All functions are thread-safe as long as you do not share the same device pointers across threads. These entry points do not expose device pointers, so they are safe by construction.</p>
-<h2><a class="anchor" id="autotoc_md12"></a>
+<h2><a class="anchor" id="autotoc_md50"></a>
 Return codes</h2>
 <ul>
 <li>0: success</li>

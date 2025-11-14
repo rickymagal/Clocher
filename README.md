@@ -429,3 +429,55 @@ Each configuration is labeled and exported to CSV/JSONL; `scripts/update_perform
 - CPU: dispatcher keeps AVX2/FMA fast path; generic C path honors blocked‑K and activation dequant (INT8 per‑tensor / per‑group).
 
 > Tip: for strict, bandwidth‑bound tests use: `IE_REQUIRE_MODEL=1 IE_BYTES_PER_TOKEN=64000000 IE_STRIDE_BYTES=256`.
+
+---
+## What's new — Block-sparse weights (CPU only, 2025‑11‑14)
+
+This phase adds a **block‑sparse representation for weight matrices** and a
+reference CPU implementation. The goal is to make sparsity experiments
+reproducible without disturbing the existing dense path.
+
+### New artifacts
+
+Code:
+
+- `engine/include/sparse_format.h` — public descriptor for block‑sparse
+  matrices (`ie_block_sparse_matrix_t`) plus helpers and status codes.
+- `engine/src/sparse_io.c` — on‑disk header/loader for a compact
+  block‑sparse binary format (`ie_block_sparse_load`).
+- `engine/src/gemm_block_sparse.c` — single‑threaded reference GEMV
+  (`ie_gemv_block_sparse_f32`) over the BSR structure.
+- `engine/src/devices/ie_device_common.c` — device vtable extended with a
+  `gemv_block_sparse_f32` entry and a CPU fallback implementation.
+- `tests/c/test_block_sparse.c` — C unit tests that validate the loader and
+  GEMV on small hand‑built matrices.
+- `benchmarks/src/microbench_gemv_block_sparse.c` — standalone
+  microbenchmark that compares dense vs block‑sparse GEMV on CPU.
+- `tools/convert_to_block_sparse.c` — offline converter from a dense
+  row‑major weight matrix to the on‑disk block‑sparse format.
+
+Build/Makefile:
+
+- `Makefile` now compiles the new sources and wires the block‑sparse
+  microbench under `make microbench-block-sparse` (CPU only).
+- The main `make test` target runs `test_block_sparse` together with the
+  existing C unit tests.
+
+### Scope and current limitations
+
+- **Backend:** CPU only. CUDA/Level‑Zero code paths simply report
+  “unimplemented” for block‑sparse GEMV and transparently fall back to the
+  dense CPU implementation if called.
+- **Layout:** fixed **block‑row CSR (BSR)** layout with uniform
+  `block_rows x block_cols`. Tail blocks at the matrix edges are handled
+  by clipping reads/writes using the dense `rows/cols` metadata.
+- **Datatype:** FP32 weights only. Activations, quantized paths and mixed
+  precision remain dense for now.
+- **Integration:** the block‑sparse path is currently exercised via the C
+  tests and the dedicated microbenchmark. The CLI still consumes dense
+  `model.ie.bin`; wiring full‑model block‑sparse weights will be a separate
+  ADR/phase.
+
+See `DESIGN.md` (Block‑sparse weights chapter) and `DECISIONS.md` (ADR for
+block‑sparse) for full details.
+

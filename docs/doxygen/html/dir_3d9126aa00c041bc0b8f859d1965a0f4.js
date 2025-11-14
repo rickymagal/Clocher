@@ -7,10 +7,12 @@ var dir_3d9126aa00c041bc0b8f859d1965a0f4 =
     [ "opt", "dir_6a8ae9aac5da83432634b4279f2f3c70.html", "dir_6a8ae9aac5da83432634b4279f2f3c70" ],
     [ "quant", "dir_ea8755ec8c8b8285d5914a73a733b356.html", "dir_ea8755ec8c8b8285d5914a73a733b356" ],
     [ "runtime", "dir_25af579fff40d90ea7ba98c1764ae1f1.html", "dir_25af579fff40d90ea7ba98c1764ae1f1" ],
+    [ "gemm_block_sparse.c", "gemm__block__sparse_8c.html", "gemm__block__sparse_8c" ],
     [ "ie_api.c", "ie__api_8c.html", "ie__api_8c" ],
     [ "ie_kv_instrumentation.c", "ie__kv__instrumentation_8c.html", "ie__kv__instrumentation_8c" ],
     [ "ie_tensor.c", "ie__tensor_8c.html", null ],
     [ "main_infer.c", "main__infer_8c.html", "main__infer_8c" ],
+    [ "sparse_io.c", "sparse__io_8c.html", "sparse__io_8c" ],
     [ "util_logging.c", "util__logging_8c.html", "util__logging_8c" ],
     [ "util_metrics.c", "util__metrics_8c.html", "util__metrics_8c" ]
 ];

@@ -29,6 +29,7 @@ var dir_bafa501d493553e442f19f5f8dd7b29c =
     [ "ie_tokenizer.h", "ie__tokenizer_8h.html", null ],
     [ "ie_topology.h", "ie__topology_8h.html", "ie__topology_8h" ],
     [ "platform.h", "platform_8h.html", "platform_8h" ],
+    [ "sparse_format.h", "sparse__format_8h.html", "sparse__format_8h" ],
     [ "util_logging.h", "util__logging_8h.html", "util__logging_8h" ],
     [ "util_metrics.h", "util__metrics_8h.html", "util__metrics_8h" ]
 ];

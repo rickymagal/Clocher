@@ -104,7 +104,7 @@ $(function(){initNavTree('index.html',''); initResizable(true); });
 <p><em>A minimal C11 inference baseline with strict metrics &amp; a Python harness.</em> <br  />
  <b>Last updated:</b> 2025-10-24 21:00:48 UTC</p>
 <hr  />
-<h1><a class="anchor" id="autotoc_md68"></a>
+<h1><a class="anchor" id="autotoc_md83"></a>
 Quick start</h1>
 <div class="fragment"><div class="line"># Build CPU and (optionally) CUDA binaries</div>
 <div class="line">make build</div>
@@ -112,17 +112,17 @@ Quick start</h1>
 <div class="line"> </div>
 <div class="line"># Sanity: show CLI</div>
 <div class="line">./build/inference-engine --help</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md69"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md84"></a>
 Model format (IEBIN v1)</h2>
 <p>The engine consumes a pair of files in the current working directory:</p>
 <div class="fragment"><div class="line">model.ie.json   # metadata (tensor names, shapes, dtypes, scales)</div>
 <div class="line">model.ie.bin    # raw, mmap‑friendly tensor blob</div>
 </div><!-- fragment --><p>You can pack from a Hugging Face checkpoint using the helper script below.</p>
 <hr  />
-<h1><a class="anchor" id="autotoc_md71"></a>
+<h1><a class="anchor" id="autotoc_md86"></a>
 NEW: INT4 <b>weight‑only</b> PTQ path (Q4)</h1>
 <p>This repository now includes a <b>4‑bit (INT4) weight‑only</b> path that trades a small accuracy budget for <b>4× smaller weights</b> and a substantial <b>memory‑bandwidth reduction</b>. It is designed to be drop‑in with the existing build and harness.</p>
-<h2><a class="anchor" id="autotoc_md72"></a>
+<h2><a class="anchor" id="autotoc_md87"></a>
 Pipeline overview</h2>
 <p>1) <b>Prepare/locate a HF model</b> (already sharded is fine):</p>
 <div class="fragment"><div class="line">models/gpt-oss-20b/hf/</div>
@@ -157,7 +157,7 @@ Pipeline overview</h2>
 <div class="line">PROMPTS=../../benchmarks/prompts_10..txt IE_PRECISION=int4w IE_REQUIRE_MODEL=1 IE_BYTES_PER_TOKEN=64000000 IE_STRIDE_BYTES=256 RUNS=3 make -C ../.. bench-cuda</div>
 </div><!-- fragment --><p>The CLI will emit a <b>single JSON line</b> per run, which the harness merges into <code><a class="el" href="PERFORMANCE_8md.html">docs/PERFORMANCE.md</a></code>.</p>
 <hr  />
-<h1><a class="anchor" id="autotoc_md74"></a>
+<h1><a class="anchor" id="autotoc_md89"></a>
 Operational notes</h1>
 <ul>
 <li>The <code>--device</code> flag is accepted by the CLI as a <b>no‑op hint</b> (selection is a build‑time concern). CPU: <code>build/inference-engine</code>, CUDA: <code>build/inference-engine.cuda</code>.</li>
@@ -166,7 +166,7 @@ Operational notes</h1>
 <li><b>RSS reporting</b>: the CLI samples peak RSS after the timed window (Linux: <code>/proc/self/status</code> <code>VmHWM</code>, fallback <code>getrusage</code>).</li>
 </ul>
 <hr  />
-<h1><a class="anchor" id="autotoc_md76"></a>
+<h1><a class="anchor" id="autotoc_md91"></a>
 Troubleshooting</h1>
 <ul>
 <li><code>ERROR: --q4-map not found</code>: pass a real path to your manifest, e.g. <code>quant/q4_manifest.json</code>.</li>
@@ -174,7 +174,7 @@ Troubleshooting</h1>
 <li><code>Prompts file not found:</code>PROMPTS=benchmarks/prompts_10..txt` (note the <b>double dot</b> in the demo file).</li>
 </ul>
 <hr  />
-<h1><a class="anchor" id="autotoc_md78"></a>
+<h1><a class="anchor" id="autotoc_md93"></a>
 What INT4 (weight‑only) means here</h1>
 <ul>
 <li><b>Activations</b> remain floating‑point; only <b>weights</b> are nibble‑packed (2 weights per byte) with per‑row scales.</li>
@@ -182,17 +182,17 @@ What INT4 (weight‑only) means here</h1>
 <li>Accuracy is safeguarded by a <b>calibration gate</b> (cosine similarity or task‑level eval), configurable in the PTQ scripts.</li>
 </ul>
 <hr  />
-<h1><a class="anchor" id="autotoc_md80"></a>
+<h1><a class="anchor" id="autotoc_md95"></a>
 See also</h1>
 <ul>
 <li>Detailed design and optimization path: <code><a class="el" href="DESIGN_8md.html">docs/DESIGN.md</a></code>, <code>docs/adr-00060-optimization-path.md</code></li>
 <li>Decision log: <code><a class="el" href="DECISIONS_8md.html">docs/DECISIONS.md</a></code></li>
 </ul>
 <hr  />
- <h1><a class="anchor" id="autotoc_md82"></a>
+ <h1><a class="anchor" id="autotoc_md97"></a>
 INT4 Weight-Only — Addendum (2025-10-24 21:04:23 UTC)</h1>
 <p>This addendum <b>adds</b> a new optional path to the existing pipeline for <b>INT4 (weight-only)</b> packing and benchmarking. It does <b>not</b> replace the FP32/BF16/FP16 flows.</p>
-<h2><a class="anchor" id="autotoc_md83"></a>
+<h2><a class="anchor" id="autotoc_md98"></a>
 Summary</h2>
 <ul>
 <li>Quantization: post-training <em>weight-only</em> INT4 (aka <code>int4w</code>) via a manifest.</li>
@@ -200,21 +200,21 @@ Summary</h2>
 <li>Runtime: select precision with <code>IE_PRECISION=int4w</code> (or <code>--precision int4w</code>), independent from host math precision.</li>
 <li>Benchmarks: <code>make bench</code> / <code>make bench-cuda</code> support strict runs with realistic memory pressure via <code>IE_BYTES_PER_TOKEN</code>.</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md84"></a>
+<h2><a class="anchor" id="autotoc_md99"></a>
 Prerequisites</h2>
 <ul>
 <li>A working HF model directory (already used in your FP32 flow), e.g. <code>models/gpt-oss-20b/hf</code>.</li>
 <li>A quantization manifest (example at <code>quant/q4_manifest.json</code>). See <b>Manifest template</b> below.</li>
 <li>Python deps already used by <code><a class="el" href="hf__to__iebin_8py.html">scripts/hf_to_iebin.py</a></code> (torch, numpy).</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md85"></a>
+<h2><a class="anchor" id="autotoc_md100"></a>
 Export to IEBIN with INT4</h2>
 <div class="fragment"><div class="line">python3 scripts/hf_to_iebin.py   --hf-dir models/gpt-oss-20b/hf   --out-dir models/gpt-oss-20b   --q4-map quant/q4_manifest.json</div>
 </div><!-- fragment --><p> This produces (or updates) <code>models/gpt-oss-20b/model.ie.json</code> and <code>models/gpt-oss-20b/model.ie.bin</code> with weight-only INT4 packing per manifest.</p>
 <blockquote class="doxtable">
 <p>Tip: if you see <code>ERROR: --q4-map not found</code>, double‑check the path to your manifest. </p>
 </blockquote>
-<h2><a class="anchor" id="autotoc_md86"></a>
+<h2><a class="anchor" id="autotoc_md101"></a>
 Run the strict benchmark (CPU)</h2>
 <div class="fragment"><div class="line">PROMPTS=benchmarks/prompts_10..txt IE_PRECISION=int4w IE_REQUIRE_MODEL=1 IE_BYTES_PER_TOKEN=64000000 IE_STRIDE_BYTES=256 RUNS=3 make bench</div>
 </div><!-- fragment --><ul>
@@ -222,10 +222,10 @@ Run the strict benchmark (CPU)</h2>
 <li><code>IE_BYTES_PER_TOKEN</code> enables the per-token <em>work-touch</em> loop over <code>model.ie.bin</code> to mimic bandwidth pressure.</li>
 <li><code>IE_STRIDE_BYTES</code> controls the touch stride (256 is a good default).</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md87"></a>
+<h2><a class="anchor" id="autotoc_md102"></a>
 Run the strict benchmark (CUDA)</h2>
 <div class="fragment"><div class="line">PROMPTS=benchmarks/prompts_10..txt IE_PRECISION=int4w IE_REQUIRE_MODEL=1 IE_BYTES_PER_TOKEN=64000000 IE_STRIDE_BYTES=256 RUNS=3 make bench-cuda</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md88"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md103"></a>
 Manifest template (example)</h2>
 <p>Save as <code>quant/q4_manifest.json</code>: </p><div class="fragment"><div class="line">{</div>
 <div class="line">  &quot;version&quot;: 1,</div>
@@ -246,19 +246,19 @@ Manifest template (example)</h2>
 <div class="line">    }</div>
 <div class="line">  ]</div>
 <div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md89"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md104"></a>
 Troubleshooting</h2>
 <ul>
 <li><b>Unknown flag errors</b>: The CLI now accepts <code>--device</code>, <code>--model-dir</code>, <code>--model-json</code>, <code>--model-bin</code>, and <code>--rounds</code> as documented. If your harness still injects older flags, update it, or run the engine directly.</li>
 <li><b>RSS peak shows 0 MB</b>: Ensure you are on Linux and that the engine is built with the updated <code><a class="el" href="ie__metrics_8h.html#a0b083c9fbf90d02c9ef387ab34220a34" title="Best-effort sampling of peak RSS (resident set size).">ie_metrics_sample_rss_peak()</a></code> (reads <code>/proc/self/status</code> → <code>VmHWM</code>, then falls back to <code>getrusage</code>). The JSON is captured <em>after</em> the measured window; the value will be <code>0</code> only if the OS reports <code>0</code> or if the sampling failed.</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md90"></a>
+<h2><a class="anchor" id="autotoc_md105"></a>
 Notes</h2>
 <ul>
 <li>The <b>precision label</b> (<code>IE_PRECISION</code>) is a <em>storage / weight</em> hint, not necessarily the CPU math precision. You can still set <code>PRECISION=fp32</code> for host compute while using <code>IE_PRECISION=int4w</code> for storage.</li>
 <li>Deterministic stub mode remains available when <code>IE_REQUIRE_MODEL</code> is not set; strict runs require a valid IEBIN pair.</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md91"></a>
+<h1><a class="anchor" id="autotoc_md106"></a>
 Repository Layout</h1>
 <div class="fragment"><div class="line">.</div>
 <div class="line">├── benchmarks</div>
@@ -313,10 +313,10 @@ Repository Layout</h1>
 <div class="line">│   └── python/</div>
 <div class="line">├── Makefile</div>
 <div class="line">└── README.md</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md92"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md107"></a>
 Makefile — Complete Reference</h1>
 <p>This project uses a single <code>Makefile</code> to build CPU/CUDA binaries and run reproducible benchmarks.</p>
-<h2><a class="anchor" id="autotoc_md93"></a>
+<h2><a class="anchor" id="autotoc_md108"></a>
 Common Targets</h2>
 <ul>
 <li><code>make build</code> — build <b>CPU</b> binary at <code>build/inference-engine</code>.</li>
@@ -328,7 +328,7 @@ Common Targets</h2>
 <blockquote class="doxtable">
 <p>Tip: these benchmarks call the <em>same</em> CLI under the hood (<code>build/inference-engine*</code>). </p>
 </blockquote>
-<h2><a class="anchor" id="autotoc_md94"></a>
+<h2><a class="anchor" id="autotoc_md109"></a>
 Environment Variables (consumed by <code>make bench*</code> and/or the CLI)</h2>
 <ul>
 <li><code>PROMPTS</code> : path to a prompts file (one prompt per line). Example: <code>benchmarks/prompts_10..txt</code>.</li>
@@ -353,12 +353,12 @@ Environment Variables (consumed by <code>make bench*</code> and/or the CLI)</h2>
 <li><code>--prompts-file PATH</code></li>
 <li><code>--aggregate</code></li>
 </ul>
-<h2><a class="anchor" id="autotoc_md95"></a>
+<h2><a class="anchor" id="autotoc_md110"></a>
 End‑to‑End Examples</h2>
 <p><b>CPU, strict mode, 64 MB per token, int4w weights:</b> </p><div class="fragment"><div class="line">PROMPTS=benchmarks/prompts_10..txt IE_PRECISION=int4w IE_REQUIRE_MODEL=1 IE_BYTES_PER_TOKEN=64000000 IE_STRIDE_BYTES=256 RUNS=3 make bench</div>
 </div><!-- fragment --><p><b>CUDA, same settings:</b> </p><div class="fragment"><div class="line">PROMPTS=benchmarks/prompts_10..txt IE_PRECISION=int4w IE_REQUIRE_MODEL=1 IE_BYTES_PER_TOKEN=64000000 IE_STRIDE_BYTES=256 RUNS=3 make bench-cuda</div>
 </div><!-- fragment --><p><b>Direct CLI (bypass Makefile), model in <code>models/gpt-oss-20b</code>:</b> </p><div class="fragment"><div class="line">./build/inference-engine   --model-dir models/gpt-oss-20b   --precision fp32   --pretranspose all   --prompts-file benchmarks/prompts_10..txt   --max-new 128 --threads 12 --rounds 1</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md96"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md111"></a>
 Return Codes</h2>
 <ul>
 <li><code>0</code> success, JSON line printed.</li>
@@ -367,9 +367,9 @@ Return Codes</h2>
 <li><code>5</code> engine creation failed.</li>
 <li><code>6</code> OOM allocating token buffer.</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md97"></a>
+<h1><a class="anchor" id="autotoc_md112"></a>
 RSS Reporting</h1>
-<h2><a class="anchor" id="autotoc_md98"></a>
+<h2><a class="anchor" id="autotoc_md113"></a>
 RSS Reporting</h2>
 <ul>
 <li>We sample <b>peak resident set size (RSS)</b> after the measured window to avoid skewing TPS.</li>
@@ -377,16 +377,16 @@ RSS Reporting</h2>
 <li>On macOS we use <code>getrusage</code> where <code>ru_maxrss</code> is in <b>bytes</b>.</li>
 <li>If neither is available, the sampler returns <b>0 MB</b>.</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md99"></a>
+<h1><a class="anchor" id="autotoc_md114"></a>
 Update Journal</h1>
 <p>This running log summarizes meaningful doc/CLI changes for reproducibility.</p>
 <ul>
 <li><b>2025-10-24 21:08:40 UTC</b> — INT4 step added to docs; CLI grew <code>--device</code>, <code>--model-dir</code>, <code>--rounds</code>; strict RSS peak sampler now reads <code>/proc/self/status</code> <code>VmHWM</code> (Linux) with <code>getrusage</code> fallback; <code>bench</code>/<code>bench-cuda</code> examples updated for <b>64 MB/token</b> work‑touch.</li>
 </ul>
 <hr  />
- <h1><a class="anchor" id="autotoc_md101"></a>
+ <h1><a class="anchor" id="autotoc_md116"></a>
 What’s new — 2025-11-10</h1>
-<h2><a class="anchor" id="autotoc_md102"></a>
+<h2><a class="anchor" id="autotoc_md117"></a>
 Step 1 — NUMA‑aware topology &amp; thread binding</h2>
 <ul>
 <li>Added <code><a class="el" href="ie__topology_8h.html">engine/include/ie_topology.h</a></code> + <code><a class="el" href="topology_8c.html">engine/src/opt/topology.c</a></code> to discover sockets/CPUs from Linux sysfs and expose helpers:<ul>
@@ -396,7 +396,7 @@ Step 1 — NUMA‑aware topology &amp; thread binding</h2>
 <li>CLI/env integration (soft hints): <code>AFFINITY=auto|compact|scatter</code> and <code>IE_TP_USE_AFFINITY=1</code> (thread‑pool), plus <code>IE_HOT_REPLICATE</code> (see Step 2).</li>
 <li>Fallback: on systems without sysfs or NUMA, we assume a single socket with <code>sysconf(_SC_NPROCESSORS_ONLN)</code> CPUs.</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md103"></a>
+<h2><a class="anchor" id="autotoc_md118"></a>
 Step 2 — “Hot” weights replication per socket</h2>
 <ul>
 <li>New module <code><a class="el" href="replicate__hot_8c.html" title="Replication of hot weights per socket using first-touch placement.">engine/src/opt/replicate_hot.c</a></code> replicates frequently‑touched (“hot”) weight pages <b>per socket</b> and pins worker threads on that socket for locality.</li>
@@ -405,20 +405,20 @@ Step 2 — “Hot” weights replication per socket</h2>
 <div class="line">export IE_HOT_REPL_LIMIT_MB=0  # (optional) cap replica size in MiB; 0 = no cap</div>
 </div><!-- fragment --></li>
 </ul>
-<h2><a class="anchor" id="autotoc_md104"></a>
+<h2><a class="anchor" id="autotoc_md119"></a>
 Activation precision (INT8 / FP8) — soft hint</h2>
 <ul>
 <li>Expose activation precision as a soft runtime hint (host math remains FP32 accumulate): <div class="fragment"><div class="line">export IE_ACT_PREC=int8   # or: fp8 | fp16 | bf16 | fp32</div>
 </div><!-- fragment --></li>
 <li>Weight precision remains independent via <code>IE_PRECISION</code> (e.g., <code>int4w</code>, <code>int8w</code>, <code>fp32</code>, etc.).</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md105"></a>
+<h2><a class="anchor" id="autotoc_md120"></a>
 Strict timing rule (re‑stated)</h2>
 <p>Only the following are counted in the measured window:</p><ul>
 <li><code>ie_engine_generate(...)</code></li>
 <li>optional “work‑touch” loop controlled by <code>IE_BYTES_PER_TOKEN</code>, <code>IE_STRIDE_BYTES</code>, <code>IE_VERIFY_TOUCH</code></li>
 </ul>
-<h2><a class="anchor" id="autotoc_md106"></a>
+<h2><a class="anchor" id="autotoc_md121"></a>
 Quick run recipes</h2>
 <p>Strict CPU run with INT4 weights, FP8 activations, NUMA‑aware binding + hot replication: </p><div class="fragment"><div class="line"># Model &amp; timing</div>
 <div class="line">export MODEL_DIR=models/gpt-oss-20b</div>
@@ -441,8 +441,46 @@ Quick run recipes</h2>
 <div class="line">  NODES=$(numactl -H | awk &#39;/available:/{print $2}&#39;)</div>
 <div class="line">  [ &quot;$NODES&quot; -gt 1 ] &amp;&amp; exec numactl --cpunodebind=0 --membind=0 bash -lc &#39;PROMPTS=benchmarks/prompts_10..txt RUNS=3 make bench&#39;</div>
 <div class="line">fi</div>
-</div><!-- fragment --><blockquote class="doxtable">
-<p>Note: If <code>numactl -H</code> shows a single node, skip <code>numactl --cpunodebind/--membind</code>. </p>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md122"></a>
+<blockquote class="doxtable">
+<p>Note: If <code>numactl -H</code> shows a single node, skip <code>numactl --cpunodebind/--membind</code>.</p>
+</blockquote>
+</h1>
+<h1><a class="anchor" id="autotoc_md123"></a>
+What's new — Memory Phase (updated 2025-11-12 18:01:19 UTC)</h1>
+<h2><a class="anchor" id="autotoc_md124"></a>
+New tuning knobs (memory/throughput)</h2>
+<p>These are read by the CLI and/or harness. Backends may ignore unsupported hints safely.</p>
+<ul>
+<li><code>IE_PREFETCH_DISTANCE</code> — integer distance in bytes (or <code>auto</code>) for software prefetch of weight streams in GEMV.</li>
+<li><code>IE_NT_LOADS</code> — <code>0|1|auto</code>. When enabled, kernels attempt <b>non‑temporal loads</b> (streaming) on large, one‑time read paths.</li>
+<li><code>IE_L3_BYTES</code> — integer budget in bytes for L3‑resident “hot” slices (heuristic used by blocked‑K and replication).</li>
+<li><code>IE_NT_RATIO</code> — <code>0..100</code> (percentage) hint for the fraction of loads to mark non‑temporal in mixed patterns.</li>
+<li><code>IE_ACT_PREC</code> — activation precision hint: <code>int8|fp8|fp16|bf16|fp32</code> (host accumulators remain FP32).</li>
+<li><code>NUMA_POLICY</code> — <code>auto|compact|scatter|socket:&lt;id&gt;</code>. Works with the new topology detector for thread pinning.</li>
+<li><code>IE_HOT_REPLICATE</code> — <code>0|1</code> enable per‑socket replicas of “hot” weights; optional cap via <code>IE_HOT_REPL_LIMIT_MB</code> (MiB).</li>
+</ul>
+<h2><a class="anchor" id="autotoc_md125"></a>
+Harness sweep (benchmarks)</h2>
+<p>The harness can <b>sweep</b> combinations of memory options to find stable TPS under bandwidth pressure:</p>
+<div class="fragment"><div class="line">python3 benchmarks/harness.py \</div>
+<div class="line">  --sweep &#39;act_quant=int8,fp8|kv_quant=none|prefetch=off,auto,256|nt_loads=0,1|numa_policy=auto,compact,scatter&#39; \</div>
+<div class="line">  --prompts benchmarks/prompts.jsonl</div>
+</div><!-- fragment --><p> Each configuration is labeled and exported to CSV/JSONL; <code><a class="el" href="update__performance__md_8py.html">scripts/update_performance_md.py</a></code> now includes memory metrics (<em>MB/token, bytes touched, coverage vs model.bin, effective bandwidth GB/s</em>).</p>
+<h2><a class="anchor" id="autotoc_md126"></a>
+Monitoring</h2>
+<ul>
+<li>Added <code><a class="el" href="metrics__memory_8toml.html">monitoring/metrics_memory.toml</a></code> (recording rules/panels for <b>RSS peak</b>, <b>bytes touched</b>, <b>effective bandwidth</b>).</li>
+<li><code><a class="el" href="metrics__exporter_8py.html">scripts/metrics_exporter.py</a></code> exposes the new fields when present (see <code>ie_rss_peak_mb_*</code>, and the <code>ie_build_info</code> labels).</li>
+</ul>
+<h2><a class="anchor" id="autotoc_md127"></a>
+CUDA/CPU kernels</h2>
+<ul>
+<li>CUDA: added fused GEMV for <b>INT8 activations</b> and <b>FP8 activations</b> (E4M3/E5M2 decoders on‑device).</li>
+<li>CPU: dispatcher keeps AVX2/FMA fast path; generic C path honors blocked‑K and activation dequant (INT8 per‑tensor / per‑group).</li>
+</ul>
+<blockquote class="doxtable">
+<p>Tip: for strict, bandwidth‑bound tests use: <code>IE_REQUIRE_MODEL=1 IE_BYTES_PER_TOKEN=64000000 IE_STRIDE_BYTES=256</code>. </p>
 </blockquote>
 </div></div><!-- PageDoc -->
 <a href="doxygen_crawl.html"></a>

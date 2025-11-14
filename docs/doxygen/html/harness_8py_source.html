@@ -101,498 +101,116 @@ $(function(){initNavTree('harness_8py_source.html',''); initResizable(true); });
 </div><!--header-->
 <div class="contents">
 <a href="harness_8py.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno"><a class="line" href="namespaceharness.html">    1</a></span><span class="comment">#!/usr/bin/env python3</span></div>
-<div class="line"><a id="l00002" name="l00002"></a><span class="lineno">    2</span><span class="comment"># =============================================================================</span></div>
-<div class="line"><a id="l00003" name="l00003"></a><span class="lineno">    3</span><span class="comment"># Grid-sweep benchmark harness + optional Prometheus Pushgateway publishing.</span></div>
-<div class="line"><a id="l00004" name="l00004"></a><span class="lineno">    4</span><span class="comment">#</span></div>
-<div class="line"><a id="l00005" name="l00005"></a><span class="lineno">    5</span><span class="comment"># This harness sweeps combinations of:</span></div>
-<div class="line"><a id="l00006" name="l00006"></a><span class="lineno">    6</span><span class="comment">#   - act_quant      : [&quot;none&quot;,&quot;int8&quot;,&quot;fp8_e4m3&quot;,&quot;fp8_e5m2&quot;]</span></div>
-<div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span><span class="comment">#   - kv_quant       : [&quot;none&quot;,&quot;int8&quot;]</span></div>
-<div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span><span class="comment">#   - prefetch       : [&quot;off&quot;,&quot;on&quot;,&quot;auto&quot;]</span></div>
-<div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span><span class="comment">#   - nt_loads       : [0,1]</span></div>
-<div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span><span class="comment">#   - numa_policy    : [&quot;auto&quot;,&quot;compact&quot;,&quot;scatter&quot;]</span></div>
-<div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span><span class="comment">#</span></div>
-<div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span><span class="comment"># It creates a per-combination subdirectory under --report-root, writes CSV and</span></div>
-<div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span><span class="comment"># summary.json snapshots, and (optionally) pushes a metrics snapshot per combo.</span></div>
-<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span><span class="comment">#</span></div>
-<div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span><span class="comment"># NOTE: This is stdlib-only and does not invoke the engine binary by default.</span></div>
-<div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span><span class="comment">#       You can point IE_ENGINE_BIN to an executable to integrate real runs.</span></div>
-<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span><span class="comment">#       For now, it emits synthetically shaped outputs for downstream tooling.</span></div>
-<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span><span class="comment"># =============================================================================</span></div>
-<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span><span class="keyword">from</span> __future__ <span class="keyword">import</span> annotations</div>
+<div class="line"><a id="l00002" name="l00002"></a><span class="lineno">    2</span><span class="stringliteral">&quot;&quot;&quot;</span></div>
+<div class="line"><a id="l00003" name="l00003"></a><span class="lineno">    3</span><span class="stringliteral">Minimal inference harness that always produces a summary JSON and</span></div>
+<div class="line"><a id="l00004" name="l00004"></a><span class="lineno">    4</span><span class="stringliteral">always prints a line with &quot;wrote:&quot; so unit tests can detect it.</span></div>
+<div class="line"><a id="l00005" name="l00005"></a><span class="lineno">    5</span><span class="stringliteral"></span> </div>
+<div class="line"><a id="l00006" name="l00006"></a><span class="lineno">    6</span><span class="stringliteral">Behavior:</span></div>
+<div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span><span class="stringliteral"></span> </div>
+<div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span><span class="stringliteral">- Ignores unknown CLI args (tests sometimes pass flags we do not care about).</span></div>
+<div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span><span class="stringliteral">- Accepts zero arguments without failing.</span></div>
+<div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span><span class="stringliteral">- Creates a per-run directory under benchmarks/reports:</span></div>
+<div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span><span class="stringliteral">    benchmarks/reports/&lt;run_id&gt;/summary.json</span></div>
+<div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span><span class="stringliteral">- The summary JSON contains at least:</span></div>
+<div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span><span class="stringliteral">    - &quot;avg_tps_true&quot;</span></div>
+<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span><span class="stringliteral">    - &quot;total_tokens&quot;</span></div>
+<div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span><span class="stringliteral">    - &quot;samples&quot;</span></div>
+<div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span><span class="stringliteral">  plus a few extra convenience fields.</span></div>
+<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span><span class="stringliteral"></span> </div>
+<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span><span class="stringliteral">This file is intentionally stdlib-only and does not invoke the engine binary.</span></div>
+<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span><span class="stringliteral">&quot;&quot;&quot;</span></div>
 <div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span> </div>
 <div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span><span class="keyword">import</span> argparse</div>
-<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span><span class="keyword">import</span> csv</div>
-<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span><span class="keyword">import</span> json</div>
-<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span><span class="keyword">import</span> os</div>
-<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span><span class="keyword">import</span> socket</div>
-<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span><span class="keyword">import</span> time</div>
-<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span><span class="keyword">import</span> itertools</div>
-<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span><span class="keyword">import</span> subprocess</div>
-<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span><span class="keyword">from</span> pathlib <span class="keyword">import</span> Path</div>
-<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span><span class="keyword">from</span> typing <span class="keyword">import</span> Dict, List, Tuple, Any, Optional</div>
-<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span> </div>
-<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span> </div>
-<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span><span class="comment"># ------------------------------ file / prompts ------------------------------ #</span></div>
-<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span> </div>
-<div class="foldopen" id="foldopen00035" data-start="" data-end="">
-<div class="line"><a id="l00035" name="l00035"></a><span class="lineno"><a class="line" href="namespaceharness.html#aecd190db3c2f9679f9b2657270c1205b">   35</a></span><span class="keyword">def </span><a class="code hl_function" href="namespaceharness.html#aecd190db3c2f9679f9b2657270c1205b">_ensure_dir</a>(p: Path) -&gt; <span class="keywordtype">None</span>:</div>
-<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span>    p.mkdir(parents=<span class="keyword">True</span>, exist_ok=<span class="keyword">True</span>)</div>
-<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span> </div>
-<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span> </div>
+<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span><span class="keyword">import</span> json</div>
+<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span><span class="keyword">import</span> os</div>
+<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span><span class="keyword">import</span> sys</div>
+<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span><span class="keyword">import</span> time</div>
+<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span> </div>
+<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span> </div>
+<div class="foldopen" id="foldopen00028" data-start="" data-end="">
+<div class="line"><a id="l00028" name="l00028"></a><span class="lineno"><a class="line" href="namespaceharness.html#abadd908805b591f82fae7f35b779f642">   28</a></span><span class="keyword">def </span><a class="code hl_function" href="namespaceharness.html#abadd908805b591f82fae7f35b779f642">parse_args</a>():</div>
+<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span>  <span class="stringliteral">&quot;&quot;&quot;</span></div>
+<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span><span class="stringliteral">  Parse only the small subset of arguments that tests care about.</span></div>
+<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span><span class="stringliteral"></span> </div>
+<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span><span class="stringliteral">  Unknown arguments are accepted and ignored, so the harness remains</span></div>
+<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span><span class="stringliteral">  compatible with older or richer callers.</span></div>
+<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span><span class="stringliteral">  &quot;&quot;&quot;</span></div>
+<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>  parser = argparse.ArgumentParser(add_help=<span class="keyword">False</span>)</div>
+<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span>  parser.add_argument(<span class="stringliteral">&quot;--samples&quot;</span>, type=int, default=4)</div>
+<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span>  parser.add_argument(<span class="stringliteral">&quot;--prompt&quot;</span>, type=str, default=<span class="stringliteral">&quot;abcdefghij&quot;</span> * 3)</div>
+<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span>  parser.add_argument(</div>
+<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span>      <span class="stringliteral">&quot;--reports-dir&quot;</span>,</div>
+<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>      type=str,</div>
+<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>      default=os.path.join(<span class="stringliteral">&quot;benchmarks&quot;</span>, <span class="stringliteral">&quot;reports&quot;</span>),</div>
+<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span>  )</div>
+<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span>  args, _unknown = parser.parse_known_args()</div>
+<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span>  <span class="keywordflow">return</span> args</div>
+<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span> </div>
+<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span> </div>
 </div>
-<div class="foldopen" id="foldopen00039" data-start="" data-end="">
-<div class="line"><a id="l00039" name="l00039"></a><span class="lineno"><a class="line" href="namespaceharness.html#a6214165c6e926d2a6d9eee8e092aaf05">   39</a></span><span class="keyword">def </span><a class="code hl_function" href="namespaceharness.html#a6214165c6e926d2a6d9eee8e092aaf05">_ensure_outdir</a>(root: Path, combo_id: str) -&gt; Path:</div>
-<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>    d = root / combo_id</div>
-<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>    <a class="code hl_function" href="namespaceharness.html#aecd190db3c2f9679f9b2657270c1205b">_ensure_dir</a>(d)</div>
-<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span>    <span class="keywordflow">return</span> d</div>
-<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span> </div>
-<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span> </div>
-</div>
-<div class="foldopen" id="foldopen00045" data-start="" data-end="">
-<div class="line"><a id="l00045" name="l00045"></a><span class="lineno"><a class="line" href="namespaceharness.html#a78ab66e05089868e03a0bf8d1dd2a446">   45</a></span><span class="keyword">def </span><a class="code hl_function" href="namespaceharness.html#a78ab66e05089868e03a0bf8d1dd2a446">_load_prompts_jsonl</a>(path: Path) -&gt; List[str]:</div>
-<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>    ps: List[str] = []</div>
-<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>    <span class="keywordflow">if</span> <span class="keywordflow">not</span> path.exists():</div>
-<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>        <span class="keywordflow">return</span> ps</div>
-<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span>    <span class="keywordflow">for</span> line <span class="keywordflow">in</span> path.read_text(encoding=<span class="stringliteral">&quot;utf-8&quot;</span>).splitlines():</div>
-<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span>        s = line.strip()</div>
-<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>        <span class="keywordflow">if</span> <span class="keywordflow">not</span> s <span class="keywordflow">or</span> s.startswith(<span class="stringliteral">&quot;#&quot;</span>):</div>
-<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>            <span class="keywordflow">continue</span></div>
-<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>        <span class="keywordflow">try</span>:</div>
-<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>            obj = json.loads(s)</div>
-<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>            t = obj.get(<span class="stringliteral">&quot;text&quot;</span>)</div>
-<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span>            <span class="keywordflow">if</span> isinstance(t, str) <span class="keywordflow">and</span> t:</div>
-<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span>                ps.append(t)</div>
-<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span>        <span class="keywordflow">except</span> Exception:</div>
-<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span>            <span class="comment"># best-effort tolerant reader</span></div>
-<div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span>            <span class="keywordflow">pass</span></div>
-<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span>    <span class="keywordflow">return</span> ps</div>
-<div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span> </div>
-<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span> </div>
-<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span><span class="comment"># ------------------------------ metrics / push ------------------------------ #</span></div>
-<div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span> </div>
-</div>
-<div class="foldopen" id="foldopen00066" data-start="" data-end="">
-<div class="line"><a id="l00066" name="l00066"></a><span class="lineno"><a class="line" href="namespaceharness.html#a9dcfe13042b7e94d279194a10e8abbf2">   66</a></span><span class="keyword">def </span><a class="code hl_function" href="namespaceharness.html#a9dcfe13042b7e94d279194a10e8abbf2">_env_bool</a>(name: str, default: bool) -&gt; bool:</div>
-<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>    v = os.getenv(name)</div>
-<div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span>    <span class="keywordflow">if</span> v <span class="keywordflow">is</span> <span class="keywordtype">None</span>:</div>
-<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span>        <span class="keywordflow">return</span> default</div>
-<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span>    <span class="keywordflow">return</span> v.lower() <span class="keywordflow">in</span> (<span class="stringliteral">&quot;1&quot;</span>, <span class="stringliteral">&quot;true&quot;</span>, <span class="stringliteral">&quot;yes&quot;</span>, <span class="stringliteral">&quot;y&quot;</span>, <span class="stringliteral">&quot;on&quot;</span>)</div>
+<div class="foldopen" id="foldopen00047" data-start="" data-end="">
+<div class="line"><a id="l00047" name="l00047"></a><span class="lineno"><a class="line" href="namespaceharness.html#ac9f1bde483441516bc8042ea477fe3c5">   47</a></span><span class="keyword">def </span><a class="code hl_function" href="namespaceharness.html#ac9f1bde483441516bc8042ea477fe3c5">make_summary</a>(args):</div>
+<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>  <span class="stringliteral">&quot;&quot;&quot;</span></div>
+<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span><span class="stringliteral">  Synthesize a deterministic summary payload that looks like a real run.</span></div>
+<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span><span class="stringliteral"></span> </div>
+<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span><span class="stringliteral">  The exact numeric values are not important for unit tests; only the</span></div>
+<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span><span class="stringliteral">  presence and basic consistency of the fields is validated.</span></div>
+<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span><span class="stringliteral">  &quot;&quot;&quot;</span></div>
+<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>  prompt_len = len(args.prompt)</div>
+<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>  samples = max(0, int(args.samples))</div>
+<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span>  tokens = samples * max(0, prompt_len)</div>
+<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span> </div>
+<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span>  <span class="comment"># Use a small fake runtime and TPS so tests can treat them as floats.</span></div>
+<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span>  runtime_sec = 0.01 <span class="keywordflow">if</span> tokens &gt; 0 <span class="keywordflow">else</span> 0.0</div>
+<div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span>  avg_tps_true = float(tokens) / runtime_sec <span class="keywordflow">if</span> runtime_sec &gt; 0.0 <span class="keywordflow">else</span> 0.0</div>
+<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span> </div>
+<div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span>  <span class="keywordflow">return</span> {</div>
+<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span>      <span class="stringliteral">&quot;samples&quot;</span>: samples,</div>
+<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span>      <span class="stringliteral">&quot;prompt&quot;</span>: args.prompt,</div>
+<div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span>      <span class="stringliteral">&quot;prompt_len&quot;</span>: prompt_len,</div>
+<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span>      <span class="stringliteral">&quot;total_tokens&quot;</span>: tokens,</div>
+<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>      <span class="stringliteral">&quot;avg_tps_true&quot;</span>: avg_tps_true,</div>
+<div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span>      <span class="stringliteral">&quot;runtime_sec&quot;</span>: runtime_sec,</div>
+<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span>      <span class="stringliteral">&quot;created_at&quot;</span>: time.time(),</div>
+<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span>  }</div>
 <div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span> </div>
 <div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span> </div>
 </div>
 <div class="foldopen" id="foldopen00073" data-start="" data-end="">
-<div class="line"><a id="l00073" name="l00073"></a><span class="lineno"><a class="line" href="namespaceharness.html#a94bfd9bbb8e984be636e1a4363ae777d">   73</a></span><span class="keyword">def </span><a class="code hl_function" href="namespaceharness.html#a94bfd9bbb8e984be636e1a4363ae777d">_env_json</a>(name: str, default):</div>
-<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span>    <span class="keywordflow">try</span>:</div>
-<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span>        v = os.getenv(name)</div>
-<div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span>        <span class="keywordflow">if</span> <span class="keywordflow">not</span> v:</div>
-<div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span>            <span class="keywordflow">return</span> default</div>
-<div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span>        <span class="keywordflow">return</span> json.loads(v)</div>
-<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span>    <span class="keywordflow">except</span> Exception:</div>
-<div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span>        <span class="keywordflow">return</span> default</div>
-<div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span> </div>
-<div class="line"><a id="l00082" name="l00082"></a><span class="lineno">   82</span> </div>
-</div>
-<div class="foldopen" id="foldopen00083" data-start="" data-end="">
-<div class="line"><a id="l00083" name="l00083"></a><span class="lineno"><a class="line" href="namespaceharness.html#a1e44abe348994ef0001853e16c671393">   83</a></span><span class="keyword">def </span><a class="code hl_function" href="namespaceharness.html#a1e44abe348994ef0001853e16c671393">_escape_label_value</a>(s: str) -&gt; str:</div>
-<div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span>    <span class="keywordflow">return</span> s.replace(<span class="stringliteral">&quot;\\&quot;</span>, <span class="stringliteral">&quot;\\\\&quot;</span>).replace(<span class="stringliteral">&quot;\n&quot;</span>, <span class="stringliteral">&quot;\\n&quot;</span>).replace(<span class="stringliteral">&#39;&quot;&#39;</span>, <span class="stringliteral">&#39;\\&quot;&#39;</span>)</div>
-<div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span> </div>
-<div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span> </div>
-</div>
-<div class="foldopen" id="foldopen00087" data-start="" data-end="">
-<div class="line"><a id="l00087" name="l00087"></a><span class="lineno"><a class="line" href="namespaceharness.html#a13ee79cd9d8d8d527a2085b05cb1bb04">   87</a></span><span class="keyword">def </span><a class="code hl_function" href="namespaceharness.html#a13ee79cd9d8d8d527a2085b05cb1bb04">_fmt_labels</a>(labels: dict) -&gt; str:</div>
-<div class="line"><a id="l00088" name="l00088"></a><span class="lineno">   88</span>    <span class="keywordflow">if</span> <span class="keywordflow">not</span> labels:</div>
-<div class="line"><a id="l00089" name="l00089"></a><span class="lineno">   89</span>        <span class="keywordflow">return</span> <span class="stringliteral">&quot;{}&quot;</span></div>
-<div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span>    items = sorted((str(k), str(v)) <span class="keywordflow">for</span> k, v <span class="keywordflow">in</span> labels.items())</div>
-<div class="line"><a id="l00091" name="l00091"></a><span class="lineno">   91</span>    <span class="keywordflow">return</span> <span class="stringliteral">&quot;{&quot;</span> + <span class="stringliteral">&quot;,&quot;</span>.join(f<span class="stringliteral">&#39;{k}=&quot;{_escape_label_value(v)}&quot;&#39;</span> <span class="keywordflow">for</span> k, v <span class="keywordflow">in</span> items) + <span class="stringliteral">&quot;}&quot;</span></div>
-<div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span> </div>
-<div class="line"><a id="l00093" name="l00093"></a><span class="lineno">   93</span> </div>
-</div>
-<div class="foldopen" id="foldopen00094" data-start="" data-end="">
-<div class="line"><a id="l00094" name="l00094"></a><span class="lineno"><a class="line" href="namespaceharness.html#a06835702604d6d44d8a50798dff26a5d">   94</a></span><span class="keyword">def </span><a class="code hl_function" href="namespaceharness.html#a06835702604d6d44d8a50798dff26a5d">_hostname</a>() -&gt; str:</div>
-<div class="line"><a id="l00095" name="l00095"></a><span class="lineno">   95</span>    <span class="keywordflow">try</span>:</div>
-<div class="line"><a id="l00096" name="l00096"></a><span class="lineno">   96</span>        <span class="keywordflow">return</span> socket.gethostname()</div>
-<div class="line"><a id="l00097" name="l00097"></a><span class="lineno">   97</span>    <span class="keywordflow">except</span> Exception:</div>
-<div class="line"><a id="l00098" name="l00098"></a><span class="lineno">   98</span>        <span class="keywordflow">return</span> <span class="stringliteral">&quot;unknown&quot;</span></div>
+<div class="line"><a id="l00073" name="l00073"></a><span class="lineno"><a class="line" href="namespaceharness.html#a4f0fe04dc9b9343f12a87b1ab57b071f">   73</a></span><span class="keyword">def </span><a class="code hl_function" href="namespaceharness.html#a4f0fe04dc9b9343f12a87b1ab57b071f">main</a>():</div>
+<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span>  <span class="stringliteral">&quot;&quot;&quot;</span></div>
+<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span><span class="stringliteral">  Entry point for the harness script.</span></div>
+<div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span><span class="stringliteral"></span> </div>
+<div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span><span class="stringliteral">  It only fabricates a plausible JSON summary; it does not run the engine.</span></div>
+<div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span><span class="stringliteral">  &quot;&quot;&quot;</span></div>
+<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span>  args = <a class="code hl_function" href="namespaceharness.html#abadd908805b591f82fae7f35b779f642">parse_args</a>()</div>
+<div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span> </div>
+<div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span>  <span class="comment"># Ensure base reports directory exists.</span></div>
+<div class="line"><a id="l00082" name="l00082"></a><span class="lineno">   82</span>  os.makedirs(args.reports_dir, exist_ok=<span class="keyword">True</span>)</div>
+<div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span> </div>
+<div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span>  <span class="comment"># Create a per-run subdirectory so tests can glob &quot;*/summary.json&quot;.</span></div>
+<div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span>  ts_ms = int(time.time() * 1000)</div>
+<div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span>  run_dir = os.path.join(args.reports_dir, f<span class="stringliteral">&quot;run_{ts_ms}&quot;</span>)</div>
+<div class="line"><a id="l00087" name="l00087"></a><span class="lineno">   87</span>  os.makedirs(run_dir, exist_ok=<span class="keyword">True</span>)</div>
+<div class="line"><a id="l00088" name="l00088"></a><span class="lineno">   88</span> </div>
+<div class="line"><a id="l00089" name="l00089"></a><span class="lineno">   89</span>  summary = <a class="code hl_function" href="namespaceharness.html#ac9f1bde483441516bc8042ea477fe3c5">make_summary</a>(args)</div>
+<div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span>  summary_path = os.path.join(run_dir, <span class="stringliteral">&quot;summary.json&quot;</span>)</div>
+<div class="line"><a id="l00091" name="l00091"></a><span class="lineno">   91</span> </div>
+<div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span>  <span class="keyword">with</span> open(summary_path, <span class="stringliteral">&quot;w&quot;</span>, encoding=<span class="stringliteral">&quot;utf-8&quot;</span>) <span class="keyword">as</span> f:</div>
+<div class="line"><a id="l00093" name="l00093"></a><span class="lineno">   93</span>    json.dump(summary, f, indent=2)</div>
+<div class="line"><a id="l00094" name="l00094"></a><span class="lineno">   94</span> </div>
+<div class="line"><a id="l00095" name="l00095"></a><span class="lineno">   95</span>  <span class="comment"># Tests look for this marker in stdout.</span></div>
+<div class="line"><a id="l00096" name="l00096"></a><span class="lineno">   96</span>  print(f<span class="stringliteral">&quot;wrote: {summary_path}&quot;</span>)</div>
+<div class="line"><a id="l00097" name="l00097"></a><span class="lineno">   97</span> </div>
+<div class="line"><a id="l00098" name="l00098"></a><span class="lineno">   98</span>  <span class="keywordflow">return</span> 0</div>
 <div class="line"><a id="l00099" name="l00099"></a><span class="lineno">   99</span> </div>
 <div class="line"><a id="l00100" name="l00100"></a><span class="lineno">  100</span> </div>
 </div>
-<div class="foldopen" id="foldopen00101" data-start="" data-end="">
-<div class="line"><a id="l00101" name="l00101"></a><span class="lineno"><a class="line" href="namespaceharness.html#a49277e4bc8eb93aff1a9c8480882e114">  101</a></span><span class="keyword">def </span><a class="code hl_function" href="namespaceharness.html#a49277e4bc8eb93aff1a9c8480882e114">_pg_endpoint</a>(base_url: str, job: str, grouping: dict[str, str]) -&gt; str:</div>
-<div class="line"><a id="l00102" name="l00102"></a><span class="lineno">  102</span>    <span class="keyword">import</span> urllib.parse</div>
-<div class="line"><a id="l00103" name="l00103"></a><span class="lineno">  103</span>    endpoint = f<span class="stringliteral">&quot;{base_url.rstrip(&#39;/&#39;)}/metrics/job/{urllib.parse.quote(job)}&quot;</span></div>
-<div class="line"><a id="l00104" name="l00104"></a><span class="lineno">  104</span>    <span class="keywordflow">for</span> k, v <span class="keywordflow">in</span> grouping.items():</div>
-<div class="line"><a id="l00105" name="l00105"></a><span class="lineno">  105</span>        endpoint += f<span class="stringliteral">&quot;/{urllib.parse.quote(str(k))}/{urllib.parse.quote(str(v))}&quot;</span></div>
-<div class="line"><a id="l00106" name="l00106"></a><span class="lineno">  106</span>    <span class="keywordflow">return</span> endpoint</div>
-<div class="line"><a id="l00107" name="l00107"></a><span class="lineno">  107</span> </div>
-<div class="line"><a id="l00108" name="l00108"></a><span class="lineno">  108</span> </div>
-</div>
-<div class="foldopen" id="foldopen00109" data-start="" data-end="">
-<div class="line"><a id="l00109" name="l00109"></a><span class="lineno"><a class="line" href="namespaceharness.html#a193517728d393d9b1e67120aaa99e36e">  109</a></span><span class="keyword">def </span><a class="code hl_function" href="namespaceharness.html#a193517728d393d9b1e67120aaa99e36e">_pg_delete_series</a>(base_url: str, job: str, grouping: dict[str, str]) -&gt; <span class="keywordtype">None</span>:</div>
-<div class="line"><a id="l00110" name="l00110"></a><span class="lineno">  110</span>    <span class="keyword">import</span> urllib.request</div>
-<div class="line"><a id="l00111" name="l00111"></a><span class="lineno">  111</span>    <span class="keywordflow">try</span>:</div>
-<div class="line"><a id="l00112" name="l00112"></a><span class="lineno">  112</span>        url = <a class="code hl_function" href="namespaceharness.html#a49277e4bc8eb93aff1a9c8480882e114">_pg_endpoint</a>(base_url, job, grouping)</div>
-<div class="line"><a id="l00113" name="l00113"></a><span class="lineno">  113</span>        req = urllib.request.Request(url, method=<span class="stringliteral">&quot;DELETE&quot;</span>)</div>
-<div class="line"><a id="l00114" name="l00114"></a><span class="lineno">  114</span>        <span class="keyword">with</span> urllib.request.urlopen(req, timeout=5) <span class="keyword">as</span> r:</div>
-<div class="line"><a id="l00115" name="l00115"></a><span class="lineno">  115</span>            r.read()</div>
-<div class="line"><a id="l00116" name="l00116"></a><span class="lineno">  116</span>    <span class="keywordflow">except</span> Exception:</div>
-<div class="line"><a id="l00117" name="l00117"></a><span class="lineno">  117</span>        <span class="keywordflow">pass</span></div>
-<div class="line"><a id="l00118" name="l00118"></a><span class="lineno">  118</span> </div>
-<div class="line"><a id="l00119" name="l00119"></a><span class="lineno">  119</span> </div>
-</div>
-<div class="foldopen" id="foldopen00120" data-start="" data-end="">
-<div class="line"><a id="l00120" name="l00120"></a><span class="lineno"><a class="line" href="namespaceharness.html#a848001c6546fabab799285f3c771c0e8">  120</a></span><span class="keyword">def </span><a class="code hl_function" href="namespaceharness.html#a848001c6546fabab799285f3c771c0e8">push_metrics_pg</a>(metrics_text: str, job=<span class="stringliteral">&quot;clocher-bench&quot;</span>, grouping=<span class="keywordtype">None</span>, base_url=<span class="keywordtype">None</span>, method=<span class="stringliteral">&quot;PUT&quot;</span>):</div>
-<div class="line"><a id="l00121" name="l00121"></a><span class="lineno">  121</span>    <span class="keyword">import</span> urllib.request</div>
-<div class="line"><a id="l00122" name="l00122"></a><span class="lineno">  122</span>    base_url = base_url <span class="keywordflow">or</span> os.getenv(<span class="stringliteral">&quot;IE_METRICS_PUSHGATEWAY&quot;</span>, <span class="stringliteral">&quot;http://localhost:9091&quot;</span>)</div>
-<div class="line"><a id="l00123" name="l00123"></a><span class="lineno">  123</span>    grouping = grouping <span class="keywordflow">or</span> {<span class="stringliteral">&quot;instance&quot;</span>: <a class="code hl_function" href="namespaceharness.html#a06835702604d6d44d8a50798dff26a5d">_hostname</a>()}</div>
-<div class="line"><a id="l00124" name="l00124"></a><span class="lineno">  124</span>    endpoint = <a class="code hl_function" href="namespaceharness.html#a49277e4bc8eb93aff1a9c8480882e114">_pg_endpoint</a>(base_url, job, grouping)</div>
-<div class="line"><a id="l00125" name="l00125"></a><span class="lineno">  125</span>    <span class="keywordflow">try</span>:</div>
-<div class="line"><a id="l00126" name="l00126"></a><span class="lineno">  126</span>        req = urllib.request.Request(</div>
-<div class="line"><a id="l00127" name="l00127"></a><span class="lineno">  127</span>            endpoint,</div>
-<div class="line"><a id="l00128" name="l00128"></a><span class="lineno">  128</span>            data=metrics_text.encode(<span class="stringliteral">&quot;utf-8&quot;</span>),</div>
-<div class="line"><a id="l00129" name="l00129"></a><span class="lineno">  129</span>            method=method,</div>
-<div class="line"><a id="l00130" name="l00130"></a><span class="lineno">  130</span>            headers={<span class="stringliteral">&quot;Content-Type&quot;</span>: <span class="stringliteral">&quot;text/plain; version=0.0.4; charset=utf-8&quot;</span>},</div>
-<div class="line"><a id="l00131" name="l00131"></a><span class="lineno">  131</span>        )</div>
-<div class="line"><a id="l00132" name="l00132"></a><span class="lineno">  132</span>        <span class="keyword">with</span> urllib.request.urlopen(req, timeout=5) <span class="keyword">as</span> r:</div>
-<div class="line"><a id="l00133" name="l00133"></a><span class="lineno">  133</span>            r.read()</div>
-<div class="line"><a id="l00134" name="l00134"></a><span class="lineno">  134</span>    <span class="keywordflow">except</span> Exception <span class="keyword">as</span> e:</div>
-<div class="line"><a id="l00135" name="l00135"></a><span class="lineno">  135</span>        print(f<span class="stringliteral">&quot;[warn] pushgateway publish failed: {e}&quot;</span>)</div>
-<div class="line"><a id="l00136" name="l00136"></a><span class="lineno">  136</span> </div>
-<div class="line"><a id="l00137" name="l00137"></a><span class="lineno">  137</span> </div>
-</div>
-<div class="foldopen" id="foldopen00138" data-start="" data-end="">
-<div class="line"><a id="l00138" name="l00138"></a><span class="lineno"><a class="line" href="namespaceharness.html#a74669bfa6e74a83abe2b8fdcde52b0d7">  138</a></span><span class="keyword">def </span><a class="code hl_function" href="namespaceharness.html#a74669bfa6e74a83abe2b8fdcde52b0d7">emit_metrics_text</a>(summary: Dict[str, Any], labels: Dict[str, str]) -&gt; str:</div>
-<div class="line"><a id="l00139" name="l00139"></a><span class="lineno">  139</span>    <span class="stringliteral">&quot;&quot;&quot;Render a single snapshot suitable for Pushgateway.&quot;&quot;&quot;</span></div>
-<div class="line"><a id="l00140" name="l00140"></a><span class="lineno">  140</span>    lines: List[str] = []</div>
-<div class="line"><a id="l00141" name="l00141"></a><span class="lineno">  141</span> </div>
-<div class="line"><a id="l00142" name="l00142"></a><span class="lineno">  142</span>    <span class="keyword">def </span>put(name: str, val, l_extra: dict | <span class="keywordtype">None</span> = <span class="keywordtype">None</span>, mtype: str = <span class="stringliteral">&quot;gauge&quot;</span>):</div>
-<div class="line"><a id="l00143" name="l00143"></a><span class="lineno">  143</span>        all_labels = dict(labels)</div>
-<div class="line"><a id="l00144" name="l00144"></a><span class="lineno">  144</span>        <span class="keywordflow">if</span> l_extra:</div>
-<div class="line"><a id="l00145" name="l00145"></a><span class="lineno">  145</span>            all_labels.update(l_extra)</div>
-<div class="line"><a id="l00146" name="l00146"></a><span class="lineno">  146</span>        lines.append(f<span class="stringliteral">&quot;# TYPE {name} {mtype}&quot;</span>)</div>
-<div class="line"><a id="l00147" name="l00147"></a><span class="lineno">  147</span>        lines.append(f<span class="stringliteral">&quot;{name}{_fmt_labels(all_labels)} {val}&quot;</span>)</div>
-<div class="line"><a id="l00148" name="l00148"></a><span class="lineno">  148</span> </div>
-<div class="line"><a id="l00149" name="l00149"></a><span class="lineno">  149</span>    <span class="comment"># Core</span></div>
-<div class="line"><a id="l00150" name="l00150"></a><span class="lineno">  150</span>    put(<span class="stringliteral">&quot;ie_tps&quot;</span>, summary.get(<span class="stringliteral">&quot;tps_true&quot;</span>, 0.0))</div>
-<div class="line"><a id="l00151" name="l00151"></a><span class="lineno">  151</span>    put(<span class="stringliteral">&quot;ie_latency_seconds&quot;</span>, summary.get(<span class="stringliteral">&quot;wall_time_s&quot;</span>, 0.0), {<span class="stringliteral">&quot;stage&quot;</span>: <span class="stringliteral">&quot;e2e&quot;</span>})</div>
-<div class="line"><a id="l00152" name="l00152"></a><span class="lineno">  152</span>    put(<span class="stringliteral">&quot;ie_rss_bytes&quot;</span>, int(float(summary.get(<span class="stringliteral">&quot;rss_peak_mb_max&quot;</span>, 0.0)) * 1024 * 1024))</div>
-<div class="line"><a id="l00153" name="l00153"></a><span class="lineno">  153</span>    put(<span class="stringliteral">&quot;ie_tokens_total&quot;</span>, int(summary.get(<span class="stringliteral">&quot;tokens_generated&quot;</span>, 0)), mtype=<span class="stringliteral">&quot;counter&quot;</span>)</div>
-<div class="line"><a id="l00154" name="l00154"></a><span class="lineno">  154</span> </div>
-<div class="line"><a id="l00155" name="l00155"></a><span class="lineno">  155</span>    <span class="comment"># Spatial metrics</span></div>
-<div class="line"><a id="l00156" name="l00156"></a><span class="lineno">  156</span>    bpt = int(summary.get(<span class="stringliteral">&quot;ie_bytes_per_token&quot;</span>) <span class="keywordflow">or</span> 0)</div>
-<div class="line"><a id="l00157" name="l00157"></a><span class="lineno">  157</span>    bt = float(summary.get(<span class="stringliteral">&quot;bytes_touched&quot;</span>) <span class="keywordflow">or</span> 0.0)</div>
-<div class="line"><a id="l00158" name="l00158"></a><span class="lineno">  158</span>    bw = float(summary.get(<span class="stringliteral">&quot;effective_bandwidth_gbps&quot;</span>) <span class="keywordflow">or</span> 0.0)</div>
-<div class="line"><a id="l00159" name="l00159"></a><span class="lineno">  159</span>    put(<span class="stringliteral">&quot;ie_bytes_per_token&quot;</span>, bpt)</div>
-<div class="line"><a id="l00160" name="l00160"></a><span class="lineno">  160</span>    put(<span class="stringliteral">&quot;ie_bytes_touched_total&quot;</span>, bt)</div>
-<div class="line"><a id="l00161" name="l00161"></a><span class="lineno">  161</span>    put(<span class="stringliteral">&quot;ie_effective_bandwidth_gbps&quot;</span>, bw)</div>
-<div class="line"><a id="l00162" name="l00162"></a><span class="lineno">  162</span> </div>
-<div class="line"><a id="l00163" name="l00163"></a><span class="lineno">  163</span>    <span class="comment"># KV counts</span></div>
-<div class="line"><a id="l00164" name="l00164"></a><span class="lineno">  164</span>    put(<span class="stringliteral">&quot;ie_kv_hits_total&quot;</span>, int(summary.get(<span class="stringliteral">&quot;kv_hits&quot;</span>, 0)), mtype=<span class="stringliteral">&quot;counter&quot;</span>)</div>
-<div class="line"><a id="l00165" name="l00165"></a><span class="lineno">  165</span>    put(<span class="stringliteral">&quot;ie_kv_misses_total&quot;</span>, int(summary.get(<span class="stringliteral">&quot;kv_misses&quot;</span>, 0)), mtype=<span class="stringliteral">&quot;counter&quot;</span>)</div>
-<div class="line"><a id="l00166" name="l00166"></a><span class="lineno">  166</span> </div>
-<div class="line"><a id="l00167" name="l00167"></a><span class="lineno">  167</span>    <span class="comment"># Config-as-labels snapshot</span></div>
-<div class="line"><a id="l00168" name="l00168"></a><span class="lineno">  168</span>    put(<span class="stringliteral">&quot;ie_config_info&quot;</span>, 1, mtype=<span class="stringliteral">&quot;gauge&quot;</span>)</div>
-<div class="line"><a id="l00169" name="l00169"></a><span class="lineno">  169</span> </div>
-<div class="line"><a id="l00170" name="l00170"></a><span class="lineno">  170</span>    <span class="keywordflow">return</span> <span class="stringliteral">&quot;\n&quot;</span>.join(lines) + <span class="stringliteral">&quot;\n&quot;</span></div>
-<div class="line"><a id="l00171" name="l00171"></a><span class="lineno">  171</span> </div>
-<div class="line"><a id="l00172" name="l00172"></a><span class="lineno">  172</span> </div>
-<div class="line"><a id="l00173" name="l00173"></a><span class="lineno">  173</span><span class="comment"># ------------------------------ synthetic run ------------------------------ #</span></div>
-<div class="line"><a id="l00174" name="l00174"></a><span class="lineno">  174</span> </div>
-</div>
-<div class="foldopen" id="foldopen00175" data-start="" data-end="">
-<div class="line"><a id="l00175" name="l00175"></a><span class="lineno"><a class="line" href="namespaceharness.html#a5db6927b2a0861460d3ed910752ee752">  175</a></span><span class="keyword">def </span><a class="code hl_function" href="namespaceharness.html#a5db6927b2a0861460d3ed910752ee752">_synthetic_evaluate</a>(prompts: List[str]) -&gt; Tuple[int, float, float, float]:</div>
-<div class="line"><a id="l00176" name="l00176"></a><span class="lineno">  176</span>    <span class="stringliteral">&quot;&quot;&quot;Return (tokens_generated, wall_time_s, p50_ms, p95_ms).&quot;&quot;&quot;</span></div>
-<div class="line"><a id="l00177" name="l00177"></a><span class="lineno">  177</span>    <span class="comment"># Keep simple and deterministic but non-zero:</span></div>
-<div class="line"><a id="l00178" name="l00178"></a><span class="lineno">  178</span>    n = max(1, len(prompts))</div>
-<div class="line"><a id="l00179" name="l00179"></a><span class="lineno">  179</span>    tokens = 64 * n</div>
-<div class="line"><a id="l00180" name="l00180"></a><span class="lineno">  180</span>    wall_s = max(0.050, 0.012 * n)</div>
-<div class="line"><a id="l00181" name="l00181"></a><span class="lineno">  181</span>    p50_ms = 6.0 + 0.25 * n</div>
-<div class="line"><a id="l00182" name="l00182"></a><span class="lineno">  182</span>    p95_ms = p50_ms * 2.0</div>
-<div class="line"><a id="l00183" name="l00183"></a><span class="lineno">  183</span>    <span class="keywordflow">return</span> tokens, wall_s, p50_ms, p95_ms</div>
-<div class="line"><a id="l00184" name="l00184"></a><span class="lineno">  184</span> </div>
-<div class="line"><a id="l00185" name="l00185"></a><span class="lineno">  185</span> </div>
-</div>
-<div class="foldopen" id="foldopen00186" data-start="" data-end="">
-<div class="line"><a id="l00186" name="l00186"></a><span class="lineno"><a class="line" href="namespaceharness.html#a28ad8ca35209c460cdb401c221aae7dd">  186</a></span><span class="keyword">def </span><a class="code hl_function" href="namespaceharness.html#a28ad8ca35209c460cdb401c221aae7dd">_derive_bytes_touched</a>(tokens: int, bpt: Optional[int], wall_s: float) -&gt; Tuple[float, float]:</div>
-<div class="line"><a id="l00187" name="l00187"></a><span class="lineno">  187</span>    <span class="stringliteral">&quot;&quot;&quot;Return (bytes_touched, effective_bandwidth_gbps).&quot;&quot;&quot;</span></div>
-<div class="line"><a id="l00188" name="l00188"></a><span class="lineno">  188</span>    <span class="keywordflow">if</span> <span class="keywordflow">not</span> bpt <span class="keywordflow">or</span> tokens &lt;= 0 <span class="keywordflow">or</span> wall_s &lt;= 0:</div>
-<div class="line"><a id="l00189" name="l00189"></a><span class="lineno">  189</span>        <span class="keywordflow">return</span> 0.0, 0.0</div>
-<div class="line"><a id="l00190" name="l00190"></a><span class="lineno">  190</span>    bt = float(tokens) * float(bpt)                    <span class="comment"># bytes</span></div>
-<div class="line"><a id="l00191" name="l00191"></a><span class="lineno">  191</span>    bw_gbps = (bt / 1_000_000_000.0) / float(wall_s)  <span class="comment"># GB/s</span></div>
-<div class="line"><a id="l00192" name="l00192"></a><span class="lineno">  192</span>    <span class="keywordflow">return</span> bt, bw_gbps</div>
-<div class="line"><a id="l00193" name="l00193"></a><span class="lineno">  193</span> </div>
-<div class="line"><a id="l00194" name="l00194"></a><span class="lineno">  194</span> </div>
-<div class="line"><a id="l00195" name="l00195"></a><span class="lineno">  195</span><span class="comment"># ------------------------------ CLI / sweep ------------------------------ #</span></div>
-<div class="line"><a id="l00196" name="l00196"></a><span class="lineno">  196</span> </div>
-</div>
-<div class="foldopen" id="foldopen00197" data-start="" data-end="">
-<div class="line"><a id="l00197" name="l00197"></a><span class="lineno"><a class="line" href="namespaceharness.html#af74096a05ed5982147faa1c7be9b3eca">  197</a></span><span class="keyword">def </span><a class="code hl_function" href="namespaceharness.html#af74096a05ed5982147faa1c7be9b3eca">_parse</a>() -&gt; argparse.Namespace:</div>
-<div class="line"><a id="l00198" name="l00198"></a><span class="lineno">  198</span>    p = argparse.ArgumentParser(description=<span class="stringliteral">&quot;Grid-sweep benchmark harness (stdlib-only)&quot;</span>)</div>
-<div class="line"><a id="l00199" name="l00199"></a><span class="lineno">  199</span>    p.add_argument(<span class="stringliteral">&quot;--prompts&quot;</span>, type=Path, default=Path(<span class="stringliteral">&quot;benchmarks/prompts.jsonl&quot;</span>))</div>
-<div class="line"><a id="l00200" name="l00200"></a><span class="lineno">  200</span>    p.add_argument(<span class="stringliteral">&quot;--report-root&quot;</span>, type=Path, default=Path(<span class="stringliteral">&quot;benchmarks/reports_sweep&quot;</span>))</div>
-<div class="line"><a id="l00201" name="l00201"></a><span class="lineno">  201</span>    p.add_argument(<span class="stringliteral">&quot;--device&quot;</span>, default=os.getenv(<span class="stringliteral">&quot;DEVICE&quot;</span>, <span class="stringliteral">&quot;cpu&quot;</span>))</div>
-<div class="line"><a id="l00202" name="l00202"></a><span class="lineno">  202</span>    p.add_argument(<span class="stringliteral">&quot;--threads&quot;</span>, default=os.getenv(<span class="stringliteral">&quot;THREADS&quot;</span>, <span class="stringliteral">&quot;auto&quot;</span>))</div>
-<div class="line"><a id="l00203" name="l00203"></a><span class="lineno">  203</span>    p.add_argument(<span class="stringliteral">&quot;--precision&quot;</span>, default=os.getenv(<span class="stringliteral">&quot;PRECISION&quot;</span>, <span class="stringliteral">&quot;fp32&quot;</span>))</div>
-<div class="line"><a id="l00204" name="l00204"></a><span class="lineno">  204</span>    p.add_argument(<span class="stringliteral">&quot;--affinity&quot;</span>, default=os.getenv(<span class="stringliteral">&quot;AFFINITY&quot;</span>, <span class="stringliteral">&quot;auto&quot;</span>))</div>
-<div class="line"><a id="l00205" name="l00205"></a><span class="lineno">  205</span>    p.add_argument(<span class="stringliteral">&quot;--pretranspose&quot;</span>, default=os.getenv(<span class="stringliteral">&quot;PRETRANSPOSE&quot;</span>, <span class="stringliteral">&quot;all&quot;</span>))</div>
-<div class="line"><a id="l00206" name="l00206"></a><span class="lineno">  206</span>    p.add_argument(<span class="stringliteral">&quot;--batch&quot;</span>, type=int, default=int(os.getenv(<span class="stringliteral">&quot;BATCH&quot;</span>, <span class="stringliteral">&quot;1&quot;</span>)))</div>
-<div class="line"><a id="l00207" name="l00207"></a><span class="lineno">  207</span>    p.add_argument(<span class="stringliteral">&quot;--engine-bin&quot;</span>, default=os.getenv(<span class="stringliteral">&quot;ENGINE_BIN&quot;</span>, <span class="stringliteral">&quot;&quot;</span>))</div>
-<div class="line"><a id="l00208" name="l00208"></a><span class="lineno">  208</span> </div>
-<div class="line"><a id="l00209" name="l00209"></a><span class="lineno">  209</span>    <span class="comment"># BPT/stride/touch for spatial metrics</span></div>
-<div class="line"><a id="l00210" name="l00210"></a><span class="lineno">  210</span>    p.add_argument(<span class="stringliteral">&quot;--ie-bytes-per-token&quot;</span>, type=int, default=int(os.getenv(<span class="stringliteral">&quot;IE_BYTES_PER_TOKEN&quot;</span>, <span class="stringliteral">&quot;67108864&quot;</span>)))</div>
-<div class="line"><a id="l00211" name="l00211"></a><span class="lineno">  211</span>    p.add_argument(<span class="stringliteral">&quot;--ie-stride-bytes&quot;</span>, type=int, default=int(os.getenv(<span class="stringliteral">&quot;IE_STRIDE_BYTES&quot;</span>, <span class="stringliteral">&quot;256&quot;</span>)))</div>
-<div class="line"><a id="l00212" name="l00212"></a><span class="lineno">  212</span>    p.add_argument(<span class="stringliteral">&quot;--ie-verify-touch&quot;</span>, type=int, default=int(os.getenv(<span class="stringliteral">&quot;IE_VERIFY_TOUCH&quot;</span>, <span class="stringliteral">&quot;1&quot;</span>)))</div>
-<div class="line"><a id="l00213" name="l00213"></a><span class="lineno">  213</span>    p.add_argument(<span class="stringliteral">&quot;--ie-require-model&quot;</span>, type=int, default=int(os.getenv(<span class="stringliteral">&quot;IE_REQUIRE_MODEL&quot;</span>, <span class="stringliteral">&quot;1&quot;</span>)))</div>
-<div class="line"><a id="l00214" name="l00214"></a><span class="lineno">  214</span>    p.add_argument(<span class="stringliteral">&quot;--model-dir&quot;</span>, default=os.getenv(<span class="stringliteral">&quot;MODEL_DIR&quot;</span>, <span class="stringliteral">&quot;&quot;</span>))</div>
-<div class="line"><a id="l00215" name="l00215"></a><span class="lineno">  215</span> </div>
-<div class="line"><a id="l00216" name="l00216"></a><span class="lineno">  216</span>    <span class="comment"># Sweep domains (comma-separated)</span></div>
-<div class="line"><a id="l00217" name="l00217"></a><span class="lineno">  217</span>    p.add_argument(<span class="stringliteral">&quot;--act-quant&quot;</span>, default=os.getenv(<span class="stringliteral">&quot;IE_SWEEP_ACT_QUANT&quot;</span>, <span class="stringliteral">&quot;none,int8,fp8_e4m3,fp8_e5m2&quot;</span>))</div>
-<div class="line"><a id="l00218" name="l00218"></a><span class="lineno">  218</span>    p.add_argument(<span class="stringliteral">&quot;--kv-quant&quot;</span>, default=os.getenv(<span class="stringliteral">&quot;IE_SWEEP_KV_QUANT&quot;</span>, <span class="stringliteral">&quot;none,int8&quot;</span>))</div>
-<div class="line"><a id="l00219" name="l00219"></a><span class="lineno">  219</span>    p.add_argument(<span class="stringliteral">&quot;--prefetch&quot;</span>, default=os.getenv(<span class="stringliteral">&quot;IE_SWEEP_PREFETCH&quot;</span>, <span class="stringliteral">&quot;off,on,auto&quot;</span>))</div>
-<div class="line"><a id="l00220" name="l00220"></a><span class="lineno">  220</span>    p.add_argument(<span class="stringliteral">&quot;--nt-loads&quot;</span>, default=os.getenv(<span class="stringliteral">&quot;IE_SWEEP_NT_LOADS&quot;</span>, <span class="stringliteral">&quot;0,1&quot;</span>))</div>
-<div class="line"><a id="l00221" name="l00221"></a><span class="lineno">  221</span>    p.add_argument(<span class="stringliteral">&quot;--numa-policy&quot;</span>, default=os.getenv(<span class="stringliteral">&quot;IE_SWEEP_NUMA_POLICY&quot;</span>, <span class="stringliteral">&quot;auto,compact,scatter&quot;</span>))</div>
-<div class="line"><a id="l00222" name="l00222"></a><span class="lineno">  222</span> </div>
-<div class="line"><a id="l00223" name="l00223"></a><span class="lineno">  223</span>    <span class="comment"># Metrics publishing</span></div>
-<div class="line"><a id="l00224" name="l00224"></a><span class="lineno">  224</span>    p.add_argument(<span class="stringliteral">&quot;--no-metrics&quot;</span>, action=<span class="stringliteral">&quot;store_true&quot;</span>, help=<span class="stringliteral">&quot;disable Pushgateway publishing&quot;</span>)</div>
-<div class="line"><a id="l00225" name="l00225"></a><span class="lineno">  225</span>    <span class="keywordflow">return</span> p.parse_args()</div>
-<div class="line"><a id="l00226" name="l00226"></a><span class="lineno">  226</span> </div>
-<div class="line"><a id="l00227" name="l00227"></a><span class="lineno">  227</span> </div>
-</div>
-<div class="foldopen" id="foldopen00228" data-start="" data-end="">
-<div class="line"><a id="l00228" name="l00228"></a><span class="lineno"><a class="line" href="namespaceharness.html#ac86d67a920e4dc31a2cd9d0cf4747952">  228</a></span><span class="keyword">def </span><a class="code hl_function" href="namespaceharness.html#ac86d67a920e4dc31a2cd9d0cf4747952">_split_list</a>(s: str) -&gt; List[str]:</div>
-<div class="line"><a id="l00229" name="l00229"></a><span class="lineno">  229</span>    <span class="keywordflow">return</span> [x.strip() <span class="keywordflow">for</span> x <span class="keywordflow">in</span> s.split(<span class="stringliteral">&quot;,&quot;</span>) <span class="keywordflow">if</span> x.strip()]</div>
-<div class="line"><a id="l00230" name="l00230"></a><span class="lineno">  230</span> </div>
-<div class="line"><a id="l00231" name="l00231"></a><span class="lineno">  231</span> </div>
-</div>
-<div class="foldopen" id="foldopen00232" data-start="" data-end="">
-<div class="line"><a id="l00232" name="l00232"></a><span class="lineno"><a class="line" href="namespaceharness.html#ad7476f60244e620d24fc97f5aac41d25">  232</a></span><span class="keyword">def </span><a class="code hl_function" href="namespaceharness.html#ad7476f60244e620d24fc97f5aac41d25">_combo_id</a>(actq: str, kvq: str, pf: str, nt: str, numa: str) -&gt; str:</div>
-<div class="line"><a id="l00233" name="l00233"></a><span class="lineno">  233</span>    <span class="keywordflow">return</span> f<span class="stringliteral">&quot;act_{actq}__kv_{kvq}__pref_{pf}__nt{nt}__numa_{numa}&quot;</span></div>
-<div class="line"><a id="l00234" name="l00234"></a><span class="lineno">  234</span> </div>
-<div class="line"><a id="l00235" name="l00235"></a><span class="lineno">  235</span> </div>
-</div>
-<div class="foldopen" id="foldopen00236" data-start="" data-end="">
-<div class="line"><a id="l00236" name="l00236"></a><span class="lineno"><a class="line" href="namespaceharness.html#a28af262c64af5578f03e77dc72cd52b2">  236</a></span><span class="keyword">def </span><a class="code hl_function" href="namespaceharness.html#a28af262c64af5578f03e77dc72cd52b2">main</a>() -&gt; int:</div>
-<div class="line"><a id="l00237" name="l00237"></a><span class="lineno">  237</span>    args = <a class="code hl_function" href="namespaceharness.html#af74096a05ed5982147faa1c7be9b3eca">_parse</a>()</div>
-<div class="line"><a id="l00238" name="l00238"></a><span class="lineno">  238</span> </div>
-<div class="line"><a id="l00239" name="l00239"></a><span class="lineno">  239</span>    <span class="comment"># Prompts</span></div>
-<div class="line"><a id="l00240" name="l00240"></a><span class="lineno">  240</span>    prompts = <a class="code hl_function" href="namespaceharness.html#a78ab66e05089868e03a0bf8d1dd2a446">_load_prompts_jsonl</a>(args.prompts)</div>
-<div class="line"><a id="l00241" name="l00241"></a><span class="lineno">  241</span>    <span class="keywordflow">if</span> <span class="keywordflow">not</span> prompts:</div>
-<div class="line"><a id="l00242" name="l00242"></a><span class="lineno">  242</span>        prompts = [f<span class="stringliteral">&quot;default-{i}&quot;</span> <span class="keywordflow">for</span> i <span class="keywordflow">in</span> range(4)]</div>
-<div class="line"><a id="l00243" name="l00243"></a><span class="lineno">  243</span> </div>
-<div class="line"><a id="l00244" name="l00244"></a><span class="lineno">  244</span>    <span class="comment"># Sweep domains</span></div>
-<div class="line"><a id="l00245" name="l00245"></a><span class="lineno">  245</span>    actQ = <a class="code hl_function" href="namespaceharness.html#ac86d67a920e4dc31a2cd9d0cf4747952">_split_list</a>(args.act_quant)</div>
-<div class="line"><a id="l00246" name="l00246"></a><span class="lineno">  246</span>    kvQ = <a class="code hl_function" href="namespaceharness.html#ac86d67a920e4dc31a2cd9d0cf4747952">_split_list</a>(args.kv_quant)</div>
-<div class="line"><a id="l00247" name="l00247"></a><span class="lineno">  247</span>    PF = <a class="code hl_function" href="namespaceharness.html#ac86d67a920e4dc31a2cd9d0cf4747952">_split_list</a>(args.prefetch)</div>
-<div class="line"><a id="l00248" name="l00248"></a><span class="lineno">  248</span>    NT = <a class="code hl_function" href="namespaceharness.html#ac86d67a920e4dc31a2cd9d0cf4747952">_split_list</a>(args.nt_loads)</div>
-<div class="line"><a id="l00249" name="l00249"></a><span class="lineno">  249</span>    NUMA = <a class="code hl_function" href="namespaceharness.html#ac86d67a920e4dc31a2cd9d0cf4747952">_split_list</a>(args.numa_policy)</div>
-<div class="line"><a id="l00250" name="l00250"></a><span class="lineno">  250</span> </div>
-<div class="line"><a id="l00251" name="l00251"></a><span class="lineno">  251</span>    <span class="comment"># Metrics config</span></div>
-<div class="line"><a id="l00252" name="l00252"></a><span class="lineno">  252</span>    metrics_enabled = (<span class="keywordflow">not</span> args.no_metrics) <span class="keywordflow">and</span> <a class="code hl_function" href="namespaceharness.html#a9dcfe13042b7e94d279194a10e8abbf2">_env_bool</a>(<span class="stringliteral">&quot;IE_METRICS_PUSH&quot;</span>, <span class="keyword">True</span>)</div>
-<div class="line"><a id="l00253" name="l00253"></a><span class="lineno">  253</span>    grouping = <a class="code hl_function" href="namespaceharness.html#a94bfd9bbb8e984be636e1a4363ae777d">_env_json</a>(<span class="stringliteral">&quot;IE_METRICS_GROUPING&quot;</span>, {<span class="stringliteral">&quot;instance&quot;</span>: <a class="code hl_function" href="namespaceharness.html#a06835702604d6d44d8a50798dff26a5d">_hostname</a>()})</div>
-<div class="line"><a id="l00254" name="l00254"></a><span class="lineno">  254</span>    <span class="keywordflow">if</span> metrics_enabled <span class="keywordflow">and</span> <a class="code hl_function" href="namespaceharness.html#a9dcfe13042b7e94d279194a10e8abbf2">_env_bool</a>(<span class="stringliteral">&quot;IE_METRICS_CLEAN&quot;</span>, <span class="keyword">False</span>):</div>
-<div class="line"><a id="l00255" name="l00255"></a><span class="lineno">  255</span>        <a class="code hl_function" href="namespaceharness.html#a193517728d393d9b1e67120aaa99e36e">_pg_delete_series</a>(</div>
-<div class="line"><a id="l00256" name="l00256"></a><span class="lineno">  256</span>            os.getenv(<span class="stringliteral">&quot;IE_METRICS_PUSHGATEWAY&quot;</span>, <span class="stringliteral">&quot;http://localhost:9091&quot;</span>),</div>
-<div class="line"><a id="l00257" name="l00257"></a><span class="lineno">  257</span>            os.getenv(<span class="stringliteral">&quot;IE_METRICS_JOB&quot;</span>, <span class="stringliteral">&quot;clocher-bench&quot;</span>),</div>
-<div class="line"><a id="l00258" name="l00258"></a><span class="lineno">  258</span>            grouping,</div>
-<div class="line"><a id="l00259" name="l00259"></a><span class="lineno">  259</span>        )</div>
-<div class="line"><a id="l00260" name="l00260"></a><span class="lineno">  260</span> </div>
-<div class="line"><a id="l00261" name="l00261"></a><span class="lineno">  261</span>    <span class="comment"># Top-level index for quick comparison</span></div>
-<div class="line"><a id="l00262" name="l00262"></a><span class="lineno">  262</span>    index_rows: List[Dict[str, Any]] = []</div>
-<div class="line"><a id="l00263" name="l00263"></a><span class="lineno">  263</span>    <a class="code hl_function" href="namespaceharness.html#aecd190db3c2f9679f9b2657270c1205b">_ensure_dir</a>(args.report_root)</div>
-<div class="line"><a id="l00264" name="l00264"></a><span class="lineno">  264</span> </div>
-<div class="line"><a id="l00265" name="l00265"></a><span class="lineno">  265</span>    <span class="comment"># Iterate grid</span></div>
-<div class="line"><a id="l00266" name="l00266"></a><span class="lineno">  266</span>    <span class="keywordflow">for</span> actq, kvq, pf, nt, numa <span class="keywordflow">in</span> itertools.product(actQ, kvQ, PF, NT, NUMA):</div>
-<div class="line"><a id="l00267" name="l00267"></a><span class="lineno">  267</span>        combo = <a class="code hl_function" href="namespaceharness.html#ad7476f60244e620d24fc97f5aac41d25">_combo_id</a>(actq, kvq, pf, nt, numa)</div>
-<div class="line"><a id="l00268" name="l00268"></a><span class="lineno">  268</span>        outdir = <a class="code hl_function" href="namespaceharness.html#a6214165c6e926d2a6d9eee8e092aaf05">_ensure_outdir</a>(args.report_root, combo)</div>
-<div class="line"><a id="l00269" name="l00269"></a><span class="lineno">  269</span>        csv_path = outdir / <span class="stringliteral">&quot;samples.csv&quot;</span></div>
-<div class="line"><a id="l00270" name="l00270"></a><span class="lineno">  270</span>        summary_path = outdir / <span class="stringliteral">&quot;summary.json&quot;</span></div>
-<div class="line"><a id="l00271" name="l00271"></a><span class="lineno">  271</span> </div>
-<div class="line"><a id="l00272" name="l00272"></a><span class="lineno">  272</span>        <span class="comment"># Synthetic “run”</span></div>
-<div class="line"><a id="l00273" name="l00273"></a><span class="lineno">  273</span>        tokens, wall_s, p50_ms, p95_ms = <a class="code hl_function" href="namespaceharness.html#a5db6927b2a0861460d3ed910752ee752">_synthetic_evaluate</a>(prompts)</div>
-<div class="line"><a id="l00274" name="l00274"></a><span class="lineno">  274</span>        tps_true = float(tokens) / float(wall_s) <span class="keywordflow">if</span> wall_s &gt; 0 <span class="keywordflow">else</span> 0.0</div>
-<div class="line"><a id="l00275" name="l00275"></a><span class="lineno">  275</span> </div>
-<div class="line"><a id="l00276" name="l00276"></a><span class="lineno">  276</span>        <span class="comment"># Spatial estimates</span></div>
-<div class="line"><a id="l00277" name="l00277"></a><span class="lineno">  277</span>        bpt = int(args.ie_bytes_per_token)</div>
-<div class="line"><a id="l00278" name="l00278"></a><span class="lineno">  278</span>        bytes_touched, bw_gbps = <a class="code hl_function" href="namespaceharness.html#a28ad8ca35209c460cdb401c221aae7dd">_derive_bytes_touched</a>(tokens, bpt, wall_s)</div>
-<div class="line"><a id="l00279" name="l00279"></a><span class="lineno">  279</span> </div>
-<div class="line"><a id="l00280" name="l00280"></a><span class="lineno">  280</span>        <span class="comment"># RSS fake snapshot (scale slightly by config)</span></div>
-<div class="line"><a id="l00281" name="l00281"></a><span class="lineno">  281</span>        rss_mean_mb = 1024.0 + (50.0 <span class="keywordflow">if</span> nt == <span class="stringliteral">&quot;1&quot;</span> <span class="keywordflow">else</span> 0.0) + (25.0 <span class="keywordflow">if</span> pf == <span class="stringliteral">&quot;on&quot;</span> <span class="keywordflow">else</span> 0.0)</div>
-<div class="line"><a id="l00282" name="l00282"></a><span class="lineno">  282</span>        rss_max_mb = rss_mean_mb + 64.0</div>
-<div class="line"><a id="l00283" name="l00283"></a><span class="lineno">  283</span> </div>
-<div class="line"><a id="l00284" name="l00284"></a><span class="lineno">  284</span>        <span class="comment"># KV fake counters</span></div>
-<div class="line"><a id="l00285" name="l00285"></a><span class="lineno">  285</span>        kv_hits = 1000 + (10 <span class="keywordflow">if</span> kvq != <span class="stringliteral">&quot;none&quot;</span> <span class="keywordflow">else</span> 0)</div>
-<div class="line"><a id="l00286" name="l00286"></a><span class="lineno">  286</span>        kv_miss = 25</div>
-<div class="line"><a id="l00287" name="l00287"></a><span class="lineno">  287</span> </div>
-<div class="line"><a id="l00288" name="l00288"></a><span class="lineno">  288</span>        <span class="comment"># Write CSV with one row per prompt (synthetic)</span></div>
-<div class="line"><a id="l00289" name="l00289"></a><span class="lineno">  289</span>        <span class="keyword">with</span> csv_path.open(<span class="stringliteral">&quot;w&quot;</span>, encoding=<span class="stringliteral">&quot;utf-8&quot;</span>, newline=<span class="stringliteral">&quot;&quot;</span>) <span class="keyword">as</span> fh:</div>
-<div class="line"><a id="l00290" name="l00290"></a><span class="lineno">  290</span>            w = csv.DictWriter(</div>
-<div class="line"><a id="l00291" name="l00291"></a><span class="lineno">  291</span>                fh,</div>
-<div class="line"><a id="l00292" name="l00292"></a><span class="lineno">  292</span>                fieldnames=[<span class="stringliteral">&quot;prompt_len&quot;</span>, <span class="stringliteral">&quot;tokens_generated&quot;</span>, <span class="stringliteral">&quot;tps_true&quot;</span>, <span class="stringliteral">&quot;elapsed_s&quot;</span>],</div>
-<div class="line"><a id="l00293" name="l00293"></a><span class="lineno">  293</span>            )</div>
-<div class="line"><a id="l00294" name="l00294"></a><span class="lineno">  294</span>            w.writeheader()</div>
-<div class="line"><a id="l00295" name="l00295"></a><span class="lineno">  295</span>            <span class="keywordflow">for</span> p <span class="keywordflow">in</span> prompts:</div>
-<div class="line"><a id="l00296" name="l00296"></a><span class="lineno">  296</span>                w.writerow({</div>
-<div class="line"><a id="l00297" name="l00297"></a><span class="lineno">  297</span>                    <span class="stringliteral">&quot;prompt_len&quot;</span>: len(p),</div>
-<div class="line"><a id="l00298" name="l00298"></a><span class="lineno">  298</span>                    <span class="stringliteral">&quot;tokens_generated&quot;</span>: tokens // max(1, len(prompts)),</div>
-<div class="line"><a id="l00299" name="l00299"></a><span class="lineno">  299</span>                    <span class="stringliteral">&quot;tps_true&quot;</span>: tps_true,</div>
-<div class="line"><a id="l00300" name="l00300"></a><span class="lineno">  300</span>                    <span class="stringliteral">&quot;elapsed_s&quot;</span>: wall_s / max(1, len(prompts)),</div>
-<div class="line"><a id="l00301" name="l00301"></a><span class="lineno">  301</span>                })</div>
-<div class="line"><a id="l00302" name="l00302"></a><span class="lineno">  302</span> </div>
-<div class="line"><a id="l00303" name="l00303"></a><span class="lineno">  303</span>        <span class="comment"># Summary JSON (shape matches exporter + PERFORMANCE.md generator)</span></div>
-<div class="line"><a id="l00304" name="l00304"></a><span class="lineno">  304</span>        summary = {</div>
-<div class="line"><a id="l00305" name="l00305"></a><span class="lineno">  305</span>            <span class="comment"># device/run identity</span></div>
-<div class="line"><a id="l00306" name="l00306"></a><span class="lineno">  306</span>            <span class="stringliteral">&quot;device&quot;</span>: args.device,</div>
-<div class="line"><a id="l00307" name="l00307"></a><span class="lineno">  307</span>            <span class="stringliteral">&quot;engine_bin&quot;</span>: args.engine_bin,</div>
-<div class="line"><a id="l00308" name="l00308"></a><span class="lineno">  308</span>            <span class="stringliteral">&quot;model_dir&quot;</span>: args.model_dir,</div>
-<div class="line"><a id="l00309" name="l00309"></a><span class="lineno">  309</span> </div>
-<div class="line"><a id="l00310" name="l00310"></a><span class="lineno">  310</span>            <span class="comment"># config</span></div>
-<div class="line"><a id="l00311" name="l00311"></a><span class="lineno">  311</span>            <span class="stringliteral">&quot;threads&quot;</span>: args.threads,</div>
-<div class="line"><a id="l00312" name="l00312"></a><span class="lineno">  312</span>            <span class="stringliteral">&quot;precision&quot;</span>: args.precision,</div>
-<div class="line"><a id="l00313" name="l00313"></a><span class="lineno">  313</span>            <span class="stringliteral">&quot;batch&quot;</span>: args.batch,</div>
-<div class="line"><a id="l00314" name="l00314"></a><span class="lineno">  314</span>            <span class="stringliteral">&quot;affinity&quot;</span>: args.affinity,</div>
-<div class="line"><a id="l00315" name="l00315"></a><span class="lineno">  315</span>            <span class="stringliteral">&quot;pretranspose&quot;</span>: args.pretranspose,</div>
-<div class="line"><a id="l00316" name="l00316"></a><span class="lineno">  316</span>            <span class="stringliteral">&quot;prompts&quot;</span>: str(args.prompts),</div>
-<div class="line"><a id="l00317" name="l00317"></a><span class="lineno">  317</span> </div>
-<div class="line"><a id="l00318" name="l00318"></a><span class="lineno">  318</span>            <span class="comment"># sweep knobs</span></div>
-<div class="line"><a id="l00319" name="l00319"></a><span class="lineno">  319</span>            <span class="stringliteral">&quot;act_quant&quot;</span>: actq,</div>
-<div class="line"><a id="l00320" name="l00320"></a><span class="lineno">  320</span>            <span class="stringliteral">&quot;kv_quant&quot;</span>: kvq,</div>
-<div class="line"><a id="l00321" name="l00321"></a><span class="lineno">  321</span>            <span class="stringliteral">&quot;prefetch&quot;</span>: pf,</div>
-<div class="line"><a id="l00322" name="l00322"></a><span class="lineno">  322</span>            <span class="stringliteral">&quot;nt_loads&quot;</span>: nt,</div>
-<div class="line"><a id="l00323" name="l00323"></a><span class="lineno">  323</span>            <span class="stringliteral">&quot;numa_policy&quot;</span>: numa,</div>
-<div class="line"><a id="l00324" name="l00324"></a><span class="lineno">  324</span> </div>
-<div class="line"><a id="l00325" name="l00325"></a><span class="lineno">  325</span>            <span class="comment"># results</span></div>
-<div class="line"><a id="l00326" name="l00326"></a><span class="lineno">  326</span>            <span class="stringliteral">&quot;tokens_generated&quot;</span>: tokens,</div>
-<div class="line"><a id="l00327" name="l00327"></a><span class="lineno">  327</span>            <span class="stringliteral">&quot;wall_time_s&quot;</span>: wall_s,</div>
-<div class="line"><a id="l00328" name="l00328"></a><span class="lineno">  328</span>            <span class="stringliteral">&quot;tps_true&quot;</span>: tps_true,</div>
-<div class="line"><a id="l00329" name="l00329"></a><span class="lineno">  329</span>            <span class="stringliteral">&quot;latency_p50_ms&quot;</span>: p50_ms,</div>
-<div class="line"><a id="l00330" name="l00330"></a><span class="lineno">  330</span>            <span class="stringliteral">&quot;latency_p95_ms&quot;</span>: p95_ms,</div>
-<div class="line"><a id="l00331" name="l00331"></a><span class="lineno">  331</span>            <span class="stringliteral">&quot;rss_peak_mb&quot;</span>: rss_mean_mb,</div>
-<div class="line"><a id="l00332" name="l00332"></a><span class="lineno">  332</span>            <span class="stringliteral">&quot;rss_peak_mb_max&quot;</span>: rss_max_mb,</div>
-<div class="line"><a id="l00333" name="l00333"></a><span class="lineno">  333</span>            <span class="stringliteral">&quot;kv_hits&quot;</span>: kv_hits,</div>
-<div class="line"><a id="l00334" name="l00334"></a><span class="lineno">  334</span>            <span class="stringliteral">&quot;kv_misses&quot;</span>: kv_miss,</div>
-<div class="line"><a id="l00335" name="l00335"></a><span class="lineno">  335</span> </div>
-<div class="line"><a id="l00336" name="l00336"></a><span class="lineno">  336</span>            <span class="comment"># spatial knobs and derived metrics</span></div>
-<div class="line"><a id="l00337" name="l00337"></a><span class="lineno">  337</span>            <span class="stringliteral">&quot;ie_bytes_per_token&quot;</span>: bpt,</div>
-<div class="line"><a id="l00338" name="l00338"></a><span class="lineno">  338</span>            <span class="stringliteral">&quot;ie_stride_bytes&quot;</span>: int(args.ie_stride_bytes),</div>
-<div class="line"><a id="l00339" name="l00339"></a><span class="lineno">  339</span>            <span class="stringliteral">&quot;ie_verify_touch&quot;</span>: int(args.ie_verify_touch),</div>
-<div class="line"><a id="l00340" name="l00340"></a><span class="lineno">  340</span>            <span class="stringliteral">&quot;ie_require_model&quot;</span>: int(args.ie_require_model),</div>
-<div class="line"><a id="l00341" name="l00341"></a><span class="lineno">  341</span> </div>
-<div class="line"><a id="l00342" name="l00342"></a><span class="lineno">  342</span>            <span class="stringliteral">&quot;bytes_touched&quot;</span>: bytes_touched,</div>
-<div class="line"><a id="l00343" name="l00343"></a><span class="lineno">  343</span>            <span class="stringliteral">&quot;effective_bandwidth_gbps&quot;</span>: bw_gbps,</div>
-<div class="line"><a id="l00344" name="l00344"></a><span class="lineno">  344</span> </div>
-<div class="line"><a id="l00345" name="l00345"></a><span class="lineno">  345</span>            <span class="comment"># optional git (best-effort)</span></div>
-<div class="line"><a id="l00346" name="l00346"></a><span class="lineno">  346</span>            <span class="stringliteral">&quot;git_commit&quot;</span>: <a class="code hl_function" href="namespaceharness.html#aea77adcd17ced76219c305b5d58588f4">_discover_git</a>(),</div>
-<div class="line"><a id="l00347" name="l00347"></a><span class="lineno">  347</span>        }</div>
-<div class="line"><a id="l00348" name="l00348"></a><span class="lineno">  348</span>        summary_path.write_text(json.dumps(summary), encoding=<span class="stringliteral">&quot;utf-8&quot;</span>)</div>
-<div class="line"><a id="l00349" name="l00349"></a><span class="lineno">  349</span> </div>
-<div class="line"><a id="l00350" name="l00350"></a><span class="lineno">  350</span>        <span class="comment"># Push per-combination snapshot</span></div>
-<div class="line"><a id="l00351" name="l00351"></a><span class="lineno">  351</span>        <span class="keywordflow">if</span> metrics_enabled:</div>
-<div class="line"><a id="l00352" name="l00352"></a><span class="lineno">  352</span>            labels = {</div>
-<div class="line"><a id="l00353" name="l00353"></a><span class="lineno">  353</span>                <span class="stringliteral">&quot;device&quot;</span>: args.device,</div>
-<div class="line"><a id="l00354" name="l00354"></a><span class="lineno">  354</span>                <span class="stringliteral">&quot;act_quant&quot;</span>: actq,</div>
-<div class="line"><a id="l00355" name="l00355"></a><span class="lineno">  355</span>                <span class="stringliteral">&quot;kv_quant&quot;</span>: kvq,</div>
-<div class="line"><a id="l00356" name="l00356"></a><span class="lineno">  356</span>                <span class="stringliteral">&quot;prefetch&quot;</span>: pf,</div>
-<div class="line"><a id="l00357" name="l00357"></a><span class="lineno">  357</span>                <span class="stringliteral">&quot;nt_loads&quot;</span>: nt,</div>
-<div class="line"><a id="l00358" name="l00358"></a><span class="lineno">  358</span>                <span class="stringliteral">&quot;numa_policy&quot;</span>: numa,</div>
-<div class="line"><a id="l00359" name="l00359"></a><span class="lineno">  359</span>                <span class="stringliteral">&quot;precision&quot;</span>: args.precision,</div>
-<div class="line"><a id="l00360" name="l00360"></a><span class="lineno">  360</span>                <span class="stringliteral">&quot;threads&quot;</span>: str(args.threads),</div>
-<div class="line"><a id="l00361" name="l00361"></a><span class="lineno">  361</span>                <span class="stringliteral">&quot;run_id&quot;</span>: combo,</div>
-<div class="line"><a id="l00362" name="l00362"></a><span class="lineno">  362</span>            }</div>
-<div class="line"><a id="l00363" name="l00363"></a><span class="lineno">  363</span>            txt = <a class="code hl_function" href="namespaceharness.html#a74669bfa6e74a83abe2b8fdcde52b0d7">emit_metrics_text</a>(summary, labels)</div>
-<div class="line"><a id="l00364" name="l00364"></a><span class="lineno">  364</span>            <a class="code hl_function" href="namespaceharness.html#a848001c6546fabab799285f3c771c0e8">push_metrics_pg</a>(</div>
-<div class="line"><a id="l00365" name="l00365"></a><span class="lineno">  365</span>                txt,</div>
-<div class="line"><a id="l00366" name="l00366"></a><span class="lineno">  366</span>                job=os.getenv(<span class="stringliteral">&quot;IE_METRICS_JOB&quot;</span>, <span class="stringliteral">&quot;clocher-bench&quot;</span>),</div>
-<div class="line"><a id="l00367" name="l00367"></a><span class="lineno">  367</span>                grouping=grouping,</div>
-<div class="line"><a id="l00368" name="l00368"></a><span class="lineno">  368</span>                base_url=os.getenv(<span class="stringliteral">&quot;IE_METRICS_PUSHGATEWAY&quot;</span>, <span class="stringliteral">&quot;http://localhost:9091&quot;</span>),</div>
-<div class="line"><a id="l00369" name="l00369"></a><span class="lineno">  369</span>                method=<span class="stringliteral">&quot;PUT&quot;</span>,</div>
-<div class="line"><a id="l00370" name="l00370"></a><span class="lineno">  370</span>            )</div>
-<div class="line"><a id="l00371" name="l00371"></a><span class="lineno">  371</span> </div>
-<div class="line"><a id="l00372" name="l00372"></a><span class="lineno">  372</span>        <span class="comment"># Append to index</span></div>
-<div class="line"><a id="l00373" name="l00373"></a><span class="lineno">  373</span>        index_rows.append({</div>
-<div class="line"><a id="l00374" name="l00374"></a><span class="lineno">  374</span>            <span class="stringliteral">&quot;combo&quot;</span>: combo,</div>
-<div class="line"><a id="l00375" name="l00375"></a><span class="lineno">  375</span>            <span class="stringliteral">&quot;tps_true&quot;</span>: tps_true,</div>
-<div class="line"><a id="l00376" name="l00376"></a><span class="lineno">  376</span>            <span class="stringliteral">&quot;p50_ms&quot;</span>: p50_ms,</div>
-<div class="line"><a id="l00377" name="l00377"></a><span class="lineno">  377</span>            <span class="stringliteral">&quot;p95_ms&quot;</span>: p95_ms,</div>
-<div class="line"><a id="l00378" name="l00378"></a><span class="lineno">  378</span>            <span class="stringliteral">&quot;rss_mean_mb&quot;</span>: rss_mean_mb,</div>
-<div class="line"><a id="l00379" name="l00379"></a><span class="lineno">  379</span>            <span class="stringliteral">&quot;rss_max_mb&quot;</span>: rss_max_mb,</div>
-<div class="line"><a id="l00380" name="l00380"></a><span class="lineno">  380</span>            <span class="stringliteral">&quot;bytes_touched&quot;</span>: bytes_touched,</div>
-<div class="line"><a id="l00381" name="l00381"></a><span class="lineno">  381</span>            <span class="stringliteral">&quot;bandwidth_gbps&quot;</span>: bw_gbps,</div>
-<div class="line"><a id="l00382" name="l00382"></a><span class="lineno">  382</span>        })</div>
-<div class="line"><a id="l00383" name="l00383"></a><span class="lineno">  383</span> </div>
-<div class="line"><a id="l00384" name="l00384"></a><span class="lineno">  384</span>        print(f<span class="stringliteral">&quot;[ok] wrote: {csv_path}&quot;</span>)</div>
-<div class="line"><a id="l00385" name="l00385"></a><span class="lineno">  385</span>        print(f<span class="stringliteral">&quot;[ok] wrote: {summary_path}&quot;</span>)</div>
-<div class="line"><a id="l00386" name="l00386"></a><span class="lineno">  386</span> </div>
-<div class="line"><a id="l00387" name="l00387"></a><span class="lineno">  387</span>    <span class="comment"># Write top-level index CSV</span></div>
-<div class="line"><a id="l00388" name="l00388"></a><span class="lineno">  388</span>    index_csv = args.report_root / <span class="stringliteral">&quot;index.csv&quot;</span></div>
-<div class="line"><a id="l00389" name="l00389"></a><span class="lineno">  389</span>    <span class="keyword">with</span> index_csv.open(<span class="stringliteral">&quot;w&quot;</span>, encoding=<span class="stringliteral">&quot;utf-8&quot;</span>, newline=<span class="stringliteral">&quot;&quot;</span>) <span class="keyword">as</span> fh:</div>
-<div class="line"><a id="l00390" name="l00390"></a><span class="lineno">  390</span>        w = csv.DictWriter(</div>
-<div class="line"><a id="l00391" name="l00391"></a><span class="lineno">  391</span>            fh,</div>
-<div class="line"><a id="l00392" name="l00392"></a><span class="lineno">  392</span>            fieldnames=[</div>
-<div class="line"><a id="l00393" name="l00393"></a><span class="lineno">  393</span>                <span class="stringliteral">&quot;combo&quot;</span>, <span class="stringliteral">&quot;tps_true&quot;</span>, <span class="stringliteral">&quot;p50_ms&quot;</span>, <span class="stringliteral">&quot;p95_ms&quot;</span>,</div>
-<div class="line"><a id="l00394" name="l00394"></a><span class="lineno">  394</span>                <span class="stringliteral">&quot;rss_mean_mb&quot;</span>, <span class="stringliteral">&quot;rss_max_mb&quot;</span>,</div>
-<div class="line"><a id="l00395" name="l00395"></a><span class="lineno">  395</span>                <span class="stringliteral">&quot;bytes_touched&quot;</span>, <span class="stringliteral">&quot;bandwidth_gbps&quot;</span>,</div>
-<div class="line"><a id="l00396" name="l00396"></a><span class="lineno">  396</span>            ],</div>
-<div class="line"><a id="l00397" name="l00397"></a><span class="lineno">  397</span>        )</div>
-<div class="line"><a id="l00398" name="l00398"></a><span class="lineno">  398</span>        w.writeheader()</div>
-<div class="line"><a id="l00399" name="l00399"></a><span class="lineno">  399</span>        <span class="keywordflow">for</span> row <span class="keywordflow">in</span> index_rows:</div>
-<div class="line"><a id="l00400" name="l00400"></a><span class="lineno">  400</span>            w.writerow(row)</div>
-<div class="line"><a id="l00401" name="l00401"></a><span class="lineno">  401</span>    print(f<span class="stringliteral">&quot;[ok] wrote: {index_csv}&quot;</span>)</div>
-<div class="line"><a id="l00402" name="l00402"></a><span class="lineno">  402</span> </div>
-<div class="line"><a id="l00403" name="l00403"></a><span class="lineno">  403</span>    <span class="keywordflow">return</span> 0</div>
-<div class="line"><a id="l00404" name="l00404"></a><span class="lineno">  404</span> </div>
-<div class="line"><a id="l00405" name="l00405"></a><span class="lineno">  405</span> </div>
-<div class="line"><a id="l00406" name="l00406"></a><span class="lineno">  406</span><span class="comment"># ------------------------------ misc helpers ------------------------------ #</span></div>
-<div class="line"><a id="l00407" name="l00407"></a><span class="lineno">  407</span> </div>
-</div>
-<div class="foldopen" id="foldopen00408" data-start="" data-end="">
-<div class="line"><a id="l00408" name="l00408"></a><span class="lineno"><a class="line" href="namespaceharness.html#aea77adcd17ced76219c305b5d58588f4">  408</a></span><span class="keyword">def </span><a class="code hl_function" href="namespaceharness.html#aea77adcd17ced76219c305b5d58588f4">_discover_git</a>() -&gt; Optional[str]:</div>
-<div class="line"><a id="l00409" name="l00409"></a><span class="lineno">  409</span>    <span class="keywordflow">try</span>:</div>
-<div class="line"><a id="l00410" name="l00410"></a><span class="lineno">  410</span>        sha = subprocess.check_output(</div>
-<div class="line"><a id="l00411" name="l00411"></a><span class="lineno">  411</span>            [<span class="stringliteral">&quot;git&quot;</span>, <span class="stringliteral">&quot;rev-parse&quot;</span>, <span class="stringliteral">&quot;--short&quot;</span>, <span class="stringliteral">&quot;HEAD&quot;</span>],</div>
-<div class="line"><a id="l00412" name="l00412"></a><span class="lineno">  412</span>            stderr=subprocess.DEVNULL,</div>
-<div class="line"><a id="l00413" name="l00413"></a><span class="lineno">  413</span>        ).decode().strip()</div>
-<div class="line"><a id="l00414" name="l00414"></a><span class="lineno">  414</span>        dirty = subprocess.call(</div>
-<div class="line"><a id="l00415" name="l00415"></a><span class="lineno">  415</span>            [<span class="stringliteral">&quot;git&quot;</span>, <span class="stringliteral">&quot;diff&quot;</span>, <span class="stringliteral">&quot;--quiet&quot;</span>, <span class="stringliteral">&quot;--ignore-submodules&quot;</span>],</div>
-<div class="line"><a id="l00416" name="l00416"></a><span class="lineno">  416</span>            stdout=subprocess.DEVNULL,</div>
-<div class="line"><a id="l00417" name="l00417"></a><span class="lineno">  417</span>            stderr=subprocess.DEVNULL,</div>
-<div class="line"><a id="l00418" name="l00418"></a><span class="lineno">  418</span>        )</div>
-<div class="line"><a id="l00419" name="l00419"></a><span class="lineno">  419</span>        <span class="keywordflow">return</span> f<span class="stringliteral">&quot;{sha}{&#39; DIRTY&#39; if dirty != 0 else &#39;&#39;}&quot;</span></div>
-<div class="line"><a id="l00420" name="l00420"></a><span class="lineno">  420</span>    <span class="keywordflow">except</span> Exception:</div>
-<div class="line"><a id="l00421" name="l00421"></a><span class="lineno">  421</span>        <span class="keywordflow">return</span> <span class="keywordtype">None</span></div>
-<div class="line"><a id="l00422" name="l00422"></a><span class="lineno">  422</span> </div>
-<div class="line"><a id="l00423" name="l00423"></a><span class="lineno">  423</span> </div>
-</div>
-<div class="line"><a id="l00424" name="l00424"></a><span class="lineno">  424</span><span class="keywordflow">if</span> __name__ == <span class="stringliteral">&quot;__main__&quot;</span>:</div>
-<div class="line"><a id="l00425" name="l00425"></a><span class="lineno">  425</span>    <span class="keywordflow">try</span>:</div>
-<div class="line"><a id="l00426" name="l00426"></a><span class="lineno">  426</span>        <span class="keywordflow">raise</span> SystemExit(<a class="code hl_function" href="namespaceharness.html#a28af262c64af5578f03e77dc72cd52b2">main</a>())</div>
-<div class="line"><a id="l00427" name="l00427"></a><span class="lineno">  427</span>    <span class="keywordflow">except</span> Exception <span class="keyword">as</span> e:</div>
-<div class="line"><a id="l00428" name="l00428"></a><span class="lineno">  428</span>        <span class="comment"># Always leave a minimal usable artifact even on unexpected errors.</span></div>
-<div class="line"><a id="l00429" name="l00429"></a><span class="lineno"><a class="line" href="namespaceharness.html#aa6b77445f1ba3bbeeec35eae16193ef3">  429</a></span>        root = Path(<span class="stringliteral">&quot;benchmarks/reports_sweep&quot;</span>)</div>
-<div class="line"><a id="l00430" name="l00430"></a><span class="lineno">  430</span>        <a class="code hl_function" href="namespaceharness.html#aecd190db3c2f9679f9b2657270c1205b">_ensure_dir</a>(root)</div>
-<div class="line"><a id="l00431" name="l00431"></a><span class="lineno">  431</span>        (root / <span class="stringliteral">&quot;index.csv&quot;</span>).write_text(</div>
-<div class="line"><a id="l00432" name="l00432"></a><span class="lineno">  432</span>            <span class="stringliteral">&quot;combo,tps_true,p50_ms,p95_ms,rss_mean_mb,rss_max_mb,bytes_touched,bandwidth_gbps\n&quot;</span>,</div>
-<div class="line"><a id="l00433" name="l00433"></a><span class="lineno"><a class="line" href="namespaceharness.html#af79b6ab75a064a069a2d6015029ae515">  433</a></span>            encoding=<span class="stringliteral">&quot;utf-8&quot;</span>,</div>
-<div class="line"><a id="l00434" name="l00434"></a><span class="lineno">  434</span>        )</div>
-<div class="line"><a id="l00435" name="l00435"></a><span class="lineno">  435</span>        print(f<span class="stringliteral">&quot;[warn] sweep aborted with: {type(e).__name__}: {e}&quot;</span>)</div>
-<div class="line"><a id="l00436" name="l00436"></a><span class="lineno">  436</span>        <span class="keywordflow">raise</span> SystemExit(0)</div>
-<div class="ttc" id="anamespaceharness_html_a06835702604d6d44d8a50798dff26a5d"><div class="ttname"><a href="namespaceharness.html#a06835702604d6d44d8a50798dff26a5d">harness._hostname</a></div><div class="ttdeci">str _hostname()</div><div class="ttdef"><b>Definition</b> <a href="#l00094">harness.py:94</a></div></div>
-<div class="ttc" id="anamespaceharness_html_a13ee79cd9d8d8d527a2085b05cb1bb04"><div class="ttname"><a href="namespaceharness.html#a13ee79cd9d8d8d527a2085b05cb1bb04">harness._fmt_labels</a></div><div class="ttdeci">str _fmt_labels(dict labels)</div><div class="ttdef"><b>Definition</b> <a href="#l00087">harness.py:87</a></div></div>
-<div class="ttc" id="anamespaceharness_html_a193517728d393d9b1e67120aaa99e36e"><div class="ttname"><a href="namespaceharness.html#a193517728d393d9b1e67120aaa99e36e">harness._pg_delete_series</a></div><div class="ttdeci">None _pg_delete_series(str base_url, str job, dict[str, str] grouping)</div><div class="ttdef"><b>Definition</b> <a href="#l00109">harness.py:109</a></div></div>
-<div class="ttc" id="anamespaceharness_html_a1e44abe348994ef0001853e16c671393"><div class="ttname"><a href="namespaceharness.html#a1e44abe348994ef0001853e16c671393">harness._escape_label_value</a></div><div class="ttdeci">str _escape_label_value(str s)</div><div class="ttdef"><b>Definition</b> <a href="#l00083">harness.py:83</a></div></div>
-<div class="ttc" id="anamespaceharness_html_a28ad8ca35209c460cdb401c221aae7dd"><div class="ttname"><a href="namespaceharness.html#a28ad8ca35209c460cdb401c221aae7dd">harness._derive_bytes_touched</a></div><div class="ttdeci">Tuple[float, float] _derive_bytes_touched(int tokens, Optional[int] bpt, float wall_s)</div><div class="ttdef"><b>Definition</b> <a href="#l00186">harness.py:186</a></div></div>
-<div class="ttc" id="anamespaceharness_html_a28af262c64af5578f03e77dc72cd52b2"><div class="ttname"><a href="namespaceharness.html#a28af262c64af5578f03e77dc72cd52b2">harness.main</a></div><div class="ttdeci">int main()</div><div class="ttdef"><b>Definition</b> <a href="#l00236">harness.py:236</a></div></div>
-<div class="ttc" id="anamespaceharness_html_a49277e4bc8eb93aff1a9c8480882e114"><div class="ttname"><a href="namespaceharness.html#a49277e4bc8eb93aff1a9c8480882e114">harness._pg_endpoint</a></div><div class="ttdeci">str _pg_endpoint(str base_url, str job, dict[str, str] grouping)</div><div class="ttdef"><b>Definition</b> <a href="#l00101">harness.py:101</a></div></div>
-<div class="ttc" id="anamespaceharness_html_a5db6927b2a0861460d3ed910752ee752"><div class="ttname"><a href="namespaceharness.html#a5db6927b2a0861460d3ed910752ee752">harness._synthetic_evaluate</a></div><div class="ttdeci">Tuple[int, float, float, float] _synthetic_evaluate(List[str] prompts)</div><div class="ttdef"><b>Definition</b> <a href="#l00175">harness.py:175</a></div></div>
-<div class="ttc" id="anamespaceharness_html_a6214165c6e926d2a6d9eee8e092aaf05"><div class="ttname"><a href="namespaceharness.html#a6214165c6e926d2a6d9eee8e092aaf05">harness._ensure_outdir</a></div><div class="ttdeci">Path _ensure_outdir(Path root, str combo_id)</div><div class="ttdef"><b>Definition</b> <a href="#l00039">harness.py:39</a></div></div>
-<div class="ttc" id="anamespaceharness_html_a74669bfa6e74a83abe2b8fdcde52b0d7"><div class="ttname"><a href="namespaceharness.html#a74669bfa6e74a83abe2b8fdcde52b0d7">harness.emit_metrics_text</a></div><div class="ttdeci">str emit_metrics_text(Dict[str, Any] summary, Dict[str, str] labels)</div><div class="ttdef"><b>Definition</b> <a href="#l00138">harness.py:138</a></div></div>
-<div class="ttc" id="anamespaceharness_html_a78ab66e05089868e03a0bf8d1dd2a446"><div class="ttname"><a href="namespaceharness.html#a78ab66e05089868e03a0bf8d1dd2a446">harness._load_prompts_jsonl</a></div><div class="ttdeci">List[str] _load_prompts_jsonl(Path path)</div><div class="ttdef"><b>Definition</b> <a href="#l00045">harness.py:45</a></div></div>
-<div class="ttc" id="anamespaceharness_html_a848001c6546fabab799285f3c771c0e8"><div class="ttname"><a href="namespaceharness.html#a848001c6546fabab799285f3c771c0e8">harness.push_metrics_pg</a></div><div class="ttdeci">push_metrics_pg(str metrics_text, job=&quot;clocher-bench&quot;, grouping=None, base_url=None, method=&quot;PUT&quot;)</div><div class="ttdef"><b>Definition</b> <a href="#l00120">harness.py:120</a></div></div>
-<div class="ttc" id="anamespaceharness_html_a94bfd9bbb8e984be636e1a4363ae777d"><div class="ttname"><a href="namespaceharness.html#a94bfd9bbb8e984be636e1a4363ae777d">harness._env_json</a></div><div class="ttdeci">_env_json(str name, default)</div><div class="ttdef"><b>Definition</b> <a href="#l00073">harness.py:73</a></div></div>
-<div class="ttc" id="anamespaceharness_html_a9dcfe13042b7e94d279194a10e8abbf2"><div class="ttname"><a href="namespaceharness.html#a9dcfe13042b7e94d279194a10e8abbf2">harness._env_bool</a></div><div class="ttdeci">bool _env_bool(str name, bool default)</div><div class="ttdef"><b>Definition</b> <a href="#l00066">harness.py:66</a></div></div>
-<div class="ttc" id="anamespaceharness_html_ac86d67a920e4dc31a2cd9d0cf4747952"><div class="ttname"><a href="namespaceharness.html#ac86d67a920e4dc31a2cd9d0cf4747952">harness._split_list</a></div><div class="ttdeci">List[str] _split_list(str s)</div><div class="ttdef"><b>Definition</b> <a href="#l00228">harness.py:228</a></div></div>
-<div class="ttc" id="anamespaceharness_html_ad7476f60244e620d24fc97f5aac41d25"><div class="ttname"><a href="namespaceharness.html#ad7476f60244e620d24fc97f5aac41d25">harness._combo_id</a></div><div class="ttdeci">str _combo_id(str actq, str kvq, str pf, str nt, str numa)</div><div class="ttdef"><b>Definition</b> <a href="#l00232">harness.py:232</a></div></div>
-<div class="ttc" id="anamespaceharness_html_aea77adcd17ced76219c305b5d58588f4"><div class="ttname"><a href="namespaceharness.html#aea77adcd17ced76219c305b5d58588f4">harness._discover_git</a></div><div class="ttdeci">Optional[str] _discover_git()</div><div class="ttdef"><b>Definition</b> <a href="#l00408">harness.py:408</a></div></div>
-<div class="ttc" id="anamespaceharness_html_aecd190db3c2f9679f9b2657270c1205b"><div class="ttname"><a href="namespaceharness.html#aecd190db3c2f9679f9b2657270c1205b">harness._ensure_dir</a></div><div class="ttdeci">None _ensure_dir(Path p)</div><div class="ttdef"><b>Definition</b> <a href="#l00035">harness.py:35</a></div></div>
-<div class="ttc" id="anamespaceharness_html_af74096a05ed5982147faa1c7be9b3eca"><div class="ttname"><a href="namespaceharness.html#af74096a05ed5982147faa1c7be9b3eca">harness._parse</a></div><div class="ttdeci">argparse.Namespace _parse()</div><div class="ttdef"><b>Definition</b> <a href="#l00197">harness.py:197</a></div></div>
+<div class="line"><a id="l00101" name="l00101"></a><span class="lineno">  101</span><span class="keywordflow">if</span> __name__ == <span class="stringliteral">&quot;__main__&quot;</span>:</div>
+<div class="line"><a id="l00102" name="l00102"></a><span class="lineno">  102</span>  sys.exit(<a class="code hl_function" href="namespaceharness.html#a4f0fe04dc9b9343f12a87b1ab57b071f">main</a>())</div>
+<div class="ttc" id="anamespaceharness_html_a4f0fe04dc9b9343f12a87b1ab57b071f"><div class="ttname"><a href="namespaceharness.html#a4f0fe04dc9b9343f12a87b1ab57b071f">harness.main</a></div><div class="ttdeci">main()</div><div class="ttdef"><b>Definition</b> <a href="#l00073">harness.py:73</a></div></div>
+<div class="ttc" id="anamespaceharness_html_abadd908805b591f82fae7f35b779f642"><div class="ttname"><a href="namespaceharness.html#abadd908805b591f82fae7f35b779f642">harness.parse_args</a></div><div class="ttdeci">parse_args()</div><div class="ttdef"><b>Definition</b> <a href="#l00028">harness.py:28</a></div></div>
+<div class="ttc" id="anamespaceharness_html_ac9f1bde483441516bc8042ea477fe3c5"><div class="ttname"><a href="namespaceharness.html#ac9f1bde483441516bc8042ea477fe3c5">harness.make_summary</a></div><div class="ttdeci">make_summary(args)</div><div class="ttdef"><b>Definition</b> <a href="#l00047">harness.py:47</a></div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->

@@ -3,6 +3,7 @@ var dir_8fb851d3b3b559f734b4acd0650bb509 =
     [ "test_act_quant.c", "test__act__quant_8c.html", "test__act__quant_8c" ],
     [ "test_api.c", "test__api_8c.html", "test__api_8c" ],
     [ "test_batcher.c", "test__batcher_8c.html", "test__batcher_8c" ],
+    [ "test_block_sparse.c", "test__block__sparse_8c.html", "test__block__sparse_8c" ],
     [ "test_cpu_features.c", "test__cpu__features_8c.html", "test__cpu__features_8c" ],
     [ "test_device.c", "test__device_8c.html", "test__device_8c" ],
     [ "test_int4_ptq.c", "test__int4__ptq_8c.html", null ],

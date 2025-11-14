@@ -192,7 +192,15 @@ Precision labels</h1>
 <li>"int8w" : weight-only INT8 (activations in fp32/fp16/bf16 as the backend decides)</li>
 <li>"int4w" : weight-only INT4 (packed nibbles, symmetric, zero-point = 0)</li>
 </ul>
-<p>Engines are free to ignore these hints or to act on them. The CLI never remaps "int4" to "fp32" — when seen, it normalizes to "int4w". </p>
+<p>Engines are free to ignore these hints or to act on them. The CLI never remaps "int4" to "fp32" — when seen, it normalizes to "int4w".</p>
+<h1><a class="anchor" id="sparsity"></a>
+Sparsity labels</h1>
+<p>The optional <code>sparsity</code> hint describes whether the engine should attempt to use sparse kernels/layouts when available. This is a soft hint:</p><ul>
+<li>"none" : dense weights (default when unset).</li>
+<li>"block" : block-sparse weights (e.g., BSR layout).</li>
+<li>"auto" : let the backend decide based on model metadata.</li>
+</ul>
+<p>Backends that do not support sparsity should silently ignore this hint. </p>
 
 <p class="definition">Definition in file <a class="el" href="ie__api_8h_source.html">ie_api.h</a>.</p>
 </div><h2 class="groupheader">Macro Definition Documentation</h2>
@@ -210,9 +218,9 @@ Precision labels</h1>
 
 <p>Success (used by unit tests that assert IE_OK). </p>
 
-<p class="definition">Definition at line <a class="el" href="ie__api_8h_source.html#l00044">44</a> of file <a class="el" href="ie__api_8h_source.html">ie_api.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ie__api_8h_source.html#l00050">50</a> of file <a class="el" href="ie__api_8h_source.html">ie_api.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="ie__api_8c_source.html#l00106">ie_engine_create()</a>, <a class="el" href="ie__api_8c_source.html#l00152">ie_engine_generate()</a>, <a class="el" href="ie__api_8c_source.html#l00194">ie_engine_metrics()</a>, <a class="el" href="main__infer_8c_source.html#l00435">main()</a>, and <a class="el" href="test__api_8c_source.html#l00021">main()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="ie__api_8c_source.html#l00115">ie_engine_create()</a>, <a class="el" href="ie__api_8c_source.html#l00166">ie_engine_generate()</a>, <a class="el" href="ie__api_8c_source.html#l00208">ie_engine_metrics()</a>, <a class="el" href="main__infer_8c_source.html#l00486">main()</a>, and <a class="el" href="test__api_8c_source.html#l00021">main()</a>.</p>
 
 </div>
 </div>
@@ -230,9 +238,9 @@ Precision labels</h1>
 
 <p>Label for bfloat16 precision hint ("bf16"). </p>
 
-<p class="definition">Definition at line <a class="el" href="ie__api_8h_source.html#l00054">54</a> of file <a class="el" href="ie__api_8h_source.html">ie_api.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ie__api_8h_source.html#l00060">60</a> of file <a class="el" href="ie__api_8h_source.html">ie_api.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="main__infer_8c_source.html#l00435">main()</a>, and <a class="el" href="main__infer_8c_source.html#l00275">parse_flags()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="main__infer_8c_source.html#l00486">main()</a>, and <a class="el" href="main__infer_8c_source.html#l00312">parse_flags()</a>.</p>
 
 </div>
 </div>
@@ -250,9 +258,9 @@ Precision labels</h1>
 
 <p>Label for 16-bit floating-point precision hint ("fp16"). </p>
 
-<p class="definition">Definition at line <a class="el" href="ie__api_8h_source.html#l00056">56</a> of file <a class="el" href="ie__api_8h_source.html">ie_api.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ie__api_8h_source.html#l00062">62</a> of file <a class="el" href="ie__api_8h_source.html">ie_api.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="main__infer_8c_source.html#l00435">main()</a>, and <a class="el" href="main__infer_8c_source.html#l00275">parse_flags()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="main__infer_8c_source.html#l00486">main()</a>, and <a class="el" href="main__infer_8c_source.html#l00312">parse_flags()</a>.</p>
 
 </div>
 </div>
@@ -270,9 +278,9 @@ Precision labels</h1>
 
 <p>Label for 32-bit floating-point precision hint ("fp32"). </p>
 
-<p class="definition">Definition at line <a class="el" href="ie__api_8h_source.html#l00052">52</a> of file <a class="el" href="ie__api_8h_source.html">ie_api.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ie__api_8h_source.html#l00058">58</a> of file <a class="el" href="ie__api_8h_source.html">ie_api.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="main__infer_8c_source.html#l00225">cli_extras_defaults()</a>, <a class="el" href="ie__config_8h_source.html#l00117">ie_cfg_load_env()</a>, <a class="el" href="main__infer_8c_source.html#l00435">main()</a>, and <a class="el" href="main__infer_8c_source.html#l00275">parse_flags()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="main__infer_8c_source.html#l00256">cli_extras_defaults()</a>, <a class="el" href="ie__config_8h_source.html#l00117">ie_cfg_load_env()</a>, <a class="el" href="main__infer_8c_source.html#l00486">main()</a>, and <a class="el" href="main__infer_8c_source.html#l00312">parse_flags()</a>.</p>
 
 </div>
 </div>
@@ -290,9 +298,9 @@ Precision labels</h1>
 
 <p>Convenience alias accepted by the CLI; normalized to "int4w". </p>
 
-<p class="definition">Definition at line <a class="el" href="ie__api_8h_source.html#l00062">62</a> of file <a class="el" href="ie__api_8h_source.html">ie_api.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ie__api_8h_source.html#l00068">68</a> of file <a class="el" href="ie__api_8h_source.html">ie_api.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="ie__api_8c_source.html#l00106">ie_engine_create()</a>, <a class="el" href="main__infer_8c_source.html#l00435">main()</a>, and <a class="el" href="main__infer_8c_source.html#l00275">parse_flags()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="ie__api_8c_source.html#l00115">ie_engine_create()</a>, <a class="el" href="main__infer_8c_source.html#l00486">main()</a>, and <a class="el" href="main__infer_8c_source.html#l00312">parse_flags()</a>.</p>
 
 </div>
 </div>
@@ -310,9 +318,9 @@ Precision labels</h1>
 
 <p>Label for weight-only INT4 precision hint ("int4w"). </p>
 
-<p class="definition">Definition at line <a class="el" href="ie__api_8h_source.html#l00060">60</a> of file <a class="el" href="ie__api_8h_source.html">ie_api.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ie__api_8h_source.html#l00066">66</a> of file <a class="el" href="ie__api_8h_source.html">ie_api.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="ie__api_8c_source.html#l00106">ie_engine_create()</a>, <a class="el" href="main__infer_8c_source.html#l00435">main()</a>, and <a class="el" href="main__infer_8c_source.html#l00275">parse_flags()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="ie__api_8c_source.html#l00115">ie_engine_create()</a>, <a class="el" href="main__infer_8c_source.html#l00486">main()</a>, and <a class="el" href="main__infer_8c_source.html#l00312">parse_flags()</a>.</p>
 
 </div>
 </div>
@@ -330,9 +338,9 @@ Precision labels</h1>
 
 <p>Label for weight-only INT8 precision hint ("int8w"). </p>
 
-<p class="definition">Definition at line <a class="el" href="ie__api_8h_source.html#l00058">58</a> of file <a class="el" href="ie__api_8h_source.html">ie_api.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ie__api_8h_source.html#l00064">64</a> of file <a class="el" href="ie__api_8h_source.html">ie_api.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="main__infer_8c_source.html#l00435">main()</a>, and <a class="el" href="main__infer_8c_source.html#l00275">parse_flags()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="main__infer_8c_source.html#l00486">main()</a>, and <a class="el" href="main__infer_8c_source.html#l00312">parse_flags()</a>.</p>
 
 </div>
 </div>
@@ -363,7 +371,7 @@ Precision labels</h1>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="ie__api_8h_source.html#l00072">72</a> of file <a class="el" href="ie__api_8h_source.html">ie_api.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ie__api_8h_source.html#l00078">78</a> of file <a class="el" href="ie__api_8h_source.html">ie_api.h</a>.</p>
 
 </div>
 </div>
@@ -395,7 +403,7 @@ Precision labels</h1>
 
 <p>Status/result type where <code>0</code> indicates success. </p>
 
-<p class="definition">Definition at line <a class="el" href="ie__api_8h_source.html#l00040">40</a> of file <a class="el" href="ie__api_8h_source.html">ie_api.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ie__api_8h_source.html#l00046">46</a> of file <a class="el" href="ie__api_8h_source.html">ie_api.h</a>.</p>
 
 </div>
 </div>
@@ -455,62 +463,77 @@ Precision labels</h1>
 <p>CI-friendly behavior:</p><ul>
 <li>Does not open or validate model files.</li>
 <li>Fails only on allocation/invalid-argument errors.</li>
-<li>“Model required” is enforced by the CLI when IE_REQUIRE_MODEL=1.   </li>
+<li>“Model required” is enforced by the CLI when IE_REQUIRE_MODEL=1.</li>
+</ul>
+<p>Additional behavior:</p><ul>
+<li>Derives a deterministic seed from soft hints (precision, affinity, pretranspose, prefetch, sparsity) so that tests using different pathways still remain reproducible.</li>
+<li>Records uses_weight_int4 and uses_block_sparse based solely on these hints; backends may later consult these flags without changing ABI.   </li>
 </ul>
 <p>CI-friendly behavior:</p><ul>
 <li>Does not open or validate model files.</li>
 <li>Fails only on allocation/invalid-argument errors.</li>
-<li>“Model required” is enforced by the CLI when IE_REQUIRE_MODEL=1. </li>
+<li>“Model required” is enforced by the CLI when IE_REQUIRE_MODEL=1.</li>
+</ul>
+<p>Additional behavior:</p><ul>
+<li>Derives a deterministic seed from soft hints (precision, affinity, pretranspose, prefetch, sparsity) so that tests using different pathways still remain reproducible.</li>
+<li>Records uses_weight_int4 and uses_block_sparse based solely on these hints; backends may later consult these flags without changing ABI. </li>
 </ul>
 
-<p class="definition">Definition at line <a class="el" href="ie__api_8c_source.html#l00106">106</a> of file <a class="el" href="ie__api_8c_source.html">ie_api.c</a>.</p>
-<div class="fragment"><div class="line"><span class="lineno">  106</span>                                                                             {</div>
-<div class="line"><span class="lineno">  107</span>  <span class="keywordflow">if</span> (!out) <span class="keywordflow">return</span> 1; <span class="comment">/* generic error */</span></div>
-<div class="line"><span class="lineno">  108</span> </div>
-<div class="line"><span class="lineno">  109</span>  <a class="code hl_typedef" href="#a2339b3d8d0ba3c2aff4d4ee7d912ab96">ie_engine_t</a> *e = (<a class="code hl_typedef" href="#a2339b3d8d0ba3c2aff4d4ee7d912ab96">ie_engine_t</a> *)calloc(1, <span class="keyword">sizeof</span>(*e));</div>
-<div class="line"><span class="lineno">  110</span>  <span class="keywordflow">if</span> (!e) <span class="keywordflow">return</span> 1;</div>
-<div class="line"><span class="lineno">  111</span> </div>
-<div class="line"><span class="lineno">  112</span>  <span class="keywordflow">if</span> (p) {</div>
-<div class="line"><span class="lineno">  113</span>    e-&gt;<a class="code hl_variable" href="structie__engine.html#a7ae7f7efbee346d04370ee09f5f6cd68">cfg</a> = *p; <span class="comment">/* copy-by-value */</span></div>
-<div class="line"><span class="lineno">  114</span>  } <span class="keywordflow">else</span> {</div>
-<div class="line"><span class="lineno">  115</span>    memset(&amp;e-&gt;<a class="code hl_variable" href="structie__engine.html#a7ae7f7efbee346d04370ee09f5f6cd68">cfg</a>, 0, <span class="keyword">sizeof</span>(e-&gt;<a class="code hl_variable" href="structie__engine.html#a7ae7f7efbee346d04370ee09f5f6cd68">cfg</a>));</div>
-<div class="line"><span class="lineno">  116</span>  }</div>
+<p class="definition">Definition at line <a class="el" href="ie__api_8c_source.html#l00115">115</a> of file <a class="el" href="ie__api_8c_source.html">ie_api.c</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">  115</span>                                                                             {</div>
+<div class="line"><span class="lineno">  116</span>  <span class="keywordflow">if</span> (!out) <span class="keywordflow">return</span> 1; <span class="comment">/* generic error */</span></div>
 <div class="line"><span class="lineno">  117</span> </div>
-<div class="line"><span class="lineno">  118</span>  <span class="comment">/* Safe defaults for metrics. */</span></div>
-<div class="line"><span class="lineno">  119</span>  memset(&amp;e-&gt;<a class="code hl_variable" href="structie__engine.html#aac6bf09043eb30698b226cbac9a5903b">last</a>, 0, <span class="keyword">sizeof</span>(e-&gt;<a class="code hl_variable" href="structie__engine.html#aac6bf09043eb30698b226cbac9a5903b">last</a>));</div>
+<div class="line"><span class="lineno">  118</span>  <a class="code hl_typedef" href="#a2339b3d8d0ba3c2aff4d4ee7d912ab96">ie_engine_t</a> *e = (<a class="code hl_typedef" href="#a2339b3d8d0ba3c2aff4d4ee7d912ab96">ie_engine_t</a> *)calloc(1, <span class="keyword">sizeof</span>(*e));</div>
+<div class="line"><span class="lineno">  119</span>  <span class="keywordflow">if</span> (!e) <span class="keywordflow">return</span> 1;</div>
 <div class="line"><span class="lineno">  120</span> </div>
-<div class="line"><span class="lineno">  121</span>  <span class="comment">/* Derive a stable seed from a few string hints (all are NULL-safe). */</span></div>
-<div class="line"><span class="lineno">  122</span>  e-&gt;<a class="code hl_variable" href="structie__engine.html#a39645576c844465466e51883ccb5ca34">seed</a>  = 0x9E3779B97F4A7C15ULL;</div>
-<div class="line"><span class="lineno">  123</span>  e-&gt;<a class="code hl_variable" href="structie__engine.html#a39645576c844465466e51883ccb5ca34">seed</a> ^= (uint64_t)<a class="code hl_function" href="ie__api_8c.html#aee4ab6bebc1781cfbfe821e0e89d8823">fnv1a32</a>(e-&gt;<a class="code hl_variable" href="structie__engine.html#a7ae7f7efbee346d04370ee09f5f6cd68">cfg</a>.<a class="code hl_variable" href="structie__engine__params.html#a92b02bad12cb4e8173728311c00960b7">precision</a>);</div>
-<div class="line"><span class="lineno">  124</span>  e-&gt;<a class="code hl_variable" href="structie__engine.html#a39645576c844465466e51883ccb5ca34">seed</a> ^= (uint64_t)<a class="code hl_function" href="ie__api_8c.html#aee4ab6bebc1781cfbfe821e0e89d8823">fnv1a32</a>(e-&gt;<a class="code hl_variable" href="structie__engine.html#a7ae7f7efbee346d04370ee09f5f6cd68">cfg</a>.<a class="code hl_variable" href="structie__engine__params.html#a66599574f8a4b8ed7cd7132fc1c0e051">affinity</a>)     &lt;&lt;  8;</div>
-<div class="line"><span class="lineno">  125</span>  e-&gt;<a class="code hl_variable" href="structie__engine.html#a39645576c844465466e51883ccb5ca34">seed</a> ^= (uint64_t)<a class="code hl_function" href="ie__api_8c.html#aee4ab6bebc1781cfbfe821e0e89d8823">fnv1a32</a>(e-&gt;<a class="code hl_variable" href="structie__engine.html#a7ae7f7efbee346d04370ee09f5f6cd68">cfg</a>.<a class="code hl_variable" href="structie__engine__params.html#a992270ba61612b2acb319aed5cbfca13">pretranspose</a>) &lt;&lt; 16;</div>
-<div class="line"><span class="lineno">  126</span>  e-&gt;<a class="code hl_variable" href="structie__engine.html#a39645576c844465466e51883ccb5ca34">seed</a> ^= (uint64_t)<a class="code hl_function" href="ie__api_8c.html#aee4ab6bebc1781cfbfe821e0e89d8823">fnv1a32</a>(e-&gt;<a class="code hl_variable" href="structie__engine.html#a7ae7f7efbee346d04370ee09f5f6cd68">cfg</a>.<a class="code hl_variable" href="structie__engine__params.html#a34f965300425f8c1115b2408a4adc04a">prefetch</a>)     &lt;&lt; 24;</div>
-<div class="line"><span class="lineno">  127</span> </div>
-<div class="line"><span class="lineno">  128</span>  <span class="comment">/* Recognize &quot;int4w&quot; and the CLI alias &quot;int4&quot;. */</span></div>
-<div class="line"><span class="lineno">  129</span>  e-&gt;<a class="code hl_variable" href="structie__engine.html#a85ec8e92466a0e14370e003ad3af6a68">uses_weight_int4</a> = (<a class="code hl_function" href="ie__api_8c.html#a72ab94aafe7740f1343d317daa89ca15">ascii_ieq</a>(e-&gt;<a class="code hl_variable" href="structie__engine.html#a7ae7f7efbee346d04370ee09f5f6cd68">cfg</a>.<a class="code hl_variable" href="structie__engine__params.html#a92b02bad12cb4e8173728311c00960b7">precision</a>, <a class="code hl_define" href="#a59927f17b60d23df0f20dacdaa1d97d5">IE_PREC_INT4W</a>) ||</div>
-<div class="line"><span class="lineno">  130</span>                         <a class="code hl_function" href="ie__api_8c.html#a72ab94aafe7740f1343d317daa89ca15">ascii_ieq</a>(e-&gt;<a class="code hl_variable" href="structie__engine.html#a7ae7f7efbee346d04370ee09f5f6cd68">cfg</a>.<a class="code hl_variable" href="structie__engine__params.html#a92b02bad12cb4e8173728311c00960b7">precision</a>, <a class="code hl_define" href="#add4934bbdd3dc2bf4e3ab8438b0d7757">IE_PREC_INT4</a>)) ? 1 : 0;</div>
-<div class="line"><span class="lineno">  131</span> </div>
-<div class="line"><span class="lineno">  132</span>  *out = e;</div>
-<div class="line"><span class="lineno">  133</span>  <span class="keywordflow">return</span> <a class="code hl_define" href="#afe55386d31dcd43a7accd42d844d59d1">IE_OK</a>;</div>
-<div class="line"><span class="lineno">  134</span>}</div>
-<div class="ttc" id="aie__api_8c_html_a72ab94aafe7740f1343d317daa89ca15"><div class="ttname"><a href="ie__api_8c.html#a72ab94aafe7740f1343d317daa89ca15">ascii_ieq</a></div><div class="ttdeci">static int ascii_ieq(const char *a, const char *b)</div><div class="ttdoc">Case-insensitive ASCII string equality check (NULL-safe).</div><div class="ttdef"><b>Definition</b> <a href="ie__api_8c_source.html#l00051">ie_api.c:51</a></div></div>
-<div class="ttc" id="aie__api_8c_html_aee4ab6bebc1781cfbfe821e0e89d8823"><div class="ttname"><a href="ie__api_8c.html#aee4ab6bebc1781cfbfe821e0e89d8823">fnv1a32</a></div><div class="ttdeci">static uint32_t fnv1a32(const char *s)</div><div class="ttdoc">32-bit FNV-1a hash for C strings (NULL-safe).</div><div class="ttdef"><b>Definition</b> <a href="ie__api_8c_source.html#l00067">ie_api.c:67</a></div></div>
-<div class="ttc" id="aie__api_8h_html_a2339b3d8d0ba3c2aff4d4ee7d912ab96"><div class="ttname"><a href="#a2339b3d8d0ba3c2aff4d4ee7d912ab96">ie_engine_t</a></div><div class="ttdeci">struct ie_engine ie_engine_t</div><div class="ttdef"><b>Definition</b> <a href="ie__api_8h_source.html#l00072">ie_api.h:72</a></div></div>
-<div class="ttc" id="aie__api_8h_html_a59927f17b60d23df0f20dacdaa1d97d5"><div class="ttname"><a href="#a59927f17b60d23df0f20dacdaa1d97d5">IE_PREC_INT4W</a></div><div class="ttdeci">#define IE_PREC_INT4W</div><div class="ttdoc">Label for weight-only INT4 precision hint (&quot;int4w&quot;).</div><div class="ttdef"><b>Definition</b> <a href="ie__api_8h_source.html#l00060">ie_api.h:60</a></div></div>
-<div class="ttc" id="aie__api_8h_html_add4934bbdd3dc2bf4e3ab8438b0d7757"><div class="ttname"><a href="#add4934bbdd3dc2bf4e3ab8438b0d7757">IE_PREC_INT4</a></div><div class="ttdeci">#define IE_PREC_INT4</div><div class="ttdoc">Convenience alias accepted by the CLI; normalized to &quot;int4w&quot;.</div><div class="ttdef"><b>Definition</b> <a href="ie__api_8h_source.html#l00062">ie_api.h:62</a></div></div>
-<div class="ttc" id="aie__api_8h_html_afe55386d31dcd43a7accd42d844d59d1"><div class="ttname"><a href="#afe55386d31dcd43a7accd42d844d59d1">IE_OK</a></div><div class="ttdeci">#define IE_OK</div><div class="ttdoc">Success (used by unit tests that assert IE_OK).</div><div class="ttdef"><b>Definition</b> <a href="ie__api_8h_source.html#l00044">ie_api.h:44</a></div></div>
-<div class="ttc" id="astructie__engine__params_html_a34f965300425f8c1115b2408a4adc04a"><div class="ttname"><a href="structie__engine__params.html#a34f965300425f8c1115b2408a4adc04a">ie_engine_params::prefetch</a></div><div class="ttdeci">const char * prefetch</div><div class="ttdoc">&quot;off&quot; | &quot;on&quot; | &quot;auto&quot; | &quot;0|1|2&quot; (hint).</div><div class="ttdef"><b>Definition</b> <a href="ie__api_8h_source.html#l00114">ie_api.h:114</a></div></div>
-<div class="ttc" id="astructie__engine__params_html_a66599574f8a4b8ed7cd7132fc1c0e051"><div class="ttname"><a href="structie__engine__params.html#a66599574f8a4b8ed7cd7132fc1c0e051">ie_engine_params::affinity</a></div><div class="ttdeci">const char * affinity</div><div class="ttdoc">&quot;auto&quot; | &quot;compact&quot; | &quot;scatter&quot; (hint).</div><div class="ttdef"><b>Definition</b> <a href="ie__api_8h_source.html#l00112">ie_api.h:112</a></div></div>
-<div class="ttc" id="astructie__engine__params_html_a92b02bad12cb4e8173728311c00960b7"><div class="ttname"><a href="structie__engine__params.html#a92b02bad12cb4e8173728311c00960b7">ie_engine_params::precision</a></div><div class="ttdeci">const char * precision</div><div class="ttdoc">e.g.</div><div class="ttdef"><b>Definition</b> <a href="ie__api_8h_source.html#l00117">ie_api.h:117</a></div></div>
-<div class="ttc" id="astructie__engine__params_html_a992270ba61612b2acb319aed5cbfca13"><div class="ttname"><a href="structie__engine__params.html#a992270ba61612b2acb319aed5cbfca13">ie_engine_params::pretranspose</a></div><div class="ttdeci">const char * pretranspose</div><div class="ttdoc">&quot;none&quot; | &quot;woh&quot; | &quot;wxh&quot; | &quot;all&quot; (hint).</div><div class="ttdef"><b>Definition</b> <a href="ie__api_8h_source.html#l00113">ie_api.h:113</a></div></div>
-<div class="ttc" id="astructie__engine_html_a39645576c844465466e51883ccb5ca34"><div class="ttname"><a href="structie__engine.html#a39645576c844465466e51883ccb5ca34">ie_engine::seed</a></div><div class="ttdeci">uint64_t seed</div><div class="ttdoc">PRNG seed used to derive token IDs.</div><div class="ttdef"><b>Definition</b> <a href="ie__api_8c_source.html#l00036">ie_api.c:36</a></div></div>
-<div class="ttc" id="astructie__engine_html_a7ae7f7efbee346d04370ee09f5f6cd68"><div class="ttname"><a href="structie__engine.html#a7ae7f7efbee346d04370ee09f5f6cd68">ie_engine::cfg</a></div><div class="ttdeci">ie_engine_params_t cfg</div><div class="ttdoc">Creation parameters (by value).</div><div class="ttdef"><b>Definition</b> <a href="ie__api_8c_source.html#l00034">ie_api.c:34</a></div></div>
-<div class="ttc" id="astructie__engine_html_a85ec8e92466a0e14370e003ad3af6a68"><div class="ttname"><a href="structie__engine.html#a85ec8e92466a0e14370e003ad3af6a68">ie_engine::uses_weight_int4</a></div><div class="ttdeci">int uses_weight_int4</div><div class="ttdoc">1 if precision hint == &quot;int4w|int4&quot;.</div><div class="ttdef"><b>Definition</b> <a href="ie__api_8c_source.html#l00037">ie_api.c:37</a></div></div>
-<div class="ttc" id="astructie__engine_html_aac6bf09043eb30698b226cbac9a5903b"><div class="ttname"><a href="structie__engine.html#aac6bf09043eb30698b226cbac9a5903b">ie_engine::last</a></div><div class="ttdeci">ie_metrics_t last</div><div class="ttdoc">Last metrics snapshot returned to callers.</div><div class="ttdef"><b>Definition</b> <a href="ie__api_8c_source.html#l00035">ie_api.c:35</a></div></div>
+<div class="line"><span class="lineno">  121</span>  <span class="keywordflow">if</span> (p) {</div>
+<div class="line"><span class="lineno">  122</span>    e-&gt;<a class="code hl_variable" href="structie__engine.html#a7ae7f7efbee346d04370ee09f5f6cd68">cfg</a> = *p; <span class="comment">/* copy-by-value */</span></div>
+<div class="line"><span class="lineno">  123</span>  } <span class="keywordflow">else</span> {</div>
+<div class="line"><span class="lineno">  124</span>    memset(&amp;e-&gt;<a class="code hl_variable" href="structie__engine.html#a7ae7f7efbee346d04370ee09f5f6cd68">cfg</a>, 0, <span class="keyword">sizeof</span>(e-&gt;<a class="code hl_variable" href="structie__engine.html#a7ae7f7efbee346d04370ee09f5f6cd68">cfg</a>));</div>
+<div class="line"><span class="lineno">  125</span>  }</div>
+<div class="line"><span class="lineno">  126</span> </div>
+<div class="line"><span class="lineno">  127</span>  <span class="comment">/* Safe defaults for metrics. */</span></div>
+<div class="line"><span class="lineno">  128</span>  memset(&amp;e-&gt;<a class="code hl_variable" href="structie__engine.html#aac6bf09043eb30698b226cbac9a5903b">last</a>, 0, <span class="keyword">sizeof</span>(e-&gt;<a class="code hl_variable" href="structie__engine.html#aac6bf09043eb30698b226cbac9a5903b">last</a>));</div>
+<div class="line"><span class="lineno">  129</span> </div>
+<div class="line"><span class="lineno">  130</span>  <span class="comment">/* Derive a stable seed from a few string hints (all are NULL-safe). */</span></div>
+<div class="line"><span class="lineno">  131</span>  e-&gt;<a class="code hl_variable" href="structie__engine.html#a39645576c844465466e51883ccb5ca34">seed</a>  = 0x9E3779B97F4A7C15ULL;</div>
+<div class="line"><span class="lineno">  132</span>  e-&gt;<a class="code hl_variable" href="structie__engine.html#a39645576c844465466e51883ccb5ca34">seed</a> ^= (uint64_t)<a class="code hl_function" href="ie__api_8c.html#aee4ab6bebc1781cfbfe821e0e89d8823">fnv1a32</a>(e-&gt;<a class="code hl_variable" href="structie__engine.html#a7ae7f7efbee346d04370ee09f5f6cd68">cfg</a>.<a class="code hl_variable" href="structie__engine__params.html#a92b02bad12cb4e8173728311c00960b7">precision</a>);</div>
+<div class="line"><span class="lineno">  133</span>  e-&gt;<a class="code hl_variable" href="structie__engine.html#a39645576c844465466e51883ccb5ca34">seed</a> ^= (uint64_t)<a class="code hl_function" href="ie__api_8c.html#aee4ab6bebc1781cfbfe821e0e89d8823">fnv1a32</a>(e-&gt;<a class="code hl_variable" href="structie__engine.html#a7ae7f7efbee346d04370ee09f5f6cd68">cfg</a>.<a class="code hl_variable" href="structie__engine__params.html#a66599574f8a4b8ed7cd7132fc1c0e051">affinity</a>)     &lt;&lt;  8;</div>
+<div class="line"><span class="lineno">  134</span>  e-&gt;<a class="code hl_variable" href="structie__engine.html#a39645576c844465466e51883ccb5ca34">seed</a> ^= (uint64_t)<a class="code hl_function" href="ie__api_8c.html#aee4ab6bebc1781cfbfe821e0e89d8823">fnv1a32</a>(e-&gt;<a class="code hl_variable" href="structie__engine.html#a7ae7f7efbee346d04370ee09f5f6cd68">cfg</a>.<a class="code hl_variable" href="structie__engine__params.html#a992270ba61612b2acb319aed5cbfca13">pretranspose</a>) &lt;&lt; 16;</div>
+<div class="line"><span class="lineno">  135</span>  e-&gt;<a class="code hl_variable" href="structie__engine.html#a39645576c844465466e51883ccb5ca34">seed</a> ^= (uint64_t)<a class="code hl_function" href="ie__api_8c.html#aee4ab6bebc1781cfbfe821e0e89d8823">fnv1a32</a>(e-&gt;<a class="code hl_variable" href="structie__engine.html#a7ae7f7efbee346d04370ee09f5f6cd68">cfg</a>.<a class="code hl_variable" href="structie__engine__params.html#a34f965300425f8c1115b2408a4adc04a">prefetch</a>)     &lt;&lt; 24;</div>
+<div class="line"><span class="lineno">  136</span>  e-&gt;<a class="code hl_variable" href="structie__engine.html#a39645576c844465466e51883ccb5ca34">seed</a> ^= (uint64_t)<a class="code hl_function" href="ie__api_8c.html#aee4ab6bebc1781cfbfe821e0e89d8823">fnv1a32</a>(e-&gt;<a class="code hl_variable" href="structie__engine.html#a7ae7f7efbee346d04370ee09f5f6cd68">cfg</a>.<a class="code hl_variable" href="structie__engine__params.html#a1dff4c9644aa8bf7e389f84426c529e1">sparsity</a>)     &lt;&lt; 32;</div>
+<div class="line"><span class="lineno">  137</span> </div>
+<div class="line"><span class="lineno">  138</span>  <span class="comment">/* Recognize &quot;int4w&quot; and the CLI alias &quot;int4&quot;. */</span></div>
+<div class="line"><span class="lineno">  139</span>  e-&gt;<a class="code hl_variable" href="structie__engine.html#a85ec8e92466a0e14370e003ad3af6a68">uses_weight_int4</a> = (<a class="code hl_function" href="ie__api_8c.html#a72ab94aafe7740f1343d317daa89ca15">ascii_ieq</a>(e-&gt;<a class="code hl_variable" href="structie__engine.html#a7ae7f7efbee346d04370ee09f5f6cd68">cfg</a>.<a class="code hl_variable" href="structie__engine__params.html#a92b02bad12cb4e8173728311c00960b7">precision</a>, <a class="code hl_define" href="#a59927f17b60d23df0f20dacdaa1d97d5">IE_PREC_INT4W</a>) ||</div>
+<div class="line"><span class="lineno">  140</span>                         <a class="code hl_function" href="ie__api_8c.html#a72ab94aafe7740f1343d317daa89ca15">ascii_ieq</a>(e-&gt;<a class="code hl_variable" href="structie__engine.html#a7ae7f7efbee346d04370ee09f5f6cd68">cfg</a>.<a class="code hl_variable" href="structie__engine__params.html#a92b02bad12cb4e8173728311c00960b7">precision</a>, <a class="code hl_define" href="#add4934bbdd3dc2bf4e3ab8438b0d7757">IE_PREC_INT4</a>)) ? 1 : 0;</div>
+<div class="line"><span class="lineno">  141</span> </div>
+<div class="line"><span class="lineno">  142</span>  <span class="comment">/* Recognize block-sparse hint. */</span></div>
+<div class="line"><span class="lineno">  143</span>  e-&gt;<a class="code hl_variable" href="structie__engine.html#ad53b43ae0ad90765775476d829256d33">uses_block_sparse</a> = (<a class="code hl_function" href="ie__api_8c.html#a72ab94aafe7740f1343d317daa89ca15">ascii_ieq</a>(e-&gt;<a class="code hl_variable" href="structie__engine.html#a7ae7f7efbee346d04370ee09f5f6cd68">cfg</a>.<a class="code hl_variable" href="structie__engine__params.html#a1dff4c9644aa8bf7e389f84426c529e1">sparsity</a>, <span class="stringliteral">&quot;block&quot;</span>) ||</div>
+<div class="line"><span class="lineno">  144</span>                          <a class="code hl_function" href="ie__api_8c.html#a72ab94aafe7740f1343d317daa89ca15">ascii_ieq</a>(e-&gt;<a class="code hl_variable" href="structie__engine.html#a7ae7f7efbee346d04370ee09f5f6cd68">cfg</a>.<a class="code hl_variable" href="structie__engine__params.html#a1dff4c9644aa8bf7e389f84426c529e1">sparsity</a>, <span class="stringliteral">&quot;blocksparse&quot;</span>)) ? 1 : 0;</div>
+<div class="line"><span class="lineno">  145</span> </div>
+<div class="line"><span class="lineno">  146</span>  *out = e;</div>
+<div class="line"><span class="lineno">  147</span>  <span class="keywordflow">return</span> <a class="code hl_define" href="#afe55386d31dcd43a7accd42d844d59d1">IE_OK</a>;</div>
+<div class="line"><span class="lineno">  148</span>}</div>
+<div class="ttc" id="aie__api_8c_html_a72ab94aafe7740f1343d317daa89ca15"><div class="ttname"><a href="ie__api_8c.html#a72ab94aafe7740f1343d317daa89ca15">ascii_ieq</a></div><div class="ttdeci">static int ascii_ieq(const char *a, const char *b)</div><div class="ttdoc">Case-insensitive ASCII string equality check (NULL-safe).</div><div class="ttdef"><b>Definition</b> <a href="ie__api_8c_source.html#l00053">ie_api.c:53</a></div></div>
+<div class="ttc" id="aie__api_8c_html_aee4ab6bebc1781cfbfe821e0e89d8823"><div class="ttname"><a href="ie__api_8c.html#aee4ab6bebc1781cfbfe821e0e89d8823">fnv1a32</a></div><div class="ttdeci">static uint32_t fnv1a32(const char *s)</div><div class="ttdoc">32-bit FNV-1a hash for C strings (NULL-safe).</div><div class="ttdef"><b>Definition</b> <a href="ie__api_8c_source.html#l00069">ie_api.c:69</a></div></div>
+<div class="ttc" id="aie__api_8h_html_a2339b3d8d0ba3c2aff4d4ee7d912ab96"><div class="ttname"><a href="#a2339b3d8d0ba3c2aff4d4ee7d912ab96">ie_engine_t</a></div><div class="ttdeci">struct ie_engine ie_engine_t</div><div class="ttdef"><b>Definition</b> <a href="ie__api_8h_source.html#l00078">ie_api.h:78</a></div></div>
+<div class="ttc" id="aie__api_8h_html_a59927f17b60d23df0f20dacdaa1d97d5"><div class="ttname"><a href="#a59927f17b60d23df0f20dacdaa1d97d5">IE_PREC_INT4W</a></div><div class="ttdeci">#define IE_PREC_INT4W</div><div class="ttdoc">Label for weight-only INT4 precision hint (&quot;int4w&quot;).</div><div class="ttdef"><b>Definition</b> <a href="ie__api_8h_source.html#l00066">ie_api.h:66</a></div></div>
+<div class="ttc" id="aie__api_8h_html_add4934bbdd3dc2bf4e3ab8438b0d7757"><div class="ttname"><a href="#add4934bbdd3dc2bf4e3ab8438b0d7757">IE_PREC_INT4</a></div><div class="ttdeci">#define IE_PREC_INT4</div><div class="ttdoc">Convenience alias accepted by the CLI; normalized to &quot;int4w&quot;.</div><div class="ttdef"><b>Definition</b> <a href="ie__api_8h_source.html#l00068">ie_api.h:68</a></div></div>
+<div class="ttc" id="aie__api_8h_html_afe55386d31dcd43a7accd42d844d59d1"><div class="ttname"><a href="#afe55386d31dcd43a7accd42d844d59d1">IE_OK</a></div><div class="ttdeci">#define IE_OK</div><div class="ttdoc">Success (used by unit tests that assert IE_OK).</div><div class="ttdef"><b>Definition</b> <a href="ie__api_8h_source.html#l00050">ie_api.h:50</a></div></div>
+<div class="ttc" id="astructie__engine__params_html_a1dff4c9644aa8bf7e389f84426c529e1"><div class="ttname"><a href="structie__engine__params.html#a1dff4c9644aa8bf7e389f84426c529e1">ie_engine_params::sparsity</a></div><div class="ttdeci">const char * sparsity</div><div class="ttdoc">Sparsity policy hint for weights.</div><div class="ttdef"><b>Definition</b> <a href="ie__api_8h_source.html#l00137">ie_api.h:137</a></div></div>
+<div class="ttc" id="astructie__engine__params_html_a34f965300425f8c1115b2408a4adc04a"><div class="ttname"><a href="structie__engine__params.html#a34f965300425f8c1115b2408a4adc04a">ie_engine_params::prefetch</a></div><div class="ttdeci">const char * prefetch</div><div class="ttdoc">&quot;off&quot; | &quot;on&quot; | &quot;auto&quot; | &quot;0|1|2&quot; (hint).</div><div class="ttdef"><b>Definition</b> <a href="ie__api_8h_source.html#l00125">ie_api.h:125</a></div></div>
+<div class="ttc" id="astructie__engine__params_html_a66599574f8a4b8ed7cd7132fc1c0e051"><div class="ttname"><a href="structie__engine__params.html#a66599574f8a4b8ed7cd7132fc1c0e051">ie_engine_params::affinity</a></div><div class="ttdeci">const char * affinity</div><div class="ttdoc">&quot;auto&quot; | &quot;compact&quot; | &quot;scatter&quot; (hint).</div><div class="ttdef"><b>Definition</b> <a href="ie__api_8h_source.html#l00123">ie_api.h:123</a></div></div>
+<div class="ttc" id="astructie__engine__params_html_a92b02bad12cb4e8173728311c00960b7"><div class="ttname"><a href="structie__engine__params.html#a92b02bad12cb4e8173728311c00960b7">ie_engine_params::precision</a></div><div class="ttdeci">const char * precision</div><div class="ttdoc">e.g.</div><div class="ttdef"><b>Definition</b> <a href="ie__api_8h_source.html#l00140">ie_api.h:140</a></div></div>
+<div class="ttc" id="astructie__engine__params_html_a992270ba61612b2acb319aed5cbfca13"><div class="ttname"><a href="structie__engine__params.html#a992270ba61612b2acb319aed5cbfca13">ie_engine_params::pretranspose</a></div><div class="ttdeci">const char * pretranspose</div><div class="ttdoc">&quot;none&quot; | &quot;woh&quot; | &quot;wxh&quot; | &quot;all&quot; (hint).</div><div class="ttdef"><b>Definition</b> <a href="ie__api_8h_source.html#l00124">ie_api.h:124</a></div></div>
+<div class="ttc" id="astructie__engine_html_a39645576c844465466e51883ccb5ca34"><div class="ttname"><a href="structie__engine.html#a39645576c844465466e51883ccb5ca34">ie_engine::seed</a></div><div class="ttdeci">uint64_t seed</div><div class="ttdoc">PRNG seed used to derive token IDs.</div><div class="ttdef"><b>Definition</b> <a href="ie__api_8c_source.html#l00037">ie_api.c:37</a></div></div>
+<div class="ttc" id="astructie__engine_html_a7ae7f7efbee346d04370ee09f5f6cd68"><div class="ttname"><a href="structie__engine.html#a7ae7f7efbee346d04370ee09f5f6cd68">ie_engine::cfg</a></div><div class="ttdeci">ie_engine_params_t cfg</div><div class="ttdoc">Creation parameters (by value).</div><div class="ttdef"><b>Definition</b> <a href="ie__api_8c_source.html#l00035">ie_api.c:35</a></div></div>
+<div class="ttc" id="astructie__engine_html_a85ec8e92466a0e14370e003ad3af6a68"><div class="ttname"><a href="structie__engine.html#a85ec8e92466a0e14370e003ad3af6a68">ie_engine::uses_weight_int4</a></div><div class="ttdeci">int uses_weight_int4</div><div class="ttdoc">1 if precision hint == &quot;int4w|int4&quot;.</div><div class="ttdef"><b>Definition</b> <a href="ie__api_8c_source.html#l00038">ie_api.c:38</a></div></div>
+<div class="ttc" id="astructie__engine_html_aac6bf09043eb30698b226cbac9a5903b"><div class="ttname"><a href="structie__engine.html#aac6bf09043eb30698b226cbac9a5903b">ie_engine::last</a></div><div class="ttdeci">ie_metrics_t last</div><div class="ttdoc">Last metrics snapshot returned to callers.</div><div class="ttdef"><b>Definition</b> <a href="ie__api_8c_source.html#l00036">ie_api.c:36</a></div></div>
+<div class="ttc" id="astructie__engine_html_ad53b43ae0ad90765775476d829256d33"><div class="ttname"><a href="structie__engine.html#ad53b43ae0ad90765775476d829256d33">ie_engine::uses_block_sparse</a></div><div class="ttdeci">int uses_block_sparse</div><div class="ttdoc">1 if sparsity hint == &quot;block&quot;.</div><div class="ttdef"><b>Definition</b> <a href="ie__api_8c_source.html#l00039">ie_api.c:39</a></div></div>
 </div><!-- fragment -->
-<p class="reference">References <a class="el" href="ie__api_8h_source.html#l00112">ie_engine_params::affinity</a>, <a class="el" href="ie__api_8c_source.html#l00051">ascii_ieq()</a>, <a class="el" href="ie__api_8c_source.html#l00034">ie_engine::cfg</a>, <a class="el" href="ie__api_8c_source.html#l00067">fnv1a32()</a>, <a class="el" href="ie__api_8h_source.html#l00044">IE_OK</a>, <a class="el" href="ie__api_8h_source.html#l00062">IE_PREC_INT4</a>, <a class="el" href="ie__api_8h_source.html#l00060">IE_PREC_INT4W</a>, <a class="el" href="ie__api_8c_source.html#l00035">ie_engine::last</a>, <a class="el" href="ie__api_8h_source.html#l00117">ie_engine_params::precision</a>, <a class="el" href="ie__api_8h_source.html#l00114">ie_engine_params::prefetch</a>, <a class="el" href="ie__api_8h_source.html#l00113">ie_engine_params::pretranspose</a>, <a class="el" href="ie__api_8c_source.html#l00036">ie_engine::seed</a>, and <a class="el" href="ie__api_8c_source.html#l00037">ie_engine::uses_weight_int4</a>.</p>
+<p class="reference">References <a class="el" href="ie__api_8h_source.html#l00123">ie_engine_params::affinity</a>, <a class="el" href="ie__api_8c_source.html#l00053">ascii_ieq()</a>, <a class="el" href="ie__api_8c_source.html#l00035">ie_engine::cfg</a>, <a class="el" href="ie__api_8c_source.html#l00069">fnv1a32()</a>, <a class="el" href="ie__api_8h_source.html#l00050">IE_OK</a>, <a class="el" href="ie__api_8h_source.html#l00068">IE_PREC_INT4</a>, <a class="el" href="ie__api_8h_source.html#l00066">IE_PREC_INT4W</a>, <a class="el" href="ie__api_8c_source.html#l00036">ie_engine::last</a>, <a class="el" href="ie__api_8h_source.html#l00140">ie_engine_params::precision</a>, <a class="el" href="ie__api_8h_source.html#l00125">ie_engine_params::prefetch</a>, <a class="el" href="ie__api_8h_source.html#l00124">ie_engine_params::pretranspose</a>, <a class="el" href="ie__api_8c_source.html#l00037">ie_engine::seed</a>, <a class="el" href="ie__api_8h_source.html#l00137">ie_engine_params::sparsity</a>, <a class="el" href="ie__api_8c_source.html#l00039">ie_engine::uses_block_sparse</a>, and <a class="el" href="ie__api_8c_source.html#l00038">ie_engine::uses_weight_int4</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="main__infer_8c_source.html#l00435">main()</a>, and <a class="el" href="test__api_8c_source.html#l00021">main()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="main__infer_8c_source.html#l00486">main()</a>, and <a class="el" href="test__api_8c_source.html#l00021">main()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -555,13 +578,13 @@ Here is the caller graph for this function:</div>
 </dl>
 <p>Destroy an engine and free its resources.</p>
 
-<p class="definition">Definition at line <a class="el" href="ie__api_8c_source.html#l00139">139</a> of file <a class="el" href="ie__api_8c_source.html">ie_api.c</a>.</p>
-<div class="fragment"><div class="line"><span class="lineno">  139</span>                                       {</div>
-<div class="line"><span class="lineno">  140</span>  <span class="keywordflow">if</span> (!h) <span class="keywordflow">return</span>;</div>
-<div class="line"><span class="lineno">  141</span>  free(h);</div>
-<div class="line"><span class="lineno">  142</span>}</div>
+<p class="definition">Definition at line <a class="el" href="ie__api_8c_source.html#l00153">153</a> of file <a class="el" href="ie__api_8c_source.html">ie_api.c</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">  153</span>                                       {</div>
+<div class="line"><span class="lineno">  154</span>  <span class="keywordflow">if</span> (!h) <span class="keywordflow">return</span>;</div>
+<div class="line"><span class="lineno">  155</span>  free(h);</div>
+<div class="line"><span class="lineno">  156</span>}</div>
 </div><!-- fragment -->
-<p class="reference">Referenced by <a class="el" href="main__infer_8c_source.html#l00435">main()</a>, and <a class="el" href="test__api_8c_source.html#l00021">main()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="main__infer_8c_source.html#l00486">main()</a>, and <a class="el" href="test__api_8c_source.html#l00021">main()</a>.</p>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
@@ -656,47 +679,47 @@ Here is the caller graph for this function:</div>
 </ul>
 </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="ie__api_8c_source.html#l00152">152</a> of file <a class="el" href="ie__api_8c_source.html">ie_api.c</a>.</p>
-<div class="fragment"><div class="line"><span class="lineno">  156</span>                                                    {</div>
-<div class="line"><span class="lineno">  157</span>  <span class="keywordflow">if</span> (!h || !out_count || !prompt) <span class="keywordflow">return</span> 1;</div>
-<div class="line"><span class="lineno">  158</span> </div>
-<div class="line"><span class="lineno">  159</span>  <span class="keywordflow">if</span> (max_new_tokens == 0) {</div>
-<div class="line"><span class="lineno">  160</span>    *out_count = 0;</div>
-<div class="line"><span class="lineno">  161</span>    h-&gt;<a class="code hl_variable" href="structie__engine.html#aac6bf09043eb30698b226cbac9a5903b">last</a>.tps_true       = 0.0;</div>
-<div class="line"><span class="lineno">  162</span>    h-&gt;<a class="code hl_variable" href="structie__engine.html#aac6bf09043eb30698b226cbac9a5903b">last</a>.latency_p50_ms = 0.0;</div>
-<div class="line"><span class="lineno">  163</span>    h-&gt;<a class="code hl_variable" href="structie__engine.html#aac6bf09043eb30698b226cbac9a5903b">last</a>.latency_p95_ms = 0.0;</div>
-<div class="line"><span class="lineno">  164</span>    h-&gt;<a class="code hl_variable" href="structie__engine.html#aac6bf09043eb30698b226cbac9a5903b">last</a>.rss_peak_mb    = 0u;</div>
-<div class="line"><span class="lineno">  165</span>    <span class="keywordflow">return</span> <a class="code hl_define" href="#afe55386d31dcd43a7accd42d844d59d1">IE_OK</a>;</div>
-<div class="line"><span class="lineno">  166</span>  }</div>
-<div class="line"><span class="lineno">  167</span>  <span class="keywordflow">if</span> (!out_tokens) <span class="keywordflow">return</span> 1;</div>
-<div class="line"><span class="lineno">  168</span> </div>
-<div class="line"><span class="lineno">  169</span>  <span class="comment">/* Per-call deterministic PRNG seeded by engine seed XOR prompt hash. */</span></div>
-<div class="line"><span class="lineno">  170</span>  uint64_t rng = h-&gt;<a class="code hl_variable" href="structie__engine.html#a39645576c844465466e51883ccb5ca34">seed</a> ^ (uint64_t)<a class="code hl_function" href="ie__api_8c.html#aee4ab6bebc1781cfbfe821e0e89d8823">fnv1a32</a>(prompt);</div>
-<div class="line"><span class="lineno">  171</span> </div>
-<div class="line"><span class="lineno">  172</span>  uint32_t produced = 0;</div>
-<div class="line"><span class="lineno">  173</span>  <span class="keywordflow">for</span> (<span class="keywordtype">size_t</span> i = 0; i &lt; max_new_tokens; ++i) {</div>
-<div class="line"><span class="lineno">  174</span>    <span class="keyword">const</span> uint64_t r   = <a class="code hl_function" href="ie__api_8c.html#a22d32f0b2752f3aa310c127054b03e22">xorshift64star</a>(&amp;rng);</div>
-<div class="line"><span class="lineno">  175</span>    <span class="keyword">const</span> uint32_t tok = (uint32_t)(r % 50000u); <span class="comment">/* Compact ID space for tests. */</span></div>
-<div class="line"><span class="lineno">  176</span>    out_tokens[i] = tok;</div>
-<div class="line"><span class="lineno">  177</span>    <a class="code hl_function" href="ie__kv__instrumentation_8h.html#a27b3df57a37a25798490912b1e92d716">ie_kv_on_token</a>(tok); <span class="comment">/* counted inside timing window */</span></div>
-<div class="line"><span class="lineno">  178</span>    ++produced;</div>
-<div class="line"><span class="lineno">  179</span>  }</div>
-<div class="line"><span class="lineno">  180</span>  *out_count = produced;</div>
-<div class="line"><span class="lineno">  181</span> </div>
-<div class="line"><span class="lineno">  182</span>  <span class="comment">/* Placeholders (harness fills time-related values). */</span></div>
-<div class="line"><span class="lineno">  183</span>  h-&gt;<a class="code hl_variable" href="structie__engine.html#aac6bf09043eb30698b226cbac9a5903b">last</a>.tps_true       = 0.0;</div>
-<div class="line"><span class="lineno">  184</span>  h-&gt;<a class="code hl_variable" href="structie__engine.html#aac6bf09043eb30698b226cbac9a5903b">last</a>.latency_p50_ms = 0.0;</div>
-<div class="line"><span class="lineno">  185</span>  h-&gt;<a class="code hl_variable" href="structie__engine.html#aac6bf09043eb30698b226cbac9a5903b">last</a>.latency_p95_ms = 0.0;</div>
-<div class="line"><span class="lineno">  186</span>  h-&gt;<a class="code hl_variable" href="structie__engine.html#aac6bf09043eb30698b226cbac9a5903b">last</a>.rss_peak_mb    = 0u;</div>
-<div class="line"><span class="lineno">  187</span> </div>
-<div class="line"><span class="lineno">  188</span>  <span class="keywordflow">return</span> <a class="code hl_define" href="#afe55386d31dcd43a7accd42d844d59d1">IE_OK</a>;</div>
-<div class="line"><span class="lineno">  189</span>}</div>
-<div class="ttc" id="aie__api_8c_html_a22d32f0b2752f3aa310c127054b03e22"><div class="ttname"><a href="ie__api_8c.html#a22d32f0b2752f3aa310c127054b03e22">xorshift64star</a></div><div class="ttdeci">static uint64_t xorshift64star(uint64_t *state)</div><div class="ttdoc">One step of a xorshift64* PRNG (period ≈ 2^64-1).</div><div class="ttdef"><b>Definition</b> <a href="ie__api_8c_source.html#l00084">ie_api.c:84</a></div></div>
+<p class="definition">Definition at line <a class="el" href="ie__api_8c_source.html#l00166">166</a> of file <a class="el" href="ie__api_8c_source.html">ie_api.c</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">  170</span>                                                    {</div>
+<div class="line"><span class="lineno">  171</span>  <span class="keywordflow">if</span> (!h || !out_count || !prompt) <span class="keywordflow">return</span> 1;</div>
+<div class="line"><span class="lineno">  172</span> </div>
+<div class="line"><span class="lineno">  173</span>  <span class="keywordflow">if</span> (max_new_tokens == 0) {</div>
+<div class="line"><span class="lineno">  174</span>    *out_count = 0;</div>
+<div class="line"><span class="lineno">  175</span>    h-&gt;<a class="code hl_variable" href="structie__engine.html#aac6bf09043eb30698b226cbac9a5903b">last</a>.tps_true       = 0.0;</div>
+<div class="line"><span class="lineno">  176</span>    h-&gt;<a class="code hl_variable" href="structie__engine.html#aac6bf09043eb30698b226cbac9a5903b">last</a>.latency_p50_ms = 0.0;</div>
+<div class="line"><span class="lineno">  177</span>    h-&gt;<a class="code hl_variable" href="structie__engine.html#aac6bf09043eb30698b226cbac9a5903b">last</a>.latency_p95_ms = 0.0;</div>
+<div class="line"><span class="lineno">  178</span>    h-&gt;<a class="code hl_variable" href="structie__engine.html#aac6bf09043eb30698b226cbac9a5903b">last</a>.rss_peak_mb    = 0u;</div>
+<div class="line"><span class="lineno">  179</span>    <span class="keywordflow">return</span> <a class="code hl_define" href="#afe55386d31dcd43a7accd42d844d59d1">IE_OK</a>;</div>
+<div class="line"><span class="lineno">  180</span>  }</div>
+<div class="line"><span class="lineno">  181</span>  <span class="keywordflow">if</span> (!out_tokens) <span class="keywordflow">return</span> 1;</div>
+<div class="line"><span class="lineno">  182</span> </div>
+<div class="line"><span class="lineno">  183</span>  <span class="comment">/* Per-call deterministic PRNG seeded by engine seed XOR prompt hash. */</span></div>
+<div class="line"><span class="lineno">  184</span>  uint64_t rng = h-&gt;<a class="code hl_variable" href="structie__engine.html#a39645576c844465466e51883ccb5ca34">seed</a> ^ (uint64_t)<a class="code hl_function" href="ie__api_8c.html#aee4ab6bebc1781cfbfe821e0e89d8823">fnv1a32</a>(prompt);</div>
+<div class="line"><span class="lineno">  185</span> </div>
+<div class="line"><span class="lineno">  186</span>  uint32_t produced = 0;</div>
+<div class="line"><span class="lineno">  187</span>  <span class="keywordflow">for</span> (<span class="keywordtype">size_t</span> i = 0; i &lt; max_new_tokens; ++i) {</div>
+<div class="line"><span class="lineno">  188</span>    <span class="keyword">const</span> uint64_t r   = <a class="code hl_function" href="ie__api_8c.html#a22d32f0b2752f3aa310c127054b03e22">xorshift64star</a>(&amp;rng);</div>
+<div class="line"><span class="lineno">  189</span>    <span class="keyword">const</span> uint32_t tok = (uint32_t)(r % 50000u); <span class="comment">/* Compact ID space for tests. */</span></div>
+<div class="line"><span class="lineno">  190</span>    out_tokens[i] = tok;</div>
+<div class="line"><span class="lineno">  191</span>    <a class="code hl_function" href="ie__kv__instrumentation_8h.html#a27b3df57a37a25798490912b1e92d716">ie_kv_on_token</a>(tok); <span class="comment">/* counted inside timing window */</span></div>
+<div class="line"><span class="lineno">  192</span>    ++produced;</div>
+<div class="line"><span class="lineno">  193</span>  }</div>
+<div class="line"><span class="lineno">  194</span>  *out_count = produced;</div>
+<div class="line"><span class="lineno">  195</span> </div>
+<div class="line"><span class="lineno">  196</span>  <span class="comment">/* Placeholders (harness fills time-related values). */</span></div>
+<div class="line"><span class="lineno">  197</span>  h-&gt;<a class="code hl_variable" href="structie__engine.html#aac6bf09043eb30698b226cbac9a5903b">last</a>.tps_true       = 0.0;</div>
+<div class="line"><span class="lineno">  198</span>  h-&gt;<a class="code hl_variable" href="structie__engine.html#aac6bf09043eb30698b226cbac9a5903b">last</a>.latency_p50_ms = 0.0;</div>
+<div class="line"><span class="lineno">  199</span>  h-&gt;<a class="code hl_variable" href="structie__engine.html#aac6bf09043eb30698b226cbac9a5903b">last</a>.latency_p95_ms = 0.0;</div>
+<div class="line"><span class="lineno">  200</span>  h-&gt;<a class="code hl_variable" href="structie__engine.html#aac6bf09043eb30698b226cbac9a5903b">last</a>.rss_peak_mb    = 0u;</div>
+<div class="line"><span class="lineno">  201</span> </div>
+<div class="line"><span class="lineno">  202</span>  <span class="keywordflow">return</span> <a class="code hl_define" href="#afe55386d31dcd43a7accd42d844d59d1">IE_OK</a>;</div>
+<div class="line"><span class="lineno">  203</span>}</div>
+<div class="ttc" id="aie__api_8c_html_a22d32f0b2752f3aa310c127054b03e22"><div class="ttname"><a href="ie__api_8c.html#a22d32f0b2752f3aa310c127054b03e22">xorshift64star</a></div><div class="ttdeci">static uint64_t xorshift64star(uint64_t *state)</div><div class="ttdoc">One step of a xorshift64* PRNG (period ≈ 2^64-1).</div><div class="ttdef"><b>Definition</b> <a href="ie__api_8c_source.html#l00086">ie_api.c:86</a></div></div>
 <div class="ttc" id="aie__kv__instrumentation_8h_html_a27b3df57a37a25798490912b1e92d716"><div class="ttname"><a href="ie__kv__instrumentation_8h.html#a27b3df57a37a25798490912b1e92d716">ie_kv_on_token</a></div><div class="ttdeci">void ie_kv_on_token(uint32_t token)</div><div class="ttdoc">Report a produced token to the KV tracker.</div><div class="ttdef"><b>Definition</b> <a href="ie__kv__instrumentation_8c_source.html#l00113">ie_kv_instrumentation.c:113</a></div></div>
 </div><!-- fragment -->
-<p class="reference">References <a class="el" href="ie__api_8c_source.html#l00067">fnv1a32()</a>, <a class="el" href="ie__kv__instrumentation_8c_source.html#l00113">ie_kv_on_token()</a>, <a class="el" href="ie__api_8h_source.html#l00044">IE_OK</a>, <a class="el" href="ie__api_8c_source.html#l00035">ie_engine::last</a>, <a class="el" href="ie__api_8c_source.html#l00036">ie_engine::seed</a>, and <a class="el" href="ie__api_8c_source.html#l00084">xorshift64star()</a>.</p>
+<p class="reference">References <a class="el" href="ie__api_8c_source.html#l00069">fnv1a32()</a>, <a class="el" href="ie__kv__instrumentation_8c_source.html#l00113">ie_kv_on_token()</a>, <a class="el" href="ie__api_8h_source.html#l00050">IE_OK</a>, <a class="el" href="ie__api_8c_source.html#l00036">ie_engine::last</a>, <a class="el" href="ie__api_8c_source.html#l00037">ie_engine::seed</a>, and <a class="el" href="ie__api_8c_source.html#l00086">xorshift64star()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="main__infer_8c_source.html#l00435">main()</a>, and <a class="el" href="test__api_8c_source.html#l00021">main()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="main__infer_8c_source.html#l00486">main()</a>, and <a class="el" href="test__api_8c_source.html#l00021">main()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -763,16 +786,16 @@ Here is the caller graph for this function:</div>
 </dl>
 <p>Snapshot engine metrics into <code class="param">out</code>.</p>
 
-<p class="definition">Definition at line <a class="el" href="ie__api_8c_source.html#l00194">194</a> of file <a class="el" href="ie__api_8c_source.html">ie_api.c</a>.</p>
-<div class="fragment"><div class="line"><span class="lineno">  194</span>                                                                       {</div>
-<div class="line"><span class="lineno">  195</span>  <span class="keywordflow">if</span> (!h || !out) <span class="keywordflow">return</span> 1;</div>
-<div class="line"><span class="lineno">  196</span>  *out = h-&gt;<a class="code hl_variable" href="structie__engine.html#aac6bf09043eb30698b226cbac9a5903b">last</a>;</div>
-<div class="line"><span class="lineno">  197</span>  <span class="keywordflow">return</span> <a class="code hl_define" href="#afe55386d31dcd43a7accd42d844d59d1">IE_OK</a>;</div>
-<div class="line"><span class="lineno">  198</span>}</div>
+<p class="definition">Definition at line <a class="el" href="ie__api_8c_source.html#l00208">208</a> of file <a class="el" href="ie__api_8c_source.html">ie_api.c</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">  208</span>                                                                       {</div>
+<div class="line"><span class="lineno">  209</span>  <span class="keywordflow">if</span> (!h || !out) <span class="keywordflow">return</span> 1;</div>
+<div class="line"><span class="lineno">  210</span>  *out = h-&gt;<a class="code hl_variable" href="structie__engine.html#aac6bf09043eb30698b226cbac9a5903b">last</a>;</div>
+<div class="line"><span class="lineno">  211</span>  <span class="keywordflow">return</span> <a class="code hl_define" href="#afe55386d31dcd43a7accd42d844d59d1">IE_OK</a>;</div>
+<div class="line"><span class="lineno">  212</span>}</div>
 </div><!-- fragment -->
-<p class="reference">References <a class="el" href="ie__api_8h_source.html#l00044">IE_OK</a>, and <a class="el" href="ie__api_8c_source.html#l00035">ie_engine::last</a>.</p>
+<p class="reference">References <a class="el" href="ie__api_8h_source.html#l00050">IE_OK</a>, and <a class="el" href="ie__api_8c_source.html#l00036">ie_engine::last</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="main__infer_8c_source.html#l00435">main()</a>, and <a class="el" href="test__api_8c_source.html#l00021">main()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="main__infer_8c_source.html#l00486">main()</a>, and <a class="el" href="test__api_8c_source.html#l00021">main()</a>.</p>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
