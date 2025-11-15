@@ -1,50 +1,47 @@
 # Performance Notes
 
-_Last updated: **2025-11-14 02:16:51 UTC**_
+_Last updated: **2025-11-15 14:58:35 UTC**_
 
 
-**Best true TPS:** **GPU — 32.848**.
+**Best true TPS:** **GPU — 36.264**.
 
 ## CPU — Summary (latest benchmark)
 - Runs: **1**
 - Tokens generated (Σ): **384**
-- Wall time (Σ): **13.494 s**
-- True TPS (Σ tokens / Σ time): **28.457**
+- Wall time (Σ): **11.360 s**
+- True TPS (Σ tokens / Σ time): **33.802**
 
 ## Latency
-- p50 (mean across runs): **35.141 ms**
-- p95 (mean across runs): **70.282 ms**
+- p50 (mean across runs): **29.584 ms**
+- p95 (mean across runs): **59.168 ms**
 
 ## Spatial Complexity (Memory & Cache)
-- RSS peak (mean): **4908.000 MB**
-- RSS peak (max): **4908.000 MB**
+- RSS peak (mean): **5675.000 MB**
+- RSS peak (max): **5675.000 MB**
 - KV cache: **257 hits / 127 misses**
 - IE_BYTES_PER_TOKEN: **67.1 MB/token**
 - Bytes touched (Σ): **25.8 GB**
 - Working-set coverage (bytes_per_token / model.bin): **0.005**
-- Effective bandwidth: **1.91 GB/s**
-
-### Memory Details
-- No extended memory metrics were present in the logs.
+- Effective bandwidth: **2.27 GB/s**
 
 ## GPU — Summary (latest benchmark)
 - Runs: **1**
 - Tokens generated (Σ): **384**
-- Wall time (Σ): **11.690 s**
-- True TPS (Σ tokens / Σ time): **32.848**
+- Wall time (Σ): **10.589 s**
+- True TPS (Σ tokens / Σ time): **36.264**
 
 ## Latency
-- p50 (mean across runs): **30.443 ms**
-- p95 (mean across runs): **60.886 ms**
+- p50 (mean across runs): **27.576 ms**
+- p95 (mean across runs): **55.152 ms**
 
 ## Spatial Complexity (Memory & Cache)
-- RSS peak (mean): **4976.000 MB**
-- RSS peak (max): **4976.000 MB**
+- RSS peak (mean): **5688.000 MB**
+- RSS peak (max): **5688.000 MB**
 - KV cache: **257 hits / 127 misses**
 - IE_BYTES_PER_TOKEN: **67.1 MB/token**
 - Bytes touched (Σ): **25.8 GB**
 - Working-set coverage (bytes_per_token / model.bin): **0.005**
-- Effective bandwidth: **2.20 GB/s**
+- Effective bandwidth: **2.43 GB/s**
 
 ### Memory Details
 - No extended memory metrics were present in the logs.
@@ -70,7 +67,7 @@ _Last updated: **2025-11-14 02:16:51 UTC**_
 - RAM (MemTotal): **8.1 GB**
 - OS: **Fedora Linux 42 (KDE Plasma Desktop Edition)**
 - Kernel: **6.16.9-200.fc42.x86_64-x86_64**
-- Git commit: **d699e99 DIRTY**
+- Git commit: **7074e7f DIRTY**
 - Model file: **models/gpt-oss-20b/model.ie.bin**
 - Model size: **13.197 GB**
 
@@ -78,5 +75,5 @@ _Last updated: **2025-11-14 02:16:51 UTC**_
 
 | Device | Run | Tokens | Wall (s) | TPS | p50 (ms) | p95 (ms) | RSS peak (MB) | PSS peak (MB) | VMS peak (MB) | minflt | majflt |
 |:------:|----:|-------:|---------:|----:|---------:|---------:|--------------:|--------------:|--------------:|------:|------:|
-| CPU | 1 | 384 | 13.494 | 28.457 | 35.141 | 70.282 | 4908.000 | n/a | n/a | 0 | 0 |
-| GPU | 1 | 384 | 11.690 | 32.848 | 30.443 | 60.886 | 4976.000 | n/a | n/a | 0 | 0 |
+| CPU | 1 | 384 | 11.360 | 33.802 | 29.584 | 59.168 | 5675.000 | n/a | n/a | 0 | 0 |
+| GPU | 1 | 384 | 10.589 | 36.264 | 27.576 | 55.152 | 5688.000 | n/a | n/a | 0 | 0 |
