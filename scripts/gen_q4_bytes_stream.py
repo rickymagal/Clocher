@@ -1,31 +1,13 @@
 #!/usr/bin/env python3
-# Streamed INT4 (weight-only, per-row) packer for huge HF checkpoints
-# - Writes packed INT4 bytes + FP16 scales incrementally (low RAM)
-# - Emits expanded manifest mapping each exact key to the INT4 spec
-# Usage:
-#   python3 scripts/gen_q4_bytes_stream.py \
-#     --hf-dir models/gpt-oss-20b/hf \
-#     --q4-bytes models/gpt-oss-20b/model.q4.bin \
-#     --scales   models/gpt-oss-20b/model.q4.scales.fp16.bin \
-#     --manifest quant/q4_manifest.expanded.json \
-#     --chunk-rows 256
-
-import argparse, os, re, glob, json, gc
+import argparse, re, glob, json
 from pathlib import Path
+
 import numpy as np
 import torch
+from safetensors.torch import load_file as safe_load_file
 
-def parse_args():
-    p = argparse.ArgumentParser()
-    p.add_argument("--hf-dir", required=True)
-    p.add_argument("--q4-bytes", required=True)
-    p.add_argument("--scales", required=True)
-    p.add_argument("--manifest", required=True)
-    p.add_argument("--chunk-rows", type=int, default=256)
-    return p.parse_args()
-
-# Filters (mesmos do teu pipeline)
 INC_W = re.compile(r".*\.weight$")
+
 EXC = [re.compile(x) for x in [
     r".*\.bias$",
     r".*(embed|embedding).*",
@@ -36,24 +18,42 @@ EXC = [re.compile(x) for x in [
 ]]
 
 def wanted(k: str) -> bool:
-    if not INC_W.match(k): return False
+    if not INC_W.match(k):
+        return False
     for rx in EXC:
-        if rx.match(k): return False
+        if rx.match(k):
+            return False
     return True
 
-def pack_int4_rows(q_int8: np.ndarray) -> bytes:
-    # q_int8 shape: (rows, cols) in [-8..7]
+def parse_args():
+    p = argparse.ArgumentParser()
+    p.add_argument("--hf-dir", required=True)
+    p.add_argument("--q4-bytes", required=True)
+    p.add_argument("--scales", required=True)
+    p.add_argument("--manifest", required=True)
+    p.add_argument("--chunk-rows", type=int, default=128)
+    return p.parse_args()
+
+def _pack_int4_from_int8(q_int8: np.ndarray) -> bytes:
     rows, cols = q_int8.shape
-    if cols % 2:
-        # pad 1 coluna p/ emparelhar nibble
-        q_int8 = np.pad(q_int8, ((0,0),(0,1)), mode="constant")
+    if cols % 2 == 1:
+        q_int8 = np.pad(q_int8, ((0, 0), (0, 1)), mode="constant")
         cols += 1
-    # Usa 0xF para pegar nibble em complemento de dois
     q_u = q_int8.astype(np.int16)
     lo = (q_u[:, 0::2] & 0xF).astype(np.uint8)
     hi = (q_u[:, 1::2] & 0xF).astype(np.uint8)
-    packed = (hi << 4) | lo  # shape (rows, cols//2)
-    return packed.tobytes()
+    return ((hi << 4) | lo).tobytes()
+
+def _iter_shards(hf_dir: Path) -> list[str]:
+    pt = sorted(glob.glob(str(hf_dir / "pytorch_model-*.bin")))
+    st_sharded = sorted(glob.glob(str(hf_dir / "model-*-of-*.safetensors")))
+    st_single = [str(hf_dir / "model.safetensors")] if (hf_dir / "model.safetensors").exists() else []
+    return pt or st_sharded or st_single
+
+def _load_state_dict(path: str) -> dict:
+    if path.endswith(".safetensors"):
+        return safe_load_file(path, device="cpu")
+    return torch.load(path, map_location="cpu")
 
 def main():
     args = parse_args()
@@ -61,87 +61,98 @@ def main():
     q4_path = Path(args.q4_bytes).resolve()
     sc_path = Path(args.scales).resolve()
     man_path = Path(args.manifest)
+
     man_path.parent.mkdir(parents=True, exist_ok=True)
     q4_path.parent.mkdir(parents=True, exist_ok=True)
 
-    # Ordem consistente de shards
-    shards = sorted(glob.glob(str(hf_dir / "pytorch_model-*.bin")))
+    shards = _iter_shards(hf_dir)
     if not shards:
         raise SystemExit(f"No shards in {hf_dir}")
 
-    # Saídas (append desde zero)
-    if q4_path.exists(): q4_path.unlink()
-    if sc_path.exists(): sc_path.unlink()
-    fq = open(q4_path, "ab", buffering=1024*1024)
-    fs = open(sc_path, "ab", buffering=1024*1024)
+    if q4_path.exists():
+        q4_path.unlink()
+    if sc_path.exists():
+        sc_path.unlink()
+
+    fq = open(q4_path, "ab", buffering=1024 * 1024)
+    fs = open(sc_path, "ab", buffering=1024 * 1024)
 
     manifest = {}
-    total_keys = 0
-    total_rows = 0
     bytes_q = 0
     bytes_s = 0
+    total_keys = 0
+    total_rows = 0
 
     for shard in shards:
-        sd = torch.load(shard, map_location="cpu")
+        sd = _load_state_dict(shard)
+
         for k, W in sd.items():
-            if not (wanted(k) and isinstance(W, torch.Tensor) and W.ndim == 2 and W.is_floating_point()):
+            if not wanted(k):
+                continue
+            if not hasattr(W, "dim") or W.dim() != 2:
+                continue
+            if W.dtype not in (torch.float16, torch.bfloat16, torch.float32):
                 continue
 
-            W = W.float()  # garante FP32
-            rows, cols = W.shape
-            rows_done = 0
+            rows, cols = int(W.shape[0]), int(W.shape[1])
+            q4_nbytes = rows * ((cols + 1) // 2)   # int4 packed: 2 weights per byte
+            scale_nbytes = rows * 2               # fp16 per-row scales
 
-            # Manifest entry para ESTA key
             manifest[k] = {
+                "q4_offset": bytes_q,
+                "q4_nbytes": q4_nbytes,
+                "scale_offset": bytes_s,
+                "scale_nbytes": scale_nbytes,
                 "dtype": "int4",
                 "scheme": "weight_only",
                 "per": "row",
                 "bits": 4,
-                "pack": "nibble_lohi",
                 "scale_dtype": "fp16",
-                "zero_point": 0,
-                "symmetric": True,
-                "align": 256,
                 "rows": rows,
                 "cols": cols,
                 "packed_bin": str(q4_path),
                 "scale_bin": str(sc_path),
             }
 
-            with torch.no_grad():
-                step = max(1, args.chunk_rows)
-                for start in range(0, rows, step):
-                    end = min(start + step, rows)
-                    chunk = W[start:end, :]  # [r, cols]
+            step = max(1, args.chunk_rows)
+            for start in range(0, rows, step):
+                end = min(start + step, rows)
+                chunk = W[start:end, :].to(dtype=torch.float32, device="cpu")
 
-                    # scales per-row: max(|w|)/7 -> range [-7..7]
-                    maxabs = torch.amax(torch.abs(chunk), dim=1).clamp_min(1e-12)  # [r]
-                    scales = (maxabs / 7.0).cpu().numpy().astype(np.float16)       # [r]
-                    fs.write(scales.tobytes()); bytes_s += scales.nbytes
+                maxabs = torch.amax(torch.abs(chunk), dim=1).clamp_min(1e-12)
+                scales = (maxabs / 7.0).to(dtype=torch.float16).cpu().numpy()
+                fs.write(scales.tobytes())
+                bytes_s += scales.nbytes
 
-                    inv = (7.0 / maxabs).unsqueeze(1)                               # [r,1]
-                    q = torch.round(chunk * inv).clamp_(-8, 7).to(torch.int8).cpu().numpy()  # [r, cols]
+                inv = (1.0 / (scales.astype(np.float32) + 1e-12)).reshape(-1, 1)
+                q = np.rint(chunk.cpu().numpy() * inv).astype(np.int32)
+                q = np.clip(q, -8, 7).astype(np.int8)
 
-                    fq.write(pack_int4_rows(q)); bytes_q += ( (q.shape[1] + (q.shape[1]&1)) // 2 ) * q.shape[0]
-                    rows_done += (end - start)
-                    total_rows += (end - start)
+                packed = _pack_int4_from_int8(q)
+                fq.write(packed)
+                bytes_q += len(packed)
+
+            if bytes_q - manifest[k]["q4_offset"] != q4_nbytes:
+                raise SystemExit(f"q4 size mismatch for {k}: wrote {bytes_q - manifest[k]['q4_offset']}, expected {q4_nbytes}")
+            if bytes_s - manifest[k]["scale_offset"] != scale_nbytes:
+                raise SystemExit(f"scale size mismatch for {k}: wrote {bytes_s - manifest[k]['scale_offset']}, expected {scale_nbytes}")
 
             total_keys += 1
-            # solta memória cedo
-            del W
-        del sd
-        gc.collect()
+            total_rows += rows
 
-    fq.flush(); fs.flush()
-    fq.close(); fs.close()
+        del sd
+
+    fq.close()
+    fs.close()
 
     with open(man_path, "w") as f:
         json.dump(manifest, f, indent=2)
 
-    print(f"[ok] keys={total_keys} rows={total_rows} q4={bytes_q/1024/1024:.2f} MiB scales={bytes_s/1024/1024:.2f} MiB")
-    print(f"[ok] wrote manifest -> {man_path.resolve()}")
-    print(f"[ok] q4 bytes      -> {q4_path}")
-    print(f"[ok] scales        -> {sc_path}")
+    print(f"[ok] shards={len(shards)} keys={total_keys} rows={total_rows}")
+    print(f"[ok] q4={bytes_q/1024/1024:.2f} MiB scales={bytes_s/1024/1024:.2f} MiB")
+    print(f"[ok] manifest -> {man_path.resolve()}")
+    print(f"[ok] q4 bytes  -> {q4_path}")
+    print(f"[ok] scales    -> {sc_path}")
 
 if __name__ == "__main__":
     main()
