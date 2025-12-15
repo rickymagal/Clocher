@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8' standalone='no'?>
-<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.1" xml:lang="en-US">
   <compounddef id="microbench__block__sparse_8c" kind="file" language="C++">
     <compoundname>microbench_block_sparse.c</compoundname>
     <includes local="no">math.h</includes>
@@ -9,6 +9,38 @@
     <includes local="no">time.h</includes>
     <includes refid="sparse__format_8h" local="yes">sparse_format.h</includes>
     <incdepgraph>
+      <node id="9">
+        <label>stdint.h</label>
+      </node>
+      <node id="4">
+        <label>stdlib.h</label>
+      </node>
+      <node id="8">
+        <label>stddef.h</label>
+      </node>
+      <node id="7">
+        <label>sparse_format.h</label>
+        <link refid="sparse__format_8h"/>
+        <childnode refid="8" relation="include">
+        </childnode>
+        <childnode refid="9" relation="include">
+        </childnode>
+        <childnode refid="10" relation="include">
+        </childnode>
+      </node>
+      <node id="5">
+        <label>string.h</label>
+      </node>
+      <node id="6">
+        <label>time.h</label>
+      </node>
+      <node id="2">
+        <label>math.h</label>
+      </node>
+      <node id="10">
+        <label>platform.h</label>
+        <link refid="platform_8h"/>
+      </node>
       <node id="1">
         <label>benchmarks/src/microbench_block_sparse.c</label>
         <link refid="microbench__block__sparse_8c"/>
@@ -25,43 +57,11 @@
         <childnode refid="7" relation="include">
         </childnode>
       </node>
-      <node id="10">
-        <label>platform.h</label>
-        <link refid="platform_8h"/>
-      </node>
-      <node id="7">
-        <label>sparse_format.h</label>
-        <link refid="sparse__format_8h"/>
-        <childnode refid="8" relation="include">
-        </childnode>
-        <childnode refid="9" relation="include">
-        </childnode>
-        <childnode refid="10" relation="include">
-        </childnode>
-      </node>
-      <node id="2">
-        <label>math.h</label>
-      </node>
-      <node id="8">
-        <label>stddef.h</label>
-      </node>
-      <node id="9">
-        <label>stdint.h</label>
-      </node>
       <node id="3">
         <label>stdio.h</label>
       </node>
-      <node id="4">
-        <label>stdlib.h</label>
-      </node>
-      <node id="5">
-        <label>string.h</label>
-      </node>
-      <node id="6">
-        <label>time.h</label>
-      </node>
     </incdepgraph>
-    <sectiondef kind="func">
+      <sectiondef kind="func">
       <memberdef kind="function" id="microbench__block__sparse_8c_1a8a295707b83706041868cd34f3c663d5" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>double</type>
         <definition>static double now_s</definition>
@@ -374,7 +374,7 @@
           <declname>out</declname>
         </param>
         <briefdescription>
-<para>Build an <ref refid="ie__device_8h_1a8d9448c57baf817aa19d0fc32d383b38" kindref="member">ie_block_sparse_matrix_t</ref> from a dense matrix in memory. </para>
+<para>Build an ie_block_sparse_matrix_t from a dense matrix in memory. </para>
         </briefdescription>
         <detaileddescription>
 <para><parameterlist kind="param"><parameteritem>
@@ -492,7 +492,7 @@
         <references refid="microbench__block__sparse_8c_1a8a295707b83706041868cd34f3c663d5" compoundref="microbench__block__sparse_8c" startline="56" endline="60">now_s</references>
         <references refid="structie__block__sparse__matrix_1a2e874338bccc653f32f1e9378e78e8d4" compoundref="sparse__format_8h" startline="120">ie_block_sparse_matrix::rows</references>
       </memberdef>
-    </sectiondef>
+      </sectiondef>
     <briefdescription>
 <para>Microbenchmark comparing dense vs block-sparse GEMV (FP32). </para>
     </briefdescription>
@@ -520,7 +520,6 @@
     </detaileddescription>
     <programlisting>
 <codeline lineno="1"><highlight class="normal"></highlight></codeline>
-<codeline lineno="39"><highlight class="normal"></highlight></codeline>
 <codeline lineno="40"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;math.h&gt;</highlight><highlight class="normal"></highlight></codeline>
 <codeline lineno="41"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stdio.h&gt;</highlight><highlight class="normal"></highlight></codeline>
 <codeline lineno="42"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stdlib.h&gt;</highlight><highlight class="normal"></highlight></codeline>
@@ -604,7 +603,7 @@
 <codeline lineno="164"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>uint32_t<sp/>block_rows,</highlight></codeline>
 <codeline lineno="165"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>uint32_t<sp/>block_cols,</highlight></codeline>
 <codeline lineno="166"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>threshold,</highlight></codeline>
-<codeline lineno="167"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="ie__device_8h_1a8d9448c57baf817aa19d0fc32d383b38" kindref="member">ie_block_sparse_matrix_t</ref><sp/>*out)<sp/>{</highlight></codeline>
+<codeline lineno="167"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="structie__block__sparse__matrix" kindref="compound">ie_block_sparse_matrix_t</ref><sp/>*out)<sp/>{</highlight></codeline>
 <codeline lineno="168"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!W<sp/>||<sp/>!out<sp/>||<sp/>rows<sp/>==<sp/>0u<sp/>||<sp/>cols<sp/>==<sp/>0u<sp/>||</highlight></codeline>
 <codeline lineno="169"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>block_rows<sp/>==<sp/>0u<sp/>||<sp/>block_cols<sp/>==<sp/>0u)<sp/>{</highlight></codeline>
 <codeline lineno="170"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>-1;</highlight></codeline>
@@ -667,7 +666,7 @@
 <codeline lineno="227"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(nnzb<sp/>&gt;<sp/>0u)<sp/>{</highlight></codeline>
 <codeline lineno="228"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>block_elems<sp/>=</highlight></codeline>
 <codeline lineno="229"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>(size_t)block_rows<sp/>*<sp/>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal">)block_cols;</highlight></codeline>
-<codeline lineno="230"><highlight class="normal"><sp/><sp/><sp/><sp/>values<sp/>=<sp/>(</highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*)calloc((</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal">)nnzb<sp/>*<sp/>block_elems,<sp/></highlight><highlight class="keyword">sizeof</highlight><highlight class="normal">(</highlight><highlight class="keywordtype">float</highlight><highlight class="normal">));</highlight></codeline>
+<codeline lineno="230"><highlight class="normal"><sp/><sp/><sp/><sp/>values<sp/>=<sp/>(</highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*)calloc((</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal">)nnzb<sp/>*<sp/>block_elems,<sp/></highlight><highlight class="keyword">sizeof</highlight><highlight class="normal">(float));</highlight></codeline>
 <codeline lineno="231"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!values)<sp/>{</highlight></codeline>
 <codeline lineno="232"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>fprintf(stderr,<sp/></highlight><highlight class="stringliteral">&quot;microbench_block_sparse:<sp/>allocation<sp/>failure<sp/>(values)\n&quot;</highlight><highlight class="normal">);</highlight></codeline>
 <codeline lineno="233"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>free(row_ptr);</highlight></codeline>
@@ -745,7 +744,7 @@
 <codeline lineno="305"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>Main<sp/>benchmark<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
 <codeline lineno="306"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>--------------------------------------------------------------------------<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
 <codeline lineno="307"><highlight class="normal"></highlight></codeline>
-<codeline lineno="308" refid="microbench__block__sparse_8c_1a3c04138a5bfe5d72780bb7e82a18e627" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="test__act__quant_8c_1a840291bc02cba5474a4cb46a9b9566fe" kindref="member">main</ref>(</highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>argc,<sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>**argv)<sp/>{</highlight></codeline>
+<codeline lineno="308" refid="microbench__block__sparse_8c_1a3c04138a5bfe5d72780bb7e82a18e627" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="microbench__block__sparse_8c_1a3c04138a5bfe5d72780bb7e82a18e627" kindref="member">main</ref>(</highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>argc,<sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>**argv)<sp/>{</highlight></codeline>
 <codeline lineno="309"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">/*<sp/>Defaults:<sp/>&quot;large&quot;<sp/>weights<sp/>by<sp/>default.<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
 <codeline lineno="310"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>rows<sp/>=<sp/>(argc<sp/>&gt;<sp/>1)<sp/>?<sp/>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal">)strtoul(argv[1],<sp/>NULL,<sp/>10)<sp/>:<sp/>4096;</highlight></codeline>
 <codeline lineno="311"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>cols<sp/>=<sp/>(argc<sp/>&gt;<sp/>2)<sp/>?<sp/>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal">)strtoul(argv[2],<sp/>NULL,<sp/>10)<sp/>:<sp/>4096;</highlight></codeline>
@@ -786,7 +785,7 @@
 <codeline lineno="346"><highlight class="normal"><sp/><sp/><ref refid="microbench__block__sparse_8c_1ac2fb7e70bd8769725c6e8c3aed17bf50" kindref="member">init_rand</ref>(x,<sp/>nx,<sp/>&amp;seed,<sp/>1.0f);</highlight></codeline>
 <codeline lineno="347"><highlight class="normal"></highlight></codeline>
 <codeline lineno="348"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">/*<sp/>Convert<sp/>dense<sp/>-&gt;<sp/>block-sparse<sp/>(this<sp/>is<sp/>our<sp/>&quot;large<sp/>weight&quot;<sp/>conversion).<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="349"><highlight class="normal"><sp/><sp/><ref refid="ie__device_8h_1a8d9448c57baf817aa19d0fc32d383b38" kindref="member">ie_block_sparse_matrix_t</ref><sp/>m;</highlight></codeline>
+<codeline lineno="349"><highlight class="normal"><sp/><sp/><ref refid="structie__block__sparse__matrix" kindref="compound">ie_block_sparse_matrix_t</ref><sp/>m;</highlight></codeline>
 <codeline lineno="350"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(<ref refid="microbench__block__sparse_8c_1a1151a97db14a549537170c84ed1fc692" kindref="member">dense_to_block_sparse</ref>(W_dense,</highlight></codeline>
 <codeline lineno="351"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>(uint32_t)rows,</highlight></codeline>
 <codeline lineno="352"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>(uint32_t)cols,</highlight></codeline>

@@ -12,7 +12,7 @@ var replicate__hot_8c =
     [ "ie_hot_replicas_t", "replicate__hot_8c.html#a276047fc28be37b7b79422b3b0d04a9f", null ],
     [ "advise_willneed", "replicate__hot_8c.html#aeab08179a35b8f5ae6ca655cf915af84", null ],
     [ "first_touch_write", "replicate__hot_8c.html#aa966a1d17ddd373703a273d4b5bb3c30", null ],
-    [ "ie_hot_replica_for_socket", "replicate__hot_8c.html#a7662ef3a6d1b8260f72b161ba3fa82a8", null ],
+    [ "ie_hot_replica_for_socket", "replicate__hot_8c.html#abf58b131a180e771ed7c7740089ad3a3", null ],
     [ "ie_hot_replica_memcpy", "replicate__hot_8c.html#a037dfbf3a8b30154ec3a8266649d8d9d", null ],
     [ "ie_hot_replicas_free", "replicate__hot_8c.html#ab0351bef88d481e1eb86eb068d28de7b", null ],
     [ "ie_hot_replicate_build", "replicate__hot_8c.html#a7d3e29b1e9598ce32f191c4379cffe4e", null ]

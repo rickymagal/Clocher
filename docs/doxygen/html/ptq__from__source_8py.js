@@ -1,6 +1,6 @@
 var ptq__from__source_8py =
 [
-    [ "ptq_from_source.export_onnx", "namespaceptq__from__source.html#ae7eda5deb34b02e1d532d9c554e3bcdb", null ],
-    [ "ptq_from_source.export_torch", "namespaceptq__from__source.html#a99ee4ccbb68ff19b8ff08181557cc408", null ],
-    [ "ptq_from_source.main", "namespaceptq__from__source.html#a74fd9f3663da6e0565d10c4d88520caa", null ]
+    [ "export_onnx", "ptq__from__source_8py.html#a20b037d46e7d26f9255981da01193437", null ],
+    [ "export_torch", "ptq__from__source_8py.html#aa66029bb09d156055e81635a23485ba4", null ],
+    [ "main", "ptq__from__source_8py.html#a74fd9f3663da6e0565d10c4d88520caa", null ]
 ];

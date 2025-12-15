@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8' standalone='no'?>
-<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.1" xml:lang="en-US">
   <compounddef id="microbench__gemv_8c" kind="file" language="C++">
     <compoundname>microbench_gemv.c</compoundname>
     <includes local="no">stdio.h</includes>
@@ -8,6 +8,9 @@
     <includes local="no">math.h</includes>
     <includes local="no">time.h</includes>
     <incdepgraph>
+      <node id="3">
+        <label>stdlib.h</label>
+      </node>
       <node id="1">
         <label>benchmarks/src/microbench_gemv.c</label>
         <link refid="microbench__gemv_8c"/>
@@ -22,23 +25,20 @@
         <childnode refid="6" relation="include">
         </childnode>
       </node>
-      <node id="5">
-        <label>math.h</label>
-      </node>
-      <node id="2">
-        <label>stdio.h</label>
-      </node>
-      <node id="3">
-        <label>stdlib.h</label>
-      </node>
       <node id="4">
         <label>string.h</label>
       </node>
       <node id="6">
         <label>time.h</label>
       </node>
+      <node id="5">
+        <label>math.h</label>
+      </node>
+      <node id="2">
+        <label>stdio.h</label>
+      </node>
     </incdepgraph>
-    <sectiondef kind="func">
+      <sectiondef kind="func">
       <memberdef kind="function" id="microbench__gemv_8c_1a8a295707b83706041868cd34f3c663d5" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>double</type>
         <definition>static double now_s</definition>
@@ -343,7 +343,7 @@
         <references refid="microbench__gemv_8c_1a8a295707b83706041868cd34f3c663d5" compoundref="microbench__gemv_8c" startline="24" endline="28">now_s</references>
         <references refid="microbench__gemv_8c_1a5ad63b621cb6206300427b7af31c3146" compoundref="microbench__gemv_8c" startline="68" endline="70">vec_tanh</references>
       </memberdef>
-    </sectiondef>
+      </sectiondef>
     <briefdescription>
 <para>Standalone microbenchmark for GEMV/tanh/embed hotspots (FP32). </para>
     </briefdescription>
@@ -353,7 +353,6 @@
     </detaileddescription>
     <programlisting>
 <codeline lineno="1"><highlight class="normal"></highlight></codeline>
-<codeline lineno="13"><highlight class="normal"></highlight></codeline>
 <codeline lineno="14"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stdio.h&gt;</highlight><highlight class="normal"></highlight></codeline>
 <codeline lineno="15"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stdlib.h&gt;</highlight><highlight class="normal"></highlight></codeline>
 <codeline lineno="16"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;string.h&gt;</highlight><highlight class="normal"></highlight></codeline>
@@ -397,7 +396,7 @@
 <codeline lineno="84"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
 <codeline lineno="85"><highlight class="normal">}</highlight></codeline>
 <codeline lineno="86"><highlight class="normal"></highlight></codeline>
-<codeline lineno="93" refid="microbench__gemv_8c_1a3c04138a5bfe5d72780bb7e82a18e627" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="test__act__quant_8c_1a840291bc02cba5474a4cb46a9b9566fe" kindref="member">main</ref>(</highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>argc,<sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>**argv)<sp/>{</highlight></codeline>
+<codeline lineno="93" refid="microbench__gemv_8c_1a3c04138a5bfe5d72780bb7e82a18e627" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="microbench__gemv_8c_1a3c04138a5bfe5d72780bb7e82a18e627" kindref="member">main</ref>(</highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>argc,<sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>**argv)<sp/>{</highlight></codeline>
 <codeline lineno="94"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>H<sp/>=<sp/>(argc<sp/>&gt;<sp/>1)<sp/>?<sp/>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal">)strtoul(argv[1],<sp/>NULL,<sp/>10)<sp/>:<sp/>256;</highlight></codeline>
 <codeline lineno="95"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>V<sp/>=<sp/>(argc<sp/>&gt;<sp/>2)<sp/>?<sp/>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal">)strtoul(argv[2],<sp/>NULL,<sp/>10)<sp/>:<sp/>1024;</highlight></codeline>
 <codeline lineno="96"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>iters<sp/>=<sp/>(argc<sp/>&gt;<sp/>3)<sp/>?<sp/>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal">)strtoul(argv[3],<sp/>NULL,<sp/>10)<sp/>:<sp/>100;</highlight></codeline>

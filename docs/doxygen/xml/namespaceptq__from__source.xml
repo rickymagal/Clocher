@@ -1,14 +1,13 @@
 <?xml version='1.0' encoding='UTF-8' standalone='no'?>
-<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.1" xml:lang="en-US">
   <compounddef id="namespaceptq__from__source" kind="namespace" language="Python">
     <compoundname>ptq_from_source</compoundname>
-    <sectiondef kind="func">
-      <memberdef kind="function" id="namespaceptq__from__source_1a99ee4ccbb68ff19b8ff08181557cc408" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
-        <type></type>
-        <definition>ptq_from_source.export_torch</definition>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="namespaceptq__from__source_1aa66029bb09d156055e81635a23485ba4" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>def</type>
+        <definition>def ptq_from_source.export_torch</definition>
         <argsstring>(str checkpoint, str key, str out_bin, bool do_transpose)</argsstring>
         <name>export_torch</name>
-        <qualifiedname>ptq_from_source.export_torch</qualifiedname>
         <param>
           <type>str</type>
           <declname>checkpoint</declname>
@@ -41,12 +40,11 @@ tuple(int, int)
         <location file="scripts/ptq_from_source.py" line="44" column="1" bodyfile="scripts/ptq_from_source.py" bodystart="44" bodyend="93"/>
         <referencedby refid="namespaceptq__from__source_1a74fd9f3663da6e0565d10c4d88520caa" compoundref="ptq__from__source_8py" startline="131" endline="191">main</referencedby>
       </memberdef>
-      <memberdef kind="function" id="namespaceptq__from__source_1ae7eda5deb34b02e1d532d9c554e3bcdb" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
-        <type></type>
-        <definition>ptq_from_source.export_onnx</definition>
+      <memberdef kind="function" id="namespaceptq__from__source_1a20b037d46e7d26f9255981da01193437" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>def</type>
+        <definition>def ptq_from_source.export_onnx</definition>
         <argsstring>(str onnx_path, str init_name, str out_bin, bool do_transpose)</argsstring>
         <name>export_onnx</name>
-        <qualifiedname>ptq_from_source.export_onnx</qualifiedname>
         <param>
           <type>str</type>
           <declname>onnx_path</declname>
@@ -84,7 +82,6 @@ tuple(int, int)
         <definition> None ptq_from_source.main</definition>
         <argsstring>()</argsstring>
         <name>main</name>
-        <qualifiedname>ptq_from_source.main</qualifiedname>
         <briefdescription>
         </briefdescription>
         <detaileddescription>
@@ -92,44 +89,13 @@ tuple(int, int)
         <inbodydescription>
         </inbodydescription>
         <location file="scripts/ptq_from_source.py" line="131" column="1" bodyfile="scripts/ptq_from_source.py" bodystart="131" bodyend="191"/>
-        <references refid="namespaceptq__from__source_1ae7eda5deb34b02e1d532d9c554e3bcdb" compoundref="ptq__from__source_8py" startline="94" endline="130">export_onnx</references>
-        <references refid="namespaceptq__from__source_1a99ee4ccbb68ff19b8ff08181557cc408" compoundref="ptq__from__source_8py" startline="44" endline="93">export_torch</references>
-        <references refid="namespaceptq__from__source_1a74fd9f3663da6e0565d10c4d88520caa" compoundref="ptq__from__source_8py" startline="131" endline="191">main</references>
-        <referencedby refid="namespaceptq__from__source_1a74fd9f3663da6e0565d10c4d88520caa" compoundref="ptq__from__source_8py" startline="131" endline="191">main</referencedby>
+        <references refid="namespaceptq__from__source_1a20b037d46e7d26f9255981da01193437" compoundref="ptq__from__source_8py" startline="94" endline="130">export_onnx</references>
+        <references refid="namespaceptq__from__source_1aa66029bb09d156055e81635a23485ba4" compoundref="ptq__from__source_8py" startline="44" endline="93">export_torch</references>
       </memberdef>
-    </sectiondef>
+      </sectiondef>
     <briefdescription>
     </briefdescription>
     <detaileddescription>
-<para><verbatim>One-shot PTQ from source model: reads TRUE shape from PyTorch or ONNX,
-exports the tensor as row-major float32 .bin, then runs weight-only PTQ
-with the exact rows/cols (no guessing).
-
-Usage examples:
-
-  # PyTorch (state_dict key):
-  python3 scripts/ptq_from_source.py \
-    --source torch \
-    --checkpoint /path/to/model.ckpt \
-    --key rnn.weight_hh_l0 \
-    --out-prefix out/Wxh_q4 \
-    --wbits 4 --mode per_row --scale-dtype fp16
-
-  # ONNX (initializer name):
-  python3 scripts/ptq_from_source.py \
-    --source onnx \
-    --onnx /path/to/model.onnx \
-    --init RNN/weight_hh_l0 \
-    --out-prefix out/Wxh_q8 \
-    --wbits 8 --mode per_tensor --scale-dtype fp32
-
-Optional:
-  --transpose
-  --mode per_row|per_tensor
-  --wbits 8|4
-  --scale-dtype fp16|fp32
-  --accuracy-threshold 0.995
-</verbatim> </para>
     </detaileddescription>
     <location file="scripts/ptq_from_source.py" line="1" column="1"/>
   </compounddef>

@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8' standalone='no'?>
-<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.1" xml:lang="en-US">
   <compounddef id="true__tps__strict_8sh" kind="file" language="C++">
     <compoundname>true_tps_strict.sh</compoundname>
     <briefdescription>
@@ -7,7 +7,6 @@
     <detaileddescription>
     </detaileddescription>
     <programlisting>
-<codeline><highlight class="normal">#<sp/>File:<sp/>scripts/true_tps_strict.sh</highlight></codeline>
 <codeline><highlight class="normal">#!/usr/bin/env<sp/>bash</highlight></codeline>
 <codeline><highlight class="normal">set<sp/>-euo<sp/>pipefail</highlight></codeline>
 <codeline></codeline>
@@ -16,7 +15,12 @@
 <codeline><highlight class="normal">#<sp/>Optional<sp/>env<sp/>(with<sp/>defaults):</highlight></codeline>
 <codeline><highlight class="normal">#<sp/><sp/><sp/>THREADS,<sp/>PRECISION,<sp/>BATCH,<sp/>PREFETCH,<sp/>PRETRANSPOSE,<sp/>AFFINITY,<sp/>MAX_NEW</highlight></codeline>
 <codeline><highlight class="normal">#<sp/><sp/><sp/>IE_REQUIRE_MODEL,<sp/>IE_BYTES_PER_TOKEN,<sp/>IE_STRIDE_BYTES,<sp/>IE_VERIFY_TOUCH</highlight></codeline>
-<codeline><highlight class="normal">#<sp/><sp/><sp/>RUNS,<sp/>ROUNDS,<sp/>PUSHGATEWAY_URL,<sp/>REPORT_ROOT</highlight></codeline>
+<codeline><highlight class="normal">#<sp/><sp/><sp/>RUNS</highlight></codeline>
+<codeline><highlight class="normal">#</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Output:</highlight></codeline>
+<codeline><highlight class="normal">#<sp/><sp/><sp/>JSONL<sp/>to<sp/>stdout:</highlight></codeline>
+<codeline><highlight class="normal">#<sp/><sp/><sp/><sp/><sp/>-<sp/>RUNS<sp/>per-run<sp/>JSON<sp/>objects<sp/>(engine<sp/>JSON<sp/>+<sp/>injected<sp/>memory<sp/>metrics)</highlight></codeline>
+<codeline><highlight class="normal">#<sp/><sp/><sp/><sp/><sp/>-<sp/>1<sp/>final<sp/>summary<sp/>JSON<sp/>object<sp/>(detected<sp/>by<sp/>update_performance_md.py)</highlight></codeline>
 <codeline></codeline>
 <codeline><highlight class="normal">:<sp/>&quot;${ENGINE_BIN:?set<sp/>ENGINE_BIN=/abs/path/to/engine}&quot;</highlight></codeline>
 <codeline><highlight class="normal">:<sp/>&quot;${DEVICE:?set<sp/>DEVICE=cpu|cuda}&quot;</highlight></codeline>
@@ -37,38 +41,405 @@
 <codeline><highlight class="normal">IE_VERIFY_TOUCH=&quot;${IE_VERIFY_TOUCH:-1}&quot;</highlight></codeline>
 <codeline></codeline>
 <codeline><highlight class="normal">RUNS=&quot;${RUNS:-3}&quot;</highlight></codeline>
-<codeline><highlight class="normal">ROUNDS=&quot;${ROUNDS:-$RUNS}&quot;</highlight></codeline>
 <codeline></codeline>
-<codeline><highlight class="normal">#<sp/>Precision<sp/>passthrough<sp/>(accepts<sp/>int4)</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Precision<sp/>passthrough<sp/>(accepts<sp/>int4;<sp/>also<sp/>tolerate<sp/>int4w<sp/>alias)</highlight></codeline>
 <codeline><highlight class="normal">case<sp/>&quot;${PRECISION}&quot;<sp/>in</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/>fp32|bf16|int8|int4)</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>CLI_PREC=&quot;${PRECISION}&quot;</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>;;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>fp32|bf16|int8|int4)<sp/>CLI_PREC=&quot;${PRECISION}&quot;<sp/>;;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>int4w)<sp/>CLI_PREC=&quot;int4&quot;<sp/>;;</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/>*)</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/><sp/><sp/>CLI_PREC=&quot;fp32&quot;</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>echo<sp/>&quot;WARN:<sp/>unknown<sp/>PRECISION<sp/>&apos;${PRECISION}&apos;,<sp/>defaulting<sp/>CLI<sp/>to<sp/>fp32&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>echo<sp/>&quot;WARN:<sp/>unknown<sp/>PRECISION<sp/>&apos;${PRECISION}&apos;,<sp/>defaulting<sp/>CLI<sp/>to<sp/>fp32&quot;<sp/>&gt;&amp;2</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/><sp/><sp/>;;</highlight></codeline>
 <codeline><highlight class="normal">esac</highlight></codeline>
 <codeline></codeline>
-<codeline><highlight class="normal">CMD=(</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/>&quot;${ENGINE_BIN}&quot;</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/>--device<sp/>&quot;${DEVICE}&quot;</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/>--model-dir<sp/>&quot;${MODEL_DIR}&quot;</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/>--prompts-file<sp/>&quot;${PROMPTS}&quot;</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/>--threads<sp/>&quot;${THREADS}&quot;</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/>--precision<sp/>&quot;${CLI_PREC}&quot;</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/>--batch<sp/>&quot;${BATCH}&quot;</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/>--prefetch<sp/>&quot;${PREFETCH}&quot;</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/>--pretranspose<sp/>&quot;${PRETRANSPOSE}&quot;</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/>--affinity<sp/>&quot;${AFFINITY}&quot;</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/>--max-new<sp/>&quot;${MAX_NEW}&quot;</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/>--rounds<sp/>&quot;${ROUNDS}&quot;</highlight></codeline>
-<codeline><highlight class="normal">)</highlight></codeline>
-<codeline></codeline>
 <codeline><highlight class="normal">export<sp/>IE_REQUIRE_MODEL<sp/>IE_BYTES_PER_TOKEN<sp/>IE_STRIDE_BYTES<sp/>IE_VERIFY_TOUCH</highlight></codeline>
-<codeline><highlight class="normal">export<sp/>PUSHGATEWAY_URL<sp/>REPORT_ROOT</highlight></codeline>
 <codeline></codeline>
-<codeline><highlight class="normal">exec<sp/>&quot;${CMD[@]}&quot;</highlight></codeline>
+<codeline><highlight class="normal">_tmpdir=&quot;$(mktemp<sp/>-d)&quot;</highlight></codeline>
+<codeline><highlight class="normal">cleanup()<sp/>{<sp/>rm<sp/>-rf<sp/>&quot;${_tmpdir}&quot;;<sp/>}</highlight></codeline>
+<codeline><highlight class="normal">trap<sp/>cleanup<sp/>EXIT</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">page_size_bytes=&quot;$(getconf<sp/>PAGESIZE<sp/>2&gt;/dev/null<sp/>||<sp/>echo<sp/>4096)&quot;</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">read_memavailable_kb()<sp/>{</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>awk<sp/>&apos;/MemAvailable:/<sp/>{print<sp/>$2;<sp/>exit}&apos;<sp/>/proc/meminfo<sp/>2&gt;/dev/null<sp/>||<sp/>echo<sp/>&quot;&quot;</highlight></codeline>
+<codeline><highlight class="normal">}</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">read_vmstat_swaps()<sp/>{</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>#<sp/>returns:<sp/>&quot;pswpin<sp/>pswpout&quot;<sp/>(pages)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>awk<sp/>&apos;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>$1==&quot;pswpin&quot;<sp/><sp/>{in=$2}</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>$1==&quot;pswpout&quot;<sp/>{out=$2}</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>END<sp/>{<sp/>if(in==&quot;&quot;)<sp/>in=0;<sp/>if(out==&quot;&quot;)<sp/>out=0;<sp/>print<sp/>in,<sp/>out<sp/>}</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>&apos;<sp/>/proc/vmstat<sp/>2&gt;/dev/null<sp/>||<sp/>echo<sp/>&quot;0<sp/>0&quot;</highlight></codeline>
+<codeline><highlight class="normal">}</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">read_psi_mem_some_avg10()<sp/>{</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>#<sp/>returns<sp/>avg10<sp/>numeric<sp/>(e.g.,<sp/>0.00)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>awk<sp/>&apos;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>$1==&quot;some&quot;<sp/>{</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>for(i=1;i&lt;=NF;i++){</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>if($i<sp/>~<sp/>/^avg10=/){</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>split($i,a,&quot;=&quot;);</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>print<sp/>a[2];</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>exit</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>END<sp/>{<sp/>}</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>&apos;<sp/>/proc/pressure/memory<sp/>2&gt;/dev/null<sp/>||<sp/>echo<sp/>&quot;&quot;</highlight></codeline>
+<codeline><highlight class="normal">}</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">read_psi_mem_full_avg10()<sp/>{</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>awk<sp/>&apos;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>$1==&quot;full&quot;<sp/>{</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>for(i=1;i&lt;=NF;i++){</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>if($i<sp/>~<sp/>/^avg10=/){</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>split($i,a,&quot;=&quot;);</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>print<sp/>a[2];</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>exit</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>END<sp/>{<sp/>}</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>&apos;<sp/>/proc/pressure/memory<sp/>2&gt;/dev/null<sp/>||<sp/>echo<sp/>&quot;&quot;</highlight></codeline>
+<codeline><highlight class="normal">}</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">read_proc_status_kb()<sp/>{</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>#<sp/>$1<sp/>=<sp/>pid,<sp/>prints:<sp/>&quot;VmRSS_kb<sp/>VmSize_kb<sp/>VmSwap_kb&quot;<sp/>(0<sp/>if<sp/>missing)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>local<sp/>pid=&quot;$1&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>awk<sp/>&apos;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>$1==&quot;VmRSS:&quot;<sp/><sp/>{rss=$2}</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>$1==&quot;VmSize:&quot;<sp/>{vms=$2}</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>$1==&quot;VmSwap:&quot;<sp/>{swp=$2}</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>END<sp/>{</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>if(rss==&quot;&quot;)<sp/>rss=0;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>if(vms==&quot;&quot;)<sp/>vms=0;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>if(swp==&quot;&quot;)<sp/>swp=0;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>print<sp/>rss,<sp/>vms,<sp/>swp</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>&apos;<sp/>&quot;/proc/${pid}/status&quot;<sp/>2&gt;/dev/null<sp/>||<sp/>echo<sp/>&quot;0<sp/>0<sp/>0&quot;</highlight></codeline>
+<codeline><highlight class="normal">}</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">read_proc_pss_kb()<sp/>{</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>#<sp/>returns<sp/>Pss<sp/>in<sp/>kB<sp/>from<sp/>smaps_rollup<sp/>when<sp/>available</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>local<sp/>pid=&quot;$1&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>if<sp/>[[<sp/>-r<sp/>&quot;/proc/${pid}/smaps_rollup&quot;<sp/>]];<sp/>then</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>awk<sp/>&apos;$1==&quot;Pss:&quot;<sp/>{print<sp/>$2;<sp/>exit}&apos;<sp/>&quot;/proc/${pid}/smaps_rollup&quot;<sp/>2&gt;/dev/null<sp/>||<sp/>echo<sp/>&quot;0&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>else</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>echo<sp/>&quot;0&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>fi</highlight></codeline>
+<codeline><highlight class="normal">}</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">read_proc_faults()<sp/>{</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>#<sp/>returns:<sp/>&quot;minflt<sp/>majflt&quot;<sp/>from<sp/>/proc/&lt;pid&gt;/stat</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>#<sp/>Need<sp/>to<sp/>handle<sp/>comm<sp/>field<sp/>with<sp/>spaces<sp/>inside<sp/>parentheses.</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>local<sp/>pid=&quot;$1&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>python3<sp/>-<sp/>&quot;$pid&quot;<sp/>&lt;&lt;&apos;PY&apos;</highlight></codeline>
+<codeline><highlight class="normal">import<sp/>sys</highlight></codeline>
+<codeline><highlight class="normal">pid=sys.argv[1]</highlight></codeline>
+<codeline><highlight class="normal">try:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>s=open(f&quot;/proc/{pid}/stat&quot;,&quot;r&quot;).read()</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>rparen=s.rfind(&quot;)&quot;)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>tail=s[rparen+2:].split()</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>#<sp/>Fields<sp/>after<sp/>comm/state<sp/>begin<sp/>at<sp/>position<sp/>3<sp/>overall.<sp/>In<sp/>tail:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>#<sp/>minflt<sp/>is<sp/>field<sp/>10<sp/>overall<sp/>-&gt;<sp/>tail<sp/>index<sp/>10-3<sp/>=<sp/>7</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>#<sp/>majflt<sp/>is<sp/>field<sp/>12<sp/>overall<sp/>-&gt;<sp/>tail<sp/>index<sp/>12-3<sp/>=<sp/>9</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>minflt=int(tail[7])</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>majflt=int(tail[9])</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>print(minflt,<sp/>majflt)</highlight></codeline>
+<codeline><highlight class="normal">except<sp/>Exception:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>print(0,<sp/>0)</highlight></codeline>
+<codeline><highlight class="normal">PY</highlight></codeline>
+<codeline><highlight class="normal">}</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">run_one()<sp/>{</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>local<sp/>run_idx=&quot;$1&quot;</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal"><sp/><sp/>local<sp/>out_raw=&quot;${_tmpdir}/run_${run_idx}.raw.txt&quot;</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal"><sp/><sp/>local<sp/>cmd=(</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&quot;${ENGINE_BIN}&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>--device<sp/>&quot;${DEVICE}&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>--model-dir<sp/>&quot;${MODEL_DIR}&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>--prompts-file<sp/>&quot;${PROMPTS}&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>--threads<sp/>&quot;${THREADS}&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>--precision<sp/>&quot;${CLI_PREC}&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>--batch<sp/>&quot;${BATCH}&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>--prefetch<sp/>&quot;${PREFETCH}&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>--pretranspose<sp/>&quot;${PRETRANSPOSE}&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>--affinity<sp/>&quot;${AFFINITY}&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>--max-new<sp/>&quot;${MAX_NEW}&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>--rounds<sp/>1</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal"><sp/><sp/>local<sp/>sw_in0<sp/>sw_out0</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>read<sp/>-r<sp/>sw_in0<sp/>sw_out0<sp/>&lt;<sp/>&lt;(read_vmstat_swaps)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal"><sp/><sp/>&quot;${cmd[@]}&quot;<sp/>&gt;<sp/>&quot;${out_raw}&quot;<sp/>2&gt;&amp;1<sp/>&amp;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>local<sp/>pid=&quot;$!&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>disown<sp/>||<sp/>true</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal"><sp/><sp/>local<sp/>rss_floor_kb=0</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>local<sp/>rss_peak_kb=0</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>local<sp/>vms_peak_kb=0</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>local<sp/>pss_peak_kb=0</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal"><sp/><sp/>local<sp/>memavail_sum_kb=0</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>local<sp/>memavail_n=0</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal"><sp/><sp/>local<sp/>psi_some_sum=0</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>local<sp/>psi_some_n=0</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>local<sp/>psi_full_sum=0</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>local<sp/>psi_full_n=0</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal"><sp/><sp/>local<sp/>minflt0<sp/>majflt0</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>read<sp/>-r<sp/>minflt0<sp/>majflt0<sp/>&lt;<sp/>&lt;(read_proc_faults<sp/>&quot;${pid}&quot;)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal"><sp/><sp/>#<sp/>Poll<sp/>loop</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>while<sp/>kill<sp/>-0<sp/>&quot;${pid}&quot;<sp/>2&gt;/dev/null;<sp/>do</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>local<sp/>rss_kb<sp/>vms_kb<sp/>swp_kb</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>read<sp/>-r<sp/>rss_kb<sp/>vms_kb<sp/>swp_kb<sp/>&lt;<sp/>&lt;(read_proc_status_kb<sp/>&quot;${pid}&quot;)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>if<sp/>[[<sp/>&quot;${rss_floor_kb}&quot;<sp/>-eq<sp/>0<sp/>&amp;&amp;<sp/>&quot;${rss_kb}&quot;<sp/>-gt<sp/>0<sp/>]];<sp/>then</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>rss_floor_kb=&quot;${rss_kb}&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>fi</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>if<sp/>[[<sp/>&quot;${rss_kb}&quot;<sp/>-gt<sp/>&quot;${rss_peak_kb}&quot;<sp/>]];<sp/>then<sp/>rss_peak_kb=&quot;${rss_kb}&quot;;<sp/>fi</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>if<sp/>[[<sp/>&quot;${vms_kb}&quot;<sp/>-gt<sp/>&quot;${vms_peak_kb}&quot;<sp/>]];<sp/>then<sp/>vms_peak_kb=&quot;${vms_kb}&quot;;<sp/>fi</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>local<sp/>pss_kb</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>pss_kb=&quot;$(read_proc_pss_kb<sp/>&quot;${pid}&quot;)&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>if<sp/>[[<sp/>&quot;${pss_kb}&quot;<sp/>-gt<sp/>&quot;${pss_peak_kb}&quot;<sp/>]];<sp/>then<sp/>pss_peak_kb=&quot;${pss_kb}&quot;;<sp/>fi</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>local<sp/>memavail_kb</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>memavail_kb=&quot;$(read_memavailable_kb)&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>if<sp/>[[<sp/>-n<sp/>&quot;${memavail_kb}&quot;<sp/>]];<sp/>then</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>memavail_sum_kb=&quot;$((memavail_sum_kb<sp/>+<sp/>memavail_kb))&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>memavail_n=&quot;$((memavail_n<sp/>+<sp/>1))&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>fi</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>local<sp/>psi_some<sp/>psi_full</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>psi_some=&quot;$(read_psi_mem_some_avg10)&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>psi_full=&quot;$(read_psi_mem_full_avg10)&quot;</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>if<sp/>[[<sp/>-n<sp/>&quot;${psi_some}&quot;<sp/>]];<sp/>then</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>psi_some_sum=&quot;$(python3<sp/>-<sp/>&lt;&lt;PY</highlight></codeline>
+<codeline><highlight class="normal">s=${psi_some_sum}</highlight></codeline>
+<codeline><highlight class="normal">x=${psi_some}</highlight></codeline>
+<codeline><highlight class="normal">print(s<sp/>+<sp/>x)</highlight></codeline>
+<codeline><highlight class="normal">PY</highlight></codeline>
+<codeline><highlight class="normal">)&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>psi_some_n=&quot;$((psi_some_n<sp/>+<sp/>1))&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>fi</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>if<sp/>[[<sp/>-n<sp/>&quot;${psi_full}&quot;<sp/>]];<sp/>then</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>psi_full_sum=&quot;$(python3<sp/>-<sp/>&lt;&lt;PY</highlight></codeline>
+<codeline><highlight class="normal">s=${psi_full_sum}</highlight></codeline>
+<codeline><highlight class="normal">x=${psi_full}</highlight></codeline>
+<codeline><highlight class="normal">print(s<sp/>+<sp/>x)</highlight></codeline>
+<codeline><highlight class="normal">PY</highlight></codeline>
+<codeline><highlight class="normal">)&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>psi_full_n=&quot;$((psi_full_n<sp/>+<sp/>1))&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>fi</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>sleep<sp/>0.05</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>done</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal"><sp/><sp/>wait<sp/>&quot;${pid}&quot;<sp/>||<sp/>true</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal"><sp/><sp/>local<sp/>minflt1<sp/>majflt1</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>read<sp/>-r<sp/>minflt1<sp/>majflt1<sp/>&lt;<sp/>&lt;(read_proc_faults<sp/>&quot;${pid}&quot;)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>local<sp/>minflt_delta=&quot;$((minflt1<sp/>-<sp/>minflt0))&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>local<sp/>majflt_delta=&quot;$((majflt1<sp/>-<sp/>majflt0))&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>if<sp/>[[<sp/>&quot;${minflt_delta}&quot;<sp/>-lt<sp/>0<sp/>]];<sp/>then<sp/>minflt_delta=0;<sp/>fi</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>if<sp/>[[<sp/>&quot;${majflt_delta}&quot;<sp/>-lt<sp/>0<sp/>]];<sp/>then<sp/>majflt_delta=0;<sp/>fi</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal"><sp/><sp/>local<sp/>sw_in1<sp/>sw_out1</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>read<sp/>-r<sp/>sw_in1<sp/>sw_out1<sp/>&lt;<sp/>&lt;(read_vmstat_swaps)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal"><sp/><sp/>local<sp/>sw_in_pages=&quot;$((sw_in1<sp/>-<sp/>sw_in0))&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>local<sp/>sw_out_pages=&quot;$((sw_out1<sp/>-<sp/>sw_out0))&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>if<sp/>[[<sp/>&quot;${sw_in_pages}&quot;<sp/>-lt<sp/>0<sp/>]];<sp/>then<sp/>sw_in_pages=0;<sp/>fi</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>if<sp/>[[<sp/>&quot;${sw_out_pages}&quot;<sp/>-lt<sp/>0<sp/>]];<sp/>then<sp/>sw_out_pages=0;<sp/>fi</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal"><sp/><sp/>local<sp/>swap_in_mb<sp/>swap_out_mb</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>swap_in_mb=&quot;$(python3<sp/>-<sp/>&lt;&lt;PY</highlight></codeline>
+<codeline><highlight class="normal">pages=${sw_in_pages}</highlight></codeline>
+<codeline><highlight class="normal">psz=${page_size_bytes}</highlight></codeline>
+<codeline><highlight class="normal">print((pages*psz)/1_000_000.0)</highlight></codeline>
+<codeline><highlight class="normal">PY</highlight></codeline>
+<codeline><highlight class="normal">)&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>swap_out_mb=&quot;$(python3<sp/>-<sp/>&lt;&lt;PY</highlight></codeline>
+<codeline><highlight class="normal">pages=${sw_out_pages}</highlight></codeline>
+<codeline><highlight class="normal">psz=${page_size_bytes}</highlight></codeline>
+<codeline><highlight class="normal">print((pages*psz)/1_000_000.0)</highlight></codeline>
+<codeline><highlight class="normal">PY</highlight></codeline>
+<codeline><highlight class="normal">)&quot;</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal"><sp/><sp/>local<sp/>memavail_mean_mb=&quot;null&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>local<sp/>memavail_mean_pct=&quot;null&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>if<sp/>[[<sp/>&quot;${memavail_n}&quot;<sp/>-gt<sp/>0<sp/>]];<sp/>then</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>local<sp/>memavail_mean_kb=&quot;$((memavail_sum_kb<sp/>/<sp/>memavail_n))&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>memavail_mean_mb=&quot;$(python3<sp/>-<sp/>&lt;&lt;PY</highlight></codeline>
+<codeline><highlight class="normal">kb=${memavail_mean_kb}</highlight></codeline>
+<codeline><highlight class="normal">print(kb/1024.0)</highlight></codeline>
+<codeline><highlight class="normal">PY</highlight></codeline>
+<codeline><highlight class="normal">)&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>local<sp/>memtotal_kb</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>memtotal_kb=&quot;$(awk<sp/>&apos;/MemTotal:/<sp/>{print<sp/>$2;<sp/>exit}&apos;<sp/>/proc/meminfo<sp/>2&gt;/dev/null<sp/>||<sp/>echo<sp/>0)&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>if<sp/>[[<sp/>&quot;${memtotal_kb}&quot;<sp/>-gt<sp/>0<sp/>]];<sp/>then</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>memavail_mean_pct=&quot;$(python3<sp/>-<sp/>&lt;&lt;PY</highlight></codeline>
+<codeline><highlight class="normal">a=${memavail_mean_kb}</highlight></codeline>
+<codeline><highlight class="normal">t=${memtotal_kb}</highlight></codeline>
+<codeline><highlight class="normal">print((a/t)*100.0)</highlight></codeline>
+<codeline><highlight class="normal">PY</highlight></codeline>
+<codeline><highlight class="normal">)&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>fi</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>fi</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal"><sp/><sp/>local<sp/>psi_some_mean=&quot;null&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>local<sp/>psi_full_mean=&quot;null&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>if<sp/>[[<sp/>&quot;${psi_some_n}&quot;<sp/>-gt<sp/>0<sp/>]];<sp/>then</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>psi_some_mean=&quot;$(python3<sp/>-<sp/>&lt;&lt;PY</highlight></codeline>
+<codeline><highlight class="normal">s=${psi_some_sum}</highlight></codeline>
+<codeline><highlight class="normal">n=${psi_some_n}</highlight></codeline>
+<codeline><highlight class="normal">print(s/n)</highlight></codeline>
+<codeline><highlight class="normal">PY</highlight></codeline>
+<codeline><highlight class="normal">)&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>fi</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>if<sp/>[[<sp/>&quot;${psi_full_n}&quot;<sp/>-gt<sp/>0<sp/>]];<sp/>then</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>psi_full_mean=&quot;$(python3<sp/>-<sp/>&lt;&lt;PY</highlight></codeline>
+<codeline><highlight class="normal">s=${psi_full_sum}</highlight></codeline>
+<codeline><highlight class="normal">n=${psi_full_n}</highlight></codeline>
+<codeline><highlight class="normal">print(s/n)</highlight></codeline>
+<codeline><highlight class="normal">PY</highlight></codeline>
+<codeline><highlight class="normal">)&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>fi</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal"><sp/><sp/>local<sp/>rss_floor_mb<sp/>rss_peak_mb<sp/>vms_peak_mb<sp/>pss_peak_mb<sp/>rss_delta_mb</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>rss_floor_mb=&quot;$(python3<sp/>-<sp/>&lt;&lt;PY</highlight></codeline>
+<codeline><highlight class="normal">kb=${rss_floor_kb}</highlight></codeline>
+<codeline><highlight class="normal">print(kb/1024.0)</highlight></codeline>
+<codeline><highlight class="normal">PY</highlight></codeline>
+<codeline><highlight class="normal">)&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>rss_peak_mb=&quot;$(python3<sp/>-<sp/>&lt;&lt;PY</highlight></codeline>
+<codeline><highlight class="normal">kb=${rss_peak_kb}</highlight></codeline>
+<codeline><highlight class="normal">print(kb/1024.0)</highlight></codeline>
+<codeline><highlight class="normal">PY</highlight></codeline>
+<codeline><highlight class="normal">)&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>vms_peak_mb=&quot;$(python3<sp/>-<sp/>&lt;&lt;PY</highlight></codeline>
+<codeline><highlight class="normal">kb=${vms_peak_kb}</highlight></codeline>
+<codeline><highlight class="normal">print(kb/1024.0)</highlight></codeline>
+<codeline><highlight class="normal">PY</highlight></codeline>
+<codeline><highlight class="normal">)&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>pss_peak_mb=&quot;$(python3<sp/>-<sp/>&lt;&lt;PY</highlight></codeline>
+<codeline><highlight class="normal">kb=${pss_peak_kb}</highlight></codeline>
+<codeline><highlight class="normal">print(kb/1024.0)</highlight></codeline>
+<codeline><highlight class="normal">PY</highlight></codeline>
+<codeline><highlight class="normal">)&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>rss_delta_mb=&quot;$(python3<sp/>-<sp/>&lt;&lt;PY</highlight></codeline>
+<codeline><highlight class="normal">a=${rss_peak_kb}</highlight></codeline>
+<codeline><highlight class="normal">b=${rss_floor_kb}</highlight></codeline>
+<codeline><highlight class="normal">print((a-b)/1024.0<sp/>if<sp/>a&gt;=b<sp/>else<sp/>0.0)</highlight></codeline>
+<codeline><highlight class="normal">PY</highlight></codeline>
+<codeline><highlight class="normal">)&quot;</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal"><sp/><sp/>#<sp/>Extract<sp/>last<sp/>JSON<sp/>object<sp/>printed<sp/>by<sp/>the<sp/>engine<sp/>(ignore<sp/>non-JSON<sp/>noise)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>python3<sp/>-<sp/>&quot;${out_raw}&quot;<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&quot;${rss_floor_mb}&quot;<sp/>&quot;${rss_delta_mb}&quot;<sp/>&quot;${pss_peak_mb}&quot;<sp/>&quot;${vms_peak_mb}&quot;<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&quot;${minflt_delta}&quot;<sp/>&quot;${majflt_delta}&quot;<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&quot;${swap_in_mb}&quot;<sp/>&quot;${swap_out_mb}&quot;<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&quot;${psi_some_mean}&quot;<sp/>&quot;${psi_full_mean}&quot;<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&quot;${memavail_mean_mb}&quot;<sp/>&quot;${memavail_mean_pct}&quot;<sp/>&lt;&lt;&apos;PY&apos;</highlight></codeline>
+<codeline><highlight class="normal">import<sp/>sys,<sp/>json</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">raw_path=sys.argv[1]</highlight></codeline>
+<codeline><highlight class="normal">rss_floor=float(sys.argv[2])</highlight></codeline>
+<codeline><highlight class="normal">rss_delta=float(sys.argv[3])</highlight></codeline>
+<codeline><highlight class="normal">pss_peak=float(sys.argv[4])</highlight></codeline>
+<codeline><highlight class="normal">vms_peak=float(sys.argv[5])</highlight></codeline>
+<codeline><highlight class="normal">minflt=int(float(sys.argv[6]))</highlight></codeline>
+<codeline><highlight class="normal">majflt=int(float(sys.argv[7]))</highlight></codeline>
+<codeline><highlight class="normal">swap_in=float(sys.argv[8])</highlight></codeline>
+<codeline><highlight class="normal">swap_out=float(sys.argv[9])</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">def<sp/>to_opt_float(s):</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>if<sp/>s<sp/>==<sp/>&quot;null&quot;:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>return<sp/>None</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>return<sp/>float(s)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">psi_some=to_opt_float(sys.argv[10])</highlight></codeline>
+<codeline><highlight class="normal">psi_full=to_opt_float(sys.argv[11])</highlight></codeline>
+<codeline><highlight class="normal">mem_av_mb=to_opt_float(sys.argv[12])</highlight></codeline>
+<codeline><highlight class="normal">mem_av_pct=to_opt_float(sys.argv[13])</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">last=None</highlight></codeline>
+<codeline><highlight class="normal">with<sp/>open(raw_path,&quot;r&quot;,encoding=&quot;utf-8&quot;,errors=&quot;ignore&quot;)<sp/>as<sp/>f:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>for<sp/>line<sp/>in<sp/>f:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>line=line.strip()</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>if<sp/>not<sp/>line:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>continue</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>if<sp/>not<sp/>(line.startswith(&quot;{&quot;)<sp/>and<sp/>line.endswith(&quot;}&quot;)):</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>continue</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>try:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>obj=json.loads(line)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>except<sp/>Exception:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>continue</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>if<sp/>&quot;tokens_generated&quot;<sp/>in<sp/>obj<sp/>and<sp/>&quot;wall_time_s&quot;<sp/>in<sp/>obj<sp/>and<sp/>&quot;tps_true&quot;<sp/>in<sp/>obj:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>last=obj</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">if<sp/>last<sp/>is<sp/>None:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>raise<sp/>SystemExit(&quot;ERROR:<sp/>engine<sp/>did<sp/>not<sp/>emit<sp/>a<sp/>valid<sp/>per-run<sp/>JSON<sp/>object&quot;)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Inject<sp/>extended<sp/>memory<sp/>metrics<sp/>(names<sp/>match<sp/>update_performance_md.py)</highlight></codeline>
+<codeline><highlight class="normal">last[&quot;pss_peak_mb&quot;]=pss_peak</highlight></codeline>
+<codeline><highlight class="normal">last[&quot;vms_peak_mb&quot;]=vms_peak</highlight></codeline>
+<codeline><highlight class="normal">last[&quot;rss_floor_mb&quot;]=rss_floor</highlight></codeline>
+<codeline><highlight class="normal">last[&quot;rss_delta_mb&quot;]=rss_delta</highlight></codeline>
+<codeline><highlight class="normal">last[&quot;minflt&quot;]=minflt</highlight></codeline>
+<codeline><highlight class="normal">last[&quot;majflt&quot;]=majflt</highlight></codeline>
+<codeline><highlight class="normal">last[&quot;swap_in_mb&quot;]=swap_in</highlight></codeline>
+<codeline><highlight class="normal">last[&quot;swap_out_mb&quot;]=swap_out</highlight></codeline>
+<codeline><highlight class="normal">if<sp/>psi_some<sp/>is<sp/>not<sp/>None:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>last[&quot;psi_mem_some_pct&quot;]=psi_some</highlight></codeline>
+<codeline><highlight class="normal">if<sp/>psi_full<sp/>is<sp/>not<sp/>None:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>last[&quot;psi_mem_full_pct&quot;]=psi_full</highlight></codeline>
+<codeline><highlight class="normal">if<sp/>mem_av_mb<sp/>is<sp/>not<sp/>None:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>last[&quot;mem_available_mb&quot;]=mem_av_mb</highlight></codeline>
+<codeline><highlight class="normal">if<sp/>mem_av_pct<sp/>is<sp/>not<sp/>None:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>last[&quot;mem_available_pct&quot;]=mem_av_pct</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">print(json.dumps(last,<sp/>separators=(&quot;,&quot;,&quot;:&quot;)))</highlight></codeline>
+<codeline><highlight class="normal">PY</highlight></codeline>
+<codeline><highlight class="normal">}</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">for<sp/>i<sp/>in<sp/>$(seq<sp/>1<sp/>&quot;${RUNS}&quot;);<sp/>do</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>run_one<sp/>&quot;${i}&quot;</highlight></codeline>
+<codeline><highlight class="normal">done</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">python3<sp/>-<sp/>&lt;&lt;PY</highlight></codeline>
+<codeline><highlight class="normal">import<sp/>json,<sp/>os,<sp/>time</highlight></codeline>
+<codeline><highlight class="normal">summary<sp/>=<sp/>{</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>&quot;timestamp&quot;:<sp/>time.strftime(&quot;%Y-%m-%d<sp/>%H:%M:%S&quot;),</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>&quot;threads&quot;:<sp/>int(os.environ.get(&quot;THREADS&quot;,&quot;0&quot;)<sp/>or<sp/>0),</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>&quot;precision&quot;:<sp/>os.environ.get(&quot;PRECISION&quot;,&quot;fp32&quot;),</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>&quot;model_dir&quot;:<sp/>os.environ.get(&quot;MODEL_DIR&quot;,&quot;&quot;),</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>&quot;prompts&quot;:<sp/>os.environ.get(&quot;PROMPTS&quot;,&quot;&quot;),</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>&quot;runs&quot;:<sp/>int(os.environ.get(&quot;RUNS&quot;,&quot;3&quot;)<sp/>or<sp/>3),</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>&quot;device&quot;:<sp/>os.environ.get(&quot;DEVICE&quot;,&quot;&quot;),</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>&quot;engine_bin&quot;:<sp/>os.environ.get(&quot;ENGINE_BIN&quot;,&quot;&quot;),</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>&quot;batch&quot;:<sp/>int(os.environ.get(&quot;BATCH&quot;,&quot;1&quot;)<sp/>or<sp/>1),</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>&quot;max_new&quot;:<sp/>int(os.environ.get(&quot;MAX_NEW&quot;,&quot;128&quot;)<sp/>or<sp/>128),</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>&quot;affinity&quot;:<sp/>os.environ.get(&quot;AFFINITY&quot;,&quot;auto&quot;),</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>&quot;pretranspose&quot;:<sp/>os.environ.get(&quot;PRETRANSPOSE&quot;,&quot;all&quot;),</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>&quot;prefetch&quot;:<sp/>os.environ.get(&quot;PREFETCH&quot;,&quot;auto&quot;),</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>&quot;ie_require_model&quot;:<sp/>int(os.environ.get(&quot;IE_REQUIRE_MODEL&quot;,&quot;1&quot;)<sp/>or<sp/>1),</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>&quot;ie_bytes_per_token&quot;:<sp/>int(os.environ.get(&quot;IE_BYTES_PER_TOKEN&quot;,&quot;0&quot;)<sp/>or<sp/>0),</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>&quot;ie_stride_bytes&quot;:<sp/>int(os.environ.get(&quot;IE_STRIDE_BYTES&quot;,&quot;0&quot;)<sp/>or<sp/>0),</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>&quot;ie_verify_touch&quot;:<sp/>int(os.environ.get(&quot;IE_VERIFY_TOUCH&quot;,&quot;0&quot;)<sp/>or<sp/>0),</highlight></codeline>
+<codeline><highlight class="normal">}</highlight></codeline>
+<codeline><highlight class="normal">print(json.dumps(summary,<sp/>separators=(&quot;,&quot;,&quot;:&quot;)))</highlight></codeline>
+<codeline><highlight class="normal">PY</highlight></codeline>
     </programlisting>
     <location file="scripts/true_tps_strict.sh"/>
   </compounddef>

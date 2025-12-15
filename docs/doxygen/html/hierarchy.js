@@ -1,13 +1,18 @@
 var hierarchy =
 [
-    [ "BaseHTTPRequestHandler", null, [
-      [ "metrics_exporter.Handler", "classmetrics__exporter_1_1Handler.html", null ]
-    ] ],
+    [ "args_s", "structargs__s.html", null ],
+    [ "blob_list_s", "structblob__list__s.html", null ],
+    [ "blob_ref_s", "structblob__ref__s.html", null ],
     [ "cli_extras", "structcli__extras.html", null ],
     [ "cli_extras_t", "structcli__extras__t.html", null ],
     [ "cli_opts", "structcli__opts.html", null ],
     [ "cpu_impl", "structcpu__impl.html", null ],
     [ "cuda_impl", "structcuda__impl.html", null ],
+    [ "dedup_spec_builder_s", "structdedup__spec__builder__s.html", null ],
+    [ "dedup_spec_entry_s", "structdedup__spec__entry__s.html", null ],
+    [ "dedup_spec_header_s", "structdedup__spec__header__s.html", null ],
+    [ "group_list_s", "structgroup__list__s.html", null ],
+    [ "group_s", "structgroup__s.html", null ],
     [ "ie_act_i8_params", "structie__act__i8__params.html", null ],
     [ "ie_batcher", "structie__batcher.html", null ],
     [ "ie_batcher_item_t", "structie__batcher__item__t.html", null ],
@@ -25,6 +30,7 @@ var hierarchy =
     [ "ie_engine_params", "structie__engine__params.html", null ],
     [ "ie_f32_vec_t", "structie__f32__vec__t.html", null ],
     [ "ie_f32u32", "unionie__f32u32.html", null ],
+    [ "ie_file_ref", "structie__file__ref.html", null ],
     [ "ie_hot_replica_t", "structie__hot__replica__t.html", null ],
     [ "ie_hot_replicas_t", "structie__hot__replicas__t.html", null ],
     [ "ie_int4_quant_meta", "structie__int4__quant__meta.html", null ],
@@ -33,14 +39,21 @@ var hierarchy =
     [ "ie_kv_state_t", "structie__kv__state__t.html", null ],
     [ "ie_metrics", "structie__metrics.html", null ],
     [ "ie_metrics_t", "structie__metrics__t.html", null ],
+    [ "ie_mmap_file", "structie__mmap__file.html", null ],
     [ "ie_stream_policy", "structie__stream__policy.html", null ],
     [ "ie_task_arg_t", "structie__task__arg__t.html", null ],
+    [ "ie_tensor_ref", "structie__tensor__ref.html", null ],
     [ "ie_threadpool", "structie__threadpool.html", null ],
     [ "ie_topology", "structie__topology.html", null ],
     [ "ie_vocab_s", "structie__vocab__s.html", null ],
     [ "ie_wblocked_desc", "structie__wblocked__desc.html", null ],
+    [ "ie_weight_view", "structie__weight__view.html", null ],
+    [ "ie_weights_dedup", "structie__weights__dedup.html", null ],
+    [ "ie_weights_dedup_opts", "structie__weights__dedup__opts.html", null ],
     [ "ie_weights_s", "structie__weights__s.html", null ],
     [ "ie_worker_arg_t", "structie__worker__arg__t.html", null ],
+    [ "hf_to_iebin.Shard", "classhf__to__iebin_1_1Shard.html", null ],
+    [ "hf_to_iebin.TensorRef", "classhf__to__iebin_1_1TensorRef.html", null ],
     [ "unittest.TestCase", null, [
       [ "test_cli.CLITests", "classtest__cli_1_1CLITests.html", null ],
       [ "test_cli_error_paths.CLIErrorPathsTests", "classtest__cli__error__paths_1_1CLIErrorPathsTests.html", null ],
@@ -52,5 +65,8 @@ var hierarchy =
       [ "test_ptq_calib_pipeline.PTQCalibPipelineTests", "classtest__ptq__calib__pipeline_1_1PTQCalibPipelineTests.html", null ]
     ] ],
     [ "tp_ctx_t", "structtp__ctx__t.html", null ],
-    [ "ze_impl", "structze__impl.html", null ]
+    [ "ze_impl", "structze__impl.html", null ],
+    [ "BaseHTTPRequestHandler", null, [
+      [ "metrics_exporter.Handler", "classmetrics__exporter_1_1Handler.html", null ]
+    ] ]
 ];

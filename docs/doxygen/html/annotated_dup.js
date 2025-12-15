@@ -1,5 +1,9 @@
 var annotated_dup =
 [
+    [ "hf_to_iebin", "namespacehf__to__iebin.html", [
+      [ "TensorRef", "classhf__to__iebin_1_1TensorRef.html", null ],
+      [ "Shard", "classhf__to__iebin_1_1Shard.html", null ]
+    ] ],
     [ "metrics_exporter", "namespacemetrics__exporter.html", [
       [ "Handler", "classmetrics__exporter_1_1Handler.html", "classmetrics__exporter_1_1Handler" ]
     ] ],
@@ -27,11 +31,19 @@ var annotated_dup =
     [ "test_ptq_calib_pipeline", "namespacetest__ptq__calib__pipeline.html", [
       [ "PTQCalibPipelineTests", "classtest__ptq__calib__pipeline_1_1PTQCalibPipelineTests.html", "classtest__ptq__calib__pipeline_1_1PTQCalibPipelineTests" ]
     ] ],
+    [ "args_s", "structargs__s.html", "structargs__s" ],
+    [ "blob_list_s", "structblob__list__s.html", "structblob__list__s" ],
+    [ "blob_ref_s", "structblob__ref__s.html", "structblob__ref__s" ],
     [ "cli_extras", "structcli__extras.html", "structcli__extras" ],
     [ "cli_extras_t", "structcli__extras__t.html", null ],
     [ "cli_opts", "structcli__opts.html", "structcli__opts" ],
     [ "cpu_impl", "structcpu__impl.html", "structcpu__impl" ],
     [ "cuda_impl", "structcuda__impl.html", "structcuda__impl" ],
+    [ "dedup_spec_builder_s", "structdedup__spec__builder__s.html", "structdedup__spec__builder__s" ],
+    [ "dedup_spec_entry_s", "structdedup__spec__entry__s.html", "structdedup__spec__entry__s" ],
+    [ "dedup_spec_header_s", "structdedup__spec__header__s.html", "structdedup__spec__header__s" ],
+    [ "group_list_s", "structgroup__list__s.html", "structgroup__list__s" ],
+    [ "group_s", "structgroup__s.html", "structgroup__s" ],
     [ "ie_act_i8_params", "structie__act__i8__params.html", "structie__act__i8__params" ],
     [ "ie_batcher", "structie__batcher.html", "structie__batcher" ],
     [ "ie_batcher_item_t", "structie__batcher__item__t.html", "structie__batcher__item__t" ],
@@ -49,6 +61,7 @@ var annotated_dup =
     [ "ie_engine_params", "structie__engine__params.html", "structie__engine__params" ],
     [ "ie_f32_vec_t", "structie__f32__vec__t.html", "structie__f32__vec__t" ],
     [ "ie_f32u32", "unionie__f32u32.html", "unionie__f32u32" ],
+    [ "ie_file_ref", "structie__file__ref.html", "structie__file__ref" ],
     [ "ie_hot_replica_t", "structie__hot__replica__t.html", "structie__hot__replica__t" ],
     [ "ie_hot_replicas_t", "structie__hot__replicas__t.html", "structie__hot__replicas__t" ],
     [ "ie_int4_quant_meta", "structie__int4__quant__meta.html", "structie__int4__quant__meta" ],
@@ -57,12 +70,17 @@ var annotated_dup =
     [ "ie_kv_state_t", "structie__kv__state__t.html", "structie__kv__state__t" ],
     [ "ie_metrics", "structie__metrics.html", "structie__metrics" ],
     [ "ie_metrics_t", "structie__metrics__t.html", "structie__metrics__t" ],
+    [ "ie_mmap_file", "structie__mmap__file.html", "structie__mmap__file" ],
     [ "ie_stream_policy", "structie__stream__policy.html", "structie__stream__policy" ],
     [ "ie_task_arg_t", "structie__task__arg__t.html", "structie__task__arg__t" ],
+    [ "ie_tensor_ref", "structie__tensor__ref.html", "structie__tensor__ref" ],
     [ "ie_threadpool", "structie__threadpool.html", "structie__threadpool" ],
     [ "ie_topology", "structie__topology.html", "structie__topology" ],
     [ "ie_vocab_s", "structie__vocab__s.html", "structie__vocab__s" ],
     [ "ie_wblocked_desc", "structie__wblocked__desc.html", "structie__wblocked__desc" ],
+    [ "ie_weight_view", "structie__weight__view.html", "structie__weight__view" ],
+    [ "ie_weights_dedup", "structie__weights__dedup.html", "structie__weights__dedup" ],
+    [ "ie_weights_dedup_opts", "structie__weights__dedup__opts.html", "structie__weights__dedup__opts" ],
     [ "ie_weights_s", "structie__weights__s.html", "structie__weights__s" ],
     [ "ie_worker_arg_t", "structie__worker__arg__t.html", "structie__worker__arg__t" ],
     [ "tp_ctx_t", "structtp__ctx__t.html", "structtp__ctx__t" ],

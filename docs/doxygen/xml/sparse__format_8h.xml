@@ -1,20 +1,22 @@
 <?xml version='1.0' encoding='UTF-8' standalone='no'?>
-<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.1" xml:lang="en-US">
   <compounddef id="sparse__format_8h" kind="file" language="C++">
     <compoundname>sparse_format.h</compoundname>
     <includes local="no">stddef.h</includes>
     <includes local="no">stdint.h</includes>
     <includes refid="platform_8h" local="yes">platform.h</includes>
     <includedby refid="microbench__block__sparse_8c" local="yes">benchmarks/src/microbench_block_sparse.c</includedby>
-    <includedby refid="ie__device__common_8c" local="yes">engine/src/devices/ie_device_common.c</includedby>
     <includedby refid="gemm__block__sparse_8c" local="yes">engine/src/gemm_block_sparse.c</includedby>
+    <includedby refid="ie__device__common_8c" local="yes">engine/src/devices/ie_device_common.c</includedby>
     <includedby refid="sparse__io_8c" local="yes">engine/src/sparse_io.c</includedby>
     <includedby refid="test__block__sparse_8c" local="yes">tests/c/test_block_sparse.c</includedby>
     <includedby refid="convert__to__block__sparse_8c" local="yes">tools/convert_to_block_sparse.c</includedby>
     <incdepgraph>
-      <node id="4">
-        <label>platform.h</label>
-        <link refid="platform_8h"/>
+      <node id="3">
+        <label>stdint.h</label>
+      </node>
+      <node id="2">
+        <label>stddef.h</label>
       </node>
       <node id="1">
         <label>engine/include/sparse_format.h</label>
@@ -26,17 +28,19 @@
         <childnode refid="4" relation="include">
         </childnode>
       </node>
-      <node id="2">
-        <label>stddef.h</label>
-      </node>
-      <node id="3">
-        <label>stdint.h</label>
+      <node id="4">
+        <label>platform.h</label>
+        <link refid="platform_8h"/>
       </node>
     </incdepgraph>
     <invincdepgraph>
-      <node id="2">
-        <label>benchmarks/src/microbench_block_sparse.c</label>
-        <link refid="microbench__block__sparse_8c"/>
+      <node id="5">
+        <label>engine/src/sparse_io.c</label>
+        <link refid="sparse__io_8c"/>
+      </node>
+      <node id="7">
+        <label>tools/convert_to_block_sparse.c</label>
+        <link refid="convert__to__block__sparse_8c"/>
       </node>
       <node id="1">
         <label>engine/include/sparse_format.h</label>
@@ -54,29 +58,25 @@
         <childnode refid="7" relation="include">
         </childnode>
       </node>
-      <node id="3">
-        <label>engine/src/devices/ie_device_common.c</label>
-        <link refid="ie__device__common_8c"/>
-      </node>
-      <node id="4">
-        <label>engine/src/gemm_block_sparse.c</label>
-        <link refid="gemm__block__sparse_8c"/>
-      </node>
-      <node id="5">
-        <label>engine/src/sparse_io.c</label>
-        <link refid="sparse__io_8c"/>
-      </node>
       <node id="6">
         <label>tests/c/test_block_sparse.c</label>
         <link refid="test__block__sparse_8c"/>
       </node>
-      <node id="7">
-        <label>tools/convert_to_block_sparse.c</label>
-        <link refid="convert__to__block__sparse_8c"/>
+      <node id="4">
+        <label>engine/src/devices/ie_device_common.c</label>
+        <link refid="ie__device__common_8c"/>
+      </node>
+      <node id="2">
+        <label>benchmarks/src/microbench_block_sparse.c</label>
+        <link refid="microbench__block__sparse_8c"/>
+      </node>
+      <node id="3">
+        <label>engine/src/gemm_block_sparse.c</label>
+        <link refid="gemm__block__sparse_8c"/>
       </node>
     </invincdepgraph>
     <innerclass refid="structie__block__sparse__matrix" prot="public">ie_block_sparse_matrix</innerclass>
-    <sectiondef kind="enum">
+      <sectiondef kind="enum">
       <memberdef kind="enum" id="sparse__format_8h_1addb0ef862362988533af97d5466bf623" prot="public" static="no" strong="no">
         <type></type>
         <name>ie_sparse_status_e</name>
@@ -147,14 +147,14 @@
 <para>Status codes for block-sparse operations. </para>
         </briefdescription>
         <detaileddescription>
-<para>These codes are returned by functions that manipulate block-sparse matrices, in particular <ref refid="sparse__format_8h_1a3f5428268012e4d5e4e9d8a58c01a008" kindref="member">ie_block_sparse_load</ref>. They are designed to be lightweight and sufficient for logging and error propagation. </para>
+<para>These codes are returned by functions that manipulate block-sparse matrices, in particular <ref refid="sparse__io_8c_1a3f5428268012e4d5e4e9d8a58c01a008" kindref="member">ie_block_sparse_load</ref>. They are designed to be lightweight and sufficient for logging and error propagation. </para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
         <location file="engine/include/sparse_format.h" line="72" column="1" bodyfile="engine/include/sparse_format.h" bodystart="72" bodyend="87"/>
       </memberdef>
-    </sectiondef>
-    <sectiondef kind="typedef">
+      </sectiondef>
+      <sectiondef kind="typedef">
       <memberdef kind="typedef" id="sparse__format_8h_1a9fac0a63250c2d10fdc5f4b499569bf5" prot="public" static="no">
         <type>enum <ref refid="sparse__format_8h_1addb0ef862362988533af97d5466bf623" kindref="member">ie_sparse_status_e</ref></type>
         <definition>typedef enum ie_sparse_status_e ie_sparse_status_t</definition>
@@ -164,7 +164,7 @@
 <para>Status codes for block-sparse operations. </para>
         </briefdescription>
         <detaileddescription>
-<para>These codes are returned by functions that manipulate block-sparse matrices, in particular <ref refid="sparse__format_8h_1a3f5428268012e4d5e4e9d8a58c01a008" kindref="member">ie_block_sparse_load</ref>. They are designed to be lightweight and sufficient for logging and error propagation. </para>
+<para>These codes are returned by functions that manipulate block-sparse matrices, in particular <ref refid="sparse__io_8c_1a3f5428268012e4d5e4e9d8a58c01a008" kindref="member">ie_block_sparse_load</ref>. They are designed to be lightweight and sufficient for logging and error propagation. </para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
@@ -179,10 +179,10 @@
 <para>In-memory representation of a block-sparse matrix. </para>
         </briefdescription>
         <detaileddescription>
-<para>This structure contains all metadata and storage required to perform matrix-vector products in block-sparse form. It is owned by the caller; loader functions such as <ref refid="sparse__format_8h_1a3f5428268012e4d5e4e9d8a58c01a008" kindref="member">ie_block_sparse_load</ref> will allocate and populate the arrays and can later be released using <ref refid="sparse__format_8h_1ac8f8ef0741fb1ea4ea51a9e41414c318" kindref="member">ie_block_sparse_release</ref>.</para>
+<para>This structure contains all metadata and storage required to perform matrix-vector products in block-sparse form. It is owned by the caller; loader functions such as <ref refid="sparse__io_8c_1a3f5428268012e4d5e4e9d8a58c01a008" kindref="member">ie_block_sparse_load</ref> will allocate and populate the arrays and can later be released using <ref refid="sparse__io_8c_1ac8f8ef0741fb1ea4ea51a9e41414c318" kindref="member">ie_block_sparse_release</ref>.</para>
 <para>Lifetime rules:<itemizedlist>
 <listitem><para>All pointer fields are either NULL (when <computeroutput>nnzb</computeroutput> is zero) or point to heap-allocated memory obtained via <computeroutput>malloc</computeroutput>.</para>
-</listitem><listitem><para>After a successful load, the caller must eventually call <ref refid="sparse__format_8h_1ac8f8ef0741fb1ea4ea51a9e41414c318" kindref="member">ie_block_sparse_release</ref> on the descriptor.</para>
+</listitem><listitem><para>After a successful load, the caller must eventually call <ref refid="sparse__io_8c_1ac8f8ef0741fb1ea4ea51a9e41414c318" kindref="member">ie_block_sparse_release</ref> on the descriptor.</para>
 </listitem><listitem><para>After release, the descriptor is left in a zeroed state and may be reused or safely destroyed. </para>
 </listitem></itemizedlist>
 </para>
@@ -191,11 +191,11 @@
         </inbodydescription>
         <location file="engine/include/sparse_format.h" line="169" column="26"/>
       </memberdef>
-    </sectiondef>
-    <sectiondef kind="func">
-      <memberdef kind="function" id="sparse__format_8h_1a09b5db477af8f3af042f66530b5fe929" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+      </sectiondef>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="sparse__format_8h_1a9815937097fd0b8a59ac40fe89618e16" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>const char *</type>
-        <definition>const char * ie_sparse_status_str</definition>
+        <definition>const char* ie_sparse_status_str</definition>
         <argsstring>(ie_sparse_status_t st)</argsstring>
         <name>ie_sparse_status_str</name>
         <param>
@@ -246,7 +246,7 @@
 <para>Initialize a block-sparse matrix descriptor to a safe empty state. </para>
         </briefdescription>
         <detaileddescription>
-<para>This function does not allocate any memory. It only sets all fields to zero or NULL, making the descriptor safe to pass to <ref refid="sparse__format_8h_1ac8f8ef0741fb1ea4ea51a9e41414c318" kindref="member">ie_block_sparse_release</ref> or to any loader function that expects an initially empty descriptor.</para>
+<para>This function does not allocate any memory. It only sets all fields to zero or NULL, making the descriptor safe to pass to <ref refid="sparse__io_8c_1ac8f8ef0741fb1ea4ea51a9e41414c318" kindref="member">ie_block_sparse_release</ref> or to any loader function that expects an initially empty descriptor.</para>
 <para><parameterlist kind="param"><parameteritem>
 <parameternamelist>
 <parametername>m</parametername>
@@ -263,7 +263,6 @@
         <location file="engine/include/sparse_format.h" line="183" column="6" bodyfile="engine/src/sparse_io.c" bodystart="129" bodyend="134" declfile="engine/include/sparse_format.h" declline="183" declcolumn="6"/>
         <referencedby refid="test__block__sparse_8c_1a16c136a6163e1dc56cf3101007cde574" compoundref="test__block__sparse_8c" startline="93" endline="141">build_block_sparse_4x4</referencedby>
         <referencedby refid="microbench__block__sparse_8c_1a1151a97db14a549537170c84ed1fc692" compoundref="microbench__block__sparse_8c" startline="161" endline="302">dense_to_block_sparse</referencedby>
-        <referencedby refid="convert__to__block__sparse_8c_1a1151a97db14a549537170c84ed1fc692" compoundref="convert__to__block__sparse_8c" startline="253" endline="397">dense_to_block_sparse</referencedby>
         <referencedby refid="sparse__format_8h_1a3f5428268012e4d5e4e9d8a58c01a008" compoundref="sparse__io_8c" startline="206" endline="328">ie_block_sparse_load</referencedby>
         <referencedby refid="test__block__sparse_8c_1a8d26e8ff16174e9f415fdadb0fb0301f" compoundref="test__block__sparse_8c" startline="182" endline="207">test_block_sparse_init_release</referencedby>
         <referencedby refid="test__block__sparse_8c_1ae88fc354754c7811d37da2e7e1d084fd" compoundref="test__block__sparse_8c" startline="262" endline="285">test_block_sparse_load_missing</referencedby>
@@ -287,7 +286,7 @@
 </listitem><listitem><para>Sets all pointer fields to NULL.</para>
 </listitem></itemizedlist>
 </para>
-<para>After this call, the descriptor is in the same state as after <ref refid="sparse__format_8h_1ace3311d6d76dd6a9b17488b66311b98a" kindref="member">ie_block_sparse_init</ref> and may be reused.</para>
+<para>After this call, the descriptor is in the same state as after <ref refid="sparse__io_8c_1ace3311d6d76dd6a9b17488b66311b98a" kindref="member">ie_block_sparse_init</ref> and may be reused.</para>
 <para><parameterlist kind="param"><parameteritem>
 <parameternamelist>
 <parametername>m</parametername>
@@ -353,7 +352,6 @@
         <location file="engine/include/sparse_format.h" line="211" column="10" bodyfile="engine/src/sparse_io.c" bodystart="146" bodyend="151" declfile="engine/include/sparse_format.h" declline="211" declcolumn="10"/>
         <referencedby refid="test__block__sparse_8c_1a16c136a6163e1dc56cf3101007cde574" compoundref="test__block__sparse_8c" startline="93" endline="141">build_block_sparse_4x4</referencedby>
         <referencedby refid="microbench__block__sparse_8c_1a1151a97db14a549537170c84ed1fc692" compoundref="microbench__block__sparse_8c" startline="161" endline="302">dense_to_block_sparse</referencedby>
-        <referencedby refid="convert__to__block__sparse_8c_1a1151a97db14a549537170c84ed1fc692" compoundref="convert__to__block__sparse_8c" startline="253" endline="397">dense_to_block_sparse</referencedby>
         <referencedby refid="sparse__format_8h_1a3f5428268012e4d5e4e9d8a58c01a008" compoundref="sparse__io_8c" startline="206" endline="328">ie_block_sparse_load</referencedby>
         <referencedby refid="test__block__sparse_8c_1a6d1001beae13623618c3150e66f592eb" compoundref="test__block__sparse_8c" startline="152" endline="175">test_block_sparse_helpers</referencedby>
       </memberdef>
@@ -400,7 +398,6 @@
         <location file="engine/include/sparse_format.h" line="221" column="10" bodyfile="engine/src/sparse_io.c" bodystart="153" bodyend="158" declfile="engine/include/sparse_format.h" declline="221" declcolumn="10"/>
         <referencedby refid="test__block__sparse_8c_1a16c136a6163e1dc56cf3101007cde574" compoundref="test__block__sparse_8c" startline="93" endline="141">build_block_sparse_4x4</referencedby>
         <referencedby refid="microbench__block__sparse_8c_1a1151a97db14a549537170c84ed1fc692" compoundref="microbench__block__sparse_8c" startline="161" endline="302">dense_to_block_sparse</referencedby>
-        <referencedby refid="convert__to__block__sparse_8c_1a1151a97db14a549537170c84ed1fc692" compoundref="convert__to__block__sparse_8c" startline="253" endline="397">dense_to_block_sparse</referencedby>
         <referencedby refid="sparse__format_8h_1a3f5428268012e4d5e4e9d8a58c01a008" compoundref="sparse__io_8c" startline="206" endline="328">ie_block_sparse_load</referencedby>
         <referencedby refid="test__block__sparse_8c_1a6d1001beae13623618c3150e66f592eb" compoundref="test__block__sparse_8c" startline="152" endline="175">test_block_sparse_helpers</referencedby>
       </memberdef>
@@ -478,7 +475,7 @@
 <para>Load a block-sparse matrix from a binary file. </para>
         </briefdescription>
         <detaileddescription>
-<para>This function reads the on-disk format defined by the implementation in <computeroutput><ref refid="sparse__io_8c" kindref="compound">engine/src/sparse_io.c</ref></computeroutput> and populates <computeroutput>out</computeroutput> with a fully initialized <ref refid="ie__device_8h_1a8d9448c57baf817aa19d0fc32d383b38" kindref="member">ie_block_sparse_matrix_t</ref> instance.</para>
+<para>This function reads the on-disk format defined by the implementation in <computeroutput><ref refid="sparse__io_8c" kindref="compound">engine/src/sparse_io.c</ref></computeroutput> and populates <computeroutput>out</computeroutput> with a fully initialized <ref refid="sparse__format_8h_1a8d9448c57baf817aa19d0fc32d383b38" kindref="member">ie_block_sparse_matrix_t</ref> instance.</para>
 <para>On success:<itemizedlist>
 <listitem><para><ref refid="structie__block__sparse__matrix_1a2e874338bccc653f32f1e9378e78e8d4" kindref="member">ie_block_sparse_matrix_t::rows</ref> and <computeroutput>cols</computeroutput> reflect the dense dimensions.</para>
 </listitem><listitem><para><ref refid="structie__block__sparse__matrix_1a13f4d4b069d046ba790eeb68425f11d8" kindref="member">ie_block_sparse_matrix_t::block_rows</ref> and <computeroutput>block_cols</computeroutput> reflect the block layout.</para>
@@ -510,7 +507,7 @@
 </parameterlist>
 <simplesect kind="return"><para><ref refid="sparse__format_8h_1addb0ef862362988533af97d5466bf623a37b452b9a59f671baa7c651dad487db6" kindref="member">IE_SPARSE_OK</ref> on success, error code otherwise.</para>
 </simplesect>
-This function reads the on-disk format described in the file header documentation above and populates <computeroutput>out</computeroutput> with a fully initialized <ref refid="ie__device_8h_1a8d9448c57baf817aa19d0fc32d383b38" kindref="member">ie_block_sparse_matrix_t</ref> instance.</para>
+This function reads the on-disk format described in the file header documentation above and populates <computeroutput>out</computeroutput> with a fully initialized <ref refid="sparse__format_8h_1a8d9448c57baf817aa19d0fc32d383b38" kindref="member">ie_block_sparse_matrix_t</ref> instance.</para>
 <para>On success:<itemizedlist>
 <listitem><para><ref refid="structie__block__sparse__matrix_1a2e874338bccc653f32f1e9378e78e8d4" kindref="member">ie_block_sparse_matrix_t::rows</ref> and <computeroutput>cols</computeroutput> reflect the dense dimensions.</para>
 </listitem><listitem><para><ref refid="structie__block__sparse__matrix_1a13f4d4b069d046ba790eeb68425f11d8" kindref="member">ie_block_sparse_matrix_t::block_rows</ref> and <computeroutput>block_cols</computeroutput> reflect the block layout.</para>
@@ -547,13 +544,13 @@ This function reads the on-disk format described in the file header documentatio
         <inbodydescription>
         </inbodydescription>
         <location file="engine/include/sparse_format.h" line="265" column="20" bodyfile="engine/src/sparse_io.c" bodystart="206" bodyend="328" declfile="engine/include/sparse_format.h" declline="265" declcolumn="20"/>
-        <references refid="structie__block__sparse__header__disk_1a6049928500e9d7d90f4fba6779e8e9b2" compoundref="sparse__io_8c" startline="77">ie_block_sparse_header_disk::block_cols</references>
         <references refid="structie__block__sparse__matrix_1a25206375c5fd501aff86f47dd3c52005" compoundref="sparse__format_8h" startline="127">ie_block_sparse_matrix::block_cols</references>
-        <references refid="structie__block__sparse__header__disk_1a009439cc216c685ab44d53032ecc3250" compoundref="sparse__io_8c" startline="76">ie_block_sparse_header_disk::block_rows</references>
+        <references refid="structie__block__sparse__header__disk_1a6049928500e9d7d90f4fba6779e8e9b2" compoundref="sparse__io_8c" startline="77">ie_block_sparse_header_disk::block_cols</references>
         <references refid="structie__block__sparse__matrix_1a13f4d4b069d046ba790eeb68425f11d8" compoundref="sparse__format_8h" startline="125">ie_block_sparse_matrix::block_rows</references>
+        <references refid="structie__block__sparse__header__disk_1a009439cc216c685ab44d53032ecc3250" compoundref="sparse__io_8c" startline="76">ie_block_sparse_header_disk::block_rows</references>
         <references refid="structie__block__sparse__matrix_1adaacfdccbe3af8af266235880acc72e1" compoundref="sparse__format_8h" startline="154">ie_block_sparse_matrix::col_idx</references>
-        <references refid="structie__block__sparse__header__disk_1af10718b48d03cfdae97033ee817ff0e7" compoundref="sparse__io_8c" startline="75">ie_block_sparse_header_disk::cols</references>
         <references refid="structie__block__sparse__matrix_1a153358c4549c88a51c341e9ed55ec367" compoundref="sparse__format_8h" startline="122">ie_block_sparse_matrix::cols</references>
+        <references refid="structie__block__sparse__header__disk_1af10718b48d03cfdae97033ee817ff0e7" compoundref="sparse__io_8c" startline="75">ie_block_sparse_header_disk::cols</references>
         <references refid="sparse__io_8c_1ace3311d6d76dd6a9b17488b66311b98a" compoundref="sparse__io_8c" startline="129" endline="134">ie_block_sparse_init</references>
         <references refid="sparse__io_8c_1afcc239def447f7ccdf07b59ce0e47467" compoundref="sparse__io_8c" startline="153" endline="158">ie_block_sparse_n_block_cols</references>
         <references refid="sparse__io_8c_1a2df04db78871f064e33eb709ed62ed4f" compoundref="sparse__io_8c" startline="146" endline="151">ie_block_sparse_n_block_rows</references>
@@ -566,12 +563,12 @@ This function reads the on-disk format described in the file header documentatio
         <references refid="structie__block__sparse__header__disk_1a103069d09eb816dc37d49c88dd225595" compoundref="sparse__io_8c" startline="72">ie_block_sparse_header_disk::magic</references>
         <references refid="structie__block__sparse__matrix_1a7df64b3120302415724bf9f70846616a" compoundref="sparse__format_8h" startline="132">ie_block_sparse_matrix::n_block_cols</references>
         <references refid="structie__block__sparse__matrix_1ae07fcb7d88ab31f89fdcc3bcdcdb021f" compoundref="sparse__format_8h" startline="130">ie_block_sparse_matrix::n_block_rows</references>
-        <references refid="structie__block__sparse__header__disk_1aaf7a8ac378e87d45dd806acf58360c14" compoundref="sparse__io_8c" startline="78">ie_block_sparse_header_disk::nnzb</references>
         <references refid="structie__block__sparse__matrix_1a8f73164fd4166248801d695c668e8764" compoundref="sparse__format_8h" startline="135">ie_block_sparse_matrix::nnzb</references>
+        <references refid="structie__block__sparse__header__disk_1aaf7a8ac378e87d45dd806acf58360c14" compoundref="sparse__io_8c" startline="78">ie_block_sparse_header_disk::nnzb</references>
         <references refid="sparse__io_8c_1a5a59341233785d180347a51141e56235" compoundref="sparse__io_8c" startline="98" endline="110">read_fully</references>
         <references refid="structie__block__sparse__matrix_1aa696fff26774fa9945c5f93ce9154c4f" compoundref="sparse__format_8h" startline="145">ie_block_sparse_matrix::row_ptr</references>
-        <references refid="structie__block__sparse__header__disk_1a0bbb1312e1ee468b2d689751c3aa23ec" compoundref="sparse__io_8c" startline="74">ie_block_sparse_header_disk::rows</references>
         <references refid="structie__block__sparse__matrix_1a2e874338bccc653f32f1e9378e78e8d4" compoundref="sparse__format_8h" startline="120">ie_block_sparse_matrix::rows</references>
+        <references refid="structie__block__sparse__header__disk_1a0bbb1312e1ee468b2d689751c3aa23ec" compoundref="sparse__io_8c" startline="74">ie_block_sparse_header_disk::rows</references>
         <references refid="structie__block__sparse__matrix_1af5c7c7b79def98eb4d9285b39718444f" compoundref="sparse__format_8h" startline="168">ie_block_sparse_matrix::values</references>
         <references refid="structie__block__sparse__header__disk_1ae3ceae74081a83881c2b6fa948b8e676" compoundref="sparse__io_8c" startline="73">ie_block_sparse_header_disk::version</references>
         <referencedby refid="test__block__sparse_8c_1ae88fc354754c7811d37da2e7e1d084fd" compoundref="test__block__sparse_8c" startline="262" endline="285">test_block_sparse_load_missing</referencedby>
@@ -602,7 +599,7 @@ This function reads the on-disk format described in the file header documentatio
         </briefdescription>
         <detaileddescription>
 <para>This function computes: <programlisting><codeline><highlight class="normal">y<sp/>=<sp/>W<sp/>*<sp/>x<sp/><sp/>(+<sp/>bias,<sp/>if<sp/>provided)</highlight></codeline>
-</programlisting> where <computeroutput>W</computeroutput> is represented in block-sparse form using <ref refid="ie__device_8h_1a8d9448c57baf817aa19d0fc32d383b38" kindref="member">ie_block_sparse_matrix_t</ref>. The input vector <computeroutput>x</computeroutput> has length <computeroutput>m-&gt;cols</computeroutput>, and the output <computeroutput>y</computeroutput> has length <computeroutput>m-&gt;rows</computeroutput>.</para>
+</programlisting> where <computeroutput>W</computeroutput> is represented in block-sparse form using <ref refid="sparse__format_8h_1a8d9448c57baf817aa19d0fc32d383b38" kindref="member">ie_block_sparse_matrix_t</ref>. The input vector <computeroutput>x</computeroutput> has length <computeroutput>m-&gt;cols</computeroutput>, and the output <computeroutput>y</computeroutput> has length <computeroutput>m-&gt;rows</computeroutput>.</para>
 <para>Tail blocks:<itemizedlist>
 <listitem><para>If the matrix size is not an exact multiple of the block dimensions, the implementation clips accesses to <computeroutput>rows</computeroutput> and <computeroutput>cols</computeroutput>, ensuring no out-of-bounds reads/writes occur.</para>
 </listitem></itemizedlist>
@@ -651,7 +648,7 @@ This function reads the on-disk format described in the file header documentatio
         <location file="engine/include/sparse_format.h" line="294" column="6" bodyfile="engine/src/gemm_block_sparse.c" bodystart="77" bodyend="138" declfile="engine/include/sparse_format.h" declline="294" declcolumn="6"/>
         <references refid="structie__block__sparse__matrix_1a25206375c5fd501aff86f47dd3c52005" compoundref="sparse__format_8h" startline="127">ie_block_sparse_matrix::block_cols</references>
         <references refid="structie__block__sparse__matrix_1a13f4d4b069d046ba790eeb68425f11d8" compoundref="sparse__format_8h" startline="125">ie_block_sparse_matrix::block_rows</references>
-        <references refid="gemm__block__sparse_8c_1a05f40c15c1dabe19a303a4d5a897b212" compoundref="gemm__block__sparse_8c" startline="40" endline="45">block_values_ptr</references>
+        <references refid="gemm__block__sparse_8c_1a3922fd0c3f07582c82640f45091460d8" compoundref="gemm__block__sparse_8c" startline="40" endline="45">block_values_ptr</references>
         <references refid="structie__block__sparse__matrix_1adaacfdccbe3af8af266235880acc72e1" compoundref="sparse__format_8h" startline="154">ie_block_sparse_matrix::col_idx</references>
         <references refid="structie__block__sparse__matrix_1a153358c4549c88a51c341e9ed55ec367" compoundref="sparse__format_8h" startline="122">ie_block_sparse_matrix::cols</references>
         <references refid="structie__block__sparse__matrix_1ae07fcb7d88ab31f89fdcc3bcdcdb021f" compoundref="sparse__format_8h" startline="130">ie_block_sparse_matrix::n_block_rows</references>
@@ -661,18 +658,18 @@ This function reads the on-disk format described in the file header documentatio
         <referencedby refid="microbench__block__sparse_8c_1a3c04138a5bfe5d72780bb7e82a18e627" compoundref="microbench__block__sparse_8c" startline="308" endline="440">main</referencedby>
         <referencedby refid="test__block__sparse_8c_1afc3a88a7b32a1f93e76c3aaee2910866" compoundref="test__block__sparse_8c" startline="214" endline="253">test_block_sparse_gemv_basic</referencedby>
       </memberdef>
-    </sectiondef>
+      </sectiondef>
     <briefdescription>
 <para>In-memory representation and loader interface for block-sparse matrices. </para>
     </briefdescription>
     <detaileddescription>
 <para>This header defines:</para>
 <para><itemizedlist>
-<listitem><para>The in-memory layout for block-sparse matrices used by the engine (see <ref refid="ie__device_8h_1a8d9448c57baf817aa19d0fc32d383b38" kindref="member">ie_block_sparse_matrix_t</ref>).</para>
+<listitem><para>The in-memory layout for block-sparse matrices used by the engine (see <ref refid="sparse__format_8h_1a8d9448c57baf817aa19d0fc32d383b38" kindref="member">ie_block_sparse_matrix_t</ref>).</para>
 </listitem><listitem><para>A small status-code enum for sparse-related operations (see <ref refid="sparse__format_8h_1a9fac0a63250c2d10fdc5f4b499569bf5" kindref="member">ie_sparse_status_t</ref>).</para>
 </listitem><listitem><para>Utility helpers for computing block grid sizes and densities.</para>
-</listitem><listitem><para>The public loader function <ref refid="sparse__format_8h_1a3f5428268012e4d5e4e9d8a58c01a008" kindref="member">ie_block_sparse_load</ref>, which reads a compact binary representation into an in-memory descriptor.</para>
-</listitem><listitem><para>A reference single-precision GEMV kernel (see <ref refid="sparse__format_8h_1ae9a2aad0ec5332237097030acf034961" kindref="member">ie_gemv_block_sparse_f32</ref>).</para>
+</listitem><listitem><para>The public loader function <ref refid="sparse__io_8c_1a3f5428268012e4d5e4e9d8a58c01a008" kindref="member">ie_block_sparse_load</ref>, which reads a compact binary representation into an in-memory descriptor.</para>
+</listitem><listitem><para>A reference single-precision GEMV kernel (see <ref refid="gemm__block__sparse_8c_1ae9a2aad0ec5332237097030acf034961" kindref="member">ie_gemv_block_sparse_f32</ref>).</para>
 </listitem></itemizedlist>
 </para>
 <para>The chosen layout is a <bold>block-row CSR (BSR)</bold>:</para>
@@ -688,20 +685,19 @@ This function reads the on-disk format described in the file header documentatio
 <listitem><para><ref refid="structie__block__sparse__matrix_1aa696fff26774fa9945c5f93ce9154c4f" kindref="member">ie_block_sparse_matrix_t::row_ptr</ref> has size (n_block_rows + 1). For block-row <computeroutput>br</computeroutput>, the non-zero block indices are in the range: [ row_ptr[br], row_ptr[br + 1] ).</para>
 </listitem><listitem><para><ref refid="structie__block__sparse__matrix_1adaacfdccbe3af8af266235880acc72e1" kindref="member">ie_block_sparse_matrix_t::col_idx</ref> has size <computeroutput>nnzb</computeroutput>, where each entry stores a block-column index (0-based).</para>
 </listitem><listitem><para><ref refid="structie__block__sparse__matrix_1af5c7c7b79def98eb4d9285b39718444f" kindref="member">ie_block_sparse_matrix_t::values</ref> has size: <computeroutput>nnzb</computeroutput> * block_rows * block_cols. Values for block j are laid out in row-major order: <programlisting><codeline><highlight class="normal">offset<sp/>=<sp/>j<sp/>*<sp/>(block_rows<sp/>*<sp/>block_cols);</highlight></codeline>
-<codeline><highlight class="normal"></highlight><highlight class="comment">//<sp/>element<sp/>(i,<sp/>k)<sp/>inside<sp/>the<sp/>block:</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal">//<sp/>element<sp/>(i,<sp/>k)<sp/>inside<sp/>the<sp/>block:</highlight></codeline>
 <codeline><highlight class="normal">values[offset<sp/>+<sp/>i<sp/>*<sp/>block_cols<sp/>+<sp/>k]</highlight></codeline>
 </programlisting></para>
 </listitem></itemizedlist>
 </para>
 <para>Notes:<itemizedlist>
 <listitem><para>Tail blocks (on the last block-row/column) may extend beyond the actual matrix dimensions. Consumers must clip accesses using the <computeroutput>rows</computeroutput> and <computeroutput>cols</computeroutput> fields.</para>
-</listitem><listitem><para>The on-disk format is defined by the implementation in <computeroutput><ref refid="sparse__io_8c" kindref="compound">engine/src/sparse_io.c</ref></computeroutput> and consumed via <ref refid="sparse__format_8h_1a3f5428268012e4d5e4e9d8a58c01a008" kindref="member">ie_block_sparse_load</ref>. </para>
+</listitem><listitem><para>The on-disk format is defined by the implementation in <computeroutput><ref refid="sparse__io_8c" kindref="compound">engine/src/sparse_io.c</ref></computeroutput> and consumed via <ref refid="sparse__io_8c_1a3f5428268012e4d5e4e9d8a58c01a008" kindref="member">ie_block_sparse_load</ref>. </para>
 </listitem></itemizedlist>
 </para>
     </detaileddescription>
     <programlisting>
 <codeline lineno="1"><highlight class="normal"></highlight></codeline>
-<codeline lineno="51"><highlight class="normal"></highlight></codeline>
 <codeline lineno="52"><highlight class="normal"></highlight><highlight class="preprocessor">#ifndef<sp/>IE_SPARSE_FORMAT_H_</highlight><highlight class="normal"></highlight></codeline>
 <codeline lineno="53"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>IE_SPARSE_FORMAT_H_</highlight><highlight class="normal"></highlight></codeline>
 <codeline lineno="54"><highlight class="normal"></highlight></codeline>
@@ -721,10 +717,10 @@ This function reads the on-disk format described in the file header documentatio
 <codeline lineno="80" refid="sparse__format_8h_1addb0ef862362988533af97d5466bf623a04a4d0021aad9bd24220dc8b77813e7b" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="sparse__format_8h_1addb0ef862362988533af97d5466bf623a04a4d0021aad9bd24220dc8b77813e7b" kindref="member">IE_SPARSE_ERR_READ</ref><sp/>=<sp/>-3,</highlight></codeline>
 <codeline lineno="82" refid="sparse__format_8h_1addb0ef862362988533af97d5466bf623af0fe7447763464e599270aefa27d83df" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="sparse__format_8h_1addb0ef862362988533af97d5466bf623af0fe7447763464e599270aefa27d83df" kindref="member">IE_SPARSE_ERR_MAGIC</ref><sp/>=<sp/>-4,</highlight></codeline>
 <codeline lineno="84" refid="sparse__format_8h_1addb0ef862362988533af97d5466bf623a50769c8442f1c45b857294f6e636d763" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="sparse__format_8h_1addb0ef862362988533af97d5466bf623a50769c8442f1c45b857294f6e636d763" kindref="member">IE_SPARSE_ERR_FORMAT</ref><sp/>=<sp/>-5,</highlight></codeline>
-<codeline lineno="86" refid="sparse__format_8h_1addb0ef862362988533af97d5466bf623abf1b571127f7bf3198cc32795279a1de" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="sparse__format_8h_1addb0ef862362988533af97d5466bf623abf1b571127f7bf3198cc32795279a1de" kindref="member">IE_SPARSE_ERR_NOMEM</ref><sp/>=<sp/>-6</highlight></codeline>
-<codeline lineno="87" refid="sparse__format_8h_1a9fac0a63250c2d10fdc5f4b499569bf5" refkind="member"><highlight class="normal">}<sp/><ref refid="sparse__format_8h_1a9fac0a63250c2d10fdc5f4b499569bf5" kindref="member">ie_sparse_status_t</ref>;</highlight></codeline>
+<codeline lineno="86"><highlight class="normal"><sp/><sp/><ref refid="sparse__format_8h_1addb0ef862362988533af97d5466bf623abf1b571127f7bf3198cc32795279a1de" kindref="member">IE_SPARSE_ERR_NOMEM</ref><sp/>=<sp/>-6</highlight></codeline>
+<codeline lineno="87" refid="sparse__format_8h_1addb0ef862362988533af97d5466bf623abf1b571127f7bf3198cc32795279a1de" refkind="member"><highlight class="normal">}<sp/><ref refid="sparse__format_8h_1a9fac0a63250c2d10fdc5f4b499569bf5" kindref="member">ie_sparse_status_t</ref>;</highlight></codeline>
 <codeline lineno="88"><highlight class="normal"></highlight></codeline>
-<codeline lineno="98"><highlight class="normal"></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*<ref refid="sparse__format_8h_1a09b5db477af8f3af042f66530b5fe929" kindref="member">ie_sparse_status_str</ref>(<ref refid="sparse__format_8h_1a9fac0a63250c2d10fdc5f4b499569bf5" kindref="member">ie_sparse_status_t</ref><sp/>st);</highlight></codeline>
+<codeline lineno="98"><highlight class="normal"></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*<ref refid="sparse__format_8h_1a9815937097fd0b8a59ac40fe89618e16" kindref="member">ie_sparse_status_str</ref>(<ref refid="sparse__format_8h_1a9fac0a63250c2d10fdc5f4b499569bf5" kindref="member">ie_sparse_status_t</ref><sp/>st);</highlight></codeline>
 <codeline lineno="99"><highlight class="normal"></highlight></codeline>
 <codeline lineno="118" refid="structie__block__sparse__matrix" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structie__block__sparse__matrix" kindref="compound">ie_block_sparse_matrix</ref><sp/>{</highlight></codeline>
 <codeline lineno="120" refid="structie__block__sparse__matrix_1a2e874338bccc653f32f1e9378e78e8d4" refkind="member"><highlight class="normal"><sp/><sp/>uint32_t<sp/><ref refid="structie__block__sparse__matrix_1a2e874338bccc653f32f1e9378e78e8d4" kindref="member">rows</ref>;</highlight></codeline>
@@ -743,11 +739,11 @@ This function reads the on-disk format described in the file header documentatio
 <codeline lineno="154" refid="structie__block__sparse__matrix_1adaacfdccbe3af8af266235880acc72e1" refkind="member"><highlight class="normal"><sp/><sp/>uint32_t<sp/>*<ref refid="structie__block__sparse__matrix_1adaacfdccbe3af8af266235880acc72e1" kindref="member">col_idx</ref>;</highlight></codeline>
 <codeline lineno="155"><highlight class="normal"></highlight></codeline>
 <codeline lineno="168" refid="structie__block__sparse__matrix_1af5c7c7b79def98eb4d9285b39718444f" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*<ref refid="structie__block__sparse__matrix_1af5c7c7b79def98eb4d9285b39718444f" kindref="member">values</ref>;</highlight></codeline>
-<codeline lineno="169" refid="sparse__format_8h_1a8d9448c57baf817aa19d0fc32d383b38" refkind="member"><highlight class="normal">}<sp/><ref refid="ie__device_8h_1a8d9448c57baf817aa19d0fc32d383b38" kindref="member">ie_block_sparse_matrix_t</ref>;</highlight></codeline>
+<codeline lineno="169" refid="sparse__format_8h_1a8d9448c57baf817aa19d0fc32d383b38" refkind="member"><highlight class="normal">}<sp/><ref refid="sparse__format_8h_1a8d9448c57baf817aa19d0fc32d383b38" kindref="member">ie_block_sparse_matrix_t</ref>;</highlight></codeline>
 <codeline lineno="170"><highlight class="normal"></highlight></codeline>
-<codeline lineno="183"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="sparse__format_8h_1ace3311d6d76dd6a9b17488b66311b98a" kindref="member">ie_block_sparse_init</ref>(<ref refid="ie__device_8h_1a8d9448c57baf817aa19d0fc32d383b38" kindref="member">ie_block_sparse_matrix_t</ref><sp/>*m);</highlight></codeline>
+<codeline lineno="183"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="sparse__format_8h_1ace3311d6d76dd6a9b17488b66311b98a" kindref="member">ie_block_sparse_init</ref>(<ref refid="structie__block__sparse__matrix" kindref="compound">ie_block_sparse_matrix_t</ref><sp/>*m);</highlight></codeline>
 <codeline lineno="184"><highlight class="normal"></highlight></codeline>
-<codeline lineno="201"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="sparse__format_8h_1ac8f8ef0741fb1ea4ea51a9e41414c318" kindref="member">ie_block_sparse_release</ref>(<ref refid="ie__device_8h_1a8d9448c57baf817aa19d0fc32d383b38" kindref="member">ie_block_sparse_matrix_t</ref><sp/>*m);</highlight></codeline>
+<codeline lineno="201"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="sparse__format_8h_1ac8f8ef0741fb1ea4ea51a9e41414c318" kindref="member">ie_block_sparse_release</ref>(<ref refid="structie__block__sparse__matrix" kindref="compound">ie_block_sparse_matrix_t</ref><sp/>*m);</highlight></codeline>
 <codeline lineno="202"><highlight class="normal"></highlight></codeline>
 <codeline lineno="211"><highlight class="normal">uint32_t<sp/><ref refid="sparse__format_8h_1a2df04db78871f064e33eb709ed62ed4f" kindref="member">ie_block_sparse_n_block_rows</ref>(uint32_t<sp/>rows,<sp/>uint32_t<sp/>block_rows);</highlight></codeline>
 <codeline lineno="212"><highlight class="normal"></highlight></codeline>
@@ -758,9 +754,9 @@ This function reads the on-disk format described in the file header documentatio
 <codeline lineno="237"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>uint32_t<sp/>n_block_cols);</highlight></codeline>
 <codeline lineno="238"><highlight class="normal"></highlight></codeline>
 <codeline lineno="265"><highlight class="normal"><ref refid="sparse__format_8h_1a9fac0a63250c2d10fdc5f4b499569bf5" kindref="member">ie_sparse_status_t</ref><sp/><ref refid="sparse__format_8h_1a3f5428268012e4d5e4e9d8a58c01a008" kindref="member">ie_block_sparse_load</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*path,</highlight></codeline>
-<codeline lineno="266"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="ie__device_8h_1a8d9448c57baf817aa19d0fc32d383b38" kindref="member">ie_block_sparse_matrix_t</ref><sp/>*out);</highlight></codeline>
+<codeline lineno="266"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="structie__block__sparse__matrix" kindref="compound">ie_block_sparse_matrix_t</ref><sp/>*out);</highlight></codeline>
 <codeline lineno="267"><highlight class="normal"></highlight></codeline>
-<codeline lineno="294"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="sparse__format_8h_1ae9a2aad0ec5332237097030acf034961" kindref="member">ie_gemv_block_sparse_f32</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="ie__device_8h_1a8d9448c57baf817aa19d0fc32d383b38" kindref="member">ie_block_sparse_matrix_t</ref><sp/>*m,</highlight></codeline>
+<codeline lineno="294"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="sparse__format_8h_1ae9a2aad0ec5332237097030acf034961" kindref="member">ie_gemv_block_sparse_f32</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="structie__block__sparse__matrix" kindref="compound">ie_block_sparse_matrix_t</ref><sp/>*m,</highlight></codeline>
 <codeline lineno="295"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*x,</highlight></codeline>
 <codeline lineno="296"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*y,</highlight></codeline>
 <codeline lineno="297"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*bias);</highlight></codeline>

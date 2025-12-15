@@ -14,6 +14,8 @@ var loader__mmap_8c =
     ] ],
     [ "ie_mmap_apply_advise", "loader__mmap_8c.html#a61a3aa0ec9537f69946993b8095b32e4", null ],
     [ "ie_mmap_close", "loader__mmap_8c.html#acaa8a1f3e34057b1f6d1431596f102a6", null ],
+    [ "ie_mmap_close_many", "loader__mmap_8c.html#ae0425e5b96985d237a72670802706850", null ],
     [ "ie_mmap_open", "loader__mmap_8c.html#a75df01aa0c35ec701cc3c11e2580381b", null ],
+    [ "ie_mmap_open_many", "loader__mmap_8c.html#a2bde25f2740b83eea51afd55da478d36", null ],
     [ "ie_mmap_touch", "loader__mmap_8c.html#acd17227d8faf97c73750e2ba7d177077", null ]
 ];

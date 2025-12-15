@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8' standalone='no'?>
-<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.1" xml:lang="en-US">
   <compounddef id="tokenizer_8c" kind="file" language="C++">
     <compoundname>tokenizer.c</compoundname>
     <includes local="no">ctype.h</includes>
@@ -10,6 +10,21 @@
     <includes local="no">string.h</includes>
     <includes refid="ie__io_8h" local="yes">ie_io.h</includes>
     <incdepgraph>
+      <node id="4">
+        <label>stdint.h</label>
+      </node>
+      <node id="6">
+        <label>stdlib.h</label>
+      </node>
+      <node id="3">
+        <label>errno.h</label>
+      </node>
+      <node id="9">
+        <label>stddef.h</label>
+      </node>
+      <node id="7">
+        <label>string.h</label>
+      </node>
       <node id="8">
         <label>ie_io.h</label>
         <link refid="ie__io_8h"/>
@@ -39,26 +54,11 @@
       <node id="2">
         <label>ctype.h</label>
       </node>
-      <node id="3">
-        <label>errno.h</label>
-      </node>
-      <node id="9">
-        <label>stddef.h</label>
-      </node>
-      <node id="4">
-        <label>stdint.h</label>
-      </node>
       <node id="5">
         <label>stdio.h</label>
       </node>
-      <node id="6">
-        <label>stdlib.h</label>
-      </node>
-      <node id="7">
-        <label>string.h</label>
-      </node>
     </incdepgraph>
-    <sectiondef kind="define">
+      <sectiondef kind="define">
       <memberdef kind="define" id="tokenizer_8c_1a3024ccd4a9af5109d24e6c57565d74a1" prot="public" static="no">
         <name>_POSIX_C_SOURCE</name>
         <initializer>200809L</initializer>
@@ -70,8 +70,8 @@
         </inbodydescription>
         <location file="engine/src/io/tokenizer.c" line="23" column="9" bodyfile="engine/src/io/tokenizer.c" bodystart="23" bodyend="-1"/>
       </memberdef>
-    </sectiondef>
-    <sectiondef kind="func">
+      </sectiondef>
+      <sectiondef kind="func">
       <memberdef kind="function" id="tokenizer_8c_1a35b758cbf8aeb3348c6eec59a770f888" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>int</type>
         <definition>static int is_space_byte</definition>
@@ -178,11 +178,298 @@
         <location file="engine/src/io/tokenizer.c" line="75" column="17" bodyfile="engine/src/io/tokenizer.c" bodystart="75" bodyend="78"/>
         <referencedby refid="group__ie__io__tokenizer_1ga2b9cb342eb062867f93fb786548003f7" compoundref="tokenizer_8c" startline="162" endline="213">ie_tok_encode</referencedby>
       </memberdef>
-      <member refid="group__ie__io__tokenizer_1gadbe33a7f4e53bcb709d56dc753c9148b" kind="function"><name>ie_vocab_load</name></member>
-      <member refid="group__ie__io__tokenizer_1ga1a76c23fd3fdf25bdae9ee6e9103cf83" kind="function"><name>ie_vocab_free</name></member>
-      <member refid="group__ie__io__tokenizer_1ga2b9cb342eb062867f93fb786548003f7" kind="function"><name>ie_tok_encode</name></member>
-      <member refid="group__ie__io__tokenizer_1ga68bc61261a64b4fe8bd566fc7d399a2e" kind="function"><name>ie_tok_decode</name></member>
-    </sectiondef>
+      <memberdef kind="function" id="group__ie__io__tokenizer_1gadbe33a7f4e53bcb709d56dc753c9148b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int ie_vocab_load</definition>
+        <argsstring>(const char *vocab_path, ie_vocab_t *out)</argsstring>
+        <name>ie_vocab_load</name>
+        <param>
+          <type>const char *</type>
+          <declname>vocab_path</declname>
+        </param>
+        <param>
+          <type><ref refid="group__ie__io__tokenizer_1ga8bdd12fff1489e034fcb2e8f7f29039a" kindref="member">ie_vocab_t</ref> *</type>
+          <declname>out</declname>
+        </param>
+        <briefdescription>
+<para>Load a vocabulary file or default to a stub. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Load a vocabulary from <computeroutput>vocab_path</computeroutput> (or default to a stub).</para>
+<para>The implementation accepts any readable file but only attempts to detect a simple JSON-like <computeroutput>&quot;vocabSize&quot;: &lt;int&gt;</computeroutput> field. If the file is missing or unparsable, a small stub vocab is returned to keep execution deterministic.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>vocab_path</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Path to a vocabulary file (may be NULL). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>out</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Output vocabulary (written on success). </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<parameterlist kind="retval"><parameteritem>
+<parameternamelist>
+<parametername>0</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>on success (including stub fallback). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>-1</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>on invalid arguments (e.g., <computeroutput>out</computeroutput> is NULL). </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/src/io/tokenizer.c" line="97" column="5" bodyfile="engine/src/io/tokenizer.c" bodystart="97" bodyend="132"/>
+        <references refid="structie__vocab__s_1a794049c93aac2c2c4b8e12c673db5296" compoundref="ie__io_8h" startline="246">ie_vocab_s::vocab_size</references>
+        <referencedby refid="test__tokenizer_8c_1a840291bc02cba5474a4cb46a9b9566fe" compoundref="test__tokenizer_8c" startline="24" endline="59">main</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="group__ie__io__tokenizer_1ga1a76c23fd3fdf25bdae9ee6e9103cf83" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ie_vocab_free</definition>
+        <argsstring>(ie_vocab_t *v)</argsstring>
+        <name>ie_vocab_free</name>
+        <param>
+          <type><ref refid="group__ie__io__tokenizer_1ga8bdd12fff1489e034fcb2e8f7f29039a" kindref="member">ie_vocab_t</ref> *</type>
+          <declname>v</declname>
+        </param>
+        <briefdescription>
+<para>Release resources held by a vocabulary. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>The current tokenizer implementation does not heap-allocate inside <ref refid="group__ie__io__tokenizer_1ga8bdd12fff1489e034fcb2e8f7f29039a" kindref="member">ie_vocab_t</ref>, so this function is a no-op. It exists for symmetry and forward compatibility if the tokenizer later gains owned resources.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>v</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Vocabulary pointer (may be NULL; no-op). </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/src/io/tokenizer.c" line="134" column="6" bodyfile="engine/src/io/tokenizer.c" bodystart="134" bodyend="136"/>
+      </memberdef>
+      <memberdef kind="function" id="group__ie__io__tokenizer_1ga2b9cb342eb062867f93fb786548003f7" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int ie_tok_encode</definition>
+        <argsstring>(const ie_vocab_t *v, const char *text, uint32_t *ids, uint32_t *out_count)</argsstring>
+        <name>ie_tok_encode</name>
+        <param>
+          <type>const <ref refid="group__ie__io__tokenizer_1ga8bdd12fff1489e034fcb2e8f7f29039a" kindref="member">ie_vocab_t</ref> *</type>
+          <declname>v</declname>
+        </param>
+        <param>
+          <type>const char *</type>
+          <declname>text</declname>
+        </param>
+        <param>
+          <type>uint32_t *</type>
+          <declname>ids</declname>
+        </param>
+        <param>
+          <type>uint32_t *</type>
+          <declname>out_count</declname>
+        </param>
+        <briefdescription>
+<para>Encode UTF-8 text with whitespace tokenization and hashed IDs. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Encode UTF-8 text into token IDs (whitespace split, hashed IDs).</para>
+<para>Tokenization rule: split on <bold>one or more</bold> whitespace characters (ASCII). Consecutive whitespace collapses to a single separator, producing no empty tokens. For example, <computeroutput>&quot;hello  world&quot;</computeroutput> yields 2 tokens.</para>
+<para><bold>Size-only mode:</bold> pass <computeroutput>ids == NULL</computeroutput> to receive the required length in <computeroutput>*out_count</computeroutput> without writing IDs.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>v</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Loaded vocabulary descriptor (only <computeroutput>vocab_size</computeroutput> is used). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>text</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>NUL-terminated UTF-8 string. Must not be NULL. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>ids</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Output buffer of length <computeroutput>*out_count</computeroutput> (or NULL for size query). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>out_count</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>In: capacity of <computeroutput>ids</computeroutput> when <computeroutput>ids != NULL</computeroutput>. <linebreak/>
+ Out: number of tokens written (or needed). </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<parameterlist kind="retval"><parameteritem>
+<parameternamelist>
+<parametername>0</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>on success. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>-1</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>on invalid arguments. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>-2</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>if provided capacity is insufficient to hold all tokens. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/src/io/tokenizer.c" line="162" column="5" bodyfile="engine/src/io/tokenizer.c" bodystart="162" bodyend="213"/>
+        <references refid="tokenizer_8c_1a3ca2adb2290e006f09b1fb7f274bd371" compoundref="tokenizer_8c" startline="75" endline="78">clamp_to_pos31</references>
+        <references refid="tokenizer_8c_1ab65f36294d9d8ee9d8b027673b01de30" compoundref="tokenizer_8c" startline="59" endline="67">fnv1a_32</references>
+        <references refid="tokenizer_8c_1a35b758cbf8aeb3348c6eec59a770f888" compoundref="tokenizer_8c" startline="44" endline="46">is_space_byte</references>
+        <referencedby refid="test__tokenizer_8c_1a840291bc02cba5474a4cb46a9b9566fe" compoundref="test__tokenizer_8c" startline="24" endline="59">main</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="group__ie__io__tokenizer_1ga68bc61261a64b4fe8bd566fc7d399a2e" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int ie_tok_decode</definition>
+        <argsstring>(const ie_vocab_t *v, const uint32_t *ids, uint32_t count, char *out, size_t out_sz)</argsstring>
+        <name>ie_tok_decode</name>
+        <param>
+          <type>const <ref refid="group__ie__io__tokenizer_1ga8bdd12fff1489e034fcb2e8f7f29039a" kindref="member">ie_vocab_t</ref> *</type>
+          <declname>v</declname>
+        </param>
+        <param>
+          <type>const uint32_t *</type>
+          <declname>ids</declname>
+        </param>
+        <param>
+          <type>uint32_t</type>
+          <declname>count</declname>
+        </param>
+        <param>
+          <type>char *</type>
+          <declname>out</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>out_sz</declname>
+        </param>
+        <briefdescription>
+<para>Decode token IDs to a simple, deterministic placeholder string. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Decode token IDs into a printable placeholder string.</para>
+<para>Format: <computeroutput>&quot;T&lt;ID0&gt; T&lt;ID1&gt; ... T&lt;IDn&gt;&quot;</computeroutput> (space-separated). This is sufficient for unit-test invariants that check spacing and a predictable prefix.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>v</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Loaded vocabulary (unused but reserved). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>ids</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Array of token IDs. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>count</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of IDs. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>out</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Output buffer for the textual form. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>out_sz</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Capacity of <computeroutput>out</computeroutput> in bytes. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<parameterlist kind="retval"><parameteritem>
+<parameternamelist>
+<parametername>0</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>on success. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>-1</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>on invalid arguments (e.g., NULL <computeroutput>out</computeroutput> or zero <computeroutput>out_sz</computeroutput>). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>-2</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>if <computeroutput>out</computeroutput> is too small to hold the formatted string. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/src/io/tokenizer.c" line="231" column="5" bodyfile="engine/src/io/tokenizer.c" bodystart="231" bodyend="272"/>
+        <referencedby refid="test__tokenizer_8c_1a840291bc02cba5474a4cb46a9b9566fe" compoundref="test__tokenizer_8c" startline="24" endline="59">main</referencedby>
+      </memberdef>
+      </sectiondef>
     <briefdescription>
 <para>Minimal, dependency-free tokenizer used by tests and the CLI harness. </para>
     </briefdescription>
@@ -193,8 +480,9 @@
 </listitem><listitem><para><ref refid="group__ie__io__tokenizer_1ga68bc61261a64b4fe8bd566fc7d399a2e" kindref="member">ie_tok_decode</ref> : Convert token IDs back into printable placeholders.</para>
 </listitem></itemizedlist>
 </para>
-<sect1 id="tokenizer_8c_1autotoc_md71_1s1"><sect2 id="tokenizer_8c_1autotoc_md71">
-<title>Design goals</title><para><itemizedlist>
+<sect2 id="tokenizer_8c_1autotoc_md85">
+<title>Design goals</title>
+<para><itemizedlist>
 <listitem><para><bold>Deterministic</bold> behavior for CI and unit tests.</para>
 </listitem><listitem><para><bold>No third-party dependencies</bold>; standard C library only.</para>
 </listitem><listitem><para><bold>Whitespace tokenization</bold>: contiguous whitespace collapses to a single separator. Thus <computeroutput>&quot;hello world  from   engine&quot;</computeroutput> yields 4 tokens.</para>
@@ -202,11 +490,10 @@
 </listitem></itemizedlist>
 </para>
 <para>This is intentionally not a real BPE/WordPiece tokenizer; its purpose is to keep tests green and provide a lightweight harness without extra artifacts. </para>
-</sect2></sect1>
+</sect2>
     </detaileddescription>
     <programlisting>
 <codeline lineno="1"><highlight class="normal"></highlight></codeline>
-<codeline lineno="22"><highlight class="normal"></highlight></codeline>
 <codeline lineno="23" refid="tokenizer_8c_1a3024ccd4a9af5109d24e6c57565d74a1" refkind="member"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>_POSIX_C_SOURCE<sp/>200809L</highlight><highlight class="normal"></highlight></codeline>
 <codeline lineno="24"><highlight class="normal"></highlight></codeline>
 <codeline lineno="25"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;ctype.h&gt;</highlight><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">/*<sp/>isspace<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
@@ -245,7 +532,7 @@
 <codeline lineno="81"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>Public<sp/>API:<sp/>Vocabulary<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
 <codeline lineno="82"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>==========================================================================<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
 <codeline lineno="83"><highlight class="normal"></highlight></codeline>
-<codeline lineno="97" refid="group__ie__io__tokenizer_1gadbe33a7f4e53bcb709d56dc753c9148b" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="group__ie__io__tokenizer_1gadbe33a7f4e53bcb709d56dc753c9148b" kindref="member">ie_vocab_load</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*vocab_path,<sp/><ref refid="group__ie__io__tokenizer_1ga8bdd12fff1489e034fcb2e8f7f29039a" kindref="member">ie_vocab_t</ref><sp/>*out)<sp/>{</highlight></codeline>
+<codeline lineno="97" refid="group__ie__io__tokenizer_1gadbe33a7f4e53bcb709d56dc753c9148b" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="group__ie__io__tokenizer_1gadbe33a7f4e53bcb709d56dc753c9148b" kindref="member">ie_vocab_load</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*vocab_path,<sp/><ref refid="structie__vocab__s" kindref="compound">ie_vocab_t</ref><sp/>*out)<sp/>{</highlight></codeline>
 <codeline lineno="98"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!out)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>-1;</highlight></codeline>
 <codeline lineno="99"><highlight class="normal"></highlight></codeline>
 <codeline lineno="100"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">/*<sp/>Default<sp/>stub<sp/>value<sp/>if<sp/>anything<sp/>goes<sp/>wrong.<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
@@ -282,7 +569,7 @@
 <codeline lineno="131"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>0;</highlight></codeline>
 <codeline lineno="132"><highlight class="normal">}</highlight></codeline>
 <codeline lineno="133"><highlight class="normal"></highlight></codeline>
-<codeline lineno="134" refid="group__ie__io__tokenizer_1ga1a76c23fd3fdf25bdae9ee6e9103cf83" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="group__ie__io__tokenizer_1ga1a76c23fd3fdf25bdae9ee6e9103cf83" kindref="member">ie_vocab_free</ref>(<ref refid="group__ie__io__tokenizer_1ga8bdd12fff1489e034fcb2e8f7f29039a" kindref="member">ie_vocab_t</ref><sp/>*v)<sp/>{</highlight></codeline>
+<codeline lineno="134" refid="group__ie__io__tokenizer_1ga1a76c23fd3fdf25bdae9ee6e9103cf83" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="group__ie__io__tokenizer_1ga1a76c23fd3fdf25bdae9ee6e9103cf83" kindref="member">ie_vocab_free</ref>(<ref refid="structie__vocab__s" kindref="compound">ie_vocab_t</ref><sp/>*v)<sp/>{</highlight></codeline>
 <codeline lineno="135"><highlight class="normal"><sp/><sp/>(void)v;</highlight></codeline>
 <codeline lineno="136"><highlight class="normal">}</highlight></codeline>
 <codeline lineno="137"><highlight class="normal"></highlight></codeline>
@@ -290,7 +577,7 @@
 <codeline lineno="139"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>Public<sp/>API:<sp/>Encode/Decode<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
 <codeline lineno="140"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>==========================================================================<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
 <codeline lineno="141"><highlight class="normal"></highlight></codeline>
-<codeline lineno="162" refid="group__ie__io__tokenizer_1ga2b9cb342eb062867f93fb786548003f7" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="group__ie__io__tokenizer_1ga2b9cb342eb062867f93fb786548003f7" kindref="member">ie_tok_encode</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="group__ie__io__tokenizer_1ga8bdd12fff1489e034fcb2e8f7f29039a" kindref="member">ie_vocab_t</ref><sp/>*v,</highlight></codeline>
+<codeline lineno="162" refid="group__ie__io__tokenizer_1ga2b9cb342eb062867f93fb786548003f7" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="group__ie__io__tokenizer_1ga2b9cb342eb062867f93fb786548003f7" kindref="member">ie_tok_encode</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="structie__vocab__s" kindref="compound">ie_vocab_t</ref><sp/>*v,</highlight></codeline>
 <codeline lineno="163"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*text,</highlight></codeline>
 <codeline lineno="164"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>uint32_t<sp/>*ids,</highlight></codeline>
 <codeline lineno="165"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>uint32_t<sp/>*out_count)<sp/>{</highlight></codeline>
@@ -343,7 +630,7 @@
 <codeline lineno="212"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>(wrote<sp/>==<sp/>needed)<sp/>?<sp/>0<sp/>:<sp/>-2;</highlight></codeline>
 <codeline lineno="213"><highlight class="normal">}</highlight></codeline>
 <codeline lineno="214"><highlight class="normal"></highlight></codeline>
-<codeline lineno="231" refid="group__ie__io__tokenizer_1ga68bc61261a64b4fe8bd566fc7d399a2e" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="group__ie__io__tokenizer_1ga68bc61261a64b4fe8bd566fc7d399a2e" kindref="member">ie_tok_decode</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="group__ie__io__tokenizer_1ga8bdd12fff1489e034fcb2e8f7f29039a" kindref="member">ie_vocab_t</ref><sp/>*v,</highlight></codeline>
+<codeline lineno="231" refid="group__ie__io__tokenizer_1ga68bc61261a64b4fe8bd566fc7d399a2e" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="group__ie__io__tokenizer_1ga68bc61261a64b4fe8bd566fc7d399a2e" kindref="member">ie_tok_decode</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="structie__vocab__s" kindref="compound">ie_vocab_t</ref><sp/>*v,</highlight></codeline>
 <codeline lineno="232"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>uint32_t<sp/>*ids,</highlight></codeline>
 <codeline lineno="233"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>uint32_t<sp/>count,</highlight></codeline>
 <codeline lineno="234"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*out,</highlight></codeline>

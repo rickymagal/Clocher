@@ -98,6 +98,13 @@ typedef enum ie_io_status_e {
  * Instances are trivially copyable; no owned heap pointers are stored here.
  * Use @ref ie_weights_open to fill the structure, and @ref ie_weights_close
  * for symmetry. The binary is not kept open by this descriptor.
+ *
+ * Deduplicated weights (lossless):
+ * - If a sibling `model.dedup.json` exists in the same directory as the opened
+ *   `model.ie.json`, the implementation may open a dedup loader and record
+ *   a small opaque handle in this descriptor.
+ * - Callers should treat @ref dedup_handle as opaque and never dereference it.
+ * - @ref ie_weights_close will release this handle when present.
  */
 typedef struct ie_weights_s {
   /* ---- JSON header ---- */
@@ -125,10 +132,45 @@ typedef struct ie_weights_s {
 
   /** Non-zero if @ref ie_weights_open succeeded. */
   int      loaded;
+
+  /* ---- Dedup bookkeeping (opaque; optional) ---- */
+
+  /**
+   * @brief Non-zero if this handle is backed by deduplicated artifacts.
+   *
+   * @details
+   * When set, the loader found dedup metadata (e.g., `model.dedup.json`) and
+   * opened an internal dedup loader instance. The opaque pointer is stored in
+   * @ref dedup_handle and must be released via @ref ie_weights_close.
+   *
+   * This flag is informational for callers; normal code paths can ignore it.
+   */
+  int      is_dedup;
+
+  /**
+   * @brief Opaque pointer to a dedup loader handle (implementation-defined).
+   *
+   * @details
+   * This pointer is owned by the weights descriptor once opened and will be
+   * released by @ref ie_weights_close. Callers must not dereference, free, or
+   * otherwise modify it.
+   */
+  void    *dedup_handle;
 } ie_weights_t;
 
 /**
  * @brief Open and parse IEBIN v1 metadata and resolve the weights path.
+ *
+ * @details
+ * The loader reads `model.ie.json`, extracts minimal header metadata, and
+ * resolves the corresponding weights binary path. The binary is not kept open.
+ *
+ * Deduplicated weights (lossless):
+ * - If the directory containing @p json_path also contains `model.dedup.json`,
+ *   the implementation may open a dedup loader and mark @p out with
+ *   @ref ie_weights_t::is_dedup and @ref ie_weights_t::dedup_handle.
+ * - If dedup metadata is present but cannot be opened, the implementation may
+ *   fail the open to avoid silent mismatch.
  *
  * @param json_path Path to `model.ie.json` (must be readable).
  * @param bin_path  Optional override path for the binary (`model.ie.bin`);
@@ -150,6 +192,12 @@ int ie_weights_open(const char *json_path, const char *bin_path, ie_weights_t *o
  * (if large enough). Intended as a fast sanity check during startup or tests.
  * The implementation may be a no-op on platforms without `pread`.
  *
+ * Deduplicated weights:
+ * - This API is intentionally conservative: it touches the primary weights
+ *   backing file recorded in @ref ie_weights_t::weights_path. Any additional
+ *   prefault/warm-up behavior for dedup artifacts is handled internally by the
+ *   dedup subsystem.
+ *
  * @param w Opened weights descriptor (must come from @ref ie_weights_open).
  * @retval IE_IO_OK        on success (binary considered readable).
  * @retval IE_IO_ERR_ARGS  on invalid arguments or unopened descriptor.
@@ -159,7 +207,15 @@ int ie_weights_open(const char *json_path, const char *bin_path, ie_weights_t *o
 int ie_weights_touch(const ie_weights_t *w);
 
 /**
- * @brief Close weights resources (currently a no-op; reserved for future use).
+ * @brief Close weights resources (reserved for future use).
+ *
+ * @details
+ * Currently, the descriptor does not keep the weights binary open.
+ * This function exists for symmetry and forward compatibility.
+ *
+ * Deduplicated weights:
+ * - If a dedup handle was opened, this function releases it and clears
+ *   @ref ie_weights_t::is_dedup and @ref ie_weights_t::dedup_handle.
  *
  * @param w Weights descriptor previously opened with @ref ie_weights_open (may be NULL).
  */
@@ -216,7 +272,7 @@ int ie_vocab_load(const char *vocab_path, ie_vocab_t *out);
  * @param v         Loaded vocabulary (must have positive @c vocab_size).
  * @param text      NUL-terminated UTF-8 input string.
  * @param ids       Output buffer of length `*out_count` (or NULL for size query).
- * @param out_count In: capacity of @p ids when `ids != NULL`.  
+ * @param out_count In: capacity of @p ids when `ids != NULL`.
  *                  Out: number of tokens written (or needed).
  * @retval 0    on success.
  * @retval -1   on invalid arguments.
@@ -268,3 +324,4 @@ void ie_vocab_free(ie_vocab_t *v);
 #endif
 
 #endif /* IE_IO_H_ */
+

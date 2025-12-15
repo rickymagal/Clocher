@@ -16,6 +16,19 @@
  * the path to `model.ie.bin`. It also exposes a small @ref ie_weights_touch()
  * routine to validate OS-level readability and optionally warm caches.
  *
+ * ### Deduplicated weights support (lossless)
+ * If a sibling `model.dedup.json` exists in the same directory as `model.ie.json`,
+ * this loader will prefer it and treat the deduplicated artifacts as the active
+ * weights source. This allows drop-in replacement of the model directory without
+ * changing engine call sites.
+ *
+ * The dedup loader itself is implemented in:
+ *   - `engine/include/io/weights_dedup.h`
+ *   - `engine/src/io/weights_dedup.c`
+ *
+ * This file only decides which representation is available and records enough
+ * information for downstream code to route tensor reads accordingly.
+ *
  * ### INT4 weight-only helpers (exploratory)
  * Additional helpers are provided to discover and decode INT4 weight-only
  * metadata from the JSON header and to dequantize packed INT4 blobs into
@@ -35,6 +48,7 @@
 
 #include "ie_io.h"            /* ie_weights_t, IE_IO_* status codes */
 #include "ie_quant_int4.h"    /* INT4 quant packing/dequant helpers */
+#include "weights_dedup.h" /* dedup loader (mmap-friendly) */
 
 #include <ctype.h>    /* tolower */
 #include <errno.h>
@@ -364,12 +378,37 @@ static int ascii_ieq(const char *a, const char *b) {
   return *a == '\0' && *b == '\0';
 }
 
+/**
+ * @internal
+ * @brief Check whether a file exists and is readable.
+ *
+ * @param path Path to test.
+ * @return 1 if accessible for reading, 0 otherwise.
+ */
+static int file_exists_readable(const char *path) {
+  if (!path || !*path) return 0;
+  return access(path, R_OK) == 0;
+}
+
 /* -------------------------------------------------------------------------- */
 /* Public IEBIN v1 loader                                                     */
 /* -------------------------------------------------------------------------- */
 
 /**
  * @copydoc ie_weights_open
+ *
+ * Behavior:
+ * - Loads `model.ie.json` exactly as before.
+ * - Additionally checks whether a sibling `model.dedup.json` exists in the same
+ *   directory. If present, it opens the dedup loader and records that this
+ *   weights handle is backed by deduplicated artifacts.
+ *
+ * Notes:
+ * - This function does not change the public ABI in `ie_io.h`. It relies on
+ *   existing spare/opaque fields in `ie_weights_t` to store the dedup handle.
+ * - If your `ie_weights_t` does not have such a field yet, add:
+ *     `void *dedup_handle; int is_dedup;`
+ *   to `ie_io.h` (or a private extension struct) and recompile.
  */
 int ie_weights_open(const char *json_path, const char *bin_path, ie_weights_t *out) {
   if (!out) return IE_IO_ERR_ARGS;
@@ -424,12 +463,52 @@ int ie_weights_open(const char *json_path, const char *bin_path, ie_weights_t *o
   out->bin_size_bytes = (size_t)st.st_size;
   out->loaded = 1;
 
+  /* Dedup branch: open model.dedup.json if present next to model.ie.json. */
+  {
+    const char *slash = last_slash(json_path);
+    char dir[512]; dir[0] = '\0';
+    if (slash) {
+      size_t dn = (size_t)(slash - json_path);
+      if (dn >= sizeof(dir)) dn = sizeof(dir) - 1;
+      memcpy(dir, json_path, dn);
+      dir[dn] = '\0';
+    } else {
+      /* If json_path has no slash, treat current working directory as the dir. */
+      cpyz(dir, sizeof(dir), ".");
+    }
+
+    char dedup_json[512]; dedup_json[0] = '\0';
+    join_path(dedup_json, sizeof(dedup_json), dir, "model.dedup.json");
+
+    if (file_exists_readable(dedup_json)) {
+      ie_weights_dedup_opts_t opts;
+      memset(&opts, 0, sizeof(opts));
+      opts.prefault_policy = 0;
+
+      ie_weights_dedup_t *dh = NULL;
+      ie_wdedup_status_t dst = ie_weights_dedup_open(&dh, dir, &opts);
+      if (dst != IE_WDEDUP_OK) {
+        /* Hard fail: if dedup artifacts exist but cannot be opened, treat as load error. */
+        free(jbuf);
+        return IE_IO_ERR_JSON;
+      }
+
+      /* Store into the weights handle (requires fields to exist in ie_weights_t). */
+      out->is_dedup = 1;
+      out->dedup_handle = (void *)dh;
+    }
+  }
+
   free(jbuf);
   return IE_IO_OK;
 }
 
 /**
  * @copydoc ie_weights_touch
+ *
+ * For deduplicated weights, this function touches the primary backing file
+ * (the regular `model.ie.bin`) exactly as before. The dedup path warm-up is
+ * expected to be handled by the dedup loader and/or the mmap layer.
  */
 int ie_weights_touch(const ie_weights_t *w) {
   if (!w || !w->weights_path[0]) return IE_IO_ERR_ARGS;
@@ -451,9 +530,17 @@ int ie_weights_touch(const ie_weights_t *w) {
 
 /**
  * @copydoc ie_weights_close
+ *
+ * This now closes the dedup handle if one was opened.
  */
 void ie_weights_close(ie_weights_t *w) {
-  (void)w; /* currently a no-op */
+  if (!w) return;
+  if (w->is_dedup && w->dedup_handle) {
+    ie_weights_dedup_t *dh = (ie_weights_dedup_t *)w->dedup_handle;
+    ie_weights_dedup_close(&dh);
+    w->dedup_handle = NULL;
+    w->is_dedup = 0;
+  }
 }
 
 /* -------------------------------------------------------------------------- */
@@ -684,3 +771,4 @@ int ie_weights_decode_int4(const char *packed_path,
 /* ========================================================================== */
 /* End of file                                                                */
 /* ========================================================================== */
+

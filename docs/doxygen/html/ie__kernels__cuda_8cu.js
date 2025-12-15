@@ -5,7 +5,7 @@ var ie__kernels__cuda_8cu =
     [ "IE_CUDA_STREAM_T_DEFINED", "ie__kernels__cuda_8cu.html#ad253e9c439228a67be0e55b0f4c81edf", null ],
     [ "ie_cuda_stream_t", "ie__kernels__cuda_8cu.html#aa036ed43d83d669bfc8c15c81a7efe73", null ],
     [ "ie_apply_activation", "ie__kernels__cuda_8cu.html#a603115e5bb835d21609518d0af053e8d", null ],
-    [ "ie_cuda_last_error_string", "group__IE__GPU.html#ga6656c0ddd9df382048e7cd162e0c1d64", null ],
+    [ "ie_cuda_last_error_string", "group__IE__GPU.html#gacf16a468f3ceed4f35dbd6990ff4b302", null ],
     [ "ie_cuda_launch_gemv_bias_act_f32", "group__IE__GPU.html#gaa2441c827e95b20c0413b0372ffc262b", null ],
     [ "ie_cuda_launch_gemv_rowwise_f32", "group__IE__GPU.html#ga92e383308a681db6bb757c3add5906f0", null ],
     [ "ie_cuda_launch_gemv_rowwise_qfp8_f32", "group__IE__GPU.html#ga78cbe5a89ec13c5a9edca717f79caab8", null ],

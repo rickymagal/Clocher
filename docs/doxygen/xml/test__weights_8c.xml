@@ -1,17 +1,44 @@
 <?xml version='1.0' encoding='UTF-8' standalone='no'?>
-<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.1" xml:lang="en-US">
   <compounddef id="test__weights_8c" kind="file" language="C++">
     <compoundname>test_weights.c</compoundname>
     <includes local="no">assert.h</includes>
+    <includes local="no">stdint.h</includes>
     <includes local="no">stdio.h</includes>
+    <includes local="no">stdlib.h</includes>
+    <includes local="no">string.h</includes>
     <includes refid="ie__io_8h" local="yes">ie_io.h</includes>
+    <includes refid="weights__dedup_8h" local="yes">weights_dedup.h</includes>
     <incdepgraph>
-      <node id="4">
+      <node id="2">
+        <label>assert.h</label>
+      </node>
+      <node id="3">
+        <label>stdint.h</label>
+      </node>
+      <node id="5">
+        <label>stdlib.h</label>
+      </node>
+      <node id="8">
+        <label>stddef.h</label>
+      </node>
+      <node id="9">
+        <label>weights_dedup.h</label>
+        <link refid="weights__dedup_8h"/>
+        <childnode refid="8" relation="include">
+        </childnode>
+        <childnode refid="3" relation="include">
+        </childnode>
+      </node>
+      <node id="6">
+        <label>string.h</label>
+      </node>
+      <node id="7">
         <label>ie_io.h</label>
         <link refid="ie__io_8h"/>
-        <childnode refid="5" relation="include">
+        <childnode refid="8" relation="include">
         </childnode>
-        <childnode refid="6" relation="include">
+        <childnode refid="3" relation="include">
         </childnode>
       </node>
       <node id="1">
@@ -23,21 +50,200 @@
         </childnode>
         <childnode refid="4" relation="include">
         </childnode>
+        <childnode refid="5" relation="include">
+        </childnode>
+        <childnode refid="6" relation="include">
+        </childnode>
+        <childnode refid="7" relation="include">
+        </childnode>
+        <childnode refid="9" relation="include">
+        </childnode>
       </node>
-      <node id="2">
-        <label>assert.h</label>
-      </node>
-      <node id="5">
-        <label>stddef.h</label>
-      </node>
-      <node id="6">
-        <label>stdint.h</label>
-      </node>
-      <node id="3">
+      <node id="4">
         <label>stdio.h</label>
       </node>
     </incdepgraph>
-    <sectiondef kind="func">
+      <sectiondef kind="func">
+      <memberdef kind="function" id="test__weights_8c_1ab9c40d1f74567aef909aa522a8447dce" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int ie_weights_get_weight_view</definition>
+        <argsstring>(const ie_weights_t *w, const char *name, ie_weight_view_t *out)</argsstring>
+        <name>ie_weights_get_weight_view</name>
+        <param>
+          <type>const <ref refid="group__ie__io__weights_1gaf68ad3cdc2eb244fe4feed94372d7806" kindref="member">ie_weights_t</ref> *</type>
+          <declname>w</declname>
+        </param>
+        <param>
+          <type>const char *</type>
+          <declname>name</declname>
+        </param>
+        <param>
+          <type><ref refid="weights__dedup_8h_1a75752d7ae5891353f897bd82ff7e5b29" kindref="member">ie_weight_view_t</ref> *</type>
+          <declname>out</declname>
+        </param>
+        <briefdescription>
+<para>Obtain a baseline weight view for a given tensor name. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>This function is expected to be implemented by the baseline loader code (<ref refid="weights_8c" kindref="compound">engine/src/io/weights.c</ref>). It should fill an <ref refid="weights__dedup_8h_1a75752d7ae5891353f897bd82ff7e5b29" kindref="member">ie_weight_view_t</ref> describing the tensor’s raw bytes (direct view) or a representation that can be materialized into raw bytes.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>w</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Opened weights descriptor. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>name</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Tensor name (NUL-terminated). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>out</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Output view. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>0 on success, negative on failure. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="tests/c/test_weights.c" line="45" column="12" declfile="tests/c/test_weights.c" declline="45" declcolumn="12"/>
+      </memberdef>
+      <memberdef kind="function" id="test__weights_8c_1a8a54d8f0d389a1ec885baa90f7ec911a" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>uint64_t</type>
+        <definition>static uint64_t hash_bytes</definition>
+        <argsstring>(const void *data, size_t nbytes)</argsstring>
+        <name>hash_bytes</name>
+        <param>
+          <type>const void *</type>
+          <declname>data</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>nbytes</declname>
+        </param>
+        <briefdescription>
+<para>Compute a 64-bit FNV-1a hash over a byte buffer. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>data</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Pointer to bytes. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>nbytes</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of bytes. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>64-bit hash value. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="tests/c/test_weights.c" line="60" column="17" bodyfile="tests/c/test_weights.c" bodystart="60" bodyend="68"/>
+        <referencedby refid="test__weights_8c_1a31ec07c9b95704233d146cf71a4b105a" compoundref="test__weights_8c" startline="110" endline="132">hash_view</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="test__weights_8c_1a677560cc90673848de967c35f8dd9792" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>size_t</type>
+        <definition>static size_t view_materialized_nbytes</definition>
+        <argsstring>(const ie_weight_view_t *v)</argsstring>
+        <name>view_materialized_nbytes</name>
+        <param>
+          <type>const <ref refid="weights__dedup_8h_1a75752d7ae5891353f897bd82ff7e5b29" kindref="member">ie_weight_view_t</ref> *</type>
+          <declname>v</declname>
+        </param>
+        <briefdescription>
+<para>Compute the number of bytes produced when a weight view is materialized. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>v</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Weight view. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Required byte size (0 on invalid view). </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="tests/c/test_weights.c" line="80" column="15" bodyfile="tests/c/test_weights.c" bodystart="80" bodyend="97"/>
+        <references refid="structie__weight__view_1aa97021da984dc108166521be52a489ed" compoundref="weights__dedup_8h" startline="128">ie_weight_view::defaults_nbytes</references>
+        <references refid="structie__weight__view_1aa5a9daa8a88df3e749624384919522fc" compoundref="weights__dedup_8h" startline="117">ie_weight_view::dtype</references>
+        <references refid="structie__weight__view_1ab9c7288dea66858448ba932057b1d2aa" compoundref="weights__dedup_8h" startline="137">ie_weight_view::elem_count</references>
+        <references refid="structie__weight__view_1ad58a181adbe6e6bccce6676832c6f22a" compoundref="weights__dedup_8h" startline="138">ie_weight_view::elem_size</references>
+        <references refid="weights__dedup_8h_1a58967a7e905bffdd1db424ed9dd1b0faa2f075b3614d1aa8d7a5c411e788cf3df" compoundref="weights__dedup_8h" startline="78">IE_WDTYPE_INT4</references>
+        <references refid="weights__dedup_8h_1a5998cdfeeb96313d25cc573b6ff9fc42ac989f2301ce9405901e7bc652e8d2913" compoundref="weights__dedup_8h" startline="86">IE_WVIEW_DEDUP</references>
+        <references refid="weights__dedup_8h_1a5998cdfeeb96313d25cc573b6ff9fc42a41b14f68e6dd2f5b95d10ae10f55cfd2" compoundref="weights__dedup_8h" startline="85">IE_WVIEW_DIRECT</references>
+        <references refid="structie__weight__view_1abe3efa69a5ecaba728ddbc4015351b0a" compoundref="weights__dedup_8h" startline="116">ie_weight_view::kind</references>
+        <references refid="structie__weight__view_1a7fbbc23d523c49f60e13dd67bc9b0d7b" compoundref="weights__dedup_8h" startline="124">ie_weight_view::nbytes</references>
+        <referencedby refid="test__weights_8c_1a31ec07c9b95704233d146cf71a4b105a" compoundref="test__weights_8c" startline="110" endline="132">hash_view</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="test__weights_8c_1a31ec07c9b95704233d146cf71a4b105a" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>uint64_t</type>
+        <definition>static uint64_t hash_view</definition>
+        <argsstring>(const ie_weight_view_t *v)</argsstring>
+        <name>hash_view</name>
+        <param>
+          <type>const <ref refid="weights__dedup_8h_1a75752d7ae5891353f897bd82ff7e5b29" kindref="member">ie_weight_view_t</ref> *</type>
+          <declname>v</declname>
+        </param>
+        <briefdescription>
+<para>Hash the materialized bytes of a weight view. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><itemizedlist>
+<listitem><para>For <ref refid="weights__dedup_8h_1a5998cdfeeb96313d25cc573b6ff9fc42a41b14f68e6dd2f5b95d10ae10f55cfd2" kindref="member">IE_WVIEW_DIRECT</ref>, hashes <computeroutput>data[0..nbytes)</computeroutput>.</para>
+</listitem><listitem><para>For <ref refid="weights__dedup_8h_1a5998cdfeeb96313d25cc573b6ff9fc42ac989f2301ce9405901e7bc652e8d2913" kindref="member">IE_WVIEW_DEDUP</ref>, materializes using <ref refid="weights__dedup_8c_1a82069e1a7a2e1c0eaaebdd566ab44abe" kindref="member">ie_weights_dedup_materialize</ref> and hashes the resulting contiguous buffer.</para>
+</listitem></itemizedlist>
+</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>v</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Weight view. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>64-bit hash (0 if invalid). </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="tests/c/test_weights.c" line="110" column="17" bodyfile="tests/c/test_weights.c" bodystart="110" bodyend="132"/>
+        <references refid="structie__weight__view_1ae609779138ed8f70856ee47ee64ffb4a" compoundref="weights__dedup_8h" startline="123">ie_weight_view::data</references>
+        <references refid="test__weights_8c_1a8a54d8f0d389a1ec885baa90f7ec911a" compoundref="test__weights_8c" startline="60" endline="68">hash_bytes</references>
+        <references refid="weights__dedup_8h_1a82069e1a7a2e1c0eaaebdd566ab44abe" compoundref="weights__dedup_8c" startline="1238" endline="1300">ie_weights_dedup_materialize</references>
+        <references refid="weights__dedup_8h_1a5998cdfeeb96313d25cc573b6ff9fc42a41b14f68e6dd2f5b95d10ae10f55cfd2" compoundref="weights__dedup_8h" startline="85">IE_WVIEW_DIRECT</references>
+        <references refid="structie__weight__view_1abe3efa69a5ecaba728ddbc4015351b0a" compoundref="weights__dedup_8h" startline="116">ie_weight_view::kind</references>
+        <references refid="structie__weight__view_1a7fbbc23d523c49f60e13dd67bc9b0d7b" compoundref="weights__dedup_8h" startline="124">ie_weight_view::nbytes</references>
+        <references refid="test__weights_8c_1a677560cc90673848de967c35f8dd9792" compoundref="test__weights_8c" startline="80" endline="97">view_materialized_nbytes</references>
+      </memberdef>
       <memberdef kind="function" id="test__weights_8c_1a840291bc02cba5474a4cb46a9b9566fe" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>int</type>
         <definition>int main</definition>
@@ -47,55 +253,182 @@
           <type>void</type>
         </param>
         <briefdescription>
-<para>Program entrypoint for weights loader tests. </para>
+<para>Main test entrypoint. </para>
         </briefdescription>
         <detaileddescription>
-<para>Opens the stub metadata included in the repo, validates fields such as version and dtype, and exercises the close path.</para>
 <para><simplesect kind="return"><para>0 on success. </para>
 </simplesect>
 </para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="tests/c/test_weights.c" line="21" column="5" bodyfile="tests/c/test_weights.c" bodystart="21" bodyend="39"/>
-        <references refid="structie__weights__s_1aaedc444c52d256720c4b4099604206a4" compoundref="ie__io_8h" startline="109">ie_weights_s::dtype</references>
-        <references refid="group__ie__io__weights_1ga06c2b7e35d1f82a11e4605e23a1976f5" compoundref="weights_8c" startline="455" endline="457">ie_weights_close</references>
-        <references refid="group__ie__io__weights_1ga522dac028ee37aae1307ffdb6d65ec1d" compoundref="weights_8c" startline="374" endline="429">ie_weights_open</references>
-        <references refid="structie__weights__s_1ae12c1b3b426321f6ba604f0a89673315" compoundref="ie__io_8h" startline="106">ie_weights_s::version</references>
+        <location file="tests/c/test_weights.c" line="143" column="5" bodyfile="tests/c/test_weights.c" bodystart="143" bodyend="207"/>
+        <references refid="structie__weights__s_1a6cffa1c1904346d68932cc9542b8ff32" compoundref="ie__io_8h" startline="158">ie_weights_s::dedup_handle</references>
+        <references refid="group__ie__io__weights_1ga522dac028ee37aae1307ffdb6d65ec1d" compoundref="weights_8c" startline="413" endline="504">ie_weights_open</references>
+        <references refid="structie__weights__s_1ab1e17ac4f44125571f2c63e603d967da" compoundref="ie__io_8h" startline="148">ie_weights_s::is_dedup</references>
       </memberdef>
-    </sectiondef>
+      </sectiondef>
     <briefdescription>
-<para>Unit tests for the IEBIN v1 lightweight loader. </para>
+<para>Unit tests for baseline and deduplicated IEBIN loaders. </para>
     </briefdescription>
     <detaileddescription>
-<para>Ensures that the JSON metadata can be opened and parsed with relaxed scanning, that defaults are populated, and that closing is safe. </para>
+<para>This test validates:<itemizedlist>
+<listitem><para>The baseline weights loader can produce a weight view for named tensors.</para>
+</listitem><listitem><para>The dedup weights loader can produce a weight view for the same tensors.</para>
+</listitem><listitem><para>Materializing both views produces byte-identical results (lossless guarantee).</para>
+</listitem></itemizedlist>
+</para>
+<para>NOTE: The baseline accessor <computeroutput><ref refid="test__weights_8c_1ab9c40d1f74567aef909aa522a8447dce" kindref="member">ie_weights_get_weight_view()</ref></computeroutput> is implemented in the engine but is currently not declared in any public header included here. Because this project builds with <computeroutput>-Werror</computeroutput>, we provide an explicit prototype in this test file to avoid implicit declaration errors. </para>
     </detaileddescription>
     <programlisting>
-<codeline lineno="1"><highlight class="normal"></highlight></codeline>
-<codeline lineno="8"><highlight class="normal"></highlight></codeline>
-<codeline lineno="9"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;assert.h&gt;</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="10"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stdio.h&gt;</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="11"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;<ref refid="ie__io_8h" kindref="compound">ie_io.h</ref>&quot;</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="12"><highlight class="normal"></highlight></codeline>
-<codeline lineno="21" refid="test__weights_8c_1a840291bc02cba5474a4cb46a9b9566fe" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="test__weights_8c_1a840291bc02cba5474a4cb46a9b9566fe" kindref="member">main</ref>(</highlight><highlight class="keywordtype">void</highlight><highlight class="normal">)<sp/>{</highlight></codeline>
-<codeline lineno="22"><highlight class="normal"><sp/><sp/><ref refid="group__ie__io__weights_1gaf68ad3cdc2eb244fe4feed94372d7806" kindref="member">ie_weights_t</ref><sp/>w;</highlight></codeline>
+<codeline lineno="1"><highlight class="comment">/*<sp/>tests/c/test_weights.c<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="18"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;assert.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="19"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stdint.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="20"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stdio.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="21"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stdlib.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="22"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;string.h&gt;</highlight><highlight class="normal"></highlight></codeline>
 <codeline lineno="23"><highlight class="normal"></highlight></codeline>
-<codeline lineno="24"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">/*<sp/>Expect<sp/>success<sp/>with<sp/>the<sp/>stub<sp/>files<sp/>shipped<sp/>in<sp/>models/gpt-oss-20b<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="25"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>rc<sp/>=<sp/><ref refid="group__ie__io__weights_1ga522dac028ee37aae1307ffdb6d65ec1d" kindref="member">ie_weights_open</ref>(</highlight><highlight class="stringliteral">&quot;models/gpt-oss-20b/model.ie.json&quot;</highlight><highlight class="normal">,</highlight></codeline>
-<codeline lineno="26"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;models/gpt-oss-20b/model.ie.bin&quot;</highlight><highlight class="normal">,</highlight></codeline>
-<codeline lineno="27"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&amp;w);</highlight></codeline>
-<codeline lineno="28"><highlight class="normal"><sp/><sp/>assert(rc<sp/>==<sp/>0);</highlight></codeline>
-<codeline lineno="29"><highlight class="normal"></highlight></codeline>
-<codeline lineno="30"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">/*<sp/>version<sp/>must<sp/>be<sp/>&gt;=<sp/>1;<sp/>dtype<sp/>must<sp/>not<sp/>be<sp/>empty<sp/>(default<sp/>&quot;fp32&quot;<sp/>allowed)<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="31"><highlight class="normal"><sp/><sp/>assert(w.<ref refid="structie__weights__s_1ae12c1b3b426321f6ba604f0a89673315" kindref="member">version</ref><sp/>&gt;=<sp/>1);</highlight></codeline>
-<codeline lineno="32"><highlight class="normal"><sp/><sp/>assert(w.<ref refid="structie__weights__s_1aaedc444c52d256720c4b4099604206a4" kindref="member">dtype</ref>[0]<sp/>!=<sp/></highlight><highlight class="charliteral">&apos;\0&apos;</highlight><highlight class="normal">);</highlight></codeline>
-<codeline lineno="33"><highlight class="normal"></highlight></codeline>
-<codeline lineno="34"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">/*<sp/>Close<sp/>is<sp/>a<sp/>no-op<sp/>in<sp/>the<sp/>baseline,<sp/>but<sp/>call<sp/>for<sp/>symmetry<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="35"><highlight class="normal"><sp/><sp/><ref refid="group__ie__io__weights_1ga06c2b7e35d1f82a11e4605e23a1976f5" kindref="member">ie_weights_close</ref>(&amp;w);</highlight></codeline>
-<codeline lineno="36"><highlight class="normal"></highlight></codeline>
-<codeline lineno="37"><highlight class="normal"><sp/><sp/>printf(</highlight><highlight class="stringliteral">&quot;ok<sp/>test_weights\n&quot;</highlight><highlight class="normal">);</highlight></codeline>
-<codeline lineno="38"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>0;</highlight></codeline>
-<codeline lineno="39"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="24"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;<ref refid="ie__io_8h" kindref="compound">ie_io.h</ref>&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="25"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;<ref refid="weights__dedup_8h" kindref="compound">weights_dedup.h</ref>&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="26"><highlight class="normal"></highlight></codeline>
+<codeline lineno="27"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>-------------------------------------------------------------------------<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="28"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>Baseline<sp/>accessor<sp/>forward<sp/>declaration<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="29"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>-------------------------------------------------------------------------<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="30"><highlight class="normal"></highlight></codeline>
+<codeline lineno="45" refid="test__weights_8c_1ab9c40d1f74567aef909aa522a8447dce" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="test__weights_8c_1ab9c40d1f74567aef909aa522a8447dce" kindref="member">ie_weights_get_weight_view</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="structie__weights__s" kindref="compound">ie_weights_t</ref><sp/>*w,</highlight></codeline>
+<codeline lineno="46"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*name,</highlight></codeline>
+<codeline lineno="47"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="structie__weight__view" kindref="compound">ie_weight_view_t</ref><sp/>*out);</highlight></codeline>
+<codeline lineno="48"><highlight class="normal"></highlight></codeline>
+<codeline lineno="49"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>-------------------------------------------------------------------------<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="50"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>Simple<sp/>64-bit<sp/>FNV-1a<sp/>hash<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="51"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>-------------------------------------------------------------------------<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="52"><highlight class="normal"></highlight></codeline>
+<codeline lineno="60" refid="test__weights_8c_1a8a54d8f0d389a1ec885baa90f7ec911a" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/>uint64_t<sp/><ref refid="test__weights_8c_1a8a54d8f0d389a1ec885baa90f7ec911a" kindref="member">hash_bytes</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*data,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>nbytes)<sp/>{</highlight></codeline>
+<codeline lineno="61"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>uint8_t<sp/>*p<sp/>=<sp/>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>uint8_t<sp/>*)data;</highlight></codeline>
+<codeline lineno="62"><highlight class="normal"><sp/><sp/>uint64_t<sp/>h<sp/>=<sp/>1469598103934665603ULL;</highlight></codeline>
+<codeline lineno="63"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>i<sp/>=<sp/>0;<sp/>i<sp/>&lt;<sp/>nbytes;<sp/>++i)<sp/>{</highlight></codeline>
+<codeline lineno="64"><highlight class="normal"><sp/><sp/><sp/><sp/>h<sp/>^=<sp/>(uint64_t)p[i];</highlight></codeline>
+<codeline lineno="65"><highlight class="normal"><sp/><sp/><sp/><sp/>h<sp/>*=<sp/>1099511628211ULL;</highlight></codeline>
+<codeline lineno="66"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="67"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>h;</highlight></codeline>
+<codeline lineno="68"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="69"><highlight class="normal"></highlight></codeline>
+<codeline lineno="70"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>-------------------------------------------------------------------------<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="71"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>View<sp/>materialization<sp/>helpers<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="72"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>-------------------------------------------------------------------------<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="73"><highlight class="normal"></highlight></codeline>
+<codeline lineno="80" refid="test__weights_8c_1a677560cc90673848de967c35f8dd9792" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/><ref refid="test__weights_8c_1a677560cc90673848de967c35f8dd9792" kindref="member">view_materialized_nbytes</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="structie__weight__view" kindref="compound">ie_weight_view_t</ref><sp/>*v)<sp/>{</highlight></codeline>
+<codeline lineno="81"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!v)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>0;</highlight></codeline>
+<codeline lineno="82"><highlight class="normal"></highlight></codeline>
+<codeline lineno="83"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(v-&gt;<ref refid="structie__weight__view_1abe3efa69a5ecaba728ddbc4015351b0a" kindref="member">kind</ref><sp/>==<sp/><ref refid="weights__dedup_8h_1a5998cdfeeb96313d25cc573b6ff9fc42a41b14f68e6dd2f5b95d10ae10f55cfd2" kindref="member">IE_WVIEW_DIRECT</ref>)<sp/>{</highlight></codeline>
+<codeline lineno="84"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>v-&gt;<ref refid="structie__weight__view_1a7fbbc23d523c49f60e13dd67bc9b0d7b" kindref="member">nbytes</ref>;</highlight></codeline>
+<codeline lineno="85"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="86"><highlight class="normal"></highlight></codeline>
+<codeline lineno="87"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(v-&gt;<ref refid="structie__weight__view_1abe3efa69a5ecaba728ddbc4015351b0a" kindref="member">kind</ref><sp/>!=<sp/><ref refid="weights__dedup_8h_1a5998cdfeeb96313d25cc573b6ff9fc42ac989f2301ce9405901e7bc652e8d2913" kindref="member">IE_WVIEW_DEDUP</ref>)<sp/>{</highlight></codeline>
+<codeline lineno="88"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>0;</highlight></codeline>
+<codeline lineno="89"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="90"><highlight class="normal"></highlight></codeline>
+<codeline lineno="91"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(v-&gt;<ref refid="structie__weight__view_1aa5a9daa8a88df3e749624384919522fc" kindref="member">dtype</ref><sp/>==<sp/><ref refid="weights__dedup_8h_1a58967a7e905bffdd1db424ed9dd1b0faa2f075b3614d1aa8d7a5c411e788cf3df" kindref="member">IE_WDTYPE_INT4</ref>)<sp/>{</highlight></codeline>
+<codeline lineno="92"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">/*<sp/>Packed<sp/>int4:<sp/>defaults_nbytes<sp/>is<sp/>the<sp/>packed<sp/>byte<sp/>length<sp/>of<sp/>the<sp/>tensor.<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="93"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>v-&gt;<ref refid="structie__weight__view_1aa97021da984dc108166521be52a489ed" kindref="member">defaults_nbytes</ref>;</highlight></codeline>
+<codeline lineno="94"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="95"><highlight class="normal"></highlight></codeline>
+<codeline lineno="96"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>v-&gt;<ref refid="structie__weight__view_1ab9c7288dea66858448ba932057b1d2aa" kindref="member">elem_count</ref><sp/>*<sp/>v-&gt;<ref refid="structie__weight__view_1ad58a181adbe6e6bccce6676832c6f22a" kindref="member">elem_size</ref>;</highlight></codeline>
+<codeline lineno="97"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="98"><highlight class="normal"></highlight></codeline>
+<codeline lineno="110" refid="test__weights_8c_1a31ec07c9b95704233d146cf71a4b105a" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/>uint64_t<sp/><ref refid="test__weights_8c_1a31ec07c9b95704233d146cf71a4b105a" kindref="member">hash_view</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="structie__weight__view" kindref="compound">ie_weight_view_t</ref><sp/>*v)<sp/>{</highlight></codeline>
+<codeline lineno="111"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>n<sp/>=<sp/><ref refid="test__weights_8c_1a677560cc90673848de967c35f8dd9792" kindref="member">view_materialized_nbytes</ref>(v);</highlight></codeline>
+<codeline lineno="112"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(n<sp/>==<sp/>0)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>0;</highlight></codeline>
+<codeline lineno="113"><highlight class="normal"></highlight></codeline>
+<codeline lineno="114"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*buf<sp/>=<sp/>malloc(n);</highlight></codeline>
+<codeline lineno="115"><highlight class="normal"><sp/><sp/>assert(buf<sp/>&amp;&amp;<sp/></highlight><highlight class="stringliteral">&quot;OOM<sp/>in<sp/>test&quot;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="116"><highlight class="normal"></highlight></codeline>
+<codeline lineno="117"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>written<sp/>=<sp/>0;</highlight></codeline>
+<codeline lineno="118"><highlight class="normal"></highlight></codeline>
+<codeline lineno="119"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(v-&gt;<ref refid="structie__weight__view_1abe3efa69a5ecaba728ddbc4015351b0a" kindref="member">kind</ref><sp/>==<sp/><ref refid="weights__dedup_8h_1a5998cdfeeb96313d25cc573b6ff9fc42a41b14f68e6dd2f5b95d10ae10f55cfd2" kindref="member">IE_WVIEW_DIRECT</ref>)<sp/>{</highlight></codeline>
+<codeline lineno="120"><highlight class="normal"><sp/><sp/><sp/><sp/>assert(v-&gt;<ref refid="structie__weight__view_1ae609779138ed8f70856ee47ee64ffb4a" kindref="member">data</ref><sp/>!=<sp/>NULL);</highlight></codeline>
+<codeline lineno="121"><highlight class="normal"><sp/><sp/><sp/><sp/>assert(v-&gt;<ref refid="structie__weight__view_1a7fbbc23d523c49f60e13dd67bc9b0d7b" kindref="member">nbytes</ref><sp/>==<sp/>n);</highlight></codeline>
+<codeline lineno="122"><highlight class="normal"><sp/><sp/><sp/><sp/>memcpy(buf,<sp/>v-&gt;<ref refid="structie__weight__view_1ae609779138ed8f70856ee47ee64ffb4a" kindref="member">data</ref>,<sp/>n);</highlight></codeline>
+<codeline lineno="123"><highlight class="normal"><sp/><sp/><sp/><sp/>written<sp/>=<sp/>n;</highlight></codeline>
+<codeline lineno="124"><highlight class="normal"><sp/><sp/>}<sp/></highlight><highlight class="keywordflow">else</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="125"><highlight class="normal"><sp/><sp/><sp/><sp/>written<sp/>=<sp/><ref refid="weights__dedup_8h_1a82069e1a7a2e1c0eaaebdd566ab44abe" kindref="member">ie_weights_dedup_materialize</ref>(v,<sp/>buf,<sp/>n);</highlight></codeline>
+<codeline lineno="126"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="127"><highlight class="normal"></highlight></codeline>
+<codeline lineno="128"><highlight class="normal"><sp/><sp/>assert(written<sp/>==<sp/>n<sp/>&amp;&amp;<sp/></highlight><highlight class="stringliteral">&quot;materialization<sp/>failed&quot;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="129"><highlight class="normal"><sp/><sp/>uint64_t<sp/>h<sp/>=<sp/><ref refid="test__weights_8c_1a8a54d8f0d389a1ec885baa90f7ec911a" kindref="member">hash_bytes</ref>(buf,<sp/>n);</highlight></codeline>
+<codeline lineno="130"><highlight class="normal"><sp/><sp/>free(buf);</highlight></codeline>
+<codeline lineno="131"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>h;</highlight></codeline>
+<codeline lineno="132"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="133"><highlight class="normal"></highlight></codeline>
+<codeline lineno="134"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>-------------------------------------------------------------------------<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="135"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>Test<sp/>entrypoint<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="136"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>-------------------------------------------------------------------------<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="137"><highlight class="normal"></highlight></codeline>
+<codeline lineno="143" refid="test__weights_8c_1a840291bc02cba5474a4cb46a9b9566fe" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="test__weights_8c_1a840291bc02cba5474a4cb46a9b9566fe" kindref="member">main</ref>(</highlight><highlight class="keywordtype">void</highlight><highlight class="normal">)<sp/>{</highlight></codeline>
+<codeline lineno="144"><highlight class="normal"><sp/><sp/><ref refid="structie__weights__s" kindref="compound">ie_weights_t</ref><sp/>w;</highlight></codeline>
+<codeline lineno="145"><highlight class="normal"></highlight></codeline>
+<codeline lineno="146"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">/*<sp/>---------------------------------------------------------------------<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="147"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">/*<sp/>1)<sp/>Open<sp/>model<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="148"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">/*<sp/>---------------------------------------------------------------------<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="149"><highlight class="normal"></highlight></codeline>
+<codeline lineno="150"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>rc<sp/>=<sp/><ref refid="group__ie__io__weights_1ga522dac028ee37aae1307ffdb6d65ec1d" kindref="member">ie_weights_open</ref>(</highlight><highlight class="stringliteral">&quot;models/gpt-oss-20b/model.ie.json&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="151"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;models/gpt-oss-20b/model.ie.bin&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="152"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&amp;w);</highlight></codeline>
+<codeline lineno="153"><highlight class="normal"><sp/><sp/>assert(rc<sp/>==<sp/>0);</highlight></codeline>
+<codeline lineno="154"><highlight class="normal"></highlight></codeline>
+<codeline lineno="155"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">/*<sp/>Dedup<sp/>should<sp/>be<sp/>enabled<sp/>automatically<sp/>if<sp/>model.dedup.json<sp/>exists<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="156"><highlight class="normal"><sp/><sp/>assert(w.<ref refid="structie__weights__s_1ab1e17ac4f44125571f2c63e603d967da" kindref="member">is_dedup</ref><sp/>==<sp/>1);</highlight></codeline>
+<codeline lineno="157"><highlight class="normal"><sp/><sp/>assert(w.<ref refid="structie__weights__s_1a6cffa1c1904346d68932cc9542b8ff32" kindref="member">dedup_handle</ref><sp/>!=<sp/>NULL);</highlight></codeline>
+<codeline lineno="158"><highlight class="normal"></highlight></codeline>
+<codeline lineno="159"><highlight class="normal"><sp/><sp/><ref refid="structie__weights__dedup" kindref="compound">ie_weights_dedup_t</ref><sp/>*dh<sp/>=<sp/>(<ref refid="structie__weights__dedup" kindref="compound">ie_weights_dedup_t</ref><sp/>*)w.<ref refid="structie__weights__s_1a6cffa1c1904346d68932cc9542b8ff32" kindref="member">dedup_handle</ref>;</highlight></codeline>
+<codeline lineno="160"><highlight class="normal"></highlight></codeline>
+<codeline lineno="161"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">/*<sp/>---------------------------------------------------------------------<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="162"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">/*<sp/>2)<sp/>Pick<sp/>a<sp/>few<sp/>known<sp/>tensors<sp/>to<sp/>validate<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="163"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">/*<sp/>---------------------------------------------------------------------<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="164"><highlight class="normal"></highlight></codeline>
+<codeline lineno="165"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*names[]<sp/>=<sp/>{</highlight></codeline>
+<codeline lineno="166"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;model.embed_tokens.weight&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="167"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;model.layers.0.mlp.fc1.weight&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="168"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;model.layers.0.self_attn.q_proj.weight&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="169"><highlight class="normal"><sp/><sp/>};</highlight></codeline>
+<codeline lineno="170"><highlight class="normal"></highlight></codeline>
+<codeline lineno="171"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>ntests<sp/>=<sp/></highlight><highlight class="keyword">sizeof</highlight><highlight class="normal">(names)<sp/>/<sp/></highlight><highlight class="keyword">sizeof</highlight><highlight class="normal">(names[0]);</highlight></codeline>
+<codeline lineno="172"><highlight class="normal"></highlight></codeline>
+<codeline lineno="173"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>i<sp/>=<sp/>0;<sp/>i<sp/>&lt;<sp/>ntests;<sp/>++i)<sp/>{</highlight></codeline>
+<codeline lineno="174"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*name<sp/>=<sp/>names[i];</highlight></codeline>
+<codeline lineno="175"><highlight class="normal"></highlight></codeline>
+<codeline lineno="176"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structie__weight__view" kindref="compound">ie_weight_view_t</ref><sp/>v_base;</highlight></codeline>
+<codeline lineno="177"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structie__weight__view" kindref="compound">ie_weight_view_t</ref><sp/>v_dedup;</highlight></codeline>
+<codeline lineno="178"><highlight class="normal"></highlight></codeline>
+<codeline lineno="179"><highlight class="normal"><sp/><sp/><sp/><sp/>memset(&amp;v_base,<sp/>0,<sp/></highlight><highlight class="keyword">sizeof</highlight><highlight class="normal">(v_base));</highlight></codeline>
+<codeline lineno="180"><highlight class="normal"><sp/><sp/><sp/><sp/>memset(&amp;v_dedup,<sp/>0,<sp/></highlight><highlight class="keyword">sizeof</highlight><highlight class="normal">(v_dedup));</highlight></codeline>
+<codeline lineno="181"><highlight class="normal"></highlight></codeline>
+<codeline lineno="182"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">/*<sp/>----<sp/>baseline<sp/>view<sp/>----<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="183"><highlight class="normal"><sp/><sp/><sp/><sp/>rc<sp/>=<sp/><ref refid="test__weights_8c_1ab9c40d1f74567aef909aa522a8447dce" kindref="member">ie_weights_get_weight_view</ref>(&amp;w,<sp/>name,<sp/>&amp;v_base);</highlight></codeline>
+<codeline lineno="184"><highlight class="normal"><sp/><sp/><sp/><sp/>assert(rc<sp/>==<sp/>0);</highlight></codeline>
+<codeline lineno="185"><highlight class="normal"></highlight></codeline>
+<codeline lineno="186"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">/*<sp/>----<sp/>dedup<sp/>view<sp/>----<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="187"><highlight class="normal"><sp/><sp/><sp/><sp/>rc<sp/>=<sp/>(int)<ref refid="weights__dedup_8h_1a3dde6478a937f4d2288026c1e9a9d499" kindref="member">ie_weights_dedup_get_weight_view</ref>(dh,<sp/>name,<sp/>&amp;v_dedup);</highlight></codeline>
+<codeline lineno="188"><highlight class="normal"><sp/><sp/><sp/><sp/>assert(rc<sp/>==<sp/>0);</highlight></codeline>
+<codeline lineno="189"><highlight class="normal"></highlight></codeline>
+<codeline lineno="190"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">/*<sp/>----<sp/>compare<sp/>hashes<sp/>of<sp/>materialized<sp/>bytes<sp/>----<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="191"><highlight class="normal"><sp/><sp/><sp/><sp/>uint64_t<sp/>h_base<sp/><sp/>=<sp/><ref refid="test__weights_8c_1a31ec07c9b95704233d146cf71a4b105a" kindref="member">hash_view</ref>(&amp;v_base);</highlight></codeline>
+<codeline lineno="192"><highlight class="normal"><sp/><sp/><sp/><sp/>uint64_t<sp/>h_dedup<sp/>=<sp/><ref refid="test__weights_8c_1a31ec07c9b95704233d146cf71a4b105a" kindref="member">hash_view</ref>(&amp;v_dedup);</highlight></codeline>
+<codeline lineno="193"><highlight class="normal"></highlight></codeline>
+<codeline lineno="194"><highlight class="normal"><sp/><sp/><sp/><sp/>assert(h_base<sp/>!=<sp/>0);</highlight></codeline>
+<codeline lineno="195"><highlight class="normal"><sp/><sp/><sp/><sp/>assert(h_dedup<sp/>!=<sp/>0);</highlight></codeline>
+<codeline lineno="196"><highlight class="normal"><sp/><sp/><sp/><sp/>assert(h_base<sp/>==<sp/>h_dedup<sp/>&amp;&amp;<sp/></highlight><highlight class="stringliteral">&quot;DEDUP<sp/>DATA<sp/>MISMATCH<sp/>(NOT<sp/>LOSSLESS)&quot;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="197"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="198"><highlight class="normal"></highlight></codeline>
+<codeline lineno="199"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">/*<sp/>---------------------------------------------------------------------<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="200"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">/*<sp/>3)<sp/>Cleanup<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="201"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">/*<sp/>---------------------------------------------------------------------<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="202"><highlight class="normal"></highlight></codeline>
+<codeline lineno="203"><highlight class="normal"><sp/><sp/><ref refid="group__ie__io__weights_1ga06c2b7e35d1f82a11e4605e23a1976f5" kindref="member">ie_weights_close</ref>(&amp;w);</highlight></codeline>
+<codeline lineno="204"><highlight class="normal"></highlight></codeline>
+<codeline lineno="205"><highlight class="normal"><sp/><sp/>printf(</highlight><highlight class="stringliteral">&quot;ok<sp/>test_weights_dedup<sp/>(lossless<sp/>verified)\n&quot;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="206"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>0;</highlight></codeline>
+<codeline lineno="207"><highlight class="normal">}</highlight></codeline>
     </programlisting>
     <location file="tests/c/test_weights.c"/>
   </compounddef>

@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['ze_5fimpl_0',['ze_impl',['../structze__impl.html',1,'']]]
+  ['metricsringtests_1247',['MetricsRingTests',['../classtest__metrics__ring_1_1MetricsRingTests.html',1,'test_metrics_ring']]]
 ];

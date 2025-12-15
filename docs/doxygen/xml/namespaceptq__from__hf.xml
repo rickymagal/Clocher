@@ -1,14 +1,13 @@
 <?xml version='1.0' encoding='UTF-8' standalone='no'?>
-<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.1" xml:lang="en-US">
   <compounddef id="namespaceptq__from__hf" kind="namespace" language="Python">
     <compoundname>ptq_from_hf</compoundname>
-    <sectiondef kind="func">
+      <sectiondef kind="func">
       <memberdef kind="function" id="namespaceptq__from__hf_1aff4e5ceded2fc089de036435b5d6ba25" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>Path</type>
         <definition> Path ptq_from_hf.find_checkpoint</definition>
         <argsstring>(Path root, str|None prefer_file)</argsstring>
         <name>find_checkpoint</name>
-        <qualifiedname>ptq_from_hf.find_checkpoint</qualifiedname>
         <param>
           <type>Path</type>
           <declname>root</declname>
@@ -34,7 +33,6 @@ Prefers .safetensors, otherwise typical PyTorch filenames.
         <definition> dict ptq_from_hf.load_state_dict</definition>
         <argsstring>(Path ckpt_path)</argsstring>
         <name>load_state_dict</name>
-        <qualifiedname>ptq_from_hf.load_state_dict</qualifiedname>
         <param>
           <type>Path</type>
           <declname>ckpt_path</declname>
@@ -55,7 +53,6 @@ Prefers .safetensors, otherwise typical PyTorch filenames.
         <definition> tuple[int, int] ptq_from_hf.tensor_to_fp32_bin</definition>
         <argsstring>(t, Path out_bin, bool transpose)</argsstring>
         <name>tensor_to_fp32_bin</name>
-        <qualifiedname>ptq_from_hf.tensor_to_fp32_bin</qualifiedname>
         <param>
           <type>t</type>
           <defname>t</defname>
@@ -84,7 +81,6 @@ Prefers .safetensors, otherwise typical PyTorch filenames.
         <definition> None ptq_from_hf.main</definition>
         <argsstring>()</argsstring>
         <name>main</name>
-        <qualifiedname>ptq_from_hf.main</qualifiedname>
         <briefdescription>
         </briefdescription>
         <detaileddescription>
@@ -94,30 +90,12 @@ Prefers .safetensors, otherwise typical PyTorch filenames.
         <location file="scripts/ptq_from_hf.py" line="111" column="1" bodyfile="scripts/ptq_from_hf.py" bodystart="111" bodyend="189"/>
         <references refid="namespaceptq__from__hf_1aff4e5ceded2fc089de036435b5d6ba25" compoundref="ptq__from__hf_8py" startline="31" endline="52">find_checkpoint</references>
         <references refid="namespaceptq__from__hf_1a13d1751016c9c42aff4df31cb93b79b7" compoundref="ptq__from__hf_8py" startline="53" endline="81">load_state_dict</references>
-        <references refid="namespaceptq__from__hf_1ae6724778682d731015d0d9bac448f58f" compoundref="ptq__from__hf_8py" startline="111" endline="189">main</references>
         <references refid="namespaceptq__from__hf_1a1b00389f7f6cfb3513e8ffa3ab631e20" compoundref="ptq__from__hf_8py" startline="82" endline="110">tensor_to_fp32_bin</references>
-        <referencedby refid="namespaceptq__from__hf_1ae6724778682d731015d0d9bac448f58f" compoundref="ptq__from__hf_8py" startline="111" endline="189">main</referencedby>
       </memberdef>
-    </sectiondef>
+      </sectiondef>
     <briefdescription>
     </briefdescription>
     <detaileddescription>
-<para><verbatim>Hugging Face one-shot PTQ:
-- Downloads a model repo snapshot via huggingface_hub
-- Locates a checkpoint (safetensors or PyTorch .bin/.pth/.ckpt)
-- Loads state_dict, extracts the EXACT tensor by key
-- (Optional) transposes 2D
-- Exports row-major FP32 .bin
-- Runs weight-only PTQ (INT8 by default; INT4 with --wbits=4)
-
-Example:
-  make deps-ptq
-  python3 scripts/ptq_from_hf.py \
-      --repo facebook/opt-125m \
-      --key model.decoder.layers.0.self_attn.q_proj.weight \
-      --out-prefix out/qproj_int4 \
-      --wbits 4 --mode per_row --scale-dtype fp16
-</verbatim> </para>
     </detaileddescription>
     <location file="scripts/ptq_from_hf.py" line="1" column="1"/>
   </compounddef>

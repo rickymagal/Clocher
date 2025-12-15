@@ -12,10 +12,14 @@
  *    the centralized mmap-tuning helpers.
  *  - Optional readahead priming and a page-touch routine for warm-up.
  *
+ * Additional utilities for deduplicated weights:
+ *  - Multi-file mapping helper that opens and maps N files in one call.
+ *  - Best-effort prefault policy applied per file (sequential vs willneed).
+ *
  * The API is intentionally minimal and self-contained; it does not depend on
  * engine-specific structures. Callers can:
  *   - use ::ie_mmap_open to obtain a RO view of a file,
- *   - optionally call ::ie_mmap_advise to refine access patterns,
+ *   - optionally call ::ie_mmap_apply_advise to refine access patterns,
  *   - optionally call ::ie_mmap_touch to prefault pages,
  *   - finally call ::ie_mmap_close to release resources.
  */
@@ -134,6 +138,49 @@ int ie_mmap_touch(const void *addr, size_t len, size_t stride,
  * @return 0 on success; negative value on failure.
  */
 int ie_mmap_close(const void *addr, size_t len, int was_fallback);
+
+/**
+ * @brief Map multiple files (read-only) in one call.
+ *
+ * This helper is intended for deduplicated weights, where multiple blobs
+ * (defaults/exceptions/masks) must be available simultaneously and should
+ * share a consistent paging policy.
+ *
+ * Semantics:
+ * - Each file is mapped using ::ie_mmap_open with @p flags.
+ * - On partial failure, already-mapped files are closed and the function returns
+ *   a negative error code.
+ *
+ * Memory ownership:
+ * - On success, the caller owns the returned arrays and must free them:
+ *     - `addrs[i]` and `lens[i]` must be released by calling ::ie_mmap_close
+ *     - `is_fallback[i]` is used as the third parameter to ::ie_mmap_close
+ *     - The arrays `addrs`, `lens`, `is_fallback` are allocated and must be free'd
+ *
+ * @param paths        Array of file paths of length @p n.
+ * @param n            Number of files.
+ * @param out_addrs    Output array of mapped addresses (allocated).
+ * @param out_lens     Output array of mapped lengths (allocated).
+ * @param out_fallback Output array of fallback flags (allocated).
+ * @param flags        Flags passed to ::ie_mmap_open for each file.
+ * @param advise       Optional advice applied to each mapping after opening.
+ * @return 0 on success; negative errno-like value on failure.
+ */
+int ie_mmap_open_many(const char *const *paths, size_t n,
+                      const void ***out_addrs, size_t **out_lens, int **out_fallback,
+                      int flags, ie_mmap_advise_t advise);
+
+/**
+ * @brief Close a set of mappings created by ::ie_mmap_open_many.
+ *
+ * This helper is the symmetric teardown for ::ie_mmap_open_many.
+ *
+ * @param addrs      Array of addresses.
+ * @param lens       Array of lengths.
+ * @param fallback   Array of fallback flags.
+ * @param n          Number of files.
+ */
+void ie_mmap_close_many(const void **addrs, const size_t *lens, const int *fallback, size_t n);
 
 /* ------------------------------ Implementation ---------------------------- */
 
@@ -256,3 +303,50 @@ int ie_mmap_close(const void *addr, size_t len, int was_fallback) {
   free((void*)addr);
   return 0;
 }
+
+int ie_mmap_open_many(const char *const *paths, size_t n,
+                      const void ***out_addrs, size_t **out_lens, int **out_fallback,
+                      int flags, ie_mmap_advise_t advise) {
+  if (!paths || n == 0 || !out_addrs || !out_lens || !out_fallback) return -22;
+
+  const void **addrs = (const void **)calloc(n, sizeof(*addrs));
+  size_t *lens = (size_t *)calloc(n, sizeof(*lens));
+  int *fallback = (int *)calloc(n, sizeof(*fallback));
+  if (!addrs || !lens || !fallback) {
+    free(addrs); free(lens); free(fallback);
+    return -12;
+  }
+
+  for (size_t i = 0; i < n; i++) {
+    if (!paths[i] || !*paths[i]) {
+      ie_mmap_close_many(addrs, lens, fallback, n);
+      return -22;
+    }
+
+    int rc = ie_mmap_open(paths[i], &addrs[i], &lens[i], &fallback[i], flags);
+    if (rc != 0) {
+      ie_mmap_close_many(addrs, lens, fallback, n);
+      return rc;
+    }
+
+    if (advise != IE_MMAP_ADVISE_NONE) {
+      (void)ie_mmap_apply_advise(addrs[i], lens[i], advise);
+    }
+  }
+
+  *out_addrs = addrs;
+  *out_lens = lens;
+  *out_fallback = fallback;
+  return 0;
+}
+
+void ie_mmap_close_many(const void **addrs, const size_t *lens, const int *fallback, size_t n) {
+  if (!addrs || !lens || !fallback) return;
+  for (size_t i = 0; i < n; i++) {
+    if (addrs[i]) (void)ie_mmap_close(addrs[i], lens[i], fallback[i]);
+  }
+  free((void**)addrs);
+  free((void*)lens);
+  free((void*)fallback);
+}
+

@@ -1,5 +1,7 @@
 var dir_53e6fa9553ac22a5646d2a2b2d7b97a1 =
 [
+    [ "convert_safetensors_to_pt_bin.py", "convert__safetensors__to__pt__bin_8py.html", "convert__safetensors__to__pt__bin_8py" ],
+    [ "download_gpt_oss_20b.py", "download__gpt__oss__20b_8py.html", "download__gpt__oss__20b_8py" ],
     [ "export_tensors_onnx.py", "export__tensors__onnx_8py.html", "export__tensors__onnx_8py" ],
     [ "export_tensors_torch.py", "export__tensors__torch_8py.html", "export__tensors__torch_8py" ],
     [ "gen_q4_bytes_stream.py", "gen__q4__bytes__stream_8py.html", "gen__q4__bytes__stream_8py" ],
@@ -16,6 +18,7 @@ var dir_53e6fa9553ac22a5646d2a2b2d7b97a1 =
     [ "q4_pack_stream.py", "q4__pack__stream_8py.html", "q4__pack__stream_8py" ],
     [ "run_benchmark.sh", "run__benchmark_8sh.html", null ],
     [ "set_numa.sh", "set__numa_8sh.html", null ],
+    [ "split_q4_manifest_to_files.py", "split__q4__manifest__to__files_8py.html", "split__q4__manifest__to__files_8py" ],
     [ "true_tps_strict.sh", "true__tps__strict_8sh.html", null ],
     [ "update_performance_md.py", "update__performance__md_8py.html", "update__performance__md_8py" ]
 ];

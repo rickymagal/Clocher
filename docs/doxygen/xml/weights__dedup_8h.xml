@@ -1,0 +1,902 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.1" xml:lang="en-US">
+  <compounddef id="weights__dedup_8h" kind="file" language="C++">
+    <compoundname>weights_dedup.h</compoundname>
+    <includes local="no">stddef.h</includes>
+    <includes local="no">stdint.h</includes>
+    <includedby refid="weights_8c" local="yes">engine/src/io/weights.c</includedby>
+    <includedby refid="weights__dedup_8c" local="yes">engine/src/io/weights_dedup.c</includedby>
+    <includedby refid="test__weights_8c" local="yes">tests/c/test_weights.c</includedby>
+    <incdepgraph>
+      <node id="3">
+        <label>stdint.h</label>
+      </node>
+      <node id="2">
+        <label>stddef.h</label>
+      </node>
+      <node id="1">
+        <label>engine/include/weights_dedup.h</label>
+        <link refid="weights__dedup_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="3" relation="include">
+        </childnode>
+      </node>
+    </incdepgraph>
+    <invincdepgraph>
+      <node id="3">
+        <label>engine/src/io/weights_dedup.c</label>
+        <link refid="weights__dedup_8c"/>
+      </node>
+      <node id="1">
+        <label>engine/include/weights_dedup.h</label>
+        <link refid="weights__dedup_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="3" relation="include">
+        </childnode>
+        <childnode refid="4" relation="include">
+        </childnode>
+      </node>
+      <node id="4">
+        <label>tests/c/test_weights.c</label>
+        <link refid="test__weights_8c"/>
+      </node>
+      <node id="2">
+        <label>engine/src/io/weights.c</label>
+        <link refid="weights_8c"/>
+      </node>
+    </invincdepgraph>
+    <innerclass refid="structie__weight__view" prot="public">ie_weight_view</innerclass>
+    <innerclass refid="structie__weights__dedup__opts" prot="public">ie_weights_dedup_opts</innerclass>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="weights__dedup_8h_1aa2216aef65948cf32ff1ff7b2d8ca579" prot="public" static="no">
+        <name>IE_WDEDUP_MAX_RANK</name>
+        <initializer>8</initializer>
+        <briefdescription>
+<para>Maximum rank supported for shapes carried in the view. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>This is only for metadata conveyance; the engine may ignore shape here if it already has authoritative shape info elsewhere. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/weights_dedup.h" line="96" column="9" bodyfile="engine/include/weights_dedup.h" bodystart="96" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="enum">
+      <memberdef kind="enum" id="weights__dedup_8h_1a9421812de4e8b9faeea608ac3809d6cb" prot="public" static="no" strong="no">
+        <type></type>
+        <name>ie_wdedup_status</name>
+        <enumvalue id="weights__dedup_8h_1a9421812de4e8b9faeea608ac3809d6cba0baf1bf45e91e9558e44038d27d20e2f" prot="public">
+          <name>IE_WDEDUP_OK</name>
+          <initializer>= 0</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="weights__dedup_8h_1a9421812de4e8b9faeea608ac3809d6cba32fb20c23ffafb87b20ac22c3295e5c4" prot="public">
+          <name>IE_WDEDUP_EINVAL</name>
+          <initializer>= 1</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="weights__dedup_8h_1a9421812de4e8b9faeea608ac3809d6cba28a9d86d21f47dd3dac973cd8b2e56c9" prot="public">
+          <name>IE_WDEDUP_ENOENT</name>
+          <initializer>= 2</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="weights__dedup_8h_1a9421812de4e8b9faeea608ac3809d6cba85f5a8d40f8e7522f8ac7bd2fc4d304d" prot="public">
+          <name>IE_WDEDUP_EIO</name>
+          <initializer>= 3</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="weights__dedup_8h_1a9421812de4e8b9faeea608ac3809d6cbacf4e62b51d3a4a511856c2d104021d31" prot="public">
+          <name>IE_WDEDUP_ENOMEM</name>
+          <initializer>= 4</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="weights__dedup_8h_1a9421812de4e8b9faeea608ac3809d6cba92e176fa3efb789e3511ed848b673176" prot="public">
+          <name>IE_WDEDUP_EFORMAT</name>
+          <initializer>= 5</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="weights__dedup_8h_1a9421812de4e8b9faeea608ac3809d6cba9a269cc048c34ff11389ad17b72dbf33" prot="public">
+          <name>IE_WDEDUP_ERANGE</name>
+          <initializer>= 6</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+<para>Status codes returned by the dedup loader. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/weights_dedup.h" line="59" column="1" bodyfile="engine/include/weights_dedup.h" bodystart="59" bodyend="67"/>
+      </memberdef>
+      <memberdef kind="enum" id="weights__dedup_8h_1a58967a7e905bffdd1db424ed9dd1b0fa" prot="public" static="no" strong="no">
+        <type></type>
+        <name>ie_wdtype</name>
+        <enumvalue id="weights__dedup_8h_1a58967a7e905bffdd1db424ed9dd1b0faa643d772c0dafcddd81f1ac1f05746865" prot="public">
+          <name>IE_WDTYPE_UNKNOWN</name>
+          <initializer>= 0</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="weights__dedup_8h_1a58967a7e905bffdd1db424ed9dd1b0faa48d84b78c6ac200f8059daa65aaf6102" prot="public">
+          <name>IE_WDTYPE_FP32</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="weights__dedup_8h_1a58967a7e905bffdd1db424ed9dd1b0faa5c57083e113a7c4b29b8d43bdb871bbf" prot="public">
+          <name>IE_WDTYPE_FP16</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="weights__dedup_8h_1a58967a7e905bffdd1db424ed9dd1b0faac90c0a66fe449633e12a41ad08a7648c" prot="public">
+          <name>IE_WDTYPE_BF16</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="weights__dedup_8h_1a58967a7e905bffdd1db424ed9dd1b0faa4b73359bb36a788c455544d0cf31ad9d" prot="public">
+          <name>IE_WDTYPE_INT8</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="weights__dedup_8h_1a58967a7e905bffdd1db424ed9dd1b0faa2f075b3614d1aa8d7a5c411e788cf3df" prot="public">
+          <name>IE_WDTYPE_INT4</name>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+<para>Supported dtypes for dedup views. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/weights_dedup.h" line="72" column="1" bodyfile="engine/include/weights_dedup.h" bodystart="72" bodyend="79"/>
+      </memberdef>
+      <memberdef kind="enum" id="weights__dedup_8h_1a5998cdfeeb96313d25cc573b6ff9fc42" prot="public" static="no" strong="no">
+        <type></type>
+        <name>ie_weight_view_kind</name>
+        <enumvalue id="weights__dedup_8h_1a5998cdfeeb96313d25cc573b6ff9fc42a41b14f68e6dd2f5b95d10ae10f55cfd2" prot="public">
+          <name>IE_WVIEW_DIRECT</name>
+          <initializer>= 0</initializer>
+          <briefdescription>
+<para>Direct contiguous bytes. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="weights__dedup_8h_1a5998cdfeeb96313d25cc573b6ff9fc42ac989f2301ce9405901e7bc652e8d2913" prot="public">
+          <name>IE_WVIEW_DEDUP</name>
+          <initializer>= 1</initializer>
+          <briefdescription>
+<para>Defaults + mask + exceptions. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+<para>Weight view kind. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/weights_dedup.h" line="84" column="1" bodyfile="engine/include/weights_dedup.h" bodystart="84" bodyend="87"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="weights__dedup_8h_1a0945a69a2d52692d5410a7dcb50d21a7" prot="public" static="no">
+        <type>struct <ref refid="structie__weights__dedup" kindref="compound">ie_weights_dedup</ref></type>
+        <definition>typedef struct ie_weights_dedup ie_weights_dedup_t</definition>
+        <argsstring></argsstring>
+        <name>ie_weights_dedup_t</name>
+        <briefdescription>
+<para>Opaque handle to a deduplicated-weights mapping. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/weights_dedup.h" line="1" column="0" bodyfile="engine/include/weights_dedup.h" bodystart="54" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="typedef" id="weights__dedup_8h_1a18bb618ee58b1b33bfbd43d51ecf23b4" prot="public" static="no">
+        <type>enum <ref refid="weights__dedup_8h_1a9421812de4e8b9faeea608ac3809d6cb" kindref="member">ie_wdedup_status</ref></type>
+        <definition>typedef enum ie_wdedup_status ie_wdedup_status_t</definition>
+        <argsstring></argsstring>
+        <name>ie_wdedup_status_t</name>
+        <briefdescription>
+<para>Status codes returned by the dedup loader. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/weights_dedup.h" line="67" column="20"/>
+      </memberdef>
+      <memberdef kind="typedef" id="weights__dedup_8h_1a0c5f7d768b38852b0cd096fc6bcaad1f" prot="public" static="no">
+        <type>enum <ref refid="weights__dedup_8h_1a58967a7e905bffdd1db424ed9dd1b0fa" kindref="member">ie_wdtype</ref></type>
+        <definition>typedef enum ie_wdtype ie_wdtype_t</definition>
+        <argsstring></argsstring>
+        <name>ie_wdtype_t</name>
+        <briefdescription>
+<para>Supported dtypes for dedup views. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/weights_dedup.h" line="79" column="13"/>
+      </memberdef>
+      <memberdef kind="typedef" id="weights__dedup_8h_1a185e6f8ed325abfa646ab2e67fd3be13" prot="public" static="no">
+        <type>enum <ref refid="weights__dedup_8h_1a5998cdfeeb96313d25cc573b6ff9fc42" kindref="member">ie_weight_view_kind</ref></type>
+        <definition>typedef enum ie_weight_view_kind ie_weight_view_kind_t</definition>
+        <argsstring></argsstring>
+        <name>ie_weight_view_kind_t</name>
+        <briefdescription>
+<para>Weight view kind. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/weights_dedup.h" line="87" column="23"/>
+      </memberdef>
+      <memberdef kind="typedef" id="weights__dedup_8h_1a75752d7ae5891353f897bd82ff7e5b29" prot="public" static="no">
+        <type>struct <ref refid="structie__weight__view" kindref="compound">ie_weight_view</ref></type>
+        <definition>typedef struct ie_weight_view ie_weight_view_t</definition>
+        <argsstring></argsstring>
+        <name>ie_weight_view_t</name>
+        <briefdescription>
+<para>A uniform weight view describing either direct or deduplicated storage. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>For IE_WVIEW_DIRECT:<itemizedlist>
+<listitem><para><computeroutput>data</computeroutput> points to the contiguous tensor bytes</para>
+</listitem><listitem><para><computeroutput>nbytes</computeroutput> is the tensor byte size</para>
+</listitem></itemizedlist>
+</para>
+<para>For IE_WVIEW_DEDUP:<itemizedlist>
+<listitem><para><computeroutput>defaults</computeroutput> points to the defaults tensor bytes (same dtype/shape as logical tensor)</para>
+</listitem><listitem><para><computeroutput>mask</computeroutput> points to a bitset over elements/nibbles</para>
+</listitem><listitem><para><computeroutput>exceptions</computeroutput> points to packed exception values (same dtype packing)</para>
+</listitem></itemizedlist>
+</para>
+<para>Mask semantics:<itemizedlist>
+<listitem><para>bit 0 =&gt; use defaults value</para>
+</listitem><listitem><para>bit 1 =&gt; consume next value from exceptions stream and override </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/weights_dedup.h" line="139" column="18"/>
+      </memberdef>
+      <memberdef kind="typedef" id="weights__dedup_8h_1a6ff23db7bbfd16969c522082f91241db" prot="public" static="no">
+        <type>struct <ref refid="structie__weights__dedup__opts" kindref="compound">ie_weights_dedup_opts</ref></type>
+        <definition>typedef struct ie_weights_dedup_opts ie_weights_dedup_opts_t</definition>
+        <argsstring></argsstring>
+        <name>ie_weights_dedup_opts_t</name>
+        <briefdescription>
+<para>Options controlling mapping and paging policy. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/weights_dedup.h" line="153" column="25"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="weights__dedup_8h_1aa625b41ce2a24826f8cb464661ace8ec" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="weights__dedup_8h_1a18bb618ee58b1b33bfbd43d51ecf23b4" kindref="member">ie_wdedup_status_t</ref></type>
+        <definition>ie_wdedup_status_t ie_weights_dedup_open</definition>
+        <argsstring>(ie_weights_dedup_t **out, const char *model_dir, const ie_weights_dedup_opts_t *opts)</argsstring>
+        <name>ie_weights_dedup_open</name>
+        <param>
+          <type><ref refid="weights__dedup_8h_1a0945a69a2d52692d5410a7dcb50d21a7" kindref="member">ie_weights_dedup_t</ref> **</type>
+          <declname>out</declname>
+        </param>
+        <param>
+          <type>const char *</type>
+          <declname>model_dir</declname>
+        </param>
+        <param>
+          <type>const <ref refid="weights__dedup_8h_1a6ff23db7bbfd16969c522082f91241db" kindref="member">ie_weights_dedup_opts_t</ref> *</type>
+          <declname>opts</declname>
+        </param>
+        <briefdescription>
+<para>Open a deduplicated model directory. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>This function expects to find <computeroutput>model.dedup.json</computeroutput> inside <computeroutput>model_dir</computeroutput>. It mmaps referenced files (defaults/exceptions/masks) read-only.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="out">out</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Returned handle on success. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">model_dir</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Directory containing <computeroutput>model.dedup.json</computeroutput> and blobs. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">opts</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Optional mapping options (may be NULL). </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>IE_WDEDUP_OK on success, otherwise an error code.</para>
+</simplesect>
+Open a deduplicated model directory.</para>
+<para>Reads <computeroutput>model.dedup.json</computeroutput>, mmaps the referenced backing files, parses the tensor table, and sorts it by tensor name for fast binary-search lookups.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="out">out</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Output handle. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">model_dir</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Directory containing <computeroutput>model.dedup.json</computeroutput> and backing files. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">opts</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Options (may be NULL). </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Status code. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/weights_dedup.h" line="166" column="20" bodyfile="engine/src/io/weights_dedup.c" bodystart="996" bodyend="1079" declfile="engine/include/weights_dedup.h" declline="166" declcolumn="20"/>
+        <references refid="structie__weights__dedup_1a3b8e5ac97fb528fd739ee3ea8f9d8328" compoundref="weights__dedup_8c" startline="547">ie_weights_dedup::files</references>
+        <references refid="structie__weights__dedup_1a46625e37da8d667351f7c7effd5ad5dd" compoundref="weights__dedup_8c" startline="548">ie_weights_dedup::files_count</references>
+        <references refid="weights__dedup_8c_1a060093b2059a2c4c10c076c6fb28063d" compoundref="weights__dedup_8c" startline="183" endline="209">ie_mmap_ro</references>
+        <references refid="weights__dedup_8c_1a59504573413171688ab4fb900b9bda3d" compoundref="weights__dedup_8c" startline="733" endline="795">ie_parse_files_object</references>
+        <references refid="weights__dedup_8c_1a1eaf38d57abdd040f9c40e2e3ea1525c" compoundref="weights__dedup_8c" startline="920" endline="981">ie_parse_tensors_array</references>
+        <references refid="weights__dedup_8c_1a6ee8c66244f12998688b2af6ab54e191" compoundref="weights__dedup_8c" startline="128" endline="144">ie_path_join</references>
+        <references refid="weights__dedup_8c_1a1c615c8f5bb58bc9c38caf665a46c222" compoundref="weights__dedup_8c" startline="81" endline="119">ie_read_file_text</references>
+        <references refid="weights__dedup_8c_1a669961a23366892e06b30179881d75d0" compoundref="weights__dedup_8c" startline="64" endline="72">ie_strdup</references>
+        <references refid="weights__dedup_8c_1a50e4eaaf5cdde861256cd33fc4bd7c9a" compoundref="weights__dedup_8c" startline="624" endline="628">ie_tensor_cmp_name</references>
+        <references refid="weights__dedup_8h_1a9421812de4e8b9faeea608ac3809d6cba92e176fa3efb789e3511ed848b673176" compoundref="weights__dedup_8h" startline="65">IE_WDEDUP_EFORMAT</references>
+        <references refid="weights__dedup_8h_1a9421812de4e8b9faeea608ac3809d6cba32fb20c23ffafb87b20ac22c3295e5c4" compoundref="weights__dedup_8h" startline="61">IE_WDEDUP_EINVAL</references>
+        <references refid="weights__dedup_8h_1a9421812de4e8b9faeea608ac3809d6cba28a9d86d21f47dd3dac973cd8b2e56c9" compoundref="weights__dedup_8h" startline="62">IE_WDEDUP_ENOENT</references>
+        <references refid="weights__dedup_8h_1a9421812de4e8b9faeea608ac3809d6cbacf4e62b51d3a4a511856c2d104021d31" compoundref="weights__dedup_8h" startline="64">IE_WDEDUP_ENOMEM</references>
+        <references refid="weights__dedup_8h_1a9421812de4e8b9faeea608ac3809d6cba0baf1bf45e91e9558e44038d27d20e2f" compoundref="weights__dedup_8h" startline="60">IE_WDEDUP_OK</references>
+        <references refid="weights__dedup_8c_1a3ad33a6fe3c7a81072c092d1ee510fce" compoundref="weights__dedup_8c" startline="1088" endline="1105">ie_weights_dedup_close</references>
+        <references refid="weights__dedup_8c_1ae0494f541a190a9ecf82c11c5eb22952" compoundref="weights__dedup_8c" startline="465" endline="501">js_find_member_value</references>
+        <references refid="structie__weights__dedup_1a04ec94ca1a9891914683af43355c4df6" compoundref="weights__dedup_8c" startline="545">ie_weights_dedup::model_dir</references>
+        <references refid="structie__weights__dedup__opts_1aa35fdf95b6eb0a953f2ea621005d8789" compoundref="weights__dedup_8h" startline="152">ie_weights_dedup_opts::prefault_policy</references>
+        <references refid="structie__weights__dedup_1a01e30db91371738f85dff6864eb316bc" compoundref="weights__dedup_8c" startline="553">ie_weights_dedup::prefault_policy</references>
+        <references refid="structie__weights__dedup_1af5c32c69e9f524fab8e1da2ce571e856" compoundref="weights__dedup_8c" startline="550">ie_weights_dedup::tensors</references>
+        <references refid="structie__weights__dedup_1a32b798f5148f2cb48e15220364dd01d5" compoundref="weights__dedup_8c" startline="551">ie_weights_dedup::tensors_count</references>
+        <referencedby refid="group__ie__io__weights_1ga522dac028ee37aae1307ffdb6d65ec1d" compoundref="weights_8c" startline="413" endline="504">ie_weights_open</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="weights__dedup_8h_1a3ad33a6fe3c7a81072c092d1ee510fce" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ie_weights_dedup_close</definition>
+        <argsstring>(ie_weights_dedup_t **h)</argsstring>
+        <name>ie_weights_dedup_close</name>
+        <param>
+          <type><ref refid="weights__dedup_8h_1a0945a69a2d52692d5410a7dcb50d21a7" kindref="member">ie_weights_dedup_t</ref> **</type>
+          <declname>h</declname>
+        </param>
+        <briefdescription>
+<para>Close a deduplicated-weights handle and release mappings. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="inout">h</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Handle to close (set to NULL on return).</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+Close a deduplicated-weights handle and release mappings.</para>
+<para>This unmaps all backing files, frees tensor metadata, and frees the handle.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="inout">h</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Handle pointer (set to NULL on return). </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/weights_dedup.h" line="175" column="6" bodyfile="engine/src/io/weights_dedup.c" bodystart="1088" bodyend="1105" declfile="engine/include/weights_dedup.h" declline="175" declcolumn="6"/>
+        <references refid="structie__weights__dedup_1a3b8e5ac97fb528fd739ee3ea8f9d8328" compoundref="weights__dedup_8c" startline="547">ie_weights_dedup::files</references>
+        <references refid="structie__weights__dedup_1a46625e37da8d667351f7c7effd5ad5dd" compoundref="weights__dedup_8c" startline="548">ie_weights_dedup::files_count</references>
+        <references refid="weights__dedup_8c_1a862a7fdef146928bac4e0149e87ffd59" compoundref="weights__dedup_8c" startline="216" endline="223">ie_mmap_close</references>
+        <references refid="structie__weights__dedup_1a04ec94ca1a9891914683af43355c4df6" compoundref="weights__dedup_8c" startline="545">ie_weights_dedup::model_dir</references>
+        <references refid="structie__tensor__ref_1aa91de44910fe5518cb64585fd463947b" compoundref="weights__dedup_8c" startline="517">ie_tensor_ref::name</references>
+        <references refid="structie__weights__dedup_1af5c32c69e9f524fab8e1da2ce571e856" compoundref="weights__dedup_8c" startline="550">ie_weights_dedup::tensors</references>
+        <references refid="structie__weights__dedup_1a32b798f5148f2cb48e15220364dd01d5" compoundref="weights__dedup_8c" startline="551">ie_weights_dedup::tensors_count</references>
+        <referencedby refid="group__ie__io__weights_1ga06c2b7e35d1f82a11e4605e23a1976f5" compoundref="weights_8c" startline="536" endline="544">ie_weights_close</referencedby>
+        <referencedby refid="weights__dedup_8h_1aa625b41ce2a24826f8cb464661ace8ec" compoundref="weights__dedup_8c" startline="996" endline="1079">ie_weights_dedup_open</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="weights__dedup_8h_1a3dde6478a937f4d2288026c1e9a9d499" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="weights__dedup_8h_1a18bb618ee58b1b33bfbd43d51ecf23b4" kindref="member">ie_wdedup_status_t</ref></type>
+        <definition>ie_wdedup_status_t ie_weights_dedup_get_weight_view</definition>
+        <argsstring>(const ie_weights_dedup_t *h, const char *name, ie_weight_view_t *out)</argsstring>
+        <name>ie_weights_dedup_get_weight_view</name>
+        <param>
+          <type>const <ref refid="weights__dedup_8h_1a0945a69a2d52692d5410a7dcb50d21a7" kindref="member">ie_weights_dedup_t</ref> *</type>
+          <declname>h</declname>
+        </param>
+        <param>
+          <type>const char *</type>
+          <declname>name</declname>
+        </param>
+        <param>
+          <type><ref refid="weights__dedup_8h_1a75752d7ae5891353f897bd82ff7e5b29" kindref="member">ie_weight_view_t</ref> *</type>
+          <declname>out</declname>
+        </param>
+        <briefdescription>
+<para>Lookup a tensor by name and return a uniform view. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>The view&apos;s pointers remain valid until <computeroutput><ref refid="weights__dedup_8h_1a3ad33a6fe3c7a81072c092d1ee510fce" kindref="member">ie_weights_dedup_close()</ref></computeroutput>.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">h</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Open dedup handle. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">name</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Tensor name. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">out</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Filled view on success. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>IE_WDEDUP_OK if found, otherwise an error code.</para>
+</simplesect>
+Lookup a tensor by name and return a uniform view.</para>
+<para>For deduplicated tensors, the returned view points at:<itemizedlist>
+<listitem><para>a defaults byte-range (base tensor data),</para>
+</listitem><listitem><para>a bitmask indicating which elements are overridden,</para>
+</listitem><listitem><para>an exceptions stream providing the replacement values.</para>
+</listitem></itemizedlist>
+</para>
+<para>If a tensor has no mask/exceptions, the view is returned as IE_WVIEW_DIRECT.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">h</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Handle. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">name</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Tensor name. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">out</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Output view descriptor. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Status code. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/weights_dedup.h" line="187" column="20" bodyfile="engine/src/io/weights_dedup.c" bodystart="1122" bodyend="1171" declfile="engine/include/weights_dedup.h" declline="187" declcolumn="20"/>
+        <references refid="structie__mmap__file_1a1f966d06ae17da8bca4c2ba24c66348d" compoundref="weights__dedup_8c" startline="171">ie_mmap_file::base</references>
+        <references refid="structie__weight__view_1ae609779138ed8f70856ee47ee64ffb4a" compoundref="weights__dedup_8h" startline="123">ie_weight_view::data</references>
+        <references refid="structie__weight__view_1aee0c8f026ee8d31ad05e04f2d2a10f63" compoundref="weights__dedup_8h" startline="127">ie_weight_view::defaults</references>
+        <references refid="structie__weight__view_1aa97021da984dc108166521be52a489ed" compoundref="weights__dedup_8h" startline="128">ie_weight_view::defaults_nbytes</references>
+        <references refid="structie__weight__view_1aa5a9daa8a88df3e749624384919522fc" compoundref="weights__dedup_8h" startline="117">ie_weight_view::dtype</references>
+        <references refid="structie__tensor__ref_1a8d3e19687415a9b972ae0852ff3078e7" compoundref="weights__dedup_8c" startline="518">ie_tensor_ref::dtype</references>
+        <references refid="structie__weight__view_1ab9c7288dea66858448ba932057b1d2aa" compoundref="weights__dedup_8h" startline="137">ie_weight_view::elem_count</references>
+        <references refid="structie__tensor__ref_1a30b78d1fecaa00dde2a2da71a019f7e9" compoundref="weights__dedup_8c" startline="537">ie_tensor_ref::elem_count</references>
+        <references refid="structie__weight__view_1ad58a181adbe6e6bccce6676832c6f22a" compoundref="weights__dedup_8h" startline="138">ie_weight_view::elem_size</references>
+        <references refid="structie__tensor__ref_1a5991b68b8c8ea6b537be7c8b98de7251" compoundref="weights__dedup_8c" startline="538">ie_tensor_ref::elem_size</references>
+        <references refid="structie__weight__view_1a585349bb4d68157023b79d28e7b07e7f" compoundref="weights__dedup_8h" startline="133">ie_weight_view::exceptions</references>
+        <references refid="structie__weight__view_1a2465b8eed655e4bf84c1193865318fef" compoundref="weights__dedup_8h" startline="134">ie_weight_view::exceptions_nbytes</references>
+        <references refid="structie__tensor__ref_1aa5ebbed0635fe1a9743edfa9add26ea7" compoundref="weights__dedup_8c" startline="524">ie_tensor_ref::file_defaults</references>
+        <references refid="structie__tensor__ref_1aaf61692b95ac0b70957e9aef513ebd18" compoundref="weights__dedup_8c" startline="532">ie_tensor_ref::file_exceptions</references>
+        <references refid="structie__tensor__ref_1ad0370cf50184921972edce378b41eefe" compoundref="weights__dedup_8c" startline="528">ie_tensor_ref::file_mask</references>
+        <references refid="structie__weights__dedup_1a3b8e5ac97fb528fd739ee3ea8f9d8328" compoundref="weights__dedup_8c" startline="547">ie_weights_dedup::files</references>
+        <references refid="weights__dedup_8c_1a29eeb45b46d8c731e71a73572aa336f7" compoundref="weights__dedup_8c" startline="637" endline="646">ie_find_tensor</references>
+        <references refid="weights__dedup_8h_1a9421812de4e8b9faeea608ac3809d6cba32fb20c23ffafb87b20ac22c3295e5c4" compoundref="weights__dedup_8h" startline="61">IE_WDEDUP_EINVAL</references>
+        <references refid="weights__dedup_8h_1a9421812de4e8b9faeea608ac3809d6cba28a9d86d21f47dd3dac973cd8b2e56c9" compoundref="weights__dedup_8h" startline="62">IE_WDEDUP_ENOENT</references>
+        <references refid="weights__dedup_8h_1a9421812de4e8b9faeea608ac3809d6cba9a269cc048c34ff11389ad17b72dbf33" compoundref="weights__dedup_8h" startline="66">IE_WDEDUP_ERANGE</references>
+        <references refid="weights__dedup_8h_1a9421812de4e8b9faeea608ac3809d6cba0baf1bf45e91e9558e44038d27d20e2f" compoundref="weights__dedup_8h" startline="60">IE_WDEDUP_OK</references>
+        <references refid="weights__dedup_8h_1a5998cdfeeb96313d25cc573b6ff9fc42ac989f2301ce9405901e7bc652e8d2913" compoundref="weights__dedup_8h" startline="86">IE_WVIEW_DEDUP</references>
+        <references refid="weights__dedup_8h_1a5998cdfeeb96313d25cc573b6ff9fc42a41b14f68e6dd2f5b95d10ae10f55cfd2" compoundref="weights__dedup_8h" startline="85">IE_WVIEW_DIRECT</references>
+        <references refid="structie__weight__view_1abe3efa69a5ecaba728ddbc4015351b0a" compoundref="weights__dedup_8h" startline="116">ie_weight_view::kind</references>
+        <references refid="structie__weight__view_1a5f7275bf18ea4a68c40f1835cccdb60b" compoundref="weights__dedup_8h" startline="130">ie_weight_view::mask</references>
+        <references refid="structie__weight__view_1ad45012a4358eafb97cdcbb781a6628d4" compoundref="weights__dedup_8h" startline="131">ie_weight_view::mask_nbytes</references>
+        <references refid="structie__weight__view_1a7fbbc23d523c49f60e13dd67bc9b0d7b" compoundref="weights__dedup_8h" startline="124">ie_weight_view::nbytes</references>
+        <references refid="structie__tensor__ref_1a194e67ea04dbc634e22660a239ff8d22" compoundref="weights__dedup_8c" startline="526">ie_tensor_ref::nbytes_defaults</references>
+        <references refid="structie__tensor__ref_1a6a020cb89904da93ada41fb17d0e07e5" compoundref="weights__dedup_8c" startline="534">ie_tensor_ref::nbytes_exceptions</references>
+        <references refid="structie__tensor__ref_1a917611b928fd7d85fdc22108bd0c99e4" compoundref="weights__dedup_8c" startline="530">ie_tensor_ref::nbytes_mask</references>
+        <references refid="structie__tensor__ref_1afc0d1756c72cc99d663603546d836fe7" compoundref="weights__dedup_8c" startline="525">ie_tensor_ref::off_defaults</references>
+        <references refid="structie__tensor__ref_1a610ac41d587364cb6d32e37d797e97cc" compoundref="weights__dedup_8c" startline="533">ie_tensor_ref::off_exceptions</references>
+        <references refid="structie__tensor__ref_1aaf650d42ae89c734d23bcd72a6d0123f" compoundref="weights__dedup_8c" startline="529">ie_tensor_ref::off_mask</references>
+        <references refid="structie__weight__view_1a3bf971015a02a48e9ea72f172baeae81" compoundref="weights__dedup_8h" startline="119">ie_weight_view::rank</references>
+        <references refid="structie__tensor__ref_1aae2e0c21e7005e36c31bd1f5c62720d7" compoundref="weights__dedup_8c" startline="520">ie_tensor_ref::rank</references>
+        <references refid="structie__weight__view_1a61433d0b43696b3734201b8a3e70eb8d" compoundref="weights__dedup_8h" startline="120">ie_weight_view::shape</references>
+        <references refid="structie__tensor__ref_1a95e95e5a2dc842559a6a34bc74659637" compoundref="weights__dedup_8c" startline="521">ie_tensor_ref::shape</references>
+        <references refid="structie__mmap__file_1abffe4bb6097ad40777bf078b9e88076e" compoundref="weights__dedup_8c" startline="172">ie_mmap_file::size</references>
+      </memberdef>
+      <memberdef kind="function" id="weights__dedup_8h_1a82069e1a7a2e1c0eaaebdd566ab44abe" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>size_t</type>
+        <definition>size_t ie_weights_dedup_materialize</definition>
+        <argsstring>(const ie_weight_view_t *view, void *dst, size_t dst_nbytes)</argsstring>
+        <name>ie_weights_dedup_materialize</name>
+        <param>
+          <type>const <ref refid="weights__dedup_8h_1a75752d7ae5891353f897bd82ff7e5b29" kindref="member">ie_weight_view_t</ref> *</type>
+          <declname>view</declname>
+        </param>
+        <param>
+          <type>void *</type>
+          <declname>dst</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>dst_nbytes</declname>
+        </param>
+        <briefdescription>
+<para>Materialize a weight view into a contiguous buffer (lossless). </para>
+        </briefdescription>
+        <detaileddescription>
+<para>This is primarily intended for tests:<itemizedlist>
+<listitem><para>Load baseline (non-dedup) tensor bytes and hash them.</para>
+</listitem><listitem><para>Load dedup tensor view, materialize into scratch, hash, compare.</para>
+</listitem></itemizedlist>
+</para>
+<para>For IE_WVIEW_DIRECT, this performs a memcpy. For IE_WVIEW_DEDUP, this reconstructs defaults + overrides according to the mask.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">view</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Weight view (direct or dedup). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">dst</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Destination buffer. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">dst_nbytes</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Capacity of destination buffer in bytes. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Number of bytes written on success, 0 on failure.</para>
+</simplesect>
+Materialize a weight view into a contiguous buffer (lossless).</para>
+<para>Behavior:<itemizedlist>
+<listitem><para>If <computeroutput>view</computeroutput> is IE_WVIEW_DIRECT, this copies the referenced bytes verbatim.</para>
+</listitem><listitem><para>If <computeroutput>view</computeroutput> is IE_WVIEW_DEDUP:<itemizedlist>
+<listitem><para>For non-int4 dtypes: copy defaults, then apply per-element overrides from the exceptions stream where the mask bit is set.</para>
+</listitem><listitem><para>For int4: destination is a packed nibble array; defaults are copied, then overridden nibble-by-nibble from the exceptions stream.</para>
+</listitem></itemizedlist>
+</para>
+</listitem></itemizedlist>
+</para>
+<para>The function returns 0 on any validation/size error.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">view</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Parsed weight view. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">dst</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Destination buffer. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">dst_nbytes</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Capacity of <computeroutput>dst</computeroutput> in bytes. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Number of bytes written to <computeroutput>dst</computeroutput>, or 0 on failure. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/weights_dedup.h" line="206" column="8" bodyfile="engine/src/io/weights_dedup.c" bodystart="1238" bodyend="1300" declfile="engine/include/weights_dedup.h" declline="206" declcolumn="8"/>
+        <references refid="structie__weight__view_1ae609779138ed8f70856ee47ee64ffb4a" compoundref="weights__dedup_8h" startline="123">ie_weight_view::data</references>
+        <references refid="structie__weight__view_1aee0c8f026ee8d31ad05e04f2d2a10f63" compoundref="weights__dedup_8h" startline="127">ie_weight_view::defaults</references>
+        <references refid="structie__weight__view_1aa97021da984dc108166521be52a489ed" compoundref="weights__dedup_8h" startline="128">ie_weight_view::defaults_nbytes</references>
+        <references refid="structie__weight__view_1aa5a9daa8a88df3e749624384919522fc" compoundref="weights__dedup_8h" startline="117">ie_weight_view::dtype</references>
+        <references refid="structie__weight__view_1ab9c7288dea66858448ba932057b1d2aa" compoundref="weights__dedup_8h" startline="137">ie_weight_view::elem_count</references>
+        <references refid="structie__weight__view_1ad58a181adbe6e6bccce6676832c6f22a" compoundref="weights__dedup_8h" startline="138">ie_weight_view::elem_size</references>
+        <references refid="structie__weight__view_1a585349bb4d68157023b79d28e7b07e7f" compoundref="weights__dedup_8h" startline="133">ie_weight_view::exceptions</references>
+        <references refid="structie__weight__view_1a2465b8eed655e4bf84c1193865318fef" compoundref="weights__dedup_8h" startline="134">ie_weight_view::exceptions_nbytes</references>
+        <references refid="weights__dedup_8c_1a28243d85f0364cf34deec7295af01ebb" compoundref="weights__dedup_8c" startline="1182" endline="1184">ie_bitset_get</references>
+        <references refid="weights__dedup_8c_1ae6defeccf38bb71d7fa19d6e2af95d43" compoundref="weights__dedup_8c" startline="1197" endline="1201">ie_int4_get_nibble</references>
+        <references refid="weights__dedup_8c_1a3d97725457baf802e0a380afb3580166" compoundref="weights__dedup_8c" startline="1210" endline="1218">ie_int4_set_nibble</references>
+        <references refid="weights__dedup_8h_1a58967a7e905bffdd1db424ed9dd1b0faa2f075b3614d1aa8d7a5c411e788cf3df" compoundref="weights__dedup_8h" startline="78">IE_WDTYPE_INT4</references>
+        <references refid="weights__dedup_8h_1a5998cdfeeb96313d25cc573b6ff9fc42ac989f2301ce9405901e7bc652e8d2913" compoundref="weights__dedup_8h" startline="86">IE_WVIEW_DEDUP</references>
+        <references refid="weights__dedup_8h_1a5998cdfeeb96313d25cc573b6ff9fc42a41b14f68e6dd2f5b95d10ae10f55cfd2" compoundref="weights__dedup_8h" startline="85">IE_WVIEW_DIRECT</references>
+        <references refid="structie__weight__view_1abe3efa69a5ecaba728ddbc4015351b0a" compoundref="weights__dedup_8h" startline="116">ie_weight_view::kind</references>
+        <references refid="structie__weight__view_1a5f7275bf18ea4a68c40f1835cccdb60b" compoundref="weights__dedup_8h" startline="130">ie_weight_view::mask</references>
+        <references refid="structie__weight__view_1a7fbbc23d523c49f60e13dd67bc9b0d7b" compoundref="weights__dedup_8h" startline="124">ie_weight_view::nbytes</references>
+        <referencedby refid="test__weights_8c_1a31ec07c9b95704233d146cf71a4b105a" compoundref="test__weights_8c" startline="110" endline="132">hash_view</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="weights__dedup_8h_1ad0ae06a184c7f1407994167e82afedb7" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="weights__dedup_8h_1a0c5f7d768b38852b0cd096fc6bcaad1f" kindref="member">ie_wdtype_t</ref></type>
+        <definition>ie_wdtype_t ie_weights_dedup_parse_dtype</definition>
+        <argsstring>(const char *s)</argsstring>
+        <name>ie_weights_dedup_parse_dtype</name>
+        <param>
+          <type>const char *</type>
+          <declname>s</declname>
+        </param>
+        <briefdescription>
+<para>Convert a dtype string (&quot;fp32&quot;, &quot;int4&quot;, ...) to ie_wdtype_t. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">s</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>NUL-terminated dtype string. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Parsed dtype or IE_WDTYPE_UNKNOWN.</para>
+</simplesect>
+Convert a dtype string (&quot;fp32&quot;, &quot;int4&quot;, ...) to ie_wdtype_t.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">s</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Dtype string (e.g., &quot;fp16&quot;, &quot;int4&quot;). </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Parsed dtype enum value (or IE_WDTYPE_UNKNOWN). </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/weights_dedup.h" line="214" column="13" bodyfile="engine/src/io/weights_dedup.c" bodystart="564" bodyend="572" declfile="engine/include/weights_dedup.h" declline="214" declcolumn="13"/>
+        <references refid="weights__dedup_8h_1a58967a7e905bffdd1db424ed9dd1b0faac90c0a66fe449633e12a41ad08a7648c" compoundref="weights__dedup_8h" startline="76">IE_WDTYPE_BF16</references>
+        <references refid="weights__dedup_8h_1a58967a7e905bffdd1db424ed9dd1b0faa5c57083e113a7c4b29b8d43bdb871bbf" compoundref="weights__dedup_8h" startline="75">IE_WDTYPE_FP16</references>
+        <references refid="weights__dedup_8h_1a58967a7e905bffdd1db424ed9dd1b0faa48d84b78c6ac200f8059daa65aaf6102" compoundref="weights__dedup_8h" startline="74">IE_WDTYPE_FP32</references>
+        <references refid="weights__dedup_8h_1a58967a7e905bffdd1db424ed9dd1b0faa2f075b3614d1aa8d7a5c411e788cf3df" compoundref="weights__dedup_8h" startline="78">IE_WDTYPE_INT4</references>
+        <references refid="weights__dedup_8h_1a58967a7e905bffdd1db424ed9dd1b0faa4b73359bb36a788c455544d0cf31ad9d" compoundref="weights__dedup_8h" startline="77">IE_WDTYPE_INT8</references>
+        <references refid="weights__dedup_8h_1a58967a7e905bffdd1db424ed9dd1b0faa643d772c0dafcddd81f1ac1f05746865" compoundref="weights__dedup_8h" startline="73">IE_WDTYPE_UNKNOWN</references>
+        <referencedby refid="weights__dedup_8c_1ac8435c15b639ac76b805cc23f609be12" compoundref="weights__dedup_8c" startline="826" endline="908">ie_parse_one_tensor</referencedby>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Lossless deduplicated-weights loader (mmap-friendly) and uniform weight view API. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>This module loads a deduplicated model representation described by <computeroutput>model.dedup.json</computeroutput> and maps the backing binary blobs (defaults/exceptions/masks) using <computeroutput>mmap(2)</computeroutput>.</para>
+<para>The loader exposes a uniform <computeroutput><ref refid="weights__dedup_8h_1a3dde6478a937f4d2288026c1e9a9d499" kindref="member">ie_weights_dedup_get_weight_view()</ref></computeroutput> API returning an <computeroutput>ie_weight_view_t</computeroutput> that can represent either:<itemizedlist>
+<listitem><para>A direct contiguous tensor view (rare in dedup artifacts but supported), or</para>
+</listitem><listitem><para>A deduplicated tensor view referencing (defaults + mask + exceptions).</para>
+</listitem></itemizedlist>
+</para>
+<para>The intent is to keep this loader mmap-friendly:<itemizedlist>
+<listitem><para>all large blobs are memory-mapped read-only</para>
+</listitem><listitem><para>tensor views are lightweight pointers into those mappings</para>
+</listitem></itemizedlist>
+</para>
+<para>A reference materializer (<computeroutput><ref refid="weights__dedup_8h_1a82069e1a7a2e1c0eaaebdd566ab44abe" kindref="member">ie_weights_dedup_materialize()</ref></computeroutput>) is provided primarily for correctness tests (hash comparison against the non-dedup baseline path) and as a debugging aid.</para>
+<para>JSON format expectations (minimal):<itemizedlist>
+<listitem><para>A top-level &quot;files&quot; object mapping logical names to relative file paths: { &quot;files&quot;: { &quot;defaults&quot;: &quot;...bin&quot;, &quot;exceptions&quot;: &quot;...bin&quot;, &quot;masks&quot;: &quot;...bin&quot; }, ... }</para>
+</listitem><listitem><para>A top-level &quot;tensors&quot; array, each with:<itemizedlist>
+<listitem><para>&quot;name&quot; (string)</para>
+</listitem><listitem><para>&quot;dtype&quot; (string) : &quot;fp32&quot;,&quot;fp16&quot;,&quot;bf16&quot;,&quot;int8&quot;,&quot;int4&quot; (others may be added later)</para>
+</listitem><listitem><para>&quot;shape&quot; (int array)</para>
+</listitem><listitem><para>&quot;default&quot; / &quot;mask&quot; / &quot;exceptions&quot; objects: { &quot;file&quot;: &quot;defaults&quot;, &quot;offset&quot;: N, &quot;nbytes&quot;: M }</para>
+</listitem></itemizedlist>
+</para>
+</listitem></itemizedlist>
+</para>
+<para>The mask is interpreted as a bitset over <emphasis>elements</emphasis> (not bytes):<itemizedlist>
+<listitem><para>bit=0 =&gt; element equals defaults</para>
+</listitem><listitem><para>bit=1 =&gt; element is overridden by the next value in exceptions (packed sequentially)</para>
+</listitem></itemizedlist>
+</para>
+<para>For int4 tensors, &quot;elements&quot; refers to nibbles (4-bit values) in row-major order.</para>
+<para><simplesect kind="note"><para>This header intentionally does not depend on engine-global tensor metadata types. The engine can bridge <computeroutput>ie_weight_view_t</computeroutput> into its internal representation. </para>
+</simplesect>
+</para>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1" refid="weights__dedup_8h_1a0945a69a2d52692d5410a7dcb50d21a7" refkind="member"><highlight class="comment">/*<sp/>engine/include/io/weights_dedup.h<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="42"><highlight class="normal"></highlight><highlight class="preprocessor">#pragma<sp/>once</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="43"><highlight class="normal"></highlight></codeline>
+<codeline lineno="44"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stddef.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="45"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stdint.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="46"><highlight class="normal"></highlight></codeline>
+<codeline lineno="47"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="48"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/></highlight><highlight class="stringliteral">&quot;C&quot;</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="49"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="50"><highlight class="normal"></highlight></codeline>
+<codeline lineno="54"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structie__weights__dedup" kindref="compound">ie_weights_dedup</ref><sp/><ref refid="structie__weights__dedup" kindref="compound">ie_weights_dedup_t</ref>;</highlight></codeline>
+<codeline lineno="55"><highlight class="normal"></highlight></codeline>
+<codeline lineno="59" refid="weights__dedup_8h_1a9421812de4e8b9faeea608ac3809d6cb" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">enum</highlight><highlight class="normal"><sp/><ref refid="weights__dedup_8h_1a9421812de4e8b9faeea608ac3809d6cb" kindref="member">ie_wdedup_status</ref><sp/>{</highlight></codeline>
+<codeline lineno="60" refid="weights__dedup_8h_1a9421812de4e8b9faeea608ac3809d6cba0baf1bf45e91e9558e44038d27d20e2f" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="weights__dedup_8h_1a9421812de4e8b9faeea608ac3809d6cba0baf1bf45e91e9558e44038d27d20e2f" kindref="member">IE_WDEDUP_OK</ref><sp/>=<sp/>0,</highlight></codeline>
+<codeline lineno="61" refid="weights__dedup_8h_1a9421812de4e8b9faeea608ac3809d6cba32fb20c23ffafb87b20ac22c3295e5c4" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="weights__dedup_8h_1a9421812de4e8b9faeea608ac3809d6cba32fb20c23ffafb87b20ac22c3295e5c4" kindref="member">IE_WDEDUP_EINVAL</ref><sp/>=<sp/>1,</highlight></codeline>
+<codeline lineno="62" refid="weights__dedup_8h_1a9421812de4e8b9faeea608ac3809d6cba28a9d86d21f47dd3dac973cd8b2e56c9" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="weights__dedup_8h_1a9421812de4e8b9faeea608ac3809d6cba28a9d86d21f47dd3dac973cd8b2e56c9" kindref="member">IE_WDEDUP_ENOENT</ref><sp/>=<sp/>2,</highlight></codeline>
+<codeline lineno="63" refid="weights__dedup_8h_1a9421812de4e8b9faeea608ac3809d6cba85f5a8d40f8e7522f8ac7bd2fc4d304d" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="weights__dedup_8h_1a9421812de4e8b9faeea608ac3809d6cba85f5a8d40f8e7522f8ac7bd2fc4d304d" kindref="member">IE_WDEDUP_EIO</ref><sp/>=<sp/>3,</highlight></codeline>
+<codeline lineno="64" refid="weights__dedup_8h_1a9421812de4e8b9faeea608ac3809d6cbacf4e62b51d3a4a511856c2d104021d31" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="weights__dedup_8h_1a9421812de4e8b9faeea608ac3809d6cbacf4e62b51d3a4a511856c2d104021d31" kindref="member">IE_WDEDUP_ENOMEM</ref><sp/>=<sp/>4,</highlight></codeline>
+<codeline lineno="65" refid="weights__dedup_8h_1a9421812de4e8b9faeea608ac3809d6cba92e176fa3efb789e3511ed848b673176" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="weights__dedup_8h_1a9421812de4e8b9faeea608ac3809d6cba92e176fa3efb789e3511ed848b673176" kindref="member">IE_WDEDUP_EFORMAT</ref><sp/>=<sp/>5,</highlight></codeline>
+<codeline lineno="66"><highlight class="normal"><sp/><sp/><ref refid="weights__dedup_8h_1a9421812de4e8b9faeea608ac3809d6cba9a269cc048c34ff11389ad17b72dbf33" kindref="member">IE_WDEDUP_ERANGE</ref><sp/>=<sp/>6</highlight></codeline>
+<codeline lineno="67" refid="weights__dedup_8h_1a9421812de4e8b9faeea608ac3809d6cba9a269cc048c34ff11389ad17b72dbf33" refkind="member"><highlight class="normal">}<sp/><ref refid="weights__dedup_8h_1a18bb618ee58b1b33bfbd43d51ecf23b4" kindref="member">ie_wdedup_status_t</ref>;</highlight></codeline>
+<codeline lineno="68"><highlight class="normal"></highlight></codeline>
+<codeline lineno="72" refid="weights__dedup_8h_1a58967a7e905bffdd1db424ed9dd1b0fa" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">enum</highlight><highlight class="normal"><sp/><ref refid="weights__dedup_8h_1a58967a7e905bffdd1db424ed9dd1b0fa" kindref="member">ie_wdtype</ref><sp/>{</highlight></codeline>
+<codeline lineno="73" refid="weights__dedup_8h_1a58967a7e905bffdd1db424ed9dd1b0faa643d772c0dafcddd81f1ac1f05746865" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="weights__dedup_8h_1a58967a7e905bffdd1db424ed9dd1b0faa643d772c0dafcddd81f1ac1f05746865" kindref="member">IE_WDTYPE_UNKNOWN</ref><sp/>=<sp/>0,</highlight></codeline>
+<codeline lineno="74" refid="weights__dedup_8h_1a58967a7e905bffdd1db424ed9dd1b0faa48d84b78c6ac200f8059daa65aaf6102" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="weights__dedup_8h_1a58967a7e905bffdd1db424ed9dd1b0faa48d84b78c6ac200f8059daa65aaf6102" kindref="member">IE_WDTYPE_FP32</ref>,</highlight></codeline>
+<codeline lineno="75" refid="weights__dedup_8h_1a58967a7e905bffdd1db424ed9dd1b0faa5c57083e113a7c4b29b8d43bdb871bbf" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="weights__dedup_8h_1a58967a7e905bffdd1db424ed9dd1b0faa5c57083e113a7c4b29b8d43bdb871bbf" kindref="member">IE_WDTYPE_FP16</ref>,</highlight></codeline>
+<codeline lineno="76" refid="weights__dedup_8h_1a58967a7e905bffdd1db424ed9dd1b0faac90c0a66fe449633e12a41ad08a7648c" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="weights__dedup_8h_1a58967a7e905bffdd1db424ed9dd1b0faac90c0a66fe449633e12a41ad08a7648c" kindref="member">IE_WDTYPE_BF16</ref>,</highlight></codeline>
+<codeline lineno="77" refid="weights__dedup_8h_1a58967a7e905bffdd1db424ed9dd1b0faa4b73359bb36a788c455544d0cf31ad9d" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="weights__dedup_8h_1a58967a7e905bffdd1db424ed9dd1b0faa4b73359bb36a788c455544d0cf31ad9d" kindref="member">IE_WDTYPE_INT8</ref>,</highlight></codeline>
+<codeline lineno="78"><highlight class="normal"><sp/><sp/><ref refid="weights__dedup_8h_1a58967a7e905bffdd1db424ed9dd1b0faa2f075b3614d1aa8d7a5c411e788cf3df" kindref="member">IE_WDTYPE_INT4</ref></highlight></codeline>
+<codeline lineno="79" refid="weights__dedup_8h_1a58967a7e905bffdd1db424ed9dd1b0faa2f075b3614d1aa8d7a5c411e788cf3df" refkind="member"><highlight class="normal">}<sp/><ref refid="weights__dedup_8h_1a0c5f7d768b38852b0cd096fc6bcaad1f" kindref="member">ie_wdtype_t</ref>;</highlight></codeline>
+<codeline lineno="80"><highlight class="normal"></highlight></codeline>
+<codeline lineno="84" refid="weights__dedup_8h_1a5998cdfeeb96313d25cc573b6ff9fc42" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">enum</highlight><highlight class="normal"><sp/><ref refid="weights__dedup_8h_1a5998cdfeeb96313d25cc573b6ff9fc42" kindref="member">ie_weight_view_kind</ref><sp/>{</highlight></codeline>
+<codeline lineno="85" refid="weights__dedup_8h_1a5998cdfeeb96313d25cc573b6ff9fc42a41b14f68e6dd2f5b95d10ae10f55cfd2" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="weights__dedup_8h_1a5998cdfeeb96313d25cc573b6ff9fc42a41b14f68e6dd2f5b95d10ae10f55cfd2" kindref="member">IE_WVIEW_DIRECT</ref><sp/>=<sp/>0,<sp/></highlight></codeline>
+<codeline lineno="86"><highlight class="normal"><sp/><sp/><ref refid="weights__dedup_8h_1a5998cdfeeb96313d25cc573b6ff9fc42ac989f2301ce9405901e7bc652e8d2913" kindref="member">IE_WVIEW_DEDUP</ref><sp/><sp/>=<sp/>1<sp/><sp/></highlight></codeline>
+<codeline lineno="87" refid="weights__dedup_8h_1a185e6f8ed325abfa646ab2e67fd3be13" refkind="member"><highlight class="normal">}<sp/><ref refid="weights__dedup_8h_1a185e6f8ed325abfa646ab2e67fd3be13" kindref="member">ie_weight_view_kind_t</ref>;</highlight></codeline>
+<codeline lineno="88"><highlight class="normal"></highlight></codeline>
+<codeline lineno="95"><highlight class="normal"></highlight><highlight class="preprocessor">#ifndef<sp/>IE_WDEDUP_MAX_RANK</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="96" refid="weights__dedup_8h_1aa2216aef65948cf32ff1ff7b2d8ca579" refkind="member"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>IE_WDEDUP_MAX_RANK<sp/>8</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="97"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="98"><highlight class="normal"></highlight></codeline>
+<codeline lineno="115" refid="structie__weight__view" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structie__weight__view" kindref="compound">ie_weight_view</ref><sp/>{</highlight></codeline>
+<codeline lineno="116" refid="structie__weight__view_1abe3efa69a5ecaba728ddbc4015351b0a" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="weights__dedup_8h_1a185e6f8ed325abfa646ab2e67fd3be13" kindref="member">ie_weight_view_kind_t</ref><sp/><ref refid="structie__weight__view_1abe3efa69a5ecaba728ddbc4015351b0a" kindref="member">kind</ref>;</highlight></codeline>
+<codeline lineno="117" refid="structie__weight__view_1aa5a9daa8a88df3e749624384919522fc" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="weights__dedup_8h_1a0c5f7d768b38852b0cd096fc6bcaad1f" kindref="member">ie_wdtype_t</ref><sp/><ref refid="structie__weight__view_1aa5a9daa8a88df3e749624384919522fc" kindref="member">dtype</ref>;</highlight></codeline>
+<codeline lineno="118"><highlight class="normal"></highlight></codeline>
+<codeline lineno="119" refid="structie__weight__view_1a3bf971015a02a48e9ea72f172baeae81" refkind="member"><highlight class="normal"><sp/><sp/>int32_t<sp/><ref refid="structie__weight__view_1a3bf971015a02a48e9ea72f172baeae81" kindref="member">rank</ref>;</highlight></codeline>
+<codeline lineno="120" refid="structie__weight__view_1a61433d0b43696b3734201b8a3e70eb8d" refkind="member"><highlight class="normal"><sp/><sp/>int64_t<sp/><ref refid="structie__weight__view_1a61433d0b43696b3734201b8a3e70eb8d" kindref="member">shape</ref>[<ref refid="weights__dedup_8h_1aa2216aef65948cf32ff1ff7b2d8ca579" kindref="member">IE_WDEDUP_MAX_RANK</ref>];</highlight></codeline>
+<codeline lineno="121"><highlight class="normal"></highlight></codeline>
+<codeline lineno="122"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">/*<sp/>Direct<sp/>view<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="123" refid="structie__weight__view_1ae609779138ed8f70856ee47ee64ffb4a" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*<ref refid="structie__weight__view_1ae609779138ed8f70856ee47ee64ffb4a" kindref="member">data</ref>;</highlight></codeline>
+<codeline lineno="124" refid="structie__weight__view_1a7fbbc23d523c49f60e13dd67bc9b0d7b" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/><ref refid="structie__weight__view_1a7fbbc23d523c49f60e13dd67bc9b0d7b" kindref="member">nbytes</ref>;</highlight></codeline>
+<codeline lineno="125"><highlight class="normal"></highlight></codeline>
+<codeline lineno="126"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">/*<sp/>Dedup<sp/>view<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="127" refid="structie__weight__view_1aee0c8f026ee8d31ad05e04f2d2a10f63" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*<ref refid="structie__weight__view_1aee0c8f026ee8d31ad05e04f2d2a10f63" kindref="member">defaults</ref>;</highlight></codeline>
+<codeline lineno="128" refid="structie__weight__view_1aa97021da984dc108166521be52a489ed" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/><ref refid="structie__weight__view_1aa97021da984dc108166521be52a489ed" kindref="member">defaults_nbytes</ref>;</highlight></codeline>
+<codeline lineno="129"><highlight class="normal"></highlight></codeline>
+<codeline lineno="130" refid="structie__weight__view_1a5f7275bf18ea4a68c40f1835cccdb60b" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>uint8_t<sp/>*<ref refid="structie__weight__view_1a5f7275bf18ea4a68c40f1835cccdb60b" kindref="member">mask</ref>;</highlight></codeline>
+<codeline lineno="131" refid="structie__weight__view_1ad45012a4358eafb97cdcbb781a6628d4" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/><ref refid="structie__weight__view_1ad45012a4358eafb97cdcbb781a6628d4" kindref="member">mask_nbytes</ref>;</highlight></codeline>
+<codeline lineno="132"><highlight class="normal"></highlight></codeline>
+<codeline lineno="133" refid="structie__weight__view_1a585349bb4d68157023b79d28e7b07e7f" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*<ref refid="structie__weight__view_1a585349bb4d68157023b79d28e7b07e7f" kindref="member">exceptions</ref>;</highlight></codeline>
+<codeline lineno="134" refid="structie__weight__view_1a2465b8eed655e4bf84c1193865318fef" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/><ref refid="structie__weight__view_1a2465b8eed655e4bf84c1193865318fef" kindref="member">exceptions_nbytes</ref>;</highlight></codeline>
+<codeline lineno="135"><highlight class="normal"></highlight></codeline>
+<codeline lineno="136"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">/*<sp/>Derived<sp/>info<sp/>(filled<sp/>by<sp/>loader)<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="137" refid="structie__weight__view_1ab9c7288dea66858448ba932057b1d2aa" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/><ref refid="structie__weight__view_1ab9c7288dea66858448ba932057b1d2aa" kindref="member">elem_count</ref>;<sp/><sp/><sp/></highlight></codeline>
+<codeline lineno="138" refid="structie__weight__view_1ad58a181adbe6e6bccce6676832c6f22a" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/><ref refid="structie__weight__view_1ad58a181adbe6e6bccce6676832c6f22a" kindref="member">elem_size</ref>;<sp/><sp/><sp/><sp/></highlight></codeline>
+<codeline lineno="139" refid="weights__dedup_8h_1a75752d7ae5891353f897bd82ff7e5b29" refkind="member"><highlight class="normal">}<sp/><ref refid="weights__dedup_8h_1a75752d7ae5891353f897bd82ff7e5b29" kindref="member">ie_weight_view_t</ref>;</highlight></codeline>
+<codeline lineno="140"><highlight class="normal"></highlight></codeline>
+<codeline lineno="144" refid="structie__weights__dedup__opts" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structie__weights__dedup__opts" kindref="compound">ie_weights_dedup_opts</ref><sp/>{</highlight></codeline>
+<codeline lineno="152" refid="structie__weights__dedup__opts_1aa35fdf95b6eb0a953f2ea621005d8789" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="structie__weights__dedup__opts_1aa35fdf95b6eb0a953f2ea621005d8789" kindref="member">prefault_policy</ref>;</highlight></codeline>
+<codeline lineno="153" refid="weights__dedup_8h_1a6ff23db7bbfd16969c522082f91241db" refkind="member"><highlight class="normal">}<sp/><ref refid="weights__dedup_8h_1a6ff23db7bbfd16969c522082f91241db" kindref="member">ie_weights_dedup_opts_t</ref>;</highlight></codeline>
+<codeline lineno="154"><highlight class="normal"></highlight></codeline>
+<codeline lineno="166"><highlight class="normal"><ref refid="weights__dedup_8h_1a18bb618ee58b1b33bfbd43d51ecf23b4" kindref="member">ie_wdedup_status_t</ref><sp/><ref refid="weights__dedup_8h_1aa625b41ce2a24826f8cb464661ace8ec" kindref="member">ie_weights_dedup_open</ref>(<ref refid="structie__weights__dedup" kindref="compound">ie_weights_dedup_t</ref><sp/>**out,</highlight></codeline>
+<codeline lineno="167"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*model_dir,</highlight></codeline>
+<codeline lineno="168"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="structie__weights__dedup__opts" kindref="compound">ie_weights_dedup_opts_t</ref><sp/>*opts);</highlight></codeline>
+<codeline lineno="169"><highlight class="normal"></highlight></codeline>
+<codeline lineno="175"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="weights__dedup_8h_1a3ad33a6fe3c7a81072c092d1ee510fce" kindref="member">ie_weights_dedup_close</ref>(<ref refid="structie__weights__dedup" kindref="compound">ie_weights_dedup_t</ref><sp/>**h);</highlight></codeline>
+<codeline lineno="176"><highlight class="normal"></highlight></codeline>
+<codeline lineno="187"><highlight class="normal"><ref refid="weights__dedup_8h_1a18bb618ee58b1b33bfbd43d51ecf23b4" kindref="member">ie_wdedup_status_t</ref><sp/><ref refid="weights__dedup_8h_1a3dde6478a937f4d2288026c1e9a9d499" kindref="member">ie_weights_dedup_get_weight_view</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="structie__weights__dedup" kindref="compound">ie_weights_dedup_t</ref><sp/>*h,</highlight></codeline>
+<codeline lineno="188"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*name,</highlight></codeline>
+<codeline lineno="189"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="structie__weight__view" kindref="compound">ie_weight_view_t</ref><sp/>*out);</highlight></codeline>
+<codeline lineno="190"><highlight class="normal"></highlight></codeline>
+<codeline lineno="206"><highlight class="normal"></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/><ref refid="weights__dedup_8h_1a82069e1a7a2e1c0eaaebdd566ab44abe" kindref="member">ie_weights_dedup_materialize</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="structie__weight__view" kindref="compound">ie_weight_view_t</ref><sp/>*view,<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*dst,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>dst_nbytes);</highlight></codeline>
+<codeline lineno="207"><highlight class="normal"></highlight></codeline>
+<codeline lineno="214"><highlight class="normal"><ref refid="weights__dedup_8h_1a0c5f7d768b38852b0cd096fc6bcaad1f" kindref="member">ie_wdtype_t</ref><sp/><ref refid="weights__dedup_8h_1ad0ae06a184c7f1407994167e82afedb7" kindref="member">ie_weights_dedup_parse_dtype</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*s);</highlight></codeline>
+<codeline lineno="215"><highlight class="normal"></highlight></codeline>
+<codeline lineno="216"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="217"><highlight class="normal">}<sp/></highlight><highlight class="comment">/*<sp/>extern<sp/>&quot;C&quot;<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="218"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="219"><highlight class="normal"></highlight></codeline>
+    </programlisting>
+    <location file="engine/include/weights_dedup.h"/>
+  </compounddef>
+</doxygen>

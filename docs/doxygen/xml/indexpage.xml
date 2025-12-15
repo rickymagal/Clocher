@@ -1,26 +1,27 @@
 <?xml version='1.0' encoding='UTF-8' standalone='no'?>
-<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.1" xml:lang="en-US">
   <compounddef id="indexpage" kind="page">
     <compoundname>index</compoundname>
     <title>Inference Engine (Clocher)</title>
     <briefdescription>
     </briefdescription>
     <detaileddescription>
-<para><anchor id="index_1md_README"/></para>
-<para><emphasis>A minimal C11 inference baseline with strict metrics &amp; a Python harness.</emphasis> <linebreak/>
+<para><anchor id="index_1md_README"/> <emphasis>A minimal C11 inference baseline with strict metrics &amp; a Python harness.</emphasis> <linebreak/>
  <bold>Last updated:</bold> 2025-10-24 21:00:48 UTC</para>
 <para><hruler/>
 </para>
-<sect1 id="index_1autotoc_md83">
-<title>Quick start</title><para><programlisting filename=".bash"><codeline><highlight class="normal">#<sp/>Build<sp/>CPU<sp/>and<sp/>(optionally)<sp/>CUDA<sp/>binaries</highlight></codeline>
+<sect1 id="index_1autotoc_md96">
+<title>Quick start</title>
+<para><programlisting filename=".bash"><codeline><highlight class="normal">#<sp/>Build<sp/>CPU<sp/>and<sp/>(optionally)<sp/>CUDA<sp/>binaries</highlight></codeline>
 <codeline><highlight class="normal">make<sp/>build</highlight></codeline>
 <codeline><highlight class="normal">make<sp/>build-cuda<sp/><sp/><sp/>#<sp/>requires<sp/>a<sp/>CUDA<sp/>toolchain;<sp/>produces<sp/>build/inference-engine.cuda</highlight></codeline>
 <codeline></codeline>
 <codeline><highlight class="normal">#<sp/>Sanity:<sp/>show<sp/>CLI</highlight></codeline>
 <codeline><highlight class="normal">./build/inference-engine<sp/>--help</highlight></codeline>
 </programlisting></para>
-<sect2 id="index_1autotoc_md84">
-<title>Model format (IEBIN v1)</title><para>The engine consumes a pair of files in the current working directory:</para>
+<sect2 id="index_1autotoc_md97">
+<title>Model format (IEBIN v1)</title>
+<para>The engine consumes a pair of files in the current working directory:</para>
 <para><programlisting><codeline><highlight class="normal">model.ie.json<sp/><sp/><sp/>#<sp/>metadata<sp/>(tensor<sp/>names,<sp/>shapes,<sp/>dtypes,<sp/>scales)</highlight></codeline>
 <codeline><highlight class="normal">model.ie.bin<sp/><sp/><sp/><sp/>#<sp/>raw,<sp/>mmap‑friendly<sp/>tensor<sp/>blob</highlight></codeline>
 </programlisting></para>
@@ -29,16 +30,18 @@
 </para>
 </sect2>
 </sect1>
-<sect1 id="index_1autotoc_md86">
-<title>NEW: INT4 <bold>weight‑only</bold> PTQ path (Q4)</title><para>This repository now includes a <bold>4‑bit (INT4) weight‑only</bold> path that trades a small accuracy budget for <bold>4× smaller weights</bold> and a substantial <bold>memory‑bandwidth reduction</bold>. It is designed to be drop‑in with the existing build and harness.</para>
-<sect2 id="index_1autotoc_md87">
-<title>Pipeline overview</title><para>1) <bold>Prepare/locate a HF model</bold> (already sharded is fine):</para>
+<sect1 id="index_1autotoc_md99">
+<title>NEW: INT4 &lt;strong&gt;weight‑only&lt;/strong&gt; PTQ path (Q4)</title>
+<para>This repository now includes a <bold>4‑bit (INT4) weight‑only</bold> path that trades a small accuracy budget for <bold>4× smaller weights</bold> and a substantial <bold>memory‑bandwidth reduction</bold>. It is designed to be drop‑in with the existing build and harness.</para>
+<sect2 id="index_1autotoc_md100">
+<title>Pipeline overview</title>
+<para>1) <bold>Prepare/locate a HF model</bold> (already sharded is fine):</para>
 <para><programlisting><codeline><highlight class="normal">models/gpt-oss-20b/hf/</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/>├──<sp/>config.json</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/>├──<sp/>tokenizer.json<sp/>/<sp/>vocab.json<sp/>/<sp/>merges.txt</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/>└──<sp/>pytorch_model-00001-of-00046.bin<sp/>…<sp/>pytorch_model-00046-of-00046.bin</highlight></codeline>
 </programlisting></para>
-<para>2) <bold>(Calibrate) produce the INT4 manifest</bold> <linebreak/>
+<para>2) **(Calibrate) produce the INT4 manifest** <linebreak/>
  Use one of the PTQ helper scripts to create a manifest describing which tensors are quantized to 4‑bit and their per‑row/per‑tensor scales:</para>
 <para><programlisting filename=".bash"><codeline><highlight class="normal">#<sp/>Choose<sp/>one<sp/>depending<sp/>on<sp/>your<sp/>source<sp/>of<sp/>truth<sp/>and<sp/>available<sp/>samples.</highlight></codeline>
 <codeline><highlight class="normal">#<sp/>See:<sp/>python3<sp/>scripts/ptq_from_hf.py<sp/>--help</highlight></codeline>
@@ -59,8 +62,7 @@
 <para>4) <bold>Run the benchmark (CPU or CUDA) with INT4 weights</bold></para>
 <para>The engine selects kernels by <bold>precision</bold>. For INT4 <bold>weight‑only</bold>, use <computeroutput>int4w</computeroutput>.</para>
 <para><blockquote><para><bold>64 MB per token</bold> = <computeroutput>IE_BYTES_PER_TOKEN=64000000</computeroutput> (decimal bytes). </para>
-</blockquote></para>
-<para><bold>CPU:</bold></para>
+</blockquote><bold>CPU:</bold></para>
 <para><programlisting filename=".bash"><codeline><highlight class="normal">cd<sp/>models/gpt-oss-20b</highlight></codeline>
 <codeline><highlight class="normal">PROMPTS=../../benchmarks/prompts_10..txt<sp/>IE_PRECISION=int4w<sp/>IE_REQUIRE_MODEL=1<sp/>IE_BYTES_PER_TOKEN=64000000<sp/>IE_STRIDE_BYTES=256<sp/>RUNS=3<sp/>make<sp/>-C<sp/>../..<sp/>bench</highlight></codeline>
 </programlisting></para>
@@ -73,8 +75,9 @@
 </para>
 </sect2>
 </sect1>
-<sect1 id="index_1autotoc_md89">
-<title>Operational notes</title><para><itemizedlist>
+<sect1 id="index_1autotoc_md102">
+<title>Operational notes</title>
+<para><itemizedlist>
 <listitem><para>The <computeroutput>--device</computeroutput> flag is accepted by the CLI as a <bold>no‑op hint</bold> (selection is a build‑time concern). CPU: <computeroutput>build/inference-engine</computeroutput>, CUDA: <computeroutput>build/inference-engine.cuda</computeroutput>.</para>
 </listitem><listitem><para><bold>Strict mode</bold>: set <computeroutput>IE_REQUIRE_MODEL=1</computeroutput> to require a valid <computeroutput>model.ie.json</computeroutput> + <computeroutput>model.ie.bin</computeroutput>. Otherwise the engine can operate in a deterministic <bold>stub</bold> mode for CI.</para>
 </listitem><listitem><para><bold>Work‑touch</bold>: to emulate memory pressure, set <computeroutput>IE_BYTES_PER_TOKEN</computeroutput> (e.g. <computeroutput>64000000</computeroutput>) and <computeroutput>IE_STRIDE_BYTES</computeroutput> (e.g. <computeroutput>256</computeroutput>). The measured window includes generation <bold>and</bold> this per‑token touch over the mmap’d <computeroutput>model.ie.bin</computeroutput>.</para>
@@ -84,8 +87,9 @@
 <para><hruler/>
 </para>
 </sect1>
-<sect1 id="index_1autotoc_md91">
-<title>Troubleshooting</title><para><itemizedlist>
+<sect1 id="index_1autotoc_md104">
+<title>Troubleshooting</title>
+<para><itemizedlist>
 <listitem><para><computeroutput>ERROR: --q4-map not found</computeroutput>: pass a real path to your manifest, e.g. <computeroutput>quant/q4_manifest.json</computeroutput>.</para>
 </listitem><listitem><para><lsquo/>error: unknown flag <rsquo/><ndash/>model-dir&apos;<computeroutput>or</computeroutput>&apos;<ndash/>rounds&apos;<computeroutput>: you are using an older binary; rebuild with</computeroutput>make clean &amp;&amp; make build<computeroutput>. -</computeroutput>RSS peak = 0<computeroutput>: ensure the process reads enough memory while resident (set</computeroutput>IE_BYTES_PER_TOKEN<computeroutput>to a non‑zero value) and you are not running inside a constrained container namespace that suppresses</computeroutput>VmHWM<computeroutput>.</computeroutput></para>
 </listitem><listitem><para><computeroutput>Prompts file not found:</computeroutput>PROMPTS=benchmarks/prompts_10..txt` (note the <bold>double dot</bold> in the demo file).</para>
@@ -94,8 +98,9 @@
 <para><hruler/>
 </para>
 </sect1>
-<sect1 id="index_1autotoc_md93">
-<title>What INT4 (weight‑only) means here</title><para><itemizedlist>
+<sect1 id="index_1autotoc_md106">
+<title>What INT4 (weight‑only) means here</title>
+<para><itemizedlist>
 <listitem><para><bold>Activations</bold> remain floating‑point; only <bold>weights</bold> are nibble‑packed (2 weights per byte) with per‑row scales.</para>
 </listitem><listitem><para>Dequantization is fused in the matmul kernels (see <computeroutput><ref refid="int4__ptq_8c" kindref="compound">engine/src/quant/int4_ptq.c</ref></computeroutput> and GPU equivalents). Pretranspose/blocked‑K packing are applied before/after quantization as configured.</para>
 </listitem><listitem><para>Accuracy is safeguarded by a <bold>calibration gate</bold> (cosine similarity or task‑level eval), configurable in the PTQ scripts.</para>
@@ -104,8 +109,9 @@
 <para><hruler/>
 </para>
 </sect1>
-<sect1 id="index_1autotoc_md95">
-<title>See also</title><para><itemizedlist>
+<sect1 id="index_1autotoc_md108">
+<title>See also</title>
+<para><itemizedlist>
 <listitem><para>Detailed design and optimization path: <computeroutput><ref refid="DESIGN_8md" kindref="compound">docs/DESIGN.md</ref></computeroutput>, <computeroutput>docs/adr-00060-optimization-path.md</computeroutput></para>
 </listitem><listitem><para>Decision log: <computeroutput><ref refid="DECISIONS_8md" kindref="compound">docs/DECISIONS.md</ref></computeroutput></para>
 </listitem></itemizedlist>
@@ -113,10 +119,12 @@
 <para><hruler/>
  </para>
 </sect1>
-<sect1 id="index_1autotoc_md97">
-<title>INT4 Weight-Only — Addendum (2025-10-24 21:04:23 UTC)</title><para>This addendum <bold>adds</bold> a new optional path to the existing pipeline for <bold>INT4 (weight-only)</bold> packing and benchmarking. It does <bold>not</bold> replace the FP32/BF16/FP16 flows.</para>
-<sect2 id="index_1autotoc_md98">
-<title>Summary</title><para><itemizedlist>
+<sect1 id="index_1autotoc_md110">
+<title>INT4 Weight-Only — Addendum (2025-10-24 21:04:23 UTC)</title>
+<para>This addendum <bold>adds</bold> a new optional path to the existing pipeline for <bold>INT4 (weight-only)</bold> packing and benchmarking. It does <bold>not</bold> replace the FP32/BF16/FP16 flows.</para>
+<sect2 id="index_1autotoc_md111">
+<title>Summary</title>
+<para><itemizedlist>
 <listitem><para>Quantization: post-training <emphasis>weight-only</emphasis> INT4 (aka <computeroutput>int4w</computeroutput>) via a manifest.</para>
 </listitem><listitem><para>Export: <computeroutput><ref refid="hf__to__iebin_8py" kindref="compound">scripts/hf_to_iebin.py</ref></computeroutput> supports <computeroutput>--q4-map</computeroutput> to pack tensors into <computeroutput>model.ie.bin</computeroutput> while preserving <computeroutput>model.ie.json</computeroutput> meta.</para>
 </listitem><listitem><para>Runtime: select precision with <computeroutput>IE_PRECISION=int4w</computeroutput> (or <computeroutput>--precision int4w</computeroutput>), independent from host math precision.</para>
@@ -124,22 +132,25 @@
 </listitem></itemizedlist>
 </para>
 </sect2>
-<sect2 id="index_1autotoc_md99">
-<title>Prerequisites</title><para><itemizedlist>
+<sect2 id="index_1autotoc_md112">
+<title>Prerequisites</title>
+<para><itemizedlist>
 <listitem><para>A working HF model directory (already used in your FP32 flow), e.g. <computeroutput>models/gpt-oss-20b/hf</computeroutput>.</para>
 </listitem><listitem><para>A quantization manifest (example at <computeroutput>quant/q4_manifest.json</computeroutput>). See <bold>Manifest template</bold> below.</para>
 </listitem><listitem><para>Python deps already used by <computeroutput><ref refid="hf__to__iebin_8py" kindref="compound">scripts/hf_to_iebin.py</ref></computeroutput> (torch, numpy).</para>
 </listitem></itemizedlist>
 </para>
 </sect2>
-<sect2 id="index_1autotoc_md100">
-<title>Export to IEBIN with INT4</title><para><programlisting filename=".bash"><codeline><highlight class="normal">python3<sp/>scripts/hf_to_iebin.py<sp/><sp/><sp/>--hf-dir<sp/>models/gpt-oss-20b/hf<sp/><sp/><sp/>--out-dir<sp/>models/gpt-oss-20b<sp/><sp/><sp/>--q4-map<sp/>quant/q4_manifest.json</highlight></codeline>
+<sect2 id="index_1autotoc_md113">
+<title>Export to IEBIN with INT4</title>
+<para><programlisting filename=".bash"><codeline><highlight class="normal">python3<sp/>scripts/hf_to_iebin.py<sp/><sp/><sp/>--hf-dir<sp/>models/gpt-oss-20b/hf<sp/><sp/><sp/>--out-dir<sp/>models/gpt-oss-20b<sp/><sp/><sp/>--q4-map<sp/>quant/q4_manifest.json</highlight></codeline>
 </programlisting> This produces (or updates) <computeroutput>models/gpt-oss-20b/model.ie.json</computeroutput> and <computeroutput>models/gpt-oss-20b/model.ie.bin</computeroutput> with weight-only INT4 packing per manifest.</para>
 <para><blockquote><para>Tip: if you see <computeroutput>ERROR: --q4-map not found</computeroutput>, double‑check the path to your manifest. </para>
 </blockquote></para>
 </sect2>
-<sect2 id="index_1autotoc_md101">
-<title>Run the strict benchmark (CPU)</title><para><programlisting filename=".bash"><codeline><highlight class="normal">PROMPTS=benchmarks/prompts_10..txt<sp/>IE_PRECISION=int4w<sp/>IE_REQUIRE_MODEL=1<sp/>IE_BYTES_PER_TOKEN=64000000<sp/>IE_STRIDE_BYTES=256<sp/>RUNS=3<sp/>make<sp/>bench</highlight></codeline>
+<sect2 id="index_1autotoc_md114">
+<title>Run the strict benchmark (CPU)</title>
+<para><programlisting filename=".bash"><codeline><highlight class="normal">PROMPTS=benchmarks/prompts_10..txt<sp/>IE_PRECISION=int4w<sp/>IE_REQUIRE_MODEL=1<sp/>IE_BYTES_PER_TOKEN=64000000<sp/>IE_STRIDE_BYTES=256<sp/>RUNS=3<sp/>make<sp/>bench</highlight></codeline>
 </programlisting><itemizedlist>
 <listitem><para><computeroutput>IE_REQUIRE_MODEL=1</computeroutput> makes the CLI fail if <computeroutput>model.ie.{json,bin}</computeroutput> are missing.</para>
 </listitem><listitem><para><computeroutput>IE_BYTES_PER_TOKEN</computeroutput> enables the per-token <emphasis>work-touch</emphasis> loop over <computeroutput>model.ie.bin</computeroutput> to mimic bandwidth pressure.</para>
@@ -147,12 +158,14 @@
 </listitem></itemizedlist>
 </para>
 </sect2>
-<sect2 id="index_1autotoc_md102">
-<title>Run the strict benchmark (CUDA)</title><para><programlisting filename=".bash"><codeline><highlight class="normal">PROMPTS=benchmarks/prompts_10..txt<sp/>IE_PRECISION=int4w<sp/>IE_REQUIRE_MODEL=1<sp/>IE_BYTES_PER_TOKEN=64000000<sp/>IE_STRIDE_BYTES=256<sp/>RUNS=3<sp/>make<sp/>bench-cuda</highlight></codeline>
+<sect2 id="index_1autotoc_md115">
+<title>Run the strict benchmark (CUDA)</title>
+<para><programlisting filename=".bash"><codeline><highlight class="normal">PROMPTS=benchmarks/prompts_10..txt<sp/>IE_PRECISION=int4w<sp/>IE_REQUIRE_MODEL=1<sp/>IE_BYTES_PER_TOKEN=64000000<sp/>IE_STRIDE_BYTES=256<sp/>RUNS=3<sp/>make<sp/>bench-cuda</highlight></codeline>
 </programlisting></para>
 </sect2>
-<sect2 id="index_1autotoc_md103">
-<title>Manifest template (example)</title><para>Save as <computeroutput>quant/q4_manifest.json</computeroutput>: <programlisting filename=".json"><codeline><highlight class="normal">{</highlight></codeline>
+<sect2 id="index_1autotoc_md116">
+<title>Manifest template (example)</title>
+<para>Save as <computeroutput>quant/q4_manifest.json</computeroutput>: <programlisting filename=".json"><codeline><highlight class="normal">{</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/>&quot;version&quot;:<sp/>1,</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/>&quot;rules&quot;:<sp/>[</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/><sp/><sp/>{</highlight></codeline>
@@ -173,23 +186,26 @@
 <codeline><highlight class="normal">}</highlight></codeline>
 </programlisting></para>
 </sect2>
-<sect2 id="index_1autotoc_md104">
-<title>Troubleshooting</title><para><itemizedlist>
+<sect2 id="index_1autotoc_md117">
+<title>Troubleshooting</title>
+<para><itemizedlist>
 <listitem><para><bold>Unknown flag errors</bold>: The CLI now accepts <computeroutput>--device</computeroutput>, <computeroutput>--model-dir</computeroutput>, <computeroutput>--model-json</computeroutput>, <computeroutput>--model-bin</computeroutput>, and <computeroutput>--rounds</computeroutput> as documented. If your harness still injects older flags, update it, or run the engine directly.</para>
 </listitem><listitem><para><bold>RSS peak shows 0 MB</bold>: Ensure you are on Linux and that the engine is built with the updated <computeroutput><ref refid="ie__metrics_8h_1a0b083c9fbf90d02c9ef387ab34220a34" kindref="member">ie_metrics_sample_rss_peak()</ref></computeroutput> (reads <computeroutput>/proc/self/status</computeroutput> → <computeroutput>VmHWM</computeroutput>, then falls back to <computeroutput>getrusage</computeroutput>). The JSON is captured <emphasis>after</emphasis> the measured window; the value will be <computeroutput>0</computeroutput> only if the OS reports <computeroutput>0</computeroutput> or if the sampling failed.</para>
 </listitem></itemizedlist>
 </para>
 </sect2>
-<sect2 id="index_1autotoc_md105">
-<title>Notes</title><para><itemizedlist>
+<sect2 id="index_1autotoc_md118">
+<title>Notes</title>
+<para><itemizedlist>
 <listitem><para>The <bold>precision label</bold> (<computeroutput>IE_PRECISION</computeroutput>) is a <emphasis>storage / weight</emphasis> hint, not necessarily the CPU math precision. You can still set <computeroutput>PRECISION=fp32</computeroutput> for host compute while using <computeroutput>IE_PRECISION=int4w</computeroutput> for storage.</para>
 </listitem><listitem><para>Deterministic stub mode remains available when <computeroutput>IE_REQUIRE_MODEL</computeroutput> is not set; strict runs require a valid IEBIN pair.</para>
 </listitem></itemizedlist>
 </para>
 </sect2>
 </sect1>
-<sect1 id="index_1autotoc_md106">
-<title>Repository Layout</title><para><programlisting filename=".text"><codeline><highlight class="normal">.</highlight></codeline>
+<sect1 id="index_1autotoc_md119">
+<title>Repository Layout</title>
+<para><programlisting filename=".text"><codeline><highlight class="normal">.</highlight></codeline>
 <codeline><highlight class="normal">├──<sp/>benchmarks</highlight></codeline>
 <codeline><highlight class="normal">│<sp/><sp/><sp/>├──<sp/>harness.py</highlight></codeline>
 <codeline><highlight class="normal">│<sp/><sp/><sp/>├──<sp/>prompts_10..txt</highlight></codeline>
@@ -244,10 +260,12 @@
 <codeline><highlight class="normal">└──<sp/>README.md</highlight></codeline>
 </programlisting></para>
 </sect1>
-<sect1 id="index_1autotoc_md107">
-<title>Makefile — Complete Reference</title><para>This project uses a single <computeroutput>Makefile</computeroutput> to build CPU/CUDA binaries and run reproducible benchmarks.</para>
-<sect2 id="index_1autotoc_md108">
-<title>Common Targets</title><para><itemizedlist>
+<sect1 id="index_1autotoc_md120">
+<title>Makefile — Complete Reference</title>
+<para>This project uses a single <computeroutput>Makefile</computeroutput> to build CPU/CUDA binaries and run reproducible benchmarks.</para>
+<sect2 id="index_1autotoc_md121">
+<title>Common Targets</title>
+<para><itemizedlist>
 <listitem><para><computeroutput>make build</computeroutput> — build <bold>CPU</bold> binary at <computeroutput>build/inference-engine</computeroutput>.</para>
 </listitem><listitem><para><computeroutput>make build-cuda</computeroutput> — build <bold>CUDA</bold> binary at <computeroutput>build/inference-engine.cuda</computeroutput> (needs NVCC + CUDA toolkit).</para>
 </listitem><listitem><para><computeroutput>make clean</computeroutput> — remove build artifacts and reports.</para>
@@ -258,8 +276,9 @@
 <para><blockquote><para>Tip: these benchmarks call the <emphasis>same</emphasis> CLI under the hood (<computeroutput>build/inference-engine*</computeroutput>). </para>
 </blockquote></para>
 </sect2>
-<sect2 id="index_1autotoc_md109">
-<title>Environment Variables (consumed by <computeroutput>make bench*</computeroutput> and/or the CLI)</title><para><itemizedlist>
+<sect2 id="index_1autotoc_md122">
+<title>Environment Variables (consumed by &lt;tt&gt;make bench*&lt;/tt&gt; and/or the CLI)</title>
+<para><itemizedlist>
 <listitem><para><computeroutput>PROMPTS</computeroutput> : path to a prompts file (one prompt per line). Example: <computeroutput>benchmarks/prompts_10..txt</computeroutput>.</para>
 </listitem><listitem><para><computeroutput>RUNS</computeroutput> : number of harness repetitions (default: 3).</para>
 </listitem><listitem><para><computeroutput>IE_REQUIRE_MODEL</computeroutput> : <computeroutput>1</computeroutput> to enforce strict IEBIN loading (<computeroutput>model.ie.json</computeroutput> + <computeroutput>model.ie.bin</computeroutput>) or <computeroutput>0</computeroutput> to allow stub mode.</para>
@@ -285,16 +304,18 @@
 </listitem></itemizedlist>
 </para>
 </sect2>
-<sect2 id="index_1autotoc_md110">
-<title>End‑to‑End Examples</title><para><bold>CPU, strict mode, 64 MB per token, int4w weights:</bold> <programlisting filename=".bash"><codeline><highlight class="normal">PROMPTS=benchmarks/prompts_10..txt<sp/>IE_PRECISION=int4w<sp/>IE_REQUIRE_MODEL=1<sp/>IE_BYTES_PER_TOKEN=64000000<sp/>IE_STRIDE_BYTES=256<sp/>RUNS=3<sp/>make<sp/>bench</highlight></codeline>
+<sect2 id="index_1autotoc_md123">
+<title>End‑to‑End Examples</title>
+<para><bold>CPU, strict mode, 64 MB per token, int4w weights:</bold> <programlisting filename=".bash"><codeline><highlight class="normal">PROMPTS=benchmarks/prompts_10..txt<sp/>IE_PRECISION=int4w<sp/>IE_REQUIRE_MODEL=1<sp/>IE_BYTES_PER_TOKEN=64000000<sp/>IE_STRIDE_BYTES=256<sp/>RUNS=3<sp/>make<sp/>bench</highlight></codeline>
 </programlisting></para>
 <para><bold>CUDA, same settings:</bold> <programlisting filename=".bash"><codeline><highlight class="normal">PROMPTS=benchmarks/prompts_10..txt<sp/>IE_PRECISION=int4w<sp/>IE_REQUIRE_MODEL=1<sp/>IE_BYTES_PER_TOKEN=64000000<sp/>IE_STRIDE_BYTES=256<sp/>RUNS=3<sp/>make<sp/>bench-cuda</highlight></codeline>
 </programlisting></para>
 <para><bold>Direct CLI (bypass Makefile), model in <computeroutput>models/gpt-oss-20b</computeroutput>:</bold> <programlisting filename=".bash"><codeline><highlight class="normal">./build/inference-engine<sp/><sp/><sp/>--model-dir<sp/>models/gpt-oss-20b<sp/><sp/><sp/>--precision<sp/>fp32<sp/><sp/><sp/>--pretranspose<sp/>all<sp/><sp/><sp/>--prompts-file<sp/>benchmarks/prompts_10..txt<sp/><sp/><sp/>--max-new<sp/>128<sp/>--threads<sp/>12<sp/>--rounds<sp/>1</highlight></codeline>
 </programlisting></para>
 </sect2>
-<sect2 id="index_1autotoc_md111">
-<title>Return Codes</title><para><itemizedlist>
+<sect2 id="index_1autotoc_md124">
+<title>Return Codes</title>
+<para><itemizedlist>
 <listitem><para><computeroutput>0</computeroutput> success, JSON line printed.</para>
 </listitem><listitem><para><computeroutput>2</computeroutput> bad CLI usage / invalid integer.</para>
 </listitem><listitem><para><computeroutput>3</computeroutput> strict IEBIN required but missing/unreadable.</para>
@@ -304,9 +325,11 @@
 </para>
 </sect2>
 </sect1>
-<sect1 id="index_1autotoc_md112">
-<title>RSS Reporting</title><sect2 id="index_1autotoc_md113">
-<title>RSS Reporting</title><para><itemizedlist>
+<sect1 id="index_1autotoc_md125">
+<title>RSS Reporting</title>
+<sect2 id="index_1autotoc_md126">
+<title>RSS Reporting</title>
+<para><itemizedlist>
 <listitem><para>We sample <bold>peak resident set size (RSS)</bold> after the measured window to avoid skewing TPS.</para>
 </listitem><listitem><para>On Linux we prefer <computeroutput>/proc/self/status</computeroutput> → <computeroutput>VmHWM</computeroutput> (kB). Fallback is <computeroutput>getrusage(RUSAGE_SELF).ru_maxrss</computeroutput>.</para>
 </listitem><listitem><para>On macOS we use <computeroutput>getrusage</computeroutput> where <computeroutput>ru_maxrss</computeroutput> is in <bold>bytes</bold>.</para>
@@ -315,8 +338,9 @@
 </para>
 </sect2>
 </sect1>
-<sect1 id="index_1autotoc_md114">
-<title>Update Journal</title><para>This running log summarizes meaningful doc/CLI changes for reproducibility.</para>
+<sect1 id="index_1autotoc_md127">
+<title>Update Journal</title>
+<para>This running log summarizes meaningful doc/CLI changes for reproducibility.</para>
 <para><itemizedlist>
 <listitem><para><bold>2025-10-24 21:08:40 UTC</bold> — INT4 step added to docs; CLI grew <computeroutput>--device</computeroutput>, <computeroutput>--model-dir</computeroutput>, <computeroutput>--rounds</computeroutput>; strict RSS peak sampler now reads <computeroutput>/proc/self/status</computeroutput> <computeroutput>VmHWM</computeroutput> (Linux) with <computeroutput>getrusage</computeroutput> fallback; <computeroutput>bench</computeroutput>/<computeroutput>bench-cuda</computeroutput> examples updated for <bold>64 MB/token</bold> work‑touch.</para>
 </listitem></itemizedlist>
@@ -324,9 +348,11 @@
 <para><hruler/>
  </para>
 </sect1>
-<sect1 id="index_1autotoc_md116">
-<title>What’s new — 2025-11-10</title><sect2 id="index_1autotoc_md117">
-<title>Step 1 — NUMA‑aware topology &amp; thread binding</title><para><itemizedlist>
+<sect1 id="index_1autotoc_md129">
+<title>What’s new — 2025-11-10</title>
+<sect2 id="index_1autotoc_md130">
+<title>Step 1 — NUMA‑aware topology &amp; thread binding</title>
+<para><itemizedlist>
 <listitem><para>Added <computeroutput><ref refid="ie__topology_8h" kindref="compound">engine/include/ie_topology.h</ref></computeroutput> + <computeroutput><ref refid="topology_8c" kindref="compound">engine/src/opt/topology.c</ref></computeroutput> to discover sockets/CPUs from Linux sysfs and expose helpers:<itemizedlist>
 <listitem><para><computeroutput>ie_topology_init/destroy</computeroutput>, <computeroutput><ref refid="ie__topology_8h_1ae9fec2d245fb73d6c3e8e3cba38d4471" kindref="member">ie_topology_sockets()</ref></computeroutput>, <computeroutput><ref refid="ie__topology_8h_1a69b006879441857f80d4c4f200376d11" kindref="member">ie_topology_first_cpu_on_socket()</ref></computeroutput>.</para>
 </listitem></itemizedlist>
@@ -336,8 +362,9 @@
 </listitem></itemizedlist>
 </para>
 </sect2>
-<sect2 id="index_1autotoc_md118">
-<title>Step 2 — “Hot” weights replication per socket</title><para><itemizedlist>
+<sect2 id="index_1autotoc_md131">
+<title>Step 2 — “Hot” weights replication per socket</title>
+<para><itemizedlist>
 <listitem><para>New module <computeroutput><ref refid="replicate__hot_8c" kindref="compound">engine/src/opt/replicate_hot.c</ref></computeroutput> replicates frequently‑touched (“hot”) weight pages <bold>per socket</bold> and pins worker threads on that socket for locality.</para>
 </listitem><listitem><para>Optional prefetch hint via <computeroutput>madvise(..., MADV_WILLNEED)</computeroutput> (ignored if unsupported).</para>
 </listitem><listitem><para>Enable at runtime: <programlisting filename=".bash"><codeline><highlight class="normal">export<sp/>IE_HOT_REPLICATE=1<sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>enable<sp/>per‑socket<sp/>replicas</highlight></codeline>
@@ -346,23 +373,26 @@
 </listitem></itemizedlist>
 </para>
 </sect2>
-<sect2 id="index_1autotoc_md119">
-<title>Activation precision (INT8 / FP8) — soft hint</title><para><itemizedlist>
+<sect2 id="index_1autotoc_md132">
+<title>Activation precision (INT8 / FP8) — soft hint</title>
+<para><itemizedlist>
 <listitem><para>Expose activation precision as a soft runtime hint (host math remains FP32 accumulate): <programlisting filename=".bash"><codeline><highlight class="normal">export<sp/>IE_ACT_PREC=int8<sp/><sp/><sp/>#<sp/>or:<sp/>fp8<sp/>|<sp/>fp16<sp/>|<sp/>bf16<sp/>|<sp/>fp32</highlight></codeline>
 </programlisting></para>
 </listitem><listitem><para>Weight precision remains independent via <computeroutput>IE_PRECISION</computeroutput> (e.g., <computeroutput>int4w</computeroutput>, <computeroutput>int8w</computeroutput>, <computeroutput>fp32</computeroutput>, etc.).</para>
 </listitem></itemizedlist>
 </para>
 </sect2>
-<sect2 id="index_1autotoc_md120">
-<title>Strict timing rule (re‑stated)</title><para>Only the following are counted in the measured window:<itemizedlist>
+<sect2 id="index_1autotoc_md133">
+<title>Strict timing rule (re‑stated)</title>
+<para>Only the following are counted in the measured window:<itemizedlist>
 <listitem><para><computeroutput>ie_engine_generate(...)</computeroutput></para>
 </listitem><listitem><para>optional “work‑touch” loop controlled by <computeroutput>IE_BYTES_PER_TOKEN</computeroutput>, <computeroutput>IE_STRIDE_BYTES</computeroutput>, <computeroutput>IE_VERIFY_TOUCH</computeroutput></para>
 </listitem></itemizedlist>
 </para>
 </sect2>
-<sect2 id="index_1autotoc_md121">
-<title>Quick run recipes</title><para>Strict CPU run with INT4 weights, FP8 activations, NUMA‑aware binding + hot replication: <programlisting filename=".bash"><codeline><highlight class="normal">#<sp/>Model<sp/>&amp;<sp/>timing</highlight></codeline>
+<sect2 id="index_1autotoc_md134">
+<title>Quick run recipes</title>
+<para>Strict CPU run with INT4 weights, FP8 activations, NUMA‑aware binding + hot replication: <programlisting filename=".bash"><codeline><highlight class="normal">#<sp/>Model<sp/>&amp;<sp/>timing</highlight></codeline>
 <codeline><highlight class="normal">export<sp/>MODEL_DIR=models/gpt-oss-20b</highlight></codeline>
 <codeline><highlight class="normal">export<sp/>IE_REQUIRE_MODEL=1</highlight></codeline>
 <codeline><highlight class="normal">export<sp/>IE_PRECISION=int4w</highlight></codeline>
@@ -386,14 +416,15 @@
 <codeline><highlight class="normal"><sp/><sp/>[<sp/>&quot;$NODES&quot;<sp/>-gt<sp/>1<sp/>]<sp/>&amp;&amp;<sp/>exec<sp/>numactl<sp/>--cpunodebind=0<sp/>--membind=0<sp/>bash<sp/>-lc<sp/>&apos;PROMPTS=benchmarks/prompts_10..txt<sp/>RUNS=3<sp/>make<sp/>bench&apos;</highlight></codeline>
 <codeline><highlight class="normal">fi</highlight></codeline>
 </programlisting></para>
+<para><blockquote><para>Note: If <computeroutput>numactl -H</computeroutput> shows a single node, skip <computeroutput>numactl --cpunodebind/--membind</computeroutput>. </para>
+</blockquote><mdash/> </para>
 </sect2>
 </sect1>
-<sect1 id="index_1autotoc_md122">
-<title><blockquote><para>Note: If <computeroutput>numactl -H</computeroutput> shows a single node, skip <computeroutput>numactl --cpunodebind/--membind</computeroutput>.</para>
-</blockquote></title></sect1>
-<sect1 id="index_1autotoc_md123">
-<title>What&apos;s new — Memory Phase (updated 2025-11-12 18:01:19 UTC)</title><sect2 id="index_1autotoc_md124">
-<title>New tuning knobs (memory/throughput)</title><para>These are read by the CLI and/or harness. Backends may ignore unsupported hints safely.</para>
+<sect1 id="index_1autotoc_md135">
+<title>What&apos;s new — Memory Phase (updated 2025-11-12 18:01:19 UTC)</title>
+<sect2 id="index_1autotoc_md136">
+<title>New tuning knobs (memory/throughput)</title>
+<para>These are read by the CLI and/or harness. Backends may ignore unsupported hints safely.</para>
 <para><itemizedlist>
 <listitem><para><computeroutput>IE_PREFETCH_DISTANCE</computeroutput> — integer distance in bytes (or <computeroutput>auto</computeroutput>) for software prefetch of weight streams in GEMV.</para>
 </listitem><listitem><para><computeroutput>IE_NT_LOADS</computeroutput> — <computeroutput>0|1|auto</computeroutput>. When enabled, kernels attempt <bold>non‑temporal loads</bold> (streaming) on large, one‑time read paths.</para>
@@ -405,28 +436,69 @@
 </listitem></itemizedlist>
 </para>
 </sect2>
-<sect2 id="index_1autotoc_md125">
-<title>Harness sweep (benchmarks)</title><para>The harness can <bold>sweep</bold> combinations of memory options to find stable TPS under bandwidth pressure:</para>
+<sect2 id="index_1autotoc_md137">
+<title>Harness sweep (benchmarks)</title>
+<para>The harness can <bold>sweep</bold> combinations of memory options to find stable TPS under bandwidth pressure:</para>
 <para><programlisting filename=".bash"><codeline><highlight class="normal">python3<sp/>benchmarks/harness.py<sp/>\</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/>--sweep<sp/>&apos;act_quant=int8,fp8|kv_quant=none|prefetch=off,auto,256|nt_loads=0,1|numa_policy=auto,compact,scatter&apos;<sp/>\</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/>--prompts<sp/>benchmarks/prompts.jsonl</highlight></codeline>
 </programlisting> Each configuration is labeled and exported to CSV/JSONL; <computeroutput><ref refid="update__performance__md_8py" kindref="compound">scripts/update_performance_md.py</ref></computeroutput> now includes memory metrics (<emphasis>MB/token, bytes touched, coverage vs model.bin, effective bandwidth GB/s</emphasis>).</para>
 </sect2>
-<sect2 id="index_1autotoc_md126">
-<title>Monitoring</title><para><itemizedlist>
+<sect2 id="index_1autotoc_md138">
+<title>Monitoring</title>
+<para><itemizedlist>
 <listitem><para>Added <computeroutput><ref refid="metrics__memory_8toml" kindref="compound">monitoring/metrics_memory.toml</ref></computeroutput> (recording rules/panels for <bold>RSS peak</bold>, <bold>bytes touched</bold>, <bold>effective bandwidth</bold>).</para>
 </listitem><listitem><para><computeroutput><ref refid="metrics__exporter_8py" kindref="compound">scripts/metrics_exporter.py</ref></computeroutput> exposes the new fields when present (see <computeroutput>ie_rss_peak_mb_*</computeroutput>, and the <computeroutput>ie_build_info</computeroutput> labels).</para>
 </listitem></itemizedlist>
 </para>
 </sect2>
-<sect2 id="index_1autotoc_md127">
-<title>CUDA/CPU kernels</title><para><itemizedlist>
+<sect2 id="index_1autotoc_md139">
+<title>CUDA/CPU kernels</title>
+<para><itemizedlist>
 <listitem><para>CUDA: added fused GEMV for <bold>INT8 activations</bold> and <bold>FP8 activations</bold> (E4M3/E5M2 decoders on‑device).</para>
 </listitem><listitem><para>CPU: dispatcher keeps AVX2/FMA fast path; generic C path honors blocked‑K and activation dequant (INT8 per‑tensor / per‑group).</para>
 </listitem></itemizedlist>
 </para>
 <para><blockquote><para>Tip: for strict, bandwidth‑bound tests use: <computeroutput>IE_REQUIRE_MODEL=1 IE_BYTES_PER_TOKEN=64000000 IE_STRIDE_BYTES=256</computeroutput>. </para>
 </blockquote></para>
+</sect2>
+</sect1>
+<sect1 id="index_1autotoc_md140">
+<title>&lt;/blockquote&gt;</title>
+</sect1>
+<sect1 id="index_1autotoc_md141">
+<title>What&apos;s new — Block-sparse weights (CPU only, 2025‑11‑14)</title>
+<para>This phase adds a <bold>block‑sparse representation for weight matrices</bold> and a reference CPU implementation. The goal is to make sparsity experiments reproducible without disturbing the existing dense path.</para>
+<sect2 id="index_1autotoc_md142">
+<title>New artifacts</title>
+<para>Code:</para>
+<para><itemizedlist>
+<listitem><para><computeroutput><ref refid="sparse__format_8h" kindref="compound">engine/include/sparse_format.h</ref></computeroutput> — public descriptor for block‑sparse matrices (<computeroutput>ie_block_sparse_matrix_t</computeroutput>) plus helpers and status codes.</para>
+</listitem><listitem><para><computeroutput><ref refid="sparse__io_8c" kindref="compound">engine/src/sparse_io.c</ref></computeroutput> — on‑disk header/loader for a compact block‑sparse binary format (<computeroutput>ie_block_sparse_load</computeroutput>).</para>
+</listitem><listitem><para><computeroutput><ref refid="gemm__block__sparse_8c" kindref="compound">engine/src/gemm_block_sparse.c</ref></computeroutput> — single‑threaded reference GEMV (<computeroutput>ie_gemv_block_sparse_f32</computeroutput>) over the BSR structure.</para>
+</listitem><listitem><para><computeroutput><ref refid="ie__device__common_8c" kindref="compound">engine/src/devices/ie_device_common.c</ref></computeroutput> — device vtable extended with a <computeroutput>gemv_block_sparse_f32</computeroutput> entry and a CPU fallback implementation.</para>
+</listitem><listitem><para><computeroutput><ref refid="test__block__sparse_8c" kindref="compound">tests/c/test_block_sparse.c</ref></computeroutput> — C unit tests that validate the loader and GEMV on small hand‑built matrices.</para>
+</listitem><listitem><para><computeroutput>benchmarks/src/microbench_gemv_block_sparse.c</computeroutput> — standalone microbenchmark that compares dense vs block‑sparse GEMV on CPU.</para>
+</listitem><listitem><para><computeroutput><ref refid="convert__to__block__sparse_8c" kindref="compound">tools/convert_to_block_sparse.c</ref></computeroutput> — offline converter from a dense row‑major weight matrix to the on‑disk block‑sparse format.</para>
+</listitem></itemizedlist>
+</para>
+<para>Build/Makefile:</para>
+<para><itemizedlist>
+<listitem><para><computeroutput>Makefile</computeroutput> now compiles the new sources and wires the block‑sparse microbench under <computeroutput>make microbench-block-sparse</computeroutput> (CPU only).</para>
+</listitem><listitem><para>The main <computeroutput>make test</computeroutput> target runs <computeroutput>test_block_sparse</computeroutput> together with the existing C unit tests.</para>
+</listitem></itemizedlist>
+</para>
+</sect2>
+<sect2 id="index_1autotoc_md143">
+<title>Scope and current limitations</title>
+<para><itemizedlist>
+<listitem><para><bold>Backend:</bold> CPU only. CUDA/Level‑Zero code paths simply report “unimplemented” for block‑sparse GEMV and transparently fall back to the dense CPU implementation if called.</para>
+</listitem><listitem><para><bold>Layout:</bold> fixed <bold>block‑row CSR (BSR)</bold> layout with uniform <computeroutput>block_rows x block_cols</computeroutput>. Tail blocks at the matrix edges are handled by clipping reads/writes using the dense <computeroutput>rows/cols</computeroutput> metadata.</para>
+</listitem><listitem><para><bold>Datatype:</bold> FP32 weights only. Activations, quantized paths and mixed precision remain dense for now.</para>
+</listitem><listitem><para><bold>Integration:</bold> the block‑sparse path is currently exercised via the C tests and the dedicated microbenchmark. The CLI still consumes dense <computeroutput>model.ie.bin</computeroutput>; wiring full‑model block‑sparse weights will be a separate ADR/phase.</para>
+</listitem></itemizedlist>
+</para>
+<para>See <computeroutput><ref refid="DESIGN_8md" kindref="compound">DESIGN.md</ref></computeroutput> (Block‑sparse weights chapter) and <computeroutput><ref refid="DECISIONS_8md" kindref="compound">DECISIONS.md</ref></computeroutput> (ADR for block‑sparse) for full details. </para>
 </sect2>
 </sect1>
     </detaileddescription>

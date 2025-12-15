@@ -1,14 +1,15 @@
 <?xml version='1.0' encoding='UTF-8' standalone='no'?>
-<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.1" xml:lang="en-US">
   <compounddef id="namespacehf__to__iebin" kind="namespace" language="Python">
     <compoundname>hf_to_iebin</compoundname>
-    <sectiondef kind="func">
+    <innerclass refid="classhf__to__iebin_1_1TensorRef" prot="public">hf_to_iebin::TensorRef</innerclass>
+    <innerclass refid="classhf__to__iebin_1_1Shard" prot="public">hf_to_iebin::Shard</innerclass>
+      <sectiondef kind="func">
       <memberdef kind="function" id="namespacehf__to__iebin_1ac3cef0864139e3543306b846207f8c3e" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>None</type>
         <definition> None hf_to_iebin.log</definition>
         <argsstring>(str msg)</argsstring>
         <name>log</name>
-        <qualifiedname>hf_to_iebin.log</qualifiedname>
         <param>
           <type>str</type>
           <declname>msg</declname>
@@ -19,18 +20,18 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="scripts/hf_to_iebin.py" line="47" column="1" bodyfile="scripts/hf_to_iebin.py" bodystart="47" bodyend="49"/>
-        <referencedby refid="namespacehf__to__iebin_1a2514cfb35940e3760b12dd945c773b19" compoundref="hf__to__iebin_8py" startline="107" endline="189">load_q4_map</referencedby>
-        <referencedby refid="namespacehf__to__iebin_1a7d824cc4e15cdfe433bb87451d0c45ee" compoundref="hf__to__iebin_8py" startline="60" endline="72">load_state_keys_from_shard</referencedby>
-        <referencedby refid="namespacehf__to__iebin_1a6a7ed215f575f747c5b16a53cb95eac4" compoundref="hf__to__iebin_8py" startline="327" endline="376">main</referencedby>
-        <referencedby refid="namespacehf__to__iebin_1a423f08d9c5ddd7dfd3eb06f287ce6c5b" compoundref="hf__to__iebin_8py" startline="254" endline="314">stream_write_blob</referencedby>
+        <location file="scripts/hf_to_iebin.py" line="47" column="1" bodyfile="scripts/hf_to_iebin.py" bodystart="47" bodyend="50"/>
+        <referencedby refid="ie__kernel__ze_8cpp_1a46e8c280257654db04216d6acbefa0af" compoundref="ie__kernel__ze_8cpp" startline="286" endline="344">ensure_module_ready</referencedby>
+        <referencedby refid="namespacehf__to__iebin_1a2514cfb35940e3760b12dd945c773b19" compoundref="hf__to__iebin_8py" startline="128" endline="190">load_q4_map</referencedby>
+        <referencedby refid="namespacehf__to__iebin_1a6a7ed215f575f747c5b16a53cb95eac4" compoundref="hf__to__iebin_8py" startline="545" endline="621">main</referencedby>
+        <referencedby refid="namespacehf__to__iebin_1ab89561584cc35023ce2d321c39677592" compoundref="hf__to__iebin_8py" startline="191" endline="243">pass1_index</referencedby>
+        <referencedby refid="namespacehf__to__iebin_1ab35dbbff6ac99e3d90d3a79fd81e9cca" compoundref="hf__to__iebin_8py" startline="282" endline="544">stream_write_blob_dedup</referencedby>
       </memberdef>
       <memberdef kind="function" id="namespacehf__to__iebin_1a4b60e8118426fdaed71bda80d597f94a" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>None</type>
         <definition> None hf_to_iebin.die</definition>
         <argsstring>(str msg, int code=2)</argsstring>
         <name>die</name>
-        <qualifiedname>hf_to_iebin.die</qualifiedname>
         <param>
           <type>str</type>
           <declname>msg</declname>
@@ -46,155 +47,20 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="scripts/hf_to_iebin.py" line="50" column="1" bodyfile="scripts/hf_to_iebin.py" bodystart="50" bodyend="53"/>
-        <referencedby refid="namespacehf__to__iebin_1a6b3ccdffd4934259e8dd69e94e340e5d" compoundref="hf__to__iebin_8py" startline="54" endline="59">find_shards</referencedby>
-        <referencedby refid="namespacehf__to__iebin_1a2514cfb35940e3760b12dd945c773b19" compoundref="hf__to__iebin_8py" startline="107" endline="189">load_q4_map</referencedby>
-        <referencedby refid="namespacehf__to__iebin_1a6a7ed215f575f747c5b16a53cb95eac4" compoundref="hf__to__iebin_8py" startline="327" endline="376">main</referencedby>
-        <referencedby refid="namespacehf__to__iebin_1a423f08d9c5ddd7dfd3eb06f287ce6c5b" compoundref="hf__to__iebin_8py" startline="254" endline="314">stream_write_blob</referencedby>
-      </memberdef>
-      <memberdef kind="function" id="namespacehf__to__iebin_1a6b3ccdffd4934259e8dd69e94e340e5d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
-        <type>List[Path]</type>
-        <definition> List[Path] hf_to_iebin.find_shards</definition>
-        <argsstring>(Path hf_dir)</argsstring>
-        <name>find_shards</name>
-        <qualifiedname>hf_to_iebin.find_shards</qualifiedname>
-        <param>
-          <type>Path</type>
-          <declname>hf_dir</declname>
-        </param>
-        <briefdescription>
-        </briefdescription>
-        <detaileddescription>
-        </detaileddescription>
-        <inbodydescription>
-        </inbodydescription>
-        <location file="scripts/hf_to_iebin.py" line="54" column="1" bodyfile="scripts/hf_to_iebin.py" bodystart="54" bodyend="59"/>
-        <references refid="namespacehf__to__iebin_1a4b60e8118426fdaed71bda80d597f94a" compoundref="hf__to__iebin_8py" startline="50" endline="53">die</references>
-        <referencedby refid="namespacehf__to__iebin_1affc6b9577a480b97d139fc7624383635" compoundref="hf__to__iebin_8py" startline="73" endline="92">pass1_index</referencedby>
-      </memberdef>
-      <memberdef kind="function" id="namespacehf__to__iebin_1a7d824cc4e15cdfe433bb87451d0c45ee" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
-        <type>Dict[str, Any]</type>
-        <definition> Dict[str, Any] hf_to_iebin.load_state_keys_from_shard</definition>
-        <argsstring>(Path shard_path)</argsstring>
-        <name>load_state_keys_from_shard</name>
-        <qualifiedname>hf_to_iebin.load_state_keys_from_shard</qualifiedname>
-        <param>
-          <type>Path</type>
-          <declname>shard_path</declname>
-        </param>
-        <briefdescription>
-        </briefdescription>
-        <detaileddescription>
-        </detaileddescription>
-        <inbodydescription>
-        </inbodydescription>
-        <location file="scripts/hf_to_iebin.py" line="60" column="1" bodyfile="scripts/hf_to_iebin.py" bodystart="60" bodyend="72"/>
-        <references refid="namespacehf__to__iebin_1ac3cef0864139e3543306b846207f8c3e" compoundref="hf__to__iebin_8py" startline="47" endline="49">log</references>
-        <referencedby refid="namespacehf__to__iebin_1affc6b9577a480b97d139fc7624383635" compoundref="hf__to__iebin_8py" startline="73" endline="92">pass1_index</referencedby>
-        <referencedby refid="namespacehf__to__iebin_1a423f08d9c5ddd7dfd3eb06f287ce6c5b" compoundref="hf__to__iebin_8py" startline="254" endline="314">stream_write_blob</referencedby>
-      </memberdef>
-      <memberdef kind="function" id="namespacehf__to__iebin_1affc6b9577a480b97d139fc7624383635" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
-        <type>Tuple[List[Path], List[str], Dict[str, Tuple[Tuple[int,...], str, int]]]</type>
-        <definition> Tuple[List[Path], List[str], Dict[str, Tuple[Tuple[int, ...], str, int]]] hf_to_iebin.pass1_index</definition>
-        <argsstring>(Path hf_dir)</argsstring>
-        <name>pass1_index</name>
-        <qualifiedname>hf_to_iebin.pass1_index</qualifiedname>
-        <param>
-          <type>Path</type>
-          <declname>hf_dir</declname>
-        </param>
-        <briefdescription>
-        </briefdescription>
-        <detaileddescription>
-<para><verbatim>Map key -&gt; (shape, dtype_str, shard_idx) without holding tensors in memory.</verbatim> </para>
-        </detaileddescription>
-        <inbodydescription>
-        </inbodydescription>
-        <location file="scripts/hf_to_iebin.py" line="73" column="1" bodyfile="scripts/hf_to_iebin.py" bodystart="73" bodyend="92"/>
-        <references refid="namespacehf__to__iebin_1a6b3ccdffd4934259e8dd69e94e340e5d" compoundref="hf__to__iebin_8py" startline="54" endline="59">find_shards</references>
-        <references refid="namespacehf__to__iebin_1a7d824cc4e15cdfe433bb87451d0c45ee" compoundref="hf__to__iebin_8py" startline="60" endline="72">load_state_keys_from_shard</references>
-        <referencedby refid="namespacehf__to__iebin_1a6a7ed215f575f747c5b16a53cb95eac4" compoundref="hf__to__iebin_8py" startline="327" endline="376">main</referencedby>
-      </memberdef>
-      <memberdef kind="function" id="namespacehf__to__iebin_1a31f4d6cf12f537fbc82c75b1eef68f7a" prot="protected" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
-        <type>Any</type>
-        <definition> Any hf_to_iebin._read_json</definition>
-        <argsstring>(Path p)</argsstring>
-        <name>_read_json</name>
-        <qualifiedname>hf_to_iebin._read_json</qualifiedname>
-        <param>
-          <type>Path</type>
-          <declname>p</declname>
-        </param>
-        <briefdescription>
-        </briefdescription>
-        <detaileddescription>
-        </detaileddescription>
-        <inbodydescription>
-        </inbodydescription>
-        <location file="scripts/hf_to_iebin.py" line="93" column="1" bodyfile="scripts/hf_to_iebin.py" bodystart="93" bodyend="96"/>
-        <referencedby refid="namespacehf__to__iebin_1a2514cfb35940e3760b12dd945c773b19" compoundref="hf__to__iebin_8py" startline="107" endline="189">load_q4_map</referencedby>
-      </memberdef>
-      <memberdef kind="function" id="namespacehf__to__iebin_1ad64f85f918c3f7f86e5ba073953ad62e" prot="protected" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
-        <type>List[Dict[str, Any]]</type>
-        <definition> List[Dict[str, Any]] hf_to_iebin._read_jsonl</definition>
-        <argsstring>(Path p)</argsstring>
-        <name>_read_jsonl</name>
-        <qualifiedname>hf_to_iebin._read_jsonl</qualifiedname>
-        <param>
-          <type>Path</type>
-          <declname>p</declname>
-        </param>
-        <briefdescription>
-        </briefdescription>
-        <detaileddescription>
-        </detaileddescription>
-        <inbodydescription>
-        </inbodydescription>
-        <location file="scripts/hf_to_iebin.py" line="97" column="1" bodyfile="scripts/hf_to_iebin.py" bodystart="97" bodyend="106"/>
-        <referencedby refid="namespacehf__to__iebin_1a2514cfb35940e3760b12dd945c773b19" compoundref="hf__to__iebin_8py" startline="107" endline="189">load_q4_map</referencedby>
-      </memberdef>
-      <memberdef kind="function" id="namespacehf__to__iebin_1a2514cfb35940e3760b12dd945c773b19" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
-        <type>Dict[str, Dict[str, Any]]</type>
-        <definition> Dict[str, Dict[str, Any]] hf_to_iebin.load_q4_map</definition>
-        <argsstring>(Path path)</argsstring>
-        <name>load_q4_map</name>
-        <qualifiedname>hf_to_iebin.load_q4_map</qualifiedname>
-        <param>
-          <type>Path</type>
-          <declname>path</declname>
-        </param>
-        <briefdescription>
-        </briefdescription>
-        <detaileddescription>
-<para><verbatim>Load an INT4 manifest into a dict keyed by tensor name.
-
-Canonical item keys:
-  name (required)
-  int4_bin / packed_bin (required) -&gt; &quot;int4_bin&quot;
-  scale_bin (required)
-  per (&quot;row&quot;|&quot;tensor&quot;, required)
-  rows (required), cols (required)
-  scale_dtype (optional, default &quot;fp16&quot;)
-  pack (optional, default &quot;nibble_lohi&quot;)
-  zp (optional, default 0)
-  symmetric (optional, default True)
-</verbatim> </para>
-        </detaileddescription>
-        <inbodydescription>
-        </inbodydescription>
-        <location file="scripts/hf_to_iebin.py" line="107" column="1" bodyfile="scripts/hf_to_iebin.py" bodystart="107" bodyend="189"/>
-        <references refid="namespacehf__to__iebin_1a31f4d6cf12f537fbc82c75b1eef68f7a" compoundref="hf__to__iebin_8py" startline="93" endline="96">_read_json</references>
-        <references refid="namespacehf__to__iebin_1ad64f85f918c3f7f86e5ba073953ad62e" compoundref="hf__to__iebin_8py" startline="97" endline="106">_read_jsonl</references>
-        <references refid="namespacehf__to__iebin_1a4b60e8118426fdaed71bda80d597f94a" compoundref="hf__to__iebin_8py" startline="50" endline="53">die</references>
-        <references refid="namespacehf__to__iebin_1ac3cef0864139e3543306b846207f8c3e" compoundref="hf__to__iebin_8py" startline="47" endline="49">log</references>
-        <referencedby refid="namespacehf__to__iebin_1a6a7ed215f575f747c5b16a53cb95eac4" compoundref="hf__to__iebin_8py" startline="327" endline="376">main</referencedby>
+        <location file="scripts/hf_to_iebin.py" line="51" column="1" bodyfile="scripts/hf_to_iebin.py" bodystart="51" bodyend="56"/>
+        <referencedby refid="namespacehf__to__iebin_1ac7a758a61c53ce31f74b2b1daf8806be" compoundref="hf__to__iebin_8py" startline="259" endline="272">_copy_file_into</referencedby>
+        <referencedby refid="namespacehf__to__iebin_1a97dd6b4ac2d5099ac9b8497da885deac" compoundref="hf__to__iebin_8py" startline="244" endline="258">_sha256_of_file</referencedby>
+        <referencedby refid="namespacehf__to__iebin_1a8181f2b66ab13076c7149f3ffe3cd980" compoundref="hf__to__iebin_8py" startline="105" endline="127">find_shards</referencedby>
+        <referencedby refid="namespacehf__to__iebin_1a2514cfb35940e3760b12dd945c773b19" compoundref="hf__to__iebin_8py" startline="128" endline="190">load_q4_map</referencedby>
+        <referencedby refid="namespacehf__to__iebin_1a6a7ed215f575f747c5b16a53cb95eac4" compoundref="hf__to__iebin_8py" startline="545" endline="621">main</referencedby>
+        <referencedby refid="namespacehf__to__iebin_1ab89561584cc35023ce2d321c39677592" compoundref="hf__to__iebin_8py" startline="191" endline="243">pass1_index</referencedby>
+        <referencedby refid="namespacehf__to__iebin_1ab35dbbff6ac99e3d90d3a79fd81e9cca" compoundref="hf__to__iebin_8py" startline="282" endline="544">stream_write_blob_dedup</referencedby>
       </memberdef>
       <memberdef kind="function" id="namespacehf__to__iebin_1abd3e5101821b383b59c60e83a5314495" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>int</type>
         <definition> int hf_to_iebin.align_up</definition>
         <argsstring>(int x, int a)</argsstring>
         <name>align_up</name>
-        <qualifiedname>hf_to_iebin.align_up</qualifiedname>
         <param>
           <type>int</type>
           <declname>x</declname>
@@ -209,122 +75,50 @@ Canonical item keys:
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="scripts/hf_to_iebin.py" line="190" column="1" bodyfile="scripts/hf_to_iebin.py" bodystart="190" bodyend="194"/>
-        <referencedby refid="namespacehf__to__iebin_1a9221aaef1fe785c428dcc1d54848a19f" compoundref="hf__to__iebin_8py" startline="200" endline="245">compute_layout</referencedby>
+        <location file="scripts/hf_to_iebin.py" line="70" column="1" bodyfile="scripts/hf_to_iebin.py" bodystart="70" bodyend="75"/>
+        <referencedby refid="namespacehf__to__iebin_1ab35dbbff6ac99e3d90d3a79fd81e9cca" compoundref="hf__to__iebin_8py" startline="282" endline="544">stream_write_blob_dedup</referencedby>
       </memberdef>
-      <memberdef kind="function" id="namespacehf__to__iebin_1a9221aaef1fe785c428dcc1d54848a19f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
-        <type>Tuple[List[Dict[str, Any]], int]</type>
-        <definition> Tuple[List[Dict[str, Any]], int] hf_to_iebin.compute_layout</definition>
-        <argsstring>(List[str] order, Dict[str, Tuple[Tuple[int,...], str, int]] key_meta, Dict[str, Dict[str, Any]]|None q4_map, int align)</argsstring>
-        <name>compute_layout</name>
-        <qualifiedname>hf_to_iebin.compute_layout</qualifiedname>
-        <param>
-          <type>List</type>
-          <declname>order</declname>
-          <array>[str]</array>
-        </param>
-        <param>
-          <type>Dict</type>
-          <defname>key_meta</defname>
-          <array>[str, Tuple[Tuple[int,...]</array>
-        </param>
-        <param>
-          <type>str</type>
-          <defname>q4_map</defname>
-        </param>
-        <param>
-          <type>int]]</type>
-          <declname>key_meta</declname>
-          <defname>align</defname>
-        </param>
-        <param>
-          <type>Dict]|None</type>
-          <declname>q4_map</declname>
-          <array>[str, Dict[str, Any]</array>
-        </param>
-        <param>
-          <type>int</type>
-          <declname>align</declname>
-        </param>
-        <briefdescription>
-        </briefdescription>
-        <detaileddescription>
-<para><verbatim>Compute per-tensor layout (dtype, offset, nbytes) for the aggregate bin.</verbatim> </para>
-        </detaileddescription>
-        <inbodydescription>
-        </inbodydescription>
-        <location file="scripts/hf_to_iebin.py" line="195" column="1" bodyfile="scripts/hf_to_iebin.py" bodystart="200" bodyend="245"/>
-        <references refid="namespacehf__to__iebin_1abd3e5101821b383b59c60e83a5314495" compoundref="hf__to__iebin_8py" startline="190" endline="194">align_up</references>
-        <referencedby refid="namespacehf__to__iebin_1a6a7ed215f575f747c5b16a53cb95eac4" compoundref="hf__to__iebin_8py" startline="327" endline="376">main</referencedby>
-      </memberdef>
-      <memberdef kind="function" id="namespacehf__to__iebin_1a423f08d9c5ddd7dfd3eb06f287ce6c5b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
-        <type>None</type>
-        <definition> None hf_to_iebin.stream_write_blob</definition>
-        <argsstring>(Path out_bin, List[Path] shards, List[str] order, Dict[str, Tuple[Tuple[int,...], str, int]] key_meta, List[Dict[str, Any]] tensors, Dict[str, Dict[str, Any]]|None q4_map, int total_bytes)</argsstring>
-        <name>stream_write_blob</name>
-        <qualifiedname>hf_to_iebin.stream_write_blob</qualifiedname>
+      <memberdef kind="function" id="namespacehf__to__iebin_1a31f4d6cf12f537fbc82c75b1eef68f7a" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>Any</type>
+        <definition> Any hf_to_iebin._read_json</definition>
+        <argsstring>(Path p)</argsstring>
+        <name>_read_json</name>
         <param>
           <type>Path</type>
-          <declname>out_bin</declname>
-        </param>
-        <param>
-          <type>List</type>
-          <declname>shards</declname>
-          <array>[Path]</array>
-        </param>
-        <param>
-          <type>List</type>
-          <declname>order</declname>
-          <array>[str]</array>
-        </param>
-        <param>
-          <type>Dict</type>
-          <defname>key_meta</defname>
-          <array>[str, Tuple[Tuple[int,...]</array>
-        </param>
-        <param>
-          <type>str</type>
-          <defname>tensors</defname>
-        </param>
-        <param>
-          <type>int]]</type>
-          <declname>key_meta</declname>
-          <defname>q4_map</defname>
-        </param>
-        <param>
-          <type>List]</type>
-          <declname>tensors</declname>
-          <defname>total_bytes</defname>
-          <array>[Dict[str, Any]</array>
-        </param>
-        <param>
-          <type>Dict]|None</type>
-          <declname>q4_map</declname>
-          <array>[str, Dict[str, Any]</array>
-        </param>
-        <param>
-          <type>int</type>
-          <declname>total_bytes</declname>
+          <declname>p</declname>
         </param>
         <briefdescription>
         </briefdescription>
         <detaileddescription>
-<para><verbatim>Create and fill model.ie.bin with FP32 and INT4 data in a single pass.</verbatim> </para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="scripts/hf_to_iebin.py" line="246" column="1" bodyfile="scripts/hf_to_iebin.py" bodystart="254" bodyend="314"/>
-        <references refid="namespacehf__to__iebin_1a4b60e8118426fdaed71bda80d597f94a" compoundref="hf__to__iebin_8py" startline="50" endline="53">die</references>
-        <references refid="namespacehf__to__iebin_1a7d824cc4e15cdfe433bb87451d0c45ee" compoundref="hf__to__iebin_8py" startline="60" endline="72">load_state_keys_from_shard</references>
-        <references refid="namespacehf__to__iebin_1ac3cef0864139e3543306b846207f8c3e" compoundref="hf__to__iebin_8py" startline="47" endline="49">log</references>
-        <referencedby refid="namespacehf__to__iebin_1a6a7ed215f575f747c5b16a53cb95eac4" compoundref="hf__to__iebin_8py" startline="327" endline="376">main</referencedby>
+        <location file="scripts/hf_to_iebin.py" line="76" column="1" bodyfile="scripts/hf_to_iebin.py" bodystart="76" bodyend="80"/>
+        <referencedby refid="namespacehf__to__iebin_1a2514cfb35940e3760b12dd945c773b19" compoundref="hf__to__iebin_8py" startline="128" endline="190">load_q4_map</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacehf__to__iebin_1ad64f85f918c3f7f86e5ba073953ad62e" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>List[Dict[str, Any]]</type>
+        <definition> List[Dict[str, Any]] hf_to_iebin._read_jsonl</definition>
+        <argsstring>(Path p)</argsstring>
+        <name>_read_jsonl</name>
+        <param>
+          <type>Path</type>
+          <declname>p</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="scripts/hf_to_iebin.py" line="81" column="1" bodyfile="scripts/hf_to_iebin.py" bodystart="81" bodyend="91"/>
+        <referencedby refid="namespacehf__to__iebin_1a2514cfb35940e3760b12dd945c773b19" compoundref="hf__to__iebin_8py" startline="128" endline="190">load_q4_map</referencedby>
       </memberdef>
       <memberdef kind="function" id="namespacehf__to__iebin_1af84d2ba1d587dddd733c92c0350f7ab5" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>Dict[str, Any]</type>
         <definition> Dict[str, Any] hf_to_iebin.discover_tokenizer</definition>
         <argsstring>(Path hf_dir)</argsstring>
         <name>discover_tokenizer</name>
-        <qualifiedname>hf_to_iebin.discover_tokenizer</qualifiedname>
         <param>
           <type>Path</type>
           <declname>hf_dir</declname>
@@ -335,71 +129,249 @@ Canonical item keys:
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="scripts/hf_to_iebin.py" line="315" column="1" bodyfile="scripts/hf_to_iebin.py" bodystart="315" bodyend="326"/>
-        <referencedby refid="namespacehf__to__iebin_1a6a7ed215f575f747c5b16a53cb95eac4" compoundref="hf__to__iebin_8py" startline="327" endline="376">main</referencedby>
+        <location file="scripts/hf_to_iebin.py" line="92" column="1" bodyfile="scripts/hf_to_iebin.py" bodystart="92" bodyend="104"/>
+        <referencedby refid="namespacehf__to__iebin_1a6a7ed215f575f747c5b16a53cb95eac4" compoundref="hf__to__iebin_8py" startline="545" endline="621">main</referencedby>
       </memberdef>
-      <memberdef kind="function" id="namespacehf__to__iebin_1a6a7ed215f575f747c5b16a53cb95eac4" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
-        <type>None</type>
-        <definition> None hf_to_iebin.main</definition>
-        <argsstring>()</argsstring>
-        <name>main</name>
-        <qualifiedname>hf_to_iebin.main</qualifiedname>
+      <memberdef kind="function" id="namespacehf__to__iebin_1a8181f2b66ab13076c7149f3ffe3cd980" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>List[<ref refid="classhf__to__iebin_1_1Shard" kindref="compound">Shard</ref>]</type>
+        <definition> List[Shard] hf_to_iebin.find_shards</definition>
+        <argsstring>(Path hf_dir, str prefer)</argsstring>
+        <name>find_shards</name>
+        <param>
+          <type>Path</type>
+          <declname>hf_dir</declname>
+        </param>
+        <param>
+          <type>str</type>
+          <declname>prefer</declname>
+        </param>
         <briefdescription>
         </briefdescription>
         <detaileddescription>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="scripts/hf_to_iebin.py" line="327" column="1" bodyfile="scripts/hf_to_iebin.py" bodystart="327" bodyend="376"/>
-        <references refid="namespacehf__to__iebin_1a9221aaef1fe785c428dcc1d54848a19f" compoundref="hf__to__iebin_8py" startline="200" endline="245">compute_layout</references>
-        <references refid="namespacehf__to__iebin_1a4b60e8118426fdaed71bda80d597f94a" compoundref="hf__to__iebin_8py" startline="50" endline="53">die</references>
-        <references refid="namespacehf__to__iebin_1af84d2ba1d587dddd733c92c0350f7ab5" compoundref="hf__to__iebin_8py" startline="315" endline="326">discover_tokenizer</references>
-        <references refid="namespacehf__to__iebin_1a2514cfb35940e3760b12dd945c773b19" compoundref="hf__to__iebin_8py" startline="107" endline="189">load_q4_map</references>
-        <references refid="namespacehf__to__iebin_1ac3cef0864139e3543306b846207f8c3e" compoundref="hf__to__iebin_8py" startline="47" endline="49">log</references>
-        <references refid="namespacehf__to__iebin_1a6a7ed215f575f747c5b16a53cb95eac4" compoundref="hf__to__iebin_8py" startline="327" endline="376">main</references>
-        <references refid="namespacehf__to__iebin_1affc6b9577a480b97d139fc7624383635" compoundref="hf__to__iebin_8py" startline="73" endline="92">pass1_index</references>
-        <references refid="namespacehf__to__iebin_1a423f08d9c5ddd7dfd3eb06f287ce6c5b" compoundref="hf__to__iebin_8py" startline="254" endline="314">stream_write_blob</references>
-        <referencedby refid="namespacehf__to__iebin_1a6a7ed215f575f747c5b16a53cb95eac4" compoundref="hf__to__iebin_8py" startline="327" endline="376">main</referencedby>
+        <location file="scripts/hf_to_iebin.py" line="105" column="1" bodyfile="scripts/hf_to_iebin.py" bodystart="105" bodyend="127"/>
+        <references refid="namespacehf__to__iebin_1a4b60e8118426fdaed71bda80d597f94a" compoundref="hf__to__iebin_8py" startline="51" endline="56">die</references>
+        <referencedby refid="namespacehf__to__iebin_1a6a7ed215f575f747c5b16a53cb95eac4" compoundref="hf__to__iebin_8py" startline="545" endline="621">main</referencedby>
       </memberdef>
-    </sectiondef>
+      <memberdef kind="function" id="namespacehf__to__iebin_1a2514cfb35940e3760b12dd945c773b19" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>Dict[str, Dict[str, Any]]</type>
+        <definition> Dict[str, Dict[str, Any]] hf_to_iebin.load_q4_map</definition>
+        <argsstring>(Path path)</argsstring>
+        <name>load_q4_map</name>
+        <param>
+          <type>Path</type>
+          <declname>path</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="scripts/hf_to_iebin.py" line="128" column="1" bodyfile="scripts/hf_to_iebin.py" bodystart="128" bodyend="190"/>
+        <references refid="namespacehf__to__iebin_1a31f4d6cf12f537fbc82c75b1eef68f7a" compoundref="hf__to__iebin_8py" startline="76" endline="80">_read_json</references>
+        <references refid="namespacehf__to__iebin_1ad64f85f918c3f7f86e5ba073953ad62e" compoundref="hf__to__iebin_8py" startline="81" endline="91">_read_jsonl</references>
+        <references refid="namespacehf__to__iebin_1a4b60e8118426fdaed71bda80d597f94a" compoundref="hf__to__iebin_8py" startline="51" endline="56">die</references>
+        <references refid="namespacehf__to__iebin_1ac3cef0864139e3543306b846207f8c3e" compoundref="hf__to__iebin_8py" startline="47" endline="50">log</references>
+        <referencedby refid="namespacehf__to__iebin_1a6a7ed215f575f747c5b16a53cb95eac4" compoundref="hf__to__iebin_8py" startline="545" endline="621">main</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacehf__to__iebin_1ab89561584cc35023ce2d321c39677592" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>Tuple[List[str], Dict[str, <ref refid="classhf__to__iebin_1_1TensorRef" kindref="compound">TensorRef</ref>]]</type>
+        <definition> Tuple[List[str], Dict[str, TensorRef]] hf_to_iebin.pass1_index</definition>
+        <argsstring>(List[Shard] shards)</argsstring>
+        <name>pass1_index</name>
+        <param>
+          <type>List</type>
+          <declname>shards</declname>
+          <array>[Shard]</array>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="scripts/hf_to_iebin.py" line="191" column="1" bodyfile="scripts/hf_to_iebin.py" bodystart="191" bodyend="243"/>
+        <references refid="namespacehf__to__iebin_1a4b60e8118426fdaed71bda80d597f94a" compoundref="hf__to__iebin_8py" startline="51" endline="56">die</references>
+        <references refid="namespacehf__to__iebin_1ac3cef0864139e3543306b846207f8c3e" compoundref="hf__to__iebin_8py" startline="47" endline="50">log</references>
+        <referencedby refid="namespacehf__to__iebin_1a6a7ed215f575f747c5b16a53cb95eac4" compoundref="hf__to__iebin_8py" startline="545" endline="621">main</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacehf__to__iebin_1a97dd6b4ac2d5099ac9b8497da885deac" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>str</type>
+        <definition> str hf_to_iebin._sha256_of_file</definition>
+        <argsstring>(Path path, int expected_nbytes, int chunk_size=8 *1024 *1024)</argsstring>
+        <name>_sha256_of_file</name>
+        <param>
+          <type>Path</type>
+          <declname>path</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>expected_nbytes</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>chunk_size</declname>
+          <defval>8 *1024 *1024</defval>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="scripts/hf_to_iebin.py" line="244" column="1" bodyfile="scripts/hf_to_iebin.py" bodystart="244" bodyend="258"/>
+        <references refid="namespacehf__to__iebin_1a4b60e8118426fdaed71bda80d597f94a" compoundref="hf__to__iebin_8py" startline="51" endline="56">die</references>
+        <referencedby refid="namespacehf__to__iebin_1ab35dbbff6ac99e3d90d3a79fd81e9cca" compoundref="hf__to__iebin_8py" startline="282" endline="544">stream_write_blob_dedup</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacehf__to__iebin_1ac7a758a61c53ce31f74b2b1daf8806be" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>None</type>
+        <definition> None hf_to_iebin._copy_file_into</definition>
+        <argsstring>(fout, int dst_off, Path path, int expected_nbytes, int chunk_size=8 *1024 *1024)</argsstring>
+        <name>_copy_file_into</name>
+        <param>
+          <type>fout</type>
+          <defname>fout</defname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>dst_off</declname>
+        </param>
+        <param>
+          <type>Path</type>
+          <declname>path</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>expected_nbytes</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>chunk_size</declname>
+          <defval>8 *1024 *1024</defval>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="scripts/hf_to_iebin.py" line="259" column="1" bodyfile="scripts/hf_to_iebin.py" bodystart="259" bodyend="272"/>
+        <references refid="namespacehf__to__iebin_1a4b60e8118426fdaed71bda80d597f94a" compoundref="hf__to__iebin_8py" startline="51" endline="56">die</references>
+        <referencedby refid="namespacehf__to__iebin_1ab35dbbff6ac99e3d90d3a79fd81e9cca" compoundref="hf__to__iebin_8py" startline="282" endline="544">stream_write_blob_dedup</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacehf__to__iebin_1ab35dbbff6ac99e3d90d3a79fd81e9cca" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>List[Dict[str, Any]]</type>
+        <definition> List[Dict[str, Any]] hf_to_iebin.stream_write_blob_dedup</definition>
+        <argsstring>(Path out_bin, List[Shard] shards, List[str] order, Dict[str, TensorRef] meta, Optional[Dict[str, Dict[str, Any]]] q4_map, int align, bool dedup, int dedup_min_bytes)</argsstring>
+        <name>stream_write_blob_dedup</name>
+        <param>
+          <type>Path</type>
+          <declname>out_bin</declname>
+        </param>
+        <param>
+          <type>List</type>
+          <declname>shards</declname>
+          <array>[Shard]</array>
+        </param>
+        <param>
+          <type>List</type>
+          <declname>order</declname>
+          <array>[str]</array>
+        </param>
+        <param>
+          <type>Dict</type>
+          <declname>meta</declname>
+          <array>[str, TensorRef]</array>
+        </param>
+        <param>
+          <type>Optional]]</type>
+          <declname>q4_map</declname>
+          <array>[Dict[str, Dict[str, Any]</array>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>align</declname>
+        </param>
+        <param>
+          <type>bool</type>
+          <declname>dedup</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>dedup_min_bytes</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="scripts/hf_to_iebin.py" line="273" column="1" bodyfile="scripts/hf_to_iebin.py" bodystart="282" bodyend="544"/>
+        <references refid="namespacehf__to__iebin_1ac7a758a61c53ce31f74b2b1daf8806be" compoundref="hf__to__iebin_8py" startline="259" endline="272">_copy_file_into</references>
+        <references refid="namespacehf__to__iebin_1a97dd6b4ac2d5099ac9b8497da885deac" compoundref="hf__to__iebin_8py" startline="244" endline="258">_sha256_of_file</references>
+        <references refid="namespacehf__to__iebin_1abd3e5101821b383b59c60e83a5314495" compoundref="hf__to__iebin_8py" startline="70" endline="75">align_up</references>
+        <references refid="namespacehf__to__iebin_1a4b60e8118426fdaed71bda80d597f94a" compoundref="hf__to__iebin_8py" startline="51" endline="56">die</references>
+        <references refid="namespacehf__to__iebin_1ac3cef0864139e3543306b846207f8c3e" compoundref="hf__to__iebin_8py" startline="47" endline="50">log</references>
+        <referencedby refid="namespacehf__to__iebin_1a6a7ed215f575f747c5b16a53cb95eac4" compoundref="hf__to__iebin_8py" startline="545" endline="621">main</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespacehf__to__iebin_1a6a7ed215f575f747c5b16a53cb95eac4" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>None</type>
+        <definition> None hf_to_iebin.main</definition>
+        <argsstring>()</argsstring>
+        <name>main</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="scripts/hf_to_iebin.py" line="545" column="1" bodyfile="scripts/hf_to_iebin.py" bodystart="545" bodyend="621"/>
+        <references refid="namespacehf__to__iebin_1a4b60e8118426fdaed71bda80d597f94a" compoundref="hf__to__iebin_8py" startline="51" endline="56">die</references>
+        <references refid="namespacehf__to__iebin_1af84d2ba1d587dddd733c92c0350f7ab5" compoundref="hf__to__iebin_8py" startline="92" endline="104">discover_tokenizer</references>
+        <references refid="namespacehf__to__iebin_1a8181f2b66ab13076c7149f3ffe3cd980" compoundref="hf__to__iebin_8py" startline="105" endline="127">find_shards</references>
+        <references refid="namespacehf__to__iebin_1a2514cfb35940e3760b12dd945c773b19" compoundref="hf__to__iebin_8py" startline="128" endline="190">load_q4_map</references>
+        <references refid="namespacehf__to__iebin_1ac3cef0864139e3543306b846207f8c3e" compoundref="hf__to__iebin_8py" startline="47" endline="50">log</references>
+        <references refid="namespacehf__to__iebin_1ab89561584cc35023ce2d321c39677592" compoundref="hf__to__iebin_8py" startline="191" endline="243">pass1_index</references>
+        <references refid="namespacehf__to__iebin_1ab35dbbff6ac99e3d90d3a79fd81e9cca" compoundref="hf__to__iebin_8py" startline="282" endline="544">stream_write_blob_dedup</references>
+      </memberdef>
+      </sectiondef>
     <briefdescription>
     </briefdescription>
     <detaileddescription>
-<para><verbatim>Pack a Hugging Face checkpoint directory (PyTorch shards) into the
-Inference Engine container: model.ie.json + model.ie.bin.
+<para><verbatim>Pack a Hugging Face checkpoint directory into the Inference Engine container:
+  - model.ie.json
+  - model.ie.bin
 
-Supports mixed precision:
-  - FP32 (default): tensors are streamed and stored as row-major FP32.
-  - INT4 weight-only: tensors are copied from pre-packed INT4 artifacts and
+Supports:
+  - PyTorch .bin (pytorch_model.bin or pytorch_model-*-of-*.bin)
+  - safetensors (model.safetensors or model-*-of-*.safetensors)
+
+Mixed precision:
+  - FP32 (default): tensors stored as row-major fp32.
+  - INT4 weight-only: tensors copied from pre-packed INT4 artifacts and
     annotated with a `quant` object in JSON.
+
+Optional lossless dedup (whole-tensor):
+  - If enabled, tensors with identical byte content (after fp32 conversion for fp32 tensors)
+    are stored once, and subsequent duplicates reuse the same offset/nbytes.
 
 Inputs
 ------
 Required:
-  --hf-dir     : HF directory with config.json + pytorch_model-*-of-*.bin
+  --hf-dir     : HF directory with config.json + weights files
   --out-dir    : Output directory for model.ie.json / model.ie.bin
 
 Optional (INT4 integration):
-  --q4-map     : Path to a manifest that lists INT4 artifacts per tensor.
-                 Accepted formats:
-                   * JSON object: { &quot;&lt;name&gt;&quot;: {...}, ... }
-                   * JSON list  : [ {&quot;name&quot;: &quot;...&quot;, ...}, ... ]
-                   * JSONL      : one JSON object per line
-                   * Directory  : read all *.json files and merge
-                 Each item must provide:
-                   - &quot;name&quot;: state_dict key (exact)
-                   - &quot;int4_bin&quot; or &quot;packed_bin&quot;: path to packed INT4 bytes
-                   - &quot;scale_bin&quot;: path to per-row or per-tensor scales
-                   - &quot;per&quot;: &quot;row&quot; | &quot;tensor&quot;
-                   - &quot;rows&quot;, &quot;cols&quot;: stored shape of the INT4 matrix
-                 Optional fields (defaults shown):
-                   - &quot;scale_dtype&quot;: &quot;fp16&quot;
-                   - &quot;pack&quot;: &quot;nibble_lohi&quot;
-                   - &quot;zp&quot;: 0
-                   - &quot;symmetric&quot;: true
+  --q4-map     : Manifest listing INT4 artifacts per tensor (json/jsonl/dir).
+  --align      : Byte alignment for each tensor in the aggregate bin (default: 64).
+  --prefer     : Which format to prefer when both exist: &quot;safetensors&quot;|&quot;bin&quot; (default: safetensors).
 
-  --align      : Byte alignment for each tensor in the aggregate bin
-                 (default: 64). Use 1 to disable alignment.
+Optional (dedup):
+  --dedup              : Enable whole-tensor byte-identical deduplication.
+  --dedup-min-bytes    : Only dedup tensors &gt;= this many bytes (default: 1048576).
 </verbatim> </para>
     </detaileddescription>
     <location file="scripts/hf_to_iebin.py" line="1" column="1"/>

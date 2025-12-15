@@ -64,6 +64,8 @@ SRC_CORE_C := \
   engine/src/util_logging.c \
   engine/src/util_metrics.c \
   engine/src/io/weights.c \
+  engine/src/io/weights_dedup.c \
+  engine/src/dedup/spec.c \
   engine/src/io/tokenizer.c \
   engine/src/io/ie_batcher.c \
   engine/src/io/loader_mmap.c \
@@ -213,7 +215,7 @@ test: $(BIN_CPU)
 	@mkdir -p $(BUILD)
 	@echo "[test] C unit tests"
 	$(CC) $(CFLAGS) $(INC) tests/c/test_tensor.c engine/src/ie_tensor.c engine/src/util_logging.c -o $(BUILD)/test_tensor $(LDFLAGS_CPU) && $(BUILD)/test_tensor
-	$(CC) $(CFLAGS) $(INC) tests/c/test_api.c engine/src/ie_api.c engine/src/ie_tensor.c engine/src/util_logging.c engine/src/util_metrics.c engine/src/io/weights.c engine/src/io/tokenizer.c engine/src/io/ie_batcher.c engine/src/opt/cpu_features.c engine/src/opt/thread_pool.c engine/src/opt/pretranspose.c engine/src/opt/numa_probe.c engine/src/kernels/gemv_generic.c engine/src/kernels/gemv_avx2.c engine/src/math/fast_tanh.c engine/src/ie_kv_instrumentation.c engine/src/quant/int4_ptq.c engine/src/quant/int8_ptq.c -o $(BUILD)/test_api $(LDFLAGS_CPU) && ( cd $(MODEL_DIR_DEFAULT) && ../../$(BUILD)/test_api )
+	$(CC) $(CFLAGS) $(INC) tests/c/test_api.c engine/src/ie_api.c engine/src/ie_tensor.c engine/src/util_logging.c engine/src/util_metrics.c engine/src/io/weights.c engine/src/io/weights_dedup.c engine/src/dedup/spec.c engine/src/io/loader_mmap.c engine/src/io/mmap_tuning.c engine/src/io/tokenizer.c engine/src/io/ie_batcher.c engine/src/opt/cpu_features.c engine/src/opt/thread_pool.c engine/src/opt/pretranspose.c engine/src/opt/numa_probe.c engine/src/kernels/gemv_generic.c engine/src/kernels/gemv_avx2.c engine/src/math/fast_tanh.c engine/src/ie_kv_instrumentation.c engine/src/quant/int4_ptq.c engine/src/quant/int8_ptq.c -o $(BUILD)/test_api $(LDFLAGS_CPU) && ( cd $(MODEL_DIR_DEFAULT) && ../../$(BUILD)/test_api )
 	@echo "[test] topology"
 	$(CC) $(CFLAGS) $(INC) tests/c/test_topology.c engine/src/opt/topology.c engine/src/opt/thread_pool.c engine/src/opt/cpu_features.c engine/src/util_logging.c -o $(BUILD)/test_topology $(LDFLAGS_CPU) && $(BUILD)/test_topology
 	@echo "[test] mmap_tuning"
@@ -223,7 +225,7 @@ test: $(BIN_CPU)
 	@if [ -z "$$IE_SKIP_WEIGHTS_TEST" ]; then \
 	  if [ -f $(MODEL_DIR_DEFAULT)/model.ie.json ] && [ -f $(MODEL_DIR_DEFAULT)/model.ie.bin ]; then \
 	    echo "[test] test_weights"; \
-	    if $(CC) $(CFLAGS) $(INC) tests/c/test_weights.c engine/src/io/weights.c engine/src/quant/int4_ptq.c engine/src/quant/int8_ptq.c -o $(BUILD)/test_weights $(LDFLAGS_CPU); then \
+	    if $(CC) $(CFLAGS) $(INC) tests/c/test_weights.c engine/src/io/weights.c engine/src/io/weights_dedup.c engine/src/dedup/spec.c engine/src/io/loader_mmap.c engine/src/io/mmap_tuning.c engine/src/util_logging.c engine/src/quant/int4_ptq.c engine/src/quant/int8_ptq.c -o $(BUILD)/test_weights $(LDFLAGS_CPU); then \
 	      ( cd $(MODEL_DIR_DEFAULT) && ../../$(BUILD)/test_weights ); \
 	      STATUS=$$?; \
 	      if [ $$STATUS -ne 0 ]; then \
@@ -346,7 +348,6 @@ bench-cuda:
 	  --ie-require-model "$$IE_REQ_VAL" \
 	  --ie-bytes-per-token "$${IE_BYTES_PER_TOKEN:-67108864}" \
 	  --ie-stride-bytes "$${IE_STRIDE_BYTES:-256}" \
-	  --ie-verify-touch "$${IE_VERIFY_TOUCH:-1}" \
 	  --model-dir "$$MDIR"
 
 bench-direct:

@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8' standalone='no'?>
-<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.1" xml:lang="en-US">
   <compounddef id="ie__kernels__cuda_8h" kind="file" language="C++">
     <compoundname>ie_kernels_cuda.h</compoundname>
     <includes local="no">stddef.h</includes>
@@ -7,6 +7,20 @@
     <includes refid="ie__quant__act_8h" local="yes">ie_quant_act.h</includes>
     <includedby refid="ie__kernels__cuda_8cu" local="yes">engine/src/kernels/ie_kernels_cuda.cu</includedby>
     <incdepgraph>
+      <node id="3">
+        <label>stdint.h</label>
+      </node>
+      <node id="2">
+        <label>stddef.h</label>
+      </node>
+      <node id="4">
+        <label>ie_quant_act.h</label>
+        <link refid="ie__quant__act_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="3" relation="include">
+        </childnode>
+      </node>
       <node id="1">
         <label>engine/include/ie_kernels_cuda.h</label>
         <link refid="ie__kernels__cuda_8h"/>
@@ -17,75 +31,980 @@
         <childnode refid="4" relation="include">
         </childnode>
       </node>
-      <node id="4">
-        <label>ie_quant_act.h</label>
-        <link refid="ie__quant__act_8h"/>
-        <childnode refid="2" relation="include">
-        </childnode>
-        <childnode refid="3" relation="include">
-        </childnode>
-      </node>
-      <node id="2">
-        <label>stddef.h</label>
-      </node>
-      <node id="3">
-        <label>stdint.h</label>
-      </node>
     </incdepgraph>
     <invincdepgraph>
+      <node id="2">
+        <label>engine/src/kernels/ie_kernels_cuda.cu</label>
+        <link refid="ie__kernels__cuda_8cu"/>
+      </node>
       <node id="1">
         <label>engine/include/ie_kernels_cuda.h</label>
         <link refid="ie__kernels__cuda_8h"/>
         <childnode refid="2" relation="include">
         </childnode>
       </node>
-      <node id="2">
-        <label>engine/src/kernels/ie_kernels_cuda.cu</label>
-        <link refid="ie__kernels__cuda_8cu"/>
-      </node>
     </invincdepgraph>
-    <sectiondef kind="define">
-      <member refid="group__IE__GPU_1gad253e9c439228a67be0e55b0f4c81edf" kind="define"><name>IE_CUDA_STREAM_T_DEFINED</name></member>
-    </sectiondef>
-    <sectiondef kind="enum">
-      <member refid="group__IE__GPU_1gab2c254b332e574ed55c2537075337f85" kind="enum"><name>ie_act_kind_e</name></member>
-    </sectiondef>
-    <sectiondef kind="typedef">
-      <member refid="group__IE__GPU_1gaefb3d7d282a514152960b6c3d812355b" kind="typedef"><name>ie_cuda_stream_t</name></member>
-      <member refid="group__IE__GPU_1ga08ba1d3777f64c23e99124d2e460e701" kind="typedef"><name>ie_act_kind_t</name></member>
-    </sectiondef>
-    <sectiondef kind="func">
-      <member refid="group__IE__GPU_1ga6656c0ddd9df382048e7cd162e0c1d64" kind="function"><name>ie_cuda_last_error_string</name></member>
-      <member refid="group__IE__GPU_1ga92e383308a681db6bb757c3add5906f0" kind="function"><name>ie_cuda_launch_gemv_rowwise_f32</name></member>
-      <member refid="group__IE__GPU_1gaa2441c827e95b20c0413b0372ffc262b" kind="function"><name>ie_cuda_launch_gemv_bias_act_f32</name></member>
-      <member refid="group__IE__GPU_1ga525e3ca0d9d0030847aef26b70fa0cb9" kind="function"><name>ie_cuda_launch_gemv_rowwise_qi8_f32</name></member>
-      <member refid="group__IE__GPU_1ga78cbe5a89ec13c5a9edca717f79caab8" kind="function"><name>ie_cuda_launch_gemv_rowwise_qfp8_f32</name></member>
-      <member refid="group__IE__GPU_1ga4e8445935545f1b5bbb671826543ffab" kind="function"><name>ie_cuda_launch_vec_tanh_f32</name></member>
-      <member refid="group__IE__GPU_1ga72b6dfd858bd993a18d9c5dfb3112389" kind="function"><name>ie_cuda_launch_pack_w_blockedk_f32</name></member>
-    </sectiondef>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="group__IE__GPU_1gad253e9c439228a67be0e55b0f4c81edf" prot="public" static="no">
+        <name>IE_CUDA_STREAM_T_DEFINED</name>
+        <briefdescription>
+<para>Opaque CUDA stream handle used by this C API. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>In non-CUDA translation units this is a <computeroutput>void*</computeroutput>. In the CUDA TU it is replaced by <computeroutput>cudaStream_t</computeroutput>. You may pass <computeroutput>NULL</computeroutput> to use the default stream. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/ie_kernels_cuda.h" line="50" column="9" bodyfile="engine/include/ie_kernels_cuda.h" bodystart="50" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="enum">
+      <memberdef kind="enum" id="group__IE__GPU_1gab2c254b332e574ed55c2537075337f85" prot="public" static="no" strong="no">
+        <type></type>
+        <name>ie_act_kind_e</name>
+        <enumvalue id="group__IE__GPU_1ggab2c254b332e574ed55c2537075337f85a72bddb07e52c2dcecd390cda078cd33f" prot="public">
+          <name>IE_ACT_NONE</name>
+          <initializer>= 0</initializer>
+          <briefdescription>
+<para>Identity. </para>
+          </briefdescription>
+          <detaileddescription>
+<para><linebreak/>
+ </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__IE__GPU_1ggab2c254b332e574ed55c2537075337f85a4efb020b6e30222eac585f53f1d3e47f" prot="public">
+          <name>IE_ACT_RELU</name>
+          <initializer>= 1</initializer>
+          <briefdescription>
+<para>ReLU: max(0, x). </para>
+          </briefdescription>
+          <detaileddescription>
+<para><linebreak/>
+ </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__IE__GPU_1ggab2c254b332e574ed55c2537075337f85a5c3ab96a97ea7aa059b44e7508c28a08" prot="public">
+          <name>IE_ACT_TANH</name>
+          <initializer>= 2</initializer>
+          <briefdescription>
+<para>Hyperbolic tangent. </para>
+          </briefdescription>
+          <detaileddescription>
+<para><linebreak/>
+ </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__IE__GPU_1ggab2c254b332e574ed55c2537075337f85a72bddb07e52c2dcecd390cda078cd33f" prot="public">
+          <name>IE_ACT_NONE</name>
+          <initializer>= 0</initializer>
+          <briefdescription>
+<para>Identity. </para>
+          </briefdescription>
+          <detaileddescription>
+<para><linebreak/>
+ </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__IE__GPU_1ggab2c254b332e574ed55c2537075337f85a4efb020b6e30222eac585f53f1d3e47f" prot="public">
+          <name>IE_ACT_RELU</name>
+          <initializer>= 1</initializer>
+          <briefdescription>
+<para>ReLU. </para>
+          </briefdescription>
+          <detaileddescription>
+<para><linebreak/>
+ </para>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="group__IE__GPU_1ggab2c254b332e574ed55c2537075337f85a5c3ab96a97ea7aa059b44e7508c28a08" prot="public">
+          <name>IE_ACT_TANH</name>
+          <initializer>= 2</initializer>
+          <briefdescription>
+<para>tanh(). </para>
+          </briefdescription>
+          <detaileddescription>
+<para><linebreak/>
+ </para>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+<para>Activation types supported by fused kernels. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/ie_kernels_cuda.h" line="57" column="1" bodyfile="engine/include/ie_kernels_cuda.h" bodystart="57" bodyend="61"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="group__IE__GPU_1gaefb3d7d282a514152960b6c3d812355b" prot="public" static="no">
+        <type>void *</type>
+        <definition>typedef void* ie_cuda_stream_t</definition>
+        <argsstring></argsstring>
+        <name>ie_cuda_stream_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/ie_kernels_cuda.h" line="51" column="14" bodyfile="engine/include/ie_kernels_cuda.h" bodystart="51" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="typedef" id="group__IE__GPU_1ga08ba1d3777f64c23e99124d2e460e701" prot="public" static="no">
+        <type>enum <ref refid="group__IE__GPU_1gab2c254b332e574ed55c2537075337f85" kindref="member">ie_act_kind_e</ref></type>
+        <definition>typedef enum ie_act_kind_e ie_act_kind_t</definition>
+        <argsstring></argsstring>
+        <name>ie_act_kind_t</name>
+        <briefdescription>
+<para>Activation types supported by fused kernels. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/ie_kernels_cuda.h" line="61" column="15"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="group__IE__GPU_1gacf16a468f3ceed4f35dbd6990ff4b302" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>const char *</type>
+        <definition>const char* ie_cuda_last_error_string</definition>
+        <argsstring>(void)</argsstring>
+        <name>ie_cuda_last_error_string</name>
+        <param>
+          <type>void</type>
+        </param>
+        <briefdescription>
+<para>Return a thread-local message describing the last CUDA error. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>The pointer remains valid until the next launcher call on the same thread. An empty string means &quot;no error&quot;.</para>
+<para><simplesect kind="return"><para>NUL-terminated error message (never <computeroutput>NULL</computeroutput>).</para>
+</simplesect>
+Return a thread-local message describing the last CUDA error.</para>
+<para><simplesect kind="return"><para>Pointer to a thread-local, NUL-terminated message (may be &quot;&quot;). </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/ie_kernels_cuda.h" line="75" column="12" bodyfile="engine/src/kernels/ie_kernels_cuda.cu" bodystart="67" bodyend="69" declfile="engine/include/ie_kernels_cuda.h" declline="75" declcolumn="12"/>
+        <references refid="ie__kernels__cuda_8cu_1a5ab38bcd2467e982c68d46e66acfa9ef" compoundref="ie__kernels__cuda_8cu" startline="45">g_ie_cuda_err</references>
+      </memberdef>
+      <memberdef kind="function" id="group__IE__GPU_1ga92e383308a681db6bb757c3add5906f0" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int ie_cuda_launch_gemv_rowwise_f32</definition>
+        <argsstring>(const float *W, const float *x, float *y, int rows, int cols, int ldW, float alpha, float beta, ie_cuda_stream_t stream)</argsstring>
+        <name>ie_cuda_launch_gemv_rowwise_f32</name>
+        <param>
+          <type>const float *</type>
+          <declname>W</declname>
+        </param>
+        <param>
+          <type>const float *</type>
+          <declname>x</declname>
+        </param>
+        <param>
+          <type>float *</type>
+          <declname>y</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>rows</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>cols</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>ldW</declname>
+        </param>
+        <param>
+          <type>float</type>
+          <declname>alpha</declname>
+        </param>
+        <param>
+          <type>float</type>
+          <declname>beta</declname>
+        </param>
+        <param>
+          <type><ref refid="group__IE__GPU_1gaefb3d7d282a514152960b6c3d812355b" kindref="member">ie_cuda_stream_t</ref></type>
+          <declname>stream</declname>
+        </param>
+        <briefdescription>
+<para>Compute <computeroutput>y = alpha * W * x + beta * y</computeroutput> (row-wise GEMV). </para>
+        </briefdescription>
+        <detaileddescription>
+<para><itemizedlist>
+<listitem><para><computeroutput>W</computeroutput> is dense row-major with <computeroutput>rows</computeroutput> rows and <computeroutput>ldW</computeroutput> columns stride.</para>
+</listitem><listitem><para>Each row is reduced in parallel; one block per output row.</para>
+</listitem></itemizedlist>
+</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>W</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Device pointer to row-major matrix <computeroutput>(rows x ldW)</computeroutput>. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>x</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Device pointer to input vector (length <computeroutput>cols</computeroutput>). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>y</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Device pointer to output vector (length <computeroutput>rows</computeroutput>). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>rows</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of rows in <computeroutput>W</computeroutput> and elements in <computeroutput>y</computeroutput> (&gt;= 1). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>cols</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of columns in <computeroutput>W</computeroutput> and elements in <computeroutput>x</computeroutput> (&gt;= 1). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>ldW</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Leading dimension of <computeroutput>W</computeroutput> in elements (&gt;= <computeroutput>cols</computeroutput>). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>alpha</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Scalar multiplier for <computeroutput>W*x</computeroutput>. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>beta</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Scalar multiplier for existing <computeroutput>y</computeroutput> (use <computeroutput>0.f</computeroutput> to overwrite). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>stream</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>CUDA stream handle (may be <computeroutput>NULL</computeroutput>). </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para><computeroutput>0</computeroutput> on success, negative on error (see <ref refid="group__IE__GPU_1gacf16a468f3ceed4f35dbd6990ff4b302" kindref="member">ie_cuda_last_error_string()</ref>).</para>
+</simplesect>
+<simplesect kind="pre"><para>Pointers are non-NULL and reference device memory. </para>
+</simplesect>
+<simplesect kind="pre"><para><computeroutput>rows &gt; 0</computeroutput>, <computeroutput>cols &gt; 0</computeroutput>, <computeroutput>ldW &gt;= cols</computeroutput>. </para>
+</simplesect>
+<simplesect kind="post"><para><computeroutput>y</computeroutput> contains the result.</para>
+</simplesect>
+Compute <computeroutput>y = alpha * W * x + beta * y</computeroutput> (row-wise GEMV). </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/ie_kernels_cuda.h" line="102" column="5" bodyfile="engine/src/kernels/ie_kernels_cuda.cu" bodystart="365" bodyend="386" declfile="engine/include/ie_kernels_cuda.h" declline="102" declcolumn="5"/>
+        <references refid="ie__kernels__cuda_8cu_1af4c083462b1e956e6461aa246d2af9a6" compoundref="ie__kernels__cuda_8cu" startline="78">CUDA_GUARD</references>
+        <references refid="ie__kernels__cuda_8cu_1afb3284f12e7d5038612ece3185920449" compoundref="ie__kernels__cuda_8cu" startline="28">IE_CUDA_OK</references>
+        <references refid="ie__kernels__cuda_8cu_1a841d35ecb02f9850f311a5724d21deac" compoundref="ie__kernels__cuda_8cu" startline="51" endline="61">ie_cuda_set_err</references>
+      </memberdef>
+      <memberdef kind="function" id="group__IE__GPU_1gaa2441c827e95b20c0413b0372ffc262b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int ie_cuda_launch_gemv_bias_act_f32</definition>
+        <argsstring>(const float *W, const float *x, const float *bias, float *y, int rows, int cols, int ldW, float alpha, float beta, ie_act_kind_t act, ie_cuda_stream_t stream)</argsstring>
+        <name>ie_cuda_launch_gemv_bias_act_f32</name>
+        <param>
+          <type>const float *</type>
+          <declname>W</declname>
+        </param>
+        <param>
+          <type>const float *</type>
+          <declname>x</declname>
+        </param>
+        <param>
+          <type>const float *</type>
+          <declname>bias</declname>
+        </param>
+        <param>
+          <type>float *</type>
+          <declname>y</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>rows</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>cols</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>ldW</declname>
+        </param>
+        <param>
+          <type>float</type>
+          <declname>alpha</declname>
+        </param>
+        <param>
+          <type>float</type>
+          <declname>beta</declname>
+        </param>
+        <param>
+          <type><ref refid="group__IE__GPU_1ga08ba1d3777f64c23e99124d2e460e701" kindref="member">ie_act_kind_t</ref></type>
+          <declname>act</declname>
+        </param>
+        <param>
+          <type><ref refid="group__IE__GPU_1gaefb3d7d282a514152960b6c3d812355b" kindref="member">ie_cuda_stream_t</ref></type>
+          <declname>stream</declname>
+        </param>
+        <briefdescription>
+<para>Compute <computeroutput>y = act(alpha * W*x + bias + beta*y)</computeroutput> in one pass. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><itemizedlist>
+<listitem><para>Applies optional per-row <computeroutput>bias</computeroutput> (may be NULL → treated as zeros).</para>
+</listitem><listitem><para>Applies activation specified by <ref refid="group__IE__GPU_1ga08ba1d3777f64c23e99124d2e460e701" kindref="member">ie_act_kind_t</ref>.</para>
+</listitem></itemizedlist>
+</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>W</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Device pointer to row-major matrix <computeroutput>(rows x ldW)</computeroutput>. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>x</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Device pointer to input vector (length <computeroutput>cols</computeroutput>). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>bias</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Device pointer to per-row bias (length <computeroutput>rows</computeroutput>) or <computeroutput>NULL</computeroutput>. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>y</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Device pointer to output vector (length <computeroutput>rows</computeroutput>). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>rows</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of rows in <computeroutput>W</computeroutput>/<computeroutput>y</computeroutput>/<computeroutput>bias</computeroutput> (&gt;= 1). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>cols</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of columns in <computeroutput>W</computeroutput> and elements in <computeroutput>x</computeroutput> (&gt;= 1). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>ldW</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Leading dimension of <computeroutput>W</computeroutput> in elements (&gt;= <computeroutput>cols</computeroutput>). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>alpha</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Scalar multiplier for <computeroutput>W*x</computeroutput>. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>beta</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Scalar multiplier for existing <computeroutput>y</computeroutput> (use <computeroutput>0.f</computeroutput> to overwrite). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>act</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Activation kind (see <ref refid="group__IE__GPU_1ga08ba1d3777f64c23e99124d2e460e701" kindref="member">ie_act_kind_t</ref>). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>stream</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>CUDA stream handle (may be <computeroutput>NULL</computeroutput>). </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para><computeroutput>0</computeroutput> on success, negative on error.</para>
+</simplesect>
+<simplesect kind="pre"><para>Pointers are non-NULL device pointers (except <computeroutput>bias</computeroutput>, which may be NULL). </para>
+</simplesect>
+<simplesect kind="pre"><para><computeroutput>rows &gt; 0</computeroutput>, <computeroutput>cols &gt; 0</computeroutput>, <computeroutput>ldW &gt;= cols</computeroutput>. </para>
+</simplesect>
+<simplesect kind="post"><para><computeroutput>y</computeroutput> contains the result with activation applied.</para>
+</simplesect>
+Compute <computeroutput>y = act(alpha * W*x + bias + beta*y)</computeroutput> in one pass. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/ie_kernels_cuda.h" line="139" column="5" bodyfile="engine/src/kernels/ie_kernels_cuda.cu" bodystart="391" bodyend="415" declfile="engine/include/ie_kernels_cuda.h" declline="139" declcolumn="5"/>
+        <references refid="ie__kernels__cuda_8cu_1af4c083462b1e956e6461aa246d2af9a6" compoundref="ie__kernels__cuda_8cu" startline="78">CUDA_GUARD</references>
+        <references refid="ie__kernels__cuda_8cu_1afb3284f12e7d5038612ece3185920449" compoundref="ie__kernels__cuda_8cu" startline="28">IE_CUDA_OK</references>
+        <references refid="ie__kernels__cuda_8cu_1a841d35ecb02f9850f311a5724d21deac" compoundref="ie__kernels__cuda_8cu" startline="51" endline="61">ie_cuda_set_err</references>
+      </memberdef>
+      <memberdef kind="function" id="group__IE__GPU_1ga525e3ca0d9d0030847aef26b70fa0cb9" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int ie_cuda_launch_gemv_rowwise_qi8_f32</definition>
+        <argsstring>(const float *W, const int8_t *xq, float *y, int rows, int cols, int ldW, float scale, int zp, float alpha, float beta, ie_cuda_stream_t stream)</argsstring>
+        <name>ie_cuda_launch_gemv_rowwise_qi8_f32</name>
+        <param>
+          <type>const float *</type>
+          <declname>W</declname>
+        </param>
+        <param>
+          <type>const int8_t *</type>
+          <declname>xq</declname>
+        </param>
+        <param>
+          <type>float *</type>
+          <declname>y</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>rows</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>cols</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>ldW</declname>
+        </param>
+        <param>
+          <type>float</type>
+          <declname>scale</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>zp</declname>
+        </param>
+        <param>
+          <type>float</type>
+          <declname>alpha</declname>
+        </param>
+        <param>
+          <type>float</type>
+          <declname>beta</declname>
+        </param>
+        <param>
+          <type><ref refid="group__IE__GPU_1gaefb3d7d282a514152960b6c3d812355b" kindref="member">ie_cuda_stream_t</ref></type>
+          <declname>stream</declname>
+        </param>
+        <briefdescription>
+<para>Row-wise GEMV with INT8 activations (per-tensor), fused dequantization. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Dequantization model: <computeroutput>real = scale * (q - zero_point)</computeroutput>.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>W</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Float weights on device (row-major), size rows x ldW. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>xq</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>INT8 activations on device, length cols. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>y</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Output on device, length rows. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>rows</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Rows. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>cols</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Cols. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>ldW</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Leading dimension (&gt;= cols). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>scale</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Per-tensor scale. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>zp</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Per-tensor zero-point. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>alpha</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Scale for W*x. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>beta</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Scale for existing y. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>stream</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>CUDA stream (may be NULL). </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para><computeroutput>0</computeroutput> on success, negative on error.</para>
+</simplesect>
+Row-wise GEMV with INT8 activations (per-tensor), fused dequantization. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/ie_kernels_cuda.h" line="173" column="5" bodyfile="engine/src/kernels/ie_kernels_cuda.cu" bodystart="420" bodyend="445" declfile="engine/include/ie_kernels_cuda.h" declline="173" declcolumn="5"/>
+        <references refid="ie__kernels__cuda_8cu_1af4c083462b1e956e6461aa246d2af9a6" compoundref="ie__kernels__cuda_8cu" startline="78">CUDA_GUARD</references>
+        <references refid="ie__kernels__cuda_8cu_1afb3284f12e7d5038612ece3185920449" compoundref="ie__kernels__cuda_8cu" startline="28">IE_CUDA_OK</references>
+        <references refid="ie__kernels__cuda_8cu_1a841d35ecb02f9850f311a5724d21deac" compoundref="ie__kernels__cuda_8cu" startline="51" endline="61">ie_cuda_set_err</references>
+      </memberdef>
+      <memberdef kind="function" id="group__IE__GPU_1ga78cbe5a89ec13c5a9edca717f79caab8" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int ie_cuda_launch_gemv_rowwise_qfp8_f32</definition>
+        <argsstring>(const float *W, const uint8_t *x8, float *y, int rows, int cols, int ldW, ie_fp8_format fmt, float alpha, float beta, ie_cuda_stream_t stream)</argsstring>
+        <name>ie_cuda_launch_gemv_rowwise_qfp8_f32</name>
+        <param>
+          <type>const float *</type>
+          <declname>W</declname>
+        </param>
+        <param>
+          <type>const uint8_t *</type>
+          <declname>x8</declname>
+        </param>
+        <param>
+          <type>float *</type>
+          <declname>y</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>rows</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>cols</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>ldW</declname>
+        </param>
+        <param>
+          <type><ref refid="ie__quant__act_8h_1a67a1bdaa8281d1c69b6b76ecba79c52c" kindref="member">ie_fp8_format</ref></type>
+          <declname>fmt</declname>
+        </param>
+        <param>
+          <type>float</type>
+          <declname>alpha</declname>
+        </param>
+        <param>
+          <type>float</type>
+          <declname>beta</declname>
+        </param>
+        <param>
+          <type><ref refid="group__IE__GPU_1gaefb3d7d282a514152960b6c3d812355b" kindref="member">ie_cuda_stream_t</ref></type>
+          <declname>stream</declname>
+        </param>
+        <briefdescription>
+<para>Row-wise GEMV with FP8 activations (E4M3/E5M2), fused byte decode. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>W</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Float weights on device (row-major), size rows x ldW. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>x8</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>FP8 activations on device (bytes), length cols. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>y</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Output on device, length rows. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>rows</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Rows. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>cols</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Cols. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>ldW</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Leading dimension (&gt;= cols). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>fmt</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>FP8 format (<ref refid="ie__quant__act_8h_1a67a1bdaa8281d1c69b6b76ecba79c52ca67cfe56fcb473bed9a2f92388f2fc347" kindref="member">IE_FP8_E4M3</ref> or <ref refid="ie__quant__act_8h_1a67a1bdaa8281d1c69b6b76ecba79c52caa1844f8dd595aba744eb3243b127a3e0" kindref="member">IE_FP8_E5M2</ref>). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>alpha</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Scale for W*x. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>beta</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Scale for existing y. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>stream</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>CUDA stream (may be NULL). </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para><computeroutput>0</computeroutput> on success, negative on error.</para>
+</simplesect>
+Row-wise GEMV with FP8 activations (E4M3/E5M2), fused byte decode. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/ie_kernels_cuda.h" line="204" column="5" bodyfile="engine/src/kernels/ie_kernels_cuda.cu" bodystart="450" bodyend="473" declfile="engine/include/ie_kernels_cuda.h" declline="204" declcolumn="5"/>
+        <references refid="ie__kernels__cuda_8cu_1af4c083462b1e956e6461aa246d2af9a6" compoundref="ie__kernels__cuda_8cu" startline="78">CUDA_GUARD</references>
+        <references refid="ie__kernels__cuda_8cu_1afb3284f12e7d5038612ece3185920449" compoundref="ie__kernels__cuda_8cu" startline="28">IE_CUDA_OK</references>
+        <references refid="ie__kernels__cuda_8cu_1a841d35ecb02f9850f311a5724d21deac" compoundref="ie__kernels__cuda_8cu" startline="51" endline="61">ie_cuda_set_err</references>
+      </memberdef>
+      <memberdef kind="function" id="group__IE__GPU_1ga4e8445935545f1b5bbb671826543ffab" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int ie_cuda_launch_vec_tanh_f32</definition>
+        <argsstring>(float *y, const float *x, int n, ie_cuda_stream_t stream)</argsstring>
+        <name>ie_cuda_launch_vec_tanh_f32</name>
+        <param>
+          <type>float *</type>
+          <declname>y</declname>
+        </param>
+        <param>
+          <type>const float *</type>
+          <declname>x</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>n</declname>
+        </param>
+        <param>
+          <type><ref refid="group__IE__GPU_1gaefb3d7d282a514152960b6c3d812355b" kindref="member">ie_cuda_stream_t</ref></type>
+          <declname>stream</declname>
+        </param>
+        <briefdescription>
+<para>Compute <computeroutput>y[i] = tanh(x[i])</computeroutput> for <computeroutput>i in [0, n)</computeroutput>. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>y</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Device pointer to output vector (length <computeroutput>n</computeroutput>). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>x</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Device pointer to input vector (length <computeroutput>n</computeroutput>). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>n</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of elements (&gt;= 1). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>stream</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>CUDA stream handle (may be <computeroutput>NULL</computeroutput>). </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para><computeroutput>0</computeroutput> on success, negative on error.</para>
+</simplesect>
+<simplesect kind="pre"><para><computeroutput>x</computeroutput> and <computeroutput>y</computeroutput> are valid device pointers with at least <computeroutput>n</computeroutput> elements. </para>
+</simplesect>
+<simplesect kind="post"><para><computeroutput>y</computeroutput> contains elementwise <computeroutput>tanh(x)</computeroutput>.</para>
+</simplesect>
+Compute <computeroutput>y[i] = tanh(x[i])</computeroutput> for <computeroutput>i in [0, n)</computeroutput>. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/ie_kernels_cuda.h" line="231" column="5" bodyfile="engine/src/kernels/ie_kernels_cuda.cu" bodystart="478" bodyend="495" declfile="engine/include/ie_kernels_cuda.h" declline="231" declcolumn="5"/>
+        <references refid="ie__kernels__cuda_8cu_1af4c083462b1e956e6461aa246d2af9a6" compoundref="ie__kernels__cuda_8cu" startline="78">CUDA_GUARD</references>
+        <references refid="ie__kernels__cuda_8cu_1afb3284f12e7d5038612ece3185920449" compoundref="ie__kernels__cuda_8cu" startline="28">IE_CUDA_OK</references>
+        <references refid="ie__kernels__cuda_8cu_1a841d35ecb02f9850f311a5724d21deac" compoundref="ie__kernels__cuda_8cu" startline="51" endline="61">ie_cuda_set_err</references>
+      </memberdef>
+      <memberdef kind="function" id="group__IE__GPU_1ga72b6dfd858bd993a18d9c5dfb3112389" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int ie_cuda_launch_pack_w_blockedk_f32</definition>
+        <argsstring>(float *Wp, const float *W, int rows, int cols, int ldW, int block_k, ie_cuda_stream_t stream)</argsstring>
+        <name>ie_cuda_launch_pack_w_blockedk_f32</name>
+        <param>
+          <type>float *</type>
+          <declname>Wp</declname>
+        </param>
+        <param>
+          <type>const float *</type>
+          <declname>W</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>rows</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>cols</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>ldW</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>block_k</declname>
+        </param>
+        <param>
+          <type><ref refid="group__IE__GPU_1gaefb3d7d282a514152960b6c3d812355b" kindref="member">ie_cuda_stream_t</ref></type>
+          <declname>stream</declname>
+        </param>
+        <briefdescription>
+<para>Pack a row-major matrix into Blocked-K layout for better memory access. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>The K dimension (columns) is partitioned into tiles of size <computeroutput>block_k</computeroutput>. Data are stored as contiguous tiles: <programlisting><codeline><highlight class="normal">int<sp/>kb<sp/>=<sp/>k<sp/>/<sp/>block_k;<sp/><sp/>//<sp/>tile<sp/>index<sp/>along<sp/>K</highlight></codeline>
+<codeline><highlight class="normal">int<sp/>ko<sp/>=<sp/>k<sp/>%<sp/>block_k;<sp/><sp/>//<sp/>in-tile<sp/>offset</highlight></codeline>
+<codeline><highlight class="normal">size_t<sp/>dst<sp/>=<sp/>((size_t)kb<sp/>*<sp/>rows<sp/>+<sp/>r)<sp/>*<sp/>(size_t)block_k<sp/>+<sp/>(size_t)ko;</highlight></codeline>
+<codeline><highlight class="normal">Wp[dst]<sp/>=<sp/>W[(size_t)r<sp/>*<sp/>ldW<sp/>+<sp/>(size_t)k];</highlight></codeline>
+</programlisting></para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>Wp</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Device pointer to destination buffer (size = rows*cols). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>W</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Device pointer to source row-major matrix. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>rows</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of rows (&gt;= 1). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>cols</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of columns (&gt;= 1). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>ldW</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Leading dimension of <computeroutput>W</computeroutput> in elements (&gt;= <computeroutput>cols</computeroutput>). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>block_k</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Tile size along K (e.g., 32/64/128; must be &gt; 0). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>stream</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>CUDA stream handle (may be <computeroutput>NULL</computeroutput>). </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para><computeroutput>0</computeroutput> on success, negative on error.</para>
+</simplesect>
+<simplesect kind="pre"><para><computeroutput>Wp</computeroutput> and <computeroutput>W</computeroutput> are device pointers with sufficient capacity. </para>
+</simplesect>
+<simplesect kind="post"><para><computeroutput>Wp</computeroutput> contains the packed matrix in Blocked-K layout.</para>
+</simplesect>
+Pack a row-major matrix into Blocked-K layout for better memory access. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/ie_kernels_cuda.h" line="264" column="5" bodyfile="engine/src/kernels/ie_kernels_cuda.cu" bodystart="500" bodyend="523" declfile="engine/include/ie_kernels_cuda.h" declline="264" declcolumn="5"/>
+        <references refid="ie__kernels__cuda_8cu_1af4c083462b1e956e6461aa246d2af9a6" compoundref="ie__kernels__cuda_8cu" startline="78">CUDA_GUARD</references>
+        <references refid="ie__kernels__cuda_8cu_1afb3284f12e7d5038612ece3185920449" compoundref="ie__kernels__cuda_8cu" startline="28">IE_CUDA_OK</references>
+        <references refid="ie__kernels__cuda_8cu_1a841d35ecb02f9850f311a5724d21deac" compoundref="ie__kernels__cuda_8cu" startline="51" endline="61">ie_cuda_set_err</references>
+      </memberdef>
+      </sectiondef>
     <briefdescription>
 <para>CUDA GPU kernels and C-ABI launchers for hot-path vector/matrix ops. </para>
     </briefdescription>
     <detaileddescription>
 <para>This header exposes a minimal C ABI to launch CUDA kernels from the engine without leaking CUDA types into other translation units.</para>
-<sect1 id="ie__kernels__cuda_8h_1autotoc_md65_1s1"><sect2 id="ie__kernels__cuda_8h_1autotoc_md65_1s2"><sect3 id="ie__kernels__cuda_8h_1autotoc_md65">
-<title>Design goals</title><para><itemizedlist>
+<sect3 id="ie__kernels__cuda_8h_1autotoc_md77">
+<title>Design goals</title>
+<para><itemizedlist>
 <listitem><para>Stable C ABI: callable from C or C++.</para>
 </listitem><listitem><para>CUDA isolation: only this header/TU knows about CUDA; the rest of the project remains CUDA-agnostic.</para>
 </listitem><listitem><para>No global state: all configuration is passed via arguments.</para>
 </listitem></itemizedlist>
 </para>
-</sect3></sect2></sect1>
-<sect1 id="ie__kernels__cuda_8h_1autotoc_md66_1s1"><sect2 id="ie__kernels__cuda_8h_1autotoc_md66_1s2"><sect3 id="ie__kernels__cuda_8h_1autotoc_md66">
-<title>Error model</title><para>All launchers return <computeroutput>0</computeroutput> on success and a negative value on failure. Call <ref refid="group__IE__GPU_1ga6656c0ddd9df382048e7cd162e0c1d64" kindref="member">ie_cuda_last_error_string()</ref> to retrieve a printable diagnostic.</para>
-</sect3></sect2></sect1>
-<sect1 id="ie__kernels__cuda_8h_1autotoc_md67_1s1"><sect2 id="ie__kernels__cuda_8h_1autotoc_md67_1s2"><sect3 id="ie__kernels__cuda_8h_1autotoc_md67">
-<title>Pointer / memory rules</title><para>Unless explicitly stated otherwise, all pointers refer to device memory. Passing host pointers is undefined behavior and will surface as CUDA errors. </para>
-</sect3></sect2></sect1>
+</sect3>
+<sect3 id="ie__kernels__cuda_8h_1autotoc_md78">
+<title>Error model</title>
+<para>All launchers return <computeroutput>0</computeroutput> on success and a negative value on failure. Call <ref refid="group__IE__GPU_1gacf16a468f3ceed4f35dbd6990ff4b302" kindref="member">ie_cuda_last_error_string()</ref> to retrieve a printable diagnostic.</para>
+</sect3>
+<sect3 id="ie__kernels__cuda_8h_1autotoc_md79">
+<title>Pointer / memory rules</title>
+<para>Unless explicitly stated otherwise, all pointers refer to device memory. Passing host pointers is undefined behavior and will surface as CUDA errors. </para>
+</sect3>
     </detaileddescription>
     <programlisting>
 <codeline lineno="1"><highlight class="normal"></highlight></codeline>
-<codeline lineno="24"><highlight class="normal"></highlight></codeline>
 <codeline lineno="25"><highlight class="normal"></highlight><highlight class="preprocessor">#ifndef<sp/>IE_KERNELS_CUDA_H</highlight><highlight class="normal"></highlight></codeline>
 <codeline lineno="26"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>IE_KERNELS_CUDA_H</highlight><highlight class="normal"></highlight></codeline>
 <codeline lineno="27"><highlight class="normal"></highlight></codeline>
@@ -98,23 +1017,22 @@
 <codeline lineno="34"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/></highlight><highlight class="stringliteral">&quot;C&quot;</highlight><highlight class="normal"><sp/>{</highlight></codeline>
 <codeline lineno="35"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
 <codeline lineno="36"><highlight class="normal"></highlight></codeline>
-<codeline lineno="42"><highlight class="normal"></highlight></codeline>
 <codeline lineno="49"><highlight class="normal"></highlight><highlight class="preprocessor">#ifndef<sp/>IE_CUDA_STREAM_T_DEFINED</highlight><highlight class="normal"></highlight></codeline>
 <codeline lineno="50" refid="group__IE__GPU_1gad253e9c439228a67be0e55b0f4c81edf" refkind="member"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>IE_CUDA_STREAM_T_DEFINED</highlight><highlight class="normal"></highlight></codeline>
 <codeline lineno="51" refid="group__IE__GPU_1gaefb3d7d282a514152960b6c3d812355b" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal">*<sp/><ref refid="group__IE__GPU_1gaefb3d7d282a514152960b6c3d812355b" kindref="member">ie_cuda_stream_t</ref>;</highlight></codeline>
 <codeline lineno="52"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
 <codeline lineno="53"><highlight class="normal"></highlight></codeline>
 <codeline lineno="57" refid="group__IE__GPU_1gab2c254b332e574ed55c2537075337f85" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">enum</highlight><highlight class="normal"><sp/><ref refid="group__IE__GPU_1gab2c254b332e574ed55c2537075337f85" kindref="member">ie_act_kind_e</ref><sp/>{</highlight></codeline>
-<codeline lineno="58" refid="group__IE__GPU_1ggab2c254b332e574ed55c2537075337f85a72bddb07e52c2dcecd390cda078cd33f" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="group__IE__GPU_1ggab2c254b332e574ed55c2537075337f85a72bddb07e52c2dcecd390cda078cd33f" kindref="member">IE_ACT_NONE</ref><sp/>=<sp/>0,<sp/><sp/><sp/></highlight></codeline>
-<codeline lineno="59" refid="group__IE__GPU_1ggab2c254b332e574ed55c2537075337f85a4efb020b6e30222eac585f53f1d3e47f" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="group__IE__GPU_1ggab2c254b332e574ed55c2537075337f85a4efb020b6e30222eac585f53f1d3e47f" kindref="member">IE_ACT_RELU</ref><sp/>=<sp/>1,<sp/><sp/><sp/></highlight></codeline>
-<codeline lineno="60" refid="group__IE__GPU_1ggab2c254b332e574ed55c2537075337f85a5c3ab96a97ea7aa059b44e7508c28a08" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="group__IE__GPU_1ggab2c254b332e574ed55c2537075337f85a5c3ab96a97ea7aa059b44e7508c28a08" kindref="member">IE_ACT_TANH</ref><sp/>=<sp/>2<sp/><sp/><sp/><sp/></highlight></codeline>
+<codeline lineno="58" refid="group__IE__GPU__ZE_1ggab2c254b332e574ed55c2537075337f85a72bddb07e52c2dcecd390cda078cd33f" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="group__IE__GPU__ZE_1ggab2c254b332e574ed55c2537075337f85a72bddb07e52c2dcecd390cda078cd33f" kindref="member">IE_ACT_NONE</ref><sp/>=<sp/>0,<sp/><sp/><sp/></highlight></codeline>
+<codeline lineno="59" refid="group__IE__GPU__ZE_1ggab2c254b332e574ed55c2537075337f85a4efb020b6e30222eac585f53f1d3e47f" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="group__IE__GPU__ZE_1ggab2c254b332e574ed55c2537075337f85a4efb020b6e30222eac585f53f1d3e47f" kindref="member">IE_ACT_RELU</ref><sp/>=<sp/>1,<sp/><sp/><sp/></highlight></codeline>
+<codeline lineno="60"><highlight class="normal"><sp/><sp/><ref refid="group__IE__GPU__ZE_1ggab2c254b332e574ed55c2537075337f85a5c3ab96a97ea7aa059b44e7508c28a08" kindref="member">IE_ACT_TANH</ref><sp/>=<sp/>2<sp/><sp/><sp/><sp/></highlight></codeline>
 <codeline lineno="61" refid="group__IE__GPU_1ga08ba1d3777f64c23e99124d2e460e701" refkind="member"><highlight class="normal">}<sp/><ref refid="group__IE__GPU_1ga08ba1d3777f64c23e99124d2e460e701" kindref="member">ie_act_kind_t</ref>;</highlight></codeline>
 <codeline lineno="62"><highlight class="normal"></highlight></codeline>
 <codeline lineno="63"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>--------------------------------------------------------------------------<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
 <codeline lineno="64"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>Error<sp/>handling<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
 <codeline lineno="65"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>--------------------------------------------------------------------------<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
 <codeline lineno="66"><highlight class="normal"></highlight></codeline>
-<codeline lineno="75"><highlight class="normal"></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal">*<sp/><ref refid="group__IE__GPU_1ga6656c0ddd9df382048e7cd162e0c1d64" kindref="member">ie_cuda_last_error_string</ref>(</highlight><highlight class="keywordtype">void</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="75"><highlight class="normal"></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal">*<sp/><ref refid="group__IE__GPU_1gacf16a468f3ceed4f35dbd6990ff4b302" kindref="member">ie_cuda_last_error_string</ref>(</highlight><highlight class="keywordtype">void</highlight><highlight class="normal">);</highlight></codeline>
 <codeline lineno="76"><highlight class="normal"></highlight></codeline>
 <codeline lineno="77"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>--------------------------------------------------------------------------<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
 <codeline lineno="78"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>GEMV<sp/>FP32<sp/>(row-wise)<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>*/</highlight><highlight class="normal"></highlight></codeline>

@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8' standalone='no'?>
-<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.1" xml:lang="en-US">
   <compounddef id="gemv__avx2_8c" kind="file" language="C++">
     <compoundname>gemv_avx2.c</compoundname>
     <includes refid="ie__kernels_8h" local="yes">ie_kernels.h</includes>
@@ -10,19 +10,20 @@
     <includes local="no">stdlib.h</includes>
     <includes local="no">string.h</includes>
     <incdepgraph>
-      <node id="2">
-        <label>ie_kernels.h</label>
-        <link refid="ie__kernels_8h"/>
-        <childnode refid="3" relation="include">
-        </childnode>
+      <node id="5">
+        <label>stdint.h</label>
       </node>
-      <node id="4">
-        <label>ie_quant_act.h</label>
-        <link refid="ie__quant__act_8h"/>
-        <childnode refid="3" relation="include">
-        </childnode>
-        <childnode refid="5" relation="include">
-        </childnode>
+      <node id="7">
+        <label>stdlib.h</label>
+      </node>
+      <node id="6">
+        <label>immintrin.h</label>
+      </node>
+      <node id="3">
+        <label>stddef.h</label>
+      </node>
+      <node id="8">
+        <label>string.h</label>
       </node>
       <node id="1">
         <label>engine/src/kernels/gemv_avx2.c</label>
@@ -42,23 +43,22 @@
         <childnode refid="8" relation="include">
         </childnode>
       </node>
-      <node id="6">
-        <label>immintrin.h</label>
+      <node id="2">
+        <label>ie_kernels.h</label>
+        <link refid="ie__kernels_8h"/>
+        <childnode refid="3" relation="include">
+        </childnode>
       </node>
-      <node id="3">
-        <label>stddef.h</label>
-      </node>
-      <node id="5">
-        <label>stdint.h</label>
-      </node>
-      <node id="7">
-        <label>stdlib.h</label>
-      </node>
-      <node id="8">
-        <label>string.h</label>
+      <node id="4">
+        <label>ie_quant_act.h</label>
+        <link refid="ie__quant__act_8h"/>
+        <childnode refid="3" relation="include">
+        </childnode>
+        <childnode refid="5" relation="include">
+        </childnode>
       </node>
     </incdepgraph>
-    <sectiondef kind="func">
+      <sectiondef kind="func">
       <memberdef kind="function" id="gemv__avx2_8c_1a63b484c2984caeed7dfc9b5002444f57" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
         <definition>void ie_gemv_f32_avx2_impl</definition>
@@ -293,7 +293,7 @@
         <references refid="structie__act__i8__params_1ab19e71539ecb14b16a4c65b425be4c32" compoundref="ie__quant__act_8h" startline="54">ie_act_i8_params::zero_point</references>
         <referencedby refid="gemv__generic_8c_1abd518beacb02189b5b640948ed348f25" compoundref="gemv__generic_8c" startline="298" endline="310">ie_gemv_qi8_f32</referencedby>
       </memberdef>
-    </sectiondef>
+      </sectiondef>
     <briefdescription>
     </briefdescription>
     <detaileddescription>
@@ -409,7 +409,7 @@
 <codeline lineno="141"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>z<sp/>=<sp/>(int)params.<ref refid="structie__act__i8__params_1ab19e71539ecb14b16a4c65b425be4c32" kindref="member">zero_point</ref>;</highlight></codeline>
 <codeline lineno="142"><highlight class="normal"></highlight></codeline>
 <codeline lineno="143"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>i<sp/>=<sp/>0;</highlight></codeline>
-<codeline lineno="144"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(;<sp/>i<sp/>+<sp/>8<sp/>&lt;=<sp/>cols;<sp/>i<sp/>+=<sp/>8)<sp/>{</highlight></codeline>
+<codeline lineno="144"><highlight class="normal"><sp/><sp/>for<sp/>(;<sp/>i<sp/>+<sp/>8<sp/>&lt;=<sp/>cols;<sp/>i<sp/>+=<sp/>8)<sp/>{</highlight></codeline>
 <codeline lineno="145"><highlight class="normal"><sp/><sp/><sp/><sp/>__m128i<sp/>q<sp/>=<sp/>_mm_loadl_epi64((</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>__m128i<sp/>*)(x_q<sp/>+<sp/>i));<sp/></highlight><highlight class="comment">/*<sp/>8x<sp/>i8<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
 <codeline lineno="146"><highlight class="normal"><sp/><sp/><sp/><sp/>__m256i<sp/>qi<sp/>=<sp/>_mm256_cvtepi8_epi32(q);<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">/*<sp/>-&gt;<sp/>8x<sp/>i32<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
 <codeline lineno="147"><highlight class="normal"><sp/><sp/><sp/><sp/>__m256<sp/>qf<sp/>=<sp/>_mm256_cvtepi32_ps(qi);<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">/*<sp/>-&gt;<sp/>8x<sp/>f32<sp/>*/</highlight><highlight class="normal"></highlight></codeline>

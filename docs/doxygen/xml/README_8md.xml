@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8' standalone='no'?>
-<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.1" xml:lang="en-US">
   <compounddef id="README_8md" kind="file" language="Markdown">
     <compoundname>README.md</compoundname>
     <briefdescription>
@@ -438,6 +438,58 @@
 <codeline><highlight class="normal">-<sp/>CPU:<sp/>dispatcher<sp/>keeps<sp/>AVX2/FMA<sp/>fast<sp/>path;<sp/>generic<sp/>C<sp/>path<sp/>honors<sp/>blocked‑K<sp/>and<sp/>activation<sp/>dequant<sp/>(INT8<sp/>per‑tensor<sp/>/<sp/>per‑group).</highlight></codeline>
 <codeline></codeline>
 <codeline><highlight class="normal">&gt;<sp/>Tip:<sp/>for<sp/>strict,<sp/>bandwidth‑bound<sp/>tests<sp/>use:<sp/>`IE_REQUIRE_MODEL=1<sp/>IE_BYTES_PER_TOKEN=64000000<sp/>IE_STRIDE_BYTES=256`.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">---</highlight></codeline>
+<codeline><highlight class="normal">##<sp/>What&apos;s<sp/>new<sp/>—<sp/>Block-sparse<sp/>weights<sp/>(CPU<sp/>only,<sp/>2025‑11‑14)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">This<sp/>phase<sp/>adds<sp/>a<sp/>**block‑sparse<sp/>representation<sp/>for<sp/>weight<sp/>matrices**<sp/>and<sp/>a</highlight></codeline>
+<codeline><highlight class="normal">reference<sp/>CPU<sp/>implementation.<sp/>The<sp/>goal<sp/>is<sp/>to<sp/>make<sp/>sparsity<sp/>experiments</highlight></codeline>
+<codeline><highlight class="normal">reproducible<sp/>without<sp/>disturbing<sp/>the<sp/>existing<sp/>dense<sp/>path.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>New<sp/>artifacts</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Code:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>`engine/include/sparse_format.h`<sp/>—<sp/>public<sp/>descriptor<sp/>for<sp/>block‑sparse</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>matrices<sp/>(`ie_block_sparse_matrix_t`)<sp/>plus<sp/>helpers<sp/>and<sp/>status<sp/>codes.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`engine/src/sparse_io.c`<sp/>—<sp/>on‑disk<sp/>header/loader<sp/>for<sp/>a<sp/>compact</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>block‑sparse<sp/>binary<sp/>format<sp/>(`ie_block_sparse_load`).</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`engine/src/gemm_block_sparse.c`<sp/>—<sp/>single‑threaded<sp/>reference<sp/>GEMV</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>(`ie_gemv_block_sparse_f32`)<sp/>over<sp/>the<sp/>BSR<sp/>structure.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`engine/src/devices/ie_device_common.c`<sp/>—<sp/>device<sp/>vtable<sp/>extended<sp/>with<sp/>a</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>`gemv_block_sparse_f32`<sp/>entry<sp/>and<sp/>a<sp/>CPU<sp/>fallback<sp/>implementation.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`tests/c/test_block_sparse.c`<sp/>—<sp/>C<sp/>unit<sp/>tests<sp/>that<sp/>validate<sp/>the<sp/>loader<sp/>and</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>GEMV<sp/>on<sp/>small<sp/>hand‑built<sp/>matrices.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`benchmarks/src/microbench_gemv_block_sparse.c`<sp/>—<sp/>standalone</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>microbenchmark<sp/>that<sp/>compares<sp/>dense<sp/>vs<sp/>block‑sparse<sp/>GEMV<sp/>on<sp/>CPU.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`tools/convert_to_block_sparse.c`<sp/>—<sp/>offline<sp/>converter<sp/>from<sp/>a<sp/>dense</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>row‑major<sp/>weight<sp/>matrix<sp/>to<sp/>the<sp/>on‑disk<sp/>block‑sparse<sp/>format.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Build/Makefile:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>`Makefile`<sp/>now<sp/>compiles<sp/>the<sp/>new<sp/>sources<sp/>and<sp/>wires<sp/>the<sp/>block‑sparse</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>microbench<sp/>under<sp/>`make<sp/>microbench-block-sparse`<sp/>(CPU<sp/>only).</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>The<sp/>main<sp/>`make<sp/>test`<sp/>target<sp/>runs<sp/>`test_block_sparse`<sp/>together<sp/>with<sp/>the</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>existing<sp/>C<sp/>unit<sp/>tests.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Scope<sp/>and<sp/>current<sp/>limitations</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>**Backend:**<sp/>CPU<sp/>only.<sp/>CUDA/Level‑Zero<sp/>code<sp/>paths<sp/>simply<sp/>report</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>“unimplemented”<sp/>for<sp/>block‑sparse<sp/>GEMV<sp/>and<sp/>transparently<sp/>fall<sp/>back<sp/>to<sp/>the</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>dense<sp/>CPU<sp/>implementation<sp/>if<sp/>called.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Layout:**<sp/>fixed<sp/>**block‑row<sp/>CSR<sp/>(BSR)**<sp/>layout<sp/>with<sp/>uniform</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>`block_rows<sp/>x<sp/>block_cols`.<sp/>Tail<sp/>blocks<sp/>at<sp/>the<sp/>matrix<sp/>edges<sp/>are<sp/>handled</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>by<sp/>clipping<sp/>reads/writes<sp/>using<sp/>the<sp/>dense<sp/>`rows/cols`<sp/>metadata.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Datatype:**<sp/>FP32<sp/>weights<sp/>only.<sp/>Activations,<sp/>quantized<sp/>paths<sp/>and<sp/>mixed</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>precision<sp/>remain<sp/>dense<sp/>for<sp/>now.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>**Integration:**<sp/>the<sp/>block‑sparse<sp/>path<sp/>is<sp/>currently<sp/>exercised<sp/>via<sp/>the<sp/>C</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>tests<sp/>and<sp/>the<sp/>dedicated<sp/>microbenchmark.<sp/>The<sp/>CLI<sp/>still<sp/>consumes<sp/>dense</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>`model.ie.bin`;<sp/>wiring<sp/>full‑model<sp/>block‑sparse<sp/>weights<sp/>will<sp/>be<sp/>a<sp/>separate</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>ADR/phase.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">See<sp/>`DESIGN.md`<sp/>(Block‑sparse<sp/>weights<sp/>chapter)<sp/>and<sp/>`DECISIONS.md`<sp/>(ADR<sp/>for</highlight></codeline>
+<codeline><highlight class="normal">block‑sparse)<sp/>for<sp/>full<sp/>details.</highlight></codeline>
+<codeline></codeline>
     </programlisting>
     <location file="README.md"/>
   </compounddef>

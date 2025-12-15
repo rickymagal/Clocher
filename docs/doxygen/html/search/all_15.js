@@ -1,13 +1,19 @@
 var searchData=
 [
-  ['q4_0',['NEW: INT4 &lt;strong&gt;weight‑only&lt;/strong&gt; PTQ path (Q4)',['../index.html#autotoc_md86',1,'']]],
-  ['q4_5fdir_1',['Q4_DIR',['../namespaceq4__pack__stream.html#a511a4249dd1af185291e8a11bfd7eddf',1,'q4_pack_stream']]],
-  ['q4_5fpack_5fstream_2',['q4_pack_stream',['../namespaceq4__pack__stream.html',1,'']]],
-  ['q4_5fpack_5fstream_2epy_3',['q4_pack_stream.py',['../q4__pack__stream_8py.html',1,'']]],
-  ['quantization_20rule_4',['Quantization rule',['../ie__quant__int4_8h.html#autotoc_md69',1,'']]],
-  ['quantize_5f2d_5fper_5frow_5',['quantize_2d_per_row',['../namespaceq4__pack__stream.html#a671b92b7622e9bd97a9da8b156f36e3d',1,'q4_pack_stream']]],
-  ['quantize_5fint4_5fpacked_6',['quantize_int4_packed',['../namespaceptq__calib.html#a15c1ec510d143c4356e29ed8922e51bc',1,'ptq_calib']]],
-  ['quantize_5fint8_7',['quantize_int8',['../namespaceptq__calib.html#a6855dfc7d067ff09439e3ea0902bbd25',1,'ptq_calib']]],
-  ['quick_20run_20recipes_8',['Quick run recipes',['../index.html#autotoc_md121',1,'']]],
-  ['quick_20start_9',['Quick start',['../index.html#autotoc_md83',1,'']]]
+  ['u_1132',['u',['../unionie__f32u32.html#ab433b16c0a42d26173a9d33afce48e21',1,'ie_f32u32']]],
+  ['u64_5fceil_5fdiv_1133',['u64_ceil_div',['../dedup__extract_8c.html#a7d12016457c9dae4ddfeb44d7e778a3a',1,'dedup_extract.c']]],
+  ['unpack_5fq4_5fpair_1134',['unpack_q4_pair',['../int4__ptq_8c.html#a17c5de65148c5a3bac0c3d8e5f227c9c',1,'int4_ptq.c']]],
+  ['unused_1135',['UNUSED',['../main__infer_8c.html#a86d500a34c624c2cae56bc25a31b12f3',1,'main_infer.c']]],
+  ['update_5fperformance_5fmd_1136',['update_performance_md',['../namespaceupdate__performance__md.html',1,'']]],
+  ['update_5fperformance_5fmd_2epy_1137',['update_performance_md.py',['../update__performance__md_8py.html',1,'']]],
+  ['usage_1138',['usage',['../convert__to__block__sparse_8c.html#a848c0ca46d3e3ecc39d2fccc4d85fa12',1,'usage(const char *prog):&#160;convert_to_block_sparse.c'],['../main__infer_8c.html#ad96d407a911fbb914fa8e4cfbf2faf0f',1,'usage(void):&#160;main_infer.c']]],
+  ['use_5faffinity_1139',['use_affinity',['../structie__threadpool.html#ac1aab334f9b4baf6aac73f151438f7bd',1,'ie_threadpool::use_affinity()'],['../structie__task__arg__t.html#a9d90ceaa82f746983034dd7bc034bc26',1,'ie_task_arg_t::use_affinity()']]],
+  ['user_5fctx_1140',['user_ctx',['../structie__batcher.html#ac168939e040aad22b182fef1a908fdb2',1,'ie_batcher']]],
+  ['uses_5fblock_5fsparse_1141',['uses_block_sparse',['../structie__engine.html#ad53b43ae0ad90765775476d829256d33',1,'ie_engine']]],
+  ['uses_5fweight_5fint4_1142',['uses_weight_int4',['../structie__engine.html#a85ec8e92466a0e14370e003ad3af6a68',1,'ie_engine']]],
+  ['util_5flogging_2ec_1143',['util_logging.c',['../util__logging_8c.html',1,'']]],
+  ['util_5flogging_2eh_1144',['util_logging.h',['../util__logging_8h.html',1,'']]],
+  ['util_5fmetrics_2ec_1145',['util_metrics.c',['../util__metrics_8c.html',1,'']]],
+  ['util_5fmetrics_2eh_1146',['util_metrics.h',['../util__metrics_8h.html',1,'']]],
+  ['utilities_3a_20kv_20counters_20and_20rss_20sampler_1147',['Utilities: KV counters and RSS sampler',['../group__IE__METRICS.html',1,'']]]
 ];

@@ -6,7 +6,7 @@ var convert__to__block__sparse_8c =
     [ "ie_block_sparse_header_disk_t", "convert__to__block__sparse_8c.html#a7cffdcfd9bd99d5d0c9f8729018d41b7", null ],
     [ "block_is_nonzero", "convert__to__block__sparse_8c.html#a78aefc9b4a9205a1186fa54512b03f7f", null ],
     [ "dense_to_block_sparse", "convert__to__block__sparse_8c.html#a1151a97db14a549537170c84ed1fc692", null ],
-    [ "load_dense_matrix", "convert__to__block__sparse_8c.html#a407a0b54378f1c5ae647bae2f5e37620", null ],
+    [ "load_dense_matrix", "convert__to__block__sparse_8c.html#a2d97f2f4e1a92659e0517844f9a92598", null ],
     [ "main", "convert__to__block__sparse_8c.html#a3c04138a5bfe5d72780bb7e82a18e627", null ],
     [ "parse_cli", "convert__to__block__sparse_8c.html#a90979327148f70531d68da9632111301", null ],
     [ "usage", "convert__to__block__sparse_8c.html#a848c0ca46d3e3ecc39d2fccc4d85fa12", null ],

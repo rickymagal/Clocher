@@ -1,10 +1,10 @@
 <?xml version='1.0' encoding='UTF-8' standalone='no'?>
-<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.1" xml:lang="en-US">
   <compounddef id="group__ie__io__weights" kind="group">
     <compoundname>ie_io_weights</compoundname>
     <title>IEBIN v1 Weights Loader</title>
     <innerclass refid="structie__weights__s" prot="public">ie_weights_s</innerclass>
-    <sectiondef kind="typedef">
+      <sectiondef kind="typedef">
       <memberdef kind="typedef" id="group__ie__io__weights_1gaf68ad3cdc2eb244fe4feed94372d7806" prot="public" static="no">
         <type>struct <ref refid="structie__weights__s" kindref="compound">ie_weights_s</ref></type>
         <definition>typedef struct ie_weights_s ie_weights_t</definition>
@@ -16,10 +16,10 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="engine/include/ie_io.h" line="128" column="14"/>
+        <location file="engine/include/ie_io.h" line="159" column="14"/>
       </memberdef>
-    </sectiondef>
-    <sectiondef kind="func">
+      </sectiondef>
+      <sectiondef kind="func">
       <memberdef kind="function" id="group__ie__io__weights_1ga522dac028ee37aae1307ffdb6d65ec1d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>int</type>
         <definition>int ie_weights_open</definition>
@@ -41,6 +41,12 @@
 <para>Open and parse IEBIN v1 metadata and resolve the weights path. </para>
         </briefdescription>
         <detaileddescription>
+<para>The loader reads <computeroutput>model.ie.json</computeroutput>, extracts minimal header metadata, and resolves the corresponding weights binary path. The binary is not kept open.</para>
+<para>Deduplicated weights (lossless):<itemizedlist>
+<listitem><para>If the directory containing <computeroutput>json_path</computeroutput> also contains <computeroutput>model.dedup.json</computeroutput>, the implementation may open a dedup loader and mark <computeroutput>out</computeroutput> with <ref refid="structie__weights__s_1ab1e17ac4f44125571f2c63e603d967da" kindref="member">ie_weights_t::is_dedup</ref> and <ref refid="structie__weights__s_1a6cffa1c1904346d68932cc9542b8ff32" kindref="member">ie_weights_t::dedup_handle</ref>.</para>
+</listitem><listitem><para>If dedup metadata is present but cannot be opened, the implementation may fail the open to avoid silent mismatch.</para>
+</listitem></itemizedlist>
+</para>
 <para><parameterlist kind="param"><parameteritem>
 <parameternamelist>
 <parametername>json_path</parametername>
@@ -108,96 +114,54 @@
 </parameteritem>
 </parameterlist>
 Open and parse IEBIN v1 metadata and resolve the weights path.</para>
-<para><parameterlist kind="param"><parameteritem>
-<parameternamelist>
-<parametername>json_path</parametername>
-</parameternamelist>
-<parameterdescription>
-<para>Path to <computeroutput>model.ie.json</computeroutput> (must be readable). </para>
-</parameterdescription>
-</parameteritem>
-<parameteritem>
-<parameternamelist>
-<parametername>bin_path</parametername>
-</parameternamelist>
-<parameterdescription>
-<para>Optional override path for the binary (<computeroutput>model.ie.bin</computeroutput>); if NULL, the JSON <computeroutput>bin</computeroutput> field (or default) is used. </para>
-</parameterdescription>
-</parameteritem>
-<parameteritem>
-<parameternamelist>
-<parametername>out</parametername>
-</parameternamelist>
-<parameterdescription>
-<para>Output descriptor; zero-initialized on entry by the function. </para>
-</parameterdescription>
-</parameteritem>
-</parameterlist>
-<parameterlist kind="retval"><parameteritem>
-<parameternamelist>
-<parametername>IE_IO_OK</parametername>
-</parameternamelist>
-<parameterdescription>
-<para>on success. </para>
-</parameterdescription>
-</parameteritem>
-<parameteritem>
-<parameternamelist>
-<parametername>IE_IO_ERR_ARGS</parametername>
-</parameternamelist>
-<parameterdescription>
-<para>if arguments are invalid. </para>
-</parameterdescription>
-</parameteritem>
-<parameteritem>
-<parameternamelist>
-<parametername>IE_IO_ERR_JSON</parametername>
-</parameternamelist>
-<parameterdescription>
-<para>if JSON cannot be read/parsed. </para>
-</parameterdescription>
-</parameteritem>
-<parameteritem>
-<parameternamelist>
-<parametername>IE_IO_ERR_BIN_UNSPEC</parametername>
-</parameternamelist>
-<parameterdescription>
-<para>if a weights path cannot be determined. </para>
-</parameterdescription>
-</parameteritem>
-<parameteritem>
-<parameternamelist>
-<parametername>IE_IO_ERR_STAT</parametername>
-</parameternamelist>
-<parameterdescription>
-<para>if the binary cannot be <computeroutput>stat()</computeroutput>-ed.</para>
-</parameterdescription>
-</parameteritem>
-</parameterlist>
-Open and parse IEBIN v1 metadata and resolve the weights path.</para>
+<para>Open and parse IEBIN v1 metadata and resolve the weights path.</para>
+<para>Behavior:<itemizedlist>
+<listitem><para>Loads <computeroutput>model.ie.json</computeroutput> exactly as before.</para>
+</listitem><listitem><para>Additionally checks whether a sibling <computeroutput>model.dedup.json</computeroutput> exists in the same directory. If present, it opens the dedup loader and records that this weights handle is backed by deduplicated artifacts.</para>
+</listitem></itemizedlist>
+</para>
+<para>Notes:<itemizedlist>
+<listitem><para>This function does not change the public ABI in <computeroutput><ref refid="ie__io_8h" kindref="compound">ie_io.h</ref></computeroutput>. It relies on existing spare/opaque fields in <computeroutput>ie_weights_t</computeroutput> to store the dedup handle.</para>
+</listitem><listitem><para>If your <computeroutput>ie_weights_t</computeroutput> does not have such a field yet, add: <computeroutput>void *dedup_handle; int is_dedup;</computeroutput> to <computeroutput><ref refid="ie__io_8h" kindref="compound">ie_io.h</ref></computeroutput> (or a private extension struct) and recompile.</para>
+</listitem></itemizedlist>
+</para>
+<para>Behavior:<itemizedlist>
+<listitem><para>Loads <computeroutput>model.ie.json</computeroutput> exactly as before.</para>
+</listitem><listitem><para>Additionally checks whether a sibling <computeroutput>model.dedup.json</computeroutput> exists in the same directory. If present, it opens the dedup loader and records that this weights handle is backed by deduplicated artifacts.</para>
+</listitem></itemizedlist>
+</para>
+<para>Notes:<itemizedlist>
+<listitem><para>This function does not change the public ABI in <computeroutput><ref refid="ie__io_8h" kindref="compound">ie_io.h</ref></computeroutput>. It relies on existing spare/opaque fields in <computeroutput>ie_weights_t</computeroutput> to store the dedup handle.</para>
+</listitem><listitem><para>If your <computeroutput>ie_weights_t</computeroutput> does not have such a field yet, add: <computeroutput>void *dedup_handle; int is_dedup;</computeroutput> to <computeroutput><ref refid="ie__io_8h" kindref="compound">ie_io.h</ref></computeroutput> (or a private extension struct) and recompile. </para>
+</listitem></itemizedlist>
+</para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="engine/include/ie_io.h" line="143" column="5" bodyfile="engine/src/io/weights.c" bodystart="374" bodyend="429" declfile="engine/include/ie_io.h" declline="143" declcolumn="5"/>
-        <references refid="structie__weights__s_1a19f9137cca00113908b495a70769805e" compoundref="ie__io_8h" startline="122">ie_weights_s::bin_size_bytes</references>
-        <references refid="weights_8c_1ae3307b59271742c37862abf0b9698d23" compoundref="weights_8c" startline="63" endline="70">cpyz</references>
-        <references refid="structie__weights__s_1aaedc444c52d256720c4b4099604206a4" compoundref="ie__io_8h" startline="109">ie_weights_s::dtype</references>
+        <location file="engine/include/ie_io.h" line="185" column="5" bodyfile="engine/src/io/weights.c" bodystart="413" bodyend="504" declfile="engine/include/ie_io.h" declline="185" declcolumn="5"/>
+        <references refid="structie__weights__s_1a19f9137cca00113908b495a70769805e" compoundref="ie__io_8h" startline="129">ie_weights_s::bin_size_bytes</references>
+        <references refid="weights_8c_1ae3307b59271742c37862abf0b9698d23" compoundref="weights_8c" startline="77" endline="84">cpyz</references>
+        <references refid="structie__weights__s_1a6cffa1c1904346d68932cc9542b8ff32" compoundref="ie__io_8h" startline="158">ie_weights_s::dedup_handle</references>
+        <references refid="structie__weights__s_1aaedc444c52d256720c4b4099604206a4" compoundref="ie__io_8h" startline="116">ie_weights_s::dtype</references>
+        <references refid="weights_8c_1a8adb51cd6c239a9589d4d66cd0cf989e" compoundref="weights_8c" startline="388" endline="391">file_exists_readable</references>
         <references refid="group__ie__io__status_1gga4c501870bd45dbe373416745a03de987a579de46204c4454f99e9620965e58239" compoundref="ie__io_8h" startline="59">IE_IO_ERR_ARGS</references>
         <references refid="group__ie__io__status_1gga4c501870bd45dbe373416745a03de987a66046f2226981286e47bb2f33ab56862" compoundref="ie__io_8h" startline="65">IE_IO_ERR_BIN_UNSPEC</references>
         <references refid="group__ie__io__status_1gga4c501870bd45dbe373416745a03de987aa02b300fcfbce31fe86de69090fc9fa9" compoundref="ie__io_8h" startline="62">IE_IO_ERR_JSON</references>
         <references refid="group__ie__io__status_1gga4c501870bd45dbe373416745a03de987a82517853bf5084320fad8c88f67d29bb" compoundref="ie__io_8h" startline="68">IE_IO_ERR_STAT</references>
-        <references refid="group__ie__io__status_1gga4c501870bd45dbe373416745a03de987a81b076a3d2516e2f45170c664c0fa57d" compoundref="ie__io_8h" startline="56">IE_IO_OK</references>
-        <references refid="weights_8c_1a7bb1dd9958b072fc5d1a80373cc074ff" compoundref="weights_8c" startline="95" endline="121">join_path</references>
-        <references refid="structie__weights__s_1a6d4bef9e704edd817ee473eb2685cdd4" compoundref="ie__io_8h" startline="114">ie_weights_s::json_path</references>
-        <references refid="weights_8c_1a7415d89bc8bd657819e06ac0fc53da95" compoundref="weights_8c" startline="79" endline="84">last_slash</references>
-        <references refid="structie__weights__s_1a0e365369fa9f9920eda71bd9be50c5bb" compoundref="ie__io_8h" startline="127">ie_weights_s::loaded</references>
-        <references refid="weights_8c_1a7d467c1ab0baceed9b0fdad7b5a8accf" compoundref="weights_8c" startline="132" endline="165">read_all_text</references>
-        <references refid="weights_8c_1a5c6ba72035c0c5110c91879350c8647f" compoundref="weights_8c" startline="176" endline="194">scan_json_key_int</references>
-        <references refid="weights_8c_1a3c438658d11f74ba4af8273c7e390311" compoundref="weights_8c" startline="206" endline="231">scan_json_key_string</references>
-        <references refid="structie__weights__s_1ae12c1b3b426321f6ba604f0a89673315" compoundref="ie__io_8h" startline="106">ie_weights_s::version</references>
-        <references refid="structie__weights__s_1ab6a61099d0af4a47854d02dc4fef5b8f" compoundref="ie__io_8h" startline="117">ie_weights_s::weights_path</references>
+        <references refid="weights__dedup_8h_1a9421812de4e8b9faeea608ac3809d6cba0baf1bf45e91e9558e44038d27d20e2f" compoundref="weights__dedup_8h" startline="60">IE_WDEDUP_OK</references>
+        <references refid="weights__dedup_8h_1aa625b41ce2a24826f8cb464661ace8ec" compoundref="weights__dedup_8c" startline="996" endline="1079">ie_weights_dedup_open</references>
+        <references refid="structie__weights__s_1ab1e17ac4f44125571f2c63e603d967da" compoundref="ie__io_8h" startline="148">ie_weights_s::is_dedup</references>
+        <references refid="weights_8c_1a7bb1dd9958b072fc5d1a80373cc074ff" compoundref="weights_8c" startline="109" endline="135">join_path</references>
+        <references refid="structie__weights__s_1a6d4bef9e704edd817ee473eb2685cdd4" compoundref="ie__io_8h" startline="121">ie_weights_s::json_path</references>
+        <references refid="weights_8c_1a911b2111036aebbe893bacad82040caf" compoundref="weights_8c" startline="93" endline="98">last_slash</references>
+        <references refid="structie__weights__s_1a0e365369fa9f9920eda71bd9be50c5bb" compoundref="ie__io_8h" startline="134">ie_weights_s::loaded</references>
+        <references refid="structie__weights__dedup__opts_1aa35fdf95b6eb0a953f2ea621005d8789" compoundref="weights__dedup_8h" startline="152">ie_weights_dedup_opts::prefault_policy</references>
+        <references refid="weights_8c_1a7d467c1ab0baceed9b0fdad7b5a8accf" compoundref="weights_8c" startline="146" endline="179">read_all_text</references>
+        <references refid="weights_8c_1a5c6ba72035c0c5110c91879350c8647f" compoundref="weights_8c" startline="190" endline="208">scan_json_key_int</references>
+        <references refid="weights_8c_1a3c438658d11f74ba4af8273c7e390311" compoundref="weights_8c" startline="220" endline="245">scan_json_key_string</references>
+        <references refid="structie__weights__s_1ae12c1b3b426321f6ba604f0a89673315" compoundref="ie__io_8h" startline="113">ie_weights_s::version</references>
+        <references refid="structie__weights__s_1ab6a61099d0af4a47854d02dc4fef5b8f" compoundref="ie__io_8h" startline="124">ie_weights_s::weights_path</references>
         <referencedby refid="main__infer_8c_1a3c04138a5bfe5d72780bb7e82a18e627" compoundref="main__infer_8c" startline="486" endline="725">main</referencedby>
-        <referencedby refid="test__weights_8c_1a840291bc02cba5474a4cb46a9b9566fe" compoundref="test__weights_8c" startline="21" endline="39">main</referencedby>
       </memberdef>
       <memberdef kind="function" id="group__ie__io__weights_1ga095d7f59c4cba2b530bac039bca8b7a9" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>int</type>
@@ -213,6 +177,10 @@ Open and parse IEBIN v1 metadata and resolve the weights path.</para>
         </briefdescription>
         <detaileddescription>
 <para>Performs a small positional read near offset 0 and near the end of the file (if large enough). Intended as a fast sanity check during startup or tests. The implementation may be a no-op on platforms without <computeroutput>pread</computeroutput>.</para>
+<para>Deduplicated weights:<itemizedlist>
+<listitem><para>This API is intentionally conservative: it touches the primary weights backing file recorded in <ref refid="structie__weights__s_1ab6a61099d0af4a47854d02dc4fef5b8f" kindref="member">ie_weights_t::weights_path</ref>. Any additional prefault/warm-up behavior for dedup artifacts is handled internally by the dedup subsystem.</para>
+</listitem></itemizedlist>
+</para>
 <para><parameterlist kind="param"><parameteritem>
 <parameternamelist>
 <parametername>w</parametername>
@@ -256,61 +224,20 @@ Open and parse IEBIN v1 metadata and resolve the weights path.</para>
 </parameteritem>
 </parameterlist>
 Touch the weights binary to verify readability (and optionally warm caches).</para>
-<para>Performs a small positional read near offset 0 and near the end of the file (if large enough). Intended as a fast sanity check during startup or tests. The implementation may be a no-op on platforms without <computeroutput>pread</computeroutput>.</para>
-<para><parameterlist kind="param"><parameteritem>
-<parameternamelist>
-<parametername>w</parametername>
-</parameternamelist>
-<parameterdescription>
-<para>Opened weights descriptor (must come from <ref refid="group__ie__io__weights_1ga522dac028ee37aae1307ffdb6d65ec1d" kindref="member">ie_weights_open</ref>). </para>
-</parameterdescription>
-</parameteritem>
-</parameterlist>
-<parameterlist kind="retval"><parameteritem>
-<parameternamelist>
-<parametername>IE_IO_OK</parametername>
-</parameternamelist>
-<parameterdescription>
-<para>on success (binary considered readable). </para>
-</parameterdescription>
-</parameteritem>
-<parameteritem>
-<parameternamelist>
-<parametername>IE_IO_ERR_ARGS</parametername>
-</parameternamelist>
-<parameterdescription>
-<para>on invalid arguments or unopened descriptor. </para>
-</parameterdescription>
-</parameteritem>
-<parameteritem>
-<parameternamelist>
-<parametername>IE_IO_ERR_OPEN</parametername>
-</parameternamelist>
-<parameterdescription>
-<para>if the binary cannot be opened. </para>
-</parameterdescription>
-</parameteritem>
-<parameteritem>
-<parameternamelist>
-<parametername>IE_IO_ERR_READ</parametername>
-</parameternamelist>
-<parameterdescription>
-<para>if the binary cannot be read.</para>
-</parameterdescription>
-</parameteritem>
-</parameterlist>
-Touch the weights binary to verify readability (and optionally warm caches).</para>
+<para>Touch the weights binary to verify readability (and optionally warm caches).</para>
+<para>For deduplicated weights, this function touches the primary backing file (the regular <computeroutput>model.ie.bin</computeroutput>) exactly as before. The dedup path warm-up is expected to be handled by the dedup loader and/or the mmap layer.</para>
+<para>For deduplicated weights, this function touches the primary backing file (the regular <computeroutput>model.ie.bin</computeroutput>) exactly as before. The dedup path warm-up is expected to be handled by the dedup loader and/or the mmap layer. </para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="engine/include/ie_io.h" line="159" column="5" bodyfile="engine/src/io/weights.c" bodystart="434" bodyend="450" declfile="engine/include/ie_io.h" declline="159" declcolumn="5"/>
-        <references refid="structie__weights__s_1a19f9137cca00113908b495a70769805e" compoundref="ie__io_8h" startline="122">ie_weights_s::bin_size_bytes</references>
+        <location file="engine/include/ie_io.h" line="207" column="5" bodyfile="engine/src/io/weights.c" bodystart="513" bodyend="529" declfile="engine/include/ie_io.h" declline="207" declcolumn="5"/>
+        <references refid="structie__weights__s_1a19f9137cca00113908b495a70769805e" compoundref="ie__io_8h" startline="129">ie_weights_s::bin_size_bytes</references>
         <references refid="group__ie__io__status_1gga4c501870bd45dbe373416745a03de987a579de46204c4454f99e9620965e58239" compoundref="ie__io_8h" startline="59">IE_IO_ERR_ARGS</references>
         <references refid="group__ie__io__status_1gga4c501870bd45dbe373416745a03de987aba0321da4352c7a61ea1bda842bb64d0" compoundref="ie__io_8h" startline="71">IE_IO_ERR_OPEN</references>
         <references refid="group__ie__io__status_1gga4c501870bd45dbe373416745a03de987aa12fce48fd3eee2bd8a75dc61db150a7" compoundref="ie__io_8h" startline="74">IE_IO_ERR_READ</references>
         <references refid="group__ie__io__status_1gga4c501870bd45dbe373416745a03de987a81b076a3d2516e2f45170c664c0fa57d" compoundref="ie__io_8h" startline="56">IE_IO_OK</references>
-        <references refid="weights_8c_1aabb19f4a5e5385962c6db57f611bb785" compoundref="weights_8c" startline="337" endline="348">ie_pread</references>
-        <references refid="structie__weights__s_1ab6a61099d0af4a47854d02dc4fef5b8f" compoundref="ie__io_8h" startline="117">ie_weights_s::weights_path</references>
+        <references refid="weights_8c_1aabb19f4a5e5385962c6db57f611bb785" compoundref="weights_8c" startline="351" endline="362">ie_pread</references>
+        <references refid="structie__weights__s_1ab6a61099d0af4a47854d02dc4fef5b8f" compoundref="ie__io_8h" startline="124">ie_weights_s::weights_path</references>
         <referencedby refid="main__infer_8c_1a3c04138a5bfe5d72780bb7e82a18e627" compoundref="main__infer_8c" startline="486" endline="725">main</referencedby>
       </memberdef>
       <memberdef kind="function" id="group__ie__io__weights_1ga06c2b7e35d1f82a11e4605e23a1976f5" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
@@ -323,9 +250,14 @@ Touch the weights binary to verify readability (and optionally warm caches).</pa
           <declname>w</declname>
         </param>
         <briefdescription>
-<para>Close weights resources (currently a no-op; reserved for future use). </para>
+<para>Close weights resources (reserved for future use). </para>
         </briefdescription>
         <detaileddescription>
+<para>Currently, the descriptor does not keep the weights binary open. This function exists for symmetry and forward compatibility.</para>
+<para>Deduplicated weights:<itemizedlist>
+<listitem><para>If a dedup handle was opened, this function releases it and clears <ref refid="structie__weights__s_1ab1e17ac4f44125571f2c63e603d967da" kindref="member">ie_weights_t::is_dedup</ref> and <ref refid="structie__weights__s_1a6cffa1c1904346d68932cc9542b8ff32" kindref="member">ie_weights_t::dedup_handle</ref>.</para>
+</listitem></itemizedlist>
+</para>
 <para><parameterlist kind="param"><parameteritem>
 <parameternamelist>
 <parametername>w</parametername>
@@ -335,25 +267,20 @@ Touch the weights binary to verify readability (and optionally warm caches).</pa
 </parameterdescription>
 </parameteritem>
 </parameterlist>
-Close weights resources (currently a no-op; reserved for future use).</para>
-<para><parameterlist kind="param"><parameteritem>
-<parameternamelist>
-<parametername>w</parametername>
-</parameternamelist>
-<parameterdescription>
-<para>Weights descriptor previously opened with <ref refid="group__ie__io__weights_1ga522dac028ee37aae1307ffdb6d65ec1d" kindref="member">ie_weights_open</ref> (may be NULL).</para>
-</parameterdescription>
-</parameteritem>
-</parameterlist>
-Close weights resources (currently a no-op; reserved for future use).</para>
+Close weights resources (reserved for future use).</para>
+<para>Close weights resources (reserved for future use).</para>
+<para>This now closes the dedup handle if one was opened.</para>
+<para>This now closes the dedup handle if one was opened. </para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="engine/include/ie_io.h" line="166" column="6" bodyfile="engine/src/io/weights.c" bodystart="455" bodyend="457" declfile="engine/include/ie_io.h" declline="166" declcolumn="6"/>
+        <location file="engine/include/ie_io.h" line="222" column="6" bodyfile="engine/src/io/weights.c" bodystart="536" bodyend="544" declfile="engine/include/ie_io.h" declline="222" declcolumn="6"/>
+        <references refid="structie__weights__s_1a6cffa1c1904346d68932cc9542b8ff32" compoundref="ie__io_8h" startline="158">ie_weights_s::dedup_handle</references>
+        <references refid="weights__dedup_8h_1a3ad33a6fe3c7a81072c092d1ee510fce" compoundref="weights__dedup_8c" startline="1088" endline="1105">ie_weights_dedup_close</references>
+        <references refid="structie__weights__s_1ab1e17ac4f44125571f2c63e603d967da" compoundref="ie__io_8h" startline="148">ie_weights_s::is_dedup</references>
         <referencedby refid="main__infer_8c_1a3c04138a5bfe5d72780bb7e82a18e627" compoundref="main__infer_8c" startline="486" endline="725">main</referencedby>
-        <referencedby refid="test__weights_8c_1a840291bc02cba5474a4cb46a9b9566fe" compoundref="test__weights_8c" startline="21" endline="39">main</referencedby>
       </memberdef>
-    </sectiondef>
+      </sectiondef>
     <briefdescription>
 <para>Open/inspect lightweight model container files. </para>
     </briefdescription>

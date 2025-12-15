@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8' standalone='no'?>
-<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.13.2" xml:lang="en-US">
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.1" xml:lang="en-US">
   <compounddef id="int4__ptq_8c" kind="file" language="C++">
     <compoundname>int4_ptq.c</compoundname>
     <includes refid="ie__quant__int4_8h" local="yes">ie_quant_int4.h</includes>
@@ -7,13 +7,11 @@
     <includes local="no">float.h</includes>
     <includes local="no">string.h</includes>
     <incdepgraph>
-      <node id="2">
-        <label>ie_quant_int4.h</label>
-        <link refid="ie__quant__int4_8h"/>
-        <childnode refid="3" relation="include">
-        </childnode>
-        <childnode refid="4" relation="include">
-        </childnode>
+      <node id="6">
+        <label>float.h</label>
+      </node>
+      <node id="4">
+        <label>stdint.h</label>
       </node>
       <node id="1">
         <label>engine/src/quant/int4_ptq.c</label>
@@ -27,23 +25,25 @@
         <childnode refid="7" relation="include">
         </childnode>
       </node>
-      <node id="6">
-        <label>float.h</label>
-      </node>
-      <node id="5">
-        <label>math.h</label>
-      </node>
       <node id="3">
         <label>stddef.h</label>
       </node>
-      <node id="4">
-        <label>stdint.h</label>
+      <node id="2">
+        <label>ie_quant_int4.h</label>
+        <link refid="ie__quant__int4_8h"/>
+        <childnode refid="3" relation="include">
+        </childnode>
+        <childnode refid="4" relation="include">
+        </childnode>
       </node>
       <node id="7">
         <label>string.h</label>
       </node>
+      <node id="5">
+        <label>math.h</label>
+      </node>
     </incdepgraph>
-    <sectiondef kind="func">
+      <sectiondef kind="func">
       <memberdef kind="function" id="int4__ptq_8c_1a6ed1aea3c6d100696c138e8efae1f1bf" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
         <type>int</type>
         <definition>static int clamp_q4</definition>
@@ -202,15 +202,601 @@
         <location file="engine/src/quant/int4_ptq.c" line="63" column="19" bodyfile="engine/src/quant/int4_ptq.c" bodystart="63" bodyend="65"/>
         <referencedby refid="group__ie__int4__quant_1ga5eab5a797587f75e75af981b851f3d4d" compoundref="int4__ptq_8c" startline="240" endline="271">ie_int4_error_metrics</referencedby>
       </memberdef>
-      <member refid="group__ie__int4__quant_1gae9b8a40c7d01f1fa7f00487737c772b2" kind="function"><name>ie_int4_rowbytes</name></member>
-      <member refid="group__ie__int4__quant_1ga469c0b3e9333828daa3115c7ce9f1f2d" kind="function"><name>ie_int4_absmax</name></member>
-      <member refid="group__ie__int4__quant_1ga2f715c1bb3a9dbfade15d6e7d7ca3417" kind="function"><name>ie_int4_absmax_per_row</name></member>
-      <member refid="group__ie__int4__quant_1ga66ddd8b08ec6b704f6744718bfc7f5aa" kind="function"><name>ie_int4_quantize_per_tensor</name></member>
-      <member refid="group__ie__int4__quant_1ga7aaa2156d41e9a58eb6013cec4b32d78" kind="function"><name>ie_int4_dequantize_per_tensor</name></member>
-      <member refid="group__ie__int4__quant_1gabbd1e0545969cb21f4bce5e48e75e276" kind="function"><name>ie_int4_quantize_per_row</name></member>
-      <member refid="group__ie__int4__quant_1gab017a4b1dff62c0ef8f1ed4f94375302" kind="function"><name>ie_int4_dequantize_per_row</name></member>
-      <member refid="group__ie__int4__quant_1ga5eab5a797587f75e75af981b851f3d4d" kind="function"><name>ie_int4_error_metrics</name></member>
-    </sectiondef>
+      <memberdef kind="function" id="group__ie__int4__quant_1gae9b8a40c7d01f1fa7f00487737c772b2" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>size_t</type>
+        <definition>size_t ie_int4_rowbytes</definition>
+        <argsstring>(size_t cols)</argsstring>
+        <name>ie_int4_rowbytes</name>
+        <param>
+          <type>size_t</type>
+          <declname>cols</declname>
+        </param>
+        <briefdescription>
+<para>Compute the number of packed bytes required to store a single row of <computeroutput>cols</computeroutput> 4-bit values (two per byte). </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>cols</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of columns (elements) in the row. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Bytes required to store the packed row. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/src/quant/int4_ptq.c" line="69" column="8" bodyfile="engine/src/quant/int4_ptq.c" bodystart="69" bodyend="71"/>
+        <referencedby refid="group__ie__int4__quant_1gab017a4b1dff62c0ef8f1ed4f94375302" compoundref="int4__ptq_8c" startline="206" endline="238">ie_int4_dequantize_per_row</referencedby>
+        <referencedby refid="group__ie__int4__quant_1ga7aaa2156d41e9a58eb6013cec4b32d78" compoundref="int4__ptq_8c" startline="136" endline="165">ie_int4_dequantize_per_tensor</referencedby>
+        <referencedby refid="group__ie__int4__quant_1gabbd1e0545969cb21f4bce5e48e75e276" compoundref="int4__ptq_8c" startline="167" endline="204">ie_int4_quantize_per_row</referencedby>
+        <referencedby refid="group__ie__int4__quant_1ga66ddd8b08ec6b704f6744718bfc7f5aa" compoundref="int4__ptq_8c" startline="99" endline="134">ie_int4_quantize_per_tensor</referencedby>
+        <referencedby refid="weights_8c_1ab5498f6122af51af9b673e87a4049d19" compoundref="weights_8c" startline="699" endline="769">ie_weights_decode_int4</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="group__ie__int4__quant_1ga469c0b3e9333828daa3115c7ce9f1f2d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int ie_int4_absmax</definition>
+        <argsstring>(const float *src, size_t rows, size_t cols, float *out_absmax)</argsstring>
+        <name>ie_int4_absmax</name>
+        <param>
+          <type>const float *</type>
+          <declname>src</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>rows</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>cols</declname>
+        </param>
+        <param>
+          <type>float *</type>
+          <declname>out_absmax</declname>
+        </param>
+        <briefdescription>
+<para>Compute the absolute-maximum value of a float32 matrix. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>src</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Pointer to the source matrix (row-major), length = rows*cols. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>rows</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of rows. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>cols</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of columns. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>out_absmax</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Output pointer for the absolute-maximum value. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>0 on success, negative on error. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/src/quant/int4_ptq.c" line="73" column="5" bodyfile="engine/src/quant/int4_ptq.c" bodystart="73" bodyend="83"/>
+        <references refid="group__ie__int4__quant_1ggabdf58fdc422669c3d08610f8d40e43b6a3d09ea134f6295e3ccfb296d932fefd0" compoundref="ie__quant__int4_8h" startline="72">IE_INT4_STATUS_BADARG</references>
+        <references refid="group__ie__int4__quant_1ggabdf58fdc422669c3d08610f8d40e43b6a24592f56913c1a24fabf56e9efcff48d" compoundref="ie__quant__int4_8h" startline="71">IE_INT4_STATUS_OK</references>
+        <referencedby refid="group__ie__int4__quant_1ga66ddd8b08ec6b704f6744718bfc7f5aa" compoundref="int4__ptq_8c" startline="99" endline="134">ie_int4_quantize_per_tensor</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="group__ie__int4__quant_1ga2f715c1bb3a9dbfade15d6e7d7ca3417" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int ie_int4_absmax_per_row</definition>
+        <argsstring>(const float *src, size_t rows, size_t cols, float *out_absmax_rows)</argsstring>
+        <name>ie_int4_absmax_per_row</name>
+        <param>
+          <type>const float *</type>
+          <declname>src</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>rows</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>cols</declname>
+        </param>
+        <param>
+          <type>float *</type>
+          <declname>out_absmax_rows</declname>
+        </param>
+        <briefdescription>
+<para>Compute per-row absolute-maximums of a float32 matrix. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>src</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Pointer to the source matrix (row-major), length = rows*cols. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>rows</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of rows. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>cols</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of columns. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>out_absmax_rows</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Output array of length <computeroutput>rows</computeroutput>. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>0 on success, negative on error. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/src/quant/int4_ptq.c" line="85" column="5" bodyfile="engine/src/quant/int4_ptq.c" bodystart="85" bodyend="97"/>
+        <references refid="group__ie__int4__quant_1ggabdf58fdc422669c3d08610f8d40e43b6a3d09ea134f6295e3ccfb296d932fefd0" compoundref="ie__quant__int4_8h" startline="72">IE_INT4_STATUS_BADARG</references>
+        <references refid="group__ie__int4__quant_1ggabdf58fdc422669c3d08610f8d40e43b6a24592f56913c1a24fabf56e9efcff48d" compoundref="ie__quant__int4_8h" startline="71">IE_INT4_STATUS_OK</references>
+      </memberdef>
+      <memberdef kind="function" id="group__ie__int4__quant_1ga66ddd8b08ec6b704f6744718bfc7f5aa" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int ie_int4_quantize_per_tensor</definition>
+        <argsstring>(const float *src, size_t rows, size_t cols, uint8_t *dst_packed, float *out_scale)</argsstring>
+        <name>ie_int4_quantize_per_tensor</name>
+        <param>
+          <type>const float *</type>
+          <declname>src</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>rows</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>cols</declname>
+        </param>
+        <param>
+          <type>uint8_t *</type>
+          <declname>dst_packed</declname>
+        </param>
+        <param>
+          <type>float *</type>
+          <declname>out_scale</declname>
+        </param>
+        <briefdescription>
+<para>Quantize a float32 matrix to packed INT4 using a single (per-tensor) scale. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>The scale is computed as max(|W|)/7. If the matrix is all zeros, the scale is set to 1.0f and the output is all zeros.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>src</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Pointer to the source matrix (row-major), length = rows*cols. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>rows</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of rows. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>cols</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of columns. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>dst_packed</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Output buffer for packed INT4 data. Must be at least rows * ie_int4_rowbytes(cols) bytes. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>out_scale</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Output pointer to receive the per-tensor scale. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>0 on success, negative on error. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/src/quant/int4_ptq.c" line="99" column="5" bodyfile="engine/src/quant/int4_ptq.c" bodystart="99" bodyend="134"/>
+        <references refid="int4__ptq_8c_1a6ed1aea3c6d100696c138e8efae1f1bf" compoundref="int4__ptq_8c" startline="22" endline="28">clamp_q4</references>
+        <references refid="group__ie__int4__quant_1ga469c0b3e9333828daa3115c7ce9f1f2d" compoundref="int4__ptq_8c" startline="73" endline="83">ie_int4_absmax</references>
+        <references refid="group__ie__int4__quant_1gae9b8a40c7d01f1fa7f00487737c772b2" compoundref="int4__ptq_8c" startline="69" endline="71">ie_int4_rowbytes</references>
+        <references refid="group__ie__int4__quant_1ggabdf58fdc422669c3d08610f8d40e43b6a3d09ea134f6295e3ccfb296d932fefd0" compoundref="ie__quant__int4_8h" startline="72">IE_INT4_STATUS_BADARG</references>
+        <references refid="group__ie__int4__quant_1ggabdf58fdc422669c3d08610f8d40e43b6a23b78278a845de353e507b64a6901e52" compoundref="ie__quant__int4_8h" startline="73">IE_INT4_STATUS_NUMERIC</references>
+        <references refid="group__ie__int4__quant_1ggabdf58fdc422669c3d08610f8d40e43b6a24592f56913c1a24fabf56e9efcff48d" compoundref="ie__quant__int4_8h" startline="71">IE_INT4_STATUS_OK</references>
+        <references refid="int4__ptq_8c_1a8fbbcdf00f584b058e8c71b96af09613" compoundref="int4__ptq_8c" startline="40" endline="44">pack_q4_pair</references>
+      </memberdef>
+      <memberdef kind="function" id="group__ie__int4__quant_1ga7aaa2156d41e9a58eb6013cec4b32d78" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int ie_int4_dequantize_per_tensor</definition>
+        <argsstring>(const uint8_t *src_packed, size_t rows, size_t cols, float scale, float *dst)</argsstring>
+        <name>ie_int4_dequantize_per_tensor</name>
+        <param>
+          <type>const uint8_t *</type>
+          <declname>src_packed</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>rows</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>cols</declname>
+        </param>
+        <param>
+          <type>float</type>
+          <declname>scale</declname>
+        </param>
+        <param>
+          <type>float *</type>
+          <declname>dst</declname>
+        </param>
+        <briefdescription>
+<para>Dequantize a packed INT4 matrix using a single (per-tensor) scale. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>src_packed</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Pointer to packed INT4 input buffer of size rows * ie_int4_rowbytes(cols) bytes. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>rows</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of rows. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>cols</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of columns. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>scale</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Per-tensor scale that was used during quantization. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>dst</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Output buffer of length rows*cols (float32). </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>0 on success, negative on error. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/src/quant/int4_ptq.c" line="136" column="5" bodyfile="engine/src/quant/int4_ptq.c" bodystart="136" bodyend="165"/>
+        <references refid="group__ie__int4__quant_1gae9b8a40c7d01f1fa7f00487737c772b2" compoundref="int4__ptq_8c" startline="69" endline="71">ie_int4_rowbytes</references>
+        <references refid="group__ie__int4__quant_1ggabdf58fdc422669c3d08610f8d40e43b6a3d09ea134f6295e3ccfb296d932fefd0" compoundref="ie__quant__int4_8h" startline="72">IE_INT4_STATUS_BADARG</references>
+        <references refid="group__ie__int4__quant_1ggabdf58fdc422669c3d08610f8d40e43b6a23b78278a845de353e507b64a6901e52" compoundref="ie__quant__int4_8h" startline="73">IE_INT4_STATUS_NUMERIC</references>
+        <references refid="group__ie__int4__quant_1ggabdf58fdc422669c3d08610f8d40e43b6a24592f56913c1a24fabf56e9efcff48d" compoundref="ie__quant__int4_8h" startline="71">IE_INT4_STATUS_OK</references>
+        <references refid="int4__ptq_8c_1a17c5de65148c5a3bac0c3d8e5f227c9c" compoundref="int4__ptq_8c" startline="53" endline="58">unpack_q4_pair</references>
+        <referencedby refid="weights_8c_1ab5498f6122af51af9b673e87a4049d19" compoundref="weights_8c" startline="699" endline="769">ie_weights_decode_int4</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="group__ie__int4__quant_1gabbd1e0545969cb21f4bce5e48e75e276" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int ie_int4_quantize_per_row</definition>
+        <argsstring>(const float *src, size_t rows, size_t cols, uint8_t *dst_packed, float *out_scales)</argsstring>
+        <name>ie_int4_quantize_per_row</name>
+        <param>
+          <type>const float *</type>
+          <declname>src</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>rows</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>cols</declname>
+        </param>
+        <param>
+          <type>uint8_t *</type>
+          <declname>dst_packed</declname>
+        </param>
+        <param>
+          <type>float *</type>
+          <declname>out_scales</declname>
+        </param>
+        <briefdescription>
+<para>Quantize a float32 matrix to packed INT4 with per-row scales. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Scales[i] = max(|row_i|)/7. For an all-zero row, the scale is 1.0f and the packed output row is encoded as zeros.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>src</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Pointer to the source matrix (row-major), length = rows*cols. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>rows</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of rows. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>cols</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of columns. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>dst_packed</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Output buffer for packed INT4 data. Must be at least rows * ie_int4_rowbytes(cols) bytes. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>out_scales</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Output buffer of length <computeroutput>rows</computeroutput> to receive per-row scales. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>0 on success, negative on error. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/src/quant/int4_ptq.c" line="167" column="5" bodyfile="engine/src/quant/int4_ptq.c" bodystart="167" bodyend="204"/>
+        <references refid="int4__ptq_8c_1a6ed1aea3c6d100696c138e8efae1f1bf" compoundref="int4__ptq_8c" startline="22" endline="28">clamp_q4</references>
+        <references refid="group__ie__int4__quant_1gae9b8a40c7d01f1fa7f00487737c772b2" compoundref="int4__ptq_8c" startline="69" endline="71">ie_int4_rowbytes</references>
+        <references refid="group__ie__int4__quant_1ggabdf58fdc422669c3d08610f8d40e43b6a3d09ea134f6295e3ccfb296d932fefd0" compoundref="ie__quant__int4_8h" startline="72">IE_INT4_STATUS_BADARG</references>
+        <references refid="group__ie__int4__quant_1ggabdf58fdc422669c3d08610f8d40e43b6a23b78278a845de353e507b64a6901e52" compoundref="ie__quant__int4_8h" startline="73">IE_INT4_STATUS_NUMERIC</references>
+        <references refid="group__ie__int4__quant_1ggabdf58fdc422669c3d08610f8d40e43b6a24592f56913c1a24fabf56e9efcff48d" compoundref="ie__quant__int4_8h" startline="71">IE_INT4_STATUS_OK</references>
+        <references refid="int4__ptq_8c_1a8fbbcdf00f584b058e8c71b96af09613" compoundref="int4__ptq_8c" startline="40" endline="44">pack_q4_pair</references>
+      </memberdef>
+      <memberdef kind="function" id="group__ie__int4__quant_1gab017a4b1dff62c0ef8f1ed4f94375302" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int ie_int4_dequantize_per_row</definition>
+        <argsstring>(const uint8_t *src_packed, size_t rows, size_t cols, const float *scales, float *dst)</argsstring>
+        <name>ie_int4_dequantize_per_row</name>
+        <param>
+          <type>const uint8_t *</type>
+          <declname>src_packed</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>rows</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>cols</declname>
+        </param>
+        <param>
+          <type>const float *</type>
+          <declname>scales</declname>
+        </param>
+        <param>
+          <type>float *</type>
+          <declname>dst</declname>
+        </param>
+        <briefdescription>
+<para>Dequantize a packed INT4 matrix with per-row scales. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>src_packed</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Pointer to packed INT4 input buffer of size rows * ie_int4_rowbytes(cols) bytes. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>rows</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of rows. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>cols</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of columns. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>scales</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Pointer to per-row scales (length = rows). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>dst</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Output buffer of length rows*cols (float32). </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>0 on success, negative on error. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/src/quant/int4_ptq.c" line="206" column="5" bodyfile="engine/src/quant/int4_ptq.c" bodystart="206" bodyend="238"/>
+        <references refid="group__ie__int4__quant_1gae9b8a40c7d01f1fa7f00487737c772b2" compoundref="int4__ptq_8c" startline="69" endline="71">ie_int4_rowbytes</references>
+        <references refid="group__ie__int4__quant_1ggabdf58fdc422669c3d08610f8d40e43b6a3d09ea134f6295e3ccfb296d932fefd0" compoundref="ie__quant__int4_8h" startline="72">IE_INT4_STATUS_BADARG</references>
+        <references refid="group__ie__int4__quant_1ggabdf58fdc422669c3d08610f8d40e43b6a23b78278a845de353e507b64a6901e52" compoundref="ie__quant__int4_8h" startline="73">IE_INT4_STATUS_NUMERIC</references>
+        <references refid="group__ie__int4__quant_1ggabdf58fdc422669c3d08610f8d40e43b6a24592f56913c1a24fabf56e9efcff48d" compoundref="ie__quant__int4_8h" startline="71">IE_INT4_STATUS_OK</references>
+        <references refid="int4__ptq_8c_1a17c5de65148c5a3bac0c3d8e5f227c9c" compoundref="int4__ptq_8c" startline="53" endline="58">unpack_q4_pair</references>
+        <referencedby refid="weights_8c_1ab5498f6122af51af9b673e87a4049d19" compoundref="weights_8c" startline="699" endline="769">ie_weights_decode_int4</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="group__ie__int4__quant_1ga5eab5a797587f75e75af981b851f3d4d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int ie_int4_error_metrics</definition>
+        <argsstring>(const float *ref, const float *test, size_t n, double *out_mse, double *out_cosine)</argsstring>
+        <name>ie_int4_error_metrics</name>
+        <param>
+          <type>const float *</type>
+          <declname>ref</declname>
+        </param>
+        <param>
+          <type>const float *</type>
+          <declname>test</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>n</declname>
+        </param>
+        <param>
+          <type>double *</type>
+          <declname>out_mse</declname>
+        </param>
+        <param>
+          <type>double *</type>
+          <declname>out_cosine</declname>
+        </param>
+        <briefdescription>
+<para>Compute error metrics between two float32 vectors of equal length: mean squared error (MSE) and cosine similarity. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>ref</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Pointer to the reference vector. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>test</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Pointer to the test vector. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>n</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of elements. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>out_mse</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Output pointer for mean squared error (double). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>out_cosine</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Output pointer for cosine similarity (double, in [-1,1]). </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>0 on success, negative on error. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/src/quant/int4_ptq.c" line="240" column="5" bodyfile="engine/src/quant/int4_ptq.c" bodystart="240" bodyend="271"/>
+        <references refid="int4__ptq_8c_1adac55944e6da576f6745a6ad26c4cb79" compoundref="int4__ptq_8c" startline="63" endline="65">bad_float3</references>
+        <references refid="group__ie__int4__quant_1ggabdf58fdc422669c3d08610f8d40e43b6a3d09ea134f6295e3ccfb296d932fefd0" compoundref="ie__quant__int4_8h" startline="72">IE_INT4_STATUS_BADARG</references>
+        <references refid="group__ie__int4__quant_1ggabdf58fdc422669c3d08610f8d40e43b6a23b78278a845de353e507b64a6901e52" compoundref="ie__quant__int4_8h" startline="73">IE_INT4_STATUS_NUMERIC</references>
+        <references refid="group__ie__int4__quant_1ggabdf58fdc422669c3d08610f8d40e43b6a24592f56913c1a24fabf56e9efcff48d" compoundref="ie__quant__int4_8h" startline="71">IE_INT4_STATUS_OK</references>
+        <references refid="namespaceptq__calib_1a8091bc9c066240fc12d193762c5c17f6" compoundref="ptq__calib_8py" startline="257" endline="265">ptq_calib.mse</references>
+      </memberdef>
+      </sectiondef>
     <briefdescription>
 <para>Implementation of 4-bit (INT4) weight-only quantization utilities. </para>
     </briefdescription>
@@ -219,7 +805,6 @@
     </detaileddescription>
     <programlisting>
 <codeline lineno="1"><highlight class="normal"></highlight></codeline>
-<codeline lineno="7"><highlight class="normal"></highlight></codeline>
 <codeline lineno="8"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;<ref refid="ie__quant__int4_8h" kindref="compound">ie_quant_int4.h</ref>&quot;</highlight><highlight class="normal"></highlight></codeline>
 <codeline lineno="9"><highlight class="normal"></highlight></codeline>
 <codeline lineno="10"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;math.h&gt;</highlight><highlight class="normal"></highlight></codeline>
@@ -448,13 +1033,13 @@
 <codeline lineno="259"><highlight class="normal"><sp/><sp/><sp/><sp/>nt<sp/><sp/>+=<sp/>t<sp/>*<sp/>t;</highlight></codeline>
 <codeline lineno="260"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
 <codeline lineno="261"><highlight class="normal"></highlight></codeline>
-<codeline lineno="262"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">double</highlight><highlight class="normal"><sp/><ref refid="test__act__quant_8c_1a38b4b69f6c9e30a70285f7bc1e98ea8e" kindref="member">mse</ref><sp/>=<sp/>(double)(se<sp/>/<sp/>(</highlight><highlight class="keywordtype">long</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">double</highlight><highlight class="normal">)n);</highlight></codeline>
+<codeline lineno="262"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">double</highlight><highlight class="normal"><sp/><ref refid="namespaceptq__calib_1a8091bc9c066240fc12d193762c5c17f6" kindref="member">mse</ref><sp/>=<sp/>(double)(se<sp/>/<sp/>(</highlight><highlight class="keywordtype">long</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">double</highlight><highlight class="normal">)n);</highlight></codeline>
 <codeline lineno="263"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">double</highlight><highlight class="normal"><sp/>denom<sp/>=<sp/>sqrt((</highlight><highlight class="keywordtype">double</highlight><highlight class="normal">)nr)<sp/>*<sp/>sqrt((</highlight><highlight class="keywordtype">double</highlight><highlight class="normal">)nt);</highlight></codeline>
 <codeline lineno="264"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">double</highlight><highlight class="normal"><sp/>cosine<sp/>=<sp/>(denom<sp/>&gt;<sp/>0.0)<sp/>?<sp/>(</highlight><highlight class="keywordtype">double</highlight><highlight class="normal">)(dot<sp/>/<sp/>denom)<sp/>:<sp/>0.0;</highlight></codeline>
 <codeline lineno="265"><highlight class="normal"></highlight></codeline>
-<codeline lineno="266"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(<ref refid="int4__ptq_8c_1adac55944e6da576f6745a6ad26c4cb79" kindref="member">bad_float3</ref>(<ref refid="test__act__quant_8c_1a38b4b69f6c9e30a70285f7bc1e98ea8e" kindref="member">mse</ref>,<sp/>cosine,<sp/>denom))<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/><ref refid="group__ie__int4__quant_1ggabdf58fdc422669c3d08610f8d40e43b6a23b78278a845de353e507b64a6901e52" kindref="member">IE_INT4_STATUS_NUMERIC</ref>;</highlight></codeline>
+<codeline lineno="266"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(<ref refid="int4__ptq_8c_1adac55944e6da576f6745a6ad26c4cb79" kindref="member">bad_float3</ref>(<ref refid="namespaceptq__calib_1a8091bc9c066240fc12d193762c5c17f6" kindref="member">mse</ref>,<sp/>cosine,<sp/>denom))<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/><ref refid="group__ie__int4__quant_1ggabdf58fdc422669c3d08610f8d40e43b6a23b78278a845de353e507b64a6901e52" kindref="member">IE_INT4_STATUS_NUMERIC</ref>;</highlight></codeline>
 <codeline lineno="267"><highlight class="normal"></highlight></codeline>
-<codeline lineno="268"><highlight class="normal"><sp/><sp/>*out_mse<sp/>=<sp/><ref refid="test__act__quant_8c_1a38b4b69f6c9e30a70285f7bc1e98ea8e" kindref="member">mse</ref>;</highlight></codeline>
+<codeline lineno="268"><highlight class="normal"><sp/><sp/>*out_mse<sp/>=<sp/><ref refid="namespaceptq__calib_1a8091bc9c066240fc12d193762c5c17f6" kindref="member">mse</ref>;</highlight></codeline>
 <codeline lineno="269"><highlight class="normal"><sp/><sp/>*out_cosine<sp/>=<sp/>cosine;</highlight></codeline>
 <codeline lineno="270"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/><ref refid="group__ie__int4__quant_1ggabdf58fdc422669c3d08610f8d40e43b6a24592f56913c1a24fabf56e9efcff48d" kindref="member">IE_INT4_STATUS_OK</ref>;</highlight></codeline>
 <codeline lineno="271"><highlight class="normal">}</highlight></codeline>

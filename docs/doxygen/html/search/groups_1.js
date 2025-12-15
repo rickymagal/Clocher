@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['backend_0',['Level Zero (oneAPI) GPU backend',['../group__IE__GPU__ZE.html',1,'']]]
+  ['ie_5fint4_5fquant_2379',['Ie_int4_quant',['../group__ie__int4__quant.html',1,'']]],
+  ['iebin_20v1_20weights_20loader_2380',['IEBIN v1 Weights Loader',['../group__ie__io__weights.html',1,'']]]
 ];

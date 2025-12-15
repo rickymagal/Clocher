@@ -1,0 +1,199 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.1" xml:lang="en-US">
+  <compounddef id="md_docs_DECISIONS" kind="page">
+    <compoundname>md_docs_DECISIONS</compoundname>
+    <title>Architectural Decision Records</title>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para><bold>Last updated:</bold> 2025-10-24 21:00:48 UTC</para>
+<para><itemizedlist>
+<listitem><para><bold>ADR-0001 (2025-10-13)</bold>: Core in C11, zero third-party runtime; Python stdlib harness.</para>
+</listitem><listitem><para><bold>ADR-0002 (2025-10-13)</bold>: IEBIN v1 weights: <computeroutput>model.ie.json</computeroutput> + <computeroutput>model.ie.bin</computeroutput> + <computeroutput>vocab.json</computeroutput> (mmap-friendly).</para>
+</listitem><listitem><para><bold>ADR-0003 (2025-10-13)</bold>: Baseline = FP32 naive path; TPS = generated_tokens / wall_time.</para>
+</listitem><listitem><para><bold>ADR-0006 (2025-10-14)</bold>: Optimization path selection (CPU baseline) — AVX2 microkernels, thread-pool with affinity, fast math, layout packing. See <computeroutput>adr-00060-optimization-path.md</computeroutput>.</para>
+</listitem><listitem><para><bold>ADR-0010 (2025-10-16)</bold>: INT8 PTQ min-max (per-tensor/per-row) with calibration script and accuracy budget gate (cosine ≥ threshold).</para>
+</listitem><listitem><para><bold>ADR-0011 (2025-10-24)</bold>: Drop Level Zero from default benchmarking; GPU bench is CUDA-only; CPU/GPU share a unified reporting pipeline.</para>
+</listitem></itemizedlist>
+</para>
+<para><hruler/>
+</para>
+<sect1 id="md_docs_DECISIONS_1autotoc_md12">
+<title>&lt;strong&gt;ADR-0013 (2025-10-24): Adopt INT4 weight-only PTQ &amp; manifest-guided packing&lt;/strong&gt;</title>
+<para><bold>Context.</bold> The engine is primarily <bold>memory-bandwidth bound</bold> at inference time. Even with blocked‑K packing and prefetch, large models remain limited by weight fetch. INT8 provided a 2× compression; we want a <bold>denser format</bold> while preserving a simple compute path.</para>
+<para><bold>Decision.</bold><itemizedlist>
+<listitem><para>Introduce <bold>INT4 weight‑only</bold> quantization with:<itemizedlist>
+<listitem><para><bold>Nibble packing</bold> (2 weights/byte) and <bold>per‑row (or group) scales</bold>.</para>
+</listitem><listitem><para>A repository‑wide <bold>manifest</bold> (<computeroutput>q4_manifest.json</computeroutput>) describing which tensors are INT4 and how to dequantize them.</para>
+</listitem><listitem><para>CLI/runtime selection via <computeroutput>IE_PRECISION=int4w</computeroutput> (or <computeroutput>--precision int4w</computeroutput>).</para>
+</listitem></itemizedlist>
+</para>
+</listitem><listitem><para>Keep activations in floating point; accumulation stays FP32 for numerical stability.</para>
+</listitem></itemizedlist>
+</para>
+<para><bold>Consequences.</bold><itemizedlist>
+<listitem><para><bold>4× smaller weights</bold> → lower bandwidth → higher effective TPS under work‑touch or real inference.</para>
+</listitem><listitem><para>Slight accuracy cost, controlled by calibration. PTQ scripts expose gates (cosine/task‑level) to accept/reject a manifest.</para>
+</listitem><listitem><para>Kernel changes are incremental: dequant scale application in the matmul inner loop; packing integrates with existing pretranspose caches.</para>
+</listitem></itemizedlist>
+</para>
+<para><bold>Status.</bold> Accepted. Implemented across CPU and CUDA builds; scripts support end‑to‑end HF→IEBIN packing with <computeroutput>--q4-map</computeroutput>.</para>
+<para><hruler/>
+ </para>
+</sect1>
+<sect1 id="md_docs_DECISIONS_1autotoc_md15">
+<title>Decision: Add INT4 (Weight-Only) Optional Pipeline (2025-10-24 21:04:23 UTC)</title>
+<para><bold>Context.</bold> We already ship FP32/BF16/FP16 flows. We add a <emphasis>weight-only</emphasis> INT4 path to reduce bandwidth and model footprint while keeping API stability.</para>
+<para><bold>Decision.</bold><itemizedlist>
+<listitem><para>Introduce a manifest-driven INT4 packing step in export (<computeroutput>--q4-map</computeroutput>).</para>
+</listitem><listitem><para>Expose runtime selection via <computeroutput>IE_PRECISION=int4w</computeroutput> (or <computeroutput>--precision int4w</computeroutput>).</para>
+</listitem><listitem><para>Keep timing discipline: measure generation + work-touch only; sample metrics after.</para>
+</listitem></itemizedlist>
+</para>
+<para><bold>Consequences.</bold><itemizedlist>
+<listitem><para>Lower I/O pressure when <computeroutput>IE_BYTES_PER_TOKEN</computeroutput> simulates large working sets.</para>
+</listitem><listitem><para>Slight decode overhead for dequantization (amortized in GEMV paths).</para>
+</listitem><listitem><para>No change to tokenization or batching semantics.</para>
+</listitem></itemizedlist>
+</para>
+<para><bold>Status.</bold> Accepted and implemented. Backward-compatible (FP paths unaffected).</para>
+<para><hruler/>
+</para>
+</sect1>
+<sect1 id="md_docs_DECISIONS_1autotoc_md17">
+<title>Appendix — INT4 (Weight‑Only) Step (Summary)</title>
+<para><itemizedlist>
+<listitem><para>Convert HF shards → IEBIN with an INT4 manifest: <programlisting filename=".bash"><codeline><highlight class="normal">python3<sp/>scripts/hf_to_iebin.py<sp/><sp/><sp/><sp/><sp/>--hf-dir<sp/>models/gpt-oss-20b/hf<sp/><sp/><sp/><sp/><sp/>--out-dir<sp/>models/gpt-oss-20b<sp/><sp/><sp/><sp/><sp/>--q4-map<sp/>quant/q4_manifest.json</highlight></codeline>
+</programlisting></para>
+</listitem><listitem><para>Run benchmarks in strict mode with a <bold>64 MB/token</bold> work‑touch: <programlisting filename=".bash"><codeline><highlight class="normal">PROMPTS=benchmarks/prompts_10..txt<sp/><sp/><sp/>IE_PRECISION=int4w<sp/>IE_REQUIRE_MODEL=1<sp/><sp/><sp/>IE_BYTES_PER_TOKEN=64000000<sp/>IE_STRIDE_BYTES=256<sp/>RUNS=3<sp/><sp/><sp/>make<sp/>bench<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>or:<sp/>make<sp/>bench-cuda</highlight></codeline>
+</programlisting></para>
+</listitem><listitem><para>Precision hints: <computeroutput>PRECISION=fp32</computeroutput> (activates float path) and <computeroutput>IE_PRECISION=int4w</computeroutput> (weight‑only path).</para>
+</listitem></itemizedlist>
+</para>
+<para><hruler/>
+ <bold>Last updated:</bold> 2025-11-10 21:46:36 UTC</para>
+<para><itemizedlist>
+<listitem><para><bold>ADR-0014 (2025-11-10)</bold>: NUMA‑aware topology and thread binding<itemizedlist>
+<listitem><para><bold>Context:</bold> We need consistent socket awareness to reduce cross‑socket traffic and stabilize TPS.</para>
+</listitem><listitem><para><bold>Decision:</bold> Introduce <computeroutput><ref refid="structie__topology" kindref="compound">ie_topology</ref></computeroutput> (sysfs‑backed) to detect sockets and map threads→CPUs with <computeroutput>AFFINITY</computeroutput> hints.</para>
+</listitem><listitem><para><bold>Consequences:</bold> Lower LLC misses and cross‑node memory, improved repeatability; graceful single‑socket fallback.</para>
+</listitem><listitem><para><bold>Status:</bold> Accepted. Implemented in <computeroutput><ref refid="ie__topology_8h" kindref="compound">engine/include/ie_topology.h</ref></computeroutput> and <computeroutput><ref refid="topology_8c" kindref="compound">engine/src/opt/topology.c</ref></computeroutput>.</para>
+</listitem></itemizedlist>
+</para>
+</listitem><listitem><para><bold>ADR-0015 (2025-11-10)</bold>: Replicate “hot” weights per socket and bind workers<itemizedlist>
+<listitem><para><bold>Context:</bold> For bandwidth‑bound models, remote‑node page faults throttle TPS. Replicating hot tensors near compute reduces latency.</para>
+</listitem><listitem><para><bold>Decision:</bold> Add <computeroutput><ref refid="replicate__hot_8c" kindref="compound">replicate_hot.c</ref></computeroutput> to create per‑socket replicas (mmap‑based), then bind per‑socket workers to CPUs on that socket.</para>
+</listitem><listitem><para><bold>Consequences:</bold> Higher memory footprint when enabled, but improved locality and throughput on multi‑socket hosts.</para>
+</listitem><listitem><para><bold>Status:</bold> Accepted. Guarded by <computeroutput>IE_HOT_REPLICATE=1</computeroutput>; optional <computeroutput>MADV_WILLNEED</computeroutput> prefetch.</para>
+</listitem></itemizedlist>
+</para>
+</listitem><listitem><para><bold>ADR-0016 (2025-11-10)</bold>: Activation precision soft hint (INT8/FP8)<itemizedlist>
+<listitem><para><bold>Context:</bold> Allow experimenting with lower‑precision activations without entangling storage precision for weights.</para>
+</listitem><listitem><para><bold>Decision:</bold> Add <computeroutput>IE_ACT_PREC</computeroutput> (values: <computeroutput>int8|fp8|fp16|bf16|fp32</computeroutput>). Host accumulators remain FP32; backends may ignore unsupported hints.</para>
+</listitem><listitem><para><bold>Consequences:</bold> Decouples storage (e.g., <computeroutput>int4w</computeroutput>) from activation math, enabling orthogonal tuning. </para>
+</listitem></itemizedlist>
+</para>
+</listitem></itemizedlist>
+</para>
+</sect1>
+<sect1 id="md_docs_DECISIONS_1autotoc_md19">
+<title>- &lt;strong&gt;Status:&lt;/strong&gt; Accepted. Backward‑compatible; default remains FP32 if unset.</title>
+</sect1>
+<sect1 id="md_docs_DECISIONS_1autotoc_md20">
+<title>ADR‑0017 (Memory Streaming Heuristics): Prefetch &amp; Non‑Temporal Loads — 2025-11-12 18:01:19 UTC</title>
+<para><bold>Context.</bold> GEMV paths are bandwidth‑bound. Sequential blocked‑K layouts help, but cache pollution and late prefetch still cap TPS.</para>
+<para><bold>Decision.</bold><itemizedlist>
+<listitem><para>Adopt tunables <computeroutput>IE_PREFETCH_DISTANCE</computeroutput>, <computeroutput>IE_NT_LOADS</computeroutput>, <computeroutput>IE_NT_RATIO</computeroutput>, and <computeroutput>IE_L3_BYTES</computeroutput> to steer prefetch distance, streaming loads, and an approximate L3 budget for “hot” slices.</para>
+</listitem><listitem><para>Default is <bold>conservative</bold> (<computeroutput>auto</computeroutput>) with architecture checks; explicit values override.</para>
+</listitem></itemizedlist>
+</para>
+<para><bold>Consequences.</bold><itemizedlist>
+<listitem><para>Wins on large models/long K with single‑touch patterns.</para>
+</listitem><listitem><para>Small rows or re‑use‑heavy layers may regress if NT is forced → keep <computeroutput>auto</computeroutput> as default and expose per‑run sweeps in the harness.</para>
+</listitem></itemizedlist>
+</para>
+<para><bold>Status.</bold> Accepted. Implemented in CPU AVX2 and CUDA pack/GEMV call sites with guarded paths.</para>
+<para><hruler/>
+ </para>
+</sect1>
+<sect1 id="md_docs_DECISIONS_1autotoc_md22">
+<title>ADR‑0018 (Metrics &amp; Reporting): Spatial Metrics in PERFORMANCE.md — 2025-11-12 18:01:19 UTC</title>
+<para><bold>Context.</bold> Throughput alone hides memory behavior. We need bytes/token, coverage vs model, RSS peak, and effective bandwidth.</para>
+<para><bold>Decision.</bold><itemizedlist>
+<listitem><para>Extend the JSON summary and the Markdown generator to compute spatial fields from <computeroutput>IE_BYTES_PER_TOKEN</computeroutput>, run totals, and model size.</para>
+</listitem><listitem><para>Update Prometheus exporter with a <computeroutput>ie_build_info</computeroutput> gauge (labels) and RSS gauges.</para>
+</listitem></itemizedlist>
+</para>
+<para><bold>Consequences.</bold><itemizedlist>
+<listitem><para>Comparable runs across machines now capture memory pressure explicitly.</para>
+</listitem><listitem><para>Grafana dashboards can plot GB/s alongside TPS for stability analysis.</para>
+</listitem></itemizedlist>
+</para>
+<para><bold>Status.</bold> Accepted. Shipped with <computeroutput><ref refid="metrics__memory_8toml" kindref="compound">monitoring/metrics_memory.toml</ref></computeroutput>, updated <computeroutput><ref refid="metrics__exporter_8py" kindref="compound">scripts/metrics_exporter.py</ref></computeroutput>, and harness sweep labels for memory knobs.</para>
+</sect1>
+<sect1 id="md_docs_DECISIONS_1autotoc_md23">
+<title>ADR‑0019 (Sparsity): Block‑sparse weights, CPU‑only prototype — 2025‑11‑14 23:00:00 UTC</title>
+<para><bold>Context.</bold><itemizedlist>
+<listitem><para>Phase 1 of the memory work focused on <emphasis>dense</emphasis> optimizations: INT4/INT8 activations, NUMA‑aware topology, hot‑weights replication, and streaming loads.</para>
+</listitem><listitem><para>The next natural axis is <bold>algorithmic sparsity</bold>: skip zero blocks instead of streaming everything.</para>
+</listitem><listitem><para>We want a conservative, inspectable prototype that:<itemizedlist>
+<listitem><para>lives entirely on the CPU path;</para>
+</listitem><listitem><para>does <bold>not</bold> disturb the existing dense loading/CLI;</para>
+</listitem><listitem><para>is testable in isolation (C unit tests + microbench).</para>
+</listitem></itemizedlist>
+</para>
+</listitem></itemizedlist>
+</para>
+<para><bold>Decision.</bold><itemizedlist>
+<listitem><para>Introduce a small, self‑contained <bold>block‑sparse format</bold> and CPU kernel:<itemizedlist>
+<listitem><para>New descriptor type <computeroutput>ie_block_sparse_matrix_t</computeroutput> in <computeroutput><ref refid="sparse__format_8h" kindref="compound">engine/include/sparse_format.h</ref></computeroutput>.</para>
+</listitem><listitem><para>Loader in <computeroutput><ref refid="sparse__io_8c" kindref="compound">engine/src/sparse_io.c</ref></computeroutput> that reads a compact binary header and BSR payload.</para>
+</listitem><listitem><para>Reference GEMV in <computeroutput><ref refid="gemm__block__sparse_8c" kindref="compound">engine/src/gemm_block_sparse.c</ref></computeroutput> operating on FP32 weights.</para>
+</listitem></itemizedlist>
+</para>
+</listitem><listitem><para>Extend the device abstraction:<itemizedlist>
+<listitem><para>Add <computeroutput>gemv_block_sparse_f32</computeroutput> to the <computeroutput><ref refid="structie__device" kindref="compound">ie_device</ref></computeroutput> vtable.</para>
+</listitem><listitem><para>Provide a CPU implementation wired to <computeroutput>ie_gemv_block_sparse_f32</computeroutput>.</para>
+</listitem><listitem><para>Keep CUDA/Level‑Zero entries as stubs that return “unimplemented”; the public helpers fall back to CPU.</para>
+</listitem></itemizedlist>
+</para>
+</listitem><listitem><para>Add offline and benchmarking tools:<itemizedlist>
+<listitem><para><computeroutput><ref refid="convert__to__block__sparse_8c" kindref="compound">tools/convert_to_block_sparse.c</ref></computeroutput> to convert dense row‑major weights into the on‑disk BSR format.</para>
+</listitem><listitem><para><computeroutput><ref refid="test__block__sparse_8c" kindref="compound">tests/c/test_block_sparse.c</ref></computeroutput> with small hand‑built matrices to validate loader + GEMV.</para>
+</listitem><listitem><para><computeroutput>benchmarks/src/microbench_gemv_block_sparse.c</computeroutput> to compare dense vs block‑sparse GEMV on CPU.</para>
+</listitem></itemizedlist>
+</para>
+</listitem><listitem><para>Restrict scope explicitly:<itemizedlist>
+<listitem><para><bold>CPU only</bold> for this ADR; no GPU kernels are required to pass tests.</para>
+</listitem><listitem><para><bold>FP32 weights only</bold>; quantized/specialized paths remain dense.</para>
+</listitem></itemizedlist>
+</para>
+</listitem></itemizedlist>
+</para>
+<para><bold>Consequences.</bold><itemizedlist>
+<listitem><para>We have a <bold>concrete, repeatable</bold> sparsity experiment:<itemizedlist>
+<listitem><para>Same repository, same Makefile; add a dense <computeroutput>.bin</computeroutput>, run the converter, microbench the result.</para>
+</listitem><listitem><para>Unit tests ensure correctness on small matrices.</para>
+</listitem></itemizedlist>
+</para>
+</listitem><listitem><para>The device layer remains forward‑compatible:<itemizedlist>
+<listitem><para>Future GPU support can fill in the existing vtable slot without touching the public API.</para>
+</listitem><listitem><para>Callers can ask for block‑sparse GEMV and still get a correct CPU fallback today.</para>
+</listitem></itemizedlist>
+</para>
+</listitem><listitem><para>No risk to existing users:<itemizedlist>
+<listitem><para>CLI behavior and <computeroutput>model.ie.bin</computeroutput> format are unchanged.</para>
+</listitem><listitem><para>All new code is opt‑in and exercised only by tests/microbench/scripts introduced in this phase.</para>
+</listitem></itemizedlist>
+</para>
+</listitem></itemizedlist>
+</para>
+<para><bold>Status.</bold><itemizedlist>
+<listitem><para>Accepted. Implemented as a <bold>CPU‑only prototype</bold>; further ADRs will cover wiring full‑model weights and any GPU/quantized variants. </para>
+</listitem></itemizedlist>
+</para>
+</sect1>
+    </detaileddescription>
+    <location file="docs/DECISIONS.md"/>
+  </compounddef>
+</doxygen>

@@ -4,6 +4,9 @@ var group__IE__GPU__ZE =
     [ "ie_act_kind_e", "group__IE__GPU__ZE.html#gab2c254b332e574ed55c2537075337f85", [
       [ "IE_ACT_NONE", "group__IE__GPU__ZE.html#ggab2c254b332e574ed55c2537075337f85a72bddb07e52c2dcecd390cda078cd33f", null ],
       [ "IE_ACT_RELU", "group__IE__GPU__ZE.html#ggab2c254b332e574ed55c2537075337f85a4efb020b6e30222eac585f53f1d3e47f", null ],
+      [ "IE_ACT_TANH", "group__IE__GPU__ZE.html#ggab2c254b332e574ed55c2537075337f85a5c3ab96a97ea7aa059b44e7508c28a08", null ],
+      [ "IE_ACT_NONE", "group__IE__GPU__ZE.html#ggab2c254b332e574ed55c2537075337f85a72bddb07e52c2dcecd390cda078cd33f", null ],
+      [ "IE_ACT_RELU", "group__IE__GPU__ZE.html#ggab2c254b332e574ed55c2537075337f85a4efb020b6e30222eac585f53f1d3e47f", null ],
       [ "IE_ACT_TANH", "group__IE__GPU__ZE.html#ggab2c254b332e574ed55c2537075337f85a5c3ab96a97ea7aa059b44e7508c28a08", null ]
     ] ],
     [ "ie_ze_last_error_string", "group__IE__GPU__ZE.html#ga2100722ae0c819fdb4dffc24b916b33b", null ],
