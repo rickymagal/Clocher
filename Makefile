@@ -20,6 +20,9 @@ export IE_ACTIVATIONS IE_FP8_FORMAT IE_ACT_SCALE_DTYPE IE_ACT_CLIP
 # Optional hot-weights replication toggle (NUMA/socket awareness)
 export IE_HOT_REPLICATE
 
+# Dedup / reconstruction controls (Step-3 runtime path; read by loader/runtime if supported)
+export IE_DEDUP IE_DEDUP_POLICY IE_DEDUP_CACHE_MB IE_DEDUP_HOT_BYTES IE_DEDUP_HOT_LIST
+
 # =============================================================================
 # Toolchains
 # =============================================================================
@@ -66,6 +69,7 @@ SRC_CORE_C := \
   engine/src/io/weights.c \
   engine/src/io/weights_dedup.c \
   engine/src/dedup/spec.c \
+  engine/src/dedup/patch_list.c \
   engine/src/io/tokenizer.c \
   engine/src/io/ie_batcher.c \
   engine/src/io/loader_mmap.c \
@@ -213,17 +217,19 @@ test: $(BIN_CPU)
 	@mkdir -p $(BUILD)
 	@echo "[test] C unit tests"
 	$(CC) $(CFLAGS) $(INC) tests/c/test_tensor.c engine/src/ie_tensor.c engine/src/util_logging.c -o $(BUILD)/test_tensor $(LDFLAGS_CPU) && $(BUILD)/test_tensor
-	$(CC) $(CFLAGS) $(INC) tests/c/test_api.c engine/src/ie_api.c engine/src/ie_tensor.c engine/src/util_logging.c engine/src/util_metrics.c engine/src/io/weights.c engine/src/io/weights_dedup.c engine/src/dedup/spec.c engine/src/io/loader_mmap.c engine/src/io/mmap_tuning.c engine/src/io/tokenizer.c engine/src/io/ie_batcher.c engine/src/opt/cpu_features.c engine/src/opt/thread_pool.c engine/src/opt/pretranspose.c engine/src/opt/numa_probe.c engine/src/kernels/gemv_generic.c engine/src/kernels/gemv_avx2.c engine/src/math/fast_tanh.c engine/src/ie_kv_instrumentation.c engine/src/quant/int4_ptq.c engine/src/quant/int8_ptq.c -o $(BUILD)/test_api $(LDFLAGS_CPU) && ( cd $(MODEL_DIR_DEFAULT) && ../../$(BUILD)/test_api )
+	$(CC) $(CFLAGS) $(INC) tests/c/test_api.c engine/src/ie_api.c engine/src/ie_tensor.c engine/src/util_logging.c engine/src/util_metrics.c engine/src/io/weights.c engine/src/io/weights_dedup.c engine/src/dedup/spec.c engine/src/dedup/patch_list.c engine/src/io/loader_mmap.c engine/src/io/mmap_tuning.c engine/src/io/tokenizer.c engine/src/io/ie_batcher.c engine/src/opt/cpu_features.c engine/src/opt/thread_pool.c engine/src/opt/pretranspose.c engine/src/opt/numa_probe.c engine/src/kernels/gemv_generic.c engine/src/kernels/gemv_avx2.c engine/src/math/fast_tanh.c engine/src/ie_kv_instrumentation.c engine/src/quant/int4_ptq.c engine/src/quant/int8_ptq.c -o $(BUILD)/test_api $(LDFLAGS_CPU) && ( cd $(MODEL_DIR_DEFAULT) && ../../$(BUILD)/test_api )
 	@echo "[test] topology"
 	$(CC) $(CFLAGS) $(INC) tests/c/test_topology.c engine/src/opt/topology.c engine/src/opt/thread_pool.c engine/src/opt/cpu_features.c engine/src/util_logging.c -o $(BUILD)/test_topology $(LDFLAGS_CPU) && $(BUILD)/test_topology
 	@echo "[test] mmap_tuning"
 	$(CC) $(CFLAGS) $(INC) tests/c/test_mmap_tuning.c engine/src/io/mmap_tuning.c engine/src/io/loader_mmap.c engine/src/util_logging.c -o $(BUILD)/test_mmap_tuning $(LDFLAGS_CPU) && $(BUILD)/test_mmap_tuning
 	@echo "[test] block-sparse"
 	$(CC) $(CFLAGS) $(INC) tests/c/test_block_sparse.c engine/src/gemm_block_sparse.c engine/src/sparse_io.c engine/src/util_logging.c -o $(BUILD)/test_block_sparse $(LDFLAGS_CPU) && $(BUILD)/test_block_sparse
+	@echo "[test] dedup loader (sanity)"
+	$(CC) $(CFLAGS) $(INC) tests/c/test_dedup_loader.c engine/src/io/weights.c engine/src/io/weights_dedup.c engine/src/dedup/spec.c engine/src/dedup/patch_list.c engine/src/io/loader_mmap.c engine/src/io/mmap_tuning.c engine/src/util_logging.c engine/src/quant/int4_ptq.c engine/src/quant/int8_ptq.c -o $(BUILD)/test_dedup_loader $(LDFLAGS_CPU) && $(BUILD)/test_dedup_loader "$(MODEL_DIR_DEFAULT)"
 	@if [ -z "$$IE_SKIP_WEIGHTS_TEST" ]; then \
 	  if [ -f $(MODEL_DIR_DEFAULT)/model.ie.json ] && [ -f $(MODEL_DIR_DEFAULT)/model.ie.bin ]; then \
 	    echo "[test] test_weights"; \
-	    if $(CC) $(CFLAGS) $(INC) tests/c/test_weights.c engine/src/io/weights.c engine/src/io/weights_dedup.c engine/src/dedup/spec.c engine/src/io/loader_mmap.c engine/src/io/mmap_tuning.c engine/src/util_logging.c engine/src/quant/int4_ptq.c engine/src/quant/int8_ptq.c -o $(BUILD)/test_weights $(LDFLAGS_CPU); then \
+	    if $(CC) $(CFLAGS) $(INC) tests/c/test_weights.c engine/src/io/weights.c engine/src/io/weights_dedup.c engine/src/dedup/spec.c engine/src/dedup/patch_list.c engine/src/io/loader_mmap.c engine/src/io/mmap_tuning.c engine/src/util_logging.c engine/src/quant/int4_ptq.c engine/src/quant/int8_ptq.c -o $(BUILD)/test_weights $(LDFLAGS_CPU); then \
 	      ( cd $(MODEL_DIR_DEFAULT) && ../../$(BUILD)/test_weights ); \
 	      STATUS=$$?; \
 	      if [ $$STATUS -ne 0 ]; then \
@@ -276,6 +282,7 @@ bench:
 	IE_BYTES_PER_TOKEN="$${IE_BYTES_PER_TOKEN:-67108864}" IE_STRIDE_BYTES="$${IE_STRIDE_BYTES:-256}" IE_VERIFY_TOUCH="$${IE_VERIFY_TOUCH:-1}" \
 	RUNS="$$RUNS_VAL" ROUNDS="$$RUNS_VAL" \
 	IE_ACTIVATIONS="$$IE_ACTIVATIONS" IE_FP8_FORMAT="$$IE_FP8_FORMAT" IE_HOT_REPLICATE="$$IE_HOT_REPLICATE" \
+	IE_DEDUP="$$IE_DEDUP" IE_DEDUP_POLICY="$$IE_DEDUP_POLICY" IE_DEDUP_CACHE_MB="$$IE_DEDUP_CACHE_MB" IE_DEDUP_HOT_BYTES="$$IE_DEDUP_HOT_BYTES" IE_DEDUP_HOT_LIST="$$IE_DEDUP_HOT_LIST" \
 	IE_PREFETCH_DISTANCE="$$IE_PREFETCH_DISTANCE" IE_NT_LOADS="$$IE_NT_LOADS" IE_L3_BYTES="$$IE_L3_BYTES" IE_NT_THRESHOLD_RATIO="$$IE_NT_THRESHOLD_RATIO" IE_STREAM_BLOCK_BYTES="$$IE_STREAM_BLOCK_BYTES" IE_REUSE_GUARD_WINDOWS="$$IE_REUSE_GUARD_WINDOWS" \
 	bash scripts/true_tps_strict.sh | tee $(BUILD)/strict_cpu.json; \
 	echo "[bench] updating docs/PERFORMANCE.md (CPU)…"; \
@@ -329,6 +336,7 @@ bench-cuda:
 	IE_BYTES_PER_TOKEN="$${IE_BYTES_PER_TOKEN:-67108864}" IE_STRIDE_BYTES="$${IE_STRIDE_BYTES:-256}" IE_VERIFY_TOUCH="$${IE_VERIFY_TOUCH:-1}" \
 	RUNS="$$RUNS_VAL" ROUNDS="$$RUNS_VAL" \
 	IE_ACTIVATIONS="$$IE_ACTIVATIONS" IE_FP8_FORMAT="$$IE_FP8_FORMAT" IE_HOT_REPLICATE="$$IE_HOT_REPLICATE" \
+	IE_DEDUP="$$IE_DEDUP" IE_DEDUP_POLICY="$$IE_DEDUP_POLICY" IE_DEDUP_CACHE_MB="$$IE_DEDUP_CACHE_MB" IE_DEDUP_HOT_BYTES="$$IE_DEDUP_HOT_BYTES" IE_DEDUP_HOT_LIST="$$IE_DEDUP_HOT_LIST" \
 	IE_PREFETCH_DISTANCE="$$IE_PREFETCH_DISTANCE" IE_NT_LOADS="$$IE_NT_LOADS" IE_L3_BYTES="$$IE_L3_BYTES" IE_NT_THRESHOLD_RATIO="$$IE_NT_THRESHOLD_RATIO" IE_STREAM_BLOCK_BYTES="$$IE_STREAM_BLOCK_BYTES" IE_REUSE_GUARD_WINDOWS="$$IE_REUSE_GUARD_WINDOWS" \
 	IE_METRICS_MEM="1" IE_METRICS_MEM_TOML="monitoring/metrics_memory.toml" \
 	bash scripts/true_tps_strict.sh | tee $(BUILD)/strict_gpu.json; \

@@ -29,9 +29,28 @@
  *
  *  - CLI flag to hint sparsity policy:
  *        --sparsity none|block|auto
- *    This is passed through to ::ie_engine_params_t::sparsity and can be
- *    overridden by IE_SPARSITY / SPARSITY environment variables when not
- *    provided explicitly on the command line.
+ *
+ * Step-3 additions (Runtime reconstruction path / dedup):
+ *  - CLI flags that simply set environment variables consumed by the loader
+ *    and/or runtime dedup cache:
+ *        --dedup 0|1
+ *        --dedup-policy off|on_demand|cache|replicate_hot
+ *        --dedup-cache-mb N
+ *        --dedup-hot-bytes N
+ *        --dedup-hot-list STR
+ *
+ *  These map to:
+ *        IE_DEDUP=0|1
+ *        IE_DEDUP_POLICY=...
+ *        IE_DEDUP_CACHE_MB=...
+ *        IE_DEDUP_HOT_BYTES=...
+ *        IE_DEDUP_HOT_LIST=...
+ *
+ *  main_infer.c does not implement dedup itself; it exposes stable knobs for
+ *  the benchmark harness. Engine-side code can later interpret these env vars
+ *  to choose:
+ *    - on-demand reconstruction into scratch, or
+ *    - persistent reconstructed cache, optionally per-socket via replicate_hot.
  */
 
 #define _POSIX_C_SOURCE 200809L
@@ -49,17 +68,16 @@
 #include <time.h>
 #include <unistd.h>
 
-#include "ie_engine.h"              /* engine API + ie_metrics_t */
-#include "ie_io.h"                  /* IEBIN loader */
-#include "ie_kv_instrumentation.h"  /* KV round helpers (begin/finish/on_token) */
-#include "util_metrics.h"           /* KV & RSS helpers */
-#include "util_logging.h"           /* logging macros */
+#include "ie_engine.h"
+#include "ie_io.h"
+#include "ie_kv_instrumentation.h"
+#include "util_metrics.h"
+#include "util_logging.h"
 
 #ifndef UNUSED
 #  define UNUSED(x) (void)(x)
 #endif
 
-/* Provide string defaults locally to avoid depending on external macros. */
 #ifndef IE_PREC_FP32
 #  define IE_PREC_FP32 "fp32"
 #endif
@@ -84,7 +102,6 @@
 /* -------------------------------------------------------------------------- */
 /**
  * @brief Get a monotonic wall-clock timestamp in seconds.
- *
  * @return Seconds as a double, suitable for interval measurements.
  */
 static double now_sec(void) {
@@ -98,7 +115,6 @@ static double now_sec(void) {
 /* -------------------------------------------------------------------------- */
 /**
  * @brief Parse an environment variable as a long with a default fallback.
- *
  * @param name Environment variable name (e.g., "IE_STRIDE_BYTES").
  * @param defv Default value when unset or invalid.
  * @return Parsed value, or @p defv on error/unset.
@@ -113,7 +129,6 @@ static long env_long(const char *name, long defv) {
 
 /**
  * @brief Get environment variable as string with a default fallback.
- *
  * @param name Environment variable name.
  * @param defv Default string when unset/empty.
  * @return Pointer to environment value or @p defv.
@@ -123,12 +138,26 @@ static const char *env_str(const char *name, const char *defv) {
   return (s && *s) ? s : defv;
 }
 
+/**
+ * @brief Check whether a filesystem path exists.
+ *
+ * This is a tiny convenience wrapper around stat(2). It is intentionally
+ * conservative: it returns 1 if `stat()` succeeds, and 0 otherwise.
+ *
+ * @param p Null-terminated path.
+ * @return 1 if the path exists, 0 otherwise.
+ */
+static int path_exists(const char *p) {
+  if (!p || !*p) return 0;
+  struct stat st;
+  return (stat(p, &st) == 0);
+}
+
 /* -------------------------------------------------------------------------- */
 /* ASCII utilities                                                            */
 /* -------------------------------------------------------------------------- */
 /**
  * @brief Case-insensitive ASCII equality check (NULL-safe).
- *
  * @param a First string (may be NULL).
  * @param b Second string (may be NULL).
  * @return 1 if equal ignoring ASCII case; 0 otherwise.
@@ -151,7 +180,6 @@ static int ascii_ieq(const char *a, const char *b) {
 /* -------------------------------------------------------------------------- */
 /**
  * @brief Check whether a filesystem path is absolute (POSIX).
- *
  * @param p Path string (may be NULL).
  * @return 1 if absolute, 0 otherwise.
  */
@@ -161,7 +189,6 @@ static int path_is_abs(const char *p) {
 
 /**
  * @brief Safely copy a string into a fixed buffer (always NUL-terminates).
- *
  * @param dst Destination buffer.
  * @param dstsz Destination size in bytes.
  * @param src Source string (may be NULL).
@@ -230,7 +257,6 @@ static int canon_dir(char *out, size_t outsz, const char *dir) {
     return 1;
   }
 
-  /* Fall back (non-canonical but stable enough). */
   safe_strcpy(out, outsz, dir);
   return 0;
 }
@@ -243,9 +269,6 @@ static int canon_dir(char *out, size_t outsz, const char *dir) {
  *     if relative and model_dir provided: resolve relative to model_dir).
  *  2) If not provided, default to "model.ie.json"/"model.ie.bin" under model_dir
  *     (if provided), otherwise fall back to "./model.ie.json"/"./model.ie.bin".
- *
- * The returned paths are designed to be independent of the current working
- * directory to make benchmark harnesses robust.
  *
  * @param model_dir Optional model directory from CLI (may be NULL).
  * @param model_json_opt Optional JSON path override (may be NULL).
@@ -264,7 +287,6 @@ static void resolve_iebin_paths(const char *model_dir,
   dir_canon[0] = '\0';
   (void)canon_dir(dir_canon, sizeof(dir_canon), model_dir);
 
-  /* JSON */
   if (model_json_opt && *model_json_opt) {
     if (path_is_abs(model_json_opt)) safe_strcpy(out_json, out_json_sz, model_json_opt);
     else join_path(out_json, out_json_sz, (dir_canon[0] ? dir_canon : model_dir), model_json_opt);
@@ -273,7 +295,6 @@ static void resolve_iebin_paths(const char *model_dir,
     else safe_strcpy(out_json, out_json_sz, "./model.ie.json");
   }
 
-  /* BIN */
   if (model_bin_opt && *model_bin_opt) {
     if (path_is_abs(model_bin_opt)) safe_strcpy(out_bin, out_bin_sz, model_bin_opt);
     else join_path(out_bin, out_bin_sz, (dir_canon[0] ? dir_canon : model_dir), model_bin_opt);
@@ -290,81 +311,61 @@ static void resolve_iebin_paths(const char *model_dir,
  *  @brief Classic floating-point precision flags recognized as switches.
  */
 typedef enum {
-  CLI_PREC_FP32 = 0,  /**< 32-bit floating-point. */
-  CLI_PREC_BF16 = 1,  /**< bfloat16. */
-  CLI_PREC_FP16 = 2   /**< 16-bit floating-point. */
+  CLI_PREC_FP32 = 0,
+  CLI_PREC_BF16 = 1,
+  CLI_PREC_FP16 = 2
 } cli_precision_t;
 
 /** @enum cli_pretranspose_t
  *  @brief Pretranspose policy hint.
  */
 typedef enum {
-  CLI_PRETX_NONE = 0, /**< No pretranspose. */
-  CLI_PRETX_WOH  = 1, /**< Width-Outer-Height style. */
-  CLI_PRETX_WXH  = 2, /**< Width-by-Height tiles. */
-  CLI_PRETX_ALL  = 3  /**< Let backend decide per tensor. */
+  CLI_PRETX_NONE = 0,
+  CLI_PRETX_WOH  = 1,
+  CLI_PRETX_WXH  = 2,
+  CLI_PRETX_ALL  = 3
 } cli_pretranspose_t;
 
 /**
  * @struct cli_extras_t
  * @brief Parsed CLI options container (benchmark/harness compatible).
- *
- * This struct mirrors the soft hints consumed by ::ie_engine_params_t and
- * extends them with CLI-only concerns (prompts file, batch size, etc.).
- *
- * The @ref sparsity and @ref sparsity_from_flag fields implement a simple
- * precedence rule:
- *   1. If --sparsity is provided, it wins.
- *   2. Otherwise, IE_SPARSITY or SPARSITY environment variables are used.
- *   3. When both are absent, "none" is used.
  */
 typedef struct cli_extras {
-  const char        *prompt;        /**< Prompt text; may be NULL if using file. */
-  size_t             max_new;       /**< Upper bound of new tokens to generate. */
-  int                threads;       /**< Thread hint; <= 0 means auto. */
-  cli_precision_t    prec;          /**< Float precision hint (fp32/bf16/fp16). */
-  const char        *affinity;      /**< "auto" | "compact" | "scatter". */
-  cli_pretranspose_t pretx;         /**< Pretranspose policy hint. */
-  const char        *device;        /**< "auto" | "cpu" | "cuda" | "ze" (no-op hint). */
+  const char        *prompt;
+  size_t             max_new;
+  int                threads;
+  cli_precision_t    prec;
+  const char        *affinity;
+  cli_pretranspose_t pretx;
+  const char        *device;
 
-  /* Harness/compat */
-  const char        *prompts_file;  /**< Path to prompts file (one per line). */
-  int                batch;         /**< Batch size (compat hint). */
-  const char        *prefetch;      /**< "on" | "off" | "auto" | "N" (string). */
-  int                warmup_tokens; /**< Warmup tokens before measurement. */
-  int                aggregate;     /**< Aggregate mode: iterate prompts-file. */
-  int                rounds;        /**< Repeat measured window N times (>=1). */
+  const char        *prompts_file;
+  int                batch;
+  const char        *prefetch;
+  int                warmup_tokens;
+  int                aggregate;
+  int                rounds;
 
-  /* Model location options. */
-  const char        *model_dir;     /**< Optional model directory. */
-  const char        *model_json;    /**< Explicit JSON path. */
-  const char        *model_bin;     /**< Explicit BIN path. */
+  const char        *model_dir;
+  const char        *model_json;
+  const char        *model_bin;
 
-  /* Raw precision label passed to engine (includes int8w/int4/int4w). */
   const char        *precision_label;
   int                precision_from_flag;
 
-  /**
-   * @brief Raw sparsity label passed to the engine.
-   *
-   * Accepted values:
-   *  - "none"  : dense path (default).
-   *  - "block" : block-sparse (e.g. BSR) when available.
-   *  - "auto"  : backend decides based on metadata.
-   */
   const char        *sparsity;
-  /**
-   * @brief Non-zero if `--sparsity` was provided on the command line.
-   *
-   * When this flag is zero, @ref sparsity may still be filled from
-   * IE_SPARSITY / SPARSITY environment variables.
-   */
   int                sparsity_from_flag;
 
-  /* New: per-tensor streaming/prefetch knobs forwarded to kernels via env. */
-  size_t             pf_w_bytes;    /**< Prefetch distance for weights (bytes). */
-  size_t             pf_x_bytes;    /**< Prefetch distance for activations (bytes). */
-  int                force_ntw;     /**< -1=unset, 0=force off, 1=force on. */
+  size_t             pf_w_bytes;
+  size_t             pf_x_bytes;
+  int                force_ntw;
+
+  /* Step-3 dedup runtime controls (exported as env vars). */
+  int                dedup_enable;         /**< -1=unset, 0=disable, 1=enable. */
+  const char        *dedup_policy;         /**< NULL if unset, else string. */
+  long               dedup_cache_mb;       /**< -1 unset, else >=0. */
+  long               dedup_hot_bytes;      /**< -1 unset, else >=0. */
+  const char        *dedup_hot_list;       /**< NULL if unset. */
 } cli_extras_t;
 
 /* -------------------------------------------------------------------------- */
@@ -388,14 +389,20 @@ static void usage(void) {
     "                        [--prefetch on|off|auto|N] [--warmup N]\n"
     "                        [--rounds N] [--aggregate]\n"
     "                        [--pf-w BYTES] [--pf-x BYTES] [--force-ntw 0|1]\n"
+    "                        [--dedup 0|1]\n"
+    "                        [--dedup-policy off|on_demand|cache|replicate_hot]\n"
+    "                        [--dedup-cache-mb N]\n"
+    "                        [--dedup-hot-bytes N]\n"
+    "                        [--dedup-hot-list STR]\n"
     "\n"
     "Env overrides: IE_PRECISION/PRECISION; IE_SPARSITY/SPARSITY;\n"
-    "               IE_GEMV_PFDIST_W; IE_GEMV_PFDIST_X; IE_GEMV_FORCE_NTW\n");
+    "               IE_GEMV_PFDIST_W; IE_GEMV_PFDIST_X; IE_GEMV_FORCE_NTW;\n"
+    "               IE_DEDUP; IE_DEDUP_POLICY; IE_DEDUP_CACHE_MB;\n"
+    "               IE_DEDUP_HOT_BYTES; IE_DEDUP_HOT_LIST\n");
 }
 
 /**
  * @brief Initialize a ::cli_extras_t with default values.
- *
  * @param e Output structure; must be non-NULL.
  */
 static void cli_extras_defaults(cli_extras_t *e) {
@@ -415,7 +422,7 @@ static void cli_extras_defaults(cli_extras_t *e) {
   e->model_dir      = NULL;
   e->model_json     = NULL;
   e->model_bin      = NULL;
-  e->precision_label = IE_PREC_FP32; /* "fp32" */
+  e->precision_label = IE_PREC_FP32;
   e->precision_from_flag = 0;
 
   e->sparsity       = "none";
@@ -424,11 +431,16 @@ static void cli_extras_defaults(cli_extras_t *e) {
   e->pf_w_bytes     = 0;
   e->pf_x_bytes     = 0;
   e->force_ntw      = -1;
+
+  e->dedup_enable   = -1;
+  e->dedup_policy   = NULL;
+  e->dedup_cache_mb = -1;
+  e->dedup_hot_bytes = -1;
+  e->dedup_hot_list = NULL;
 }
 
 /**
  * @brief Convert a string to long with strict validation; exits with code 2 on failure.
- *
  * @param s NUL-terminated string to parse as base-10 integer.
  * @return Parsed long value.
  */
@@ -446,8 +458,12 @@ static long safe_atoi(const char *s) {
  * Recognized flags include prefetch/streaming controls:
  *  - --pf-w BYTES, --pf-x BYTES, --force-ntw 0|1
  *
- * And sparsity controls:
- *  - --sparsity none|block|auto
+ * Recognized dedup controls (Step 3):
+ *  - --dedup 0|1
+ *  - --dedup-policy off|on_demand|cache|replicate_hot
+ *  - --dedup-cache-mb N
+ *  - --dedup-hot-bytes N
+ *  - --dedup-hot-list STR
  *
  * @param argc Argument count.
  * @param argv Argument vector.
@@ -478,10 +494,7 @@ static int parse_flags(int argc, char **argv, cli_extras_t *out) {
       if      (ascii_ieq(m, "none") || ascii_ieq(m, "dense")) out->sparsity = "none";
       else if (ascii_ieq(m, "block") || ascii_ieq(m, "blocksparse")) out->sparsity = "block";
       else if (ascii_ieq(m, "auto")) out->sparsity = "auto";
-      else {
-        fprintf(stderr,"error: unknown sparsity '%s' (expected none|block|auto)\n", m);
-        return -1;
-      }
+      else { fprintf(stderr,"error: unknown sparsity '%s' (expected none|block|auto)\n", m); return -1; }
       out->sparsity_from_flag = 1;
     }
     else if (!strcmp(a,"--affinity"))    { if (++i>=argc) { usage(); return -1; } out->affinity = argv[i]; }
@@ -511,8 +524,34 @@ static int parse_flags(int argc, char **argv, cli_extras_t *out) {
     else if (!strcmp(a,"--pf-w"))        { if (++i>=argc) { usage(); return -1; } long v=safe_atoi(argv[i]); if(v<0){fprintf(stderr,"error: --pf-w >= 0\n");return -1;} out->pf_w_bytes=(size_t)v; }
     else if (!strcmp(a,"--pf-x"))        { if (++i>=argc) { usage(); return -1; } long v=safe_atoi(argv[i]); if(v<0){fprintf(stderr,"error: --pf-x >= 0\n");return -1;} out->pf_x_bytes=(size_t)v; }
     else if (!strcmp(a,"--force-ntw"))   { if (++i>=argc) { usage(); return -1; } long v=safe_atoi(argv[i]); if(v!=0 && v!=1){fprintf(stderr,"error: --force-ntw 0|1\n");return -1;} out->force_ntw=(int)v; }
+
+    else if (!strcmp(a,"--dedup")) {
+      if (++i>=argc) { usage(); return -1; }
+      long v = safe_atoi(argv[i]);
+      if (v != 0 && v != 1) { fprintf(stderr, "error: --dedup 0|1\n"); return -1; }
+      out->dedup_enable = (int)v;
+    }
+    else if (!strcmp(a,"--dedup-policy")) {
+      if (++i>=argc) { usage(); return -1; }
+      out->dedup_policy = argv[i];
+    }
+    else if (!strcmp(a,"--dedup-cache-mb")) {
+      if (++i>=argc) { usage(); return -1; }
+      long v = safe_atoi(argv[i]); if (v < 0) v = 0;
+      out->dedup_cache_mb = v;
+    }
+    else if (!strcmp(a,"--dedup-hot-bytes")) {
+      if (++i>=argc) { usage(); return -1; }
+      long v = safe_atoi(argv[i]); if (v < 0) v = 0;
+      out->dedup_hot_bytes = v;
+    }
+    else if (!strcmp(a,"--dedup-hot-list")) {
+      if (++i>=argc) { usage(); return -1; }
+      out->dedup_hot_list = argv[i];
+    }
+
     else if (a[0] == '-') { fprintf(stderr,"error: unknown flag '%s'\n", a); usage(); return -1; }
-    else { out->prompt = a; } /* positional */
+    else { out->prompt = a; }
   }
   return 0;
 }
@@ -522,9 +561,8 @@ static int parse_flags(int argc, char **argv, cli_extras_t *out) {
 /* -------------------------------------------------------------------------- */
 /**
  * @brief Read the first non-empty line from a text file.
- *
- * @param path  Path to the text file.
- * @param buf   Output buffer to receive the line.
+ * @param path Path to the text file.
+ * @param buf Output buffer to receive the line.
  * @param bufsz Size of @p buf in bytes.
  * @return 1 if a line was read, 0 if the file had no non-empty lines, -1 on I/O error.
  */
@@ -547,13 +585,12 @@ static int read_first_nonempty_line(const char *path, char *buf, size_t bufsz) {
 /* -------------------------------------------------------------------------- */
 /**
  * @brief Print a single JSON summary line for the last run.
- *
- * @param n_tok         Number of tokens generated.
- * @param tokens        Pointer to tokens (may be NULL to print an empty array).
- * @param wall_s_in     Wall-clock seconds for the measured window.
- * @param kv_hits       KV hits to report.
- * @param kv_misses     KV misses to report.
- * @param rss_peak_mb   Peak RSS in MiB to report.
+ * @param n_tok Number of tokens generated.
+ * @param tokens Pointer to tokens (may be NULL to print an empty array).
+ * @param wall_s_in Wall-clock seconds for the measured window.
+ * @param kv_hits KV hits to report.
+ * @param kv_misses KV misses to report.
+ * @param rss_peak_mb Peak RSS in MiB to report.
  */
 static void print_json_result(uint32_t n_tok,
                               const uint32_t *tokens,
@@ -607,32 +644,14 @@ static void print_json_result(uint32_t n_tok,
 /* -------------------------------------------------------------------------- */
 /**
  * @brief Program entry point.
- *
- * Flow:
- *  1. Parse CLI flags (or print usage).
- *  2. Resolve model.ie.{json,bin} paths (independent of CWD).
- *  3. Optionally chdir into --model-dir (legacy behavior; not relied upon).
- *  4. Optionally open/validate IEBIN (strict mode via IE_REQUIRE_MODEL=1).
- *  5. Create the engine with soft hints (precision/affinity/etc).
- *  6. Optional warmup (not timed).
- *  7. Measured window: ie_engine_generate(...) + optional “work touch”.
- *  8. Print JSON and teardown.
- *
- * New behavior in step 2:
- *  - If --model-dir is provided, default IEBIN paths become:
- *      <model-dir>/model.ie.json and <model-dir>/model.ie.bin
- *    instead of "./model.ie.*". This prevents harness/CWD coupling.
- *
  * @param argc Argument count.
  * @param argv Argument vector.
  * @return 0 on success; non-zero on error.
  */
 int main(int argc, char **argv) {
-  /* -------------------- parse CLI -------------------- */
   cli_extras_t opt;
   if (parse_flags(argc, argv, &opt) != 0) return 2;
 
-  /* Export per-tensor prefetch/stream overrides for kernels (if provided). */
   if (opt.pf_w_bytes > 0) {
     char buf[32]; snprintf(buf, sizeof buf, "%zu", opt.pf_w_bytes);
     setenv("IE_GEMV_PFDIST_W", buf, 1);
@@ -645,14 +664,48 @@ int main(int argc, char **argv) {
     setenv("IE_GEMV_FORCE_NTW", opt.force_ntw ? "1" : "0", 1);
   }
 
-  /* Resolve IEBIN paths early so they do not depend on CWD. */
+  /* Step-3 dedup knobs: export env vars only (engine/loader consumes them). */
+  if (opt.dedup_enable == 0 || opt.dedup_enable == 1) {
+    setenv("IE_DEDUP", opt.dedup_enable ? "1" : "0", 1);
+  }
+  if (opt.dedup_policy && *opt.dedup_policy) {
+    setenv("IE_DEDUP_POLICY", opt.dedup_policy, 1);
+  }
+  if (opt.dedup_cache_mb >= 0) {
+    char buf[32]; snprintf(buf, sizeof buf, "%ld", opt.dedup_cache_mb);
+    setenv("IE_DEDUP_CACHE_MB", buf, 1);
+  }
+  if (opt.dedup_hot_bytes >= 0) {
+    char buf[32]; snprintf(buf, sizeof buf, "%ld", opt.dedup_hot_bytes);
+    setenv("IE_DEDUP_HOT_BYTES", buf, 1);
+  }
+  if (opt.dedup_hot_list && *opt.dedup_hot_list) {
+    setenv("IE_DEDUP_HOT_LIST", opt.dedup_hot_list, 1);
+  }
+
+  /* Resolve model directory. If the user did not provide --model-dir and
+   * IE_MODEL_DIR is unset, fall back to the repo default (models/gpt-oss-20b)
+   * when present. This keeps `make test` and the Python CLI tests runnable
+   * from the repository root. */
+  const char *model_dir_eff = opt.model_dir;
+  if (!model_dir_eff || !*model_dir_eff) {
+    model_dir_eff = getenv("IE_MODEL_DIR");
+  }
+  if (!model_dir_eff || !*model_dir_eff) {
+    /* Probe common in-repo location. */
+    if (path_exists("models/gpt-oss-20b/model.ie.json") || path_exists("models/gpt-oss-20b/model.ie.bin")) {
+      model_dir_eff = "models/gpt-oss-20b";
+    } else {
+      model_dir_eff = ".";
+    }
+  }
+
   char json_path[PATH_MAX];
   char bin_path[PATH_MAX];
-  resolve_iebin_paths(opt.model_dir, opt.model_json, opt.model_bin,
+  resolve_iebin_paths(model_dir_eff, opt.model_json, opt.model_bin,
                       json_path, sizeof(json_path),
                       bin_path,  sizeof(bin_path));
 
-  /* Optional: change working dir early if requested (legacy behavior). */
   if (opt.model_dir && *opt.model_dir) {
     if (chdir(opt.model_dir) != 0) {
       fprintf(stderr, "error: --model-dir '%s' is not accessible: %s\n",
@@ -661,7 +714,6 @@ int main(int argc, char **argv) {
     }
   }
 
-  /* Precision from env if not provided on the command line. */
   if (!opt.precision_from_flag) {
     const char *envp = env_str("IE_PRECISION", env_str("PRECISION", IE_PREC_FP32));
     if      (ascii_ieq(envp, IE_PREC_INT4W) || ascii_ieq(envp, IE_PREC_INT4))
@@ -676,7 +728,6 @@ int main(int argc, char **argv) {
       opt.precision_label = IE_PREC_FP32;
   }
 
-  /* Sparsity from env if not provided on the command line. */
   if (!opt.sparsity_from_flag) {
     const char *envs = env_str("IE_SPARSITY", env_str("SPARSITY", "none"));
     if      (ascii_ieq(envs, "block") || ascii_ieq(envs, "blocksparse"))
@@ -687,7 +738,6 @@ int main(int argc, char **argv) {
       opt.sparsity = "none";
   }
 
-  /* If no explicit --prompt, try --prompts-file first non-empty line. */
   char prompt_buf[8192];
   if (!opt.prompt && opt.prompts_file && !opt.aggregate) {
     int r = read_first_nonempty_line(opt.prompts_file, prompt_buf, sizeof(prompt_buf));
@@ -700,7 +750,6 @@ int main(int argc, char **argv) {
     return 0;
   }
 
-  /* -------------------- strict IEBIN gating -------------------- */
   const int require_model = (int)env_long("IE_REQUIRE_MODEL", 0);
 
   ie_weights_t w; memset(&w, 0, sizeof(w));
@@ -722,7 +771,6 @@ int main(int argc, char **argv) {
     }
   }
 
-  /* -------------------- create engine -------------------- */
   ie_engine_params_t params; memset(&params, 0, sizeof(params));
   params.precision    = opt.precision_label;
   params.affinity     = opt.affinity;
@@ -742,7 +790,6 @@ int main(int argc, char **argv) {
     return 5;
   }
 
-  /* -------------------- optional warmup (outside timing) ------------------- */
   if (opt.warmup_tokens > 0) {
     const char *wprompt = "warmup";
     uint32_t wtoks[128]; uint32_t wcount = 0;
@@ -752,7 +799,6 @@ int main(int argc, char **argv) {
     (void)ie_engine_generate(engine, wprompt, wmax, wtoks, &wcount);
   }
 
-  /* -------------------- token output buffer -------------------- */
   uint32_t *tokens = NULL;
   size_t cap = (opt.max_new > 0 ? opt.max_new : 0);
   size_t cap_alloc = (cap > 0 ? cap : 1);
@@ -764,7 +810,6 @@ int main(int argc, char **argv) {
     return 6;
   }
 
-  /* -------------------- mmap model.bin for per-token work ------------------ */
   const size_t bytes_per_token = (size_t)env_long("IE_BYTES_PER_TOKEN", 0);
   const size_t stride_bytes    = (size_t)env_long("IE_STRIDE_BYTES", 256);
   const int verify_touch       = (int)env_long("IE_VERIFY_TOUCH", 0);
@@ -783,11 +828,9 @@ int main(int argc, char **argv) {
     }
   }
 
-  /* -------------------- KV round lifecycle (outside timing) ---------------- */
   (void)ie_kv_begin_round();
   uint64_t total_tokens_this_round = 0;
 
-  /* -------------------- measured window: ONLY gen + work-touch ------------- */
   double t0 = now_sec();
 
   uint32_t tokens_generated_total = 0;
@@ -840,7 +883,6 @@ int main(int argc, char **argv) {
 
   double t1 = now_sec();
 
-  /* -------------------- AFTER timing: collect metrics ---------------------- */
   uint64_t kv_hits_round = 0, kv_miss_round = 0;
   ie_kv_finish_round(total_tokens_this_round, &kv_hits_round, &kv_miss_round);
 
@@ -854,7 +896,6 @@ int main(int argc, char **argv) {
   uint32_t rss_mib = ie_metrics_sample_rss_peak();
   m.rss_peak_mb = rss_mib;
 
-  /* -------------------- print JSON & teardown ------------------------------ */
   const uint32_t *tokens_to_print = (opt.aggregate || opt.rounds > 1) ? NULL : tokens;
 
   print_json_result(tokens_generated_total,
@@ -871,7 +912,3 @@ int main(int argc, char **argv) {
   ie_weights_close(&w);
   return 0;
 }
-
-/* ========================================================================== */
-/* End of file                                                                */
-/* ========================================================================== */

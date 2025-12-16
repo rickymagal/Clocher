@@ -390,6 +390,27 @@ static int file_exists_readable(const char *path) {
   return access(path, R_OK) == 0;
 }
 
+
+/**
+ * @internal
+ * @brief Parse a boolean environment flag.
+ *
+ * Accepts the following case-insensitive values as true: "1", "true", "yes", "on".
+ * Accepts the following case-insensitive values as false: "0", "false", "no", "off".
+ * Any other non-empty value is treated as true (conservative).
+ *
+ * @param name Environment variable name.
+ * @param default_value Value returned when the variable is not set.
+ * @return 1 for true, 0 for false.
+ */
+static int env_flag_get(const char *name, int default_value) {
+  const char *v = getenv(name);
+  if (!v || !*v) return default_value;
+  if (ascii_ieq(v, "0") || ascii_ieq(v, "false") || ascii_ieq(v, "no") || ascii_ieq(v, "off")) return 0;
+  if (ascii_ieq(v, "1") || ascii_ieq(v, "true") || ascii_ieq(v, "yes") || ascii_ieq(v, "on")) return 1;
+  return 1;
+}
+
 /* -------------------------------------------------------------------------- */
 /* Public IEBIN v1 loader                                                     */
 /* -------------------------------------------------------------------------- */
@@ -463,39 +484,57 @@ int ie_weights_open(const char *json_path, const char *bin_path, ie_weights_t *o
   out->bin_size_bytes = (size_t)st.st_size;
   out->loaded = 1;
 
-  /* Dedup branch: open model.dedup.json if present next to model.ie.json. */
+  /* Dedup branch: optionally open model.dedup.json if present next to model.ie.json. */
   {
-    const char *slash = last_slash(json_path);
-    char dir[512]; dir[0] = '\0';
-    if (slash) {
-      size_t dn = (size_t)(slash - json_path);
-      if (dn >= sizeof(dir)) dn = sizeof(dir) - 1;
-      memcpy(dir, json_path, dn);
-      dir[dn] = '\0';
-    } else {
-      /* If json_path has no slash, treat current working directory as the dir. */
-      cpyz(dir, sizeof(dir), ".");
-    }
+    /* Default policy:
+     *  - If IE_DEDUP is unset: auto-enable when model.dedup.json is present.
+     *  - If IE_DEDUP=0: never enable dedup (even if artifacts are present).
+     *  - If IE_DEDUP=1: attempt dedup; on failure, either fall back (default) or hard-fail
+     *    when IE_DEDUP_STRICT=1.
+     */
+    const int dedup_enabled = env_flag_get("IE_DEDUP", 1);
+    const int dedup_strict  = env_flag_get("IE_DEDUP_STRICT", 0);
 
-    char dedup_json[512]; dedup_json[0] = '\0';
-    join_path(dedup_json, sizeof(dedup_json), dir, "model.dedup.json");
-
-    if (file_exists_readable(dedup_json)) {
-      ie_weights_dedup_opts_t opts;
-      memset(&opts, 0, sizeof(opts));
-      opts.prefault_policy = 0;
-
-      ie_weights_dedup_t *dh = NULL;
-      ie_wdedup_status_t dst = ie_weights_dedup_open(&dh, dir, &opts);
-      if (dst != IE_WDEDUP_OK) {
-        /* Hard fail: if dedup artifacts exist but cannot be opened, treat as load error. */
-        free(jbuf);
-        return IE_IO_ERR_JSON;
+    if (dedup_enabled) {
+      const char *slash = last_slash(json_path);
+      char dir[512]; dir[0] = '\0';
+      if (slash) {
+        size_t dn = (size_t)(slash - json_path);
+        if (dn >= sizeof(dir)) dn = sizeof(dir) - 1;
+        memcpy(dir, json_path, dn);
+        dir[dn] = '\0';
+      } else {
+        /* If json_path has no slash, treat current working directory as the dir. */
+        cpyz(dir, sizeof(dir), ".");
       }
 
-      /* Store into the weights handle (requires fields to exist in ie_weights_t). */
-      out->is_dedup = 1;
-      out->dedup_handle = (void *)dh;
+      char dedup_json[512]; dedup_json[0] = '\0';
+      join_path(dedup_json, sizeof(dedup_json), dir, "model.dedup.json");
+
+      if (file_exists_readable(dedup_json)) {
+        ie_weights_dedup_opts_t opts;
+        memset(&opts, 0, sizeof(opts));
+        opts.prefault_policy = 0;
+
+        ie_weights_dedup_t *dh = NULL;
+        ie_wdedup_status_t dst = ie_weights_dedup_open(&dh, dir, &opts);
+        if (dst == IE_WDEDUP_OK && dh) {
+          /* Store into the weights handle (requires fields to exist in ie_weights_t). */
+          out->is_dedup = 1;
+          out->dedup_handle = (void *)dh;
+        } else {
+          /* Do not break baseline loading if dedup artifacts are incomplete.
+           * Strict mode exists for CI or debugging.
+           */
+          if (dedup_strict) {
+            free(jbuf);
+            return IE_IO_ERR_JSON;
+          }
+          /* Best-effort fallback */
+          out->is_dedup = 0;
+          out->dedup_handle = NULL;
+        }
+      }
     }
   }
 
