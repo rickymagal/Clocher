@@ -76,7 +76,6 @@ read_psi_mem_some_avg10() {
         }
       }
     }
-    END { }
   ' /proc/pressure/memory 2>/dev/null || echo ""
 }
 
@@ -91,7 +90,6 @@ read_psi_mem_full_avg10() {
         }
       }
     }
-    END { }
   ' /proc/pressure/memory 2>/dev/null || echo ""
 }
 
@@ -132,9 +130,8 @@ try:
     s=open(f"/proc/{pid}/stat","r").read()
     rparen=s.rfind(")")
     tail=s[rparen+2:].split()
-    # Fields after comm/state begin at position 3 overall. In tail:
-    # minflt is field 10 overall -> tail index 10-3 = 7
-    # majflt is field 12 overall -> tail index 12-3 = 9
+    # minflt is field 10 overall -> tail index 7
+    # majflt is field 12 overall -> tail index 9
     minflt=int(tail[7])
     majflt=int(tail[9])
     print(minflt, majflt)
@@ -143,30 +140,31 @@ except Exception:
 PY
 }
 
+# Some engine paths still open IEBIN as ./model.ie.{json,bin}.
+# To make bench robust, we always run the engine with CWD = MODEL_DIR.
 run_one() {
   local run_idx="$1"
 
   local out_raw="${_tmpdir}/run_${run_idx}.raw.txt"
 
-  local cmd=(
-    "${ENGINE_BIN}"
-    --device "${DEVICE}"
-    --model-dir "${MODEL_DIR}"
-    --prompts-file "${PROMPTS}"
-    --threads "${THREADS}"
-    --precision "${CLI_PREC}"
-    --batch "${BATCH}"
-    --prefetch "${PREFETCH}"
-    --pretranspose "${PRETRANSPOSE}"
-    --affinity "${AFFINITY}"
-    --max-new "${MAX_NEW}"
-    --rounds 1
-  )
-
   local sw_in0 sw_out0
   read -r sw_in0 sw_out0 < <(read_vmstat_swaps)
 
-  "${cmd[@]}" > "${out_raw}" 2>&1 &
+  (
+    cd "${MODEL_DIR}"
+    "${ENGINE_BIN}" \
+      --device "${DEVICE}" \
+      --model-dir "." \
+      --prompts-file "${PROMPTS}" \
+      --threads "${THREADS}" \
+      --precision "${CLI_PREC}" \
+      --batch "${BATCH}" \
+      --prefetch "${PREFETCH}" \
+      --pretranspose "${PRETRANSPOSE}" \
+      --affinity "${AFFINITY}" \
+      --max-new "${MAX_NEW}" \
+      --rounds 1
+  ) > "${out_raw}" 2>&1 &
   local pid="$!"
   disown || true
 
@@ -341,8 +339,9 @@ PY
     "${minflt_delta}" "${majflt_delta}" \
     "${swap_in_mb}" "${swap_out_mb}" \
     "${psi_some_mean}" "${psi_full_mean}" \
-    "${memavail_mean_mb}" "${memavail_mean_pct}" <<'PY'
-import sys, json
+    "${memavail_mean_mb}" "${memavail_mean_pct}" \
+    "${MODEL_DIR}" "${ENGINE_BIN}" "${DEVICE}" <<'PY'
+import sys, json, os
 
 raw_path=sys.argv[1]
 rss_floor=float(sys.argv[2])
@@ -364,6 +363,10 @@ psi_full=to_opt_float(sys.argv[11])
 mem_av_mb=to_opt_float(sys.argv[12])
 mem_av_pct=to_opt_float(sys.argv[13])
 
+model_dir=sys.argv[14]
+engine_bin=sys.argv[15]
+device=sys.argv[16]
+
 last=None
 with open(raw_path,"r",encoding="utf-8",errors="ignore") as f:
     for line in f:
@@ -380,7 +383,20 @@ with open(raw_path,"r",encoding="utf-8",errors="ignore") as f:
             last=obj
 
 if last is None:
-    raise SystemExit("ERROR: engine did not emit a valid per-run JSON object")
+    tail=[]
+    try:
+        with open(raw_path,"r",encoding="utf-8",errors="ignore") as f:
+            tail=f.readlines()[-200:]
+    except Exception:
+        tail=[]
+    sys.stderr.write("ERROR: no JSON object found in engine output\n")
+    sys.stderr.write("---- context ----\n")
+    sys.stderr.write(f"cwd(model_dir)={model_dir}\n")
+    sys.stderr.write(f"engine_bin={engine_bin}\n")
+    sys.stderr.write(f"device={device}\n")
+    sys.stderr.write("---- raw tail (last 200 lines) ----\n")
+    sys.stderr.write("".join(tail))
+    raise SystemExit(1)
 
 # Inject extended memory metrics (names match update_performance_md.py)
 last["pss_peak_mb"]=pss_peak

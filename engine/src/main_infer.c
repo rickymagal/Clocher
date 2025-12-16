@@ -2,7 +2,24 @@
  * @file main_infer.c
  * @brief CLI entry point for the inference engine (benchmark-friendly).
  *
+ * This translation unit implements the standalone CLI binary used by the
+ * benchmark harness. It is designed to always emit a single JSON object on
+ * stdout (even in stub mode), so that external scripts can reliably parse
+ * per-run results.
+ *
+ * Key behaviors:
+ *  - CI/Stub mode (default): does not require model files; emits valid JSON.
+ *  - Strict mode (IE_REQUIRE_MODEL=1): requires model.ie.{json,bin}.
+ *  - Benchmark timing window includes only:
+ *      - ie_engine_generate(...)
+ *      - optional per-token "work-touch" loop
+ *
  * Additions in this revision:
+ *  - Robust model path resolution:
+ *      - If --model-dir is provided, model.ie.{json,bin} are resolved relative
+ *        to that directory (and converted to stable absolute paths when possible).
+ *      - This avoids relying on CWD and prevents "./model.ie.*" surprises.
+ *
  *  - CLI flags to expose layer/tensor prefetch distances and streaming policy:
  *        --pf-w N          : prefetch distance for weights (bytes)
  *        --pf-x N          : prefetch distance for activations (bytes)
@@ -15,16 +32,6 @@
  *    This is passed through to ::ie_engine_params_t::sparsity and can be
  *    overridden by IE_SPARSITY / SPARSITY environment variables when not
  *    provided explicitly on the command line.
- *
- * @section modes Execution modes
- * 1. CI/Stub mode (default) — does not require model files; emits valid JSON.
- * 2. Strict mode (IE_REQUIRE_MODEL=1) — requires model.ie.{json,bin}; includes
- *    an optional “work-touch” loop (IE_BYTES_PER_TOKEN, IE_STRIDE_BYTES).
- *
- * @section timing Critical timing rule
- * The measured window includes only:
- *   - ie_engine_generate(...)
- *   - the optional per-token “work touch” loop
  */
 
 #define _POSIX_C_SOURCE 200809L
@@ -32,6 +39,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <inttypes.h>
+#include <limits.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -139,6 +147,143 @@ static int ascii_ieq(const char *a, const char *b) {
 }
 
 /* -------------------------------------------------------------------------- */
+/* Path helpers                                                               */
+/* -------------------------------------------------------------------------- */
+/**
+ * @brief Check whether a filesystem path is absolute (POSIX).
+ *
+ * @param p Path string (may be NULL).
+ * @return 1 if absolute, 0 otherwise.
+ */
+static int path_is_abs(const char *p) {
+  return (p && p[0] == '/');
+}
+
+/**
+ * @brief Safely copy a string into a fixed buffer (always NUL-terminates).
+ *
+ * @param dst Destination buffer.
+ * @param dstsz Destination size in bytes.
+ * @param src Source string (may be NULL).
+ */
+static void safe_strcpy(char *dst, size_t dstsz, const char *src) {
+  if (!dst || dstsz == 0) return;
+  if (!src) { dst[0] = '\0'; return; }
+  snprintf(dst, dstsz, "%s", src);
+}
+
+/**
+ * @brief Join a directory and a leaf name into a single path.
+ *
+ * Rules:
+ *  - If @p leaf is absolute, it is copied as-is.
+ *  - If @p dir is NULL/empty, the result is just @p leaf.
+ *  - Otherwise result is "dir/leaf" (single slash).
+ *
+ * @param out Output buffer.
+ * @param outsz Output buffer size in bytes.
+ * @param dir Directory prefix (may be NULL/empty).
+ * @param leaf File name or relative path (must be non-NULL).
+ */
+static void join_path(char *out, size_t outsz, const char *dir, const char *leaf) {
+  if (!out || outsz == 0) return;
+  out[0] = '\0';
+  if (!leaf) return;
+
+  if (path_is_abs(leaf)) {
+    safe_strcpy(out, outsz, leaf);
+    return;
+  }
+
+  if (!dir || !*dir) {
+    safe_strcpy(out, outsz, leaf);
+    return;
+  }
+
+  size_t n = strlen(dir);
+  if (n > 0 && dir[n - 1] == '/') {
+    snprintf(out, outsz, "%s%s", dir, leaf);
+  } else {
+    snprintf(out, outsz, "%s/%s", dir, leaf);
+  }
+}
+
+/**
+ * @brief Attempt to canonicalize a directory with realpath().
+ *
+ * If realpath() fails, this function falls back to copying the input.
+ *
+ * @param out Output buffer (PATH_MAX recommended).
+ * @param outsz Output size.
+ * @param dir Input directory path (may be NULL).
+ * @return 1 if realpath() succeeded, 0 otherwise.
+ */
+static int canon_dir(char *out, size_t outsz, const char *dir) {
+  if (!out || outsz == 0) return 0;
+  out[0] = '\0';
+  if (!dir || !*dir) return 0;
+
+  char tmp[PATH_MAX];
+  tmp[0] = '\0';
+  if (realpath(dir, tmp)) {
+    safe_strcpy(out, outsz, tmp);
+    return 1;
+  }
+
+  /* Fall back (non-canonical but stable enough). */
+  safe_strcpy(out, outsz, dir);
+  return 0;
+}
+
+/**
+ * @brief Resolve IEBIN paths based on CLI flags and --model-dir.
+ *
+ * Precedence:
+ *  1) Explicit --model-json/--model-bin (if absolute: use as-is;
+ *     if relative and model_dir provided: resolve relative to model_dir).
+ *  2) If not provided, default to "model.ie.json"/"model.ie.bin" under model_dir
+ *     (if provided), otherwise fall back to "./model.ie.json"/"./model.ie.bin".
+ *
+ * The returned paths are designed to be independent of the current working
+ * directory to make benchmark harnesses robust.
+ *
+ * @param model_dir Optional model directory from CLI (may be NULL).
+ * @param model_json_opt Optional JSON path override (may be NULL).
+ * @param model_bin_opt Optional BIN path override (may be NULL).
+ * @param out_json Output JSON path buffer.
+ * @param out_json_sz Output JSON buffer size.
+ * @param out_bin Output BIN path buffer.
+ * @param out_bin_sz Output BIN buffer size.
+ */
+static void resolve_iebin_paths(const char *model_dir,
+                               const char *model_json_opt,
+                               const char *model_bin_opt,
+                               char *out_json, size_t out_json_sz,
+                               char *out_bin,  size_t out_bin_sz) {
+  char dir_canon[PATH_MAX];
+  dir_canon[0] = '\0';
+  (void)canon_dir(dir_canon, sizeof(dir_canon), model_dir);
+
+  /* JSON */
+  if (model_json_opt && *model_json_opt) {
+    if (path_is_abs(model_json_opt)) safe_strcpy(out_json, out_json_sz, model_json_opt);
+    else join_path(out_json, out_json_sz, (dir_canon[0] ? dir_canon : model_dir), model_json_opt);
+  } else {
+    if (model_dir && *model_dir) join_path(out_json, out_json_sz, (dir_canon[0] ? dir_canon : model_dir), "model.ie.json");
+    else safe_strcpy(out_json, out_json_sz, "./model.ie.json");
+  }
+
+  /* BIN */
+  if (model_bin_opt && *model_bin_opt) {
+    if (path_is_abs(model_bin_opt)) safe_strcpy(out_bin, out_bin_sz, model_bin_opt);
+    else join_path(out_bin, out_bin_sz, (dir_canon[0] ? dir_canon : model_dir), model_bin_opt);
+  } else {
+    if (model_dir && *model_dir) join_path(out_bin, out_bin_sz, (dir_canon[0] ? dir_canon : model_dir), "model.ie.bin");
+    else safe_strcpy(out_bin, out_bin_sz, "./model.ie.bin");
+  }
+}
+
+/* -------------------------------------------------------------------------- */
 /* CLI options                                                                */
 /* -------------------------------------------------------------------------- */
 /** @enum cli_precision_t
@@ -179,7 +324,7 @@ typedef struct cli_extras {
   int                threads;       /**< Thread hint; <= 0 means auto. */
   cli_precision_t    prec;          /**< Float precision hint (fp32/bf16/fp16). */
   const char        *affinity;      /**< "auto" | "compact" | "scatter". */
-  cli_pretranspose_t pretx;         /**< Pretranspose policy. */
+  cli_pretranspose_t pretx;         /**< Pretranspose policy hint. */
   const char        *device;        /**< "auto" | "cpu" | "cuda" | "ze" (no-op hint). */
 
   /* Harness/compat */
@@ -191,7 +336,7 @@ typedef struct cli_extras {
   int                rounds;        /**< Repeat measured window N times (>=1). */
 
   /* Model location options. */
-  const char        *model_dir;     /**< chdir() here before loading IEBIN. */
+  const char        *model_dir;     /**< Optional model directory. */
   const char        *model_json;    /**< Explicit JSON path. */
   const char        *model_bin;     /**< Explicit BIN path. */
 
@@ -465,19 +610,18 @@ static void print_json_result(uint32_t n_tok,
  *
  * Flow:
  *  1. Parse CLI flags (or print usage).
- *  2. Optionally chdir into --model-dir.
- *  3. Optionally open/validate IEBIN (strict mode via IE_REQUIRE_MODEL=1).
- *  4. Create the engine with soft hints (precision/affinity/etc).
- *  5. Optional warmup (not timed).
- *  6. Measured window: ie_engine_generate(...) + optional “work touch”.
- *  7. Print JSON and teardown.
+ *  2. Resolve model.ie.{json,bin} paths (independent of CWD).
+ *  3. Optionally chdir into --model-dir (legacy behavior; not relied upon).
+ *  4. Optionally open/validate IEBIN (strict mode via IE_REQUIRE_MODEL=1).
+ *  5. Create the engine with soft hints (precision/affinity/etc).
+ *  6. Optional warmup (not timed).
+ *  7. Measured window: ie_engine_generate(...) + optional “work touch”.
+ *  8. Print JSON and teardown.
  *
- * New behavior in step 1/4:
- *  - If --pf-w/--pf-x/--force-ntw are provided, export:
- *      IE_GEMV_PFDIST_W, IE_GEMV_PFDIST_X, IE_GEMV_FORCE_NTW
- *    so that gemv_* kernels can pick them up.
- *  - If --sparsity or IE_SPARSITY|SPARSITY are provided, pass the resulting
- *    label unchanged into ::ie_engine_params_t::sparsity.
+ * New behavior in step 2:
+ *  - If --model-dir is provided, default IEBIN paths become:
+ *      <model-dir>/model.ie.json and <model-dir>/model.ie.bin
+ *    instead of "./model.ie.*". This prevents harness/CWD coupling.
  *
  * @param argc Argument count.
  * @param argv Argument vector.
@@ -501,7 +645,14 @@ int main(int argc, char **argv) {
     setenv("IE_GEMV_FORCE_NTW", opt.force_ntw ? "1" : "0", 1);
   }
 
-  /* Optional: change working dir early if requested. */
+  /* Resolve IEBIN paths early so they do not depend on CWD. */
+  char json_path[PATH_MAX];
+  char bin_path[PATH_MAX];
+  resolve_iebin_paths(opt.model_dir, opt.model_json, opt.model_bin,
+                      json_path, sizeof(json_path),
+                      bin_path,  sizeof(bin_path));
+
+  /* Optional: change working dir early if requested (legacy behavior). */
   if (opt.model_dir && *opt.model_dir) {
     if (chdir(opt.model_dir) != 0) {
       fprintf(stderr, "error: --model-dir '%s' is not accessible: %s\n",
@@ -545,7 +696,6 @@ int main(int argc, char **argv) {
     else             { opt.prompt = "bench"; }
   }
   if (!opt.prompt && !opt.prompts_file) {
-    ie_metrics_t mm; memset(&mm, 0, sizeof(mm));
     print_json_result(0, NULL, 0.0, 0, 0, 0);
     return 0;
   }
@@ -555,13 +705,11 @@ int main(int argc, char **argv) {
 
   ie_weights_t w; memset(&w, 0, sizeof(w));
   {
-    const char *j = (opt.model_json && *opt.model_json) ? opt.model_json : "./model.ie.json";
-    const char *b = (opt.model_bin  && *opt.model_bin ) ? opt.model_bin  : "./model.ie.bin";
-    int wrc = ie_weights_open(j, b, &w);
+    int wrc = ie_weights_open(json_path, bin_path, &w);
     if (wrc != IE_IO_OK) {
       if (require_model) {
         fprintf(stderr, "error: failed to open IEBIN (%s, %s), status=%d, errno=%d (%s)\n",
-                j, b, wrc, errno, strerror(errno));
+                json_path, bin_path, wrc, errno, strerror(errno));
         return 3;
       }
       fprintf(stderr, "# -> warn: IEBIN metadata not found; continuing in stub mode…\n");
@@ -625,7 +773,7 @@ int main(int argc, char **argv) {
   uint8_t *map = NULL;
   size_t   map_len = 0;
   if (w.loaded && bytes_per_token > 0 && w.bin_size_bytes > 0) {
-    const char *binp = (w.weights_path[0] ? w.weights_path : "./model.ie.bin");
+    const char *binp = (w.weights_path[0] ? w.weights_path : bin_path);
     bin_fd = open(binp, O_RDONLY);
     if (bin_fd >= 0) {
       map_len = (size_t)w.bin_size_bytes;
