@@ -151,7 +151,7 @@ Functions</h2></td></tr>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Approximated tanh(x) in [-1.0f, 1.0f].</dd></dl>
 <p>Fast approximation of hyperbolic tanh with strict [-1, 1] range.</p>
-<p>Fast scalar tanh approximation (used for fused bias+tanh paths).</p>
+<p>Fast scalar tanh approximation.</p>
 <p>For large |x| we short-circuit to +/-1.0f. For moderate |x| we use a small rational function that gives a smooth S-curve: </p><pre class="fragment">tanh(x) ≈ x * (27 + x^2) / (27 + 9 x^2)
 </pre><p> Finally, the result is clamped to [-1, 1] to guarantee range correctness.</p>
 <dl class="params"><dt>Parameters</dt><dd>
@@ -184,7 +184,8 @@ Functions</h2></td></tr>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ie__math_8h_a2b9a073aea2b6ff7450b2d0ee32765ae_icgraph.svg" width="448" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="ie__math_8h_a2b9a073aea2b6ff7450b2d0ee32765ae_icgraph.svg" width="448" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe>
+</div>
 </div>
 
 </div>
@@ -222,7 +223,7 @@ Here is the caller graph for this function:</div>
 </div><div class="memdoc">
 
 <p>In-place vector tanh on a contiguous array (legacy API). </p>
-<p>When <code>fast_tanh</code> != 0, uses <a class="el" href="ie__kernels_8h.html#a2b9a073aea2b6ff7450b2d0ee32765ae" title="Fast scalar tanh approximation (used for fused bias+tanh paths).">ie_fast_tanhf</a>; otherwise uses the standard library <code>tanhf</code> for higher accuracy.</p>
+<p>When <code>fast_tanh</code> != 0, uses <a class="el" href="ie__kernels_8h.html#a2b9a073aea2b6ff7450b2d0ee32765ae" title="Fast scalar tanh approximation.">ie_fast_tanhf</a>; otherwise uses the standard library <code>tanhf</code> for higher accuracy.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">v</td><td>Pointer to the vector (length <code>n</code>). Modified in-place. </td></tr>
@@ -231,8 +232,8 @@ Here is the caller graph for this function:</div>
   </table>
   </dd>
 </dl>
-<p>Vector tanh on float data (fp32).</p>
-<p>If <code>fast_tanh</code> != 0, uses <a class="el" href="ie__kernels_8h.html#a2b9a073aea2b6ff7450b2d0ee32765ae" title="Fast scalar tanh approximation (used for fused bias+tanh paths).">ie_fast_tanhf</a>; otherwise uses libm <code>tanhf</code>. Output values are clamped to [-1, 1] in both modes to satisfy strict bounds.</p>
+<p>Vector tanh on fp32 data (in-place).</p>
+<p>If <code>fast_tanh</code> != 0, uses <a class="el" href="ie__kernels_8h.html#a2b9a073aea2b6ff7450b2d0ee32765ae" title="Fast scalar tanh approximation.">ie_fast_tanhf</a>; otherwise uses libm <code>tanhf</code>. Output values are clamped to [-1, 1] in both modes to satisfy strict bounds.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">v</td><td>Pointer to the vector (length <code>n</code>). Modified in-place. </td></tr>

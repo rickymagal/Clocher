@@ -54,6 +54,7 @@ var hierarchy =
     [ "ie_metrics", "structie__metrics.html", null ],
     [ "ie_metrics_t", "structie__metrics__t.html", null ],
     [ "ie_mmap_file", "structie__mmap__file.html", null ],
+    [ "ie_numa_policy_t", "structie__numa__policy__t.html", null ],
     [ "ie_patch_list_hdr_s", "structie__patch__list__hdr__s.html", null ],
     [ "ie_patch_list_hdr_t", "structie__patch__list__hdr__t.html", null ],
     [ "ie_patch_list_s", "structie__patch__list__s.html", null ],

@@ -185,16 +185,24 @@
           <declname>out_zero</declname>
         </param>
         <briefdescription>
-<para>Compute per-tensor INT8 parameters from min/max. </para>
+<para>Compute per-tensor INT8 parameters from observed min/max. </para>
         </briefdescription>
         <detaileddescription>
-<para>The returned scale is strictly positive. If <computeroutput>symmetric</computeroutput> is non-zero, zero_point is set to 0 and the scale is derived from max(|minv|,|maxv|)/127. Otherwise, asymmetric parameters are derived to map minv→-128 and maxv→127.</para>
+<para>If symmetric != 0:<itemizedlist>
+<listitem><para>zero_point is set to 0</para>
+</listitem><listitem><para>scale is derived from max(|minv|,|maxv|)/127</para>
+</listitem></itemizedlist>
+</para>
+<para>If symmetric == 0:<itemizedlist>
+<listitem><para>parameters map minv -&gt; -128 and maxv -&gt; 127 using an affine transform</para>
+</listitem></itemizedlist>
+</para>
 <para><parameterlist kind="param"><parameteritem>
 <parameternamelist>
 <parametername>minv</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Observed minimum (may be negative). </para>
+<para>Observed minimum. </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -202,7 +210,7 @@
 <parametername>maxv</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Observed maximum (may be positive). </para>
+<para>Observed maximum. </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -218,7 +226,7 @@
 <parametername>out_scale</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Output: scale. </para>
+<para>Output scale (non-NULL). </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -226,7 +234,7 @@
 <parametername>out_zero</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Output: zero point. </para>
+<para>Output zero point (non-NULL). </para>
 </parameterdescription>
 </parameteritem>
 </parameterlist>
@@ -269,7 +277,7 @@
           <declname>symmetric</declname>
         </param>
         <briefdescription>
-<para>Quantize activations to INT8 using per-tensor parameters. </para>
+<para>Quantize fp32 activations to INT8 using per-tensor parameters. </para>
         </briefdescription>
         <detaileddescription>
 <para><parameterlist kind="param"><parameteritem>
@@ -277,7 +285,7 @@
 <parametername>src</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Pointer to source floats. </para>
+<para>Source float buffer. </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -285,7 +293,7 @@
 <parametername>dst</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Pointer to destination INT8 (same length as src). </para>
+<para>Destination INT8 buffer (length n). </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -301,7 +309,7 @@
 <parametername>params</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Quantization parameters (scale/zero_point). </para>
+<para>Quantization parameters. </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -309,7 +317,7 @@
 <parametername>symmetric</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Non-zero if symmetric (enforces [-127,127] range). </para>
+<para>Non-zero to enforce symmetric saturation policy. </para>
 </parameterdescription>
 </parameteritem>
 </parameterlist>
@@ -321,8 +329,8 @@
         <references refid="act__int8_8c_1a7490ce5fac2e6e5e1b7812006550be41" compoundref="act__int8_8c" startline="31" endline="34">ie_rne</references>
         <references refid="act__int8_8c_1adbe29326b240b464a7a7a8773210fb8f" compoundref="act__int8_8c" startline="36" endline="40">ie_sat_i8</references>
         <references refid="act__int8_8c_1a312c061258a9180793b777e396301655" compoundref="act__int8_8c" startline="43" endline="47">ie_sat_sym_i8</references>
-        <references refid="structie__act__i8__params_1ac0ec31737c16640ac332b562ea6be9a1" compoundref="ie__quant__act_8h" startline="53">ie_act_i8_params::scale</references>
-        <references refid="structie__act__i8__params_1ab19e71539ecb14b16a4c65b425be4c32" compoundref="ie__quant__act_8h" startline="54">ie_act_i8_params::zero_point</references>
+        <references refid="structie__act__i8__params_1ac0ec31737c16640ac332b562ea6be9a1" compoundref="ie__quant__act_8h" startline="41">ie_act_i8_params::scale</references>
+        <references refid="structie__act__i8__params_1ab19e71539ecb14b16a4c65b425be4c32" compoundref="ie__quant__act_8h" startline="42">ie_act_i8_params::zero_point</references>
         <referencedby refid="microbench__act__path_8c_1aa8d8e89d147a706279cd7995fcc08571" compoundref="microbench__act__path_8c" startline="46" endline="74">bench_int8</referencedby>
         <referencedby refid="ie__kv__cache_8h_1a60418a220d683776a9ff5e04783e67d6" compoundref="kv__cache_8c" startline="159" endline="203">ie_kv_store_token_int8_per_tensor</referencedby>
         <referencedby refid="test__act__quant_8c_1a83ac16910c5fbcf8d045ba1a01bc2604" compoundref="test__act__quant_8c" startline="37" endline="58">test_int8_per_tensor</referencedby>
@@ -349,7 +357,7 @@
           <declname>params</declname>
         </param>
         <briefdescription>
-<para>Dequantize INT8 activations to float using per-tensor parameters. </para>
+<para>Dequantize INT8 activations to fp32 using per-tensor parameters. </para>
         </briefdescription>
         <detaileddescription>
 <para><parameterlist kind="param"><parameteritem>
@@ -357,7 +365,7 @@
 <parametername>src</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Pointer to INT8 source. </para>
+<para>Source INT8 buffer. </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -365,7 +373,7 @@
 <parametername>dst</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Pointer to float destination. </para>
+<para>Destination float buffer (length n). </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -381,7 +389,7 @@
 <parametername>params</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Quantization parameters (scale/zero_point). </para>
+<para>Dequantization parameters. </para>
 </parameterdescription>
 </parameteritem>
 </parameterlist>
@@ -390,8 +398,8 @@
         <inbodydescription>
         </inbodydescription>
         <location file="engine/src/quant/act_int8.c" line="100" column="6" bodyfile="engine/src/quant/act_int8.c" bodystart="100" bodyend="107"/>
-        <references refid="structie__act__i8__params_1ac0ec31737c16640ac332b562ea6be9a1" compoundref="ie__quant__act_8h" startline="53">ie_act_i8_params::scale</references>
-        <references refid="structie__act__i8__params_1ab19e71539ecb14b16a4c65b425be4c32" compoundref="ie__quant__act_8h" startline="54">ie_act_i8_params::zero_point</references>
+        <references refid="structie__act__i8__params_1ac0ec31737c16640ac332b562ea6be9a1" compoundref="ie__quant__act_8h" startline="41">ie_act_i8_params::scale</references>
+        <references refid="structie__act__i8__params_1ab19e71539ecb14b16a4c65b425be4c32" compoundref="ie__quant__act_8h" startline="42">ie_act_i8_params::zero_point</references>
         <referencedby refid="microbench__act__path_8c_1aa8d8e89d147a706279cd7995fcc08571" compoundref="microbench__act__path_8c" startline="46" endline="74">bench_int8</referencedby>
         <referencedby refid="test__act__quant_8c_1a83ac16910c5fbcf8d045ba1a01bc2604" compoundref="test__act__quant_8c" startline="37" endline="58">test_int8_per_tensor</referencedby>
       </memberdef>
@@ -425,16 +433,16 @@
           <declname>out_zeros</declname>
         </param>
         <briefdescription>
-<para>Compute per-group INT8 parameters for <computeroutput>src</computeroutput>. </para>
+<para>Compute per-group INT8 parameters from data. </para>
         </briefdescription>
         <detaileddescription>
-<para>Partitions <computeroutput>src</computeroutput> into contiguous groups of size <computeroutput>group_size</computeroutput> (the last group may be shorter) and computes parameters for each group using <ref refid="act__int8_8c_1a383703e828dd5701507b0d1f6ab1cf73" kindref="member">ie_act_i8_params_from_minmax</ref> with the chosen symmetry.</para>
+<para>Splits src into contiguous groups of group_size (last group may be shorter) and computes parameters for each group.</para>
 <para><parameterlist kind="param"><parameteritem>
 <parameternamelist>
 <parametername>src</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Source floats. </para>
+<para>Source float buffer. </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -450,7 +458,7 @@
 <parametername>group_size</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Group size (&gt;=1). </para>
+<para>Group size (&gt;= 1). </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -466,7 +474,7 @@
 <parametername>out_scales</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Output array of length ceil(n/group_size). </para>
+<para>Output scales array (ceil(n/group_size)). </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -474,7 +482,7 @@
 <parametername>out_zeros</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Output array of length ceil(n/group_size). </para>
+<para>Output zero-points array (ceil(n/group_size)). </para>
 </parameterdescription>
 </parameteritem>
 </parameterlist>
@@ -523,7 +531,7 @@
           <declname>symmetric</declname>
         </param>
         <briefdescription>
-<para>Quantize activations per-group to INT8. </para>
+<para>Quantize fp32 activations to INT8 using per-group parameters. </para>
         </briefdescription>
         <detaileddescription>
 <para><parameterlist kind="param"><parameteritem>
@@ -531,7 +539,7 @@
 <parametername>src</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Source floats. </para>
+<para>Source float buffer. </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -539,7 +547,7 @@
 <parametername>dst</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Destination INT8. </para>
+<para>Destination INT8 buffer. </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -555,7 +563,7 @@
 <parametername>group_size</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Group size (&gt;=1). </para>
+<para>Group size (&gt;= 1). </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -563,7 +571,7 @@
 <parametername>scales</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Array of scales (ceil(n/group_size)). </para>
+<para>Scales array (ceil(n/group_size)). </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -571,7 +579,7 @@
 <parametername>zeros</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Array of zero_points (ceil(n/group_size)). </para>
+<para>Zero-points array (ceil(n/group_size)). </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -579,7 +587,7 @@
 <parametername>symmetric</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Non-zero for symmetric (-127..127). </para>
+<para>Non-zero to enforce symmetric saturation policy. </para>
 </parameterdescription>
 </parameteritem>
 </parameterlist>
@@ -624,7 +632,7 @@
           <declname>zeros</declname>
         </param>
         <briefdescription>
-<para>Dequantize per-group INT8 activations to float. </para>
+<para>Dequantize per-group INT8 activations to fp32. </para>
         </briefdescription>
         <detaileddescription>
 <para><parameterlist kind="param"><parameteritem>
@@ -632,7 +640,7 @@
 <parametername>src</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Source INT8. </para>
+<para>Source INT8 buffer. </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -640,7 +648,7 @@
 <parametername>dst</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Destination float. </para>
+<para>Destination float buffer. </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -656,7 +664,7 @@
 <parametername>group_size</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Group size (&gt;=1). </para>
+<para>Group size (&gt;= 1). </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -664,7 +672,7 @@
 <parametername>scales</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Array of scales (ceil(n/group_size)). </para>
+<para>Scales array (ceil(n/group_size)). </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -672,7 +680,7 @@
 <parametername>zeros</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Array of zero_points (ceil(n/group_size)). </para>
+<para>Zero-points array (ceil(n/group_size)). </para>
 </parameterdescription>
 </parameteritem>
 </parameterlist>

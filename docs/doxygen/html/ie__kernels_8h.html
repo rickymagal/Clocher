@@ -89,19 +89,20 @@ $(document).ready(function(){initNavTree('ie__kernels_8h.html',''); initResizabl
 <div class="title">ie_kernels.h File Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
-
-<p>Kernel dispatch points (generic/AVX2) for GEMV and vector ops.  
-<a href="#details">More...</a></p>
 <div class="textblock"><code>#include &lt;stddef.h&gt;</code><br />
+<code>#include &lt;stdint.h&gt;</code><br />
+<code>#include &quot;<a class="el" href="ie__quant__act_8h_source.html">ie_quant_act.h</a>&quot;</code><br />
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for ie_kernels.h:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ie__kernels_8h__incl.svg" width="210" height="112"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="ie__kernels_8h__incl.svg" width="218" height="187"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe>
+</div>
 </div>
 </div><div class="textblock"><div class="dynheader">
 This graph shows which files directly or indirectly include this file:</div>
 <div class="dyncontent">
-<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="ie__kernels_8h__dep__incl.svg" width="100%" height="395"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
+<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="ie__kernels_8h__dep__incl.svg" width="100%" height="395"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
 </div>
 </div>
 <p><a href="ie__kernels_8h_source.html">Go to the source code of this file.</a></p>
@@ -109,23 +110,28 @@ This graph shows which files directly or indirectly include this file:</div>
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
 <tr class="memitem:a1b919f71b86ec1791fe53bc68d5c240d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ie__kernels_8h.html#a1b919f71b86ec1791fe53bc68d5c240d">ie_kernels_install</a> (int use_avx2)</td></tr>
-<tr class="memdesc:a1b919f71b86ec1791fe53bc68d5c240d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Install the best available CPU kernels at runtime.  <a href="ie__kernels_8h.html#a1b919f71b86ec1791fe53bc68d5c240d">More...</a><br /></td></tr>
+<tr class="memdesc:a1b919f71b86ec1791fe53bc68d5c240d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Install the best available CPU kernels for this process.  <a href="ie__kernels_8h.html#a1b919f71b86ec1791fe53bc68d5c240d">More...</a><br /></td></tr>
 <tr class="separator:a1b919f71b86ec1791fe53bc68d5c240d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4e112b3396ed21919f404631c1d4d7fb"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ie__kernels_8h.html#a4e112b3396ed21919f404631c1d4d7fb">ie_gemv_f32</a> (const float *W, const float *x, float *y, size_t rows, size_t cols, const float *bias, size_t blk_k)</td></tr>
-<tr class="memdesc:a4e112b3396ed21919f404631c1d4d7fb"><td class="mdescLeft">&#160;</td><td class="mdescRight">GEMV: y[r] = dot(W[r, :], x) [+ bias[r]] for r in [0, rows).  <a href="ie__kernels_8h.html#a4e112b3396ed21919f404631c1d4d7fb">More...</a><br /></td></tr>
+<tr class="memdesc:a4e112b3396ed21919f404631c1d4d7fb"><td class="mdescLeft">&#160;</td><td class="mdescRight">GEMV (fp32): y[r] = dot(W[r,:], x) + (bias ? bias[r] : 0).  <a href="ie__kernels_8h.html#a4e112b3396ed21919f404631c1d4d7fb">More...</a><br /></td></tr>
 <tr class="separator:a4e112b3396ed21919f404631c1d4d7fb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abd518beacb02189b5b640948ed348f25"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ie__kernels_8h.html#abd518beacb02189b5b640948ed348f25">ie_gemv_qi8_f32</a> (const float *W, const int8_t *x_q, float *y, size_t rows, size_t cols, const float *bias, size_t blk_k, <a class="el" href="structie__act__i8__params.html">ie_act_i8_params</a> params, int symmetric)</td></tr>
+<tr class="memdesc:abd518beacb02189b5b640948ed348f25"><td class="mdescLeft">&#160;</td><td class="mdescRight">GEMV with per-tensor INT8 activations (fused dequantization).  <a href="ie__kernels_8h.html#abd518beacb02189b5b640948ed348f25">More...</a><br /></td></tr>
+<tr class="separator:abd518beacb02189b5b640948ed348f25"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abf2b6125d5d567523a5d113f09dd73ee"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ie__kernels_8h.html#abf2b6125d5d567523a5d113f09dd73ee">ie_gemv_qi8pg_f32</a> (const float *W, const int8_t *x_q, float *y, size_t rows, size_t cols, const float *bias, size_t blk_k, size_t group_size, const float *scales, const int8_t *zeros, int symmetric)</td></tr>
+<tr class="memdesc:abf2b6125d5d567523a5d113f09dd73ee"><td class="mdescLeft">&#160;</td><td class="mdescRight">GEMV with per-group INT8 activations (blockwise parameters).  <a href="ie__kernels_8h.html#abf2b6125d5d567523a5d113f09dd73ee">More...</a><br /></td></tr>
+<tr class="separator:abf2b6125d5d567523a5d113f09dd73ee"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7548a57990692513f283a22543688e1b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ie__kernels_8h.html#a7548a57990692513f283a22543688e1b">ie_gemv_qfp8_f32</a> (const float *W, const uint8_t *x_fp8, float *y, size_t rows, size_t cols, const float *bias, size_t blk_k, <a class="el" href="ie__quant__act_8h.html#a67a1bdaa8281d1c69b6b76ecba79c52c">ie_fp8_format</a> fmt)</td></tr>
+<tr class="memdesc:a7548a57990692513f283a22543688e1b"><td class="mdescLeft">&#160;</td><td class="mdescRight">GEMV with FP8 activations (software decode, fused).  <a href="ie__kernels_8h.html#a7548a57990692513f283a22543688e1b">More...</a><br /></td></tr>
+<tr class="separator:a7548a57990692513f283a22543688e1b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a31b6c03fd5b95bdecb37f06821d3ce93"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ie__kernels_8h.html#a31b6c03fd5b95bdecb37f06821d3ce93">ie_vec_tanh_f32</a> (float *v, size_t n, int fast_tanh)</td></tr>
-<tr class="memdesc:a31b6c03fd5b95bdecb37f06821d3ce93"><td class="mdescLeft">&#160;</td><td class="mdescRight">Vector tanh on float data (fp32).  <a href="ie__kernels_8h.html#a31b6c03fd5b95bdecb37f06821d3ce93">More...</a><br /></td></tr>
+<tr class="memdesc:a31b6c03fd5b95bdecb37f06821d3ce93"><td class="mdescLeft">&#160;</td><td class="mdescRight">Vector tanh on fp32 data (in-place).  <a href="ie__kernels_8h.html#a31b6c03fd5b95bdecb37f06821d3ce93">More...</a><br /></td></tr>
 <tr class="separator:a31b6c03fd5b95bdecb37f06821d3ce93"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2b9a073aea2b6ff7450b2d0ee32765ae"><td class="memItemLeft" align="right" valign="top">float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ie__kernels_8h.html#a2b9a073aea2b6ff7450b2d0ee32765ae">ie_fast_tanhf</a> (float x)</td></tr>
-<tr class="memdesc:a2b9a073aea2b6ff7450b2d0ee32765ae"><td class="mdescLeft">&#160;</td><td class="mdescRight">Fast scalar tanh approximation (used for fused bias+tanh paths).  <a href="ie__kernels_8h.html#a2b9a073aea2b6ff7450b2d0ee32765ae">More...</a><br /></td></tr>
+<tr class="memdesc:a2b9a073aea2b6ff7450b2d0ee32765ae"><td class="mdescLeft">&#160;</td><td class="mdescRight">Fast scalar tanh approximation.  <a href="ie__kernels_8h.html#a2b9a073aea2b6ff7450b2d0ee32765ae">More...</a><br /></td></tr>
 <tr class="separator:a2b9a073aea2b6ff7450b2d0ee32765ae"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Kernel dispatch points (generic/AVX2) for GEMV and vector ops. </p>
-
-<p class="definition">Definition in file <a class="el" href="ie__kernels_8h_source.html">ie_kernels.h</a>.</p>
-</div><h2 class="groupheader">Function Documentation</h2>
+<h2 class="groupheader">Function Documentation</h2>
 <a id="a2b9a073aea2b6ff7450b2d0ee32765ae"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a2b9a073aea2b6ff7450b2d0ee32765ae">&#9670;&nbsp;</a></span>ie_fast_tanhf()</h2>
 
@@ -142,15 +148,15 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Fast scalar tanh approximation (used for fused bias+tanh paths). </p>
+<p>Fast scalar tanh approximation. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">x</td><td>Input value. </td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>tanh(x) approximated with a polynomial/rational form.</dd></dl>
-<p>Fast scalar tanh approximation (used for fused bias+tanh paths).</p>
+<dl class="section return"><dt>Returns</dt><dd>Approximated tanh(x).</dd></dl>
+<p>Fast scalar tanh approximation.</p>
 <p>For large |x| we short-circuit to +/-1.0f. For moderate |x| we use a small rational function that gives a smooth S-curve: </p><pre class="fragment">tanh(x) ≈ x * (27 + x^2) / (27 + 9 x^2)
 </pre><p> Finally, the result is clamped to [-1, 1] to guarantee range correctness.</p>
 <dl class="params"><dt>Parameters</dt><dd>
@@ -237,54 +243,450 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>GEMV: y[r] = dot(W[r, :], x) [+ bias[r]] for r in [0, rows). </p>
-<p>The function chooses the best implementation (AVX2 or generic) selected by <a class="el" href="ie__kernels_8h.html#a1b919f71b86ec1791fe53bc68d5c240d" title="Install the best available CPU kernels at runtime.">ie_kernels_install()</a>. The <code>bias</code> pointer may be NULL to skip epilogue bias.</p>
+<p>GEMV (fp32): y[r] = dot(W[r,:], x) + (bias ? bias[r] : 0). </p>
+<p>Computes a matrix-vector product using the best installed implementation.</p>
+<p>Layout:</p><ul>
+<li>Default is row-major: W is rows*cols floats, each row contiguous.</li>
+<li>Some kernels also accept a "blocked-K contiguous" interpretation per row; pass blk_k to describe the block size. Passing 0 disables blocking.</li>
+</ul>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">W</td><td>Pointer to weights in row-major layout or pretransposed-blocked layout accepted by the active kernel (see <code><a class="el" href="ie__layout_8h.html" title="Helpers for pretransposing and caching weight matrices in blocked-K layout.">ie_layout.h</a></code>). </td></tr>
-    <tr><td class="paramname">x</td><td>Pointer to input vector of length <code>cols</code>. </td></tr>
-    <tr><td class="paramname">y</td><td>Pointer to output vector of length <code>rows</code>. </td></tr>
-    <tr><td class="paramname">rows</td><td>Number of rows to process. </td></tr>
-    <tr><td class="paramname">cols</td><td>Number of columns per row. </td></tr>
-    <tr><td class="paramname">bias</td><td>Optional pointer to bias vector of length <code>rows</code>; may be NULL. </td></tr>
-    <tr><td class="paramname">blk_k</td><td>Column-block size if <code>W</code> is in blocked-K layout; pass 0 for plain row-major (kernel will treat as unblocked).</td></tr>
+    <tr><td class="paramname">W</td><td>Pointer to weights (row-major or compatible packed layout). </td></tr>
+    <tr><td class="paramname">x</td><td>Input vector (length cols). </td></tr>
+    <tr><td class="paramname">y</td><td>Output vector (length rows). </td></tr>
+    <tr><td class="paramname">rows</td><td>Number of rows. </td></tr>
+    <tr><td class="paramname">cols</td><td>Number of columns. </td></tr>
+    <tr><td class="paramname">bias</td><td>Optional bias vector (length rows) or NULL. </td></tr>
+    <tr><td class="paramname">blk_k</td><td>Column block size for blocked-K layout; 0 for plain row-major.</td></tr>
   </table>
   </dd>
 </dl>
-<p>GEMV: y[r] = dot(W[r, :], x) [+ bias[r]] for r in [0, rows).</p>
+<p>GEMV (fp32): y[r] = dot(W[r,:], x) + (bias ? bias[r] : 0).</p>
+<p>If kernels were not installed yet, calls <a class="el" href="ie__kernels_8h.html#a1b919f71b86ec1791fe53bc68d5c240d" title="Install the best available CPU kernels for this process.">ie_kernels_install</a> with AVX2 enabled.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">W</td><td>Weights pointer. </td></tr>
+    <tr><td class="paramname">W</td><td>Weights. </td></tr>
     <tr><td class="paramname">x</td><td>Input vector. </td></tr>
     <tr><td class="paramname">y</td><td>Output vector. </td></tr>
-    <tr><td class="paramname">rows</td><td>Rows in W/y. </td></tr>
-    <tr><td class="paramname">cols</td><td>Cols in W/x. </td></tr>
-    <tr><td class="paramname">bias</td><td>Optional bias (may be NULL). </td></tr>
-    <tr><td class="paramname">blk_k</td><td>Column-block size; 0 for plain row-major. </td></tr>
+    <tr><td class="paramname">rows</td><td>Rows. </td></tr>
+    <tr><td class="paramname">cols</td><td>Cols. </td></tr>
+    <tr><td class="paramname">bias</td><td>Optional bias. </td></tr>
+    <tr><td class="paramname">blk_k</td><td>Column block size; 0 disables blocking. </td></tr>
   </table>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="gemv__generic_8c_source.html#l00279">279</a> of file <a class="el" href="gemv__generic_8c_source.html">gemv_generic.c</a>.</p>
-<div class="fragment"><div class="line"><a name="l00280"></a><span class="lineno">  280</span>&#160;                                                               {</div>
-<div class="line"><a name="l00281"></a><span class="lineno">  281</span>&#160;  <span class="keywordflow">if</span> (!<a class="code" href="gemv__generic_8c.html#aa80eb69d355054f1f8213721e72bec9a">s_gemv_f32</a>) <a class="code" href="gemv__generic_8c.html#a1b919f71b86ec1791fe53bc68d5c240d">ie_kernels_install</a>(<span class="comment">/*use_avx2=*/</span>1);</div>
-<div class="line"><a name="l00282"></a><span class="lineno">  282</span>&#160;  <a class="code" href="gemv__generic_8c.html#aa80eb69d355054f1f8213721e72bec9a">s_gemv_f32</a>(W, x, y, rows, cols, bias, blk_k);</div>
-<div class="line"><a name="l00283"></a><span class="lineno">  283</span>&#160;}</div>
-<div class="ttc" id="agemv__generic_8c_html_a1b919f71b86ec1791fe53bc68d5c240d"><div class="ttname"><a href="gemv__generic_8c.html#a1b919f71b86ec1791fe53bc68d5c240d">ie_kernels_install</a></div><div class="ttdeci">void ie_kernels_install(int use_avx2)</div><div class="ttdoc">Install the best available float GEMV kernel for this process.</div><div class="ttdef"><b>Definition:</b> <a href="gemv__generic_8c_source.html#l00249">gemv_generic.c:249</a></div></div>
-<div class="ttc" id="agemv__generic_8c_html_aa80eb69d355054f1f8213721e72bec9a"><div class="ttname"><a href="gemv__generic_8c.html#aa80eb69d355054f1f8213721e72bec9a">s_gemv_f32</a></div><div class="ttdeci">static void(* s_gemv_f32)(const float *, const float *, float *, size_t, size_t, const float *, size_t)</div><div class="ttdoc">Installed float GEMV kernel (defaults to generic C).</div><div class="ttdef"><b>Definition:</b> <a href="gemv__generic_8c_source.html#l00051">gemv_generic.c:51</a></div></div>
+<p class="definition">Definition at line <a class="el" href="gemv__generic_8c_source.html#l00323">323</a> of file <a class="el" href="gemv__generic_8c_source.html">gemv_generic.c</a>.</p>
+<div class="fragment"><div class="line"><a name="l00324"></a><span class="lineno">  324</span>&#160;                                                               {</div>
+<div class="line"><a name="l00325"></a><span class="lineno">  325</span>&#160;  <span class="keywordflow">if</span> (!<a class="code" href="gemv__generic_8c.html#aa80eb69d355054f1f8213721e72bec9a">s_gemv_f32</a>) <a class="code" href="gemv__generic_8c.html#a1b919f71b86ec1791fe53bc68d5c240d">ie_kernels_install</a>(<span class="comment">/*use_avx2=*/</span>1);</div>
+<div class="line"><a name="l00326"></a><span class="lineno">  326</span>&#160;  <a class="code" href="gemv__generic_8c.html#aa80eb69d355054f1f8213721e72bec9a">s_gemv_f32</a>(W, x, y, rows, cols, bias, blk_k);</div>
+<div class="line"><a name="l00327"></a><span class="lineno">  327</span>&#160;}</div>
+<div class="ttc" id="agemv__generic_8c_html_a1b919f71b86ec1791fe53bc68d5c240d"><div class="ttname"><a href="gemv__generic_8c.html#a1b919f71b86ec1791fe53bc68d5c240d">ie_kernels_install</a></div><div class="ttdeci">void ie_kernels_install(int use_avx2)</div><div class="ttdoc">Install the best available fp32 GEMV kernel.</div><div class="ttdef"><b>Definition:</b> <a href="gemv__generic_8c_source.html#l00289">gemv_generic.c:289</a></div></div>
+<div class="ttc" id="agemv__generic_8c_html_aa80eb69d355054f1f8213721e72bec9a"><div class="ttname"><a href="gemv__generic_8c.html#aa80eb69d355054f1f8213721e72bec9a">s_gemv_f32</a></div><div class="ttdeci">static void(* s_gemv_f32)(const float *, const float *, float *, size_t, size_t, const float *, size_t)</div><div class="ttdoc">Installed fp32 GEMV implementation.</div><div class="ttdef"><b>Definition:</b> <a href="gemv__generic_8c_source.html#l00073">gemv_generic.c:73</a></div></div>
 </div><!-- fragment -->
-<p class="reference">References <a class="el" href="gemv__generic_8c_source.html#l00249">ie_kernels_install()</a>, and <a class="el" href="gemv__generic_8c_source.html#l00051">s_gemv_f32</a>.</p>
+<p class="reference">References <a class="el" href="gemv__generic_8c_source.html#l00289">ie_kernels_install()</a>, and <a class="el" href="gemv__generic_8c_source.html#l00073">s_gemv_f32</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="ie__device__common_8c_source.html#l00086">cpu_gemv_f32()</a>, <a class="el" href="test__kernels_8c_source.html#l00109">test_gemv_rowmajor_no_bias()</a>, and <a class="el" href="test__kernels_8c_source.html#l00129">test_gemv_rowmajor_with_bias()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ie__kernels_8h_a4e112b3396ed21919f404631c1d4d7fb_cgraph.svg" width="530" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="ie__kernels_8h_a4e112b3396ed21919f404631c1d4d7fb_cgraph.svg" width="530" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe>
+</div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="ie__kernels_8h_a4e112b3396ed21919f404631c1d4d7fb_icgraph.svg" width="100%" height="550"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
+<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="ie__kernels_8h_a4e112b3396ed21919f404631c1d4d7fb_icgraph.svg" width="100%" height="550"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+</div>
+
+</div>
+</div>
+<a id="a7548a57990692513f283a22543688e1b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7548a57990692513f283a22543688e1b">&#9670;&nbsp;</a></span>ie_gemv_qfp8_f32()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void ie_gemv_qfp8_f32 </td>
+          <td>(</td>
+          <td class="paramtype">const float *&#160;</td>
+          <td class="paramname"><em>W</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const uint8_t *&#160;</td>
+          <td class="paramname"><em>x_fp8</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float *&#160;</td>
+          <td class="paramname"><em>y</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>rows</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>cols</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const float *&#160;</td>
+          <td class="paramname"><em>bias</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>blk_k</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="ie__quant__act_8h.html#a67a1bdaa8281d1c69b6b76ecba79c52c">ie_fp8_format</a>&#160;</td>
+          <td class="paramname"><em>fmt</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>GEMV with FP8 activations (software decode, fused). </p>
+<p>Decodes FP8 bytes (E4M3 or E5M2) on the fly while accumulating the dot product.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">W</td><td>Weights (float). </td></tr>
+    <tr><td class="paramname">x_fp8</td><td>FP8 activations (bytes, length cols). </td></tr>
+    <tr><td class="paramname">y</td><td>Output (float, length rows). </td></tr>
+    <tr><td class="paramname">rows</td><td>Rows. </td></tr>
+    <tr><td class="paramname">cols</td><td>Cols. </td></tr>
+    <tr><td class="paramname">bias</td><td>Optional bias or NULL. </td></tr>
+    <tr><td class="paramname">blk_k</td><td>Column block size; 0 disables blocking. </td></tr>
+    <tr><td class="paramname">fmt</td><td>FP8 format selector.</td></tr>
+  </table>
+  </dd>
+</dl>
+<p>GEMV with FP8 activations (software decode, fused).</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">W</td><td>Weights. </td></tr>
+    <tr><td class="paramname">x_fp8</td><td>FP8 activations (bytes). </td></tr>
+    <tr><td class="paramname">y</td><td>Output. </td></tr>
+    <tr><td class="paramname">rows</td><td>Rows. </td></tr>
+    <tr><td class="paramname">cols</td><td>Cols. </td></tr>
+    <tr><td class="paramname">bias</td><td>Optional bias. </td></tr>
+    <tr><td class="paramname">blk_k</td><td>Column block size; 0 disables blocking. </td></tr>
+    <tr><td class="paramname">fmt</td><td>FP8 format. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="gemv__generic_8c_source.html#l00394">394</a> of file <a class="el" href="gemv__generic_8c_source.html">gemv_generic.c</a>.</p>
+<div class="fragment"><div class="line"><a name="l00396"></a><span class="lineno">  396</span>&#160;                                                       {</div>
+<div class="line"><a name="l00397"></a><span class="lineno">  397</span>&#160;  <span class="keyword">const</span> <span class="keywordtype">size_t</span> BK = (blk_k &gt; 0 ? blk_k : cols);</div>
+<div class="line"><a name="l00398"></a><span class="lineno">  398</span>&#160;  <span class="keyword">const</span> <span class="keywordtype">int</span> use_e4m3 = (fmt == <a class="code" href="ie__quant__act_8h.html#a67a1bdaa8281d1c69b6b76ecba79c52ca67cfe56fcb473bed9a2f92388f2fc347">IE_FP8_E4M3</a>);</div>
+<div class="line"><a name="l00399"></a><span class="lineno">  399</span>&#160; </div>
+<div class="line"><a name="l00400"></a><span class="lineno">  400</span>&#160;  <span class="keywordflow">for</span> (<span class="keywordtype">size_t</span> r = 0; r &lt; rows; ++r) {</div>
+<div class="line"><a name="l00401"></a><span class="lineno">  401</span>&#160;    <span class="keyword">const</span> <span class="keywordtype">float</span> *wrow = W + r * cols;</div>
+<div class="line"><a name="l00402"></a><span class="lineno">  402</span>&#160;    <span class="keywordtype">float</span> acc = 0.0f;</div>
+<div class="line"><a name="l00403"></a><span class="lineno">  403</span>&#160; </div>
+<div class="line"><a name="l00404"></a><span class="lineno">  404</span>&#160;    <span class="keywordtype">size_t</span> kofs = 0;</div>
+<div class="line"><a name="l00405"></a><span class="lineno">  405</span>&#160;    <span class="keywordflow">for</span> (<span class="keywordtype">size_t</span> k0 = 0; k0 &lt; cols; k0 += BK) {</div>
+<div class="line"><a name="l00406"></a><span class="lineno">  406</span>&#160;      <span class="keyword">const</span> <span class="keywordtype">size_t</span> klen = (k0 + BK &lt;= cols) ? BK : (cols - k0);</div>
+<div class="line"><a name="l00407"></a><span class="lineno">  407</span>&#160;      <span class="keyword">const</span> <span class="keywordtype">float</span> *wblk = wrow + kofs;</div>
+<div class="line"><a name="l00408"></a><span class="lineno">  408</span>&#160;      <span class="keyword">const</span> uint8_t *xblk = x_fp8 + k0;</div>
+<div class="line"><a name="l00409"></a><span class="lineno">  409</span>&#160; </div>
+<div class="line"><a name="l00410"></a><span class="lineno">  410</span>&#160;      <span class="keywordflow">for</span> (<span class="keywordtype">size_t</span> k = 0; k &lt; klen; ++k) {</div>
+<div class="line"><a name="l00411"></a><span class="lineno">  411</span>&#160;        <span class="keyword">const</span> uint8_t b = xblk[k];</div>
+<div class="line"><a name="l00412"></a><span class="lineno">  412</span>&#160;        <span class="keyword">const</span> <span class="keywordtype">float</span> xv = use_e4m3 ? <a class="code" href="gemv__generic_8c.html#ab15089960891cb16691529c685e7a96b">ie_decode_fp8_e4m3</a>(b) : <a class="code" href="gemv__generic_8c.html#a2caa51b99ab073c3a53146ca26153558">ie_decode_fp8_e5m2</a>(b);</div>
+<div class="line"><a name="l00413"></a><span class="lineno">  413</span>&#160;        acc += wblk[k] * xv;</div>
+<div class="line"><a name="l00414"></a><span class="lineno">  414</span>&#160;      }</div>
+<div class="line"><a name="l00415"></a><span class="lineno">  415</span>&#160;      kofs += klen;</div>
+<div class="line"><a name="l00416"></a><span class="lineno">  416</span>&#160;    }</div>
+<div class="line"><a name="l00417"></a><span class="lineno">  417</span>&#160; </div>
+<div class="line"><a name="l00418"></a><span class="lineno">  418</span>&#160;    <span class="keywordflow">if</span> (bias) acc += bias[r];</div>
+<div class="line"><a name="l00419"></a><span class="lineno">  419</span>&#160;    y[r] = acc;</div>
+<div class="line"><a name="l00420"></a><span class="lineno">  420</span>&#160;  }</div>
+<div class="line"><a name="l00421"></a><span class="lineno">  421</span>&#160;}</div>
+<div class="ttc" id="agemv__generic_8c_html_a2caa51b99ab073c3a53146ca26153558"><div class="ttname"><a href="gemv__generic_8c.html#a2caa51b99ab073c3a53146ca26153558">ie_decode_fp8_e5m2</a></div><div class="ttdeci">static float ie_decode_fp8_e5m2(uint8_t v)</div><div class="ttdoc">Decode FP8 E5M2 byte to float.</div><div class="ttdef"><b>Definition:</b> <a href="gemv__generic_8c_source.html#l00256">gemv_generic.c:256</a></div></div>
+<div class="ttc" id="agemv__generic_8c_html_ab15089960891cb16691529c685e7a96b"><div class="ttname"><a href="gemv__generic_8c.html#ab15089960891cb16691529c685e7a96b">ie_decode_fp8_e4m3</a></div><div class="ttdeci">static float ie_decode_fp8_e4m3(uint8_t v)</div><div class="ttdoc">Decode FP8 E4M3 byte to float.</div><div class="ttdef"><b>Definition:</b> <a href="gemv__generic_8c_source.html#l00230">gemv_generic.c:230</a></div></div>
+<div class="ttc" id="aie__quant__act_8h_html_a67a1bdaa8281d1c69b6b76ecba79c52ca67cfe56fcb473bed9a2f92388f2fc347"><div class="ttname"><a href="ie__quant__act_8h.html#a67a1bdaa8281d1c69b6b76ecba79c52ca67cfe56fcb473bed9a2f92388f2fc347">IE_FP8_E4M3</a></div><div class="ttdeci">@ IE_FP8_E4M3</div><div class="ttdoc">1 sign, 4 exponent (bias 7), 3 mantissa; finite-only saturation policy.</div><div class="ttdef"><b>Definition:</b> <a href="ie__quant__act_8h_source.html#l00028">ie_quant_act.h:28</a></div></div>
+</div><!-- fragment -->
+<p class="reference">References <a class="el" href="gemv__generic_8c_source.html#l00230">ie_decode_fp8_e4m3()</a>, <a class="el" href="gemv__generic_8c_source.html#l00256">ie_decode_fp8_e5m2()</a>, and <a class="el" href="ie__quant__act_8h_source.html#l00028">IE_FP8_E4M3</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="ie__kernels_8h_a7548a57990692513f283a22543688e1b_cgraph.svg" width="362" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="abd518beacb02189b5b640948ed348f25"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abd518beacb02189b5b640948ed348f25">&#9670;&nbsp;</a></span>ie_gemv_qi8_f32()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void ie_gemv_qi8_f32 </td>
+          <td>(</td>
+          <td class="paramtype">const float *&#160;</td>
+          <td class="paramname"><em>W</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const int8_t *&#160;</td>
+          <td class="paramname"><em>x_q</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float *&#160;</td>
+          <td class="paramname"><em>y</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>rows</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>cols</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const float *&#160;</td>
+          <td class="paramname"><em>bias</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>blk_k</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structie__act__i8__params.html">ie_act_i8_params</a>&#160;</td>
+          <td class="paramname"><em>params</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>symmetric</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>GEMV with per-tensor INT8 activations (fused dequantization). </p>
+<p>Interprets activations with the affine model: real = scale * (q - zero_point) Implementations may fuse dequantization into the dot product or dequantize into a temporary float buffer depending on ISA.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">W</td><td>Weights (float). </td></tr>
+    <tr><td class="paramname">x_q</td><td>INT8 activations (length cols). </td></tr>
+    <tr><td class="paramname">y</td><td>Output (float, length rows). </td></tr>
+    <tr><td class="paramname">rows</td><td>Number of rows. </td></tr>
+    <tr><td class="paramname">cols</td><td>Number of columns. </td></tr>
+    <tr><td class="paramname">bias</td><td>Optional bias (length rows) or NULL. </td></tr>
+    <tr><td class="paramname">blk_k</td><td>Column block size; 0 disables blocking. </td></tr>
+    <tr><td class="paramname">params</td><td>Per-tensor quantization parameters. </td></tr>
+    <tr><td class="paramname">symmetric</td><td>Informational flag (unused by some paths).</td></tr>
+  </table>
+  </dd>
+</dl>
+<p>GEMV with per-tensor INT8 activations (fused dequantization).</p>
+<p>Uses AVX2/FMA implementation when available; otherwise uses the C fused path.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">W</td><td>Weights. </td></tr>
+    <tr><td class="paramname">x_q</td><td>INT8 activations. </td></tr>
+    <tr><td class="paramname">y</td><td>Output. </td></tr>
+    <tr><td class="paramname">rows</td><td>Rows. </td></tr>
+    <tr><td class="paramname">cols</td><td>Cols. </td></tr>
+    <tr><td class="paramname">bias</td><td>Optional bias. </td></tr>
+    <tr><td class="paramname">blk_k</td><td>Column block size; 0 disables blocking. </td></tr>
+    <tr><td class="paramname">params</td><td>INT8 params. </td></tr>
+    <tr><td class="paramname">symmetric</td><td>Informational flag. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="gemv__generic_8c_source.html#l00345">345</a> of file <a class="el" href="gemv__generic_8c_source.html">gemv_generic.c</a>.</p>
+<div class="fragment"><div class="line"><a name="l00347"></a><span class="lineno">  347</span>&#160;                                                             {</div>
+<div class="line"><a name="l00348"></a><span class="lineno">  348</span>&#160;<span class="preprocessor">#if defined(__GNUC__) || defined(__clang__)</span></div>
+<div class="line"><a name="l00349"></a><span class="lineno">  349</span>&#160;  <span class="keywordflow">if</span> (__builtin_cpu_supports(<span class="stringliteral">&quot;avx2&quot;</span>) &amp;&amp; __builtin_cpu_supports(<span class="stringliteral">&quot;fma&quot;</span>)) {</div>
+<div class="line"><a name="l00350"></a><span class="lineno">  350</span>&#160;    <a class="code" href="gemv__generic_8c.html#aa8a6c887be55a3af970b49855f86682d">ie_gemv_qi8_f32_avx2_impl</a>(W, x_q, y, rows, cols, bias, blk_k, params,</div>
+<div class="line"><a name="l00351"></a><span class="lineno">  351</span>&#160;                              symmetric);</div>
+<div class="line"><a name="l00352"></a><span class="lineno">  352</span>&#160;    <span class="keywordflow">return</span>;</div>
+<div class="line"><a name="l00353"></a><span class="lineno">  353</span>&#160;  }</div>
+<div class="line"><a name="l00354"></a><span class="lineno">  354</span>&#160;<span class="preprocessor">#endif</span></div>
+<div class="line"><a name="l00355"></a><span class="lineno">  355</span>&#160;  <a class="code" href="gemv__generic_8c.html#aae97939d123420c09e5c3d4d7575b934">gemv_qi8_f32_fused_c_impl</a>(W, x_q, y, rows, cols, bias, blk_k, params,</div>
+<div class="line"><a name="l00356"></a><span class="lineno">  356</span>&#160;                            symmetric);</div>
+<div class="line"><a name="l00357"></a><span class="lineno">  357</span>&#160;}</div>
+<div class="ttc" id="agemv__generic_8c_html_aa8a6c887be55a3af970b49855f86682d"><div class="ttname"><a href="gemv__generic_8c.html#aa8a6c887be55a3af970b49855f86682d">ie_gemv_qi8_f32_avx2_impl</a></div><div class="ttdeci">void ie_gemv_qi8_f32_avx2_impl(const float *W, const int8_t *x_q, float *y, size_t rows, size_t cols, const float *bias, size_t blk_k, ie_act_i8_params params, int symmetric)</div><div class="ttdoc">AVX2/FMA GEMV with per-tensor INT8 activations, provided by gemv_avx2.c.</div><div class="ttdef"><b>Definition:</b> <a href="gemv__avx2_8c_source.html#l00186">gemv_avx2.c:186</a></div></div>
+<div class="ttc" id="agemv__generic_8c_html_aae97939d123420c09e5c3d4d7575b934"><div class="ttname"><a href="gemv__generic_8c.html#aae97939d123420c09e5c3d4d7575b934">gemv_qi8_f32_fused_c_impl</a></div><div class="ttdeci">static void gemv_qi8_f32_fused_c_impl(const float *W, const int8_t *x_q, float *y, size_t rows, size_t cols, const float *bias, size_t blk_k, ie_act_i8_params params, int symmetric)</div><div class="ttdoc">GEMV with per-tensor INT8 activations (fused dequantization), C path.</div><div class="ttdef"><b>Definition:</b> <a href="gemv__generic_8c_source.html#l00137">gemv_generic.c:137</a></div></div>
+</div><!-- fragment -->
+<p class="reference">References <a class="el" href="gemv__generic_8c_source.html#l00137">gemv_qi8_f32_fused_c_impl()</a>, and <a class="el" href="gemv__avx2_8c_source.html#l00186">ie_gemv_qi8_f32_avx2_impl()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="ie__kernels_8h_abd518beacb02189b5b640948ed348f25_cgraph.svg" width="100%" height="416"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
+</div>
+
+</div>
+</div>
+<a id="abf2b6125d5d567523a5d113f09dd73ee"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abf2b6125d5d567523a5d113f09dd73ee">&#9670;&nbsp;</a></span>ie_gemv_qi8pg_f32()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void ie_gemv_qi8pg_f32 </td>
+          <td>(</td>
+          <td class="paramtype">const float *&#160;</td>
+          <td class="paramname"><em>W</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const int8_t *&#160;</td>
+          <td class="paramname"><em>x_q</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float *&#160;</td>
+          <td class="paramname"><em>y</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>rows</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>cols</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const float *&#160;</td>
+          <td class="paramname"><em>bias</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>blk_k</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>group_size</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const float *&#160;</td>
+          <td class="paramname"><em>scales</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const int8_t *&#160;</td>
+          <td class="paramname"><em>zeros</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>symmetric</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>GEMV with per-group INT8 activations (blockwise parameters). </p>
+<p>Each group of group_size elements uses its own (scale, zero_point): g = index / group_size real = scales[g] * (q - zeros[g])</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">W</td><td>Weights (float). </td></tr>
+    <tr><td class="paramname">x_q</td><td>INT8 activations (length cols). </td></tr>
+    <tr><td class="paramname">y</td><td>Output (float, length rows). </td></tr>
+    <tr><td class="paramname">rows</td><td>Rows. </td></tr>
+    <tr><td class="paramname">cols</td><td>Cols. </td></tr>
+    <tr><td class="paramname">bias</td><td>Optional bias or NULL. </td></tr>
+    <tr><td class="paramname">blk_k</td><td>Column block size; 0 disables blocking. </td></tr>
+    <tr><td class="paramname">group_size</td><td>Activation group size (&gt;= 1). </td></tr>
+    <tr><td class="paramname">scales</td><td>Scales array (ceil(cols/group_size)). </td></tr>
+    <tr><td class="paramname">zeros</td><td>Zero-points array (ceil(cols/group_size)). </td></tr>
+    <tr><td class="paramname">symmetric</td><td>Informational flag.</td></tr>
+  </table>
+  </dd>
+</dl>
+<p>GEMV with per-group INT8 activations (blockwise parameters).</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">W</td><td>Weights. </td></tr>
+    <tr><td class="paramname">x_q</td><td>INT8 activations. </td></tr>
+    <tr><td class="paramname">y</td><td>Output. </td></tr>
+    <tr><td class="paramname">rows</td><td>Rows. </td></tr>
+    <tr><td class="paramname">cols</td><td>Cols. </td></tr>
+    <tr><td class="paramname">bias</td><td>Optional bias. </td></tr>
+    <tr><td class="paramname">blk_k</td><td>Column block size; 0 disables blocking. </td></tr>
+    <tr><td class="paramname">group_size</td><td>Group size. </td></tr>
+    <tr><td class="paramname">scales</td><td>Group scales. </td></tr>
+    <tr><td class="paramname">zeros</td><td>Group zero points. </td></tr>
+    <tr><td class="paramname">symmetric</td><td>Informational flag. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="gemv__generic_8c_source.html#l00374">374</a> of file <a class="el" href="gemv__generic_8c_source.html">gemv_generic.c</a>.</p>
+<div class="fragment"><div class="line"><a name="l00377"></a><span class="lineno">  377</span>&#160;                                                           {</div>
+<div class="line"><a name="l00378"></a><span class="lineno">  378</span>&#160;  <a class="code" href="gemv__generic_8c.html#a439a61ba39c741d7730f5615e540ca9c">gemv_qi8pg_f32_fused_c_impl</a>(W, x_q, y, rows, cols, bias, blk_k, group_size,</div>
+<div class="line"><a name="l00379"></a><span class="lineno">  379</span>&#160;                              scales, zeros, symmetric);</div>
+<div class="line"><a name="l00380"></a><span class="lineno">  380</span>&#160;}</div>
+<div class="ttc" id="agemv__generic_8c_html_a439a61ba39c741d7730f5615e540ca9c"><div class="ttname"><a href="gemv__generic_8c.html#a439a61ba39c741d7730f5615e540ca9c">gemv_qi8pg_f32_fused_c_impl</a></div><div class="ttdeci">static void gemv_qi8pg_f32_fused_c_impl(const float *W, const int8_t *x_q, float *y, size_t rows, size_t cols, const float *bias, size_t blk_k, size_t group_size, const float *scales, const int8_t *zeros, int symmetric)</div><div class="ttdoc">GEMV with per-group INT8 activations (fused dequantization), C path.</div><div class="ttdef"><b>Definition:</b> <a href="gemv__generic_8c_source.html#l00188">gemv_generic.c:188</a></div></div>
+</div><!-- fragment -->
+<p class="reference">References <a class="el" href="gemv__generic_8c_source.html#l00188">gemv_qi8pg_f32_fused_c_impl()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="ie__kernels_8h_abf2b6125d5d567523a5d113f09dd73ee_cgraph.svg" width="382" height="52"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -305,56 +707,60 @@ Here is the caller graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p>Install the best available CPU kernels at runtime. </p>
+<p>Install the best available CPU kernels for this process. </p>
+<p>Selects optimized implementations based on runtime CPU feature detection and updates an internal dispatch table. Safe to call multiple times; last call wins.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">use_avx2</td><td>Non-zero to select AVX2-optimized paths where available.</td></tr>
+    <tr><td class="paramname">use_avx2</td><td>Non-zero to allow selecting AVX2/FMA-optimized paths.</td></tr>
   </table>
   </dd>
 </dl>
-<p>Install the best available CPU kernels at runtime.</p>
-<p>On x86 with GCC/Clang, the dispatcher uses __builtin_cpu_supports("avx2") and prefers the AVX2 implementation when available; otherwise it installs the generic C fallback.</p>
+<p>Install the best available CPU kernels for this process.</p>
+<p>On x86 (GCC/Clang), installs the AVX2/FMA implementation when allowed and supported by the CPU. Otherwise, installs the generic C fallback.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">use_avx2</td><td>Non-zero to allow AVX2 selection when supported. </td></tr>
+    <tr><td class="paramname">use_avx2</td><td>Non-zero to allow selecting AVX2/FMA implementation. </td></tr>
   </table>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="gemv__generic_8c_source.html#l00249">249</a> of file <a class="el" href="gemv__generic_8c_source.html">gemv_generic.c</a>.</p>
-<div class="fragment"><div class="line"><a name="l00249"></a><span class="lineno">  249</span>&#160;                                      {</div>
-<div class="line"><a name="l00250"></a><span class="lineno">  250</span>&#160;  <span class="keywordtype">int</span> use_avx2_runtime = 0;</div>
-<div class="line"><a name="l00251"></a><span class="lineno">  251</span>&#160;<span class="preprocessor">#if defined(__x86_64__) || defined(_M_X64) || defined(__i386__)</span></div>
-<div class="line"><a name="l00252"></a><span class="lineno">  252</span>&#160;<span class="preprocessor">#if defined(__GNUC__) || defined(__clang__)</span></div>
-<div class="line"><a name="l00253"></a><span class="lineno">  253</span>&#160;  <span class="keywordflow">if</span> (use_avx2) {</div>
-<div class="line"><a name="l00254"></a><span class="lineno">  254</span>&#160;    <span class="keywordflow">if</span> (__builtin_cpu_supports(<span class="stringliteral">&quot;avx2&quot;</span>) &amp;&amp; __builtin_cpu_supports(<span class="stringliteral">&quot;fma&quot;</span>)) {</div>
-<div class="line"><a name="l00255"></a><span class="lineno">  255</span>&#160;      use_avx2_runtime = 1;</div>
-<div class="line"><a name="l00256"></a><span class="lineno">  256</span>&#160;    }</div>
-<div class="line"><a name="l00257"></a><span class="lineno">  257</span>&#160;  }</div>
-<div class="line"><a name="l00258"></a><span class="lineno">  258</span>&#160;<span class="preprocessor">#endif</span></div>
-<div class="line"><a name="l00259"></a><span class="lineno">  259</span>&#160;<span class="preprocessor">#endif</span></div>
-<div class="line"><a name="l00260"></a><span class="lineno">  260</span>&#160; </div>
-<div class="line"><a name="l00261"></a><span class="lineno">  261</span>&#160;  <span class="keywordflow">if</span> (use_avx2_runtime) {</div>
-<div class="line"><a name="l00262"></a><span class="lineno">  262</span>&#160;    <a class="code" href="gemv__generic_8c.html#aa80eb69d355054f1f8213721e72bec9a">s_gemv_f32</a> = <a class="code" href="gemv__generic_8c.html#a63b484c2984caeed7dfc9b5002444f57">ie_gemv_f32_avx2_impl</a>;</div>
-<div class="line"><a name="l00263"></a><span class="lineno">  263</span>&#160;  } <span class="keywordflow">else</span> {</div>
-<div class="line"><a name="l00264"></a><span class="lineno">  264</span>&#160;    <a class="code" href="gemv__generic_8c.html#aa80eb69d355054f1f8213721e72bec9a">s_gemv_f32</a> = <a class="code" href="gemv__generic_8c.html#a51096a373f5e5010d39cbf44e34b730d">gemv_generic_impl</a>;</div>
-<div class="line"><a name="l00265"></a><span class="lineno">  265</span>&#160;  }</div>
-<div class="line"><a name="l00266"></a><span class="lineno">  266</span>&#160;}</div>
-<div class="ttc" id="agemv__generic_8c_html_a51096a373f5e5010d39cbf44e34b730d"><div class="ttname"><a href="gemv__generic_8c.html#a51096a373f5e5010d39cbf44e34b730d">gemv_generic_impl</a></div><div class="ttdeci">static void gemv_generic_impl(const float *W, const float *x, float *y, size_t rows, size_t cols, const float *bias, size_t blk_k)</div><div class="ttdoc">Generic C GEMV: y = W * x (+bias), optional blocked-K layout.</div><div class="ttdef"><b>Definition:</b> <a href="gemv__generic_8c_source.html#l00073">gemv_generic.c:73</a></div></div>
-<div class="ttc" id="agemv__generic_8c_html_a63b484c2984caeed7dfc9b5002444f57"><div class="ttname"><a href="gemv__generic_8c.html#a63b484c2984caeed7dfc9b5002444f57">ie_gemv_f32_avx2_impl</a></div><div class="ttdeci">void ie_gemv_f32_avx2_impl(const float *W, const float *x, float *y, size_t rows, size_t cols, const float *bias, size_t blk_k)</div><div class="ttdoc">AVX2/FMA GEMV (float path), provided by gemv_avx2.c.</div><div class="ttdef"><b>Definition:</b> <a href="gemv__avx2_8c_source.html#l00039">gemv_avx2.c:39</a></div></div>
+<p class="definition">Definition at line <a class="el" href="gemv__generic_8c_source.html#l00289">289</a> of file <a class="el" href="gemv__generic_8c_source.html">gemv_generic.c</a>.</p>
+<div class="fragment"><div class="line"><a name="l00289"></a><span class="lineno">  289</span>&#160;                                      {</div>
+<div class="line"><a name="l00290"></a><span class="lineno">  290</span>&#160;  <span class="keywordtype">int</span> use_avx2_runtime = 0;</div>
+<div class="line"><a name="l00291"></a><span class="lineno">  291</span>&#160; </div>
+<div class="line"><a name="l00292"></a><span class="lineno">  292</span>&#160;<span class="preprocessor">#if defined(__x86_64__) || defined(_M_X64) || defined(__i386__)</span></div>
+<div class="line"><a name="l00293"></a><span class="lineno">  293</span>&#160;<span class="preprocessor">#if defined(__GNUC__) || defined(__clang__)</span></div>
+<div class="line"><a name="l00294"></a><span class="lineno">  294</span>&#160;  <span class="keywordflow">if</span> (use_avx2) {</div>
+<div class="line"><a name="l00295"></a><span class="lineno">  295</span>&#160;    <span class="keywordflow">if</span> (__builtin_cpu_supports(<span class="stringliteral">&quot;avx2&quot;</span>) &amp;&amp; __builtin_cpu_supports(<span class="stringliteral">&quot;fma&quot;</span>)) {</div>
+<div class="line"><a name="l00296"></a><span class="lineno">  296</span>&#160;      use_avx2_runtime = 1;</div>
+<div class="line"><a name="l00297"></a><span class="lineno">  297</span>&#160;    }</div>
+<div class="line"><a name="l00298"></a><span class="lineno">  298</span>&#160;  }</div>
+<div class="line"><a name="l00299"></a><span class="lineno">  299</span>&#160;<span class="preprocessor">#endif</span></div>
+<div class="line"><a name="l00300"></a><span class="lineno">  300</span>&#160;<span class="preprocessor">#endif</span></div>
+<div class="line"><a name="l00301"></a><span class="lineno">  301</span>&#160; </div>
+<div class="line"><a name="l00302"></a><span class="lineno">  302</span>&#160;  <span class="keywordflow">if</span> (use_avx2_runtime) {</div>
+<div class="line"><a name="l00303"></a><span class="lineno">  303</span>&#160;    <a class="code" href="gemv__generic_8c.html#aa80eb69d355054f1f8213721e72bec9a">s_gemv_f32</a> = <a class="code" href="gemv__generic_8c.html#a63b484c2984caeed7dfc9b5002444f57">ie_gemv_f32_avx2_impl</a>;</div>
+<div class="line"><a name="l00304"></a><span class="lineno">  304</span>&#160;  } <span class="keywordflow">else</span> {</div>
+<div class="line"><a name="l00305"></a><span class="lineno">  305</span>&#160;    <a class="code" href="gemv__generic_8c.html#aa80eb69d355054f1f8213721e72bec9a">s_gemv_f32</a> = <a class="code" href="gemv__generic_8c.html#a51096a373f5e5010d39cbf44e34b730d">gemv_generic_impl</a>;</div>
+<div class="line"><a name="l00306"></a><span class="lineno">  306</span>&#160;  }</div>
+<div class="line"><a name="l00307"></a><span class="lineno">  307</span>&#160;}</div>
+<div class="ttc" id="agemv__generic_8c_html_a51096a373f5e5010d39cbf44e34b730d"><div class="ttname"><a href="gemv__generic_8c.html#a51096a373f5e5010d39cbf44e34b730d">gemv_generic_impl</a></div><div class="ttdeci">static void gemv_generic_impl(const float *W, const float *x, float *y, size_t rows, size_t cols, const float *bias, size_t blk_k)</div><div class="ttdoc">Generic C GEMV: y = W * x (+bias), optional blocked-K traversal.</div><div class="ttdef"><b>Definition:</b> <a href="gemv__generic_8c_source.html#l00095">gemv_generic.c:95</a></div></div>
+<div class="ttc" id="agemv__generic_8c_html_a63b484c2984caeed7dfc9b5002444f57"><div class="ttname"><a href="gemv__generic_8c.html#a63b484c2984caeed7dfc9b5002444f57">ie_gemv_f32_avx2_impl</a></div><div class="ttdeci">void ie_gemv_f32_avx2_impl(const float *W, const float *x, float *y, size_t rows, size_t cols, const float *bias, size_t blk_k)</div><div class="ttdoc">AVX2/FMA GEMV (fp32), provided by gemv_avx2.c.</div><div class="ttdef"><b>Definition:</b> <a href="gemv__avx2_8c_source.html#l00090">gemv_avx2.c:90</a></div></div>
 </div><!-- fragment -->
-<p class="reference">References <a class="el" href="gemv__generic_8c_source.html#l00073">gemv_generic_impl()</a>, <a class="el" href="gemv__avx2_8c_source.html#l00039">ie_gemv_f32_avx2_impl()</a>, and <a class="el" href="gemv__generic_8c_source.html#l00051">s_gemv_f32</a>.</p>
+<p class="reference">References <a class="el" href="gemv__generic_8c_source.html#l00095">gemv_generic_impl()</a>, <a class="el" href="gemv__avx2_8c_source.html#l00090">ie_gemv_f32_avx2_impl()</a>, and <a class="el" href="gemv__generic_8c_source.html#l00073">s_gemv_f32</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="gemv__generic_8c_source.html#l00279">ie_gemv_f32()</a>, and <a class="el" href="test__kernels_8c_source.html#l00149">main()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="gemv__generic_8c_source.html#l00323">ie_gemv_f32()</a>, and <a class="el" href="test__kernels_8c_source.html#l00149">main()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ie__kernels_8h_a1b919f71b86ec1791fe53bc68d5c240d_cgraph.svg" width="375" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="ie__kernels_8h_a1b919f71b86ec1791fe53bc68d5c240d_cgraph.svg" width="375" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe>
+</div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="ie__kernels_8h_a1b919f71b86ec1791fe53bc68d5c240d_icgraph.svg" width="100%" height="568"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
+<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="ie__kernels_8h_a1b919f71b86ec1791fe53bc68d5c240d_icgraph.svg" width="100%" height="568"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
 </div>
 
 </div>
@@ -391,17 +797,17 @@ Here is the caller graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p>Vector tanh on float data (fp32). </p>
+<p>Vector tanh on fp32 data (in-place). </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">v</td><td>Pointer to input/output vector (in-place). </td></tr>
+    <tr><td class="paramname">v</td><td>Input/output vector. </td></tr>
     <tr><td class="paramname">n</td><td>Number of elements. </td></tr>
     <tr><td class="paramname">fast_tanh</td><td>Non-zero to use a fast approximation; zero to use tanhf().</td></tr>
   </table>
   </dd>
 </dl>
-<p>Vector tanh on float data (fp32).</p>
-<p>If <code>fast_tanh</code> != 0, uses <a class="el" href="ie__kernels_8h.html#a2b9a073aea2b6ff7450b2d0ee32765ae" title="Fast scalar tanh approximation (used for fused bias+tanh paths).">ie_fast_tanhf</a>; otherwise uses libm <code>tanhf</code>. Output values are clamped to [-1, 1] in both modes to satisfy strict bounds.</p>
+<p>Vector tanh on fp32 data (in-place).</p>
+<p>If <code>fast_tanh</code> != 0, uses <a class="el" href="ie__kernels_8h.html#a2b9a073aea2b6ff7450b2d0ee32765ae" title="Fast scalar tanh approximation.">ie_fast_tanhf</a>; otherwise uses libm <code>tanhf</code>. Output values are clamped to [-1, 1] in both modes to satisfy strict bounds.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">v</td><td>Pointer to the vector (length <code>n</code>). Modified in-place. </td></tr>
@@ -435,12 +841,14 @@ Here is the caller graph for this function:</div>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ie__kernels_8h_a31b6c03fd5b95bdecb37f06821d3ce93_cgraph.svg" width="294" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="ie__kernels_8h_a31b6c03fd5b95bdecb37f06821d3ce93_cgraph.svg" width="294" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe>
+</div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ie__kernels_8h_a31b6c03fd5b95bdecb37f06821d3ce93_icgraph.svg" width="242" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="ie__kernels_8h_a31b6c03fd5b95bdecb37f06821d3ce93_icgraph.svg" width="242" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe>
+</div>
 </div>
 
 </div>

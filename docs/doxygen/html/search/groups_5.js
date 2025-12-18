@@ -1,5 +1,4 @@
 var searchData=
 [
-  ['tensor_20utilities_2626',['Tensor Utilities',['../group__IE__TENSOR.html',1,'']]],
-  ['tokenizer_20_28stub_29_2627',['Tokenizer (Stub)',['../group__ie__io__tokenizer.html',1,'']]]
+  ['utilities_3a_20kv_20counters_20and_20rss_20sampler_2655',['Utilities: KV counters and RSS sampler',['../group__IE__METRICS.html',1,'']]]
 ];

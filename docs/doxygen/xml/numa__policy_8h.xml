@@ -1,0 +1,312 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.1" xml:lang="en-US">
+  <compounddef id="numa__policy_8h" kind="file" language="C++">
+    <compoundname>numa_policy.h</compoundname>
+    <includes local="no">stdbool.h</includes>
+    <includes local="no">stddef.h</includes>
+    <includedby refid="numa__policy_8c" local="yes">engine/src/opt/numa_policy.c</includedby>
+    <incdepgraph>
+      <node id="2">
+        <label>stdbool.h</label>
+      </node>
+      <node id="1">
+        <label>engine/include/numa_policy.h</label>
+        <link refid="numa__policy_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="3" relation="include">
+        </childnode>
+      </node>
+      <node id="3">
+        <label>stddef.h</label>
+      </node>
+    </incdepgraph>
+    <invincdepgraph>
+      <node id="1">
+        <label>engine/include/numa_policy.h</label>
+        <link refid="numa__policy_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>engine/src/opt/numa_policy.c</label>
+        <link refid="numa__policy_8c"/>
+      </node>
+    </invincdepgraph>
+    <innerclass refid="structie__numa__policy__t" prot="public">ie_numa_policy_t</innerclass>
+      <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="numa__policy_8h_1a8d4704b427145e3ccf9bd5174c993de4" prot="public" static="no">
+        <type>struct <ref refid="structie__topology" kindref="compound">ie_topology</ref></type>
+        <definition>typedef struct ie_topology ie_topology_t</definition>
+        <argsstring></argsstring>
+        <name>ie_topology_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/numa_policy.h" line="1" column="0" bodyfile="engine/include/numa_policy.h" bodystart="25" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="typedef" id="numa__policy_8h_1a834ea0aad05e990a02e342670ce4c0d5" prot="public" static="no">
+        <type>struct <ref refid="structie__numa__policy__t" kindref="compound">ie_numa_policy_t</ref></type>
+        <definition>typedef struct ie_numa_policy_t ie_numa_policy_t</definition>
+        <argsstring></argsstring>
+        <name>ie_numa_policy_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/numa_policy.h" line="40" column="18"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="numa__policy_8h_1afe77f3ca61a5fa4ba5c921d98d9b444a" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int ie_numa_policy_init</definition>
+        <argsstring>(ie_numa_policy_t *out, const ie_topology_t *topo)</argsstring>
+        <name>ie_numa_policy_init</name>
+        <param>
+          <type><ref refid="structie__numa__policy__t" kindref="compound">ie_numa_policy_t</ref> *</type>
+          <declname>out</declname>
+        </param>
+        <param>
+          <type>const <ref refid="ie__topology_8h_1a8d4704b427145e3ccf9bd5174c993de4" kindref="member">ie_topology_t</ref> *</type>
+          <declname>topo</declname>
+        </param>
+        <briefdescription>
+<para>Initialize a NUMA policy snapshot from topology detection and env knobs. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Environment variables:<itemizedlist>
+<listitem><para>IE_NUMA_ENABLE (default: 1)</para>
+</listitem><listitem><para>IE_NUMA_REPLICATE_HOT (default: 1)</para>
+</listitem><listitem><para>IE_NUMA_MAX_REPLICAS (default: detected_sockets, clamped to [1, 64])</para>
+</listitem><listitem><para>IE_NUMA_HOT_MIN_BYTES (default: 33554432 = 32 MiB)</para>
+</listitem></itemizedlist>
+</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>out</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Output policy object (non-NULL). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>topo</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Optional topology handle (may be NULL). </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>0 on success, negative errno-like on failure.</para>
+</simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>out</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Output policy object (non-NULL). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>topo</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Optional topology handle (may be NULL). </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>0 on success, negative errno-like on failure. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/numa_policy.h" line="55" column="5" bodyfile="engine/src/opt/numa_policy.c" bodystart="121" bodyend="151" declfile="engine/include/numa_policy.h" declline="55" declcolumn="5"/>
+        <references refid="structie__numa__policy__t_1a942294c00aa2e812a85114841638aadc" compoundref="numa__policy_8h" startline="32">ie_numa_policy_t::detected_nodes</references>
+        <references refid="structie__numa__policy__t_1ae53dfbd7daea1fdee8c027a256609992" compoundref="numa__policy_8h" startline="33">ie_numa_policy_t::detected_sockets</references>
+        <references refid="structie__numa__policy__t_1abe72a4d02af7de3b2c36d82b045b082c" compoundref="numa__policy_8h" startline="35">ie_numa_policy_t::enable_numa</references>
+        <references refid="numa__policy_8c_1a93c92a71a0cf18f3eea8623ea9524d54" compoundref="numa__policy_8c" startline="60" endline="66">env_flag_get</references>
+        <references refid="numa__policy_8c_1a8f77067811ecdcf0b7b2c271c801d7cd" compoundref="numa__policy_8c" startline="77" endline="88">env_int_get</references>
+        <references refid="numa__policy_8c_1aebb8533913a4a3327ea465aebc0fdad1" compoundref="numa__policy_8c" startline="99" endline="110">env_sizet_get</references>
+        <references refid="structie__numa__policy__t_1a080a16d808a2b2f7ed47987fdf02aa19" compoundref="numa__policy_8h" startline="39">ie_numa_policy_t::hot_min_bytes</references>
+        <references refid="ie__numa_8h_1a973de21424f504f3050bac89ab24b122" compoundref="numa__probe_8c" startline="78" endline="95">ie_numa_detect_nodes</references>
+        <references refid="ie__topology_8h_1ae9fec2d245fb73d6c3e8e3cba38d4471" compoundref="topology_8c" startline="283" endline="285">ie_topology_sockets</references>
+        <references refid="structie__numa__policy__t_1a4210d29bb974c0baa18abd9e04219d5a" compoundref="numa__policy_8h" startline="38">ie_numa_policy_t::max_replicas</references>
+        <references refid="structie__numa__policy__t_1aebd181dab049048a575268c2b4c44a18" compoundref="numa__policy_8h" startline="36">ie_numa_policy_t::replicate_hot</references>
+      </memberdef>
+      <memberdef kind="function" id="numa__policy_8h_1a7d542ec01cbd78c1a11eeae3d97eb0ad" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool ie_numa_policy_should_replicate_hot</definition>
+        <argsstring>(const ie_numa_policy_t *p, size_t bytes)</argsstring>
+        <name>ie_numa_policy_should_replicate_hot</name>
+        <param>
+          <type>const <ref refid="structie__numa__policy__t" kindref="compound">ie_numa_policy_t</ref> *</type>
+          <declname>p</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>bytes</declname>
+        </param>
+        <briefdescription>
+<para>Decide if a blob of <computeroutput>bytes</computeroutput> should be replicated per socket. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>The decision is based on:<itemizedlist>
+<listitem><para>enable_numa flag,</para>
+</listitem><listitem><para>replicate_hot flag,</para>
+</listitem><listitem><para>detected_sockets &gt; 1,</para>
+</listitem><listitem><para>bytes &gt;= hot_min_bytes.</para>
+</listitem></itemizedlist>
+</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>p</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Policy object (non-NULL). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>bytes</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Blob size in bytes. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>true if replication should happen, false otherwise.</para>
+</simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>p</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Policy object (non-NULL). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>bytes</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Blob size in bytes. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>true if replication should happen, false otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/numa_policy.h" line="70" column="6" bodyfile="engine/src/opt/numa_policy.c" bodystart="160" bodyend="167" declfile="engine/include/numa_policy.h" declline="70" declcolumn="6"/>
+        <references refid="structie__numa__policy__t_1ae53dfbd7daea1fdee8c027a256609992" compoundref="numa__policy_8h" startline="33">ie_numa_policy_t::detected_sockets</references>
+        <references refid="structie__numa__policy__t_1abe72a4d02af7de3b2c36d82b045b082c" compoundref="numa__policy_8h" startline="35">ie_numa_policy_t::enable_numa</references>
+        <references refid="structie__numa__policy__t_1aebd181dab049048a575268c2b4c44a18" compoundref="numa__policy_8h" startline="36">ie_numa_policy_t::replicate_hot</references>
+      </memberdef>
+      <memberdef kind="function" id="numa__policy_8h_1a6d7c4b90278d9eb12abe0ec3bb64f461" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int ie_numa_policy_replica_count</definition>
+        <argsstring>(const ie_numa_policy_t *p)</argsstring>
+        <name>ie_numa_policy_replica_count</name>
+        <param>
+          <type>const <ref refid="structie__numa__policy__t" kindref="compound">ie_numa_policy_t</ref> *</type>
+          <declname>p</declname>
+        </param>
+        <briefdescription>
+<para>Compute the replica count to build under this policy. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Typically this is min(detected_sockets, max_replicas), and at least 1.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>p</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Policy object (non-NULL). </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Number of replicas to create (&gt;= 1).</para>
+</simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>p</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Policy object (non-NULL). </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Number of replicas to create (&gt;= 1). </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/numa_policy.h" line="80" column="5" bodyfile="engine/src/opt/numa_policy.c" bodystart="175" bodyend="180" declfile="engine/include/numa_policy.h" declline="80" declcolumn="5"/>
+        <references refid="structie__numa__policy__t_1ae53dfbd7daea1fdee8c027a256609992" compoundref="numa__policy_8h" startline="33">ie_numa_policy_t::detected_sockets</references>
+        <references refid="structie__numa__policy__t_1a4210d29bb974c0baa18abd9e04219d5a" compoundref="numa__policy_8h" startline="38">ie_numa_policy_t::max_replicas</references>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Runtime NUMA policy knobs used by the loader and hot-weights replication logic. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>This header defines a small &quot;policy&quot; object that:<itemizedlist>
+<listitem><para>captures detected topology facts (sockets, NUMA nodes),</para>
+</listitem><listitem><para>reads environment-based knobs,</para>
+</listitem><listitem><para>provides helper decisions (e.g., whether to replicate a hot blob).</para>
+</listitem></itemizedlist>
+</para>
+<para>It is intentionally lightweight and does not depend on libnuma. </para>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1" refid="numa__policy_8h_1a8d4704b427145e3ccf9bd5174c993de4" refkind="member"><highlight class="preprocessor">#ifndef<sp/>IE_OPT_NUMA_POLICY_H</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="2"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>IE_OPT_NUMA_POLICY_H</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="3"><highlight class="normal"></highlight></codeline>
+<codeline lineno="16"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stdbool.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="17"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stddef.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="18"><highlight class="normal"></highlight></codeline>
+<codeline lineno="19"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="20"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/></highlight><highlight class="stringliteral">&quot;C&quot;</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="21"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="22"><highlight class="normal"></highlight></codeline>
+<codeline lineno="23"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>Forward<sp/>declaration<sp/>to<sp/>avoid<sp/>a<sp/>hard<sp/>include<sp/>dependency<sp/>on<sp/>ie_topology.h.<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="24"><highlight class="normal"></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structie__topology" kindref="compound">ie_topology</ref>;</highlight></codeline>
+<codeline lineno="25"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structie__topology" kindref="compound">ie_topology</ref><sp/><ref refid="structie__topology" kindref="compound">ie_topology_t</ref>;</highlight></codeline>
+<codeline lineno="26"><highlight class="normal"></highlight></codeline>
+<codeline lineno="31" refid="structie__numa__policy__t" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structie__numa__policy__t" kindref="compound">ie_numa_policy_t</ref><sp/>{</highlight></codeline>
+<codeline lineno="32" refid="structie__numa__policy__t_1a942294c00aa2e812a85114841638aadc" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structie__numa__policy__t_1a942294c00aa2e812a85114841638aadc" kindref="member">detected_nodes</ref>;<sp/><sp/><sp/><sp/></highlight></codeline>
+<codeline lineno="33" refid="structie__numa__policy__t_1ae53dfbd7daea1fdee8c027a256609992" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structie__numa__policy__t_1ae53dfbd7daea1fdee8c027a256609992" kindref="member">detected_sockets</ref>;<sp/><sp/></highlight></codeline>
+<codeline lineno="35" refid="structie__numa__policy__t_1abe72a4d02af7de3b2c36d82b045b082c" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/><sp/><sp/><ref refid="structie__numa__policy__t_1abe72a4d02af7de3b2c36d82b045b082c" kindref="member">enable_numa</ref>;<sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight></codeline>
+<codeline lineno="36" refid="structie__numa__policy__t_1aebd181dab049048a575268c2b4c44a18" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/><sp/><sp/><ref refid="structie__numa__policy__t_1aebd181dab049048a575268c2b4c44a18" kindref="member">replicate_hot</ref>;<sp/><sp/><sp/><sp/><sp/></highlight></codeline>
+<codeline lineno="38" refid="structie__numa__policy__t_1a4210d29bb974c0baa18abd9e04219d5a" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="structie__numa__policy__t_1a4210d29bb974c0baa18abd9e04219d5a" kindref="member">max_replicas</ref>;<sp/><sp/><sp/><sp/><sp/><sp/></highlight></codeline>
+<codeline lineno="39" refid="structie__numa__policy__t_1a080a16d808a2b2f7ed47987fdf02aa19" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/><ref refid="structie__numa__policy__t_1a080a16d808a2b2f7ed47987fdf02aa19" kindref="member">hot_min_bytes</ref>;<sp/><sp/><sp/><sp/><sp/></highlight></codeline>
+<codeline lineno="40" refid="numa__policy_8h_1a834ea0aad05e990a02e342670ce4c0d5" refkind="member"><highlight class="normal">}<sp/><ref refid="numa__policy_8h_1a834ea0aad05e990a02e342670ce4c0d5" kindref="member">ie_numa_policy_t</ref>;</highlight></codeline>
+<codeline lineno="41"><highlight class="normal"></highlight></codeline>
+<codeline lineno="55"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="numa__policy_8h_1afe77f3ca61a5fa4ba5c921d98d9b444a" kindref="member">ie_numa_policy_init</ref>(<ref refid="structie__numa__policy__t" kindref="compound">ie_numa_policy_t</ref><sp/>*out,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="structie__topology" kindref="compound">ie_topology_t</ref><sp/>*topo);</highlight></codeline>
+<codeline lineno="56"><highlight class="normal"></highlight></codeline>
+<codeline lineno="70"><highlight class="normal"></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/><ref refid="numa__policy_8h_1a7d542ec01cbd78c1a11eeae3d97eb0ad" kindref="member">ie_numa_policy_should_replicate_hot</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="structie__numa__policy__t" kindref="compound">ie_numa_policy_t</ref><sp/>*p,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>bytes);</highlight></codeline>
+<codeline lineno="71"><highlight class="normal"></highlight></codeline>
+<codeline lineno="80"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="numa__policy_8h_1a6d7c4b90278d9eb12abe0ec3bb64f461" kindref="member">ie_numa_policy_replica_count</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="structie__numa__policy__t" kindref="compound">ie_numa_policy_t</ref><sp/>*p);</highlight></codeline>
+<codeline lineno="81"><highlight class="normal"></highlight></codeline>
+<codeline lineno="82"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="83"><highlight class="normal">}<sp/></highlight><highlight class="comment">/*<sp/>extern<sp/>&quot;C&quot;<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="84"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="85"><highlight class="normal"></highlight></codeline>
+<codeline lineno="86"><highlight class="normal"></highlight><highlight class="preprocessor">#endif<sp/></highlight><highlight class="comment">/*<sp/>IE_OPT_NUMA_POLICY_H<sp/>*/</highlight><highlight class="preprocessor"></highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="87"><highlight class="normal"></highlight></codeline>
+    </programlisting>
+    <location file="engine/include/numa_policy.h"/>
+  </compounddef>
+</doxygen>

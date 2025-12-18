@@ -10,7 +10,7 @@ var indexSectionsWithContent =
   7: "cdi",
   8: "cdi",
   9: "_cdiuz",
-  10: "cilpstu",
+  10: "cilptu",
   11: "adip"
 };
 

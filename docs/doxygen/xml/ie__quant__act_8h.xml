@@ -5,6 +5,7 @@
     <includes local="no">stddef.h</includes>
     <includes local="no">stdint.h</includes>
     <includedby refid="microbench__act__path_8c" local="yes">benchmarks/src/microbench_act_path.c</includedby>
+    <includedby refid="ie__kernels_8h" local="yes">engine/include/ie_kernels.h</includedby>
     <includedby refid="ie__kv__cache_8h" local="yes">engine/include/ie_kv_cache.h</includedby>
     <includedby refid="ie__kernels__cuda_8h" local="yes">engine/include/ie_kernels_cuda.h</includedby>
     <includedby refid="gemv__avx2_8c" local="yes">engine/src/kernels/gemv_avx2.c</includedby>
@@ -31,23 +32,43 @@
       </node>
     </incdepgraph>
     <invincdepgraph>
-      <node id="10">
+      <node id="13">
         <label>engine/src/quant/act_int8.c</label>
         <link refid="act__int8_8c"/>
       </node>
-      <node id="9">
+      <node id="12">
         <label>engine/src/quant/act_fp8.c</label>
         <link refid="act__fp8_8c"/>
       </node>
-      <node id="7">
+      <node id="5">
         <label>engine/src/kernels/gemv_avx2.c</label>
         <link refid="gemv__avx2_8c"/>
       </node>
-      <node id="6">
+      <node id="11">
         <label>engine/src/kernels/ie_kernels_cuda.cu</label>
         <link refid="ie__kernels__cuda_8cu"/>
       </node>
-      <node id="11">
+      <node id="3">
+        <label>engine/include/ie_kernels.h</label>
+        <link refid="ie__kernels_8h"/>
+        <childnode refid="4" relation="include">
+        </childnode>
+        <childnode refid="5" relation="include">
+        </childnode>
+        <childnode refid="6" relation="include">
+        </childnode>
+        <childnode refid="7" relation="include">
+        </childnode>
+      </node>
+      <node id="7">
+        <label>tests/c/test_kernels.c</label>
+        <link refid="test__kernels_8c"/>
+      </node>
+      <node id="4">
+        <label>engine/src/devices/ie_device_common.c</label>
+        <link refid="ie__device__common_8c"/>
+      </node>
+      <node id="14">
         <label>tests/c/test_act_quant.c</label>
         <link refid="test__act__quant_8c"/>
       </node>
@@ -58,28 +79,30 @@
         </childnode>
         <childnode refid="3" relation="include">
         </childnode>
-        <childnode refid="5" relation="include">
-        </childnode>
-        <childnode refid="7" relation="include">
-        </childnode>
         <childnode refid="8" relation="include">
-        </childnode>
-        <childnode refid="6" relation="include">
-        </childnode>
-        <childnode refid="9" relation="include">
         </childnode>
         <childnode refid="10" relation="include">
         </childnode>
-        <childnode refid="4" relation="include">
+        <childnode refid="5" relation="include">
+        </childnode>
+        <childnode refid="6" relation="include">
         </childnode>
         <childnode refid="11" relation="include">
         </childnode>
+        <childnode refid="12" relation="include">
+        </childnode>
+        <childnode refid="13" relation="include">
+        </childnode>
+        <childnode refid="9" relation="include">
+        </childnode>
+        <childnode refid="14" relation="include">
+        </childnode>
       </node>
-      <node id="4">
+      <node id="9">
         <label>engine/src/runtime/kv_cache.c</label>
         <link refid="kv__cache_8c"/>
       </node>
-      <node id="8">
+      <node id="6">
         <label>engine/src/kernels/gemv_generic.c</label>
         <link refid="gemv__generic_8c"/>
       </node>
@@ -87,16 +110,16 @@
         <label>benchmarks/src/microbench_act_path.c</label>
         <link refid="microbench__act__path_8c"/>
       </node>
-      <node id="3">
+      <node id="8">
         <label>engine/include/ie_kv_cache.h</label>
         <link refid="ie__kv__cache_8h"/>
-        <childnode refid="4" relation="include">
+        <childnode refid="9" relation="include">
         </childnode>
       </node>
-      <node id="5">
+      <node id="10">
         <label>engine/include/ie_kernels_cuda.h</label>
         <link refid="ie__kernels__cuda_8h"/>
-        <childnode refid="6" relation="include">
+        <childnode refid="11" relation="include">
         </childnode>
       </node>
     </invincdepgraph>
@@ -109,7 +132,7 @@
           <name>IE_FP8_E4M3</name>
           <initializer>= 0</initializer>
           <briefdescription>
-<para>1 sign, 4 exponent (bias 7), 3 mantissa, finite-only saturation. </para>
+<para>1 sign, 4 exponent (bias 7), 3 mantissa; finite-only saturation policy. </para>
           </briefdescription>
           <detaileddescription>
           </detaileddescription>
@@ -118,7 +141,7 @@
           <name>IE_FP8_E5M2</name>
           <initializer>= 1</initializer>
           <briefdescription>
-<para>1 sign, 5 exponent (bias 15), 2 mantissa, Inf/NaN representable. </para>
+<para>1 sign, 5 exponent (bias 15), 2 mantissa; Inf/NaN representable. </para>
           </briefdescription>
           <detaileddescription>
           </detaileddescription>
@@ -130,7 +153,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="engine/include/ie_quant_act.h" line="40" column="1" bodyfile="engine/include/ie_quant_act.h" bodystart="40" bodyend="43"/>
+        <location file="engine/include/ie_quant_act.h" line="26" column="1" bodyfile="engine/include/ie_quant_act.h" bodystart="26" bodyend="31"/>
       </memberdef>
       </sectiondef>
       <sectiondef kind="typedef">
@@ -145,7 +168,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="engine/include/ie_quant_act.h" line="43" column="15"/>
+        <location file="engine/include/ie_quant_act.h" line="31" column="15"/>
       </memberdef>
       <memberdef kind="typedef" id="ie__quant__act_8h_1a1907fe44afdd4b30ee6e683d6c183f82" prot="public" static="no">
         <type>struct <ref refid="structie__act__i8__params" kindref="compound">ie_act_i8_params</ref></type>
@@ -158,7 +181,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="engine/include/ie_quant_act.h" line="55" column="18"/>
+        <location file="engine/include/ie_quant_act.h" line="43" column="18"/>
       </memberdef>
       </sectiondef>
       <sectiondef kind="func">
@@ -188,16 +211,24 @@
           <declname>out_zero</declname>
         </param>
         <briefdescription>
-<para>Compute per-tensor INT8 parameters from min/max. </para>
+<para>Compute per-tensor INT8 parameters from observed min/max. </para>
         </briefdescription>
         <detaileddescription>
-<para>The returned scale is strictly positive. If <computeroutput>symmetric</computeroutput> is non-zero, zero_point is set to 0 and the scale is derived from max(|minv|,|maxv|)/127. Otherwise, asymmetric parameters are derived to map minv→-128 and maxv→127.</para>
+<para>If symmetric != 0:<itemizedlist>
+<listitem><para>zero_point is set to 0</para>
+</listitem><listitem><para>scale is derived from max(|minv|,|maxv|)/127</para>
+</listitem></itemizedlist>
+</para>
+<para>If symmetric == 0:<itemizedlist>
+<listitem><para>parameters map minv -&gt; -128 and maxv -&gt; 127 using an affine transform</para>
+</listitem></itemizedlist>
+</para>
 <para><parameterlist kind="param"><parameteritem>
 <parameternamelist>
 <parametername>minv</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Observed minimum (may be negative). </para>
+<para>Observed minimum. </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -205,7 +236,7 @@
 <parametername>maxv</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Observed maximum (may be positive). </para>
+<para>Observed maximum. </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -221,7 +252,7 @@
 <parametername>out_scale</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Output: scale. </para>
+<para>Output scale (non-NULL). </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -229,7 +260,7 @@
 <parametername>out_zero</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Output: zero point. </para>
+<para>Output zero point (non-NULL). </para>
 </parameterdescription>
 </parameteritem>
 </parameterlist>
@@ -237,7 +268,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="engine/include/ie_quant_act.h" line="70" column="6" bodyfile="engine/src/quant/act_int8.c" bodystart="51" bodyend="79" declfile="engine/include/ie_quant_act.h" declline="70" declcolumn="6"/>
+        <location file="engine/include/ie_quant_act.h" line="62" column="6" bodyfile="engine/src/quant/act_int8.c" bodystart="51" bodyend="79" declfile="engine/include/ie_quant_act.h" declline="62" declcolumn="6"/>
         <references refid="act__int8_8c_1a06921ebd025375319bac8a4b43888241" compoundref="act__int8_8c" startline="18" endline="20">ie_fabsf</references>
         <references refid="act__int8_8c_1ad80154c444341a2ed6f1be5eb0bdb5de" compoundref="act__int8_8c" startline="22" endline="24">ie_maxf</references>
         <references refid="act__int8_8c_1a7490ce5fac2e6e5e1b7812006550be41" compoundref="act__int8_8c" startline="31" endline="34">ie_rne</references>
@@ -272,7 +303,7 @@
           <declname>symmetric</declname>
         </param>
         <briefdescription>
-<para>Quantize activations to INT8 using per-tensor parameters. </para>
+<para>Quantize fp32 activations to INT8 using per-tensor parameters. </para>
         </briefdescription>
         <detaileddescription>
 <para><parameterlist kind="param"><parameteritem>
@@ -280,7 +311,7 @@
 <parametername>src</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Pointer to source floats. </para>
+<para>Source float buffer. </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -288,7 +319,7 @@
 <parametername>dst</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Pointer to destination INT8 (same length as src). </para>
+<para>Destination INT8 buffer (length n). </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -304,7 +335,7 @@
 <parametername>params</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Quantization parameters (scale/zero_point). </para>
+<para>Quantization parameters. </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -312,7 +343,7 @@
 <parametername>symmetric</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Non-zero if symmetric (enforces [-127,127] range). </para>
+<para>Non-zero to enforce symmetric saturation policy. </para>
 </parameterdescription>
 </parameteritem>
 </parameterlist>
@@ -320,12 +351,12 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="engine/include/ie_quant_act.h" line="82" column="6" bodyfile="engine/src/quant/act_int8.c" bodystart="81" bodyend="98" declfile="engine/include/ie_quant_act.h" declline="82" declcolumn="6"/>
+        <location file="engine/include/ie_quant_act.h" line="74" column="6" bodyfile="engine/src/quant/act_int8.c" bodystart="81" bodyend="98" declfile="engine/include/ie_quant_act.h" declline="74" declcolumn="6"/>
         <references refid="act__int8_8c_1a7490ce5fac2e6e5e1b7812006550be41" compoundref="act__int8_8c" startline="31" endline="34">ie_rne</references>
         <references refid="act__int8_8c_1adbe29326b240b464a7a7a8773210fb8f" compoundref="act__int8_8c" startline="36" endline="40">ie_sat_i8</references>
         <references refid="act__int8_8c_1a312c061258a9180793b777e396301655" compoundref="act__int8_8c" startline="43" endline="47">ie_sat_sym_i8</references>
-        <references refid="structie__act__i8__params_1ac0ec31737c16640ac332b562ea6be9a1" compoundref="ie__quant__act_8h" startline="53">ie_act_i8_params::scale</references>
-        <references refid="structie__act__i8__params_1ab19e71539ecb14b16a4c65b425be4c32" compoundref="ie__quant__act_8h" startline="54">ie_act_i8_params::zero_point</references>
+        <references refid="structie__act__i8__params_1ac0ec31737c16640ac332b562ea6be9a1" compoundref="ie__quant__act_8h" startline="41">ie_act_i8_params::scale</references>
+        <references refid="structie__act__i8__params_1ab19e71539ecb14b16a4c65b425be4c32" compoundref="ie__quant__act_8h" startline="42">ie_act_i8_params::zero_point</references>
         <referencedby refid="microbench__act__path_8c_1aa8d8e89d147a706279cd7995fcc08571" compoundref="microbench__act__path_8c" startline="46" endline="74">bench_int8</referencedby>
         <referencedby refid="ie__kv__cache_8h_1a60418a220d683776a9ff5e04783e67d6" compoundref="kv__cache_8c" startline="159" endline="203">ie_kv_store_token_int8_per_tensor</referencedby>
         <referencedby refid="test__act__quant_8c_1a83ac16910c5fbcf8d045ba1a01bc2604" compoundref="test__act__quant_8c" startline="37" endline="58">test_int8_per_tensor</referencedby>
@@ -352,7 +383,7 @@
           <declname>params</declname>
         </param>
         <briefdescription>
-<para>Dequantize INT8 activations to float using per-tensor parameters. </para>
+<para>Dequantize INT8 activations to fp32 using per-tensor parameters. </para>
         </briefdescription>
         <detaileddescription>
 <para><parameterlist kind="param"><parameteritem>
@@ -360,7 +391,7 @@
 <parametername>src</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Pointer to INT8 source. </para>
+<para>Source INT8 buffer. </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -368,7 +399,7 @@
 <parametername>dst</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Pointer to float destination. </para>
+<para>Destination float buffer (length n). </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -384,7 +415,7 @@
 <parametername>params</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Quantization parameters (scale/zero_point). </para>
+<para>Dequantization parameters. </para>
 </parameterdescription>
 </parameteritem>
 </parameterlist>
@@ -392,9 +423,9 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="engine/include/ie_quant_act.h" line="93" column="6" bodyfile="engine/src/quant/act_int8.c" bodystart="100" bodyend="107" declfile="engine/include/ie_quant_act.h" declline="93" declcolumn="6"/>
-        <references refid="structie__act__i8__params_1ac0ec31737c16640ac332b562ea6be9a1" compoundref="ie__quant__act_8h" startline="53">ie_act_i8_params::scale</references>
-        <references refid="structie__act__i8__params_1ab19e71539ecb14b16a4c65b425be4c32" compoundref="ie__quant__act_8h" startline="54">ie_act_i8_params::zero_point</references>
+        <location file="engine/include/ie_quant_act.h" line="85" column="6" bodyfile="engine/src/quant/act_int8.c" bodystart="100" bodyend="107" declfile="engine/include/ie_quant_act.h" declline="85" declcolumn="6"/>
+        <references refid="structie__act__i8__params_1ac0ec31737c16640ac332b562ea6be9a1" compoundref="ie__quant__act_8h" startline="41">ie_act_i8_params::scale</references>
+        <references refid="structie__act__i8__params_1ab19e71539ecb14b16a4c65b425be4c32" compoundref="ie__quant__act_8h" startline="42">ie_act_i8_params::zero_point</references>
         <referencedby refid="microbench__act__path_8c_1aa8d8e89d147a706279cd7995fcc08571" compoundref="microbench__act__path_8c" startline="46" endline="74">bench_int8</referencedby>
         <referencedby refid="test__act__quant_8c_1a83ac16910c5fbcf8d045ba1a01bc2604" compoundref="test__act__quant_8c" startline="37" endline="58">test_int8_per_tensor</referencedby>
       </memberdef>
@@ -428,16 +459,16 @@
           <declname>out_zeros</declname>
         </param>
         <briefdescription>
-<para>Compute per-group INT8 parameters for <computeroutput>src</computeroutput>. </para>
+<para>Compute per-group INT8 parameters from data. </para>
         </briefdescription>
         <detaileddescription>
-<para>Partitions <computeroutput>src</computeroutput> into contiguous groups of size <computeroutput>group_size</computeroutput> (the last group may be shorter) and computes parameters for each group using <ref refid="act__int8_8c_1a383703e828dd5701507b0d1f6ab1cf73" kindref="member">ie_act_i8_params_from_minmax</ref> with the chosen symmetry.</para>
+<para>Splits src into contiguous groups of group_size (last group may be shorter) and computes parameters for each group.</para>
 <para><parameterlist kind="param"><parameteritem>
 <parameternamelist>
 <parametername>src</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Source floats. </para>
+<para>Source float buffer. </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -453,7 +484,7 @@
 <parametername>group_size</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Group size (&gt;=1). </para>
+<para>Group size (&gt;= 1). </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -469,7 +500,7 @@
 <parametername>out_scales</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Output array of length ceil(n/group_size). </para>
+<para>Output scales array (ceil(n/group_size)). </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -477,7 +508,7 @@
 <parametername>out_zeros</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Output array of length ceil(n/group_size). </para>
+<para>Output zero-points array (ceil(n/group_size)). </para>
 </parameterdescription>
 </parameteritem>
 </parameterlist>
@@ -485,7 +516,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="engine/include/ie_quant_act.h" line="110" column="6" bodyfile="engine/src/quant/act_int8.c" bodystart="109" bodyend="128" declfile="engine/include/ie_quant_act.h" declline="110" declcolumn="6"/>
+        <location file="engine/include/ie_quant_act.h" line="102" column="6" bodyfile="engine/src/quant/act_int8.c" bodystart="109" bodyend="128" declfile="engine/include/ie_quant_act.h" declline="102" declcolumn="6"/>
         <references refid="act__int8_8c_1a383703e828dd5701507b0d1f6ab1cf73" compoundref="act__int8_8c" startline="51" endline="79">ie_act_i8_params_from_minmax</references>
         <references refid="act__int8_8c_1ad80154c444341a2ed6f1be5eb0bdb5de" compoundref="act__int8_8c" startline="22" endline="24">ie_maxf</references>
         <references refid="act__int8_8c_1ab1c0766c72ff5b328ace7f8354021ff8" compoundref="act__int8_8c" startline="26" endline="28">ie_minf</references>
@@ -526,7 +557,7 @@
           <declname>symmetric</declname>
         </param>
         <briefdescription>
-<para>Quantize activations per-group to INT8. </para>
+<para>Quantize fp32 activations to INT8 using per-group parameters. </para>
         </briefdescription>
         <detaileddescription>
 <para><parameterlist kind="param"><parameteritem>
@@ -534,7 +565,7 @@
 <parametername>src</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Source floats. </para>
+<para>Source float buffer. </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -542,7 +573,7 @@
 <parametername>dst</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Destination INT8. </para>
+<para>Destination INT8 buffer. </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -558,7 +589,7 @@
 <parametername>group_size</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Group size (&gt;=1). </para>
+<para>Group size (&gt;= 1). </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -566,7 +597,7 @@
 <parametername>scales</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Array of scales (ceil(n/group_size)). </para>
+<para>Scales array (ceil(n/group_size)). </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -574,7 +605,7 @@
 <parametername>zeros</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Array of zero_points (ceil(n/group_size)). </para>
+<para>Zero-points array (ceil(n/group_size)). </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -582,7 +613,7 @@
 <parametername>symmetric</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Non-zero for symmetric (-127..127). </para>
+<para>Non-zero to enforce symmetric saturation policy. </para>
 </parameterdescription>
 </parameteritem>
 </parameterlist>
@@ -590,7 +621,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="engine/include/ie_quant_act.h" line="125" column="6" bodyfile="engine/src/quant/act_int8.c" bodystart="130" bodyend="153" declfile="engine/include/ie_quant_act.h" declline="125" declcolumn="6"/>
+        <location file="engine/include/ie_quant_act.h" line="117" column="6" bodyfile="engine/src/quant/act_int8.c" bodystart="130" bodyend="153" declfile="engine/include/ie_quant_act.h" declline="117" declcolumn="6"/>
         <references refid="act__int8_8c_1a7490ce5fac2e6e5e1b7812006550be41" compoundref="act__int8_8c" startline="31" endline="34">ie_rne</references>
         <references refid="act__int8_8c_1adbe29326b240b464a7a7a8773210fb8f" compoundref="act__int8_8c" startline="36" endline="40">ie_sat_i8</references>
         <references refid="act__int8_8c_1a312c061258a9180793b777e396301655" compoundref="act__int8_8c" startline="43" endline="47">ie_sat_sym_i8</references>
@@ -627,7 +658,7 @@
           <declname>zeros</declname>
         </param>
         <briefdescription>
-<para>Dequantize per-group INT8 activations to float. </para>
+<para>Dequantize per-group INT8 activations to fp32. </para>
         </briefdescription>
         <detaileddescription>
 <para><parameterlist kind="param"><parameteritem>
@@ -635,7 +666,7 @@
 <parametername>src</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Source INT8. </para>
+<para>Source INT8 buffer. </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -643,7 +674,7 @@
 <parametername>dst</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Destination float. </para>
+<para>Destination float buffer. </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -659,7 +690,7 @@
 <parametername>group_size</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Group size (&gt;=1). </para>
+<para>Group size (&gt;= 1). </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -667,7 +698,7 @@
 <parametername>scales</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Array of scales (ceil(n/group_size)). </para>
+<para>Scales array (ceil(n/group_size)). </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -675,7 +706,7 @@
 <parametername>zeros</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Array of zero_points (ceil(n/group_size)). </para>
+<para>Zero-points array (ceil(n/group_size)). </para>
 </parameterdescription>
 </parameteritem>
 </parameterlist>
@@ -683,7 +714,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="engine/include/ie_quant_act.h" line="140" column="6" bodyfile="engine/src/quant/act_int8.c" bodystart="155" bodyend="169" declfile="engine/include/ie_quant_act.h" declline="140" declcolumn="6"/>
+        <location file="engine/include/ie_quant_act.h" line="132" column="6" bodyfile="engine/src/quant/act_int8.c" bodystart="155" bodyend="169" declfile="engine/include/ie_quant_act.h" declline="132" declcolumn="6"/>
         <referencedby refid="test__act__quant_8c_1a21e36220792f5bceb2c110dc45605c5e" compoundref="test__act__quant_8c" startline="60" endline="87">test_int8_per_group</referencedby>
       </memberdef>
       <memberdef kind="function" id="ie__quant__act_8h_1a91772f4827e6d4c82915434eb55a9f17" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
@@ -708,12 +739,12 @@
           <declname>fmt</declname>
         </param>
         <briefdescription>
-<para>Quantize activations to FP8 (E4M3 or E5M2). </para>
+<para>Quantize fp32 activations to FP8. </para>
         </briefdescription>
         <detaileddescription>
-<para>Non-finite inputs:<itemizedlist>
-<listitem><para>E4M3: saturated to max finite.</para>
-</listitem><listitem><para>E5M2: pass through to Inf/NaN encodings when possible.</para>
+<para><itemizedlist>
+<listitem><para>E4M3: non-finite inputs saturate to max finite.</para>
+</listitem><listitem><para>E5M2: attempts to preserve Inf/NaN encodings.</para>
 </listitem></itemizedlist>
 </para>
 <para><parameterlist kind="param"><parameteritem>
@@ -721,7 +752,7 @@
 <parametername>src</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Source floats. </para>
+<para>Source float buffer. </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -729,7 +760,7 @@
 <parametername>dst</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Destination bytes (FP8 bit-patterns). </para>
+<para>Destination FP8 bytes (bit patterns). </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -753,8 +784,8 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="engine/include/ie_quant_act.h" line="156" column="6" bodyfile="engine/src/quant/act_fp8.c" bodystart="182" bodyend="193" declfile="engine/include/ie_quant_act.h" declline="156" declcolumn="6"/>
-        <references refid="ie__quant__act_8h_1a67a1bdaa8281d1c69b6b76ecba79c52ca67cfe56fcb473bed9a2f92388f2fc347" compoundref="ie__quant__act_8h" startline="41">IE_FP8_E4M3</references>
+        <location file="engine/include/ie_quant_act.h" line="148" column="6" bodyfile="engine/src/quant/act_fp8.c" bodystart="182" bodyend="193" declfile="engine/include/ie_quant_act.h" declline="148" declcolumn="6"/>
+        <references refid="ie__quant__act_8h_1a67a1bdaa8281d1c69b6b76ecba79c52ca67cfe56fcb473bed9a2f92388f2fc347" compoundref="ie__quant__act_8h" startline="28">IE_FP8_E4M3</references>
         <references refid="act__fp8_8c_1a202a6a4b5ffeadd5e70ea00de8307dd4" compoundref="act__fp8_8c" startline="44" endline="91">ie_pack_fp8_e4m3</references>
         <references refid="act__fp8_8c_1a3c2a81020974f897eee0c71515548031" compoundref="act__fp8_8c" startline="112" endline="154">ie_pack_fp8_e5m2</references>
         <referencedby refid="microbench__act__path_8c_1a3ddaada8ef50378cb1e48d907c7b6430" compoundref="microbench__act__path_8c" startline="76" endline="96">bench_fp8</referencedby>
@@ -783,7 +814,7 @@
           <declname>fmt</declname>
         </param>
         <briefdescription>
-<para>Dequantize FP8 bytes to floats (E4M3 or E5M2). </para>
+<para>Dequantize FP8 bytes to fp32. </para>
         </briefdescription>
         <detaileddescription>
 <para><parameterlist kind="param"><parameteritem>
@@ -791,7 +822,7 @@
 <parametername>src</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Source bytes (FP8 bit-patterns). </para>
+<para>Source FP8 bytes (bit patterns). </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -799,7 +830,7 @@
 <parametername>dst</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Destination floats. </para>
+<para>Destination float buffer. </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -823,8 +854,8 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="engine/include/ie_quant_act.h" line="167" column="6" bodyfile="engine/src/quant/act_fp8.c" bodystart="195" bodyend="206" declfile="engine/include/ie_quant_act.h" declline="167" declcolumn="6"/>
-        <references refid="ie__quant__act_8h_1a67a1bdaa8281d1c69b6b76ecba79c52ca67cfe56fcb473bed9a2f92388f2fc347" compoundref="ie__quant__act_8h" startline="41">IE_FP8_E4M3</references>
+        <location file="engine/include/ie_quant_act.h" line="159" column="6" bodyfile="engine/src/quant/act_fp8.c" bodystart="195" bodyend="206" declfile="engine/include/ie_quant_act.h" declline="159" declcolumn="6"/>
+        <references refid="ie__quant__act_8h_1a67a1bdaa8281d1c69b6b76ecba79c52ca67cfe56fcb473bed9a2f92388f2fc347" compoundref="ie__quant__act_8h" startline="28">IE_FP8_E4M3</references>
         <references refid="act__fp8_8c_1a52bd1c6672e488e69c328a8462a03638" compoundref="act__fp8_8c" startline="93" endline="110">ie_unpack_fp8_e4m3</references>
         <references refid="act__fp8_8c_1a8980ac38b93f25c750abde5ec521b4d1" compoundref="act__fp8_8c" startline="156" endline="178">ie_unpack_fp8_e5m2</references>
         <referencedby refid="microbench__act__path_8c_1a3ddaada8ef50378cb1e48d907c7b6430" compoundref="microbench__act__path_8c" startline="76" endline="96">bench_fp8</referencedby>
@@ -833,77 +864,75 @@
       </memberdef>
       </sectiondef>
     <briefdescription>
-<para>Activation quantization utilities (INT8 and FP8) for runtime paths. </para>
     </briefdescription>
     <detaileddescription>
-<para>This module provides fast, allocation-free routines to quantize and dequantize activations to INT8 and FP8 formats. It supports both per-tensor and per-group (blockwise) parameterization for INT8, and two FP8 formats (E4M3 and E5M2).</para>
-<para>Design goals:<itemizedlist>
-<listitem><para>No dynamic allocation; all buffers owned by caller.</para>
-</listitem><listitem><para>Cache-friendly traversal with plain pointer arithmetic.</para>
-</listitem><listitem><para>Deterministic, saturating conversions.</para>
-</listitem><listitem><para>Small and easily inlinable helpers for hot loops.</para>
-</listitem></itemizedlist>
-</para>
-<para>Notes on FP8:<itemizedlist>
-<listitem><para>FP8 here implements software encoders/decoders for E4M3 and E5M2. The E4M3 variant is treated as finite-only (overflow saturates to the largest finite representable value). E5M2 supports Inf/NaN round-tripping from IEEE-754 float where possible; non-finite inputs to E4M3 are saturated to max finite.</para>
-</listitem></itemizedlist>
-</para>
-<para>Thread-safety: all functions are pure with respect to input pointers and are thread-safe if buffers do not alias. </para>
     </detaileddescription>
     <programlisting>
-<codeline lineno="1"><highlight class="preprocessor">#ifndef<sp/>IE_QUANT_ACT_H</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="2"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>IE_QUANT_ACT_H</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="3"><highlight class="normal"></highlight></codeline>
-<codeline lineno="30"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stddef.h&gt;</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="31"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stdint.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="1"><highlight class="comment">/*<sp/>File:<sp/>engine/include/ie_quant_act.h</highlight></codeline>
+<codeline lineno="2"><highlight class="comment"><sp/>*<sp/>-----------------------------------------------------------------------------</highlight></codeline>
+<codeline lineno="3"><highlight class="comment"><sp/>*<sp/>@file<sp/>ie_quant_act.h</highlight></codeline>
+<codeline lineno="4"><highlight class="comment"><sp/>*<sp/>@brief<sp/>Activation<sp/>quantization<sp/>utilities<sp/>(INT8<sp/>and<sp/>FP8)<sp/>for<sp/>runtime<sp/>paths.</highlight></codeline>
+<codeline lineno="5"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="6"><highlight class="comment"><sp/>*<sp/>@details</highlight></codeline>
+<codeline lineno="7"><highlight class="comment"><sp/>*<sp/>Allocation-free<sp/>quantize/dequantize<sp/>utilities<sp/>for<sp/>runtime<sp/>activations.</highlight></codeline>
+<codeline lineno="8"><highlight class="comment"><sp/>*<sp/>Supports<sp/>per-tensor<sp/>and<sp/>per-group<sp/>INT8<sp/>affine<sp/>quantization<sp/>and<sp/>software<sp/>FP8</highlight></codeline>
+<codeline lineno="9"><highlight class="comment"><sp/>*<sp/>(E4M3,<sp/>E5M2)<sp/>encode/decode.</highlight></codeline>
+<codeline lineno="10"><highlight class="comment"><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="11"><highlight class="normal"></highlight></codeline>
+<codeline lineno="12"><highlight class="normal"></highlight><highlight class="preprocessor">#ifndef<sp/>IE_QUANT_ACT_H</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="13"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>IE_QUANT_ACT_H</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="14"><highlight class="normal"></highlight></codeline>
+<codeline lineno="15"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stddef.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="16"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stdint.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="17"><highlight class="normal"></highlight></codeline>
+<codeline lineno="18"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="19"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/></highlight><highlight class="stringliteral">&quot;C&quot;</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="20"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="21"><highlight class="normal"></highlight></codeline>
+<codeline lineno="26" refid="ie__quant__act_8h_1a67a1bdaa8281d1c69b6b76ecba79c52c" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">enum</highlight><highlight class="normal"><sp/><ref refid="ie__quant__act_8h_1a67a1bdaa8281d1c69b6b76ecba79c52c" kindref="member">ie_fp8_format</ref><sp/>{</highlight></codeline>
+<codeline lineno="28" refid="ie__quant__act_8h_1a67a1bdaa8281d1c69b6b76ecba79c52ca67cfe56fcb473bed9a2f92388f2fc347" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="ie__quant__act_8h_1a67a1bdaa8281d1c69b6b76ecba79c52ca67cfe56fcb473bed9a2f92388f2fc347" kindref="member">IE_FP8_E4M3</ref><sp/>=<sp/>0,</highlight></codeline>
+<codeline lineno="30"><highlight class="normal"><sp/><sp/><ref refid="ie__quant__act_8h_1a67a1bdaa8281d1c69b6b76ecba79c52caa1844f8dd595aba744eb3243b127a3e0" kindref="member">IE_FP8_E5M2</ref><sp/>=<sp/>1</highlight></codeline>
+<codeline lineno="31" refid="ie__quant__act_8h_1a67a1bdaa8281d1c69b6b76ecba79c52caa1844f8dd595aba744eb3243b127a3e0" refkind="member"><highlight class="normal">}<sp/><ref refid="ie__quant__act_8h_1a67a1bdaa8281d1c69b6b76ecba79c52c" kindref="member">ie_fp8_format</ref>;</highlight></codeline>
 <codeline lineno="32"><highlight class="normal"></highlight></codeline>
-<codeline lineno="33"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="34"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/></highlight><highlight class="stringliteral">&quot;C&quot;</highlight><highlight class="normal"><sp/>{</highlight></codeline>
-<codeline lineno="35"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="36"><highlight class="normal"></highlight></codeline>
-<codeline lineno="40" refid="ie__quant__act_8h_1a67a1bdaa8281d1c69b6b76ecba79c52c" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">enum</highlight><highlight class="normal"><sp/><ref refid="ie__quant__act_8h_1a67a1bdaa8281d1c69b6b76ecba79c52c" kindref="member">ie_fp8_format</ref><sp/>{</highlight></codeline>
-<codeline lineno="41" refid="ie__quant__act_8h_1a67a1bdaa8281d1c69b6b76ecba79c52ca67cfe56fcb473bed9a2f92388f2fc347" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="ie__quant__act_8h_1a67a1bdaa8281d1c69b6b76ecba79c52ca67cfe56fcb473bed9a2f92388f2fc347" kindref="member">IE_FP8_E4M3</ref><sp/>=<sp/>0,<sp/><sp/></highlight></codeline>
-<codeline lineno="42"><highlight class="normal"><sp/><sp/><ref refid="ie__quant__act_8h_1a67a1bdaa8281d1c69b6b76ecba79c52caa1844f8dd595aba744eb3243b127a3e0" kindref="member">IE_FP8_E5M2</ref><sp/>=<sp/>1<sp/><sp/><sp/></highlight></codeline>
-<codeline lineno="43" refid="ie__quant__act_8h_1a67a1bdaa8281d1c69b6b76ecba79c52caa1844f8dd595aba744eb3243b127a3e0" refkind="member"><highlight class="normal">}<sp/><ref refid="ie__quant__act_8h_1a67a1bdaa8281d1c69b6b76ecba79c52c" kindref="member">ie_fp8_format</ref>;</highlight></codeline>
+<codeline lineno="40" refid="structie__act__i8__params" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structie__act__i8__params" kindref="compound">ie_act_i8_params</ref><sp/>{</highlight></codeline>
+<codeline lineno="41" refid="structie__act__i8__params_1ac0ec31737c16640ac332b562ea6be9a1" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/><sp/><ref refid="structie__act__i8__params_1ac0ec31737c16640ac332b562ea6be9a1" kindref="member">scale</ref>;<sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight></codeline>
+<codeline lineno="42" refid="structie__act__i8__params_1ab19e71539ecb14b16a4c65b425be4c32" refkind="member"><highlight class="normal"><sp/><sp/>int8_t<sp/><ref refid="structie__act__i8__params_1ab19e71539ecb14b16a4c65b425be4c32" kindref="member">zero_point</ref>;<sp/><sp/></highlight></codeline>
+<codeline lineno="43" refid="ie__quant__act_8h_1a1907fe44afdd4b30ee6e683d6c183f82" refkind="member"><highlight class="normal">}<sp/><ref refid="ie__quant__act_8h_1a1907fe44afdd4b30ee6e683d6c183f82" kindref="member">ie_act_i8_params</ref>;</highlight></codeline>
 <codeline lineno="44"><highlight class="normal"></highlight></codeline>
-<codeline lineno="52" refid="structie__act__i8__params" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structie__act__i8__params" kindref="compound">ie_act_i8_params</ref><sp/>{</highlight></codeline>
-<codeline lineno="53" refid="structie__act__i8__params_1ac0ec31737c16640ac332b562ea6be9a1" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/><sp/><ref refid="structie__act__i8__params_1ac0ec31737c16640ac332b562ea6be9a1" kindref="member">scale</ref>;<sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight></codeline>
-<codeline lineno="54" refid="structie__act__i8__params_1ab19e71539ecb14b16a4c65b425be4c32" refkind="member"><highlight class="normal"><sp/><sp/>int8_t<sp/><ref refid="structie__act__i8__params_1ab19e71539ecb14b16a4c65b425be4c32" kindref="member">zero_point</ref>;<sp/><sp/></highlight></codeline>
-<codeline lineno="55" refid="ie__quant__act_8h_1a1907fe44afdd4b30ee6e683d6c183f82" refkind="member"><highlight class="normal">}<sp/><ref refid="ie__quant__act_8h_1a1907fe44afdd4b30ee6e683d6c183f82" kindref="member">ie_act_i8_params</ref>;</highlight></codeline>
-<codeline lineno="56"><highlight class="normal"></highlight></codeline>
-<codeline lineno="70"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="ie__quant__act_8h_1a383703e828dd5701507b0d1f6ab1cf73" kindref="member">ie_act_i8_params_from_minmax</ref>(</highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>minv,<sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>maxv,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>symmetric,</highlight></codeline>
-<codeline lineno="71"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal">*<sp/>out_scale,<sp/>int8_t*<sp/>out_zero);</highlight></codeline>
-<codeline lineno="72"><highlight class="normal"></highlight></codeline>
-<codeline lineno="82"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="ie__quant__act_8h_1a6d9a5a967125879dcd69327e9d5fa04b" kindref="member">ie_quantize_act_int8</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal">*<sp/>src,<sp/>int8_t*<sp/>dst,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>n,</highlight></codeline>
-<codeline lineno="83"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="structie__act__i8__params" kindref="compound">ie_act_i8_params</ref><sp/>params,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>symmetric);</highlight></codeline>
-<codeline lineno="84"><highlight class="normal"></highlight></codeline>
-<codeline lineno="93"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="ie__quant__act_8h_1aa7d3ff181746bd40d9d863e51ac0b024" kindref="member">ie_dequantize_act_int8</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>int8_t*<sp/>src,<sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal">*<sp/>dst,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>n,</highlight></codeline>
-<codeline lineno="94"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="structie__act__i8__params" kindref="compound">ie_act_i8_params</ref><sp/>params);</highlight></codeline>
-<codeline lineno="95"><highlight class="normal"></highlight></codeline>
-<codeline lineno="110"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="ie__quant__act_8h_1ad17e6b199c1c826b681db341c72701ef" kindref="member">ie_act_i8_group_params_from_data</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal">*<sp/>src,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>n,</highlight></codeline>
-<codeline lineno="111"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>group_size,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>symmetric,</highlight></codeline>
-<codeline lineno="112"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal">*<sp/>out_scales,<sp/>int8_t*<sp/>out_zeros);</highlight></codeline>
-<codeline lineno="113"><highlight class="normal"></highlight></codeline>
-<codeline lineno="125"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="ie__quant__act_8h_1a8e3abfa039c2b7c2fca327f68a2d7b09" kindref="member">ie_quantize_act_int8_per_group</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal">*<sp/>src,<sp/>int8_t*<sp/>dst,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>n,</highlight></codeline>
-<codeline lineno="126"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>group_size,</highlight></codeline>
-<codeline lineno="127"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal">*<sp/>scales,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>int8_t*<sp/>zeros,</highlight></codeline>
-<codeline lineno="128"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>symmetric);</highlight></codeline>
-<codeline lineno="129"><highlight class="normal"></highlight></codeline>
-<codeline lineno="140"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="ie__quant__act_8h_1a725b47baea6b1f41980edb5e307cfa0f" kindref="member">ie_dequantize_act_int8_per_group</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>int8_t*<sp/>src,<sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal">*<sp/>dst,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>n,</highlight></codeline>
-<codeline lineno="141"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>group_size,</highlight></codeline>
-<codeline lineno="142"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal">*<sp/>scales,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>int8_t*<sp/>zeros);</highlight></codeline>
-<codeline lineno="143"><highlight class="normal"></highlight></codeline>
-<codeline lineno="156"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="ie__quant__act_8h_1a91772f4827e6d4c82915434eb55a9f17" kindref="member">ie_quantize_act_fp8</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal">*<sp/>src,<sp/>uint8_t*<sp/>dst,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>n,</highlight></codeline>
-<codeline lineno="157"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="ie__quant__act_8h_1a67a1bdaa8281d1c69b6b76ecba79c52c" kindref="member">ie_fp8_format</ref><sp/>fmt);</highlight></codeline>
-<codeline lineno="158"><highlight class="normal"></highlight></codeline>
-<codeline lineno="167"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="ie__quant__act_8h_1aca462f5af36ea8b096edc92c4252db71" kindref="member">ie_dequantize_act_fp8</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>uint8_t*<sp/>src,<sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal">*<sp/>dst,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>n,</highlight></codeline>
-<codeline lineno="168"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="ie__quant__act_8h_1a67a1bdaa8281d1c69b6b76ecba79c52c" kindref="member">ie_fp8_format</ref><sp/>fmt);</highlight></codeline>
-<codeline lineno="169"><highlight class="normal"></highlight></codeline>
-<codeline lineno="170"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="171"><highlight class="normal">}<sp/></highlight><highlight class="comment">/*<sp/>extern<sp/>&quot;C&quot;<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="172"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="173"><highlight class="normal"></highlight></codeline>
-<codeline lineno="174"><highlight class="normal"></highlight><highlight class="preprocessor">#endif<sp/></highlight><highlight class="comment">/*<sp/>IE_QUANT_ACT_H<sp/>*/</highlight><highlight class="preprocessor"></highlight></codeline>
+<codeline lineno="62"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="ie__quant__act_8h_1a383703e828dd5701507b0d1f6ab1cf73" kindref="member">ie_act_i8_params_from_minmax</ref>(</highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>minv,<sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>maxv,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>symmetric,</highlight></codeline>
+<codeline lineno="63"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal">*<sp/>out_scale,<sp/>int8_t*<sp/>out_zero);</highlight></codeline>
+<codeline lineno="64"><highlight class="normal"></highlight></codeline>
+<codeline lineno="74"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="ie__quant__act_8h_1a6d9a5a967125879dcd69327e9d5fa04b" kindref="member">ie_quantize_act_int8</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal">*<sp/>src,<sp/>int8_t*<sp/>dst,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>n,</highlight></codeline>
+<codeline lineno="75"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="structie__act__i8__params" kindref="compound">ie_act_i8_params</ref><sp/>params,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>symmetric);</highlight></codeline>
+<codeline lineno="76"><highlight class="normal"></highlight></codeline>
+<codeline lineno="85"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="ie__quant__act_8h_1aa7d3ff181746bd40d9d863e51ac0b024" kindref="member">ie_dequantize_act_int8</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>int8_t*<sp/>src,<sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal">*<sp/>dst,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>n,</highlight></codeline>
+<codeline lineno="86"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="structie__act__i8__params" kindref="compound">ie_act_i8_params</ref><sp/>params);</highlight></codeline>
+<codeline lineno="87"><highlight class="normal"></highlight></codeline>
+<codeline lineno="102"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="ie__quant__act_8h_1ad17e6b199c1c826b681db341c72701ef" kindref="member">ie_act_i8_group_params_from_data</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal">*<sp/>src,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>n,</highlight></codeline>
+<codeline lineno="103"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>group_size,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>symmetric,</highlight></codeline>
+<codeline lineno="104"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal">*<sp/>out_scales,<sp/>int8_t*<sp/>out_zeros);</highlight></codeline>
+<codeline lineno="105"><highlight class="normal"></highlight></codeline>
+<codeline lineno="117"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="ie__quant__act_8h_1a8e3abfa039c2b7c2fca327f68a2d7b09" kindref="member">ie_quantize_act_int8_per_group</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal">*<sp/>src,<sp/>int8_t*<sp/>dst,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>n,</highlight></codeline>
+<codeline lineno="118"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>group_size,</highlight></codeline>
+<codeline lineno="119"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal">*<sp/>scales,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>int8_t*<sp/>zeros,</highlight></codeline>
+<codeline lineno="120"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>symmetric);</highlight></codeline>
+<codeline lineno="121"><highlight class="normal"></highlight></codeline>
+<codeline lineno="132"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="ie__quant__act_8h_1a725b47baea6b1f41980edb5e307cfa0f" kindref="member">ie_dequantize_act_int8_per_group</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>int8_t*<sp/>src,<sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal">*<sp/>dst,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>n,</highlight></codeline>
+<codeline lineno="133"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>group_size,</highlight></codeline>
+<codeline lineno="134"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal">*<sp/>scales,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>int8_t*<sp/>zeros);</highlight></codeline>
+<codeline lineno="135"><highlight class="normal"></highlight></codeline>
+<codeline lineno="148"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="ie__quant__act_8h_1a91772f4827e6d4c82915434eb55a9f17" kindref="member">ie_quantize_act_fp8</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal">*<sp/>src,<sp/>uint8_t*<sp/>dst,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>n,</highlight></codeline>
+<codeline lineno="149"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="ie__quant__act_8h_1a67a1bdaa8281d1c69b6b76ecba79c52c" kindref="member">ie_fp8_format</ref><sp/>fmt);</highlight></codeline>
+<codeline lineno="150"><highlight class="normal"></highlight></codeline>
+<codeline lineno="159"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="ie__quant__act_8h_1aca462f5af36ea8b096edc92c4252db71" kindref="member">ie_dequantize_act_fp8</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>uint8_t*<sp/>src,<sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal">*<sp/>dst,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>n,</highlight></codeline>
+<codeline lineno="160"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="ie__quant__act_8h_1a67a1bdaa8281d1c69b6b76ecba79c52c" kindref="member">ie_fp8_format</ref><sp/>fmt);</highlight></codeline>
+<codeline lineno="161"><highlight class="normal"></highlight></codeline>
+<codeline lineno="162"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="163"><highlight class="normal">}<sp/></highlight><highlight class="comment">/*<sp/>extern<sp/>&quot;C&quot;<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="164"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="165"><highlight class="normal"></highlight></codeline>
+<codeline lineno="166"><highlight class="normal"></highlight><highlight class="preprocessor">#endif<sp/></highlight><highlight class="comment">/*<sp/>IE_QUANT_ACT_H<sp/>*/</highlight><highlight class="preprocessor"></highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="167"><highlight class="normal"></highlight></codeline>
     </programlisting>
     <location file="engine/include/ie_quant_act.h"/>
   </compounddef>

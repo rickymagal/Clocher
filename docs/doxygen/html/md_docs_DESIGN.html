@@ -89,14 +89,14 @@ $(document).ready(function(){initNavTree('md_docs_DESIGN.html',''); initResizabl
 <div class="contents">
 <div class="textblock"><p>This document describes the hot path, API boundaries, and precision modes. <br  />
  <b>Last updated:</b> 2025-10-24 21:00:48 UTC</p>
-<h1><a class="anchor" id="autotoc_md23"></a>
+<h1><a class="anchor" id="autotoc_md26"></a>
 Process and boundaries</h1>
 <ul>
 <li>Single binary <code>inference-engine</code>: create → generate → collect metrics → destroy.</li>
 <li>CLI prints exactly one JSON line per run so the Python harness can ingest results.</li>
 <li>No third‑party runtime dependencies; only <code>pthread</code> and <code>libm</code> (and CUDA for the GPU build).</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md24"></a>
+<h1><a class="anchor" id="autotoc_md27"></a>
 API surface (high level)</h1>
 <ul>
 <li><code>ie_engine_create(cfg)</code> → initializes state (weights, buffers, thread‑pool).</li>
@@ -104,7 +104,7 @@ API surface (high level)</h1>
 <li><code>ie_engine_metrics(out)</code> → returns latency p50/p95, true TPS, <b>RSS peak</b>, KV hits/misses.</li>
 <li><code><a class="el" href="ie__api_8h.html#a8a724f7097b3e19da8d7dd97fba4415e" title="Destroy an engine and free its resources.">ie_engine_destroy()</a></code> → frees all resources.</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md25"></a>
+<h1><a class="anchor" id="autotoc_md28"></a>
 Hot path layout</h1>
 <ul>
 <li>GEMV microkernel:<ul>
@@ -118,19 +118,19 @@ Hot path layout</h1>
 </ul>
 </li>
 </ul>
-<h1><a class="anchor" id="autotoc_md28"></a>
+<h1><a class="anchor" id="autotoc_md29"></a>
 Precision modes</h1>
-<h2><a class="anchor" id="autotoc_md29"></a>
+<h2><a class="anchor" id="autotoc_md30"></a>
 Floating point</h2>
 <ul>
 <li>FP32 baseline, optional BF16/FP16 round‑trip (accumulate FP32).</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md30"></a>
+<h2><a class="anchor" id="autotoc_md31"></a>
 INT8 PTQ (reference)</h2>
 <ul>
 <li>Per‑tensor/per‑row scales (min‑max); (de)quant helpers; task gate in scripts.</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md31"></a>
+<h2><a class="anchor" id="autotoc_md32"></a>
 &lt;strong&gt;NEW — INT4 PTQ (weight‑only)&lt;/strong&gt;</h2>
 <ul>
 <li><b>Format</b>: weights are <b>nibble‑packed</b> (2 values per byte). Each row (or group) carries a scale (and optional zero‑point if affine).</li>

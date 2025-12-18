@@ -101,7 +101,8 @@ $(document).ready(function(){initNavTree('test__tokenizer_8c.html',''); initResi
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for test_tokenizer.c:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="test__tokenizer_8c__incl.svg" width="539" height="187"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="test__tokenizer_8c__incl.svg" width="539" height="187"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe>
+</div>
 </div>
 </div>
 <p><a href="test__tokenizer_8c_source.html">Go to the source code of this file.</a></p>
@@ -140,26 +141,26 @@ Functions</h2></td></tr>
 <p class="definition">Definition at line <a class="el" href="test__tokenizer_8c_source.html#l00024">24</a> of file <a class="el" href="test__tokenizer_8c_source.html">test_tokenizer.c</a>.</p>
 <div class="fragment"><div class="line"><a name="l00024"></a><span class="lineno">   24</span>&#160;               {</div>
 <div class="line"><a name="l00025"></a><span class="lineno">   25</span>&#160;  <a class="code" href="structie__vocab__s.html">ie_vocab_t</a> v;</div>
-<div class="line"><a name="l00026"></a><span class="lineno">   26</span>&#160;  assert(<a class="code" href="group__ie__io__tokenizer.html#gadbe33a7f4e53bcb709d56dc753c9148b">ie_vocab_load</a>(<span class="stringliteral">&quot;models/gpt-oss-20b/vocab.json&quot;</span>, &amp;v) == 0);</div>
+<div class="line"><a name="l00026"></a><span class="lineno">   26</span>&#160;  assert(<a class="code" href="ie__io_8h.html#adbe33a7f4e53bcb709d56dc753c9148b">ie_vocab_load</a>(<span class="stringliteral">&quot;models/gpt-oss-20b/vocab.json&quot;</span>, &amp;v) == 0);</div>
 <div class="line"><a name="l00027"></a><span class="lineno">   27</span>&#160;  assert(v.<a class="code" href="structie__vocab__s.html#a794049c93aac2c2c4b8e12c673db5296">vocab_size</a> &gt; 0);</div>
 <div class="line"><a name="l00028"></a><span class="lineno">   28</span>&#160; </div>
 <div class="line"><a name="l00029"></a><span class="lineno">   29</span>&#160;  <span class="keyword">const</span> <span class="keywordtype">char</span> *txt = <span class="stringliteral">&quot;hello world  from   engine&quot;</span>;</div>
 <div class="line"><a name="l00030"></a><span class="lineno">   30</span>&#160; </div>
 <div class="line"><a name="l00031"></a><span class="lineno">   31</span>&#160;  <span class="comment">/* Size-only query */</span></div>
 <div class="line"><a name="l00032"></a><span class="lineno">   32</span>&#160;  uint32_t needed = 0;</div>
-<div class="line"><a name="l00033"></a><span class="lineno">   33</span>&#160;  assert(<a class="code" href="group__ie__io__tokenizer.html#ga2b9cb342eb062867f93fb786548003f7">ie_tok_encode</a>(&amp;v, txt, NULL, &amp;needed) == 0);</div>
+<div class="line"><a name="l00033"></a><span class="lineno">   33</span>&#160;  assert(<a class="code" href="ie__io_8h.html#a2b9cb342eb062867f93fb786548003f7">ie_tok_encode</a>(&amp;v, txt, NULL, &amp;needed) == 0);</div>
 <div class="line"><a name="l00034"></a><span class="lineno">   34</span>&#160;  assert(needed == 4);</div>
 <div class="line"><a name="l00035"></a><span class="lineno">   35</span>&#160; </div>
 <div class="line"><a name="l00036"></a><span class="lineno">   36</span>&#160;  <span class="comment">/* Full encode */</span></div>
 <div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160;  uint32_t *ids = (uint32_t*)malloc(<span class="keyword">sizeof</span>(uint32_t) * needed);</div>
 <div class="line"><a name="l00038"></a><span class="lineno">   38</span>&#160;  assert(ids != NULL);</div>
 <div class="line"><a name="l00039"></a><span class="lineno">   39</span>&#160;  uint32_t got = needed; <span class="comment">/* capacity in, count out */</span></div>
-<div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160;  assert(<a class="code" href="group__ie__io__tokenizer.html#ga2b9cb342eb062867f93fb786548003f7">ie_tok_encode</a>(&amp;v, txt, ids, &amp;got) == 0);</div>
+<div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160;  assert(<a class="code" href="ie__io_8h.html#a2b9cb342eb062867f93fb786548003f7">ie_tok_encode</a>(&amp;v, txt, ids, &amp;got) == 0);</div>
 <div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160;  assert(got == needed);</div>
 <div class="line"><a name="l00042"></a><span class="lineno">   42</span>&#160; </div>
 <div class="line"><a name="l00043"></a><span class="lineno">   43</span>&#160;  <span class="comment">/* Decode to text */</span></div>
 <div class="line"><a name="l00044"></a><span class="lineno">   44</span>&#160;  <span class="keywordtype">char</span> buf[256];</div>
-<div class="line"><a name="l00045"></a><span class="lineno">   45</span>&#160;  assert(<a class="code" href="group__ie__io__tokenizer.html#ga68bc61261a64b4fe8bd566fc7d399a2e">ie_tok_decode</a>(&amp;v, ids, got, buf, <span class="keyword">sizeof</span>(buf)) == 0);</div>
+<div class="line"><a name="l00045"></a><span class="lineno">   45</span>&#160;  assert(<a class="code" href="ie__io_8h.html#a68bc61261a64b4fe8bd566fc7d399a2e">ie_tok_decode</a>(&amp;v, ids, got, buf, <span class="keyword">sizeof</span>(buf)) == 0);</div>
 <div class="line"><a name="l00046"></a><span class="lineno">   46</span>&#160; </div>
 <div class="line"><a name="l00047"></a><span class="lineno">   47</span>&#160;  <span class="comment">/* Sanity: decoding starts with a &quot;T&quot; token placeholder and contains spaces between tokens */</span></div>
 <div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160;  assert(strncmp(buf, <span class="stringliteral">&quot;T&quot;</span>, 1) == 0);</div>
@@ -174,17 +175,18 @@ Functions</h2></td></tr>
 <div class="line"><a name="l00057"></a><span class="lineno">   57</span>&#160;  printf(<span class="stringliteral">&quot;ok test_tokenizer\n&quot;</span>);</div>
 <div class="line"><a name="l00058"></a><span class="lineno">   58</span>&#160;  <span class="keywordflow">return</span> 0;</div>
 <div class="line"><a name="l00059"></a><span class="lineno">   59</span>&#160;}</div>
-<div class="ttc" id="agroup__ie__io__tokenizer_html_ga2b9cb342eb062867f93fb786548003f7"><div class="ttname"><a href="group__ie__io__tokenizer.html#ga2b9cb342eb062867f93fb786548003f7">ie_tok_encode</a></div><div class="ttdeci">int ie_tok_encode(const ie_vocab_t *v, const char *text, uint32_t *ids, uint32_t *out_count)</div><div class="ttdoc">Encode UTF-8 text into token IDs (whitespace split, hashed IDs).</div><div class="ttdef"><b>Definition:</b> <a href="tokenizer_8c_source.html#l00162">tokenizer.c:162</a></div></div>
-<div class="ttc" id="agroup__ie__io__tokenizer_html_ga68bc61261a64b4fe8bd566fc7d399a2e"><div class="ttname"><a href="group__ie__io__tokenizer.html#ga68bc61261a64b4fe8bd566fc7d399a2e">ie_tok_decode</a></div><div class="ttdeci">int ie_tok_decode(const ie_vocab_t *v, const uint32_t *ids, uint32_t count, char *out, size_t out_sz)</div><div class="ttdoc">Decode token IDs into a printable placeholder string.</div><div class="ttdef"><b>Definition:</b> <a href="tokenizer_8c_source.html#l00231">tokenizer.c:231</a></div></div>
-<div class="ttc" id="agroup__ie__io__tokenizer_html_gadbe33a7f4e53bcb709d56dc753c9148b"><div class="ttname"><a href="group__ie__io__tokenizer.html#gadbe33a7f4e53bcb709d56dc753c9148b">ie_vocab_load</a></div><div class="ttdeci">int ie_vocab_load(const char *vocab_path, ie_vocab_t *out)</div><div class="ttdoc">Load a vocabulary from vocab_path (or default to a stub).</div><div class="ttdef"><b>Definition:</b> <a href="tokenizer_8c_source.html#l00097">tokenizer.c:97</a></div></div>
-<div class="ttc" id="astructie__vocab__s_html"><div class="ttname"><a href="structie__vocab__s.html">ie_vocab_s</a></div><div class="ttdoc">Lightweight vocabulary descriptor.</div><div class="ttdef"><b>Definition:</b> <a href="ie__io_8h_source.html#l00244">ie_io.h:244</a></div></div>
-<div class="ttc" id="astructie__vocab__s_html_a794049c93aac2c2c4b8e12c673db5296"><div class="ttname"><a href="structie__vocab__s.html#a794049c93aac2c2c4b8e12c673db5296">ie_vocab_s::vocab_size</a></div><div class="ttdeci">int vocab_size</div><div class="ttdoc">Number of entries; stub sets this to a positive value.</div><div class="ttdef"><b>Definition:</b> <a href="ie__io_8h_source.html#l00246">ie_io.h:246</a></div></div>
+<div class="ttc" id="aie__io_8h_html_a2b9cb342eb062867f93fb786548003f7"><div class="ttname"><a href="ie__io_8h.html#a2b9cb342eb062867f93fb786548003f7">ie_tok_encode</a></div><div class="ttdeci">int ie_tok_encode(const ie_vocab_t *v, const char *text, uint32_t *ids, uint32_t *out_count)</div><div class="ttdoc">Encode UTF-8 text into token IDs (whitespace split, hashed IDs).</div><div class="ttdef"><b>Definition:</b> <a href="tokenizer_8c_source.html#l00162">tokenizer.c:162</a></div></div>
+<div class="ttc" id="aie__io_8h_html_a68bc61261a64b4fe8bd566fc7d399a2e"><div class="ttname"><a href="ie__io_8h.html#a68bc61261a64b4fe8bd566fc7d399a2e">ie_tok_decode</a></div><div class="ttdeci">int ie_tok_decode(const ie_vocab_t *v, const uint32_t *ids, uint32_t count, char *out, size_t out_sz)</div><div class="ttdoc">Decode token IDs into a printable placeholder string.</div><div class="ttdef"><b>Definition:</b> <a href="tokenizer_8c_source.html#l00231">tokenizer.c:231</a></div></div>
+<div class="ttc" id="aie__io_8h_html_adbe33a7f4e53bcb709d56dc753c9148b"><div class="ttname"><a href="ie__io_8h.html#adbe33a7f4e53bcb709d56dc753c9148b">ie_vocab_load</a></div><div class="ttdeci">int ie_vocab_load(const char *vocab_path, ie_vocab_t *out)</div><div class="ttdoc">Load a vocabulary from vocab_path or fall back to a stub.</div><div class="ttdef"><b>Definition:</b> <a href="tokenizer_8c_source.html#l00097">tokenizer.c:97</a></div></div>
+<div class="ttc" id="astructie__vocab__s_html"><div class="ttname"><a href="structie__vocab__s.html">ie_vocab_s</a></div><div class="ttdoc">Lightweight vocabulary descriptor.</div><div class="ttdef"><b>Definition:</b> <a href="ie__io_8h_source.html#l00105">ie_io.h:105</a></div></div>
+<div class="ttc" id="astructie__vocab__s_html_a794049c93aac2c2c4b8e12c673db5296"><div class="ttname"><a href="structie__vocab__s.html#a794049c93aac2c2c4b8e12c673db5296">ie_vocab_s::vocab_size</a></div><div class="ttdeci">int vocab_size</div><div class="ttdoc">Number of entries.</div><div class="ttdef"><b>Definition:</b> <a href="ie__io_8h_source.html#l00106">ie_io.h:106</a></div></div>
 </div><!-- fragment -->
-<p class="reference">References <a class="el" href="tokenizer_8c_source.html#l00231">ie_tok_decode()</a>, <a class="el" href="tokenizer_8c_source.html#l00162">ie_tok_encode()</a>, <a class="el" href="tokenizer_8c_source.html#l00097">ie_vocab_load()</a>, and <a class="el" href="ie__io_8h_source.html#l00246">ie_vocab_s::vocab_size</a>.</p>
+<p class="reference">References <a class="el" href="tokenizer_8c_source.html#l00231">ie_tok_decode()</a>, <a class="el" href="tokenizer_8c_source.html#l00162">ie_tok_encode()</a>, <a class="el" href="tokenizer_8c_source.html#l00097">ie_vocab_load()</a>, and <a class="el" href="ie__io_8h_source.html#l00106">ie_vocab_s::vocab_size</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="test__tokenizer_8c_a840291bc02cba5474a4cb46a9b9566fe_cgraph.svg" width="406" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="test__tokenizer_8c_a840291bc02cba5474a4cb46a9b9566fe_cgraph.svg" width="406" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe>
+</div>
 </div>
 
 </div>

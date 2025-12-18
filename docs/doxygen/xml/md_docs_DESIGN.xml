@@ -8,7 +8,7 @@
     <detaileddescription>
 <para>This document describes the hot path, API boundaries, and precision modes. <linebreak/>
  <bold>Last updated:</bold> 2025-10-24 21:00:48 UTC</para>
-<sect1 id="md_docs_DESIGN_1autotoc_md23">
+<sect1 id="md_docs_DESIGN_1autotoc_md26">
 <title>Process and boundaries</title>
 <para><itemizedlist>
 <listitem><para>Single binary <computeroutput>inference-engine</computeroutput>: create → generate → collect metrics → destroy.</para>
@@ -17,7 +17,7 @@
 </listitem></itemizedlist>
 </para>
 </sect1>
-<sect1 id="md_docs_DESIGN_1autotoc_md24">
+<sect1 id="md_docs_DESIGN_1autotoc_md27">
 <title>API surface (high level)</title>
 <para><itemizedlist>
 <listitem><para><computeroutput>ie_engine_create(cfg)</computeroutput> → initializes state (weights, buffers, thread‑pool).</para>
@@ -27,7 +27,7 @@
 </listitem></itemizedlist>
 </para>
 </sect1>
-<sect1 id="md_docs_DESIGN_1autotoc_md25">
+<sect1 id="md_docs_DESIGN_1autotoc_md28">
 <title>Hot path layout</title>
 <para><itemizedlist>
 <listitem><para>GEMV microkernel:<itemizedlist>
@@ -43,23 +43,23 @@
 </listitem></itemizedlist>
 </para>
 </sect1>
-<sect1 id="md_docs_DESIGN_1autotoc_md28">
+<sect1 id="md_docs_DESIGN_1autotoc_md29">
 <title>Precision modes</title>
-<sect2 id="md_docs_DESIGN_1autotoc_md29">
+<sect2 id="md_docs_DESIGN_1autotoc_md30">
 <title>Floating point</title>
 <para><itemizedlist>
 <listitem><para>FP32 baseline, optional BF16/FP16 round‑trip (accumulate FP32).</para>
 </listitem></itemizedlist>
 </para>
 </sect2>
-<sect2 id="md_docs_DESIGN_1autotoc_md30">
+<sect2 id="md_docs_DESIGN_1autotoc_md31">
 <title>INT8 PTQ (reference)</title>
 <para><itemizedlist>
 <listitem><para>Per‑tensor/per‑row scales (min‑max); (de)quant helpers; task gate in scripts.</para>
 </listitem></itemizedlist>
 </para>
 </sect2>
-<sect2 id="md_docs_DESIGN_1autotoc_md31">
+<sect2 id="md_docs_DESIGN_1autotoc_md32">
 <title>&lt;strong&gt;NEW — INT4 PTQ (weight‑only)&lt;/strong&gt;</title>
 <para><itemizedlist>
 <listitem><para><bold>Format</bold>: weights are <bold>nibble‑packed</bold> (2 values per byte). Each row (or group) carries a scale (and optional zero‑point if affine).</para>

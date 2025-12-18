@@ -91,6 +91,7 @@ var annotated_dup =
     [ "ie_metrics", "structie__metrics.html", "structie__metrics" ],
     [ "ie_metrics_t", "structie__metrics__t.html", "structie__metrics__t" ],
     [ "ie_mmap_file", "structie__mmap__file.html", "structie__mmap__file" ],
+    [ "ie_numa_policy_t", "structie__numa__policy__t.html", "structie__numa__policy__t" ],
     [ "ie_patch_list_hdr_s", "structie__patch__list__hdr__s.html", "structie__patch__list__hdr__s" ],
     [ "ie_patch_list_hdr_t", "structie__patch__list__hdr__t.html", null ],
     [ "ie_patch_list_s", "structie__patch__list__s.html", "structie__patch__list__s" ],

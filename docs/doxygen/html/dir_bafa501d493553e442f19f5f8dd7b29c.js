@@ -30,6 +30,7 @@ var dir_bafa501d493553e442f19f5f8dd7b29c =
     [ "ie_threadpool.h", "ie__threadpool_8h.html", "ie__threadpool_8h" ],
     [ "ie_tokenizer.h", "ie__tokenizer_8h.html", null ],
     [ "ie_topology.h", "ie__topology_8h.html", "ie__topology_8h" ],
+    [ "numa_policy.h", "numa__policy_8h.html", "numa__policy_8h" ],
     [ "patch_list.h", "patch__list_8h.html", "patch__list_8h" ],
     [ "platform.h", "platform_8h.html", "platform_8h" ],
     [ "sparse_format.h", "sparse__format_8h.html", "sparse__format_8h" ],

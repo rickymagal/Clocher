@@ -220,12 +220,12 @@
           <declname>fmt</declname>
         </param>
         <briefdescription>
-<para>Quantize activations to FP8 (E4M3 or E5M2). </para>
+<para>Quantize fp32 activations to FP8. </para>
         </briefdescription>
         <detaileddescription>
-<para>Non-finite inputs:<itemizedlist>
-<listitem><para>E4M3: saturated to max finite.</para>
-</listitem><listitem><para>E5M2: pass through to Inf/NaN encodings when possible.</para>
+<para><itemizedlist>
+<listitem><para>E4M3: non-finite inputs saturate to max finite.</para>
+</listitem><listitem><para>E5M2: attempts to preserve Inf/NaN encodings.</para>
 </listitem></itemizedlist>
 </para>
 <para><parameterlist kind="param"><parameteritem>
@@ -233,7 +233,7 @@
 <parametername>src</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Source floats. </para>
+<para>Source float buffer. </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -241,7 +241,7 @@
 <parametername>dst</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Destination bytes (FP8 bit-patterns). </para>
+<para>Destination FP8 bytes (bit patterns). </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -266,7 +266,7 @@
         <inbodydescription>
         </inbodydescription>
         <location file="engine/src/quant/act_fp8.c" line="182" column="6" bodyfile="engine/src/quant/act_fp8.c" bodystart="182" bodyend="193"/>
-        <references refid="ie__quant__act_8h_1a67a1bdaa8281d1c69b6b76ecba79c52ca67cfe56fcb473bed9a2f92388f2fc347" compoundref="ie__quant__act_8h" startline="41">IE_FP8_E4M3</references>
+        <references refid="ie__quant__act_8h_1a67a1bdaa8281d1c69b6b76ecba79c52ca67cfe56fcb473bed9a2f92388f2fc347" compoundref="ie__quant__act_8h" startline="28">IE_FP8_E4M3</references>
         <references refid="act__fp8_8c_1a202a6a4b5ffeadd5e70ea00de8307dd4" compoundref="act__fp8_8c" startline="44" endline="91">ie_pack_fp8_e4m3</references>
         <references refid="act__fp8_8c_1a3c2a81020974f897eee0c71515548031" compoundref="act__fp8_8c" startline="112" endline="154">ie_pack_fp8_e5m2</references>
         <referencedby refid="microbench__act__path_8c_1a3ddaada8ef50378cb1e48d907c7b6430" compoundref="microbench__act__path_8c" startline="76" endline="96">bench_fp8</referencedby>
@@ -295,7 +295,7 @@
           <declname>fmt</declname>
         </param>
         <briefdescription>
-<para>Dequantize FP8 bytes to floats (E4M3 or E5M2). </para>
+<para>Dequantize FP8 bytes to fp32. </para>
         </briefdescription>
         <detaileddescription>
 <para><parameterlist kind="param"><parameteritem>
@@ -303,7 +303,7 @@
 <parametername>src</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Source bytes (FP8 bit-patterns). </para>
+<para>Source FP8 bytes (bit patterns). </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -311,7 +311,7 @@
 <parametername>dst</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Destination floats. </para>
+<para>Destination float buffer. </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -336,7 +336,7 @@
         <inbodydescription>
         </inbodydescription>
         <location file="engine/src/quant/act_fp8.c" line="195" column="6" bodyfile="engine/src/quant/act_fp8.c" bodystart="195" bodyend="206"/>
-        <references refid="ie__quant__act_8h_1a67a1bdaa8281d1c69b6b76ecba79c52ca67cfe56fcb473bed9a2f92388f2fc347" compoundref="ie__quant__act_8h" startline="41">IE_FP8_E4M3</references>
+        <references refid="ie__quant__act_8h_1a67a1bdaa8281d1c69b6b76ecba79c52ca67cfe56fcb473bed9a2f92388f2fc347" compoundref="ie__quant__act_8h" startline="28">IE_FP8_E4M3</references>
         <references refid="act__fp8_8c_1a52bd1c6672e488e69c328a8462a03638" compoundref="act__fp8_8c" startline="93" endline="110">ie_unpack_fp8_e4m3</references>
         <references refid="act__fp8_8c_1a8980ac38b93f25c750abde5ec521b4d1" compoundref="act__fp8_8c" startline="156" endline="178">ie_unpack_fp8_e5m2</references>
         <referencedby refid="microbench__act__path_8c_1a3ddaada8ef50378cb1e48d907c7b6430" compoundref="microbench__act__path_8c" startline="76" endline="96">bench_fp8</referencedby>
