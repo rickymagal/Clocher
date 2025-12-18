@@ -85,7 +85,6 @@
 <codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>END<sp/>{<sp/>}</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/>&apos;<sp/>/proc/pressure/memory<sp/>2&gt;/dev/null<sp/>||<sp/>echo<sp/>&quot;&quot;</highlight></codeline>
 <codeline><highlight class="normal">}</highlight></codeline>
 <codeline></codeline>
@@ -100,7 +99,6 @@
 <codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>END<sp/>{<sp/>}</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/>&apos;<sp/>/proc/pressure/memory<sp/>2&gt;/dev/null<sp/>||<sp/>echo<sp/>&quot;&quot;</highlight></codeline>
 <codeline><highlight class="normal">}</highlight></codeline>
 <codeline></codeline>
@@ -141,9 +139,8 @@
 <codeline><highlight class="normal"><sp/><sp/><sp/><sp/>s=open(f&quot;/proc/{pid}/stat&quot;,&quot;r&quot;).read()</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/><sp/><sp/>rparen=s.rfind(&quot;)&quot;)</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/><sp/><sp/>tail=s[rparen+2:].split()</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>#<sp/>Fields<sp/>after<sp/>comm/state<sp/>begin<sp/>at<sp/>position<sp/>3<sp/>overall.<sp/>In<sp/>tail:</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>#<sp/>minflt<sp/>is<sp/>field<sp/>10<sp/>overall<sp/>-&gt;<sp/>tail<sp/>index<sp/>10-3<sp/>=<sp/>7</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>#<sp/>majflt<sp/>is<sp/>field<sp/>12<sp/>overall<sp/>-&gt;<sp/>tail<sp/>index<sp/>12-3<sp/>=<sp/>9</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>#<sp/>minflt<sp/>is<sp/>field<sp/>10<sp/>overall<sp/>-&gt;<sp/>tail<sp/>index<sp/>7</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>#<sp/>majflt<sp/>is<sp/>field<sp/>12<sp/>overall<sp/>-&gt;<sp/>tail<sp/>index<sp/>9</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/><sp/><sp/>minflt=int(tail[7])</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/><sp/><sp/>majflt=int(tail[9])</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/><sp/><sp/>print(minflt,<sp/>majflt)</highlight></codeline>
@@ -152,30 +149,31 @@
 <codeline><highlight class="normal">PY</highlight></codeline>
 <codeline><highlight class="normal">}</highlight></codeline>
 <codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Some<sp/>engine<sp/>paths<sp/>still<sp/>open<sp/>IEBIN<sp/>as<sp/>./model.ie.{json,bin}.</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>To<sp/>make<sp/>bench<sp/>robust,<sp/>we<sp/>always<sp/>run<sp/>the<sp/>engine<sp/>with<sp/>CWD<sp/>=<sp/>MODEL_DIR.</highlight></codeline>
 <codeline><highlight class="normal">run_one()<sp/>{</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/>local<sp/>run_idx=&quot;$1&quot;</highlight></codeline>
 <codeline></codeline>
 <codeline><highlight class="normal"><sp/><sp/>local<sp/>out_raw=&quot;${_tmpdir}/run_${run_idx}.raw.txt&quot;</highlight></codeline>
 <codeline></codeline>
-<codeline><highlight class="normal"><sp/><sp/>local<sp/>cmd=(</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&quot;${ENGINE_BIN}&quot;</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>--device<sp/>&quot;${DEVICE}&quot;</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>--model-dir<sp/>&quot;${MODEL_DIR}&quot;</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>--prompts-file<sp/>&quot;${PROMPTS}&quot;</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>--threads<sp/>&quot;${THREADS}&quot;</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>--precision<sp/>&quot;${CLI_PREC}&quot;</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>--batch<sp/>&quot;${BATCH}&quot;</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>--prefetch<sp/>&quot;${PREFETCH}&quot;</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>--pretranspose<sp/>&quot;${PRETRANSPOSE}&quot;</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>--affinity<sp/>&quot;${AFFINITY}&quot;</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>--max-new<sp/>&quot;${MAX_NEW}&quot;</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>--rounds<sp/>1</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/>)</highlight></codeline>
-<codeline></codeline>
 <codeline><highlight class="normal"><sp/><sp/>local<sp/>sw_in0<sp/>sw_out0</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/>read<sp/>-r<sp/>sw_in0<sp/>sw_out0<sp/>&lt;<sp/>&lt;(read_vmstat_swaps)</highlight></codeline>
 <codeline></codeline>
-<codeline><highlight class="normal"><sp/><sp/>&quot;${cmd[@]}&quot;<sp/>&gt;<sp/>&quot;${out_raw}&quot;<sp/>2&gt;&amp;1<sp/>&amp;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>(</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>cd<sp/>&quot;${MODEL_DIR}&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&quot;${ENGINE_BIN}&quot;<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>--device<sp/>&quot;${DEVICE}&quot;<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>--model-dir<sp/>&quot;.&quot;<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>--prompts-file<sp/>&quot;${PROMPTS}&quot;<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>--threads<sp/>&quot;${THREADS}&quot;<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>--precision<sp/>&quot;${CLI_PREC}&quot;<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>--batch<sp/>&quot;${BATCH}&quot;<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>--prefetch<sp/>&quot;${PREFETCH}&quot;<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>--pretranspose<sp/>&quot;${PRETRANSPOSE}&quot;<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>--affinity<sp/>&quot;${AFFINITY}&quot;<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>--max-new<sp/>&quot;${MAX_NEW}&quot;<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>--rounds<sp/>1</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>)<sp/>&gt;<sp/>&quot;${out_raw}&quot;<sp/>2&gt;&amp;1<sp/>&amp;</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/>local<sp/>pid=&quot;$!&quot;</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/>disown<sp/>||<sp/>true</highlight></codeline>
 <codeline></codeline>
@@ -350,8 +348,9 @@
 <codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&quot;${minflt_delta}&quot;<sp/>&quot;${majflt_delta}&quot;<sp/>\</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&quot;${swap_in_mb}&quot;<sp/>&quot;${swap_out_mb}&quot;<sp/>\</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&quot;${psi_some_mean}&quot;<sp/>&quot;${psi_full_mean}&quot;<sp/>\</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&quot;${memavail_mean_mb}&quot;<sp/>&quot;${memavail_mean_pct}&quot;<sp/>&lt;&lt;&apos;PY&apos;</highlight></codeline>
-<codeline><highlight class="normal">import<sp/>sys,<sp/>json</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&quot;${memavail_mean_mb}&quot;<sp/>&quot;${memavail_mean_pct}&quot;<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&quot;${MODEL_DIR}&quot;<sp/>&quot;${ENGINE_BIN}&quot;<sp/>&quot;${DEVICE}&quot;<sp/>&lt;&lt;&apos;PY&apos;</highlight></codeline>
+<codeline><highlight class="normal">import<sp/>sys,<sp/>json,<sp/>os</highlight></codeline>
 <codeline></codeline>
 <codeline><highlight class="normal">raw_path=sys.argv[1]</highlight></codeline>
 <codeline><highlight class="normal">rss_floor=float(sys.argv[2])</highlight></codeline>
@@ -373,6 +372,10 @@
 <codeline><highlight class="normal">mem_av_mb=to_opt_float(sys.argv[12])</highlight></codeline>
 <codeline><highlight class="normal">mem_av_pct=to_opt_float(sys.argv[13])</highlight></codeline>
 <codeline></codeline>
+<codeline><highlight class="normal">model_dir=sys.argv[14]</highlight></codeline>
+<codeline><highlight class="normal">engine_bin=sys.argv[15]</highlight></codeline>
+<codeline><highlight class="normal">device=sys.argv[16]</highlight></codeline>
+<codeline></codeline>
 <codeline><highlight class="normal">last=None</highlight></codeline>
 <codeline><highlight class="normal">with<sp/>open(raw_path,&quot;r&quot;,encoding=&quot;utf-8&quot;,errors=&quot;ignore&quot;)<sp/>as<sp/>f:</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/><sp/><sp/>for<sp/>line<sp/>in<sp/>f:</highlight></codeline>
@@ -389,7 +392,20 @@
 <codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>last=obj</highlight></codeline>
 <codeline></codeline>
 <codeline><highlight class="normal">if<sp/>last<sp/>is<sp/>None:</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>raise<sp/>SystemExit(&quot;ERROR:<sp/>engine<sp/>did<sp/>not<sp/>emit<sp/>a<sp/>valid<sp/>per-run<sp/>JSON<sp/>object&quot;)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>tail=[]</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>try:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>with<sp/>open(raw_path,&quot;r&quot;,encoding=&quot;utf-8&quot;,errors=&quot;ignore&quot;)<sp/>as<sp/>f:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>tail=f.readlines()[-200:]</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>except<sp/>Exception:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>tail=[]</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>sys.stderr.write(&quot;ERROR:<sp/>no<sp/>JSON<sp/>object<sp/>found<sp/>in<sp/>engine<sp/>output\n&quot;)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>sys.stderr.write(&quot;----<sp/>context<sp/>----\n&quot;)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>sys.stderr.write(f&quot;cwd(model_dir)={model_dir}\n&quot;)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>sys.stderr.write(f&quot;engine_bin={engine_bin}\n&quot;)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>sys.stderr.write(f&quot;device={device}\n&quot;)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>sys.stderr.write(&quot;----<sp/>raw<sp/>tail<sp/>(last<sp/>200<sp/>lines)<sp/>----\n&quot;)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>sys.stderr.write(&quot;&quot;.join(tail))</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>raise<sp/>SystemExit(1)</highlight></codeline>
 <codeline></codeline>
 <codeline><highlight class="normal">#<sp/>Inject<sp/>extended<sp/>memory<sp/>metrics<sp/>(names<sp/>match<sp/>update_performance_md.py)</highlight></codeline>
 <codeline><highlight class="normal">last[&quot;pss_peak_mb&quot;]=pss_peak</highlight></codeline>

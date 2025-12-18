@@ -6,10 +6,11 @@
     <includes local="no">stdint.h</includes>
     <includedby refid="ie__tokenizer_8h" local="yes">engine/include/ie_tokenizer.h</includedby>
     <includedby refid="tokenizer_8c" local="yes">engine/src/io/tokenizer.c</includedby>
-    <includedby refid="weights_8c" local="yes">engine/src/io/weights.c</includedby>
     <includedby refid="main__infer_8c" local="yes">engine/src/main_infer.c</includedby>
-    <includedby refid="test__weights_8c" local="yes">tests/c/test_weights.c</includedby>
+    <includedby refid="weights_8c" local="yes">engine/src/io/weights.c</includedby>
+    <includedby refid="test__dedup__loader_8c" local="yes">tests/c/test_dedup_loader.c</includedby>
     <includedby refid="test__tokenizer_8c" local="yes">tests/c/test_tokenizer.c</includedby>
+    <includedby refid="test__weights_8c" local="yes">tests/c/test_weights.c</includedby>
     <incdepgraph>
       <node id="3">
         <label>stdint.h</label>
@@ -31,6 +32,10 @@
         <label>tests/c/test_tokenizer.c</label>
         <link refid="test__tokenizer_8c"/>
       </node>
+      <node id="6">
+        <label>tests/c/test_dedup_loader.c</label>
+        <link refid="test__dedup__loader_8c"/>
+      </node>
       <node id="1">
         <label>engine/include/ie_io.h</label>
         <link refid="ie__io_8h"/>
@@ -46,12 +51,14 @@
         </childnode>
         <childnode refid="7" relation="include">
         </childnode>
+        <childnode refid="8" relation="include">
+        </childnode>
       </node>
       <node id="2">
         <label>engine/include/ie_tokenizer.h</label>
         <link refid="ie__tokenizer_8h"/>
       </node>
-      <node id="6">
+      <node id="8">
         <label>tests/c/test_weights.c</label>
         <link refid="test__weights_8c"/>
       </node>
@@ -59,11 +66,11 @@
         <label>engine/src/io/tokenizer.c</label>
         <link refid="tokenizer_8c"/>
       </node>
-      <node id="5">
+      <node id="4">
         <label>engine/src/main_infer.c</label>
         <link refid="main__infer_8c"/>
       </node>
-      <node id="4">
+      <node id="5">
         <label>engine/src/io/weights.c</label>
         <link refid="weights_8c"/>
       </node>
@@ -339,11 +346,12 @@ Open and parse IEBIN v1 metadata and resolve the weights path.</para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="engine/include/ie_io.h" line="185" column="5" bodyfile="engine/src/io/weights.c" bodystart="413" bodyend="504" declfile="engine/include/ie_io.h" declline="185" declcolumn="5"/>
+        <location file="engine/include/ie_io.h" line="185" column="5" bodyfile="engine/src/io/weights.c" bodystart="434" bodyend="543" declfile="engine/include/ie_io.h" declline="185" declcolumn="5"/>
         <references refid="structie__weights__s_1a19f9137cca00113908b495a70769805e" compoundref="ie__io_8h" startline="129">ie_weights_s::bin_size_bytes</references>
         <references refid="weights_8c_1ae3307b59271742c37862abf0b9698d23" compoundref="weights_8c" startline="77" endline="84">cpyz</references>
         <references refid="structie__weights__s_1a6cffa1c1904346d68932cc9542b8ff32" compoundref="ie__io_8h" startline="158">ie_weights_s::dedup_handle</references>
         <references refid="structie__weights__s_1aaedc444c52d256720c4b4099604206a4" compoundref="ie__io_8h" startline="116">ie_weights_s::dtype</references>
+        <references refid="weights_8c_1a93c92a71a0cf18f3eea8623ea9524d54" compoundref="weights_8c" startline="406" endline="412">env_flag_get</references>
         <references refid="weights_8c_1a8adb51cd6c239a9589d4d66cd0cf989e" compoundref="weights_8c" startline="388" endline="391">file_exists_readable</references>
         <references refid="group__ie__io__status_1gga4c501870bd45dbe373416745a03de987a579de46204c4454f99e9620965e58239" compoundref="ie__io_8h" startline="59">IE_IO_ERR_ARGS</references>
         <references refid="group__ie__io__status_1gga4c501870bd45dbe373416745a03de987a66046f2226981286e47bb2f33ab56862" compoundref="ie__io_8h" startline="65">IE_IO_ERR_BIN_UNSPEC</references>
@@ -362,7 +370,8 @@ Open and parse IEBIN v1 metadata and resolve the weights path.</para>
         <references refid="weights_8c_1a3c438658d11f74ba4af8273c7e390311" compoundref="weights_8c" startline="220" endline="245">scan_json_key_string</references>
         <references refid="structie__weights__s_1ae12c1b3b426321f6ba604f0a89673315" compoundref="ie__io_8h" startline="113">ie_weights_s::version</references>
         <references refid="structie__weights__s_1ab6a61099d0af4a47854d02dc4fef5b8f" compoundref="ie__io_8h" startline="124">ie_weights_s::weights_path</references>
-        <referencedby refid="main__infer_8c_1a3c04138a5bfe5d72780bb7e82a18e627" compoundref="main__infer_8c" startline="486" endline="725">main</referencedby>
+        <referencedby refid="main__infer_8c_1a3c04138a5bfe5d72780bb7e82a18e627" compoundref="main__infer_8c" startline="651" endline="914">main</referencedby>
+        <referencedby refid="test__dedup__loader_8c_1a73dca7f77cd9da376bc14e888330d88f" compoundref="test__dedup__loader_8c" startline="65" endline="85">open_and_touch</referencedby>
       </memberdef>
       <memberdef kind="function" id="group__ie__io__weights_1ga095d7f59c4cba2b530bac039bca8b7a9" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>int</type>
@@ -431,7 +440,7 @@ Touch the weights binary to verify readability (and optionally warm caches).</pa
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="engine/include/ie_io.h" line="207" column="5" bodyfile="engine/src/io/weights.c" bodystart="513" bodyend="529" declfile="engine/include/ie_io.h" declline="207" declcolumn="5"/>
+        <location file="engine/include/ie_io.h" line="207" column="5" bodyfile="engine/src/io/weights.c" bodystart="552" bodyend="568" declfile="engine/include/ie_io.h" declline="207" declcolumn="5"/>
         <references refid="structie__weights__s_1a19f9137cca00113908b495a70769805e" compoundref="ie__io_8h" startline="129">ie_weights_s::bin_size_bytes</references>
         <references refid="group__ie__io__status_1gga4c501870bd45dbe373416745a03de987a579de46204c4454f99e9620965e58239" compoundref="ie__io_8h" startline="59">IE_IO_ERR_ARGS</references>
         <references refid="group__ie__io__status_1gga4c501870bd45dbe373416745a03de987aba0321da4352c7a61ea1bda842bb64d0" compoundref="ie__io_8h" startline="71">IE_IO_ERR_OPEN</references>
@@ -439,7 +448,8 @@ Touch the weights binary to verify readability (and optionally warm caches).</pa
         <references refid="group__ie__io__status_1gga4c501870bd45dbe373416745a03de987a81b076a3d2516e2f45170c664c0fa57d" compoundref="ie__io_8h" startline="56">IE_IO_OK</references>
         <references refid="weights_8c_1aabb19f4a5e5385962c6db57f611bb785" compoundref="weights_8c" startline="351" endline="362">ie_pread</references>
         <references refid="structie__weights__s_1ab6a61099d0af4a47854d02dc4fef5b8f" compoundref="ie__io_8h" startline="124">ie_weights_s::weights_path</references>
-        <referencedby refid="main__infer_8c_1a3c04138a5bfe5d72780bb7e82a18e627" compoundref="main__infer_8c" startline="486" endline="725">main</referencedby>
+        <referencedby refid="main__infer_8c_1a3c04138a5bfe5d72780bb7e82a18e627" compoundref="main__infer_8c" startline="651" endline="914">main</referencedby>
+        <referencedby refid="test__dedup__loader_8c_1a73dca7f77cd9da376bc14e888330d88f" compoundref="test__dedup__loader_8c" startline="65" endline="85">open_and_touch</referencedby>
       </memberdef>
       <memberdef kind="function" id="group__ie__io__weights_1ga06c2b7e35d1f82a11e4605e23a1976f5" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -475,11 +485,12 @@ Close weights resources (reserved for future use).</para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="engine/include/ie_io.h" line="222" column="6" bodyfile="engine/src/io/weights.c" bodystart="536" bodyend="544" declfile="engine/include/ie_io.h" declline="222" declcolumn="6"/>
+        <location file="engine/include/ie_io.h" line="222" column="6" bodyfile="engine/src/io/weights.c" bodystart="575" bodyend="583" declfile="engine/include/ie_io.h" declline="222" declcolumn="6"/>
         <references refid="structie__weights__s_1a6cffa1c1904346d68932cc9542b8ff32" compoundref="ie__io_8h" startline="158">ie_weights_s::dedup_handle</references>
         <references refid="weights__dedup_8h_1a3ad33a6fe3c7a81072c092d1ee510fce" compoundref="weights__dedup_8c" startline="1088" endline="1105">ie_weights_dedup_close</references>
         <references refid="structie__weights__s_1ab1e17ac4f44125571f2c63e603d967da" compoundref="ie__io_8h" startline="148">ie_weights_s::is_dedup</references>
-        <referencedby refid="main__infer_8c_1a3c04138a5bfe5d72780bb7e82a18e627" compoundref="main__infer_8c" startline="486" endline="725">main</referencedby>
+        <referencedby refid="main__infer_8c_1a3c04138a5bfe5d72780bb7e82a18e627" compoundref="main__infer_8c" startline="651" endline="914">main</referencedby>
+        <referencedby refid="test__dedup__loader_8c_1a73dca7f77cd9da376bc14e888330d88f" compoundref="test__dedup__loader_8c" startline="65" endline="85">open_and_touch</referencedby>
       </memberdef>
       <memberdef kind="function" id="group__ie__io__tokenizer_1gadbe33a7f4e53bcb709d56dc753c9148b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>int</type>

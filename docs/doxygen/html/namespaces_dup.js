@@ -3,6 +3,8 @@ var namespaces_dup =
     [ "convert_safetensors_to_pt_bin", "namespaceconvert__safetensors__to__pt__bin.html", [
       [ "main", "namespaceconvert__safetensors__to__pt__bin.html#a680b76453da1bcaa9cb19bb3484843e7", null ]
     ] ],
+    [ "dedup_extract_int4", "namespacededup__extract__int4.html", "namespacededup__extract__int4" ],
+    [ "dedup_verify_int4", "namespacededup__verify__int4.html", "namespacededup__verify__int4" ],
     [ "download_gpt_oss_20b", "namespacedownload__gpt__oss__20b.html", [
       [ "local_dir", "namespacedownload__gpt__oss__20b.html#aecd562067554e1acea55bc9e8f001abe", null ],
       [ "max_workers", "namespacedownload__gpt__oss__20b.html#a1834ec644fd503af4dcc6adc27259162", null ],

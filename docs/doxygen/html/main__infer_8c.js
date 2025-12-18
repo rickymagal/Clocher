@@ -16,14 +16,20 @@ var main__infer_8c =
       [ "CLI_PRETX_ALL", "main__infer_8c.html#ae715f0cc745f58eebd4be50b187dd41da4fad867319e4f9197a9c373762a3ad54", null ]
     ] ],
     [ "ascii_ieq", "main__infer_8c.html#a72ab94aafe7740f1343d317daa89ca15", null ],
+    [ "canon_dir", "main__infer_8c.html#a680d5eb9763f52ea89ce1764e01121dc", null ],
     [ "cli_extras_defaults", "main__infer_8c.html#a25c42477bc56f4eb2d2a5c53e4510d70", null ],
     [ "env_long", "main__infer_8c.html#a9675b1f5b8b73e24233f92cb11e31f6a", null ],
     [ "env_str", "main__infer_8c.html#a124e2d03cd8b57bed92fb2911d54ea17", null ],
+    [ "join_path", "main__infer_8c.html#adca9b33a342b8635e28ba51aecb365f6", null ],
     [ "main", "main__infer_8c.html#a3c04138a5bfe5d72780bb7e82a18e627", null ],
     [ "now_sec", "main__infer_8c.html#a4fdbfffdaa0f22a01822f6a62bb7e95e", null ],
     [ "parse_flags", "main__infer_8c.html#a456ba954f3884bcf5f72fc3e779de284", null ],
+    [ "path_exists", "main__infer_8c.html#a0cbea455e9868581360f43c63db6554c", null ],
+    [ "path_is_abs", "main__infer_8c.html#a35a9aadd511e6b3688d01a67a12c7651", null ],
     [ "print_json_result", "main__infer_8c.html#a5db8fa11a9c7e98dabe7f05ea69f4000", null ],
     [ "read_first_nonempty_line", "main__infer_8c.html#a609fc6d778b714530dadf2ef012acf5c", null ],
+    [ "resolve_iebin_paths", "main__infer_8c.html#ae06567450eeb2b05b0039400021225ae", null ],
     [ "safe_atoi", "main__infer_8c.html#a42cabe54dce1190125a12e4c0360ce22", null ],
+    [ "safe_strcpy", "main__infer_8c.html#a210133797f21fcee710ec892841dce42", null ],
     [ "usage", "main__infer_8c.html#ad96d407a911fbb914fa8e4cfbf2faf0f", null ]
 ];

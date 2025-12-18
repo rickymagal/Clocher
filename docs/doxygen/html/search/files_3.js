@@ -1,7 +1,12 @@
 var searchData=
 [
-  ['decisions_2emd_1284',['DECISIONS.md',['../DECISIONS_8md.html',1,'']]],
-  ['dedup_5fextract_2ec_1285',['dedup_extract.c',['../dedup__extract_8c.html',1,'']]],
-  ['design_2emd_1286',['DESIGN.md',['../DESIGN_8md.html',1,'']]],
-  ['download_5fgpt_5foss_5f20b_2epy_1287',['download_gpt_oss_20b.py',['../download__gpt__oss__20b_8py.html',1,'']]]
+  ['decisions_2emd_1422',['DECISIONS.md',['../DECISIONS_8md.html',1,'']]],
+  ['dedup_5fcache_2ec_1423',['dedup_cache.c',['../dedup__cache_8c.html',1,'']]],
+  ['dedup_5fcache_2eh_1424',['dedup_cache.h',['../dedup__cache_8h.html',1,'']]],
+  ['dedup_5fextract_2ec_1425',['dedup_extract.c',['../dedup__extract_8c.html',1,'']]],
+  ['dedup_5fextract_5fint4_2epy_1426',['dedup_extract_int4.py',['../dedup__extract__int4_8py.html',1,'']]],
+  ['dedup_5fspec_2eh_1427',['dedup_spec.h',['../dedup__spec_8h.html',1,'']]],
+  ['dedup_5fverify_5fint4_2epy_1428',['dedup_verify_int4.py',['../dedup__verify__int4_8py.html',1,'']]],
+  ['design_2emd_1429',['DESIGN.md',['../DESIGN_8md.html',1,'']]],
+  ['download_5fgpt_5foss_5f20b_2epy_1430',['download_gpt_oss_20b.py',['../download__gpt__oss__20b_8py.html',1,'']]]
 ];

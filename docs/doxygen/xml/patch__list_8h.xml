@@ -1,0 +1,509 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.1" xml:lang="en-US">
+  <compounddef id="patch__list_8h" kind="file" language="C++">
+    <compoundname>patch_list.h</compoundname>
+    <includes local="no">stdint.h</includes>
+    <includes local="no">stddef.h</includes>
+    <includedby refid="patch__list_8c" local="yes">engine/src/dedup/patch_list.c</includedby>
+    <incdepgraph>
+      <node id="2">
+        <label>stdint.h</label>
+      </node>
+      <node id="3">
+        <label>stddef.h</label>
+      </node>
+      <node id="1">
+        <label>engine/include/patch_list.h</label>
+        <link refid="patch__list_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="3" relation="include">
+        </childnode>
+      </node>
+    </incdepgraph>
+    <invincdepgraph>
+      <node id="2">
+        <label>engine/src/dedup/patch_list.c</label>
+        <link refid="patch__list_8c"/>
+      </node>
+      <node id="1">
+        <label>engine/include/patch_list.h</label>
+        <link refid="patch__list_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+      </node>
+    </invincdepgraph>
+    <innerclass refid="structie__patch__list__s" prot="public">ie_patch_list_s</innerclass>
+      <sectiondef kind="define">
+      <memberdef kind="define" id="patch__list_8h_1af62a5b8d8c4e42fa2bfb819966b92c13" prot="public" static="no">
+        <name>IE_PATCH_LIST_MAGIC</name>
+        <initializer>0x54534C50u</initializer>
+        <briefdescription>
+<para>Magic value for patch list headers: &apos;PLST&apos;. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/patch_list.h" line="48" column="9" bodyfile="engine/include/patch_list.h" bodystart="48" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="patch__list_8h_1ac50c860f95b8c0756963976601f619f3" prot="public" static="no">
+        <name>IE_PATCH_LIST_VERSION</name>
+        <initializer>1u</initializer>
+        <briefdescription>
+<para>Patch list version supported by this module. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/patch_list.h" line="51" column="9" bodyfile="engine/include/patch_list.h" bodystart="51" bodyend="-1"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="patch__list_8h_1a340e72f48c7974695c46c86c63074c38" prot="public" static="no">
+        <type>struct <ref refid="structie__patch__list__s" kindref="compound">ie_patch_list_s</ref></type>
+        <definition>typedef struct ie_patch_list_s ie_patch_list_t</definition>
+        <argsstring></argsstring>
+        <name>ie_patch_list_t</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/patch_list.h" line="71" column="17"/>
+      </memberdef>
+      </sectiondef>
+      <sectiondef kind="func">
+      <memberdef kind="function" id="patch__list_8h_1a6dd0849a2264e86c8726bc0b4a1a8510" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>size_t</type>
+        <definition>size_t ie_patch_list_bytes</definition>
+        <argsstring>(uint64_t nitems)</argsstring>
+        <name>ie_patch_list_bytes</name>
+        <param>
+          <type>uint64_t</type>
+          <declname>nitems</declname>
+        </param>
+        <briefdescription>
+<para>Compute the required buffer size (in bytes) to store a patch list. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>nitems</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of patched bytes. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Total bytes for header + indices + values. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/patch_list.h" line="79" column="8" bodyfile="engine/src/dedup/patch_list.c" bodystart="77" bodyend="82" declfile="engine/include/patch_list.h" declline="79" declcolumn="8"/>
+        <referencedby refid="patch__list_8h_1a5c400e328a9bb65bbdf996722cec14f8" compoundref="patch__list_8c" startline="121" endline="156">ie_patch_list_serialize</referencedby>
+        <referencedby refid="patch__list_8h_1a7508f69d2cf8efbce87e9c60cb7b06e4" compoundref="patch__list_8c" startline="84" endline="119">ie_patch_list_view_init</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="patch__list_8h_1a7508f69d2cf8efbce87e9c60cb7b06e4" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int ie_patch_list_view_init</definition>
+        <argsstring>(ie_patch_list_t *out, const void *buf, size_t buf_len)</argsstring>
+        <name>ie_patch_list_view_init</name>
+        <param>
+          <type><ref refid="structie__patch__list__t" kindref="compound">ie_patch_list_t</ref> *</type>
+          <declname>out</declname>
+        </param>
+        <param>
+          <type>const void *</type>
+          <declname>buf</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>buf_len</declname>
+        </param>
+        <briefdescription>
+<para>Initialize a patch list view from a serialized buffer. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>The buffer must begin with an ie_patch_list_hdr as described in the file comment. This function validates the header and sets the <ref refid="structie__patch__list__t" kindref="compound">ie_patch_list_t</ref> pointers.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>out</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Output patch list view. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>buf</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Serialized buffer. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>buf_len</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Buffer length in bytes. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>0 on success, non-zero on failure. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/patch_list.h" line="92" column="5" bodyfile="engine/src/dedup/patch_list.c" bodystart="84" bodyend="119" declfile="engine/include/patch_list.h" declline="92" declcolumn="5"/>
+        <references refid="patch__list_8c_1a4ae614ce927c771b9f60b19e7d5ea0f0" compoundref="patch__list_8c" startline="26" endline="31">ie_load_u32</references>
+        <references refid="patch__list_8c_1acd35ed41125818c7de43cf03d48934ba" compoundref="patch__list_8c" startline="38" endline="47">ie_load_u64</references>
+        <references refid="patch__list_8c_1a6dd0849a2264e86c8726bc0b4a1a8510" compoundref="patch__list_8c" startline="77" endline="82">ie_patch_list_bytes</references>
+        <references refid="patch__list_8h_1af62a5b8d8c4e42fa2bfb819966b92c13" compoundref="patch__list_8h" startline="48">IE_PATCH_LIST_MAGIC</references>
+        <references refid="patch__list_8h_1ac50c860f95b8c0756963976601f619f3" compoundref="patch__list_8h" startline="51">IE_PATCH_LIST_VERSION</references>
+      </memberdef>
+      <memberdef kind="function" id="patch__list_8h_1a5c400e328a9bb65bbdf996722cec14f8" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int ie_patch_list_serialize</definition>
+        <argsstring>(void *dst, size_t dst_len, uint64_t nbytes, uint64_t nitems, const uint32_t *idx, const uint8_t *val)</argsstring>
+        <name>ie_patch_list_serialize</name>
+        <param>
+          <type>void *</type>
+          <declname>dst</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>dst_len</declname>
+        </param>
+        <param>
+          <type>uint64_t</type>
+          <declname>nbytes</declname>
+        </param>
+        <param>
+          <type>uint64_t</type>
+          <declname>nitems</declname>
+        </param>
+        <param>
+          <type>const uint32_t *</type>
+          <declname>idx</declname>
+        </param>
+        <param>
+          <type>const uint8_t *</type>
+          <declname>val</declname>
+        </param>
+        <briefdescription>
+<para>Serialize a patch list into a caller-provided buffer. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>The caller provides idx and val arrays. Indices must be strictly increasing and each must be &lt; nbytes.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>dst</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Destination buffer. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>dst_len</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Destination buffer capacity. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>nbytes</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Tensor byte length. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>nitems</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of patch items. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>idx</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Byte indices array (strictly increasing). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>val</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Byte values array. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>0 on success, non-zero on error (including insufficient dst_len). </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/patch_list.h" line="108" column="5" bodyfile="engine/src/dedup/patch_list.c" bodystart="121" bodyend="156" declfile="engine/include/patch_list.h" declline="108" declcolumn="5"/>
+        <references refid="patch__list_8c_1a6dd0849a2264e86c8726bc0b4a1a8510" compoundref="patch__list_8c" startline="77" endline="82">ie_patch_list_bytes</references>
+        <references refid="patch__list_8h_1af62a5b8d8c4e42fa2bfb819966b92c13" compoundref="patch__list_8h" startline="48">IE_PATCH_LIST_MAGIC</references>
+        <references refid="patch__list_8h_1ac50c860f95b8c0756963976601f619f3" compoundref="patch__list_8h" startline="51">IE_PATCH_LIST_VERSION</references>
+        <references refid="patch__list_8c_1aa1bb9294adde02abbdf8d7882d58ab58" compoundref="patch__list_8c" startline="54" endline="59">ie_store_u32</references>
+        <references refid="patch__list_8c_1a0639367bffd274d374c83dbe8aec0625" compoundref="patch__list_8c" startline="66" endline="75">ie_store_u64</references>
+      </memberdef>
+      <memberdef kind="function" id="patch__list_8h_1a9897cb9c398a7067d32aaee566572b2f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int ie_patch_list_apply_inplace</definition>
+        <argsstring>(uint8_t *dst, uint64_t nbytes, const ie_patch_list_t *pl)</argsstring>
+        <name>ie_patch_list_apply_inplace</name>
+        <param>
+          <type>uint8_t *</type>
+          <declname>dst</declname>
+        </param>
+        <param>
+          <type>uint64_t</type>
+          <declname>nbytes</declname>
+        </param>
+        <param>
+          <type>const <ref refid="structie__patch__list__t" kindref="compound">ie_patch_list_t</ref> *</type>
+          <declname>pl</declname>
+        </param>
+        <briefdescription>
+<para>Apply a patch list to an existing tensor buffer in-place. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Typical usage: memcpy(dst, default_bytes, nbytes); ie_patch_list_apply_inplace(dst, nbytes, &amp;pl);</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>dst</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Destination buffer to modify (must have at least nbytes bytes). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>nbytes</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Destination buffer size in bytes. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>pl</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Patch list view. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>0 on success, non-zero on error (bounds, invalid indices). </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/patch_list.h" line="128" column="5" bodyfile="engine/src/dedup/patch_list.c" bodystart="158" bodyend="171" declfile="engine/include/patch_list.h" declline="128" declcolumn="5"/>
+      </memberdef>
+      <memberdef kind="function" id="patch__list_8h_1ae237826594486eefe0fc2d75aac7c550" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int ie_patch_list_from_mask_exceptions</definition>
+        <argsstring>(uint64_t nbytes, const uint8_t *mask, const uint8_t *exceptions, uint32_t *idx_out, uint8_t *val_out, uint64_t *out_nitems)</argsstring>
+        <name>ie_patch_list_from_mask_exceptions</name>
+        <param>
+          <type>uint64_t</type>
+          <declname>nbytes</declname>
+        </param>
+        <param>
+          <type>const uint8_t *</type>
+          <declname>mask</declname>
+        </param>
+        <param>
+          <type>const uint8_t *</type>
+          <declname>exceptions</declname>
+        </param>
+        <param>
+          <type>uint32_t *</type>
+          <declname>idx_out</declname>
+        </param>
+        <param>
+          <type>uint8_t *</type>
+          <declname>val_out</declname>
+        </param>
+        <param>
+          <type>uint64_t *</type>
+          <declname>out_nitems</declname>
+        </param>
+        <briefdescription>
+<para>Convert a bitmask + exception stream into a patch list (indices + values). </para>
+        </briefdescription>
+        <detaileddescription>
+<para>This is useful for hybrid formats:<itemizedlist>
+<listitem><para>Authoring uses mask+exceptions (cheap to compute).</para>
+</listitem><listitem><para>Runtime uses patch list when exception density is low.</para>
+</listitem></itemizedlist>
+</para>
+<para>Mask semantics:<itemizedlist>
+<listitem><para>1 bit per byte (LSB-first within each mask byte).</para>
+</listitem><listitem><para>exceptions stream provides the patched bytes in ascending byte index order.</para>
+</listitem></itemizedlist>
+</para>
+<para>Output:<itemizedlist>
+<listitem><para>idx_out receives indices (uint32_t per item).</para>
+</listitem><listitem><para>val_out receives values (uint8_t per item).</para>
+</listitem></itemizedlist>
+</para>
+<para>The caller must allocate idx_out/val_out to hold exactly popcount(mask) items.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>nbytes</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Tensor byte length. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>mask</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Pointer to mask bytes (ceil(nbytes/8)). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>exceptions</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Pointer to exception bytes (popcount(mask)). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>idx_out</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Output indices array. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>val_out</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Output values array. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>out_nitems</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Output number of items produced. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>0 on success, non-zero on error. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/patch_list.h" line="155" column="5" bodyfile="engine/src/dedup/patch_list.c" bodystart="173" bodyend="212" declfile="engine/include/patch_list.h" declline="155" declcolumn="5"/>
+      </memberdef>
+      </sectiondef>
+    <briefdescription>
+<para>Patch-list representation and fast application for dedup reconstruction. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>This module provides an alternative to bitmask-based exceptions: instead of storing a 1-bit-per-byte mask, it stores a compact list of byte indices that differ from the default plus their corresponding bytes.</para>
+<para>Use cases:<itemizedlist>
+<listitem><para>Extremely sparse exceptions (low exception density).</para>
+</listitem><listitem><para>Faster iteration than scanning a full mask for large tensors when popcount(mask) is small.</para>
+</listitem></itemizedlist>
+</para>
+<para>Contract (lossless, byte-oriented):<itemizedlist>
+<listitem><para>Indices refer to byte offsets in the tensor blob.</para>
+</listitem><listitem><para>Values are the exact original bytes at those offsets.</para>
+</listitem><listitem><para>Applying the patch list to a default blob produces the exact target blob.</para>
+</listitem></itemizedlist>
+</para>
+<para>Storage format (binary, little-endian):</para>
+<para>struct ie_patch_list_hdr { uint32_t magic; // &apos;PLST&apos; uint32_t version; // 1 uint64_t nbytes; // tensor byte length uint64_t nitems; // number of patched bytes // followed by: // uint32_t idx[nitems]; (byte indices, strictly increasing) // uint8_t val[nitems]; (patched byte values) };</para>
+<para>Notes:<itemizedlist>
+<listitem><para>idx is uint32_t to reduce size. If tensors exceed 4 GiB, switch to uint64_t.</para>
+</listitem><listitem><para>Strictly increasing indices allow validation and optional SIMD-friendly streaming writes. </para>
+</listitem></itemizedlist>
+</para>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="preprocessor">#ifndef<sp/>IE_PATCH_LIST_H</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="2"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>IE_PATCH_LIST_H</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="3"><highlight class="normal"></highlight></codeline>
+<codeline lineno="40"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stdint.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="41"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stddef.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="42"><highlight class="normal"></highlight></codeline>
+<codeline lineno="43"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="44"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/></highlight><highlight class="stringliteral">&quot;C&quot;</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="45"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="46"><highlight class="normal"></highlight></codeline>
+<codeline lineno="48" refid="patch__list_8h_1af62a5b8d8c4e42fa2bfb819966b92c13" refkind="member"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>IE_PATCH_LIST_MAGIC<sp/>0x54534C50u</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="49"><highlight class="normal"></highlight></codeline>
+<codeline lineno="51" refid="patch__list_8h_1ac50c860f95b8c0756963976601f619f3" refkind="member"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>IE_PATCH_LIST_VERSION<sp/>1u</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="52"><highlight class="normal"></highlight></codeline>
+<codeline lineno="59" refid="structie__patch__list__s" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structie__patch__list__s" kindref="compound">ie_patch_list_s</ref><sp/>{</highlight></codeline>
+<codeline lineno="61" refid="structie__patch__list__s_1ada7241edd184e33207830e566fb913b3" refkind="member"><highlight class="normal"><sp/><sp/>uint64_t<sp/><ref refid="structie__patch__list__s_1ada7241edd184e33207830e566fb913b3" kindref="member">nbytes</ref>;</highlight></codeline>
+<codeline lineno="62"><highlight class="normal"></highlight></codeline>
+<codeline lineno="64" refid="structie__patch__list__s_1a59f8e8e8ef28d80521accfc7d6f5d523" refkind="member"><highlight class="normal"><sp/><sp/>uint64_t<sp/><ref refid="structie__patch__list__s_1a59f8e8e8ef28d80521accfc7d6f5d523" kindref="member">nitems</ref>;</highlight></codeline>
+<codeline lineno="65"><highlight class="normal"></highlight></codeline>
+<codeline lineno="67" refid="structie__patch__list__s_1a5da322b2df8b00ee8d80be890f1d2209" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>uint32_t*<sp/><ref refid="structie__patch__list__s_1a5da322b2df8b00ee8d80be890f1d2209" kindref="member">idx</ref>;</highlight></codeline>
+<codeline lineno="68"><highlight class="normal"></highlight></codeline>
+<codeline lineno="70" refid="structie__patch__list__s_1a5387aae25be6ab6a23cadd30671681f3" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>uint8_t*<sp/><ref refid="structie__patch__list__s_1a5387aae25be6ab6a23cadd30671681f3" kindref="member">val</ref>;</highlight></codeline>
+<codeline lineno="71" refid="patch__list_8h_1a340e72f48c7974695c46c86c63074c38" refkind="member"><highlight class="normal">}<sp/><ref refid="patch__list_8h_1a340e72f48c7974695c46c86c63074c38" kindref="member">ie_patch_list_t</ref>;</highlight></codeline>
+<codeline lineno="72"><highlight class="normal"></highlight></codeline>
+<codeline lineno="79"><highlight class="normal"></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/><ref refid="patch__list_8h_1a6dd0849a2264e86c8726bc0b4a1a8510" kindref="member">ie_patch_list_bytes</ref>(uint64_t<sp/>nitems);</highlight></codeline>
+<codeline lineno="80"><highlight class="normal"></highlight></codeline>
+<codeline lineno="92"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="patch__list_8h_1a7508f69d2cf8efbce87e9c60cb7b06e4" kindref="member">ie_patch_list_view_init</ref>(<ref refid="structie__patch__list__t" kindref="compound">ie_patch_list_t</ref>*<sp/>out,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal">*<sp/>buf,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>buf_len);</highlight></codeline>
+<codeline lineno="93"><highlight class="normal"></highlight></codeline>
+<codeline lineno="108"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="patch__list_8h_1a5c400e328a9bb65bbdf996722cec14f8" kindref="member">ie_patch_list_serialize</ref>(</highlight></codeline>
+<codeline lineno="109"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal">*<sp/>dst,</highlight></codeline>
+<codeline lineno="110"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>dst_len,</highlight></codeline>
+<codeline lineno="111"><highlight class="normal"><sp/><sp/>uint64_t<sp/>nbytes,</highlight></codeline>
+<codeline lineno="112"><highlight class="normal"><sp/><sp/>uint64_t<sp/>nitems,</highlight></codeline>
+<codeline lineno="113"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>uint32_t*<sp/>idx,</highlight></codeline>
+<codeline lineno="114"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>uint8_t*<sp/>val);</highlight></codeline>
+<codeline lineno="115"><highlight class="normal"></highlight></codeline>
+<codeline lineno="128"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="patch__list_8h_1a9897cb9c398a7067d32aaee566572b2f" kindref="member">ie_patch_list_apply_inplace</ref>(uint8_t*<sp/>dst,<sp/>uint64_t<sp/>nbytes,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="structie__patch__list__t" kindref="compound">ie_patch_list_t</ref>*<sp/>pl);</highlight></codeline>
+<codeline lineno="129"><highlight class="normal"></highlight></codeline>
+<codeline lineno="155"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="patch__list_8h_1ae237826594486eefe0fc2d75aac7c550" kindref="member">ie_patch_list_from_mask_exceptions</ref>(</highlight></codeline>
+<codeline lineno="156"><highlight class="normal"><sp/><sp/>uint64_t<sp/>nbytes,</highlight></codeline>
+<codeline lineno="157"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>uint8_t*<sp/>mask,</highlight></codeline>
+<codeline lineno="158"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>uint8_t*<sp/>exceptions,</highlight></codeline>
+<codeline lineno="159"><highlight class="normal"><sp/><sp/>uint32_t*<sp/>idx_out,</highlight></codeline>
+<codeline lineno="160"><highlight class="normal"><sp/><sp/>uint8_t*<sp/>val_out,</highlight></codeline>
+<codeline lineno="161"><highlight class="normal"><sp/><sp/>uint64_t*<sp/>out_nitems);</highlight></codeline>
+<codeline lineno="162"><highlight class="normal"></highlight></codeline>
+<codeline lineno="163"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="164"><highlight class="normal">}<sp/></highlight><highlight class="comment">/*<sp/>extern<sp/>&quot;C&quot;<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="165"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="166"><highlight class="normal"></highlight></codeline>
+<codeline lineno="167"><highlight class="normal"></highlight><highlight class="preprocessor">#endif<sp/></highlight><highlight class="comment">/*<sp/>IE_PATCH_LIST_H<sp/>*/</highlight><highlight class="preprocessor"></highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="168"><highlight class="normal"></highlight></codeline>
+    </programlisting>
+    <location file="engine/include/patch_list.h"/>
+  </compounddef>
+</doxygen>

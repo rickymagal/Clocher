@@ -1,5 +1,11 @@
 var annotated_dup =
 [
+    [ "dedup_extract_int4", "namespacededup__extract__int4.html", [
+      [ "TensorRec", "classdedup__extract__int4_1_1TensorRec.html", null ]
+    ] ],
+    [ "dedup_verify_int4", "namespacededup__verify__int4.html", [
+      [ "TensorRec", "classdedup__verify__int4_1_1TensorRec.html", null ]
+    ] ],
     [ "hf_to_iebin", "namespacehf__to__iebin.html", [
       [ "TensorRef", "classhf__to__iebin_1_1TensorRef.html", null ],
       [ "Shard", "classhf__to__iebin_1_1Shard.html", null ]
@@ -54,6 +60,20 @@ var annotated_dup =
     [ "ie_config_env", "structie__config__env.html", "structie__config__env" ],
     [ "ie_config_env_t", "structie__config__env__t.html", null ],
     [ "ie_cpu_features_t", "structie__cpu__features__t.html", "structie__cpu__features__t" ],
+    [ "ie_dedup_cache_entry_s", "structie__dedup__cache__entry__s.html", "structie__dedup__cache__entry__s" ],
+    [ "ie_dedup_cache_entry_t", "structie__dedup__cache__entry__t.html", null ],
+    [ "ie_dedup_cache_s", "structie__dedup__cache__s.html", "structie__dedup__cache__s" ],
+    [ "ie_dedup_cache_t", "structie__dedup__cache__t.html", null ],
+    [ "ie_dedup_files_s", "structie__dedup__files__s.html", "structie__dedup__files__s" ],
+    [ "ie_dedup_files_t", "structie__dedup__files__t.html", null ],
+    [ "ie_dedup_group_s", "structie__dedup__group__s.html", "structie__dedup__group__s" ],
+    [ "ie_dedup_group_t", "structie__dedup__group__t.html", null ],
+    [ "ie_dedup_spec_arena_s", "structie__dedup__spec__arena__s.html", "structie__dedup__spec__arena__s" ],
+    [ "ie_dedup_spec_arena_t", "structie__dedup__spec__arena__t.html", null ],
+    [ "ie_dedup_spec_s", "structie__dedup__spec__s.html", "structie__dedup__spec__s" ],
+    [ "ie_dedup_spec_t", "structie__dedup__spec__t.html", null ],
+    [ "ie_dedup_target_s", "structie__dedup__target__s.html", "structie__dedup__target__s" ],
+    [ "ie_dedup_target_t", "structie__dedup__target__t.html", null ],
     [ "ie_device", "structie__device.html", "structie__device" ],
     [ "ie_device_caps", "structie__device__caps.html", "structie__device__caps" ],
     [ "ie_device_vtbl", "structie__device__vtbl.html", "structie__device__vtbl" ],
@@ -71,6 +91,10 @@ var annotated_dup =
     [ "ie_metrics", "structie__metrics.html", "structie__metrics" ],
     [ "ie_metrics_t", "structie__metrics__t.html", "structie__metrics__t" ],
     [ "ie_mmap_file", "structie__mmap__file.html", "structie__mmap__file" ],
+    [ "ie_patch_list_hdr_s", "structie__patch__list__hdr__s.html", "structie__patch__list__hdr__s" ],
+    [ "ie_patch_list_hdr_t", "structie__patch__list__hdr__t.html", null ],
+    [ "ie_patch_list_s", "structie__patch__list__s.html", "structie__patch__list__s" ],
+    [ "ie_patch_list_t", "structie__patch__list__t.html", null ],
     [ "ie_stream_policy", "structie__stream__policy.html", "structie__stream__policy" ],
     [ "ie_task_arg_t", "structie__task__arg__t.html", "structie__task__arg__t" ],
     [ "ie_tensor_ref", "structie__tensor__ref.html", "structie__tensor__ref" ],

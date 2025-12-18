@@ -8,12 +8,17 @@ var replicate__hot_8c =
     [ "IE_LOG_INFO", "replicate__hot_8c.html#abe5d20fa20a839ebee45c35555f86bdd", null ],
     [ "IE_LOG_WARN", "replicate__hot_8c.html#a008cac9cbc38d6db66207f56ee6f27e3", null ],
     [ "IE_UNLIKELY", "replicate__hot_8c.html#a7e2397e9049e1153458e8aa834e5c90d", null ],
+    [ "ie_hot_replica_fill_fn", "replicate__hot_8c.html#a978e52a8a254ff87cf0591325cc90eb3", null ],
     [ "ie_hot_replica_t", "replicate__hot_8c.html#a70ff0b772d5fc58e786ff816f261f267", null ],
     [ "ie_hot_replicas_t", "replicate__hot_8c.html#a276047fc28be37b7b79422b3b0d04a9f", null ],
+    [ "advise_sequential", "replicate__hot_8c.html#a1fbb2fe7f1d4ab0ca28192e23d0d8849", null ],
     [ "advise_willneed", "replicate__hot_8c.html#aeab08179a35b8f5ae6ca655cf915af84", null ],
+    [ "alloc_replica_first_touch", "replicate__hot_8c.html#ad080efbbeb35153a6b3e3a3e170231ee", null ],
     [ "first_touch_write", "replicate__hot_8c.html#aa966a1d17ddd373703a273d4b5bb3c30", null ],
+    [ "free_replicas_internal", "replicate__hot_8c.html#ab7ebdb34710a404bb4d9483a37bac091", null ],
     [ "ie_hot_replica_for_socket", "replicate__hot_8c.html#abf58b131a180e771ed7c7740089ad3a3", null ],
     [ "ie_hot_replica_memcpy", "replicate__hot_8c.html#a037dfbf3a8b30154ec3a8266649d8d9d", null ],
     [ "ie_hot_replicas_free", "replicate__hot_8c.html#ab0351bef88d481e1eb86eb068d28de7b", null ],
-    [ "ie_hot_replicate_build", "replicate__hot_8c.html#a7d3e29b1e9598ce32f191c4379cffe4e", null ]
+    [ "ie_hot_replicate_build", "replicate__hot_8c.html#a7d3e29b1e9598ce32f191c4379cffe4e", null ],
+    [ "ie_hot_replicate_build_fill", "replicate__hot_8c.html#a1be4722e05c8e16911d2c3b0e0340098", null ]
 ];

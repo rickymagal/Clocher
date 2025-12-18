@@ -41,6 +41,11 @@
     <member refid="structcli__extras_1a99623e7cab74ad7f26c1658cebeb133c" kind="variable"><name>pf_w_bytes</name></member>
     <member refid="structcli__extras_1a675c90cc2f75f90fa8c30ce516c2f0e5" kind="variable"><name>pf_x_bytes</name></member>
     <member refid="structcli__extras_1a126d87a714f973714750ac64a4229e9f" kind="variable"><name>force_ntw</name></member>
+    <member refid="structcli__extras_1a08ea875d0c5e07b381c84dd6e32923f1" kind="variable"><name>dedup_enable</name></member>
+    <member refid="structcli__extras_1a267a154f14e6ddbdfac2bc550ab641f9" kind="variable"><name>dedup_policy</name></member>
+    <member refid="structcli__extras_1a81fd3564a6988c19ea8c806168f3eb8d" kind="variable"><name>dedup_cache_mb</name></member>
+    <member refid="structcli__extras_1abcd78e69da8b71955b25b6c988c45c8c" kind="variable"><name>dedup_hot_bytes</name></member>
+    <member refid="structcli__extras_1a4209add5127d1dce30232edc2501afce" kind="variable"><name>dedup_hot_list</name></member>
   </compound>
   <compound refid="structcli__extras__t" kind="struct"><name>cli_extras_t</name>
   </compound>
@@ -218,6 +223,78 @@
     <member refid="structie__cpu__features__t_1a126cd9fec9b1e9ec0a746ab0a28e7251" kind="variable"><name>avx2</name></member>
     <member refid="structie__cpu__features__t_1ab186c528f9355396127156bf6e6ab099" kind="variable"><name>fma</name></member>
   </compound>
+  <compound refid="structie__dedup__cache__entry__s" kind="struct"><name>ie_dedup_cache_entry_s</name>
+    <member refid="structie__dedup__cache__entry__s_1a20e86e98d74b13f06735f65a802ed9da" kind="variable"><name>tensor_index</name></member>
+    <member refid="structie__dedup__cache__entry__s_1a400e138a540868863b4ce0ee79cde55c" kind="variable"><name>nbytes</name></member>
+    <member refid="structie__dedup__cache__entry__s_1a7fb9f7e8b5512f43dea87a513c1c5547" kind="variable"><name>data</name></member>
+    <member refid="structie__dedup__cache__entry__s_1a1521e356f18f1370bbca51abcf95c68e" kind="variable"><name>stamp</name></member>
+  </compound>
+  <compound refid="structie__dedup__cache__entry__t" kind="struct"><name>ie_dedup_cache_entry_t</name>
+  </compound>
+  <compound refid="structie__dedup__cache__s" kind="struct"><name>ie_dedup_cache_s</name>
+    <member refid="structie__dedup__cache__s_1a9c7168ef669fbd6db28df0c6855968c5" kind="variable"><name>spec</name></member>
+    <member refid="structie__dedup__cache__s_1a22eb45e16f65e8e130ee47a180ce6c9e" kind="variable"><name>files</name></member>
+    <member refid="structie__dedup__cache__s_1ad23bb1e886e450000fc69bb70a626239" kind="variable"><name>target_by_index</name></member>
+    <member refid="structie__dedup__cache__s_1aa10b86d71f6bc6d6708fba55791cf1b3" kind="variable"><name>target_by_index_len</name></member>
+    <member refid="structie__dedup__cache__s_1ae9ddd0557ac6354317354c1fc4f1977f" kind="variable"><name>group_by_default_index</name></member>
+    <member refid="structie__dedup__cache__s_1ada16b61337d1f8f0e2197109b84d711a" kind="variable"><name>group_by_default_index_len</name></member>
+    <member refid="structie__dedup__cache__s_1aec2b20fe507bc0e1c4bc9903550504ee" kind="variable"><name>entries</name></member>
+    <member refid="structie__dedup__cache__s_1a7a1ae3cb5f55f1aa9b7e90e23e4f8fe4" kind="variable"><name>entry_cap</name></member>
+    <member refid="structie__dedup__cache__s_1a3e34c343e23cd145ea24bf4173db7047" kind="variable"><name>stamp_now</name></member>
+    <member refid="structie__dedup__cache__s_1a98751134704e43b5b68ed672df5c3d53" kind="variable"><name>bytes_cached</name></member>
+    <member refid="structie__dedup__cache__s_1a36023588211816d86b5205fac88c7ab6" kind="variable"><name>bytes_limit</name></member>
+  </compound>
+  <compound refid="structie__dedup__cache__t" kind="struct"><name>ie_dedup_cache_t</name>
+  </compound>
+  <compound refid="structie__dedup__files__s" kind="struct"><name>ie_dedup_files_s</name>
+    <member refid="structie__dedup__files__s_1afa2af990ca9246653cfba26f5fa18507" kind="variable"><name>defaults</name></member>
+    <member refid="structie__dedup__files__s_1a22a5fc361c1a5263fa9e9eca36aef4c9" kind="variable"><name>defaults_size</name></member>
+    <member refid="structie__dedup__files__s_1a769e8c20d1d6157668e198c21188e493" kind="variable"><name>masks</name></member>
+    <member refid="structie__dedup__files__s_1a1d1bb36b0bb0a48de68489e3a0d331cd" kind="variable"><name>masks_size</name></member>
+    <member refid="structie__dedup__files__s_1a3624eb0fa74be3ebb1812242bdb55856" kind="variable"><name>exceptions</name></member>
+    <member refid="structie__dedup__files__s_1a859371aa00cf12cc9c9a952ad3837c0c" kind="variable"><name>exceptions_size</name></member>
+  </compound>
+  <compound refid="structie__dedup__files__t" kind="struct"><name>ie_dedup_files_t</name>
+  </compound>
+  <compound refid="structie__dedup__group__s" kind="struct"><name>ie_dedup_group_s</name>
+    <member refid="structie__dedup__group__s_1a5049f93bb0fbaf04646899bba2bf4625" kind="variable"><name>default_tensor_index</name></member>
+    <member refid="structie__dedup__group__s_1a16f926f3ac7b857519395b4d401e87ec" kind="variable"><name>default_nbytes</name></member>
+    <member refid="structie__dedup__group__s_1a4261dc60a69ad18d8ed5d5430cfa932e" kind="variable"><name>default_off</name></member>
+    <member refid="structie__dedup__group__s_1a460facdc2ff2172d5d7969a7bab90898" kind="variable"><name>ntargets</name></member>
+    <member refid="structie__dedup__group__s_1a4586cacd3ed1819cd69ed1d877c613ab" kind="variable"><name>targets</name></member>
+  </compound>
+  <compound refid="structie__dedup__group__t" kind="struct"><name>ie_dedup_group_t</name>
+  </compound>
+  <compound refid="structie__dedup__spec__arena__s" kind="struct"><name>ie_dedup_spec_arena_s</name>
+    <member refid="structie__dedup__spec__arena__s_1a9bf9ab74c5083e2fd2841f19539e72a4" kind="variable"><name>base</name></member>
+    <member refid="structie__dedup__spec__arena__s_1a18522e6d62281b6382decc1fd7182012" kind="variable"><name>cap</name></member>
+    <member refid="structie__dedup__spec__arena__s_1ae455898107de40dfdf933bbeda589959" kind="variable"><name>len</name></member>
+  </compound>
+  <compound refid="structie__dedup__spec__arena__t" kind="struct"><name>ie_dedup_spec_arena_t</name>
+  </compound>
+  <compound refid="structie__dedup__spec__s" kind="struct"><name>ie_dedup_spec_s</name>
+    <member refid="structie__dedup__spec__s_1ab6ac0405d53147c36fe901d17ccff6ad" kind="variable"><name>magic</name></member>
+    <member refid="structie__dedup__spec__s_1a74cac175d8419501afb22968a43bbd75" kind="variable"><name>version</name></member>
+    <member refid="structie__dedup__spec__s_1ab73f409818badb5d47a4531f715d9152" kind="variable"><name>ngroups</name></member>
+    <member refid="structie__dedup__spec__s_1a1bb5fa3a7ecd2b887acd2460b1e7bb52" kind="variable"><name>groups</name></member>
+    <member refid="structie__dedup__spec__s_1aa082e66bcc08cdfd9a39bae37ab28996" kind="variable"><name>targets_flat</name></member>
+    <member refid="structie__dedup__spec__s_1a7b50046564b3bd6dc2ba153a23d7bc39" kind="variable"><name>targets_flat_count</name></member>
+    <member refid="structie__dedup__spec__s_1a37df546d3673d3be7d6d718027416c2c" kind="variable"><name>defaults_size</name></member>
+    <member refid="structie__dedup__spec__s_1ade6ccdedcbeef1866c525a5a83d2bf01" kind="variable"><name>masks_size</name></member>
+    <member refid="structie__dedup__spec__s_1a1d84f26c045fe3791c9d69e03e3c1584" kind="variable"><name>exceptions_size</name></member>
+  </compound>
+  <compound refid="structie__dedup__spec__t" kind="struct"><name>ie_dedup_spec_t</name>
+  </compound>
+  <compound refid="structie__dedup__target__s" kind="struct"><name>ie_dedup_target_s</name>
+    <member refid="structie__dedup__target__s_1ae9f139635c2fb711d96a77472d99ac45" kind="variable"><name>tensor_index</name></member>
+    <member refid="structie__dedup__target__s_1a77c9c557ed2efc0d80b5a1ff337faf0c" kind="variable"><name>nbytes</name></member>
+    <member refid="structie__dedup__target__s_1a3c88e99fb2ebb2412e0f6368fcc4dc6b" kind="variable"><name>mask_off</name></member>
+    <member refid="structie__dedup__target__s_1a304d6d5739c148a33222d91b8531a4d4" kind="variable"><name>mask_nbytes</name></member>
+    <member refid="structie__dedup__target__s_1a27861688ec9e58c74b76ef1caee8349f" kind="variable"><name>exc_off</name></member>
+    <member refid="structie__dedup__target__s_1a4cdc0c23f5f8bf150d62897779d36ec6" kind="variable"><name>exc_nbytes</name></member>
+  </compound>
+  <compound refid="structie__dedup__target__t" kind="struct"><name>ie_dedup_target_t</name>
+  </compound>
   <compound refid="structie__device" kind="struct"><name>ie_device</name>
     <member refid="structie__device_1aeff992a5f5e1b29e4648d630565b6c71" kind="variable"><name>vt</name></member>
     <member refid="structie__device_1a909547212afb6612e8d4e0c2fbeaa768" kind="variable"><name>impl</name></member>
@@ -335,6 +412,22 @@
     <member refid="structie__mmap__file_1a1f966d06ae17da8bca4c2ba24c66348d" kind="variable"><name>base</name></member>
     <member refid="structie__mmap__file_1abffe4bb6097ad40777bf078b9e88076e" kind="variable"><name>size</name></member>
   </compound>
+  <compound refid="structie__patch__list__hdr__s" kind="struct"><name>ie_patch_list_hdr_s</name>
+    <member refid="structie__patch__list__hdr__s_1aeeac9a146f07a81f6f65ef4920872f0b" kind="variable"><name>magic</name></member>
+    <member refid="structie__patch__list__hdr__s_1a28e367b74ee98c3c00e2b12e67aa170f" kind="variable"><name>version</name></member>
+    <member refid="structie__patch__list__hdr__s_1a8b2c657ce50b918c9148f0a456a80686" kind="variable"><name>nbytes</name></member>
+    <member refid="structie__patch__list__hdr__s_1a23b9de79544d9f0eb05e39d7ace6ee61" kind="variable"><name>nitems</name></member>
+  </compound>
+  <compound refid="structie__patch__list__hdr__t" kind="struct"><name>ie_patch_list_hdr_t</name>
+  </compound>
+  <compound refid="structie__patch__list__s" kind="struct"><name>ie_patch_list_s</name>
+    <member refid="structie__patch__list__s_1ada7241edd184e33207830e566fb913b3" kind="variable"><name>nbytes</name></member>
+    <member refid="structie__patch__list__s_1a59f8e8e8ef28d80521accfc7d6f5d523" kind="variable"><name>nitems</name></member>
+    <member refid="structie__patch__list__s_1a5da322b2df8b00ee8d80be890f1d2209" kind="variable"><name>idx</name></member>
+    <member refid="structie__patch__list__s_1a5387aae25be6ab6a23cadd30671681f3" kind="variable"><name>val</name></member>
+  </compound>
+  <compound refid="structie__patch__list__t" kind="struct"><name>ie_patch_list_t</name>
+  </compound>
   <compound refid="structie__stream__policy" kind="struct"><name>ie_stream_policy</name>
     <member refid="structie__stream__policy_1ae6809aac957bc384749db8d23fd160ce" kind="variable"><name>l1_bytes</name></member>
     <member refid="structie__stream__policy_1a75f0a7fb9e8ba9febd2f961d1915ff07" kind="variable"><name>l2_bytes</name></member>
@@ -447,6 +540,10 @@
   </compound>
   <compound refid="classhf__to__iebin_1_1Shard" kind="class"><name>hf_to_iebin::Shard</name>
   </compound>
+  <compound refid="classdedup__extract__int4_1_1TensorRec" kind="class"><name>dedup_extract_int4::TensorRec</name>
+  </compound>
+  <compound refid="classdedup__verify__int4_1_1TensorRec" kind="class"><name>dedup_verify_int4::TensorRec</name>
+  </compound>
   <compound refid="classhf__to__iebin_1_1TensorRef" kind="class"><name>hf_to_iebin::TensorRef</name>
   </compound>
   <compound refid="structtp__ctx__t" kind="struct"><name>tp_ctx_t</name>
@@ -460,6 +557,28 @@
   </compound>
   <compound refid="namespaceconvert__safetensors__to__pt__bin" kind="namespace"><name>convert_safetensors_to_pt_bin</name>
     <member refid="namespaceconvert__safetensors__to__pt__bin_1a680b76453da1bcaa9cb19bb3484843e7" kind="function"><name>main</name></member>
+  </compound>
+  <compound refid="namespacededup__extract__int4" kind="namespace"><name>dedup_extract_int4</name>
+    <member refid="namespacededup__extract__int4_1a4a04b8f391981f4146fcfadadde32729" kind="function"><name>_load_json</name></member>
+    <member refid="namespacededup__extract__int4_1a41f75afeca7923cb3c3e94c4b8dfd855" kind="function"><name>_write_json</name></member>
+    <member refid="namespacededup__extract__int4_1a79e4668e369ab3af8602b22e2fe13168" kind="function"><name>_ceil_div</name></member>
+    <member refid="namespacededup__extract__int4_1a9a19e28b92742a699efc5e008e747841" kind="function"><name>_mask_bytes</name></member>
+    <member refid="namespacededup__extract__int4_1a5016107a71fd3ff0d055392d4bd529c3" kind="function"><name>_bitset_set</name></member>
+    <member refid="namespacededup__extract__int4_1a57d59c8c9f4c8e010b307c3aa29e66a3" kind="function"><name>_bitset_popcount</name></member>
+    <member refid="namespacededup__extract__int4_1ada8bb32ca0dc04fb322d3a577018bece" kind="function"><name>_read_slice</name></member>
+    <member refid="namespacededup__extract__int4_1ad7443195c1d80f3a0e99221c369d9b2a" kind="function"><name>_diff_default_target</name></member>
+    <member refid="namespacededup__extract__int4_1a0bdd2995b409d4cc057ba6b3651c7e1a" kind="function"><name>_parse_tensor_map</name></member>
+    <member refid="namespacededup__extract__int4_1ac97f2d8358c29021b64dc6d651c3714d" kind="function"><name>main</name></member>
+  </compound>
+  <compound refid="namespacededup__verify__int4" kind="namespace"><name>dedup_verify_int4</name>
+    <member refid="namespacededup__verify__int4_1a50ebc96274885e224b879ee106b7bf7f" kind="function"><name>_load_json</name></member>
+    <member refid="namespacededup__verify__int4_1a4a5fda1cc948165c07aee1d0b8e41694" kind="function"><name>_read_all</name></member>
+    <member refid="namespacededup__verify__int4_1af42a1322c476e0f9bee3f4e73efad478" kind="function"><name>_read_slice</name></member>
+    <member refid="namespacededup__verify__int4_1a9afff5005d6f44db475458f3b5cb4a4d" kind="function"><name>_ceil_div</name></member>
+    <member refid="namespacededup__verify__int4_1a788d976f08691140744343eb98f7a064" kind="function"><name>_mask_nbytes</name></member>
+    <member refid="namespacededup__verify__int4_1a269856b1624aef4d1351b79182380938" kind="function"><name>_parse_tensor_map</name></member>
+    <member refid="namespacededup__verify__int4_1adffd5bd389c51893ada348285b406135" kind="function"><name>_reconstruct</name></member>
+    <member refid="namespacededup__verify__int4_1a0d8b8a07124bb237925517046ff60605" kind="function"><name>main</name></member>
   </compound>
   <compound refid="namespacedownload__gpt__oss__20b" kind="namespace"><name>download_gpt_oss_20b</name>
     <member refid="namespacedownload__gpt__oss__20b_1a00ceff4a4041bc40a7ba0aea60df0337" kind="variable"><name>repo_id</name></member>
@@ -683,6 +802,29 @@
   </compound>
   <compound refid="PERFORMANCE_8md" kind="file"><name>PERFORMANCE.md</name>
   </compound>
+  <compound refid="dedup__cache_8h" kind="file"><name>dedup_cache.h</name>
+    <member refid="dedup__cache_8h_1a8d373b08bd959f2c53361f56f76fec6e" kind="typedef"><name>ie_dedup_files_t</name></member>
+    <member refid="dedup__cache_8h_1ab7c71c7b5a7564443bfe1b4f76987fd5" kind="typedef"><name>ie_dedup_cache_entry_t</name></member>
+    <member refid="dedup__cache_8h_1a0c43cb42fbfd2c053a62c12ac33b7f43" kind="typedef"><name>ie_dedup_cache_t</name></member>
+    <member refid="dedup__cache_8h_1ac6b7040301a352d6f2a4661f56b5cd74" kind="function"><name>ie_dedup_cache_init</name></member>
+    <member refid="dedup__cache_8h_1a73fcde5ab6e6147579097a61a5d6ab5d" kind="function"><name>ie_dedup_cache_destroy</name></member>
+    <member refid="dedup__cache_8h_1a6959453a47f2f7f16e7cf6180ef9ad4a" kind="function"><name>ie_dedup_cache_find_target</name></member>
+    <member refid="dedup__cache_8h_1affd78d3bf541d66001603c43e6b808e7" kind="function"><name>ie_dedup_cache_find_group_for_target</name></member>
+    <member refid="dedup__cache_8h_1a89bf52f99aa158c0e2f1a6bb208be3a8" kind="function"><name>ie_dedup_reconstruct_into</name></member>
+    <member refid="dedup__cache_8h_1a88353c994e5da9f4dd9c2b2dba16463c" kind="function"><name>ie_dedup_cache_get_bytes</name></member>
+  </compound>
+  <compound refid="dedup__spec_8h" kind="file"><name>dedup_spec.h</name>
+    <member refid="dedup__spec_8h_1aeb2dbd78ecea28788ba18271a2efb1c9" kind="define"><name>IE_DEDUP_MAGIC</name></member>
+    <member refid="dedup__spec_8h_1a166b990f04c8140804119e3b9fe98e64" kind="define"><name>IE_DEDUP_VERSION</name></member>
+    <member refid="dedup__spec_8h_1aeecc82680d2f3b52174a6ade48569cff" kind="typedef"><name>ie_dedup_target_t</name></member>
+    <member refid="dedup__spec_8h_1aa9a05f4b81516d6eec57009e29dcdcd6" kind="typedef"><name>ie_dedup_group_t</name></member>
+    <member refid="dedup__spec_8h_1a323e9bde2bce0db08928d78570cfd0b9" kind="typedef"><name>ie_dedup_spec_t</name></member>
+    <member refid="dedup__spec_8h_1a5fa26307455423982ba4d4021f6397fc" kind="typedef"><name>ie_dedup_spec_arena_t</name></member>
+    <member refid="dedup__spec_8h_1a67546f93db4821c655a1f6ea422f03a3" kind="function"><name>ie_dedup_arena_init</name></member>
+    <member refid="dedup__spec_8h_1a77b9a6a475bc5207eae21b4b88126024" kind="function"><name>ie_dedup_arena_alloc</name></member>
+    <member refid="dedup__spec_8h_1aff013bc8893f16d158efa95d5c08cee5" kind="function"><name>ie_dedup_mask_nbytes</name></member>
+    <member refid="dedup__spec_8h_1a8e7ee7fd229542e5bd1a0a16331bf775" kind="function"><name>ie_dedup_spec_validate</name></member>
+  </compound>
   <compound refid="ie__api_8h" kind="file"><name>ie_api.h</name>
     <member refid="ie__api_8h_1afe55386d31dcd43a7accd42d844d59d1" kind="define"><name>IE_OK</name></member>
     <member refid="ie__api_8h_1a02291efdcf17c32155732deab5abe056" kind="define"><name>IE_PREC_FP32</name></member>
@@ -746,21 +888,21 @@
     <member refid="ie__device_8h_1aab258e9f33c12fc1276783d70b8c75a7" kind="function"><name>ie_device_kind_from_str</name></member>
   </compound>
   <compound refid="ie__device__cuda_8h" kind="file"><name>ie_device_cuda.h</name>
-    <member refid="ie__device__cuda_8h_1a06fc87d81c62e9abb8790b6e5713c55b" kind="enum"><name>@0</name></member>
-    <member refid="ie__device__cuda_8h_1a06fc87d81c62e9abb8790b6e5713c55ba9cd88592af53de0f089292225d4ba51a" kind="enumvalue"><name>IE_CUDA_OK</name></member>
-    <member refid="ie__device__cuda_8h_1a06fc87d81c62e9abb8790b6e5713c55bab655b691a092d83c17a248a73e728c62" kind="enumvalue"><name>IE_CUDA_ERR_RUNTIME</name></member>
-    <member refid="ie__device__cuda_8h_1a06fc87d81c62e9abb8790b6e5713c55bad12c1ba307d459bcbc20c7ccb8b0b584" kind="enumvalue"><name>IE_CUDA_UNAVAILABLE</name></member>
-    <member refid="ie__device__cuda_8h_1a06fc87d81c62e9abb8790b6e5713c55bacead884c6ca62f6c8e186e6fc1957a29" kind="enumvalue"><name>IE_CUDA_EINVAL</name></member>
+    <member refid="ie__device__cuda_8h_1adf764cbdea00d65edcd07bb9953ad2b7" kind="enum"><name>@1</name></member>
+    <member refid="ie__device__cuda_8h_1adf764cbdea00d65edcd07bb9953ad2b7a9cd88592af53de0f089292225d4ba51a" kind="enumvalue"><name>IE_CUDA_OK</name></member>
+    <member refid="ie__device__cuda_8h_1adf764cbdea00d65edcd07bb9953ad2b7ab655b691a092d83c17a248a73e728c62" kind="enumvalue"><name>IE_CUDA_ERR_RUNTIME</name></member>
+    <member refid="ie__device__cuda_8h_1adf764cbdea00d65edcd07bb9953ad2b7ad12c1ba307d459bcbc20c7ccb8b0b584" kind="enumvalue"><name>IE_CUDA_UNAVAILABLE</name></member>
+    <member refid="ie__device__cuda_8h_1adf764cbdea00d65edcd07bb9953ad2b7acead884c6ca62f6c8e186e6fc1957a29" kind="enumvalue"><name>IE_CUDA_EINVAL</name></member>
     <member refid="ie__device__cuda_8h_1aa7d18bba67349415d8d7cf8c92ed5e77" kind="function"><name>ie_cuda_is_available</name></member>
     <member refid="ie__device__cuda_8h_1a7a6bd0e62e98b11d8cae42ab6f2be3f0" kind="function"><name>ie_cuda_gemv_f32</name></member>
     <member refid="ie__device__cuda_8h_1ab38bd0dae12a57023798df7696aed108" kind="function"><name>ie_cuda_gemv_f32_strided</name></member>
   </compound>
   <compound refid="ie__device__ze_8h" kind="file"><name>ie_device_ze.h</name>
-    <member refid="ie__device__ze_8h_1adf764cbdea00d65edcd07bb9953ad2b7" kind="enum"><name>@1</name></member>
-    <member refid="ie__device__ze_8h_1adf764cbdea00d65edcd07bb9953ad2b7ad805805b88909ad20846a4031aa704b0" kind="enumvalue"><name>IE_ZE_OK</name></member>
-    <member refid="ie__device__ze_8h_1adf764cbdea00d65edcd07bb9953ad2b7af8ca61fae722b34b5ec8ee3be91db2de" kind="enumvalue"><name>IE_ZE_ERR_RUNTIME</name></member>
-    <member refid="ie__device__ze_8h_1adf764cbdea00d65edcd07bb9953ad2b7a7e7ecac3aa644ecde81174d0ed31f69f" kind="enumvalue"><name>IE_ZE_UNAVAILABLE</name></member>
-    <member refid="ie__device__ze_8h_1adf764cbdea00d65edcd07bb9953ad2b7aa71c6d4ff43bfcad31b0cefc2f6a10f4" kind="enumvalue"><name>IE_ZE_EINVAL</name></member>
+    <member refid="ie__device__ze_8h_1a06fc87d81c62e9abb8790b6e5713c55b" kind="enum"><name>@0</name></member>
+    <member refid="ie__device__ze_8h_1a06fc87d81c62e9abb8790b6e5713c55bad805805b88909ad20846a4031aa704b0" kind="enumvalue"><name>IE_ZE_OK</name></member>
+    <member refid="ie__device__ze_8h_1a06fc87d81c62e9abb8790b6e5713c55baf8ca61fae722b34b5ec8ee3be91db2de" kind="enumvalue"><name>IE_ZE_ERR_RUNTIME</name></member>
+    <member refid="ie__device__ze_8h_1a06fc87d81c62e9abb8790b6e5713c55ba7e7ecac3aa644ecde81174d0ed31f69f" kind="enumvalue"><name>IE_ZE_UNAVAILABLE</name></member>
+    <member refid="ie__device__ze_8h_1a06fc87d81c62e9abb8790b6e5713c55baa71c6d4ff43bfcad31b0cefc2f6a10f4" kind="enumvalue"><name>IE_ZE_EINVAL</name></member>
     <member refid="ie__device__ze_8h_1a994c1aef7f0d08a8ba892c79d5fb5a99" kind="function"><name>ie_ze_is_available</name></member>
     <member refid="ie__device__ze_8h_1a28c74b35449c7c8008aff141ee5e49df" kind="function"><name>ie_ze_gemv_f32</name></member>
   </compound>
@@ -959,6 +1101,16 @@
     <member refid="ie__topology_8h_1a69b006879441857f80d4c4f200376d11" kind="function"><name>ie_topology_first_cpu_on_socket</name></member>
     <member refid="ie__topology_8h_1a240a4c4d3d2222d4fc3d212f238f1753" kind="function"><name>ie_topology_bind_thread_to_socket</name></member>
   </compound>
+  <compound refid="patch__list_8h" kind="file"><name>patch_list.h</name>
+    <member refid="patch__list_8h_1af62a5b8d8c4e42fa2bfb819966b92c13" kind="define"><name>IE_PATCH_LIST_MAGIC</name></member>
+    <member refid="patch__list_8h_1ac50c860f95b8c0756963976601f619f3" kind="define"><name>IE_PATCH_LIST_VERSION</name></member>
+    <member refid="patch__list_8h_1a340e72f48c7974695c46c86c63074c38" kind="typedef"><name>ie_patch_list_t</name></member>
+    <member refid="patch__list_8h_1a6dd0849a2264e86c8726bc0b4a1a8510" kind="function"><name>ie_patch_list_bytes</name></member>
+    <member refid="patch__list_8h_1a7508f69d2cf8efbce87e9c60cb7b06e4" kind="function"><name>ie_patch_list_view_init</name></member>
+    <member refid="patch__list_8h_1a5c400e328a9bb65bbdf996722cec14f8" kind="function"><name>ie_patch_list_serialize</name></member>
+    <member refid="patch__list_8h_1a9897cb9c398a7067d32aaee566572b2f" kind="function"><name>ie_patch_list_apply_inplace</name></member>
+    <member refid="patch__list_8h_1ae237826594486eefe0fc2d75aac7c550" kind="function"><name>ie_patch_list_from_mask_exceptions</name></member>
+  </compound>
   <compound refid="platform_8h" kind="file"><name>platform.h</name>
     <member refid="platform_8h_1a05a8268ff42cadaea218ee67491c54e9" kind="define"><name>IE_X86</name></member>
   </compound>
@@ -1052,6 +1204,33 @@
     <member refid="weights__dedup_8h_1a3dde6478a937f4d2288026c1e9a9d499" kind="function"><name>ie_weights_dedup_get_weight_view</name></member>
     <member refid="weights__dedup_8h_1a82069e1a7a2e1c0eaaebdd566ab44abe" kind="function"><name>ie_weights_dedup_materialize</name></member>
     <member refid="weights__dedup_8h_1ad0ae06a184c7f1407994167e82afedb7" kind="function"><name>ie_weights_dedup_parse_dtype</name></member>
+  </compound>
+  <compound refid="dedup__cache_8c" kind="file"><name>dedup_cache.c</name>
+    <member refid="dedup__cache_8c_1a14ba679fa506190cf2289d88eb50b1f9" kind="function"><name>ie_align_up</name></member>
+    <member refid="dedup__cache_8c_1a77b9a6a475bc5207eae21b4b88126024" kind="function"><name>ie_dedup_arena_alloc</name></member>
+    <member refid="dedup__cache_8c_1a8e7ee7fd229542e5bd1a0a16331bf775" kind="function"><name>ie_dedup_spec_validate</name></member>
+    <member refid="dedup__cache_8c_1adab1e0fd1c4f87b8a2e41ba11e65f1cc" kind="function"><name>ie_popcount_u8</name></member>
+    <member refid="dedup__cache_8c_1a89bf52f99aa158c0e2f1a6bb208be3a8" kind="function"><name>ie_dedup_reconstruct_into</name></member>
+    <member refid="dedup__cache_8c_1a45cf4452c92968a996d13e397f121b33" kind="function"><name>ie_cache_find_evict</name></member>
+    <member refid="dedup__cache_8c_1ac6a08976b777a906f46f9472e5b55e4e" kind="function"><name>ie_cache_entry_clear</name></member>
+    <member refid="dedup__cache_8c_1ac6b7040301a352d6f2a4661f56b5cd74" kind="function"><name>ie_dedup_cache_init</name></member>
+    <member refid="dedup__cache_8c_1a73fcde5ab6e6147579097a61a5d6ab5d" kind="function"><name>ie_dedup_cache_destroy</name></member>
+    <member refid="dedup__cache_8c_1a6959453a47f2f7f16e7cf6180ef9ad4a" kind="function"><name>ie_dedup_cache_find_target</name></member>
+    <member refid="dedup__cache_8c_1affd78d3bf541d66001603c43e6b808e7" kind="function"><name>ie_dedup_cache_find_group_for_target</name></member>
+    <member refid="dedup__cache_8c_1ae10e88eab21a7202c4d10d55c804d3db" kind="function"><name>ie_mask_popcount_bytes</name></member>
+    <member refid="dedup__cache_8c_1a88353c994e5da9f4dd9c2b2dba16463c" kind="function"><name>ie_dedup_cache_get_bytes</name></member>
+  </compound>
+  <compound refid="patch__list_8c" kind="file"><name>patch_list.c</name>
+    <member refid="patch__list_8c_1a7e1e939fb2c408d38bd3a733f3b97d6c" kind="typedef"><name>ie_patch_list_hdr_t</name></member>
+    <member refid="patch__list_8c_1a4ae614ce927c771b9f60b19e7d5ea0f0" kind="function"><name>ie_load_u32</name></member>
+    <member refid="patch__list_8c_1acd35ed41125818c7de43cf03d48934ba" kind="function"><name>ie_load_u64</name></member>
+    <member refid="patch__list_8c_1aa1bb9294adde02abbdf8d7882d58ab58" kind="function"><name>ie_store_u32</name></member>
+    <member refid="patch__list_8c_1a0639367bffd274d374c83dbe8aec0625" kind="function"><name>ie_store_u64</name></member>
+    <member refid="patch__list_8c_1a6dd0849a2264e86c8726bc0b4a1a8510" kind="function"><name>ie_patch_list_bytes</name></member>
+    <member refid="patch__list_8c_1a7508f69d2cf8efbce87e9c60cb7b06e4" kind="function"><name>ie_patch_list_view_init</name></member>
+    <member refid="patch__list_8c_1a5c400e328a9bb65bbdf996722cec14f8" kind="function"><name>ie_patch_list_serialize</name></member>
+    <member refid="patch__list_8c_1a9897cb9c398a7067d32aaee566572b2f" kind="function"><name>ie_patch_list_apply_inplace</name></member>
+    <member refid="patch__list_8c_1ae237826594486eefe0fc2d75aac7c550" kind="function"><name>ie_patch_list_from_mask_exceptions</name></member>
   </compound>
   <compound refid="spec_8c" kind="file"><name>spec.c</name>
     <member refid="spec_8c_1a0fab59072bb5f57a21ce768e33da3d1e" kind="function"><name>ensure_entries_cap</name></member>
@@ -1194,6 +1373,7 @@
     <member refid="weights_8c_1aabb19f4a5e5385962c6db57f611bb785" kind="function"><name>ie_pread</name></member>
     <member refid="weights_8c_1a72ab94aafe7740f1343d317daa89ca15" kind="function"><name>ascii_ieq</name></member>
     <member refid="weights_8c_1a8adb51cd6c239a9589d4d66cd0cf989e" kind="function"><name>file_exists_readable</name></member>
+    <member refid="weights_8c_1a93c92a71a0cf18f3eea8623ea9524d54" kind="function"><name>env_flag_get</name></member>
     <member refid="group__ie__io__weights_1ga522dac028ee37aae1307ffdb6d65ec1d" kind="function"><name>ie_weights_open</name></member>
     <member refid="group__ie__io__weights_1ga095d7f59c4cba2b530bac039bca8b7a9" kind="function"><name>ie_weights_touch</name></member>
     <member refid="group__ie__io__weights_1ga06c2b7e35d1f82a11e4605e23a1976f5" kind="function"><name>ie_weights_close</name></member>
@@ -1340,7 +1520,13 @@
     <member refid="main__infer_8c_1a4fdbfffdaa0f22a01822f6a62bb7e95e" kind="function"><name>now_sec</name></member>
     <member refid="main__infer_8c_1a9675b1f5b8b73e24233f92cb11e31f6a" kind="function"><name>env_long</name></member>
     <member refid="main__infer_8c_1a124e2d03cd8b57bed92fb2911d54ea17" kind="function"><name>env_str</name></member>
+    <member refid="main__infer_8c_1a0cbea455e9868581360f43c63db6554c" kind="function"><name>path_exists</name></member>
     <member refid="main__infer_8c_1a72ab94aafe7740f1343d317daa89ca15" kind="function"><name>ascii_ieq</name></member>
+    <member refid="main__infer_8c_1a35a9aadd511e6b3688d01a67a12c7651" kind="function"><name>path_is_abs</name></member>
+    <member refid="main__infer_8c_1a210133797f21fcee710ec892841dce42" kind="function"><name>safe_strcpy</name></member>
+    <member refid="main__infer_8c_1adca9b33a342b8635e28ba51aecb365f6" kind="function"><name>join_path</name></member>
+    <member refid="main__infer_8c_1a680d5eb9763f52ea89ce1764e01121dc" kind="function"><name>canon_dir</name></member>
+    <member refid="main__infer_8c_1ae06567450eeb2b05b0039400021225ae" kind="function"><name>resolve_iebin_paths</name></member>
     <member refid="main__infer_8c_1ad96d407a911fbb914fa8e4cfbf2faf0f" kind="function"><name>usage</name></member>
     <member refid="main__infer_8c_1a25c42477bc56f4eb2d2a5c53e4510d70" kind="function"><name>cli_extras_defaults</name></member>
     <member refid="main__infer_8c_1a42cabe54dce1190125a12e4c0360ce22" kind="function"><name>safe_atoi</name></member>
@@ -1386,9 +1572,14 @@
     <member refid="replicate__hot_8c_1a73d866ce5045dbcd1dc99616cd973249" kind="define"><name>IE_LOG_ERROR</name></member>
     <member refid="replicate__hot_8c_1a70ff0b772d5fc58e786ff816f261f267" kind="typedef"><name>ie_hot_replica_t</name></member>
     <member refid="replicate__hot_8c_1a276047fc28be37b7b79422b3b0d04a9f" kind="typedef"><name>ie_hot_replicas_t</name></member>
+    <member refid="replicate__hot_8c_1a978e52a8a254ff87cf0591325cc90eb3" kind="typedef"><name>ie_hot_replica_fill_fn</name></member>
     <member refid="replicate__hot_8c_1aa966a1d17ddd373703a273d4b5bb3c30" kind="function"><name>first_touch_write</name></member>
     <member refid="replicate__hot_8c_1aeab08179a35b8f5ae6ca655cf915af84" kind="function"><name>advise_willneed</name></member>
+    <member refid="replicate__hot_8c_1a1fbb2fe7f1d4ab0ca28192e23d0d8849" kind="function"><name>advise_sequential</name></member>
+    <member refid="replicate__hot_8c_1ad080efbbeb35153a6b3e3a3e170231ee" kind="function"><name>alloc_replica_first_touch</name></member>
+    <member refid="replicate__hot_8c_1ab7ebdb34710a404bb4d9483a37bac091" kind="function"><name>free_replicas_internal</name></member>
     <member refid="replicate__hot_8c_1a7d3e29b1e9598ce32f191c4379cffe4e" kind="function"><name>ie_hot_replicate_build</name></member>
+    <member refid="replicate__hot_8c_1a1be4722e05c8e16911d2c3b0e0340098" kind="function"><name>ie_hot_replicate_build_fill</name></member>
     <member refid="replicate__hot_8c_1ab0351bef88d481e1eb86eb068d28de7b" kind="function"><name>ie_hot_replicas_free</name></member>
     <member refid="replicate__hot_8c_1abf58b131a180e771ed7c7740089ad3a3" kind="function"><name>ie_hot_replica_for_socket</name></member>
     <member refid="replicate__hot_8c_1a037dfbf3a8b30154ec3a8266649d8d9d" kind="function"><name>ie_hot_replica_memcpy</name></member>
@@ -1614,6 +1805,16 @@
   <compound refid="test__cpu__features_8c" kind="file"><name>test_cpu_features.c</name>
     <member refid="test__cpu__features_8c_1a840291bc02cba5474a4cb46a9b9566fe" kind="function"><name>main</name></member>
   </compound>
+  <compound refid="test__dedup__loader_8c" kind="file"><name>test_dedup_loader.c</name>
+    <member refid="test__dedup__loader_8c_1a3024ccd4a9af5109d24e6c57565d74a1" kind="define"><name>_POSIX_C_SOURCE</name></member>
+    <member refid="test__dedup__loader_8c_1abe5d20fa20a839ebee45c35555f86bdd" kind="define"><name>IE_LOG_INFO</name></member>
+    <member refid="test__dedup__loader_8c_1a008cac9cbc38d6db66207f56ee6f27e3" kind="define"><name>IE_LOG_WARN</name></member>
+    <member refid="test__dedup__loader_8c_1a73d866ce5045dbcd1dc99616cd973249" kind="define"><name>IE_LOG_ERROR</name></member>
+    <member refid="test__dedup__loader_8c_1a5183d8c6fd626cd308586b3324cf1f60" kind="function"><name>file_exists</name></member>
+    <member refid="test__dedup__loader_8c_1adca9b33a342b8635e28ba51aecb365f6" kind="function"><name>join_path</name></member>
+    <member refid="test__dedup__loader_8c_1a73dca7f77cd9da376bc14e888330d88f" kind="function"><name>open_and_touch</name></member>
+    <member refid="test__dedup__loader_8c_1a3c04138a5bfe5d72780bb7e82a18e627" kind="function"><name>main</name></member>
+  </compound>
   <compound refid="test__device_8c" kind="file"><name>test_device.c</name>
     <member refid="test__device_8c_1af2262a71f964197c86339e3797d0c9bb" kind="function"><name>test_kind_parse</name></member>
     <member refid="test__device_8c_1a7b62f3db43117555c60ec59d19c7c8d6" kind="function"><name>test_cpu_caps</name></member>
@@ -1730,6 +1931,10 @@
     <member refid="dedup__extract_8c_1a47f190938eb8c3ba0fe0b826f18146e6" kind="function"><name>parse_args</name></member>
     <member refid="dedup__extract_8c_1ab3a87168f400bc9a4a81c8634515f5e7" kind="function"><name>path_join</name></member>
     <member refid="dedup__extract_8c_1a3c04138a5bfe5d72780bb7e82a18e627" kind="function"><name>main</name></member>
+  </compound>
+  <compound refid="dedup__extract__int4_8py" kind="file"><name>dedup_extract_int4.py</name>
+  </compound>
+  <compound refid="dedup__verify__int4_8py" kind="file"><name>dedup_verify_int4.py</name>
   </compound>
   <compound refid="group__ie__engine" kind="group"><name>ie_engine</name>
   </compound>

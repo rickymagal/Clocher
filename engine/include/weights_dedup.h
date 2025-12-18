@@ -8,35 +8,16 @@
  *
  * The loader exposes a uniform `ie_weights_dedup_get_weight_view()` API returning an
  * `ie_weight_view_t` that can represent either:
- *  - A direct contiguous tensor view (rare in dedup artifacts but supported), or
+ *  - A direct contiguous tensor view, or
  *  - A deduplicated tensor view referencing (defaults + mask + exceptions).
  *
- * The intent is to keep this loader mmap-friendly:
- *  - all large blobs are memory-mapped read-only
- *  - tensor views are lightweight pointers into those mappings
+ * Mask semantics:
+ *  - bit=0 => use defaults value
+ *  - bit=1 => consume next value from exceptions stream and override
  *
- * A reference materializer (`ie_weights_dedup_materialize()`) is provided primarily
- * for correctness tests (hash comparison against the non-dedup baseline path) and
- * as a debugging aid.
- *
- * JSON format expectations (minimal):
- *  - A top-level "files" object mapping logical names to relative file paths:
- *      { "files": { "defaults": "...bin", "exceptions": "...bin", "masks": "...bin" }, ... }
- *  - A top-level "tensors" array, each with:
- *      - "name" (string)
- *      - "dtype" (string) : "fp32","fp16","bf16","int8","int4" (others may be added later)
- *      - "shape" (int array)
- *      - "default" / "mask" / "exceptions" objects:
- *          { "file": "defaults", "offset": N, "nbytes": M }
- *
- * The mask is interpreted as a bitset over *elements* (not bytes):
- *  - bit=0 => element equals defaults
- *  - bit=1 => element is overridden by the next value in exceptions (packed sequentially)
- *
- * For int4 tensors, "elements" refers to nibbles (4-bit values) in row-major order.
+ * For int4 tensors, elements are nibbles (4-bit values) in row-major order.
  *
  * @note This header intentionally does not depend on engine-global tensor metadata types.
- *       The engine can bridge `ie_weight_view_t` into its internal representation.
  */
 
 #pragma once
@@ -88,9 +69,6 @@ typedef enum ie_weight_view_kind {
 
 /**
  * @brief Maximum rank supported for shapes carried in the view.
- *
- * This is only for metadata conveyance; the engine may ignore shape here if it
- * already has authoritative shape info elsewhere.
  */
 #ifndef IE_WDEDUP_MAX_RANK
 #define IE_WDEDUP_MAX_RANK 8
@@ -100,17 +78,14 @@ typedef enum ie_weight_view_kind {
  * @brief A uniform weight view describing either direct or deduplicated storage.
  *
  * For IE_WVIEW_DIRECT:
- *  - @c data points to the contiguous tensor bytes
- *  - @c nbytes is the tensor byte size
+ *  - data points to contiguous tensor bytes
+ *  - nbytes is the tensor byte size
  *
  * For IE_WVIEW_DEDUP:
- *  - @c defaults points to the defaults tensor bytes (same dtype/shape as logical tensor)
- *  - @c mask points to a bitset over elements/nibbles
- *  - @c exceptions points to packed exception values (same dtype packing)
- *
- * Mask semantics:
- *  - bit 0 => use defaults value
- *  - bit 1 => consume next value from exceptions stream and override
+ *  - defaults points to defaults tensor bytes
+ *  - mask is a bitset over elements (or nibbles for int4)
+ *    - required length is ceil(elem_count / 8) bytes
+ *  - exceptions points to packed exception values in consumption order
  */
 typedef struct ie_weight_view {
   ie_weight_view_kind_t kind;
@@ -143,8 +118,6 @@ typedef struct ie_weight_view {
  */
 typedef struct ie_weights_dedup_opts {
   /**
-   * @brief Whether to request prefaulting (best-effort) via POSIX madvise.
-   *
    * 0 => no advice (default)
    * 1 => hint sequential read
    * 2 => hint will-need / prefault (where supported)
@@ -154,14 +127,6 @@ typedef struct ie_weights_dedup_opts {
 
 /**
  * @brief Open a deduplicated model directory.
- *
- * This function expects to find `model.dedup.json` inside @p model_dir.
- * It mmaps referenced files (defaults/exceptions/masks) read-only.
- *
- * @param[out] out      Returned handle on success.
- * @param[in]  model_dir Directory containing `model.dedup.json` and blobs.
- * @param[in]  opts     Optional mapping options (may be NULL).
- * @return IE_WDEDUP_OK on success, otherwise an error code.
  */
 ie_wdedup_status_t ie_weights_dedup_open(ie_weights_dedup_t **out,
                                         const char *model_dir,
@@ -169,20 +134,13 @@ ie_wdedup_status_t ie_weights_dedup_open(ie_weights_dedup_t **out,
 
 /**
  * @brief Close a deduplicated-weights handle and release mappings.
- *
- * @param[in,out] h Handle to close (set to NULL on return).
  */
 void ie_weights_dedup_close(ie_weights_dedup_t **h);
 
 /**
  * @brief Lookup a tensor by name and return a uniform view.
  *
- * The view's pointers remain valid until @c ie_weights_dedup_close().
- *
- * @param[in]  h     Open dedup handle.
- * @param[in]  name  Tensor name.
- * @param[out] out   Filled view on success.
- * @return IE_WDEDUP_OK if found, otherwise an error code.
+ * The view's pointers remain valid until ie_weights_dedup_close().
  */
 ie_wdedup_status_t ie_weights_dedup_get_weight_view(const ie_weights_dedup_t *h,
                                                     const char *name,
@@ -190,26 +148,11 @@ ie_wdedup_status_t ie_weights_dedup_get_weight_view(const ie_weights_dedup_t *h,
 
 /**
  * @brief Materialize a weight view into a contiguous buffer (lossless).
- *
- * This is primarily intended for tests:
- *  - Load baseline (non-dedup) tensor bytes and hash them.
- *  - Load dedup tensor view, materialize into scratch, hash, compare.
- *
- * For IE_WVIEW_DIRECT, this performs a memcpy.
- * For IE_WVIEW_DEDUP, this reconstructs defaults + overrides according to the mask.
- *
- * @param[in]  view      Weight view (direct or dedup).
- * @param[out] dst       Destination buffer.
- * @param[in]  dst_nbytes Capacity of destination buffer in bytes.
- * @return Number of bytes written on success, 0 on failure.
  */
 size_t ie_weights_dedup_materialize(const ie_weight_view_t *view, void *dst, size_t dst_nbytes);
 
 /**
  * @brief Convert a dtype string ("fp32", "int4", ...) to ie_wdtype_t.
- *
- * @param[in] s NUL-terminated dtype string.
- * @return Parsed dtype or IE_WDTYPE_UNKNOWN.
  */
 ie_wdtype_t ie_weights_dedup_parse_dtype(const char *s);
 
