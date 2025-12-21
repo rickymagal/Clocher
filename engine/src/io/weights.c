@@ -4,32 +4,23 @@
  */
 /**
  * @file weights.c
- * @brief Implementation of the IEBIN v1 loader with relaxed JSON parsing.
+ * @brief Implementation of the IEBIN v1 loader with relaxed JSON scanning.
  *
- * ## Design Goals
- * - Zero third-party dependencies (plain C, no JSON libraries).
- * - Resilient scanning (tolerate extra whitespace/fields).
- * - Safety with -Werror (no unsafe formatting, careful bounds checking).
- * - Clarity (straight-line code with explicit pre/post-conditions).
+ * @details
+ * Design goals:
+ *  - Plain-C, zero third-party deps (no JSON library).
+ *  - Resilient scanning (tolerate extra whitespace/fields).
+ *  - Safe with -Werror (bounds checks, defensive parsing).
  *
- * This module extracts minimal header info from `model.ie.json` and resolves
- * the path to `model.ie.bin`. It also exposes a small @ref ie_weights_touch()
- * routine to validate OS-level readability and optionally warm caches.
+ * Responsibilities:
+ *  - Extract minimal header info from model.ie.json (version, dtype, bin path).
+ *  - Resolve path to model.ie.bin (or a user-specified override).
+ *  - Provide ie_weights_touch() for a fast OS-level readability check.
  *
- * ### Deduplicated weights support (lossless)
- * If a sibling `model.dedup.json` exists in the same directory as `model.ie.json`,
- * this loader can prefer it and treat the deduplicated artifacts as the active
- * weights source.
- *
- * IMPORTANT:
- * - This file does NOT assume your ie_weights_t has dedup fields.
- * - If your ie_weights_t DOES have them, define IE_WEIGHTS_HAS_DEDUP_FIELDS=1
- *   in your build (or in ie_io.h) and provide:
- *     - int  is_dedup;
- *     - void *dedup_handle;
- *
- * If those fields do not exist, dedup is simply not activated here (baseline
- * path remains unchanged and the TU still compiles cleanly under -Werror).
+ * Deduplicated weights (optional):
+ *  If IE_WEIGHTS_HAS_DEDUP_FIELDS==1 and dedup artifacts exist in the same
+ *  directory (model.dedup.json or dedup_manifest.json), the loader attempts to
+ *  open them and stores an opaque handle in the ie_weights_t.
  */
 
 #ifndef _POSIX_C_SOURCE
@@ -56,11 +47,11 @@
 /* -------------------------------------------------------------------------- */
 
 /**
- * @brief Copy string into bounded buffer and always NUL-terminate.
+ * @brief Copy a C-string into a bounded buffer and always NUL-terminate.
  *
- * @param dst   Destination buffer (may be NULL).
+ * @param dst Destination buffer (may be NULL).
  * @param dstsz Capacity in bytes.
- * @param src   Source string (may be NULL).
+ * @param src Source string (may be NULL).
  */
 static void cpyz(char *dst, size_t dstsz, const char *src) {
   if (!dst || dstsz == 0) return;
@@ -75,7 +66,7 @@ static void cpyz(char *dst, size_t dstsz, const char *src) {
 }
 
 /**
- * @brief Return pointer to the last '/' in a path, or NULL if none.
+ * @brief Return a pointer to the last '/' in a path, or NULL if none.
  *
  * @param p NUL-terminated path.
  * @return Pointer to last '/', or NULL.
@@ -90,14 +81,12 @@ static const char *last_slash(const char *p) {
 }
 
 /**
- * @brief Join directory and filename into an output buffer.
+ * @brief Join directory and filename into an output buffer (NUL-terminated).
  *
- * If @p dir is empty, the result is just @p file. Ensures NUL termination.
- *
- * @param out   Output buffer.
+ * @param out Output buffer.
  * @param outsz Output capacity.
- * @param dir   Directory path (may be NULL/empty).
- * @param file  Filename (must be non-empty).
+ * @param dir Directory path (may be NULL/empty).
+ * @param file Filename (must be non-empty).
  */
 static void join_path(char *out, size_t outsz, const char *dir, const char *file) {
   if (!out || outsz == 0) return;
@@ -139,10 +128,11 @@ static void join_path(char *out, size_t outsz, const char *dir, const char *file
 /**
  * @brief Read an entire file into a newly allocated NUL-terminated buffer.
  *
- * Also strips a UTF-8 BOM if present.
+ * @details
+ * Strips a UTF-8 BOM if present.
  *
- * @param path    File path.
- * @param buf     Output pointer to malloc'd buffer (caller frees).
+ * @param path File path.
+ * @param buf Output pointer to malloc'd buffer (caller frees).
  * @param len_out Optional output length (bytes, excluding NUL).
  * @return 0 on success, negative on failure.
  */
@@ -195,13 +185,11 @@ static int read_all_text(const char *path, char **buf, size_t *len_out) {
 }
 
 /**
- * @brief Scan a relaxed JSON blob for an integer value at key "key".
+ * @brief Scan a relaxed JSON blob for an integer value at a given key.
  *
- * This is a simple best-effort scanner. It does not implement full JSON.
- *
- * @param json     NUL-terminated text.
- * @param key      Key name without quotes (e.g., "version").
- * @param out_val  Output integer.
+ * @param json NUL-terminated text.
+ * @param key Key name without quotes (e.g., "version").
+ * @param out_val Output integer.
  * @return 1 if found, 0 if not found, negative on invalid args.
  */
 static int scan_json_key_int(const char *json, const char *key, int *out_val) {
@@ -228,14 +216,12 @@ static int scan_json_key_int(const char *json, const char *key, int *out_val) {
 }
 
 /**
- * @brief Scan a relaxed JSON blob for a string value at key "key".
+ * @brief Scan a relaxed JSON blob for a string value at a given key.
  *
- * Copies up to dstsz-1 bytes and NUL-terminates.
- *
- * @param json   NUL-terminated JSON-ish text.
- * @param key    Key name without quotes.
- * @param dst    Output buffer.
- * @param dstsz  Output capacity.
+ * @param json NUL-terminated JSON-ish text.
+ * @param key Key name without quotes.
+ * @param dst Output buffer.
+ * @param dstsz Output capacity.
  * @return 1 if found, 0 if not found, negative on invalid args.
  */
 static int scan_json_key_string(const char *json, const char *key, char *dst, size_t dstsz) {
@@ -266,15 +252,12 @@ static int scan_json_key_string(const char *json, const char *key, char *dst, si
 }
 
 /**
- * @brief Locate the byte range of a JSON object value "{ ... }" for a key.
+ * @brief Locate the interior byte range of an object value "{ ... }" for a key.
  *
- * Returns pointers to the interior (after '{') and the closing brace position
- * (pointer to the '}' character). The range is [begin, end).
- *
- * @param json       JSON-ish text.
- * @param key        Object key to find.
- * @param out_begin  Output begin pointer (inside the braces).
- * @param out_end    Output end pointer (points to closing brace).
+ * @param json JSON-ish text.
+ * @param key Object key to find.
+ * @param out_begin Output begin pointer (inside the braces).
+ * @param out_end Output end pointer (points to closing brace).
  * @return 1 if found, 0 if not found/malformed, negative on invalid args.
  */
 static int scan_json_object_range(const char *json, const char *key, const char **out_begin,
@@ -317,13 +300,11 @@ static int scan_json_object_range(const char *json, const char *key, const char 
 /**
  * @brief Scan for a string key within a bounded [begin,end) range.
  *
- * This is used to parse nested objects without allocating substrings.
- *
- * @param begin  Range begin.
- * @param end    Range end (must be >= begin).
- * @param key    Key name.
- * @param dst    Output buffer.
- * @param dstsz  Output capacity.
+ * @param begin Range begin.
+ * @param end Range end (>= begin).
+ * @param key Key name.
+ * @param dst Output buffer.
+ * @param dstsz Output capacity.
  * @return 1 if found, 0 if not found, negative on invalid args.
  */
 static int scan_json_key_string_in_range(const char *begin, const char *end, const char *key,
@@ -364,15 +345,12 @@ static int scan_json_key_string_in_range(const char *begin, const char *end, con
 }
 
 /**
- * @brief Portable pread wrapper.
+ * @brief Portable pread wrapper with fallback.
  *
- * Uses pread() when available; otherwise emulates with lseek+read and restores
- * the file offset.
- *
- * @param fd      Open file descriptor.
- * @param buf     Destination buffer.
- * @param count   Number of bytes to read.
- * @param offset  Offset from start.
+ * @param fd Open file descriptor.
+ * @param buf Destination buffer.
+ * @param count Number of bytes to read.
+ * @param offset Offset from start.
  * @return Bytes read, or -1 on error.
  */
 static ssize_t ie_pread(int fd, void *buf, size_t count, off_t offset) {
@@ -393,7 +371,7 @@ static ssize_t ie_pread(int fd, void *buf, size_t count, off_t offset) {
  *
  * @param a NUL-terminated.
  * @param b NUL-terminated.
- * @return 1 if equal (case-insensitive ASCII), else 0.
+ * @return 1 if equal (ASCII case-insensitive), else 0.
  */
 static int ascii_ieq(const char *a, const char *b) {
   if (!a || !b) return 0;
@@ -422,10 +400,11 @@ static int file_exists_readable(const char *path) {
 /**
  * @brief Parse environment flag-like strings into a boolean.
  *
+ * @details
  * Accepts: 0/1, false/true, no/yes, off/on (ASCII case-insensitive).
- * Unknown values default to 1 (enabled) to avoid silent disable.
+ * Unknown values default to 1 (enabled).
  *
- * @param name          Environment variable name.
+ * @param name Environment variable name.
  * @param default_value Default value if not set/empty.
  * @return 0 or 1.
  */
@@ -441,10 +420,6 @@ static int env_flag_get(const char *name, int default_value) {
 
 /**
  * @brief Create a best-effort symlink model.dedup.json -> dedup_manifest.json.
- *
- * Some pipelines may output `dedup_manifest.json`. This helper creates a
- * sibling symlink named `model.dedup.json` if it is missing. Failures are
- * non-fatal; the function simply returns whether the expected link is readable.
  *
  * @param dir Directory containing the artifacts.
  * @return 1 if model.dedup.json ends up readable, else 0.
@@ -478,12 +453,21 @@ static int ensure_dedup_manifest_link(const char *dir) {
 /**
  * @brief Open and parse IEBIN v1 metadata and resolve the weights path.
  *
- * See ie_io.h for the public contract.
+ * @details
+ * Populates the public descriptor with:
+ *  - version (defaults to 1 if missing),
+ *  - dtype (defaults to "float32"),
+ *  - resolved weights_path,
+ *  - bin_size_bytes,
+ *  - loaded flag set on success.
+ *
+ * If dedup fields are present and IE_WEIGHTS_HAS_DEDUP_FIELDS==1, also tries
+ * to open dedup artifacts and stores the opaque handle.
  *
  * @param json_path Path to model.ie.json.
- * @param bin_path  Optional override to model.ie.bin.
- * @param out       Output descriptor.
- * @return IE_IO_OK on success, IE_IO_ERR_* on failure.
+ * @param bin_path Optional override to model.ie.bin.
+ * @param out Output descriptor (non-NULL).
+ * @return IE_IO_OK on success; IE_IO_ERR_* on failure.
  */
 int ie_weights_open(const char *json_path, const char *bin_path, ie_weights_t *out) {
   if (!out) return IE_IO_ERR_ARGS;
@@ -547,7 +531,7 @@ int ie_weights_open(const char *json_path, const char *bin_path, ie_weights_t *o
 #if defined(IE_WEIGHTS_HAS_DEDUP_FIELDS) && (IE_WEIGHTS_HAS_DEDUP_FIELDS == 1)
   {
     const int dedup_enabled = env_flag_get("IE_DEDUP", 1);
-    const int dedup_strict = env_flag_get("IE_DEDUP_STRICT", 0);
+    const int dedup_strict  = env_flag_get("IE_DEDUP_STRICT", 0);
 
     if (dedup_enabled) {
       const char *slash = last_slash(json_path);
@@ -596,9 +580,10 @@ int ie_weights_open(const char *json_path, const char *bin_path, ie_weights_t *o
 }
 
 /**
- * @brief Touch the weights binary to verify readability.
+ * @brief Touch the weights binary to verify readability and optionally warm I/O.
  *
- * Performs small positional reads near the start and end (if file is large).
+ * @details
+ * Performs small positional reads near the start and end if the file is large.
  *
  * @param w Opened weights descriptor.
  * @return IE_IO_OK on success, IE_IO_ERR_* on error.
@@ -644,7 +629,21 @@ void ie_weights_close(ie_weights_t *w) {
 /* -------------------------------------------------------------------------- */
 
 /**
+ * @struct ie_int4_quant_meta
  * @brief Minimal parsed view of INT4 quantization metadata.
+ *
+ * @var ie_int4_quant_meta::present
+ * Non-zero if metadata was detected.
+ * @var ie_int4_quant_meta::per_row
+ * Non-zero for per-row scales.
+ * @var ie_int4_quant_meta::scale_bin
+ * Resolved path to scales binary (if present).
+ * @var ie_int4_quant_meta::pack
+ * Packing identifier string.
+ * @var ie_int4_quant_meta::zero_point
+ * Zero-point value (if provided).
+ * @var ie_int4_quant_meta::symmetric
+ * Non-zero if symmetric quantization was indicated.
  */
 struct ie_int4_quant_meta {
   int present;
@@ -658,16 +657,8 @@ struct ie_int4_quant_meta {
 /**
  * @brief Parse INT4-related metadata from model.ie.json (best-effort).
  *
- * The function looks for dtype in {"int4","q4","mixed"} and a "quant" object
- * containing fields like:
- * - per: "row" or other
- * - scale_bin: relative path to scales
- * - pack: packing identifier
- * - zp: zero point
- * - symmetric: boolean-ish
- *
  * @param json_path Path to model.ie.json.
- * @param out_meta  Output struct.
+ * @param out_meta Output struct (zeroed and filled on return).
  * @return IE_IO_OK on success or when metadata not present; IE_IO_ERR_* on error.
  */
 int ie_weights_read_int4_meta(const char *json_path, struct ie_int4_quant_meta *out_meta) {
@@ -748,11 +739,11 @@ int ie_weights_read_int4_meta(const char *json_path, struct ie_int4_quant_meta *
  * @brief Convert IEEE-754 half (fp16) bit-pattern to float (fp32).
  *
  * @param h 16-bit half bits.
- * @return float value.
+ * @return Converted float value.
  */
 static float fp16_to_fp32(uint16_t h) {
   uint32_t sign = (uint32_t)(h & 0x8000u) << 16;
-  uint32_t exp = (h & 0x7C00u) >> 10;
+  uint32_t exp  = (h & 0x7C00u) >> 10;
   uint32_t mant = (h & 0x03FFu);
   uint32_t f;
   if (exp == 0) {
@@ -782,11 +773,11 @@ static float fp16_to_fp32(uint16_t h) {
  *
  * @param packed_path Path to packed INT4 data.
  * @param scales_path Path to scales (fp16 or fp32).
- * @param rows        Rows.
- * @param cols        Cols.
- * @param per_row     Non-zero for per-row scales; otherwise per-tensor.
- * @param dst         Output buffer (rows*cols floats).
- * @return IE_IO_OK on success, IE_IO_ERR_* on failure.
+ * @param rows Rows in the weight matrix.
+ * @param cols Columns in the weight matrix.
+ * @param per_row Non-zero for per-row scales; otherwise per-tensor.
+ * @param dst Output buffer (rows*cols floats).
+ * @return IE_IO_OK on success; IE_IO_ERR_* on failure.
  */
 int ie_weights_decode_int4(const char *packed_path, const char *scales_path, size_t rows, size_t cols,
                            int per_row, float *dst) {
@@ -833,7 +824,7 @@ int ie_weights_decode_int4(const char *packed_path, const char *scales_path, siz
     return IE_IO_ERR_STAT;
   }
 
-  size_t nsc = per_row ? rows : 1;
+  size_t nsc   = per_row ? rows : 1;
   size_t need16 = nsc * sizeof(uint16_t);
   size_t need32 = nsc * sizeof(float);
 

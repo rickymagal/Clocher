@@ -1,14 +1,25 @@
-/**
+/* File: engine/src/opt/stream.c
+ * -----------------------------------------------------------------------------
  * @file stream.c
- * @brief Heuristics and implementations for prefetch and non-temporal (streaming) stores.
+ * @brief Prefetch and non-temporal (streaming) heuristics and helpers.
  *
- * Implementation highlights:
- *  - Cache size detection on Linux via sysfs:
+ * @details
+ * This module implements:
+ *  - Best-effort cache size discovery on Linux via sysfs:
  *      "/sys/devices/system/cpu/cpu0/cache/index<N>/size"
- *    with units "K" or "M".
- *  - Environment overrides (see ie_stream.h header doc).
- *  - Careful handling of alignment before issuing wide streaming stores.
+ *    with size strings like "32K" or "12M".
+ *  - Policy initialization and environment overrides (documented in ie_stream.h).
+ *  - Prefetch helpers (T0 and NTA) with graceful no-op on non-x86.
+ *  - Optional non-temporal copy/memset helpers for float arrays, using AVX-512F
+ *    or AVX2 when available, with safe scalar fallback.
+ *
+ * Environment variables (interpreted here):
+ *  - IE_STREAM_PREFETCH        Override prefetch lead distance (bytes).
+ *  - IE_STREAM_NT_THRESHOLD    Override non-temporal threshold (bytes).
+ *  - IE_STREAM_FORCE_NT        "1" => always NT, "0" => never NT, else heuristic.
  */
+
+#define _POSIX_C_SOURCE 200809L
 
 #include "ie_stream.h"
 
@@ -29,7 +40,13 @@
 /* --------------------------------- helpers -------------------------------- */
 
 /**
- * @brief Parse a sysfs cache size file that looks like "32K\n" or "12M\n".
+ * @brief Parse a sysfs cache size file containing values like "32K\n" or "12M\n".
+ *
+ * @details
+ * Sysfs cache size strings commonly encode units as K/M. This helper parses the
+ * numeric prefix and optional unit suffix, returning bytes.
+ *
+ * If the file cannot be opened/read or parsing fails, returns 0.
  *
  * @param path NUL-terminated file path.
  * @return Cache size in bytes (>=0), or 0 if unavailable/unreadable.
@@ -61,7 +78,13 @@ static size_t ie_read_cache_size_file(const char *path) {
 /**
  * @brief Best-effort cache discovery on Linux sysfs.
  *
- * Fills l1/l2/l3 with detected values or leaves zeros if not found.
+ * @details
+ * Vendor sysfs layouts vary; we read a small fixed set of potential index paths
+ * and rank the discovered sizes. The mapping "largest => L3, second => L2,
+ * third => L1" is a rough approximation but works reasonably well for tuning
+ * thresholds without hard dependencies.
+ *
+ * If nothing is found, outputs remain zero.
  *
  * @param l1 Out: L1D size in bytes (best-effort).
  * @param l2 Out: L2 size in bytes (best-effort).
@@ -72,7 +95,6 @@ static void ie_detect_caches_linux(size_t *l1, size_t *l2, size_t *l3) {
   if (l2) *l2 = 0;
   if (l3) *l3 = 0;
 
-  /* Common indices: vendor layouts vary; read a small set and rank by size. */
   const char *paths[] = {
     "/sys/devices/system/cpu/cpu0/cache/index0/size",
     "/sys/devices/system/cpu/cpu0/cache/index1/size",
@@ -84,7 +106,7 @@ static void ie_detect_caches_linux(size_t *l1, size_t *l2, size_t *l3) {
   size_t found[5] = {0};
   for (int i = 0; i < 5; ++i) found[i] = ie_read_cache_size_file(paths[i]);
 
-  /* Sort descending (tiny N=5 selection sort). */
+  /* Sort descending (N=5 selection sort). */
   for (int i = 0; i < 5; ++i) {
     for (int j = i + 1; j < 5; ++j) {
       if (found[j] > found[i]) {
@@ -95,7 +117,6 @@ static void ie_detect_caches_linux(size_t *l1, size_t *l2, size_t *l3) {
     }
   }
 
-  /* Pick largest as L3, next as L2, next as L1D (rough but robust enough). */
   if (l3) *l3 = found[0];
   if (l2) *l2 = found[1];
   if (l1) *l1 = found[2];
@@ -118,9 +139,21 @@ static double ie_clamp01(double x) {
 /**
  * @brief Initialize an ie_stream_policy with detected cache sizes and defaults.
  *
- * The policy may be overridden via environment variables documented in
- * ie_stream.h. Cache detection is best-effort and falls back to conservative
- * defaults when sysfs probing fails.
+ * @details
+ * Cache detection is best-effort (Linux sysfs). If detection fails, conservative
+ * defaults are used:
+ *  - L1D: 32 KiB
+ *  - L2:  1 MiB
+ *  - L3:  8 MiB
+ *
+ * Defaults:
+ *  - prefetch_distance: 6 cache lines
+ *  - nt_threshold_bytes: 2x LLC
+ *
+ * Env overrides:
+ *  - IE_STREAM_PREFETCH
+ *  - IE_STREAM_NT_THRESHOLD
+ *  - IE_STREAM_FORCE_NT
  *
  * @param p Output policy to initialize.
  * @return 0 on success, or -EINVAL on invalid arguments.
@@ -136,23 +169,18 @@ int ie_stream_policy_init(struct ie_stream_policy *p) {
   p->l2_bytes = l2;
   p->l3_bytes = l3;
 
-  /* Defaults if unknown: conservative values. */
   if (p->l1_bytes == 0) p->l1_bytes = 32u * 1024u;
   if (p->l2_bytes == 0) p->l2_bytes = 1u * 1024u * 1024u;
   if (p->l3_bytes == 0) p->l3_bytes = 8u * 1024u * 1024u;
 
-  /* Heuristic: lead ~ 6 cache lines unless overridden. */
   p->prefetch_distance = 6u * IE_CACHELINE_BYTES;
-
-  /* Heuristic: stream when larger than 2x LLC (write-combining likely better). */
   p->nt_threshold_bytes = 2u * p->l3_bytes;
 
-  p->prefetch_hint = 0;      /* T0 by default */
+  p->prefetch_hint = 0;
   p->enable_prefetch = true;
   p->force_nt_on = false;
   p->force_nt_off = false;
 
-  /* Environment overrides */
   const char *s = NULL;
 
   s = getenv("IE_STREAM_PREFETCH");
@@ -168,7 +196,7 @@ int ie_stream_policy_init(struct ie_stream_policy *p) {
   }
 
   /* IE_STREAM_FORCE_NT:
-   *  - "1" => always use non-temporal (streaming) stores
+   *  - "1" => always use non-temporal stores
    *  - "0" => never use non-temporal stores
    *  - otherwise => ignore (keep heuristic)
    */
@@ -190,9 +218,11 @@ int ie_stream_policy_init(struct ie_stream_policy *p) {
 /* -------------------------- decision / recommendation --------------------- */
 
 /**
- * @brief Decide whether a copy/set of @p bytes should use non-temporal stores.
+ * @brief Decide whether a memory operation of @p bytes should use non-temporal stores.
  *
- * The decision uses the policy threshold unless forced on/off.
+ * @details
+ * The decision uses the policy threshold unless forced on/off via
+ * IE_STREAM_FORCE_NT.
  *
  * @param bytes Size of the memory operation in bytes.
  * @param p Policy (must be non-NULL).
@@ -208,9 +238,11 @@ bool ie_stream_should_use_nt(size_t bytes, const struct ie_stream_policy *p) {
 /**
  * @brief Recommend a prefetch lead distance for a given stride.
  *
- * Clamps the configured distance to a sensible range: at least one cache line,
- * and at most roughly half of L1, while ensuring it is not smaller than the
- * stride when stride_bytes is provided.
+ * @details
+ * This clamps the configured distance to a practical range:
+ *  - at least one cache line,
+ *  - at most half of L1,
+ *  - at least stride_bytes when stride_bytes is provided.
  *
  * @param p Policy (may be NULL).
  * @param stride_bytes Access stride in bytes (0 => assume cacheline stride).
@@ -236,7 +268,8 @@ size_t ie_stream_recommend_prefetch_distance(const struct ie_stream_policy *p,
 /**
  * @brief Issue a temporal (T0) prefetch at base+distance (best-effort).
  *
- * On non-x86 builds this is a no-op.
+ * @details
+ * On non-x86 builds this function is a no-op.
  *
  * @param base Base pointer.
  * @param distance Byte offset from base to prefetch.
@@ -253,7 +286,8 @@ void ie_stream_prefetch_t0(const void *base, size_t distance) {
 /**
  * @brief Issue a non-temporal (NTA) prefetch at base+distance (best-effort).
  *
- * On non-x86 builds this is a no-op.
+ * @details
+ * On non-x86 builds this function is a no-op.
  *
  * @param base Base pointer.
  * @param distance Byte offset from base to prefetch.
@@ -270,7 +304,8 @@ void ie_stream_prefetch_nta(const void *base, size_t distance) {
 /**
  * @brief Prefetch a range with temporal (T0) hint.
  *
- * Walks a byte range [base, base+bytes) and issues prefetches at
+ * @details
+ * Walks the byte range [base, base+bytes) and issues prefetches at
  * (current + distance), stepping by stride (or cacheline if stride==0).
  *
  * @param base Base pointer of the range.
@@ -290,7 +325,8 @@ void ie_stream_prefetch_range_t0(const void *base, size_t bytes,
 /**
  * @brief Prefetch a range with non-temporal (NTA) hint.
  *
- * Walks a byte range [base, base+bytes) and issues prefetches at
+ * @details
+ * Walks the byte range [base, base+bytes) and issues prefetches at
  * (current + distance), stepping by stride (or cacheline if stride==0).
  *
  * @param base Base pointer of the range.
@@ -332,7 +368,11 @@ static inline void ie_scalar_set_f32(float *dst, float v, size_t n) {
 }
 
 /**
- * @brief Streaming store copy using AVX-512 (compile-time gated).
+ * @brief Streaming store copy using AVX-512F (compile-time gated).
+ *
+ * @details
+ * Uses _mm512_stream_ps for aligned streaming stores when available.
+ * Falls back to scalar behavior when AVX-512F is not enabled.
  *
  * @param dst Destination float array.
  * @param src Source float array.
@@ -369,6 +409,10 @@ static void ie_nt_copy_f32_avx512(float *dst, const float *src, size_t n) {
 /**
  * @brief Streaming store copy using AVX2 (compile-time gated).
  *
+ * @details
+ * Uses _mm256_stream_ps for aligned streaming stores when available.
+ * Falls back to scalar behavior when AVX2 is not enabled.
+ *
  * @param dst Destination float array.
  * @param src Source float array.
  * @param n Number of float elements.
@@ -402,7 +446,11 @@ static void ie_nt_copy_f32_avx2(float *dst, const float *src, size_t n) {
 }
 
 /**
- * @brief Streaming store set using AVX-512 (compile-time gated).
+ * @brief Streaming store set using AVX-512F (compile-time gated).
+ *
+ * @details
+ * Uses _mm512_stream_ps for aligned streaming stores when available.
+ * Falls back to scalar behavior when AVX-512F is not enabled.
  *
  * @param dst Destination float array.
  * @param value Value to write.
@@ -434,6 +482,10 @@ static void ie_nt_set_f32_avx512(float *dst, float value, size_t n) {
 
 /**
  * @brief Streaming store set using AVX2 (compile-time gated).
+ *
+ * @details
+ * Uses _mm256_stream_ps for aligned streaming stores when available.
+ * Falls back to scalar behavior when AVX2 is not enabled.
  *
  * @param dst Destination float array.
  * @param value Value to write.
@@ -468,6 +520,7 @@ static void ie_nt_set_f32_avx2(float *dst, float value, size_t n) {
 /**
  * @brief Copy a float array, optionally using non-temporal stores.
  *
+ * @details
  * The function uses policy thresholds plus @p nt_ratio to decide whether to use
  * non-temporal streaming stores. If @p nt_ratio is 0, the function forces a
  * scalar copy even if the policy would otherwise stream.
@@ -503,6 +556,7 @@ void ie_stream_copy_f32(float *dst, const float *src, size_t n,
 /**
  * @brief Set a float array, optionally using non-temporal stores.
  *
+ * @details
  * The function uses policy thresholds plus @p nt_ratio to decide whether to use
  * non-temporal streaming stores. If @p nt_ratio is 0, the function forces a
  * scalar set even if the policy would otherwise stream.

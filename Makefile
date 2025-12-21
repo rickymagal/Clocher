@@ -171,7 +171,6 @@ repack-hf:
 
 iebin-stamp: .iebin.pack
 	@test -f "$(IEBIN_JSON)" && test -f "$(IEBIN_BIN)" || { echo "ERROR: IEBIN artifacts missing"; exit 2; }
-	@cp -f "$(IEBIN_JSON)" "$(IEBIN_JSON)"; cp -f "$(IEBIN_BIN)" "$(IEBIN_BIN)"
 	@touch .iebin.stamp
 	@echo "[iebin] Done: $(IEBIN_JSON) + $(IEBIN_BIN)"
 
