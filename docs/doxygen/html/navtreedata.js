@@ -25,63 +25,63 @@
 var NAVTREE =
 [
   [ "Inference Engine (Clocher)", "index.html", [
-    [ "Quick start", "index.html#autotoc_md95", [
-      [ "Model format (IEBIN v1)", "index.html#autotoc_md96", null ]
+    [ "Quick start", "index.html#autotoc_md93", [
+      [ "Model format (IEBIN v1)", "index.html#autotoc_md94", null ]
     ] ],
-    [ "NEW: INT4 <strong>weight‑only</strong> PTQ path (Q4)", "index.html#autotoc_md98", [
-      [ "Pipeline overview", "index.html#autotoc_md99", null ]
+    [ "NEW: INT4 <strong>weight‑only</strong> PTQ path (Q4)", "index.html#autotoc_md96", [
+      [ "Pipeline overview", "index.html#autotoc_md97", null ]
     ] ],
-    [ "Operational notes", "index.html#autotoc_md101", null ],
-    [ "Troubleshooting", "index.html#autotoc_md103", null ],
-    [ "What INT4 (weight‑only) means here", "index.html#autotoc_md105", null ],
-    [ "See also", "index.html#autotoc_md107", null ],
-    [ "INT4 Weight-Only — Addendum (2025-10-24 21:04:23 UTC)", "index.html#autotoc_md109", [
-      [ "Summary", "index.html#autotoc_md110", null ],
-      [ "Prerequisites", "index.html#autotoc_md111", null ],
-      [ "Export to IEBIN with INT4", "index.html#autotoc_md112", null ],
-      [ "Run the strict benchmark (CPU)", "index.html#autotoc_md113", null ],
-      [ "Run the strict benchmark (CUDA)", "index.html#autotoc_md114", null ],
-      [ "Manifest template (example)", "index.html#autotoc_md115", null ],
-      [ "Troubleshooting", "index.html#autotoc_md116", null ],
-      [ "Notes", "index.html#autotoc_md117", null ]
+    [ "Operational notes", "index.html#autotoc_md99", null ],
+    [ "Troubleshooting", "index.html#autotoc_md101", null ],
+    [ "What INT4 (weight‑only) means here", "index.html#autotoc_md103", null ],
+    [ "See also", "index.html#autotoc_md105", null ],
+    [ "INT4 Weight-Only — Addendum (2025-10-24 21:04:23 UTC)", "index.html#autotoc_md107", [
+      [ "Summary", "index.html#autotoc_md108", null ],
+      [ "Prerequisites", "index.html#autotoc_md109", null ],
+      [ "Export to IEBIN with INT4", "index.html#autotoc_md110", null ],
+      [ "Run the strict benchmark (CPU)", "index.html#autotoc_md111", null ],
+      [ "Run the strict benchmark (CUDA)", "index.html#autotoc_md112", null ],
+      [ "Manifest template (example)", "index.html#autotoc_md113", null ],
+      [ "Troubleshooting", "index.html#autotoc_md114", null ],
+      [ "Notes", "index.html#autotoc_md115", null ]
     ] ],
-    [ "Repository Layout", "index.html#autotoc_md118", null ],
-    [ "Makefile — Complete Reference", "index.html#autotoc_md119", [
-      [ "Common Targets", "index.html#autotoc_md120", null ],
-      [ "Environment Variables (consumed by <tt>make bench*</tt> and/or the CLI)", "index.html#autotoc_md121", null ],
-      [ "End‑to‑End Examples", "index.html#autotoc_md122", null ],
-      [ "Return Codes", "index.html#autotoc_md123", null ]
+    [ "Repository Layout", "index.html#autotoc_md116", null ],
+    [ "Makefile — Complete Reference", "index.html#autotoc_md117", [
+      [ "Common Targets", "index.html#autotoc_md118", null ],
+      [ "Environment Variables (consumed by <tt>make bench*</tt> and/or the CLI)", "index.html#autotoc_md119", null ],
+      [ "End‑to‑End Examples", "index.html#autotoc_md120", null ],
+      [ "Return Codes", "index.html#autotoc_md121", null ]
     ] ],
-    [ "RSS Reporting", "index.html#autotoc_md124", [
-      [ "RSS Reporting", "index.html#autotoc_md125", null ]
+    [ "RSS Reporting", "index.html#autotoc_md122", [
+      [ "RSS Reporting", "index.html#autotoc_md123", null ]
     ] ],
-    [ "Update Journal", "index.html#autotoc_md126", null ],
-    [ "What’s new — 2025-11-10", "index.html#autotoc_md128", [
-      [ "Step 1 — NUMA‑aware topology & thread binding", "index.html#autotoc_md129", null ],
-      [ "Step 2 — “Hot” weights replication per socket", "index.html#autotoc_md130", null ],
-      [ "Activation precision (INT8 / FP8) — soft hint", "index.html#autotoc_md131", null ],
-      [ "Strict timing rule (re‑stated)", "index.html#autotoc_md132", null ],
-      [ "Quick run recipes", "index.html#autotoc_md133", null ]
+    [ "Update Journal", "index.html#autotoc_md124", null ],
+    [ "What’s new — 2025-11-10", "index.html#autotoc_md126", [
+      [ "Step 1 — NUMA‑aware topology & thread binding", "index.html#autotoc_md127", null ],
+      [ "Step 2 — “Hot” weights replication per socket", "index.html#autotoc_md128", null ],
+      [ "Activation precision (INT8 / FP8) — soft hint", "index.html#autotoc_md129", null ],
+      [ "Strict timing rule (re‑stated)", "index.html#autotoc_md130", null ],
+      [ "Quick run recipes", "index.html#autotoc_md131", null ]
     ] ],
-    [ "What's new — Memory Phase (updated 2025-11-12 18:01:19 UTC)", "index.html#autotoc_md134", [
-      [ "New tuning knobs (memory/throughput)", "index.html#autotoc_md135", null ],
-      [ "Harness sweep (benchmarks)", "index.html#autotoc_md136", null ],
-      [ "Monitoring", "index.html#autotoc_md137", null ],
-      [ "CUDA/CPU kernels", "index.html#autotoc_md138", null ]
+    [ "What's new — Memory Phase (updated 2025-11-12 18:01:19 UTC)", "index.html#autotoc_md132", [
+      [ "New tuning knobs (memory/throughput)", "index.html#autotoc_md133", null ],
+      [ "Harness sweep (benchmarks)", "index.html#autotoc_md134", null ],
+      [ "Monitoring", "index.html#autotoc_md135", null ],
+      [ "CUDA/CPU kernels", "index.html#autotoc_md136", null ]
     ] ],
-    [ "</blockquote>", "index.html#autotoc_md139", null ],
-    [ "What's new — Block-sparse weights (CPU only, 2025‑11‑14)", "index.html#autotoc_md140", [
-      [ "New artifacts", "index.html#autotoc_md141", null ],
-      [ "Scope and current limitations", "index.html#autotoc_md142", null ]
+    [ "</blockquote>", "index.html#autotoc_md137", null ],
+    [ "What's new — Block-sparse weights (CPU only, 2025‑11‑14)", "index.html#autotoc_md138", [
+      [ "New artifacts", "index.html#autotoc_md139", null ],
+      [ "Scope and current limitations", "index.html#autotoc_md140", null ]
     ] ],
     [ "Architectural Decision Records", "md_docs_DECISIONS.html", [
-      [ "<strong>ADR-0013 (2025-10-24): Adopt INT4 weight-only PTQ & manifest-guided packing</strong>", "md_docs_DECISIONS.html#autotoc_md14", null ],
-      [ "Decision: Add INT4 (Weight-Only) Optional Pipeline (2025-10-24 21:04:23 UTC)", "md_docs_DECISIONS.html#autotoc_md16", null ],
-      [ "Appendix — INT4 (Weight‑Only) Step (Summary)", "md_docs_DECISIONS.html#autotoc_md18", null ],
-      [ "- <strong>Status:</strong> Accepted. Backward‑compatible; default remains FP32 if unset.", "md_docs_DECISIONS.html#autotoc_md20", null ],
-      [ "ADR‑0017 (Memory Streaming Heuristics): Prefetch & Non‑Temporal Loads — 2025-11-12 18:01:19 UTC", "md_docs_DECISIONS.html#autotoc_md21", null ],
-      [ "ADR‑0018 (Metrics & Reporting): Spatial Metrics in PERFORMANCE.md — 2025-11-12 18:01:19 UTC", "md_docs_DECISIONS.html#autotoc_md23", null ],
-      [ "ADR‑0019 (Sparsity): Block‑sparse weights, CPU‑only prototype — 2025‑11‑14 23:00:00 UTC", "md_docs_DECISIONS.html#autotoc_md24", null ]
+      [ "<strong>ADR-0013 (2025-10-24): Adopt INT4 weight-only PTQ & manifest-guided packing</strong>", "md_docs_DECISIONS.html#autotoc_md15", null ],
+      [ "Decision: Add INT4 (Weight-Only) Optional Pipeline (2025-10-24 21:04:23 UTC)", "md_docs_DECISIONS.html#autotoc_md17", null ],
+      [ "Appendix — INT4 (Weight‑Only) Step (Summary)", "md_docs_DECISIONS.html#autotoc_md19", null ],
+      [ "- <strong>Status:</strong> Accepted. Backward‑compatible; default remains FP32 if unset.", "md_docs_DECISIONS.html#autotoc_md21", null ],
+      [ "ADR‑0017 (Memory Streaming Heuristics): Prefetch & Non‑Temporal Loads — 2025-11-12 18:01:19 UTC", "md_docs_DECISIONS.html#autotoc_md22", null ],
+      [ "ADR‑0018 (Metrics & Reporting): Spatial Metrics in PERFORMANCE.md — 2025-11-12 18:01:19 UTC", "md_docs_DECISIONS.html#autotoc_md24", null ],
+      [ "ADR‑0019 (Sparsity): Block‑sparse weights, CPU‑only prototype — 2025‑11‑14 23:00:00 UTC", "md_docs_DECISIONS.html#autotoc_md25", null ]
     ] ],
     [ "Design (CPU baseline + INT4 path)", "md_docs_DESIGN.html", [
       [ "Process and boundaries", "md_docs_DESIGN.html#autotoc_md26", null ],
@@ -133,19 +133,19 @@ var NAVTREE =
       ] ]
     ] ],
     [ "Performance Notes", "md_docs_PERFORMANCE.html", [
-      [ "CPU — Summary (latest benchmark)", "md_docs_PERFORMANCE.html#autotoc_md2", null ],
-      [ "Latency", "md_docs_PERFORMANCE.html#autotoc_md3", null ],
-      [ "Spatial Complexity (Memory & Cache)", "md_docs_PERFORMANCE.html#autotoc_md4", [
-        [ "Memory Details", "md_docs_PERFORMANCE.html#autotoc_md5", null ]
+      [ "CPU — Summary (latest benchmark)", "md_docs_PERFORMANCE.html#autotoc_md3", null ],
+      [ "Latency", "md_docs_PERFORMANCE.html#autotoc_md4", null ],
+      [ "Spatial Complexity (Memory & Cache)", "md_docs_PERFORMANCE.html#autotoc_md5", [
+        [ "Memory Details", "md_docs_PERFORMANCE.html#autotoc_md6", null ]
       ] ],
-      [ "GPU — Summary (latest benchmark)", "md_docs_PERFORMANCE.html#autotoc_md6", null ],
-      [ "Latency", "md_docs_PERFORMANCE.html#autotoc_md7", null ],
-      [ "Spatial Complexity (Memory & Cache)", "md_docs_PERFORMANCE.html#autotoc_md8", [
-        [ "Memory Details", "md_docs_PERFORMANCE.html#autotoc_md9", null ]
+      [ "GPU — Summary (latest benchmark)", "md_docs_PERFORMANCE.html#autotoc_md7", null ],
+      [ "Latency", "md_docs_PERFORMANCE.html#autotoc_md8", null ],
+      [ "Spatial Complexity (Memory & Cache)", "md_docs_PERFORMANCE.html#autotoc_md9", [
+        [ "Memory Details", "md_docs_PERFORMANCE.html#autotoc_md10", null ]
       ] ],
-      [ "Run Parameters & Conditions", "md_docs_PERFORMANCE.html#autotoc_md10", null ],
-      [ "System & Model Info", "md_docs_PERFORMANCE.html#autotoc_md11", null ],
-      [ "Comparative Runs", "md_docs_PERFORMANCE.html#autotoc_md12", null ]
+      [ "Run Parameters & Conditions", "md_docs_PERFORMANCE.html#autotoc_md11", null ],
+      [ "System & Model Info", "md_docs_PERFORMANCE.html#autotoc_md12", null ],
+      [ "Comparative Runs", "md_docs_PERFORMANCE.html#autotoc_md13", null ]
     ] ],
     [ "Modules", "modules.html", "modules" ],
     [ "Namespaces", "namespaces.html", [
@@ -184,15 +184,15 @@ var NAVTREE =
 var NAVTREEINDEX =
 [
 "act__fp8_8c.html",
-"functions_vars_e.html",
-"harness_8py.html#a38f488ff979de5178ac79f65e07b5d9c",
-"ie__kv__cache_8h.html#a5b546a5423f4572607a07d8d55146024",
-"make__baseline__md_8py.html#a596060d7591b8d65a500867ee80aceb7",
-"namespacetest__harness.html",
-"stream_8c.html#a62606c176a6edf9664ac03ded1ab2fa7",
-"structie__device__vtbl.html#a646d8353c3ebf1ba47f4a4ac37efac33",
-"test__dedup__loader_8c.html#a73dca7f77cd9da376bc14e888330d88f",
-"weights__dedup_8h.html#a185e6f8ed325abfa646ab2e67fd3be13"
+"functions_g.html",
+"group__ie__int4__quant.html#ga7aaa2156d41e9a58eb6013cec4b32d78",
+"ie__kernels__ze_8cl.html#ac201a9ea4df331010c34a2c99cb2be56",
+"main__infer_8c.html#a9973434ae2443cc726369b714df7b2cb",
+"namespaceq4__pack__stream.html#ae292d439353d8cc1084e8b0d18d1b389",
+"spec_8h.html#aca385869a249a66b951f04b73feff41e",
+"structie__dedup__target__s.html",
+"test__cli_8py.html",
+"weights__dedup_8c.html#a82535eef357e00f15379d3a922d6593d"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

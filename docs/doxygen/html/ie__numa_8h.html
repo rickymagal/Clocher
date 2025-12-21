@@ -134,43 +134,44 @@ Functions</h2></td></tr>
 <p>On non-Linux systems, the function always returns 1.</p>
 <dl class="section return"><dt>Returns</dt><dd>Detected NUMA node count (&gt;= 1). Returns 1 on error or non-Linux OS.</dd></dl>
 <p>Detect the number of NUMA nodes available on the system.</p>
-<p>On Linux, this reads <code>/sys/devices/system/node/online</code> and parses its contents using <a class="el" href="numa__probe_8c.html#ae133a664672ab3e678d0d229a477d17b" title="Parse a CPU/NUMA node range-list and return (max_id + 1).">parse_range_list()</a>. If the file cannot be read or is empty, the function returns 1. On non-Linux systems, this function always returns 1.</p>
-<dl class="section return"><dt>Returns</dt><dd>Detected NUMA node count (&gt;= 1). Returns 1 on error or non-Linux OS. </dd></dl>
+<p>On Linux, reads <code>/sys/devices/system/node/online</code> and parses it. If the file cannot be opened, read, or yields no usable data, returns 1.</p>
+<p>On non-Linux systems, always returns 1.</p>
+<dl class="section return"><dt>Returns</dt><dd>Detected NUMA node count (&gt;= 1). </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="numa__probe_8c_source.html#l00078">78</a> of file <a class="el" href="numa__probe_8c_source.html">numa_probe.c</a>.</p>
-<div class="fragment"><div class="line"><a name="l00078"></a><span class="lineno">   78</span>&#160;                               {</div>
-<div class="line"><a name="l00079"></a><span class="lineno">   79</span>&#160;<span class="preprocessor">#ifdef __linux__</span></div>
-<div class="line"><a name="l00080"></a><span class="lineno">   80</span>&#160;  FILE *f = fopen(<span class="stringliteral">&quot;/sys/devices/system/node/online&quot;</span>, <span class="stringliteral">&quot;r&quot;</span>);</div>
-<div class="line"><a name="l00081"></a><span class="lineno">   81</span>&#160;  <span class="keywordflow">if</span> (!f) <span class="keywordflow">return</span> 1;</div>
-<div class="line"><a name="l00082"></a><span class="lineno">   82</span>&#160; </div>
-<div class="line"><a name="l00083"></a><span class="lineno">   83</span>&#160;  <span class="keywordtype">char</span> buf[256] = {0};</div>
-<div class="line"><a name="l00084"></a><span class="lineno">   84</span>&#160;  <span class="keywordtype">size_t</span> n = fread(buf, 1, <span class="keyword">sizeof</span>(buf) - 1, f);</div>
-<div class="line"><a name="l00085"></a><span class="lineno">   85</span>&#160;  fclose(f);</div>
-<div class="line"><a name="l00086"></a><span class="lineno">   86</span>&#160; </div>
-<div class="line"><a name="l00087"></a><span class="lineno">   87</span>&#160;  <span class="keywordflow">if</span> (n == 0) <span class="keywordflow">return</span> 1;</div>
-<div class="line"><a name="l00088"></a><span class="lineno">   88</span>&#160;  buf[n] = <span class="charliteral">&#39;\0&#39;</span>;</div>
+<p class="definition">Definition at line <a class="el" href="numa__probe_8c_source.html#l00085">85</a> of file <a class="el" href="numa__probe_8c_source.html">numa_probe.c</a>.</p>
+<div class="fragment"><div class="line"><a name="l00085"></a><span class="lineno">   85</span>&#160;                               {</div>
+<div class="line"><a name="l00086"></a><span class="lineno">   86</span>&#160;<span class="preprocessor">#ifdef __linux__</span></div>
+<div class="line"><a name="l00087"></a><span class="lineno">   87</span>&#160;  FILE *f = fopen(<span class="stringliteral">&quot;/sys/devices/system/node/online&quot;</span>, <span class="stringliteral">&quot;r&quot;</span>);</div>
+<div class="line"><a name="l00088"></a><span class="lineno">   88</span>&#160;  <span class="keywordflow">if</span> (!f) <span class="keywordflow">return</span> 1;</div>
 <div class="line"><a name="l00089"></a><span class="lineno">   89</span>&#160; </div>
-<div class="line"><a name="l00090"></a><span class="lineno">   90</span>&#160;  <span class="keywordtype">int</span> nodes = <a class="code" href="numa__probe_8c.html#ae133a664672ab3e678d0d229a477d17b">parse_range_list</a>(buf);</div>
-<div class="line"><a name="l00091"></a><span class="lineno">   91</span>&#160;  <span class="keywordflow">return</span> nodes &gt; 0 ? nodes : 1;</div>
-<div class="line"><a name="l00092"></a><span class="lineno">   92</span>&#160;<span class="preprocessor">#else</span></div>
-<div class="line"><a name="l00093"></a><span class="lineno">   93</span>&#160;  <span class="keywordflow">return</span> 1;</div>
-<div class="line"><a name="l00094"></a><span class="lineno">   94</span>&#160;<span class="preprocessor">#endif</span></div>
-<div class="line"><a name="l00095"></a><span class="lineno">   95</span>&#160;}</div>
-<div class="ttc" id="anuma__probe_8c_html_ae133a664672ab3e678d0d229a477d17b"><div class="ttname"><a href="numa__probe_8c.html#ae133a664672ab3e678d0d229a477d17b">parse_range_list</a></div><div class="ttdeci">static int parse_range_list(const char *s)</div><div class="ttdoc">Parse a CPU/NUMA node range-list and return (max_id + 1).</div><div class="ttdef"><b>Definition:</b> <a href="numa__probe_8c_source.html#l00038">numa_probe.c:38</a></div></div>
+<div class="line"><a name="l00090"></a><span class="lineno">   90</span>&#160;  <span class="keywordtype">char</span> buf[256] = {0};</div>
+<div class="line"><a name="l00091"></a><span class="lineno">   91</span>&#160;  <span class="keywordtype">size_t</span> n = fread(buf, 1, <span class="keyword">sizeof</span>(buf) - 1, f);</div>
+<div class="line"><a name="l00092"></a><span class="lineno">   92</span>&#160;  fclose(f);</div>
+<div class="line"><a name="l00093"></a><span class="lineno">   93</span>&#160; </div>
+<div class="line"><a name="l00094"></a><span class="lineno">   94</span>&#160;  <span class="keywordflow">if</span> (n == 0) <span class="keywordflow">return</span> 1;</div>
+<div class="line"><a name="l00095"></a><span class="lineno">   95</span>&#160;  buf[n] = <span class="charliteral">&#39;\0&#39;</span>;</div>
+<div class="line"><a name="l00096"></a><span class="lineno">   96</span>&#160; </div>
+<div class="line"><a name="l00097"></a><span class="lineno">   97</span>&#160;  <span class="keywordtype">int</span> nodes = <a class="code" href="numa__probe_8c.html#ae133a664672ab3e678d0d229a477d17b">parse_range_list</a>(buf);</div>
+<div class="line"><a name="l00098"></a><span class="lineno">   98</span>&#160;  <span class="keywordflow">return</span> (nodes &gt; 0) ? nodes : 1;</div>
+<div class="line"><a name="l00099"></a><span class="lineno">   99</span>&#160;<span class="preprocessor">#else</span></div>
+<div class="line"><a name="l00100"></a><span class="lineno">  100</span>&#160;  <span class="keywordflow">return</span> 1;</div>
+<div class="line"><a name="l00101"></a><span class="lineno">  101</span>&#160;<span class="preprocessor">#endif</span></div>
+<div class="line"><a name="l00102"></a><span class="lineno">  102</span>&#160;}</div>
+<div class="ttc" id="anuma__probe_8c_html_ae133a664672ab3e678d0d229a477d17b"><div class="ttname"><a href="numa__probe_8c.html#ae133a664672ab3e678d0d229a477d17b">parse_range_list</a></div><div class="ttdeci">static int parse_range_list(const char *s)</div><div class="ttdoc">Parse a NUMA node range-list and return (max_id + 1).</div><div class="ttdef"><b>Definition:</b> <a href="numa__probe_8c_source.html#l00044">numa_probe.c:44</a></div></div>
 </div><!-- fragment -->
-<p class="reference">References <a class="el" href="numa__probe_8c_source.html#l00038">parse_range_list()</a>.</p>
+<p class="reference">References <a class="el" href="numa__probe_8c_source.html#l00044">parse_range_list()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="numa__policy_8c_source.html#l00121">ie_numa_policy_init()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="numa__policy_8c_source.html#l00152">ie_numa_policy_init()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ie__numa_8h_a973de21424f504f3050bac89ab24b122_cgraph.svg" width="360" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="ie__numa_8h_a973de21424f504f3050bac89ab24b122_cgraph.svg" width="360" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe>
+</div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ie__numa_8h_a973de21424f504f3050bac89ab24b122_icgraph.svg" width="383" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe>
-</div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="ie__numa_8h_a973de21424f504f3050bac89ab24b122_icgraph.svg" width="383" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

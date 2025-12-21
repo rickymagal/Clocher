@@ -8,7 +8,6 @@
     <includes refid="util__logging_8h" local="yes">util_logging.h</includes>
     <includes local="no">ctype.h</includes>
     <includes local="no">errno.h</includes>
-    <includes local="no">limits.h</includes>
     <includes local="no">stdint.h</includes>
     <includes local="no">stdlib.h</includes>
     <includes local="no">string.h</includes>
@@ -31,7 +30,7 @@
       <node id="7">
         <label>stdint.h</label>
       </node>
-      <node id="13">
+      <node id="12">
         <label>stdlib.h</label>
       </node>
       <node id="11">
@@ -45,9 +44,6 @@
       </node>
       <node id="4">
         <label>stddef.h</label>
-      </node>
-      <node id="12">
-        <label>limits.h</label>
       </node>
       <node id="1">
         <label>engine/src/opt/numa_policy.c</label>
@@ -64,18 +60,16 @@
         </childnode>
         <childnode refid="11" relation="include">
         </childnode>
-        <childnode refid="12" relation="include">
-        </childnode>
         <childnode refid="7" relation="include">
+        </childnode>
+        <childnode refid="12" relation="include">
         </childnode>
         <childnode refid="13" relation="include">
         </childnode>
         <childnode refid="14" relation="include">
         </childnode>
-        <childnode refid="15" relation="include">
-        </childnode>
       </node>
-      <node id="14">
+      <node id="13">
         <label>string.h</label>
       </node>
       <node id="6">
@@ -93,7 +87,7 @@
         <label>ie_numa.h</label>
         <link refid="ie__numa_8h"/>
       </node>
-      <node id="15">
+      <node id="14">
         <label>stdio.h</label>
       </node>
     </incdepgraph>
@@ -107,7 +101,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="engine/src/opt/numa_policy.c" line="12" column="9" bodyfile="engine/src/opt/numa_policy.c" bodystart="12" bodyend="-1"/>
+        <location file="engine/src/opt/numa_policy.c" line="22" column="9" bodyfile="engine/src/opt/numa_policy.c" bodystart="22" bodyend="-1"/>
       </memberdef>
       <memberdef kind="define" id="numa__policy_8c_1a008cac9cbc38d6db66207f56ee6f27e3" prot="public" static="no">
         <name>IE_LOG_WARN</name>
@@ -119,7 +113,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="engine/src/opt/numa_policy.c" line="29" column="14" bodyfile="engine/src/opt/numa_policy.c" bodystart="29" bodyend="-1"/>
+        <location file="engine/src/opt/numa_policy.c" line="38" column="14" bodyfile="engine/src/opt/numa_policy.c" bodystart="38" bodyend="-1"/>
       </memberdef>
       </sectiondef>
       <sectiondef kind="func">
@@ -140,6 +134,7 @@
 <para>Case-insensitive ASCII equality helper. </para>
         </briefdescription>
         <detaileddescription>
+<para>This helper compares two NUL-terminated strings using ASCII case folding. It is intentionally minimal and does not attempt locale-sensitive behavior.</para>
 <para><parameterlist kind="param"><parameteritem>
 <parameternamelist>
 <parametername>a</parametername>
@@ -157,14 +152,14 @@
 </parameterdescription>
 </parameteritem>
 </parameterlist>
-<simplesect kind="return"><para>1 if equal (case-insensitive), else 0. </para>
+<simplesect kind="return"><para>1 if equal (case-insensitive), otherwise 0. </para>
 </simplesect>
 </para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="engine/src/opt/numa_policy.c" line="41" column="12" bodyfile="engine/src/opt/numa_policy.c" bodystart="41" bodyend="48"/>
-        <referencedby refid="numa__policy_8c_1a93c92a71a0cf18f3eea8623ea9524d54" compoundref="numa__policy_8c" startline="60" endline="66">env_flag_get</referencedby>
+        <location file="engine/src/opt/numa_policy.c" line="54" column="12" bodyfile="engine/src/opt/numa_policy.c" bodystart="54" bodyend="62"/>
+        <referencedby refid="numa__policy_8c_1a93c92a71a0cf18f3eea8623ea9524d54" compoundref="numa__policy_8c" startline="75" endline="81">env_flag_get</referencedby>
       </memberdef>
       <memberdef kind="function" id="numa__policy_8c_1a93c92a71a0cf18f3eea8623ea9524d54" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>int</type>
@@ -180,10 +175,10 @@
           <declname>default_value</declname>
         </param>
         <briefdescription>
-<para>Read a boolean-like env var. </para>
+<para>Read a boolean-like environment variable. </para>
         </briefdescription>
         <detaileddescription>
-<para>Accepted false values (case-insensitive): &quot;0&quot;, &quot;false&quot;, &quot;no&quot;, &quot;off&quot;. Anything else that is set is treated as true.</para>
+<para>Accepted false values (case-insensitive): &quot;0&quot;, &quot;false&quot;, &quot;no&quot;, &quot;off&quot;. Any other non-empty value is treated as true.</para>
 <para><parameterlist kind="param"><parameteritem>
 <parameternamelist>
 <parametername>name</parametername>
@@ -197,7 +192,7 @@
 <parametername>default_value</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Value used when not set. </para>
+<para>Value used when the variable is unset/empty. </para>
 </parameterdescription>
 </parameteritem>
 </parameterlist>
@@ -207,10 +202,10 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="engine/src/opt/numa_policy.c" line="60" column="12" bodyfile="engine/src/opt/numa_policy.c" bodystart="60" bodyend="66"/>
-        <references refid="numa__policy_8c_1a29ca96e7bbf55a9efe18a6e6d585bd33" compoundref="numa__policy_8c" startline="41" endline="48">str_ieq</references>
-        <referencedby refid="numa__policy_8h_1afe77f3ca61a5fa4ba5c921d98d9b444a" compoundref="numa__policy_8c" startline="121" endline="151">ie_numa_policy_init</referencedby>
-        <referencedby refid="ie__io_8h_1a522dac028ee37aae1307ffdb6d65ec1d" compoundref="weights_8c" startline="488" endline="596">ie_weights_open</referencedby>
+        <location file="engine/src/opt/numa_policy.c" line="75" column="12" bodyfile="engine/src/opt/numa_policy.c" bodystart="75" bodyend="81"/>
+        <references refid="numa__policy_8c_1a29ca96e7bbf55a9efe18a6e6d585bd33" compoundref="numa__policy_8c" startline="54" endline="62">str_ieq</references>
+        <referencedby refid="numa__policy_8h_1afe77f3ca61a5fa4ba5c921d98d9b444a" compoundref="numa__policy_8c" startline="152" endline="182">ie_numa_policy_init</referencedby>
+        <referencedby refid="ie__io_8h_1a522dac028ee37aae1307ffdb6d65ec1d" compoundref="weights_8c" startline="472" endline="580">ie_weights_open</referencedby>
       </memberdef>
       <memberdef kind="function" id="numa__policy_8c_1a8f77067811ecdcf0b7b2c271c801d7cd" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>int</type>
@@ -234,9 +229,10 @@
           <declname>max_v</declname>
         </param>
         <briefdescription>
-<para>Read an integer env var with clamping. </para>
+<para>Read an integer environment variable with clamping. </para>
         </briefdescription>
         <detaileddescription>
+<para>If the variable is unset/empty or unparsable, <computeroutput>def</computeroutput> is returned. Otherwise, the parsed value is clamped to [min_v, max_v].</para>
 <para><parameterlist kind="param"><parameteritem>
 <parameternamelist>
 <parametername>name</parametername>
@@ -276,8 +272,8 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="engine/src/opt/numa_policy.c" line="77" column="12" bodyfile="engine/src/opt/numa_policy.c" bodystart="77" bodyend="88"/>
-        <referencedby refid="numa__policy_8h_1afe77f3ca61a5fa4ba5c921d98d9b444a" compoundref="numa__policy_8c" startline="121" endline="151">ie_numa_policy_init</referencedby>
+        <location file="engine/src/opt/numa_policy.c" line="96" column="12" bodyfile="engine/src/opt/numa_policy.c" bodystart="96" bodyend="107"/>
+        <referencedby refid="numa__policy_8h_1afe77f3ca61a5fa4ba5c921d98d9b444a" compoundref="numa__policy_8c" startline="152" endline="182">ie_numa_policy_init</referencedby>
       </memberdef>
       <memberdef kind="function" id="numa__policy_8c_1aebb8533913a4a3327ea465aebc0fdad1" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>size_t</type>
@@ -301,9 +297,10 @@
           <declname>max_v</declname>
         </param>
         <briefdescription>
-<para>Read a size_t env var with clamping. </para>
+<para>Read a size_t environment variable with clamping. </para>
         </briefdescription>
         <detaileddescription>
+<para>If the variable is unset/empty or unparsable, <computeroutput>def</computeroutput> is returned. Otherwise, the parsed value is clamped to [min_v, max_v].</para>
 <para><parameterlist kind="param"><parameteritem>
 <parameternamelist>
 <parametername>name</parametername>
@@ -343,8 +340,8 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="engine/src/opt/numa_policy.c" line="99" column="15" bodyfile="engine/src/opt/numa_policy.c" bodystart="99" bodyend="110"/>
-        <referencedby refid="numa__policy_8h_1afe77f3ca61a5fa4ba5c921d98d9b444a" compoundref="numa__policy_8c" startline="121" endline="151">ie_numa_policy_init</referencedby>
+        <location file="engine/src/opt/numa_policy.c" line="122" column="15" bodyfile="engine/src/opt/numa_policy.c" bodystart="122" bodyend="133"/>
+        <referencedby refid="numa__policy_8h_1afe77f3ca61a5fa4ba5c921d98d9b444a" compoundref="numa__policy_8c" startline="152" endline="182">ie_numa_policy_init</referencedby>
       </memberdef>
       <memberdef kind="function" id="numa__policy_8c_1afe77f3ca61a5fa4ba5c921d98d9b444a" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>int</type>
@@ -363,6 +360,8 @@
 <para>Initialize a NUMA policy snapshot from topology detection and env knobs. </para>
         </briefdescription>
         <detaileddescription>
+<para>This function is meant to be called during startup to capture a stable policy snapshot. It does not allocate memory and has no side effects beyond reading environment variables.</para>
+<para>Socket count is sourced from <computeroutput>topo</computeroutput> (if provided), using <ref refid="ie__topology_8h_1ae9fec2d245fb73d6c3e8e3cba38d4471" kindref="member">ie_topology_sockets()</ref>. Node count is sourced from <ref refid="ie__numa_8h_1a973de21424f504f3050bac89ab24b122" kindref="member">ie_numa_detect_nodes()</ref> (sysfs-based on Linux).</para>
 <para><parameterlist kind="param"><parameteritem>
 <parameternamelist>
 <parametername>out</parametername>
@@ -380,24 +379,24 @@
 </parameterdescription>
 </parameteritem>
 </parameterlist>
-<simplesect kind="return"><para>0 on success, negative errno-like on failure. </para>
+<simplesect kind="return"><para>0 on success, negative errno-like value on failure. </para>
 </simplesect>
 </para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="engine/src/opt/numa_policy.c" line="121" column="5" bodyfile="engine/src/opt/numa_policy.c" bodystart="121" bodyend="151"/>
-        <references refid="structie__numa__policy__t_1a942294c00aa2e812a85114841638aadc" compoundref="numa__policy_8h" startline="32">ie_numa_policy_t::detected_nodes</references>
-        <references refid="structie__numa__policy__t_1ae53dfbd7daea1fdee8c027a256609992" compoundref="numa__policy_8h" startline="33">ie_numa_policy_t::detected_sockets</references>
-        <references refid="structie__numa__policy__t_1abe72a4d02af7de3b2c36d82b045b082c" compoundref="numa__policy_8h" startline="35">ie_numa_policy_t::enable_numa</references>
-        <references refid="numa__policy_8c_1a93c92a71a0cf18f3eea8623ea9524d54" compoundref="numa__policy_8c" startline="60" endline="66">env_flag_get</references>
-        <references refid="numa__policy_8c_1a8f77067811ecdcf0b7b2c271c801d7cd" compoundref="numa__policy_8c" startline="77" endline="88">env_int_get</references>
-        <references refid="numa__policy_8c_1aebb8533913a4a3327ea465aebc0fdad1" compoundref="numa__policy_8c" startline="99" endline="110">env_sizet_get</references>
-        <references refid="structie__numa__policy__t_1a080a16d808a2b2f7ed47987fdf02aa19" compoundref="numa__policy_8h" startline="39">ie_numa_policy_t::hot_min_bytes</references>
-        <references refid="ie__numa_8h_1a973de21424f504f3050bac89ab24b122" compoundref="numa__probe_8c" startline="78" endline="95">ie_numa_detect_nodes</references>
+        <location file="engine/src/opt/numa_policy.c" line="152" column="5" bodyfile="engine/src/opt/numa_policy.c" bodystart="152" bodyend="182"/>
+        <references refid="structie__numa__policy__t_1a942294c00aa2e812a85114841638aadc" compoundref="numa__policy_8h" startline="52">ie_numa_policy_t::detected_nodes</references>
+        <references refid="structie__numa__policy__t_1ae53dfbd7daea1fdee8c027a256609992" compoundref="numa__policy_8h" startline="53">ie_numa_policy_t::detected_sockets</references>
+        <references refid="structie__numa__policy__t_1abe72a4d02af7de3b2c36d82b045b082c" compoundref="numa__policy_8h" startline="55">ie_numa_policy_t::enable_numa</references>
+        <references refid="numa__policy_8c_1a93c92a71a0cf18f3eea8623ea9524d54" compoundref="numa__policy_8c" startline="75" endline="81">env_flag_get</references>
+        <references refid="numa__policy_8c_1a8f77067811ecdcf0b7b2c271c801d7cd" compoundref="numa__policy_8c" startline="96" endline="107">env_int_get</references>
+        <references refid="numa__policy_8c_1aebb8533913a4a3327ea465aebc0fdad1" compoundref="numa__policy_8c" startline="122" endline="133">env_sizet_get</references>
+        <references refid="structie__numa__policy__t_1a080a16d808a2b2f7ed47987fdf02aa19" compoundref="numa__policy_8h" startline="59">ie_numa_policy_t::hot_min_bytes</references>
+        <references refid="ie__numa_8h_1a973de21424f504f3050bac89ab24b122" compoundref="numa__probe_8c" startline="85" endline="102">ie_numa_detect_nodes</references>
         <references refid="ie__topology_8h_1ae9fec2d245fb73d6c3e8e3cba38d4471" compoundref="topology_8c" startline="283" endline="285">ie_topology_sockets</references>
-        <references refid="structie__numa__policy__t_1a4210d29bb974c0baa18abd9e04219d5a" compoundref="numa__policy_8h" startline="38">ie_numa_policy_t::max_replicas</references>
-        <references refid="structie__numa__policy__t_1aebd181dab049048a575268c2b4c44a18" compoundref="numa__policy_8h" startline="36">ie_numa_policy_t::replicate_hot</references>
+        <references refid="structie__numa__policy__t_1a4210d29bb974c0baa18abd9e04219d5a" compoundref="numa__policy_8h" startline="58">ie_numa_policy_t::max_replicas</references>
+        <references refid="structie__numa__policy__t_1aebd181dab049048a575268c2b4c44a18" compoundref="numa__policy_8h" startline="56">ie_numa_policy_t::replicate_hot</references>
       </memberdef>
       <memberdef kind="function" id="numa__policy_8c_1a7d542ec01cbd78c1a11eeae3d97eb0ad" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>bool</type>
@@ -416,6 +415,7 @@
 <para>Decide if a blob of <computeroutput>bytes</computeroutput> should be replicated per socket. </para>
         </briefdescription>
         <detaileddescription>
+<para>Replication is intended for large/hot blobs where remote NUMA access would otherwise dominate runtime. This function only provides a policy decision; actual replication and placement are handled elsewhere.</para>
 <para><parameterlist kind="param"><parameteritem>
 <parameternamelist>
 <parametername>p</parametername>
@@ -439,10 +439,10 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="engine/src/opt/numa_policy.c" line="160" column="6" bodyfile="engine/src/opt/numa_policy.c" bodystart="160" bodyend="167"/>
-        <references refid="structie__numa__policy__t_1ae53dfbd7daea1fdee8c027a256609992" compoundref="numa__policy_8h" startline="33">ie_numa_policy_t::detected_sockets</references>
-        <references refid="structie__numa__policy__t_1abe72a4d02af7de3b2c36d82b045b082c" compoundref="numa__policy_8h" startline="35">ie_numa_policy_t::enable_numa</references>
-        <references refid="structie__numa__policy__t_1aebd181dab049048a575268c2b4c44a18" compoundref="numa__policy_8h" startline="36">ie_numa_policy_t::replicate_hot</references>
+        <location file="engine/src/opt/numa_policy.c" line="196" column="6" bodyfile="engine/src/opt/numa_policy.c" bodystart="196" bodyend="203"/>
+        <references refid="structie__numa__policy__t_1ae53dfbd7daea1fdee8c027a256609992" compoundref="numa__policy_8h" startline="53">ie_numa_policy_t::detected_sockets</references>
+        <references refid="structie__numa__policy__t_1abe72a4d02af7de3b2c36d82b045b082c" compoundref="numa__policy_8h" startline="55">ie_numa_policy_t::enable_numa</references>
+        <references refid="structie__numa__policy__t_1aebd181dab049048a575268c2b4c44a18" compoundref="numa__policy_8h" startline="56">ie_numa_policy_t::replicate_hot</references>
       </memberdef>
       <memberdef kind="function" id="numa__policy_8c_1a6d7c4b90278d9eb12abe0ec3bb64f461" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>int</type>
@@ -457,6 +457,7 @@
 <para>Compute the replica count to build under this policy. </para>
         </briefdescription>
         <detaileddescription>
+<para>This returns min(detected_sockets, max_replicas), clamped to at least 1. Callers can use this as the number of per-socket replicas to allocate.</para>
 <para><parameterlist kind="param"><parameteritem>
 <parameternamelist>
 <parametername>p</parametername>
@@ -472,139 +473,151 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="engine/src/opt/numa_policy.c" line="175" column="5" bodyfile="engine/src/opt/numa_policy.c" bodystart="175" bodyend="180"/>
-        <references refid="structie__numa__policy__t_1ae53dfbd7daea1fdee8c027a256609992" compoundref="numa__policy_8h" startline="33">ie_numa_policy_t::detected_sockets</references>
-        <references refid="structie__numa__policy__t_1a4210d29bb974c0baa18abd9e04219d5a" compoundref="numa__policy_8h" startline="38">ie_numa_policy_t::max_replicas</references>
+        <location file="engine/src/opt/numa_policy.c" line="215" column="5" bodyfile="engine/src/opt/numa_policy.c" bodystart="215" bodyend="220"/>
+        <references refid="structie__numa__policy__t_1ae53dfbd7daea1fdee8c027a256609992" compoundref="numa__policy_8h" startline="53">ie_numa_policy_t::detected_sockets</references>
+        <references refid="structie__numa__policy__t_1a4210d29bb974c0baa18abd9e04219d5a" compoundref="numa__policy_8h" startline="58">ie_numa_policy_t::max_replicas</references>
       </memberdef>
       </sectiondef>
     <briefdescription>
-<para>NUMA-aware policy initialization and helpers. </para>
     </briefdescription>
     <detaileddescription>
-<para>This module:<itemizedlist>
-<listitem><para>detects sockets via <ref refid="structie__topology" kindref="compound">ie_topology</ref> (if available),</para>
-</listitem><listitem><para>detects NUMA nodes via sysfs (ie_numa_detect_nodes),</para>
-</listitem><listitem><para>reads env knobs,</para>
-</listitem><listitem><para>provides decisions used by the loader and hot replication code. </para>
-</listitem></itemizedlist>
-</para>
     </detaileddescription>
     <programlisting>
-<codeline lineno="1"><highlight class="normal"></highlight></codeline>
-<codeline lineno="12" refid="numa__policy_8c_1a3024ccd4a9af5109d24e6c57565d74a1" refkind="member"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>_POSIX_C_SOURCE<sp/>200809L</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="13"><highlight class="normal"></highlight></codeline>
-<codeline lineno="14"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;<ref refid="numa__policy_8h" kindref="compound">numa_policy.h</ref>&quot;</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="15"><highlight class="normal"></highlight></codeline>
-<codeline lineno="16"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;<ref refid="ie__numa_8h" kindref="compound">ie_numa.h</ref>&quot;</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="17"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;<ref refid="ie__topology_8h" kindref="compound">ie_topology.h</ref>&quot;</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="18"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;<ref refid="util__logging_8h" kindref="compound">util_logging.h</ref>&quot;</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="19"><highlight class="normal"></highlight></codeline>
-<codeline lineno="20"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;ctype.h&gt;</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="21"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;errno.h&gt;</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="22"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;limits.h&gt;</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="23"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stdint.h&gt;</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="24"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stdlib.h&gt;</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="25"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;string.h&gt;</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="26"><highlight class="normal"></highlight></codeline>
-<codeline lineno="27"><highlight class="normal"></highlight><highlight class="preprocessor">#ifndef<sp/>IE_LOG_WARN</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="28"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/>#include<sp/>&lt;stdio.h&gt;</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="29" refid="numa__policy_8c_1a008cac9cbc38d6db66207f56ee6f27e3" refkind="member"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/>#define<sp/>IE_LOG_WARN(...)<sp/>do<sp/>{<sp/>fprintf(stderr,<sp/>&quot;[warn]<sp/>&quot;</highlight><highlight class="normal"><sp/>__VA_ARGS__);<sp/>fputc(&apos;\n&apos;,<sp/>stderr);<sp/>}<sp/>while<sp/>(0)</highlight></codeline>
-<codeline lineno="30"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="31"><highlight class="normal"></highlight></codeline>
-<codeline lineno="32"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>------------------------------<sp/>env<sp/>parsing<sp/>--------------------------------<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="33"><highlight class="normal"></highlight></codeline>
-<codeline lineno="41" refid="numa__policy_8c_1a29ca96e7bbf55a9efe18a6e6d585bd33" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="numa__policy_8c_1a29ca96e7bbf55a9efe18a6e6d585bd33" kindref="member">str_ieq</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*a,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*b)<sp/>{</highlight></codeline>
-<codeline lineno="42"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!a<sp/>||<sp/>!b)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>0;</highlight></codeline>
-<codeline lineno="43"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">while</highlight><highlight class="normal"><sp/>(*a<sp/>&amp;&amp;<sp/>*b)<sp/>{</highlight></codeline>
-<codeline lineno="44"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(tolower((</highlight><highlight class="keywordtype">unsigned</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal">)*a)<sp/>!=<sp/>tolower((</highlight><highlight class="keywordtype">unsigned</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal">)*b))<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>0;</highlight></codeline>
-<codeline lineno="45"><highlight class="normal"><sp/><sp/><sp/><sp/>++a;<sp/>++b;</highlight></codeline>
-<codeline lineno="46"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
-<codeline lineno="47"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>(*a<sp/>==<sp/></highlight><highlight class="charliteral">&apos;\0&apos;</highlight><highlight class="normal"><sp/>&amp;&amp;<sp/>*b<sp/>==<sp/></highlight><highlight class="charliteral">&apos;\0&apos;</highlight><highlight class="normal">);</highlight></codeline>
-<codeline lineno="48"><highlight class="normal">}</highlight></codeline>
-<codeline lineno="49"><highlight class="normal"></highlight></codeline>
-<codeline lineno="60" refid="numa__policy_8c_1a93c92a71a0cf18f3eea8623ea9524d54" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="numa__policy_8c_1a93c92a71a0cf18f3eea8623ea9524d54" kindref="member">env_flag_get</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*name,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>default_value)<sp/>{</highlight></codeline>
-<codeline lineno="61"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*v<sp/>=<sp/>getenv(name);</highlight></codeline>
-<codeline lineno="62"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!v<sp/>||<sp/>!*v)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>default_value;</highlight></codeline>
+<codeline lineno="1"><highlight class="comment">/*<sp/>File:<sp/>engine/src/opt/numa_policy.c</highlight></codeline>
+<codeline lineno="2"><highlight class="comment"><sp/>*<sp/>-----------------------------------------------------------------------------</highlight></codeline>
+<codeline lineno="3"><highlight class="comment"><sp/>*<sp/>@file<sp/>numa_policy.c</highlight></codeline>
+<codeline lineno="4"><highlight class="comment"><sp/>*<sp/>@brief<sp/>NUMA-aware<sp/>policy<sp/>initialization<sp/>and<sp/>helper<sp/>decisions.</highlight></codeline>
+<codeline lineno="5"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="6"><highlight class="comment"><sp/>*<sp/>@details</highlight></codeline>
+<codeline lineno="7"><highlight class="comment"><sp/>*<sp/>This<sp/>module<sp/>provides<sp/>a<sp/>small<sp/>policy<sp/>object<sp/>used<sp/>by<sp/>NUMA-aware<sp/>subsystems.</highlight></codeline>
+<codeline lineno="8"><highlight class="comment"><sp/>*<sp/>It:</highlight></codeline>
+<codeline lineno="9"><highlight class="comment"><sp/>*<sp/><sp/>-<sp/>obtains<sp/>socket<sp/>count<sp/>via<sp/>ie_topology<sp/>when<sp/>available,</highlight></codeline>
+<codeline lineno="10"><highlight class="comment"><sp/>*<sp/><sp/>-<sp/>obtains<sp/>NUMA<sp/>node<sp/>count<sp/>via<sp/>sysfs-based<sp/>detection<sp/>(no<sp/>libnuma),</highlight></codeline>
+<codeline lineno="11"><highlight class="comment"><sp/>*<sp/><sp/>-<sp/>reads<sp/>env<sp/>knobs<sp/>to<sp/>decide<sp/>whether<sp/>NUMA<sp/>is<sp/>enabled<sp/>and<sp/>whether<sp/>to<sp/>replicate</highlight></codeline>
+<codeline lineno="12"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/>hot<sp/>blobs<sp/>per<sp/>socket,</highlight></codeline>
+<codeline lineno="13"><highlight class="comment"><sp/>*<sp/><sp/>-<sp/>provides<sp/>helper<sp/>decisions<sp/>used<sp/>by<sp/>the<sp/>loader<sp/>and<sp/>hot<sp/>replication<sp/>logic.</highlight></codeline>
+<codeline lineno="14"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="15"><highlight class="comment"><sp/>*<sp/>Environment<sp/>variables:</highlight></codeline>
+<codeline lineno="16"><highlight class="comment"><sp/>*<sp/><sp/>-<sp/>IE_NUMA_ENABLE<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>(default:<sp/>1)</highlight></codeline>
+<codeline lineno="17"><highlight class="comment"><sp/>*<sp/><sp/>-<sp/>IE_NUMA_REPLICATE_HOT<sp/><sp/><sp/><sp/><sp/>(default:<sp/>1)</highlight></codeline>
+<codeline lineno="18"><highlight class="comment"><sp/>*<sp/><sp/>-<sp/>IE_NUMA_MAX_REPLICAS<sp/><sp/><sp/><sp/><sp/><sp/>(default:<sp/>detected_sockets,<sp/>clamped<sp/>to<sp/>[1,<sp/>64])</highlight></codeline>
+<codeline lineno="19"><highlight class="comment"><sp/>*<sp/><sp/>-<sp/>IE_NUMA_HOT_MIN_BYTES<sp/><sp/><sp/><sp/><sp/>(default:<sp/>33554432<sp/>=<sp/>32<sp/>MiB)</highlight></codeline>
+<codeline lineno="20"><highlight class="comment"><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="21"><highlight class="normal"></highlight></codeline>
+<codeline lineno="22" refid="numa__policy_8c_1a3024ccd4a9af5109d24e6c57565d74a1" refkind="member"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>_POSIX_C_SOURCE<sp/>200809L</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="23"><highlight class="normal"></highlight></codeline>
+<codeline lineno="24"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;<ref refid="numa__policy_8h" kindref="compound">numa_policy.h</ref>&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="25"><highlight class="normal"></highlight></codeline>
+<codeline lineno="26"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;<ref refid="ie__numa_8h" kindref="compound">ie_numa.h</ref>&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="27"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;<ref refid="ie__topology_8h" kindref="compound">ie_topology.h</ref>&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="28"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;<ref refid="util__logging_8h" kindref="compound">util_logging.h</ref>&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="29"><highlight class="normal"></highlight></codeline>
+<codeline lineno="30"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;ctype.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="31"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;errno.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="32"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stdint.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="33"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stdlib.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="34"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;string.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="35"><highlight class="normal"></highlight></codeline>
+<codeline lineno="36"><highlight class="normal"></highlight><highlight class="preprocessor">#ifndef<sp/>IE_LOG_WARN</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="37"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/>#include<sp/>&lt;stdio.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="38" refid="numa__policy_8c_1a008cac9cbc38d6db66207f56ee6f27e3" refkind="member"><highlight class="normal"></highlight><highlight class="preprocessor"><sp/><sp/>#define<sp/>IE_LOG_WARN(...)<sp/>do<sp/>{<sp/>fprintf(stderr,<sp/>&quot;[warn]<sp/>&quot;</highlight><highlight class="normal"><sp/>__VA_ARGS__);<sp/>fputc(&apos;\n&apos;,<sp/>stderr);<sp/>}<sp/>while<sp/>(0)</highlight></codeline>
+<codeline lineno="39"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="40"><highlight class="normal"></highlight></codeline>
+<codeline lineno="41"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>------------------------------<sp/>env<sp/>parsing<sp/>--------------------------------<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="42"><highlight class="normal"></highlight></codeline>
+<codeline lineno="54" refid="numa__policy_8c_1a29ca96e7bbf55a9efe18a6e6d585bd33" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="numa__policy_8c_1a29ca96e7bbf55a9efe18a6e6d585bd33" kindref="member">str_ieq</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*a,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*b)<sp/>{</highlight></codeline>
+<codeline lineno="55"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!a<sp/>||<sp/>!b)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>0;</highlight></codeline>
+<codeline lineno="56"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">while</highlight><highlight class="normal"><sp/>(*a<sp/>&amp;&amp;<sp/>*b)<sp/>{</highlight></codeline>
+<codeline lineno="57"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(tolower((</highlight><highlight class="keywordtype">unsigned</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal">)*a)<sp/>!=<sp/>tolower((</highlight><highlight class="keywordtype">unsigned</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal">)*b))<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>0;</highlight></codeline>
+<codeline lineno="58"><highlight class="normal"><sp/><sp/><sp/><sp/>++a;</highlight></codeline>
+<codeline lineno="59"><highlight class="normal"><sp/><sp/><sp/><sp/>++b;</highlight></codeline>
+<codeline lineno="60"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="61"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>(*a<sp/>==<sp/></highlight><highlight class="charliteral">&apos;\0&apos;</highlight><highlight class="normal"><sp/>&amp;&amp;<sp/>*b<sp/>==<sp/></highlight><highlight class="charliteral">&apos;\0&apos;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="62"><highlight class="normal">}</highlight></codeline>
 <codeline lineno="63"><highlight class="normal"></highlight></codeline>
-<codeline lineno="64"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(<ref refid="numa__policy_8c_1a29ca96e7bbf55a9efe18a6e6d585bd33" kindref="member">str_ieq</ref>(v,<sp/></highlight><highlight class="stringliteral">&quot;0&quot;</highlight><highlight class="normal">)<sp/>||<sp/><ref refid="numa__policy_8c_1a29ca96e7bbf55a9efe18a6e6d585bd33" kindref="member">str_ieq</ref>(v,<sp/></highlight><highlight class="stringliteral">&quot;false&quot;</highlight><highlight class="normal">)<sp/>||<sp/><ref refid="numa__policy_8c_1a29ca96e7bbf55a9efe18a6e6d585bd33" kindref="member">str_ieq</ref>(v,<sp/></highlight><highlight class="stringliteral">&quot;no&quot;</highlight><highlight class="normal">)<sp/>||<sp/><ref refid="numa__policy_8c_1a29ca96e7bbf55a9efe18a6e6d585bd33" kindref="member">str_ieq</ref>(v,<sp/></highlight><highlight class="stringliteral">&quot;off&quot;</highlight><highlight class="normal">))<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>0;</highlight></codeline>
-<codeline lineno="65"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>1;</highlight></codeline>
-<codeline lineno="66"><highlight class="normal">}</highlight></codeline>
-<codeline lineno="67"><highlight class="normal"></highlight></codeline>
-<codeline lineno="77" refid="numa__policy_8c_1a8f77067811ecdcf0b7b2c271c801d7cd" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="numa__policy_8c_1a8f77067811ecdcf0b7b2c271c801d7cd" kindref="member">env_int_get</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*name,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>def,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>min_v,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>max_v)<sp/>{</highlight></codeline>
-<codeline lineno="78"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*v<sp/>=<sp/>getenv(name);</highlight></codeline>
-<codeline lineno="79"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!v<sp/>||<sp/>!*v)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>def;</highlight></codeline>
-<codeline lineno="80"><highlight class="normal"></highlight></codeline>
-<codeline lineno="81"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*end<sp/>=<sp/>NULL;</highlight></codeline>
-<codeline lineno="82"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">long</highlight><highlight class="normal"><sp/>x<sp/>=<sp/>strtol(v,<sp/>&amp;end,<sp/>10);</highlight></codeline>
-<codeline lineno="83"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(end<sp/>==<sp/>v)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>def;</highlight></codeline>
-<codeline lineno="84"><highlight class="normal"></highlight></codeline>
-<codeline lineno="85"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(x<sp/>&lt;<sp/>(</highlight><highlight class="keywordtype">long</highlight><highlight class="normal">)min_v)<sp/>x<sp/>=<sp/>(long)min_v;</highlight></codeline>
-<codeline lineno="86"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(x<sp/>&gt;<sp/>(</highlight><highlight class="keywordtype">long</highlight><highlight class="normal">)max_v)<sp/>x<sp/>=<sp/>(</highlight><highlight class="keywordtype">long</highlight><highlight class="normal">)max_v;</highlight></codeline>
-<codeline lineno="87"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>(</highlight><highlight class="keywordtype">int</highlight><highlight class="normal">)x;</highlight></codeline>
-<codeline lineno="88"><highlight class="normal">}</highlight></codeline>
-<codeline lineno="89"><highlight class="normal"></highlight></codeline>
-<codeline lineno="99" refid="numa__policy_8c_1aebb8533913a4a3327ea465aebc0fdad1" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/><ref refid="numa__policy_8c_1aebb8533913a4a3327ea465aebc0fdad1" kindref="member">env_sizet_get</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*name,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>def,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>min_v,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>max_v)<sp/>{</highlight></codeline>
-<codeline lineno="100"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*v<sp/>=<sp/>getenv(name);</highlight></codeline>
-<codeline lineno="101"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!v<sp/>||<sp/>!*v)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>def;</highlight></codeline>
-<codeline lineno="102"><highlight class="normal"></highlight></codeline>
-<codeline lineno="103"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*end<sp/>=<sp/>NULL;</highlight></codeline>
-<codeline lineno="104"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">unsigned</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">long</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">long</highlight><highlight class="normal"><sp/>x<sp/>=<sp/>strtoull(v,<sp/>&amp;end,<sp/>10);</highlight></codeline>
-<codeline lineno="105"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(end<sp/>==<sp/>v)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>def;</highlight></codeline>
-<codeline lineno="106"><highlight class="normal"></highlight></codeline>
-<codeline lineno="107"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(x<sp/>&lt;<sp/>(</highlight><highlight class="keywordtype">unsigned</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">long</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">long</highlight><highlight class="normal">)min_v)<sp/>x<sp/>=<sp/>(</highlight><highlight class="keywordtype">unsigned</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">long</highlight><highlight class="normal"><sp/>long)min_v;</highlight></codeline>
-<codeline lineno="108"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(x<sp/>&gt;<sp/>(</highlight><highlight class="keywordtype">unsigned</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">long</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">long</highlight><highlight class="normal">)max_v)<sp/>x<sp/>=<sp/>(</highlight><highlight class="keywordtype">unsigned</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">long</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">long</highlight><highlight class="normal">)max_v;</highlight></codeline>
-<codeline lineno="109"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal">)x;</highlight></codeline>
-<codeline lineno="110"><highlight class="normal">}</highlight></codeline>
-<codeline lineno="111"><highlight class="normal"></highlight></codeline>
-<codeline lineno="112"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>-------------------------------<sp/>public<sp/>API<sp/>--------------------------------<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="113"><highlight class="normal"></highlight></codeline>
-<codeline lineno="121" refid="numa__policy_8h_1afe77f3ca61a5fa4ba5c921d98d9b444a" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="numa__policy_8c_1afe77f3ca61a5fa4ba5c921d98d9b444a" kindref="member">ie_numa_policy_init</ref>(<ref refid="structie__numa__policy__t" kindref="compound">ie_numa_policy_t</ref><sp/>*out,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="structie__topology" kindref="compound">ie_topology_t</ref><sp/>*topo)<sp/>{</highlight></codeline>
-<codeline lineno="122"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!out)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>-EINVAL;</highlight></codeline>
-<codeline lineno="123"><highlight class="normal"><sp/><sp/>memset(out,<sp/>0,<sp/></highlight><highlight class="keyword">sizeof</highlight><highlight class="normal">(*out));</highlight></codeline>
-<codeline lineno="124"><highlight class="normal"></highlight></codeline>
-<codeline lineno="125"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>sockets<sp/>=<sp/>1;</highlight></codeline>
-<codeline lineno="126"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(topo)<sp/>{</highlight></codeline>
-<codeline lineno="127"><highlight class="normal"><sp/><sp/><sp/><sp/>sockets<sp/>=<sp/><ref refid="ie__topology_8h_1ae9fec2d245fb73d6c3e8e3cba38d4471" kindref="member">ie_topology_sockets</ref>(topo);</highlight></codeline>
-<codeline lineno="128"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(sockets<sp/>&lt;=<sp/>0)<sp/>sockets<sp/>=<sp/>1;</highlight></codeline>
-<codeline lineno="129"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
-<codeline lineno="130"><highlight class="normal"></highlight></codeline>
-<codeline lineno="131"><highlight class="normal"><sp/><sp/>out-&gt;<ref refid="structie__numa__policy__t_1a942294c00aa2e812a85114841638aadc" kindref="member">detected_nodes</ref><sp/>=<sp/><ref refid="ie__numa_8h_1a973de21424f504f3050bac89ab24b122" kindref="member">ie_numa_detect_nodes</ref>();</highlight></codeline>
-<codeline lineno="132"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(out-&gt;<ref refid="structie__numa__policy__t_1a942294c00aa2e812a85114841638aadc" kindref="member">detected_nodes</ref><sp/>&lt;=<sp/>0)<sp/>out-&gt;<ref refid="structie__numa__policy__t_1a942294c00aa2e812a85114841638aadc" kindref="member">detected_nodes</ref><sp/>=<sp/>1;</highlight></codeline>
-<codeline lineno="133"><highlight class="normal"></highlight></codeline>
-<codeline lineno="134"><highlight class="normal"><sp/><sp/>out-&gt;<ref refid="structie__numa__policy__t_1ae53dfbd7daea1fdee8c027a256609992" kindref="member">detected_sockets</ref><sp/>=<sp/>sockets;</highlight></codeline>
-<codeline lineno="135"><highlight class="normal"></highlight></codeline>
-<codeline lineno="136"><highlight class="normal"><sp/><sp/>out-&gt;<ref refid="structie__numa__policy__t_1abe72a4d02af7de3b2c36d82b045b082c" kindref="member">enable_numa</ref><sp/><sp/><sp/>=<sp/>(<ref refid="numa__policy_8c_1a93c92a71a0cf18f3eea8623ea9524d54" kindref="member">env_flag_get</ref>(</highlight><highlight class="stringliteral">&quot;IE_NUMA_ENABLE&quot;</highlight><highlight class="normal">,<sp/>1)<sp/>!=<sp/>0);</highlight></codeline>
-<codeline lineno="137"><highlight class="normal"><sp/><sp/>out-&gt;<ref refid="structie__numa__policy__t_1aebd181dab049048a575268c2b4c44a18" kindref="member">replicate_hot</ref><sp/>=<sp/>(<ref refid="numa__policy_8c_1a93c92a71a0cf18f3eea8623ea9524d54" kindref="member">env_flag_get</ref>(</highlight><highlight class="stringliteral">&quot;IE_NUMA_REPLICATE_HOT&quot;</highlight><highlight class="normal">,<sp/>1)<sp/>!=<sp/>0);</highlight></codeline>
-<codeline lineno="138"><highlight class="normal"></highlight></codeline>
-<codeline lineno="139"><highlight class="normal"><sp/><sp/>out-&gt;<ref refid="structie__numa__policy__t_1a4210d29bb974c0baa18abd9e04219d5a" kindref="member">max_replicas</ref><sp/>=<sp/>sockets;</highlight></codeline>
-<codeline lineno="140"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(out-&gt;<ref refid="structie__numa__policy__t_1a4210d29bb974c0baa18abd9e04219d5a" kindref="member">max_replicas</ref><sp/>&lt;<sp/>1)<sp/>out-&gt;<ref refid="structie__numa__policy__t_1a4210d29bb974c0baa18abd9e04219d5a" kindref="member">max_replicas</ref><sp/>=<sp/>1;</highlight></codeline>
-<codeline lineno="141"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(out-&gt;<ref refid="structie__numa__policy__t_1a4210d29bb974c0baa18abd9e04219d5a" kindref="member">max_replicas</ref><sp/>&gt;<sp/>64)<sp/>out-&gt;<ref refid="structie__numa__policy__t_1a4210d29bb974c0baa18abd9e04219d5a" kindref="member">max_replicas</ref><sp/>=<sp/>64;</highlight></codeline>
-<codeline lineno="142"><highlight class="normal"><sp/><sp/>out-&gt;<ref refid="structie__numa__policy__t_1a4210d29bb974c0baa18abd9e04219d5a" kindref="member">max_replicas</ref><sp/>=<sp/><ref refid="numa__policy_8c_1a8f77067811ecdcf0b7b2c271c801d7cd" kindref="member">env_int_get</ref>(</highlight><highlight class="stringliteral">&quot;IE_NUMA_MAX_REPLICAS&quot;</highlight><highlight class="normal">,<sp/>out-&gt;<ref refid="structie__numa__policy__t_1a4210d29bb974c0baa18abd9e04219d5a" kindref="member">max_replicas</ref>,<sp/>1,<sp/>64);</highlight></codeline>
-<codeline lineno="143"><highlight class="normal"></highlight></codeline>
-<codeline lineno="144"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">/*<sp/>Default:<sp/>32<sp/>MiB,<sp/>clamped<sp/>to<sp/>1<sp/>TiB.<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="145"><highlight class="normal"><sp/><sp/>out-&gt;<ref refid="structie__numa__policy__t_1a080a16d808a2b2f7ed47987fdf02aa19" kindref="member">hot_min_bytes</ref><sp/>=<sp/><ref refid="numa__policy_8c_1aebb8533913a4a3327ea465aebc0fdad1" kindref="member">env_sizet_get</ref>(</highlight><highlight class="stringliteral">&quot;IE_NUMA_HOT_MIN_BYTES&quot;</highlight><highlight class="normal">,</highlight></codeline>
-<codeline lineno="146"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal">)33554432u,</highlight></codeline>
-<codeline lineno="147"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal">)0u,</highlight></codeline>
-<codeline lineno="148"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal">)1099511627776ull);</highlight></codeline>
-<codeline lineno="149"><highlight class="normal"></highlight></codeline>
-<codeline lineno="150"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>0;</highlight></codeline>
-<codeline lineno="151"><highlight class="normal">}</highlight></codeline>
-<codeline lineno="152"><highlight class="normal"></highlight></codeline>
-<codeline lineno="160" refid="numa__policy_8h_1a7d542ec01cbd78c1a11eeae3d97eb0ad" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/><ref refid="numa__policy_8c_1a7d542ec01cbd78c1a11eeae3d97eb0ad" kindref="member">ie_numa_policy_should_replicate_hot</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="structie__numa__policy__t" kindref="compound">ie_numa_policy_t</ref><sp/>*p,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>bytes)<sp/>{</highlight></codeline>
-<codeline lineno="161"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!p)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">false</highlight><highlight class="normal">;</highlight></codeline>
-<codeline lineno="162"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!p-&gt;<ref refid="structie__numa__policy__t_1abe72a4d02af7de3b2c36d82b045b082c" kindref="member">enable_numa</ref>)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">false</highlight><highlight class="normal">;</highlight></codeline>
-<codeline lineno="163"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!p-&gt;<ref refid="structie__numa__policy__t_1aebd181dab049048a575268c2b4c44a18" kindref="member">replicate_hot</ref>)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">false</highlight><highlight class="normal">;</highlight></codeline>
-<codeline lineno="164"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(p-&gt;<ref refid="structie__numa__policy__t_1ae53dfbd7daea1fdee8c027a256609992" kindref="member">detected_sockets</ref><sp/>&lt;=<sp/>1)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">false</highlight><highlight class="normal">;</highlight></codeline>
-<codeline lineno="165"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(bytes<sp/>&lt;<sp/>p-&gt;hot_min_bytes)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">false</highlight><highlight class="normal">;</highlight></codeline>
-<codeline lineno="166"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">true</highlight><highlight class="normal">;</highlight></codeline>
-<codeline lineno="167"><highlight class="normal">}</highlight></codeline>
-<codeline lineno="168"><highlight class="normal"></highlight></codeline>
-<codeline lineno="175" refid="numa__policy_8h_1a6d7c4b90278d9eb12abe0ec3bb64f461" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="numa__policy_8c_1a6d7c4b90278d9eb12abe0ec3bb64f461" kindref="member">ie_numa_policy_replica_count</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="structie__numa__policy__t" kindref="compound">ie_numa_policy_t</ref><sp/>*p)<sp/>{</highlight></codeline>
-<codeline lineno="176"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!p)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>1;</highlight></codeline>
-<codeline lineno="177"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>s<sp/>=<sp/>(p-&gt;<ref refid="structie__numa__policy__t_1ae53dfbd7daea1fdee8c027a256609992" kindref="member">detected_sockets</ref><sp/>&gt;<sp/>0)<sp/>?<sp/>p-&gt;<ref refid="structie__numa__policy__t_1ae53dfbd7daea1fdee8c027a256609992" kindref="member">detected_sockets</ref><sp/>:<sp/>1;</highlight></codeline>
-<codeline lineno="178"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>m<sp/>=<sp/>(p-&gt;<ref refid="structie__numa__policy__t_1a4210d29bb974c0baa18abd9e04219d5a" kindref="member">max_replicas</ref><sp/>&gt;<sp/>0)<sp/>?<sp/>p-&gt;<ref refid="structie__numa__policy__t_1a4210d29bb974c0baa18abd9e04219d5a" kindref="member">max_replicas</ref><sp/>:<sp/>1;</highlight></codeline>
-<codeline lineno="179"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>(s<sp/>&lt;<sp/>m)<sp/>?<sp/>s<sp/>:<sp/>m;</highlight></codeline>
-<codeline lineno="180"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="75" refid="numa__policy_8c_1a93c92a71a0cf18f3eea8623ea9524d54" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="numa__policy_8c_1a93c92a71a0cf18f3eea8623ea9524d54" kindref="member">env_flag_get</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*name,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>default_value)<sp/>{</highlight></codeline>
+<codeline lineno="76"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*v<sp/>=<sp/>getenv(name);</highlight></codeline>
+<codeline lineno="77"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!v<sp/>||<sp/>!*v)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>default_value;</highlight></codeline>
+<codeline lineno="78"><highlight class="normal"></highlight></codeline>
+<codeline lineno="79"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(<ref refid="numa__policy_8c_1a29ca96e7bbf55a9efe18a6e6d585bd33" kindref="member">str_ieq</ref>(v,<sp/></highlight><highlight class="stringliteral">&quot;0&quot;</highlight><highlight class="normal">)<sp/>||<sp/><ref refid="numa__policy_8c_1a29ca96e7bbf55a9efe18a6e6d585bd33" kindref="member">str_ieq</ref>(v,<sp/></highlight><highlight class="stringliteral">&quot;false&quot;</highlight><highlight class="normal">)<sp/>||<sp/><ref refid="numa__policy_8c_1a29ca96e7bbf55a9efe18a6e6d585bd33" kindref="member">str_ieq</ref>(v,<sp/></highlight><highlight class="stringliteral">&quot;no&quot;</highlight><highlight class="normal">)<sp/>||<sp/><ref refid="numa__policy_8c_1a29ca96e7bbf55a9efe18a6e6d585bd33" kindref="member">str_ieq</ref>(v,<sp/></highlight><highlight class="stringliteral">&quot;off&quot;</highlight><highlight class="normal">))<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>0;</highlight></codeline>
+<codeline lineno="80"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>1;</highlight></codeline>
+<codeline lineno="81"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="82"><highlight class="normal"></highlight></codeline>
+<codeline lineno="96" refid="numa__policy_8c_1a8f77067811ecdcf0b7b2c271c801d7cd" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="numa__policy_8c_1a8f77067811ecdcf0b7b2c271c801d7cd" kindref="member">env_int_get</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*name,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>def,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>min_v,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>max_v)<sp/>{</highlight></codeline>
+<codeline lineno="97"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*v<sp/>=<sp/>getenv(name);</highlight></codeline>
+<codeline lineno="98"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!v<sp/>||<sp/>!*v)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>def;</highlight></codeline>
+<codeline lineno="99"><highlight class="normal"></highlight></codeline>
+<codeline lineno="100"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*end<sp/>=<sp/>NULL;</highlight></codeline>
+<codeline lineno="101"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">long</highlight><highlight class="normal"><sp/>x<sp/>=<sp/>strtol(v,<sp/>&amp;end,<sp/>10);</highlight></codeline>
+<codeline lineno="102"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(end<sp/>==<sp/>v)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>def;</highlight></codeline>
+<codeline lineno="103"><highlight class="normal"></highlight></codeline>
+<codeline lineno="104"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(x<sp/>&lt;<sp/>(</highlight><highlight class="keywordtype">long</highlight><highlight class="normal">)min_v)<sp/>x<sp/>=<sp/>(long)min_v;</highlight></codeline>
+<codeline lineno="105"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(x<sp/>&gt;<sp/>(</highlight><highlight class="keywordtype">long</highlight><highlight class="normal">)max_v)<sp/>x<sp/>=<sp/>(</highlight><highlight class="keywordtype">long</highlight><highlight class="normal">)max_v;</highlight></codeline>
+<codeline lineno="106"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>(</highlight><highlight class="keywordtype">int</highlight><highlight class="normal">)x;</highlight></codeline>
+<codeline lineno="107"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="108"><highlight class="normal"></highlight></codeline>
+<codeline lineno="122" refid="numa__policy_8c_1aebb8533913a4a3327ea465aebc0fdad1" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/><ref refid="numa__policy_8c_1aebb8533913a4a3327ea465aebc0fdad1" kindref="member">env_sizet_get</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*name,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>def,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>min_v,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>max_v)<sp/>{</highlight></codeline>
+<codeline lineno="123"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*v<sp/>=<sp/>getenv(name);</highlight></codeline>
+<codeline lineno="124"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!v<sp/>||<sp/>!*v)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>def;</highlight></codeline>
+<codeline lineno="125"><highlight class="normal"></highlight></codeline>
+<codeline lineno="126"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*end<sp/>=<sp/>NULL;</highlight></codeline>
+<codeline lineno="127"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">unsigned</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">long</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">long</highlight><highlight class="normal"><sp/>x<sp/>=<sp/>strtoull(v,<sp/>&amp;end,<sp/>10);</highlight></codeline>
+<codeline lineno="128"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(end<sp/>==<sp/>v)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>def;</highlight></codeline>
+<codeline lineno="129"><highlight class="normal"></highlight></codeline>
+<codeline lineno="130"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(x<sp/>&lt;<sp/>(</highlight><highlight class="keywordtype">unsigned</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">long</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">long</highlight><highlight class="normal">)min_v)<sp/>x<sp/>=<sp/>(</highlight><highlight class="keywordtype">unsigned</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">long</highlight><highlight class="normal"><sp/>long)min_v;</highlight></codeline>
+<codeline lineno="131"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(x<sp/>&gt;<sp/>(</highlight><highlight class="keywordtype">unsigned</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">long</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">long</highlight><highlight class="normal">)max_v)<sp/>x<sp/>=<sp/>(</highlight><highlight class="keywordtype">unsigned</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">long</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">long</highlight><highlight class="normal">)max_v;</highlight></codeline>
+<codeline lineno="132"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal">)x;</highlight></codeline>
+<codeline lineno="133"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="134"><highlight class="normal"></highlight></codeline>
+<codeline lineno="135"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>-------------------------------<sp/>public<sp/>API<sp/>--------------------------------<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="136"><highlight class="normal"></highlight></codeline>
+<codeline lineno="152" refid="numa__policy_8h_1afe77f3ca61a5fa4ba5c921d98d9b444a" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="numa__policy_8c_1afe77f3ca61a5fa4ba5c921d98d9b444a" kindref="member">ie_numa_policy_init</ref>(<ref refid="structie__numa__policy__t" kindref="compound">ie_numa_policy_t</ref><sp/>*out,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="structie__topology" kindref="compound">ie_topology_t</ref><sp/>*topo)<sp/>{</highlight></codeline>
+<codeline lineno="153"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!out)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>-EINVAL;</highlight></codeline>
+<codeline lineno="154"><highlight class="normal"><sp/><sp/>memset(out,<sp/>0,<sp/></highlight><highlight class="keyword">sizeof</highlight><highlight class="normal">(*out));</highlight></codeline>
+<codeline lineno="155"><highlight class="normal"></highlight></codeline>
+<codeline lineno="156"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>sockets<sp/>=<sp/>1;</highlight></codeline>
+<codeline lineno="157"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(topo)<sp/>{</highlight></codeline>
+<codeline lineno="158"><highlight class="normal"><sp/><sp/><sp/><sp/>sockets<sp/>=<sp/><ref refid="ie__topology_8h_1ae9fec2d245fb73d6c3e8e3cba38d4471" kindref="member">ie_topology_sockets</ref>(topo);</highlight></codeline>
+<codeline lineno="159"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(sockets<sp/>&lt;=<sp/>0)<sp/>sockets<sp/>=<sp/>1;</highlight></codeline>
+<codeline lineno="160"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="161"><highlight class="normal"></highlight></codeline>
+<codeline lineno="162"><highlight class="normal"><sp/><sp/>out-&gt;<ref refid="structie__numa__policy__t_1a942294c00aa2e812a85114841638aadc" kindref="member">detected_nodes</ref><sp/>=<sp/><ref refid="ie__numa_8h_1a973de21424f504f3050bac89ab24b122" kindref="member">ie_numa_detect_nodes</ref>();</highlight></codeline>
+<codeline lineno="163"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(out-&gt;<ref refid="structie__numa__policy__t_1a942294c00aa2e812a85114841638aadc" kindref="member">detected_nodes</ref><sp/>&lt;=<sp/>0)<sp/>out-&gt;<ref refid="structie__numa__policy__t_1a942294c00aa2e812a85114841638aadc" kindref="member">detected_nodes</ref><sp/>=<sp/>1;</highlight></codeline>
+<codeline lineno="164"><highlight class="normal"></highlight></codeline>
+<codeline lineno="165"><highlight class="normal"><sp/><sp/>out-&gt;<ref refid="structie__numa__policy__t_1ae53dfbd7daea1fdee8c027a256609992" kindref="member">detected_sockets</ref><sp/>=<sp/>sockets;</highlight></codeline>
+<codeline lineno="166"><highlight class="normal"></highlight></codeline>
+<codeline lineno="167"><highlight class="normal"><sp/><sp/>out-&gt;<ref refid="structie__numa__policy__t_1abe72a4d02af7de3b2c36d82b045b082c" kindref="member">enable_numa</ref><sp/><sp/><sp/>=<sp/>(<ref refid="numa__policy_8c_1a93c92a71a0cf18f3eea8623ea9524d54" kindref="member">env_flag_get</ref>(</highlight><highlight class="stringliteral">&quot;IE_NUMA_ENABLE&quot;</highlight><highlight class="normal">,<sp/>1)<sp/>!=<sp/>0);</highlight></codeline>
+<codeline lineno="168"><highlight class="normal"><sp/><sp/>out-&gt;<ref refid="structie__numa__policy__t_1aebd181dab049048a575268c2b4c44a18" kindref="member">replicate_hot</ref><sp/>=<sp/>(<ref refid="numa__policy_8c_1a93c92a71a0cf18f3eea8623ea9524d54" kindref="member">env_flag_get</ref>(</highlight><highlight class="stringliteral">&quot;IE_NUMA_REPLICATE_HOT&quot;</highlight><highlight class="normal">,<sp/>1)<sp/>!=<sp/>0);</highlight></codeline>
+<codeline lineno="169"><highlight class="normal"></highlight></codeline>
+<codeline lineno="170"><highlight class="normal"><sp/><sp/>out-&gt;<ref refid="structie__numa__policy__t_1a4210d29bb974c0baa18abd9e04219d5a" kindref="member">max_replicas</ref><sp/>=<sp/>sockets;</highlight></codeline>
+<codeline lineno="171"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(out-&gt;<ref refid="structie__numa__policy__t_1a4210d29bb974c0baa18abd9e04219d5a" kindref="member">max_replicas</ref><sp/>&lt;<sp/>1)<sp/>out-&gt;<ref refid="structie__numa__policy__t_1a4210d29bb974c0baa18abd9e04219d5a" kindref="member">max_replicas</ref><sp/>=<sp/>1;</highlight></codeline>
+<codeline lineno="172"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(out-&gt;<ref refid="structie__numa__policy__t_1a4210d29bb974c0baa18abd9e04219d5a" kindref="member">max_replicas</ref><sp/>&gt;<sp/>64)<sp/>out-&gt;<ref refid="structie__numa__policy__t_1a4210d29bb974c0baa18abd9e04219d5a" kindref="member">max_replicas</ref><sp/>=<sp/>64;</highlight></codeline>
+<codeline lineno="173"><highlight class="normal"><sp/><sp/>out-&gt;<ref refid="structie__numa__policy__t_1a4210d29bb974c0baa18abd9e04219d5a" kindref="member">max_replicas</ref><sp/>=<sp/><ref refid="numa__policy_8c_1a8f77067811ecdcf0b7b2c271c801d7cd" kindref="member">env_int_get</ref>(</highlight><highlight class="stringliteral">&quot;IE_NUMA_MAX_REPLICAS&quot;</highlight><highlight class="normal">,<sp/>out-&gt;<ref refid="structie__numa__policy__t_1a4210d29bb974c0baa18abd9e04219d5a" kindref="member">max_replicas</ref>,<sp/>1,<sp/>64);</highlight></codeline>
+<codeline lineno="174"><highlight class="normal"></highlight></codeline>
+<codeline lineno="175"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">/*<sp/>Default:<sp/>32<sp/>MiB,<sp/>clamped<sp/>to<sp/>1<sp/>TiB.<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="176"><highlight class="normal"><sp/><sp/>out-&gt;<ref refid="structie__numa__policy__t_1a080a16d808a2b2f7ed47987fdf02aa19" kindref="member">hot_min_bytes</ref><sp/>=<sp/><ref refid="numa__policy_8c_1aebb8533913a4a3327ea465aebc0fdad1" kindref="member">env_sizet_get</ref>(</highlight><highlight class="stringliteral">&quot;IE_NUMA_HOT_MIN_BYTES&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="177"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal">)33554432u,</highlight></codeline>
+<codeline lineno="178"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal">)0u,</highlight></codeline>
+<codeline lineno="179"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal">)1099511627776ull);</highlight></codeline>
+<codeline lineno="180"><highlight class="normal"></highlight></codeline>
+<codeline lineno="181"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>0;</highlight></codeline>
+<codeline lineno="182"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="183"><highlight class="normal"></highlight></codeline>
+<codeline lineno="196" refid="numa__policy_8h_1a7d542ec01cbd78c1a11eeae3d97eb0ad" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/><ref refid="numa__policy_8c_1a7d542ec01cbd78c1a11eeae3d97eb0ad" kindref="member">ie_numa_policy_should_replicate_hot</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="structie__numa__policy__t" kindref="compound">ie_numa_policy_t</ref><sp/>*p,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>bytes)<sp/>{</highlight></codeline>
+<codeline lineno="197"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!p)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">false</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="198"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!p-&gt;<ref refid="structie__numa__policy__t_1abe72a4d02af7de3b2c36d82b045b082c" kindref="member">enable_numa</ref>)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">false</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="199"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!p-&gt;<ref refid="structie__numa__policy__t_1aebd181dab049048a575268c2b4c44a18" kindref="member">replicate_hot</ref>)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">false</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="200"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(p-&gt;<ref refid="structie__numa__policy__t_1ae53dfbd7daea1fdee8c027a256609992" kindref="member">detected_sockets</ref><sp/>&lt;=<sp/>1)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">false</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="201"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(bytes<sp/>&lt;<sp/>p-&gt;hot_min_bytes)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">false</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="202"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">true</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="203"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="204"><highlight class="normal"></highlight></codeline>
+<codeline lineno="215" refid="numa__policy_8h_1a6d7c4b90278d9eb12abe0ec3bb64f461" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="numa__policy_8c_1a6d7c4b90278d9eb12abe0ec3bb64f461" kindref="member">ie_numa_policy_replica_count</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="structie__numa__policy__t" kindref="compound">ie_numa_policy_t</ref><sp/>*p)<sp/>{</highlight></codeline>
+<codeline lineno="216"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!p)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>1;</highlight></codeline>
+<codeline lineno="217"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>s<sp/>=<sp/>(p-&gt;<ref refid="structie__numa__policy__t_1ae53dfbd7daea1fdee8c027a256609992" kindref="member">detected_sockets</ref><sp/>&gt;<sp/>0)<sp/>?<sp/>p-&gt;<ref refid="structie__numa__policy__t_1ae53dfbd7daea1fdee8c027a256609992" kindref="member">detected_sockets</ref><sp/>:<sp/>1;</highlight></codeline>
+<codeline lineno="218"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>m<sp/>=<sp/>(p-&gt;<ref refid="structie__numa__policy__t_1a4210d29bb974c0baa18abd9e04219d5a" kindref="member">max_replicas</ref><sp/>&gt;<sp/>0)<sp/>?<sp/>p-&gt;<ref refid="structie__numa__policy__t_1a4210d29bb974c0baa18abd9e04219d5a" kindref="member">max_replicas</ref><sp/>:<sp/>1;</highlight></codeline>
+<codeline lineno="219"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>(s<sp/>&lt;<sp/>m)<sp/>?<sp/>s<sp/>:<sp/>m;</highlight></codeline>
+<codeline lineno="220"><highlight class="normal">}</highlight></codeline>
     </programlisting>
     <location file="engine/src/opt/numa_policy.c"/>
   </compounddef>

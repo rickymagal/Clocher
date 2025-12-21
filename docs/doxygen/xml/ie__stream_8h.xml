@@ -88,7 +88,23 @@
 <simplesect kind="return"><para>0 on success; negative value on error (e.g., invalid pointer).</para>
 </simplesect>
 Initialize policy with detected cache sizes and sane defaults.</para>
-<para>The policy may be overridden via environment variables documented in <ref refid="ie__stream_8h" kindref="compound">ie_stream.h</ref>. Cache detection is best-effort and falls back to conservative defaults when sysfs probing fails.</para>
+<para>Cache detection is best-effort (Linux sysfs). If detection fails, conservative defaults are used:<itemizedlist>
+<listitem><para>L1D: 32 KiB</para>
+</listitem><listitem><para>L2: 1 MiB</para>
+</listitem><listitem><para>L3: 8 MiB</para>
+</listitem></itemizedlist>
+</para>
+<para>Defaults:<itemizedlist>
+<listitem><para>prefetch_distance: 6 cache lines</para>
+</listitem><listitem><para>nt_threshold_bytes: 2x LLC</para>
+</listitem></itemizedlist>
+</para>
+<para>Env overrides:<itemizedlist>
+<listitem><para>IE_STREAM_PREFETCH</para>
+</listitem><listitem><para>IE_STREAM_NT_THRESHOLD</para>
+</listitem><listitem><para>IE_STREAM_FORCE_NT</para>
+</listitem></itemizedlist>
+</para>
 <para><parameterlist kind="param"><parameteritem>
 <parameternamelist>
 <parametername>p</parametername>
@@ -104,12 +120,12 @@ Initialize policy with detected cache sizes and sane defaults.</para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="engine/include/ie_stream.h" line="76" column="5" bodyfile="engine/src/opt/stream.c" bodystart="128" bodyend="188" declfile="engine/include/ie_stream.h" declline="76" declcolumn="5"/>
+        <location file="engine/include/ie_stream.h" line="76" column="5" bodyfile="engine/src/opt/stream.c" bodystart="161" bodyend="216" declfile="engine/include/ie_stream.h" declline="76" declcolumn="5"/>
         <references refid="structie__stream__policy_1a9f4a87d9882adaf529a8c40b695e8e4d" compoundref="ie__stream_8h" startline="59">ie_stream_policy::enable_prefetch</references>
         <references refid="structie__stream__policy_1aa6d06cd60477c50a52f9f06ef1369cb6" compoundref="ie__stream_8h" startline="63">ie_stream_policy::force_nt_off</references>
         <references refid="structie__stream__policy_1a861e84e960aa92d5aaf192a79eec20b5" compoundref="ie__stream_8h" startline="61">ie_stream_policy::force_nt_on</references>
         <references refid="ie__stream_8h_1a7e235a58fb3d711841be33f8fdf64905" compoundref="ie__stream_8h" startline="38">IE_CACHELINE_BYTES</references>
-        <references refid="stream_8c_1a6b3e804aea00c4b2e9a4d9c33d7d11d9" compoundref="stream_8c" startline="70" endline="102">ie_detect_caches_linux</references>
+        <references refid="stream_8c_1a6b3e804aea00c4b2e9a4d9c33d7d11d9" compoundref="stream_8c" startline="93" endline="123">ie_detect_caches_linux</references>
         <references refid="structie__stream__policy_1ae6809aac957bc384749db8d23fd160ce" compoundref="ie__stream_8h" startline="44">ie_stream_policy::l1_bytes</references>
         <references refid="structie__stream__policy_1a75f0a7fb9e8ba9febd2f961d1915ff07" compoundref="ie__stream_8h" startline="46">ie_stream_policy::l2_bytes</references>
         <references refid="structie__stream__policy_1a93b26b01c6c413aad99cb8dbe3e546a8" compoundref="ie__stream_8h" startline="48">ie_stream_policy::l3_bytes</references>
@@ -156,7 +172,7 @@ Initialize policy with detected cache sizes and sane defaults.</para>
 <simplesect kind="return"><para>true if non-temporal stores are recommended.</para>
 </simplesect>
 Decide if non-temporal stores should be used for a given transfer size.</para>
-<para>The decision uses the policy threshold unless forced on/off.</para>
+<para>The decision uses the policy threshold unless forced on/off via IE_STREAM_FORCE_NT.</para>
 <para><parameterlist kind="param"><parameteritem>
 <parameternamelist>
 <parametername>bytes</parametername>
@@ -180,12 +196,12 @@ Decide if non-temporal stores should be used for a given transfer size.</para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="engine/include/ie_stream.h" line="88" column="6" bodyfile="engine/src/opt/stream.c" bodystart="201" bodyend="206" declfile="engine/include/ie_stream.h" declline="88" declcolumn="6"/>
+        <location file="engine/include/ie_stream.h" line="88" column="6" bodyfile="engine/src/opt/stream.c" bodystart="231" bodyend="236" declfile="engine/include/ie_stream.h" declline="88" declcolumn="6"/>
         <references refid="structie__stream__policy_1aa6d06cd60477c50a52f9f06ef1369cb6" compoundref="ie__stream_8h" startline="63">ie_stream_policy::force_nt_off</references>
         <references refid="structie__stream__policy_1a861e84e960aa92d5aaf192a79eec20b5" compoundref="ie__stream_8h" startline="61">ie_stream_policy::force_nt_on</references>
         <references refid="structie__stream__policy_1a482106e29e235d9dd7594b9564d733cd" compoundref="ie__stream_8h" startline="53">ie_stream_policy::nt_threshold_bytes</references>
-        <referencedby refid="ie__stream_8h_1a13ab8c04be7e2aad6764804916e21757" compoundref="stream_8c" startline="481" endline="501">ie_stream_copy_f32</referencedby>
-        <referencedby refid="ie__stream_8h_1ae7db5f748b4078d3d8064ee76d254353" compoundref="stream_8c" startline="516" endline="536">ie_stream_memset_f32</referencedby>
+        <referencedby refid="ie__stream_8h_1a13ab8c04be7e2aad6764804916e21757" compoundref="stream_8c" startline="534" endline="554">ie_stream_copy_f32</referencedby>
+        <referencedby refid="ie__stream_8h_1ae7db5f748b4078d3d8064ee76d254353" compoundref="stream_8c" startline="570" endline="590">ie_stream_memset_f32</referencedby>
       </memberdef>
       <memberdef kind="function" id="ie__stream_8h_1a8d11fe312c553e8c7cfab6282a814c44" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>size_t</type>
@@ -225,7 +241,12 @@ Decide if non-temporal stores should be used for a given transfer size.</para>
 <simplesect kind="return"><para>Distance in bytes to pass to the prefetch helpers.</para>
 </simplesect>
 Recommend a prefetch distance in bytes for the given stride.</para>
-<para>Clamps the configured distance to a sensible range: at least one cache line, and at most roughly half of L1, while ensuring it is not smaller than the stride when stride_bytes is provided.</para>
+<para>This clamps the configured distance to a practical range:<itemizedlist>
+<listitem><para>at least one cache line,</para>
+</listitem><listitem><para>at most half of L1,</para>
+</listitem><listitem><para>at least stride_bytes when stride_bytes is provided.</para>
+</listitem></itemizedlist>
+</para>
 <para><parameterlist kind="param"><parameteritem>
 <parameternamelist>
 <parametername>p</parametername>
@@ -249,7 +270,7 @@ Recommend a prefetch distance in bytes for the given stride.</para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="engine/include/ie_stream.h" line="100" column="8" bodyfile="engine/src/opt/stream.c" bodystart="219" bodyend="232" declfile="engine/include/ie_stream.h" declline="100" declcolumn="8"/>
+        <location file="engine/include/ie_stream.h" line="100" column="8" bodyfile="engine/src/opt/stream.c" bodystart="251" bodyend="264" declfile="engine/include/ie_stream.h" declline="100" declcolumn="8"/>
         <references refid="ie__stream_8h_1a7e235a58fb3d711841be33f8fdf64905" compoundref="ie__stream_8h" startline="38">IE_CACHELINE_BYTES</references>
         <references refid="structie__stream__policy_1ae6809aac957bc384749db8d23fd160ce" compoundref="ie__stream_8h" startline="44">ie_stream_policy::l1_bytes</references>
         <references refid="structie__stream__policy_1a5068fd9f871400a3905ae657f6a6c468" compoundref="ie__stream_8h" startline="51">ie_stream_policy::prefetch_distance</references>
@@ -289,7 +310,7 @@ Recommend a prefetch distance in bytes for the given stride.</para>
 </parameteritem>
 </parameterlist>
 Issue a T0 (cache-hot) prefetch <computeroutput>distance</computeroutput> bytes ahead of <computeroutput>base</computeroutput>.</para>
-<para>On non-x86 builds this is a no-op.</para>
+<para>On non-x86 builds this function is a no-op.</para>
 <para><parameterlist kind="param"><parameteritem>
 <parameternamelist>
 <parametername>base</parametername>
@@ -311,8 +332,8 @@ Issue a T0 (cache-hot) prefetch <computeroutput>distance</computeroutput> bytes 
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="engine/include/ie_stream.h" line="109" column="6" bodyfile="engine/src/opt/stream.c" bodystart="244" bodyend="251" declfile="engine/include/ie_stream.h" declline="109" declcolumn="6"/>
-        <referencedby refid="ie__stream_8h_1a9367e6cdfb8d095de13293228dc2cc38" compoundref="stream_8c" startline="281" endline="288">ie_stream_prefetch_range_t0</referencedby>
+        <location file="engine/include/ie_stream.h" line="109" column="6" bodyfile="engine/src/opt/stream.c" bodystart="277" bodyend="284" declfile="engine/include/ie_stream.h" declline="109" declcolumn="6"/>
+        <referencedby refid="ie__stream_8h_1a9367e6cdfb8d095de13293228dc2cc38" compoundref="stream_8c" startline="316" endline="323">ie_stream_prefetch_range_t0</referencedby>
       </memberdef>
       <memberdef kind="function" id="ie__stream_8h_1af640ee60a75807d29d42d815a354f406" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -349,7 +370,7 @@ Issue a T0 (cache-hot) prefetch <computeroutput>distance</computeroutput> bytes 
 </parameteritem>
 </parameterlist>
 Issue a non-temporal (NTA) prefetch <computeroutput>distance</computeroutput> bytes ahead of <computeroutput>base</computeroutput>.</para>
-<para>On non-x86 builds this is a no-op.</para>
+<para>On non-x86 builds this function is a no-op.</para>
 <para><parameterlist kind="param"><parameteritem>
 <parameternamelist>
 <parametername>base</parametername>
@@ -371,8 +392,8 @@ Issue a non-temporal (NTA) prefetch <computeroutput>distance</computeroutput> by
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="engine/include/ie_stream.h" line="117" column="6" bodyfile="engine/src/opt/stream.c" bodystart="261" bodyend="268" declfile="engine/include/ie_stream.h" declline="117" declcolumn="6"/>
-        <referencedby refid="ie__stream_8h_1ab3cba8ed9a68d055995c19d4de5775ad" compoundref="stream_8c" startline="301" endline="308">ie_stream_prefetch_range_nta</referencedby>
+        <location file="engine/include/ie_stream.h" line="117" column="6" bodyfile="engine/src/opt/stream.c" bodystart="295" bodyend="302" declfile="engine/include/ie_stream.h" declline="117" declcolumn="6"/>
+        <referencedby refid="ie__stream_8h_1ab3cba8ed9a68d055995c19d4de5775ad" compoundref="stream_8c" startline="337" endline="344">ie_stream_prefetch_range_nta</referencedby>
       </memberdef>
       <memberdef kind="function" id="ie__stream_8h_1a9367e6cdfb8d095de13293228dc2cc38" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -433,7 +454,7 @@ Issue a non-temporal (NTA) prefetch <computeroutput>distance</computeroutput> by
 </parameteritem>
 </parameterlist>
 Prefetch a range using T0 hint at a given stride and lead distance.</para>
-<para>Walks a byte range [base, base+bytes) and issues prefetches at (current + distance), stepping by stride (or cacheline if stride==0).</para>
+<para>Walks the byte range [base, base+bytes) and issues prefetches at (current + distance), stepping by stride (or cacheline if stride==0).</para>
 <para><parameterlist kind="param"><parameteritem>
 <parameternamelist>
 <parametername>base</parametername>
@@ -471,9 +492,9 @@ Prefetch a range using T0 hint at a given stride and lead distance.</para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="engine/include/ie_stream.h" line="127" column="6" bodyfile="engine/src/opt/stream.c" bodystart="281" bodyend="288" declfile="engine/include/ie_stream.h" declline="127" declcolumn="6"/>
+        <location file="engine/include/ie_stream.h" line="127" column="6" bodyfile="engine/src/opt/stream.c" bodystart="316" bodyend="323" declfile="engine/include/ie_stream.h" declline="127" declcolumn="6"/>
         <references refid="ie__stream_8h_1a7e235a58fb3d711841be33f8fdf64905" compoundref="ie__stream_8h" startline="38">IE_CACHELINE_BYTES</references>
-        <references refid="stream_8c_1a77afa6fcb0e13c92f024812038ba0291" compoundref="stream_8c" startline="244" endline="251">ie_stream_prefetch_t0</references>
+        <references refid="stream_8c_1a77afa6fcb0e13c92f024812038ba0291" compoundref="stream_8c" startline="277" endline="284">ie_stream_prefetch_t0</references>
         <referencedby refid="microbench__stream_8c_1a3c04138a5bfe5d72780bb7e82a18e627" compoundref="microbench__stream_8c" startline="70" endline="136">main</referencedby>
       </memberdef>
       <memberdef kind="function" id="ie__stream_8h_1ab3cba8ed9a68d055995c19d4de5775ad" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
@@ -535,7 +556,7 @@ Prefetch a range using T0 hint at a given stride and lead distance.</para>
 </parameteritem>
 </parameterlist>
 Prefetch a range using NTA hint at a given stride and lead distance.</para>
-<para>Walks a byte range [base, base+bytes) and issues prefetches at (current + distance), stepping by stride (or cacheline if stride==0).</para>
+<para>Walks the byte range [base, base+bytes) and issues prefetches at (current + distance), stepping by stride (or cacheline if stride==0).</para>
 <para><parameterlist kind="param"><parameteritem>
 <parameternamelist>
 <parametername>base</parametername>
@@ -573,9 +594,9 @@ Prefetch a range using NTA hint at a given stride and lead distance.</para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="engine/include/ie_stream.h" line="138" column="6" bodyfile="engine/src/opt/stream.c" bodystart="301" bodyend="308" declfile="engine/include/ie_stream.h" declline="138" declcolumn="6"/>
+        <location file="engine/include/ie_stream.h" line="138" column="6" bodyfile="engine/src/opt/stream.c" bodystart="337" bodyend="344" declfile="engine/include/ie_stream.h" declline="138" declcolumn="6"/>
         <references refid="ie__stream_8h_1a7e235a58fb3d711841be33f8fdf64905" compoundref="ie__stream_8h" startline="38">IE_CACHELINE_BYTES</references>
-        <references refid="stream_8c_1af640ee60a75807d29d42d815a354f406" compoundref="stream_8c" startline="261" endline="268">ie_stream_prefetch_nta</references>
+        <references refid="stream_8c_1af640ee60a75807d29d42d815a354f406" compoundref="stream_8c" startline="295" endline="302">ie_stream_prefetch_nta</references>
       </memberdef>
       <memberdef kind="function" id="ie__stream_8h_1a13ab8c04be7e2aad6764804916e21757" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type>void</type>
@@ -695,12 +716,12 @@ Copy <computeroutput>n</computeroutput> floats from <computeroutput>src</compute
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="engine/include/ie_stream.h" line="155" column="6" bodyfile="engine/src/opt/stream.c" bodystart="481" bodyend="501" declfile="engine/include/ie_stream.h" declline="155" declcolumn="6"/>
-        <references refid="stream_8c_1a209af35ff3b6ba68d29aa6cebd04a36c" compoundref="stream_8c" startline="110" endline="114">ie_clamp01</references>
-        <references refid="stream_8c_1a6caed8f050edb118d1b888b8b91b5549" compoundref="stream_8c" startline="376" endline="402">ie_nt_copy_f32_avx2</references>
-        <references refid="stream_8c_1a08dffd4006d1feb19beeaee81ff360b2" compoundref="stream_8c" startline="341" endline="367">ie_nt_copy_f32_avx512</references>
-        <references refid="stream_8c_1a595b79d2d4a2ee4b29b91ac03014dc86" compoundref="stream_8c" startline="319" endline="321">ie_scalar_copy_f32</references>
-        <references refid="stream_8c_1af51c48e8b0afa485e060090f734d1cb1" compoundref="stream_8c" startline="201" endline="206">ie_stream_should_use_nt</references>
+        <location file="engine/include/ie_stream.h" line="155" column="6" bodyfile="engine/src/opt/stream.c" bodystart="534" bodyend="554" declfile="engine/include/ie_stream.h" declline="155" declcolumn="6"/>
+        <references refid="stream_8c_1a209af35ff3b6ba68d29aa6cebd04a36c" compoundref="stream_8c" startline="131" endline="135">ie_clamp01</references>
+        <references refid="stream_8c_1a6caed8f050edb118d1b888b8b91b5549" compoundref="stream_8c" startline="420" endline="446">ie_nt_copy_f32_avx2</references>
+        <references refid="stream_8c_1a08dffd4006d1feb19beeaee81ff360b2" compoundref="stream_8c" startline="381" endline="407">ie_nt_copy_f32_avx512</references>
+        <references refid="stream_8c_1a595b79d2d4a2ee4b29b91ac03014dc86" compoundref="stream_8c" startline="355" endline="357">ie_scalar_copy_f32</references>
+        <references refid="stream_8c_1af51c48e8b0afa485e060090f734d1cb1" compoundref="stream_8c" startline="231" endline="236">ie_stream_should_use_nt</references>
         <referencedby refid="microbench__stream_8c_1a3c04138a5bfe5d72780bb7e82a18e627" compoundref="microbench__stream_8c" startline="70" endline="136">main</referencedby>
       </memberdef>
       <memberdef kind="function" id="ie__stream_8h_1ae7db5f748b4078d3d8064ee76d254353" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
@@ -820,12 +841,12 @@ Set <computeroutput>n</computeroutput> floats at <computeroutput>dst</computerou
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="engine/include/ie_stream.h" line="167" column="6" bodyfile="engine/src/opt/stream.c" bodystart="516" bodyend="536" declfile="engine/include/ie_stream.h" declline="167" declcolumn="6"/>
-        <references refid="stream_8c_1a209af35ff3b6ba68d29aa6cebd04a36c" compoundref="stream_8c" startline="110" endline="114">ie_clamp01</references>
-        <references refid="stream_8c_1a62606c176a6edf9664ac03ded1ab2fa7" compoundref="stream_8c" startline="442" endline="464">ie_nt_set_f32_avx2</references>
-        <references refid="stream_8c_1a099c508cf40a9fa5f184c462badcf1fa" compoundref="stream_8c" startline="411" endline="433">ie_nt_set_f32_avx512</references>
-        <references refid="stream_8c_1a83d5c209366c07cf4f9026c5d7769141" compoundref="stream_8c" startline="330" endline="332">ie_scalar_set_f32</references>
-        <references refid="stream_8c_1af51c48e8b0afa485e060090f734d1cb1" compoundref="stream_8c" startline="201" endline="206">ie_stream_should_use_nt</references>
+        <location file="engine/include/ie_stream.h" line="167" column="6" bodyfile="engine/src/opt/stream.c" bodystart="570" bodyend="590" declfile="engine/include/ie_stream.h" declline="167" declcolumn="6"/>
+        <references refid="stream_8c_1a209af35ff3b6ba68d29aa6cebd04a36c" compoundref="stream_8c" startline="131" endline="135">ie_clamp01</references>
+        <references refid="stream_8c_1a62606c176a6edf9664ac03ded1ab2fa7" compoundref="stream_8c" startline="494" endline="516">ie_nt_set_f32_avx2</references>
+        <references refid="stream_8c_1a099c508cf40a9fa5f184c462badcf1fa" compoundref="stream_8c" startline="459" endline="481">ie_nt_set_f32_avx512</references>
+        <references refid="stream_8c_1a83d5c209366c07cf4f9026c5d7769141" compoundref="stream_8c" startline="366" endline="368">ie_scalar_set_f32</references>
+        <references refid="stream_8c_1af51c48e8b0afa485e060090f734d1cb1" compoundref="stream_8c" startline="231" endline="236">ie_stream_should_use_nt</references>
       </memberdef>
       </sectiondef>
     <briefdescription>

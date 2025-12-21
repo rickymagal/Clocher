@@ -18,7 +18,7 @@
 </para>
 <para><hruler/>
 </para>
-<sect1 id="md_docs_DECISIONS_1autotoc_md14">
+<sect1 id="md_docs_DECISIONS_1autotoc_md15">
 <title>&lt;strong&gt;ADR-0013 (2025-10-24): Adopt INT4 weight-only PTQ &amp; manifest-guided packing&lt;/strong&gt;</title>
 <para><bold>Context.</bold> The engine is primarily <bold>memory-bandwidth bound</bold> at inference time. Even with blocked‑K packing and prefetch, large models remain limited by weight fetch. INT8 provided a 2× compression; we want a <bold>denser format</bold> while preserving a simple compute path.</para>
 <para><bold>Decision.</bold><itemizedlist>
@@ -41,7 +41,7 @@
 <para><hruler/>
  </para>
 </sect1>
-<sect1 id="md_docs_DECISIONS_1autotoc_md16">
+<sect1 id="md_docs_DECISIONS_1autotoc_md17">
 <title>Decision: Add INT4 (Weight-Only) Optional Pipeline (2025-10-24 21:04:23 UTC)</title>
 <para><bold>Context.</bold> We already ship FP32/BF16/FP16 flows. We add a <emphasis>weight-only</emphasis> INT4 path to reduce bandwidth and model footprint while keeping API stability.</para>
 <para><bold>Decision.</bold><itemizedlist>
@@ -60,7 +60,7 @@
 <para><hruler/>
 </para>
 </sect1>
-<sect1 id="md_docs_DECISIONS_1autotoc_md18">
+<sect1 id="md_docs_DECISIONS_1autotoc_md19">
 <title>Appendix — INT4 (Weight‑Only) Step (Summary)</title>
 <para><itemizedlist>
 <listitem><para>Convert HF shards → IEBIN with an INT4 manifest: <programlisting filename=".bash"><codeline><highlight class="normal">python3<sp/>scripts/hf_to_iebin.py<sp/><sp/><sp/><sp/><sp/>--hf-dir<sp/>models/gpt-oss-20b/hf<sp/><sp/><sp/><sp/><sp/>--out-dir<sp/>models/gpt-oss-20b<sp/><sp/><sp/><sp/><sp/>--q4-map<sp/>quant/q4_manifest.json</highlight></codeline>
@@ -96,10 +96,10 @@
 </listitem></itemizedlist>
 </para>
 </sect1>
-<sect1 id="md_docs_DECISIONS_1autotoc_md20">
+<sect1 id="md_docs_DECISIONS_1autotoc_md21">
 <title>- &lt;strong&gt;Status:&lt;/strong&gt; Accepted. Backward‑compatible; default remains FP32 if unset.</title>
 </sect1>
-<sect1 id="md_docs_DECISIONS_1autotoc_md21">
+<sect1 id="md_docs_DECISIONS_1autotoc_md22">
 <title>ADR‑0017 (Memory Streaming Heuristics): Prefetch &amp; Non‑Temporal Loads — 2025-11-12 18:01:19 UTC</title>
 <para><bold>Context.</bold> GEMV paths are bandwidth‑bound. Sequential blocked‑K layouts help, but cache pollution and late prefetch still cap TPS.</para>
 <para><bold>Decision.</bold><itemizedlist>
@@ -116,7 +116,7 @@
 <para><hruler/>
  </para>
 </sect1>
-<sect1 id="md_docs_DECISIONS_1autotoc_md23">
+<sect1 id="md_docs_DECISIONS_1autotoc_md24">
 <title>ADR‑0018 (Metrics &amp; Reporting): Spatial Metrics in PERFORMANCE.md — 2025-11-12 18:01:19 UTC</title>
 <para><bold>Context.</bold> Throughput alone hides memory behavior. We need bytes/token, coverage vs model, RSS peak, and effective bandwidth.</para>
 <para><bold>Decision.</bold><itemizedlist>
@@ -131,7 +131,7 @@
 </para>
 <para><bold>Status.</bold> Accepted. Shipped with <computeroutput><ref refid="metrics__memory_8toml" kindref="compound">monitoring/metrics_memory.toml</ref></computeroutput>, updated <computeroutput><ref refid="metrics__exporter_8py" kindref="compound">scripts/metrics_exporter.py</ref></computeroutput>, and harness sweep labels for memory knobs.</para>
 </sect1>
-<sect1 id="md_docs_DECISIONS_1autotoc_md24">
+<sect1 id="md_docs_DECISIONS_1autotoc_md25">
 <title>ADR‑0019 (Sparsity): Block‑sparse weights, CPU‑only prototype — 2025‑11‑14 23:00:00 UTC</title>
 <para><bold>Context.</bold><itemizedlist>
 <listitem><para>Phase 1 of the memory work focused on <emphasis>dense</emphasis> optimizations: INT4/INT8 activations, NUMA‑aware topology, hot‑weights replication, and streaming loads.</para>

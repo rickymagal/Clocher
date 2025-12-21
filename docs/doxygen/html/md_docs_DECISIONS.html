@@ -97,7 +97,7 @@ $(document).ready(function(){initNavTree('md_docs_DECISIONS.html',''); initResiz
 <li><b>ADR-0011 (2025-10-24)</b>: Drop Level Zero from default benchmarking; GPU bench is CUDA-only; CPU/GPU share a unified reporting pipeline.</li>
 </ul>
 <hr  />
-<h1><a class="anchor" id="autotoc_md14"></a>
+<h1><a class="anchor" id="autotoc_md15"></a>
 &lt;strong&gt;ADR-0013 (2025-10-24): Adopt INT4 weight-only PTQ &amp; manifest-guided packing&lt;/strong&gt;</h1>
 <p><b>Context.</b> The engine is primarily <b>memory-bandwidth bound</b> at inference time. Even with blocked‑K packing and prefetch, large models remain limited by weight fetch. INT8 provided a 2× compression; we want a <b>denser format</b> while preserving a simple compute path.</p>
 <p><b>Decision.</b></p><ul>
@@ -116,7 +116,7 @@ $(document).ready(function(){initNavTree('md_docs_DECISIONS.html',''); initResiz
 </ul>
 <p><b>Status.</b> Accepted. Implemented across CPU and CUDA builds; scripts support end‑to‑end HF→IEBIN packing with <code>--q4-map</code>.</p>
 <hr  />
- <h1><a class="anchor" id="autotoc_md16"></a>
+ <h1><a class="anchor" id="autotoc_md17"></a>
 Decision: Add INT4 (Weight-Only) Optional Pipeline (2025-10-24 21:04:23 UTC)</h1>
 <p><b>Context.</b> We already ship FP32/BF16/FP16 flows. We add a <em>weight-only</em> INT4 path to reduce bandwidth and model footprint while keeping API stability.</p>
 <p><b>Decision.</b></p><ul>
@@ -131,7 +131,7 @@ Decision: Add INT4 (Weight-Only) Optional Pipeline (2025-10-24 21:04:23 UTC)</h1
 </ul>
 <p><b>Status.</b> Accepted and implemented. Backward-compatible (FP paths unaffected).</p>
 <hr  />
-<h1><a class="anchor" id="autotoc_md18"></a>
+<h1><a class="anchor" id="autotoc_md19"></a>
 Appendix — INT4 (Weight‑Only) Step (Summary)</h1>
 <ul>
 <li>Convert HF shards → IEBIN with an INT4 manifest: <div class="fragment"><div class="line">python3 scripts/hf_to_iebin.py     --hf-dir models/gpt-oss-20b/hf     --out-dir models/gpt-oss-20b     --q4-map quant/q4_manifest.json</div>
@@ -164,9 +164,9 @@ Appendix — INT4 (Weight‑Only) Step (Summary)</h1>
 </ul>
 </li>
 </ul>
-<h1><a class="anchor" id="autotoc_md20"></a>
-- &lt;strong&gt;Status:&lt;/strong&gt; Accepted. Backward‑compatible; default remains FP32 if unset.</h1>
 <h1><a class="anchor" id="autotoc_md21"></a>
+- &lt;strong&gt;Status:&lt;/strong&gt; Accepted. Backward‑compatible; default remains FP32 if unset.</h1>
+<h1><a class="anchor" id="autotoc_md22"></a>
 ADR‑0017 (Memory Streaming Heuristics): Prefetch &amp; Non‑Temporal Loads — 2025-11-12 18:01:19 UTC</h1>
 <p><b>Context.</b> GEMV paths are bandwidth‑bound. Sequential blocked‑K layouts help, but cache pollution and late prefetch still cap TPS.</p>
 <p><b>Decision.</b></p><ul>
@@ -179,7 +179,7 @@ ADR‑0017 (Memory Streaming Heuristics): Prefetch &amp; Non‑Temporal Loads �
 </ul>
 <p><b>Status.</b> Accepted. Implemented in CPU AVX2 and CUDA pack/GEMV call sites with guarded paths.</p>
 <hr  />
- <h1><a class="anchor" id="autotoc_md23"></a>
+ <h1><a class="anchor" id="autotoc_md24"></a>
 ADR‑0018 (Metrics &amp; Reporting): Spatial Metrics in PERFORMANCE.md — 2025-11-12 18:01:19 UTC</h1>
 <p><b>Context.</b> Throughput alone hides memory behavior. We need bytes/token, coverage vs model, RSS peak, and effective bandwidth.</p>
 <p><b>Decision.</b></p><ul>
@@ -191,7 +191,7 @@ ADR‑0018 (Metrics &amp; Reporting): Spatial Metrics in PERFORMANCE.md — 2025
 <li>Grafana dashboards can plot GB/s alongside TPS for stability analysis.</li>
 </ul>
 <p><b>Status.</b> Accepted. Shipped with <code><a class="el" href="metrics__memory_8toml.html">monitoring/metrics_memory.toml</a></code>, updated <code><a class="el" href="metrics__exporter_8py.html">scripts/metrics_exporter.py</a></code>, and harness sweep labels for memory knobs.</p>
-<h1><a class="anchor" id="autotoc_md24"></a>
+<h1><a class="anchor" id="autotoc_md25"></a>
 ADR‑0019 (Sparsity): Block‑sparse weights, CPU‑only prototype — 2025‑11‑14 23:00:00 UTC</h1>
 <p><b>Context.</b></p><ul>
 <li>Phase 1 of the memory work focused on <em>dense</em> optimizations: INT4/INT8 activations, NUMA‑aware topology, hot‑weights replication, and streaming loads.</li>

@@ -6,10 +6,6 @@ var annotated_dup =
     [ "dedup_verify_int4", "namespacededup__verify__int4.html", [
       [ "TensorRec", "classdedup__verify__int4_1_1TensorRec.html", null ]
     ] ],
-    [ "hf_to_iebin", "namespacehf__to__iebin.html", [
-      [ "TensorRef", "classhf__to__iebin_1_1TensorRef.html", null ],
-      [ "Shard", "classhf__to__iebin_1_1Shard.html", null ]
-    ] ],
     [ "metrics_exporter", "namespacemetrics__exporter.html", [
       [ "Handler", "classmetrics__exporter_1_1Handler.html", "classmetrics__exporter_1_1Handler" ]
     ] ],

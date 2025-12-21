@@ -71,10 +71,8 @@ var hierarchy =
     [ "ie_weights_dedup_opts", "structie__weights__dedup__opts.html", null ],
     [ "ie_weights_s", "structie__weights__s.html", null ],
     [ "ie_worker_arg_t", "structie__worker__arg__t.html", null ],
-    [ "hf_to_iebin.Shard", "classhf__to__iebin_1_1Shard.html", null ],
     [ "dedup_extract_int4.TensorRec", "classdedup__extract__int4_1_1TensorRec.html", null ],
     [ "dedup_verify_int4.TensorRec", "classdedup__verify__int4_1_1TensorRec.html", null ],
-    [ "hf_to_iebin.TensorRef", "classhf__to__iebin_1_1TensorRef.html", null ],
     [ "unittest.TestCase", null, [
       [ "test_cli.CLITests", "classtest__cli_1_1CLITests.html", null ],
       [ "test_cli_error_paths.CLIErrorPathsTests", "classtest__cli__error__paths_1_1CLIErrorPathsTests.html", null ],

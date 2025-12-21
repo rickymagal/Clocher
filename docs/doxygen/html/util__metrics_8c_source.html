@@ -88,275 +88,278 @@ $(document).ready(function(){initNavTree('util__metrics_8c_source.html',''); ini
 </div><!--header-->
 <div class="contents">
 <a href="util__metrics_8c.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160; </div>
-<div class="line"><a name="l00015"></a><span class="lineno">   15</span>&#160;<span class="preprocessor">#include &quot;<a class="code" href="util__metrics_8h.html">util_metrics.h</a>&quot;</span></div>
-<div class="line"><a name="l00016"></a><span class="lineno">   16</span>&#160; </div>
-<div class="line"><a name="l00017"></a><span class="lineno">   17</span>&#160;<span class="preprocessor">#include &lt;stdatomic.h&gt;</span></div>
-<div class="line"><a name="l00018"></a><span class="lineno">   18</span>&#160;<span class="preprocessor">#include &lt;stdint.h&gt;</span></div>
-<div class="line"><a name="l00019"></a><span class="lineno">   19</span>&#160;<span class="preprocessor">#include &lt;stdio.h&gt;</span></div>
-<div class="line"><a name="l00020"></a><span class="lineno">   20</span>&#160;<span class="preprocessor">#include &lt;string.h&gt;</span></div>
+<div class="line"><a name="l00015"></a><span class="lineno">   15</span>&#160;<span class="preprocessor">#ifndef _POSIX_C_SOURCE</span></div>
+<div class="line"><a name="l00016"></a><span class="lineno"><a class="line" href="util__metrics_8c.html#a3024ccd4a9af5109d24e6c57565d74a1">   16</a></span>&#160;<span class="preprocessor">#define _POSIX_C_SOURCE 200809L</span></div>
+<div class="line"><a name="l00017"></a><span class="lineno">   17</span>&#160;<span class="preprocessor">#endif</span></div>
+<div class="line"><a name="l00018"></a><span class="lineno">   18</span>&#160; </div>
+<div class="line"><a name="l00019"></a><span class="lineno">   19</span>&#160;<span class="preprocessor">#include &quot;<a class="code" href="util__metrics_8h.html">util_metrics.h</a>&quot;</span></div>
+<div class="line"><a name="l00020"></a><span class="lineno">   20</span>&#160; </div>
 <div class="line"><a name="l00021"></a><span class="lineno">   21</span>&#160;<span class="preprocessor">#include &lt;errno.h&gt;</span></div>
-<div class="line"><a name="l00022"></a><span class="lineno">   22</span>&#160;<span class="preprocessor">#include &lt;stdlib.h&gt;</span></div>
+<div class="line"><a name="l00022"></a><span class="lineno">   22</span>&#160;<span class="preprocessor">#include &lt;stdatomic.h&gt;</span></div>
 <div class="line"><a name="l00023"></a><span class="lineno">   23</span>&#160;<span class="preprocessor">#include &lt;stdarg.h&gt;</span></div>
-<div class="line"><a name="l00024"></a><span class="lineno">   24</span>&#160; </div>
-<div class="line"><a name="l00025"></a><span class="lineno">   25</span>&#160;<span class="preprocessor">#include &quot;<a class="code" href="util__metrics_8h.html">util_metrics.h</a>&quot;</span></div>
-<div class="line"><a name="l00026"></a><span class="lineno">   26</span>&#160; </div>
-<div class="line"><a name="l00027"></a><span class="lineno">   27</span>&#160;<span class="preprocessor">#ifndef _POSIX_C_SOURCE</span></div>
-<div class="line"><a name="l00028"></a><span class="lineno"><a class="line" href="util__metrics_8c.html#a3024ccd4a9af5109d24e6c57565d74a1">   28</a></span>&#160;<span class="preprocessor">#define _POSIX_C_SOURCE 200809L</span></div>
-<div class="line"><a name="l00029"></a><span class="lineno">   29</span>&#160;<span class="preprocessor">#endif</span></div>
-<div class="line"><a name="l00030"></a><span class="lineno">   30</span>&#160;<span class="preprocessor">#include &lt;strings.h&gt;</span>  <span class="comment">/* strcasecmp */</span></div>
-<div class="line"><a name="l00031"></a><span class="lineno">   31</span>&#160; </div>
-<div class="line"><a name="l00032"></a><span class="lineno">   32</span>&#160; </div>
-<div class="line"><a name="l00033"></a><span class="lineno">   33</span>&#160;<span class="comment">/* Platform headers for RSS sampling */</span></div>
-<div class="line"><a name="l00034"></a><span class="lineno">   34</span>&#160;<span class="preprocessor">#if defined(__linux__)</span></div>
-<div class="line"><a name="l00035"></a><span class="lineno">   35</span>&#160;<span class="preprocessor">  #include &lt;sys/resource.h&gt;</span></div>
-<div class="line"><a name="l00036"></a><span class="lineno">   36</span>&#160;<span class="preprocessor">  #include &lt;unistd.h&gt;</span></div>
-<div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160;<span class="preprocessor">#elif defined(__APPLE__)</span></div>
-<div class="line"><a name="l00038"></a><span class="lineno">   38</span>&#160;<span class="preprocessor">  #include &lt;sys/resource.h&gt;</span></div>
-<div class="line"><a name="l00039"></a><span class="lineno">   39</span>&#160;<span class="preprocessor">  #include &lt;mach/mach.h&gt;</span></div>
-<div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160;<span class="preprocessor">#else</span></div>
-<div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160;<span class="preprocessor">  #include &lt;sys/resource.h&gt;</span></div>
-<div class="line"><a name="l00042"></a><span class="lineno">   42</span>&#160;<span class="preprocessor">#endif</span></div>
-<div class="line"><a name="l00043"></a><span class="lineno">   43</span>&#160; </div>
-<div class="line"><a name="l00044"></a><span class="lineno">   44</span>&#160;<span class="comment">/* -------------------------------------------------------------------------- */</span></div>
-<div class="line"><a name="l00045"></a><span class="lineno">   45</span>&#160;<span class="comment">/* Globals: KV accumulators (process-wide)                                     */</span></div>
-<div class="line"><a name="l00046"></a><span class="lineno">   46</span>&#160;<span class="comment">/* -------------------------------------------------------------------------- */</span></div>
+<div class="line"><a name="l00024"></a><span class="lineno">   24</span>&#160;<span class="preprocessor">#include &lt;stdint.h&gt;</span></div>
+<div class="line"><a name="l00025"></a><span class="lineno">   25</span>&#160;<span class="preprocessor">#include &lt;stdio.h&gt;</span></div>
+<div class="line"><a name="l00026"></a><span class="lineno">   26</span>&#160;<span class="preprocessor">#include &lt;stdlib.h&gt;</span></div>
+<div class="line"><a name="l00027"></a><span class="lineno">   27</span>&#160;<span class="preprocessor">#include &lt;string.h&gt;</span></div>
+<div class="line"><a name="l00028"></a><span class="lineno">   28</span>&#160; </div>
+<div class="line"><a name="l00029"></a><span class="lineno">   29</span>&#160;<span class="preprocessor">#if defined(__linux__)</span></div>
+<div class="line"><a name="l00030"></a><span class="lineno">   30</span>&#160;<span class="preprocessor">  #include &lt;unistd.h&gt;</span></div>
+<div class="line"><a name="l00031"></a><span class="lineno">   31</span>&#160;<span class="preprocessor">  #include &lt;sys/resource.h&gt;</span></div>
+<div class="line"><a name="l00032"></a><span class="lineno">   32</span>&#160;<span class="preprocessor">#elif defined(__APPLE__)</span></div>
+<div class="line"><a name="l00033"></a><span class="lineno">   33</span>&#160;<span class="preprocessor">  #include &lt;sys/resource.h&gt;</span></div>
+<div class="line"><a name="l00034"></a><span class="lineno">   34</span>&#160;<span class="preprocessor">  #include &lt;mach/mach.h&gt;</span></div>
+<div class="line"><a name="l00035"></a><span class="lineno">   35</span>&#160;<span class="preprocessor">#else</span></div>
+<div class="line"><a name="l00036"></a><span class="lineno">   36</span>&#160;<span class="preprocessor">  #include &lt;sys/resource.h&gt;</span></div>
+<div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160;<span class="preprocessor">#endif</span></div>
+<div class="line"><a name="l00038"></a><span class="lineno">   38</span>&#160; </div>
+<div class="line"><a name="l00039"></a><span class="lineno">   39</span>&#160;<span class="preprocessor">#include &lt;strings.h&gt;</span> <span class="comment">/* strcasecmp */</span></div>
+<div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160; </div>
+<div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160;<span class="comment">/* -------------------------------------------------------------------------- */</span></div>
+<div class="line"><a name="l00042"></a><span class="lineno">   42</span>&#160;<span class="comment">/* Globals: KV accumulators (process-wide)                                     */</span></div>
+<div class="line"><a name="l00043"></a><span class="lineno">   43</span>&#160;<span class="comment">/* -------------------------------------------------------------------------- */</span></div>
+<div class="line"><a name="l00044"></a><span class="lineno">   44</span>&#160; </div>
+<div class="line"><a name="l00046"></a><span class="lineno"><a class="line" href="util__metrics_8c.html#a2304e4230799c4132478704188bc8877">   46</a></span>&#160;<span class="keyword">static</span> _Atomic uint64_t <a class="code" href="util__metrics_8c.html#a2304e4230799c4132478704188bc8877">g_kv_hits</a> = 0;</div>
 <div class="line"><a name="l00047"></a><span class="lineno">   47</span>&#160; </div>
-<div class="line"><a name="l00048"></a><span class="lineno"><a class="line" href="util__metrics_8c.html#a2304e4230799c4132478704188bc8877">   48</a></span>&#160;<span class="keyword">static</span> _Atomic uint64_t <a class="code" href="util__metrics_8c.html#a2304e4230799c4132478704188bc8877">g_kv_hits</a> = 0;</div>
 <div class="line"><a name="l00049"></a><span class="lineno"><a class="line" href="util__metrics_8c.html#a115dd2ed1a4c4c9987ad4c3b1e7ed6fa">   49</a></span>&#160;<span class="keyword">static</span> _Atomic uint64_t <a class="code" href="util__metrics_8c.html#a115dd2ed1a4c4c9987ad4c3b1e7ed6fa">g_kv_miss</a> = 0;</div>
 <div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160; </div>
 <div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160;<span class="comment">/* -------------------------------------------------------------------------- */</span></div>
-<div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160;<span class="comment">/* Small helpers                                                               */</span></div>
+<div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160;<span class="comment">/* Local helpers                                                               */</span></div>
 <div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160;<span class="comment">/* -------------------------------------------------------------------------- */</span></div>
 <div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160; </div>
-<div class="line"><a name="l00058"></a><span class="lineno"><a class="line" href="util__metrics_8c.html#a122cec7f60fc2c07fdfcc3df4032b791">   58</a></span>&#160;<span class="keyword">static</span> <span class="keywordtype">int</span> <a class="code" href="util__metrics_8c.html#a122cec7f60fc2c07fdfcc3df4032b791">env_flag</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> *name) {</div>
-<div class="line"><a name="l00059"></a><span class="lineno">   59</span>&#160;  <span class="keyword">const</span> <span class="keywordtype">char</span> *s = getenv(name);</div>
-<div class="line"><a name="l00060"></a><span class="lineno">   60</span>&#160;  <span class="keywordflow">if</span> (!s || !*s) <span class="keywordflow">return</span> 0;</div>
-<div class="line"><a name="l00061"></a><span class="lineno">   61</span>&#160;  <span class="keywordflow">return</span> (!strcasecmp(s, <span class="stringliteral">&quot;1&quot;</span>) || !strcasecmp(s, <span class="stringliteral">&quot;true&quot;</span>) ||</div>
-<div class="line"><a name="l00062"></a><span class="lineno">   62</span>&#160;          !strcasecmp(s, <span class="stringliteral">&quot;yes&quot;</span>) || !strcasecmp(s, <span class="stringliteral">&quot;on&quot;</span>));</div>
-<div class="line"><a name="l00063"></a><span class="lineno">   63</span>&#160;}</div>
-<div class="line"><a name="l00064"></a><span class="lineno">   64</span>&#160; </div>
-<div class="line"><a name="l00068"></a><span class="lineno"><a class="line" href="util__metrics_8c.html#aad9404d49721a4fdd407e2eff25b6489">   68</a></span>&#160;<span class="keyword">static</span> <span class="keywordtype">void</span> <a class="code" href="util__metrics_8c.html#aad9404d49721a4fdd407e2eff25b6489">dbg</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> *fmt, ...) {</div>
-<div class="line"><a name="l00069"></a><span class="lineno">   69</span>&#160;  <span class="keywordflow">if</span> (!<a class="code" href="util__metrics_8c.html#a122cec7f60fc2c07fdfcc3df4032b791">env_flag</a>(<span class="stringliteral">&quot;IE_DEBUG_RSS&quot;</span>)) <span class="keywordflow">return</span>;</div>
-<div class="line"><a name="l00070"></a><span class="lineno">   70</span>&#160;  va_list ap;</div>
-<div class="line"><a name="l00071"></a><span class="lineno">   71</span>&#160;  va_start(ap, fmt);</div>
-<div class="line"><a name="l00072"></a><span class="lineno">   72</span>&#160;  vfprintf(stderr, fmt, ap);</div>
-<div class="line"><a name="l00073"></a><span class="lineno">   73</span>&#160;  va_end(ap);</div>
-<div class="line"><a name="l00074"></a><span class="lineno">   74</span>&#160;}</div>
-<div class="line"><a name="l00075"></a><span class="lineno">   75</span>&#160; </div>
-<div class="line"><a name="l00079"></a><span class="lineno"><a class="line" href="util__metrics_8c.html#a5994eb8315fd500be4501693592b9c5a">   79</a></span>&#160;<span class="keyword">static</span> uint32_t <a class="code" href="util__metrics_8c.html#a5994eb8315fd500be4501693592b9c5a">kib_to_mib_ceil</a>(uint64_t kib) {</div>
-<div class="line"><a name="l00080"></a><span class="lineno">   80</span>&#160;  <span class="keywordflow">if</span> (kib == 0) <span class="keywordflow">return</span> 0u;</div>
-<div class="line"><a name="l00081"></a><span class="lineno">   81</span>&#160;  <span class="comment">/* ceil(kib/1024) = (kib + 1023) &gt;&gt; 10 */</span></div>
-<div class="line"><a name="l00082"></a><span class="lineno">   82</span>&#160;  uint64_t mib = (kib + 1023u) &gt;&gt; 10;</div>
-<div class="line"><a name="l00083"></a><span class="lineno">   83</span>&#160;  <span class="keywordflow">return</span> (mib &gt; 0xFFFFFFFFu) ? 0xFFFFFFFFu : (uint32_t)mib;</div>
-<div class="line"><a name="l00084"></a><span class="lineno">   84</span>&#160;}</div>
-<div class="line"><a name="l00085"></a><span class="lineno">   85</span>&#160; </div>
-<div class="line"><a name="l00089"></a><span class="lineno"><a class="line" href="util__metrics_8c.html#a586d223d4a6c80952b53d76d31adccc2">   89</a></span>&#160;<span class="keyword">static</span> <span class="keywordtype">int</span> <a class="code" href="util__metrics_8c.html#a586d223d4a6c80952b53d76d31adccc2">parse_status_kb_line</a>(<span class="keyword">const</span> <span class="keywordtype">char</span>* line, <span class="keyword">const</span> <span class="keywordtype">char</span>* key, uint64_t* out_kb) {</div>
-<div class="line"><a name="l00090"></a><span class="lineno">   90</span>&#160;  <span class="keywordflow">if</span> (!line || !key || !out_kb) <span class="keywordflow">return</span> 0;</div>
-<div class="line"><a name="l00091"></a><span class="lineno">   91</span>&#160;  <span class="keywordtype">size_t</span> klen = strlen(key);</div>
-<div class="line"><a name="l00092"></a><span class="lineno">   92</span>&#160;  <span class="keywordflow">if</span> (strncmp(line, key, klen) != 0) <span class="keywordflow">return</span> 0;</div>
-<div class="line"><a name="l00093"></a><span class="lineno">   93</span>&#160; </div>
-<div class="line"><a name="l00094"></a><span class="lineno">   94</span>&#160;  <span class="keyword">const</span> <span class="keywordtype">char</span>* p = line + klen;</div>
-<div class="line"><a name="l00095"></a><span class="lineno">   95</span>&#160;  <span class="keywordflow">while</span> (*p == <span class="charliteral">&#39; &#39;</span> || *p == <span class="charliteral">&#39;\t&#39;</span>) ++p;</div>
-<div class="line"><a name="l00096"></a><span class="lineno">   96</span>&#160; </div>
-<div class="line"><a name="l00097"></a><span class="lineno">   97</span>&#160;  uint64_t val = 0;</div>
-<div class="line"><a name="l00098"></a><span class="lineno">   98</span>&#160;  <span class="keywordtype">int</span> matched = 0;</div>
-<div class="line"><a name="l00099"></a><span class="lineno">   99</span>&#160;  <span class="keywordflow">while</span> (*p &gt;= <span class="charliteral">&#39;0&#39;</span> &amp;&amp; *p &lt;= <span class="charliteral">&#39;9&#39;</span>) {</div>
-<div class="line"><a name="l00100"></a><span class="lineno">  100</span>&#160;    matched = 1;</div>
-<div class="line"><a name="l00101"></a><span class="lineno">  101</span>&#160;    val = val * 10 + (uint64_t)(*p - <span class="charliteral">&#39;0&#39;</span>);</div>
-<div class="line"><a name="l00102"></a><span class="lineno">  102</span>&#160;    ++p;</div>
-<div class="line"><a name="l00103"></a><span class="lineno">  103</span>&#160;  }</div>
-<div class="line"><a name="l00104"></a><span class="lineno">  104</span>&#160;  <span class="keywordflow">if</span> (!matched) <span class="keywordflow">return</span> 0;</div>
+<div class="line"><a name="l00064"></a><span class="lineno"><a class="line" href="util__metrics_8c.html#a122cec7f60fc2c07fdfcc3df4032b791">   64</a></span>&#160;<span class="keyword">static</span> <span class="keywordtype">int</span> <a class="code" href="util__metrics_8c.html#a122cec7f60fc2c07fdfcc3df4032b791">env_flag</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> *name) {</div>
+<div class="line"><a name="l00065"></a><span class="lineno">   65</span>&#160;  <span class="keyword">const</span> <span class="keywordtype">char</span> *s = getenv(name);</div>
+<div class="line"><a name="l00066"></a><span class="lineno">   66</span>&#160;  <span class="keywordflow">if</span> (!s || !*s) <span class="keywordflow">return</span> 0;</div>
+<div class="line"><a name="l00067"></a><span class="lineno">   67</span>&#160;  <span class="keywordflow">return</span> (!strcasecmp(s, <span class="stringliteral">&quot;1&quot;</span>) || !strcasecmp(s, <span class="stringliteral">&quot;true&quot;</span>) ||</div>
+<div class="line"><a name="l00068"></a><span class="lineno">   68</span>&#160;          !strcasecmp(s, <span class="stringliteral">&quot;yes&quot;</span>) || !strcasecmp(s, <span class="stringliteral">&quot;on&quot;</span>));</div>
+<div class="line"><a name="l00069"></a><span class="lineno">   69</span>&#160;}</div>
+<div class="line"><a name="l00070"></a><span class="lineno">   70</span>&#160; </div>
+<div class="line"><a name="l00075"></a><span class="lineno"><a class="line" href="util__metrics_8c.html#aad9404d49721a4fdd407e2eff25b6489">   75</a></span>&#160;<span class="keyword">static</span> <span class="keywordtype">void</span> <a class="code" href="util__metrics_8c.html#aad9404d49721a4fdd407e2eff25b6489">dbg</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> *fmt, ...) {</div>
+<div class="line"><a name="l00076"></a><span class="lineno">   76</span>&#160;  <span class="keywordflow">if</span> (!<a class="code" href="util__metrics_8c.html#a122cec7f60fc2c07fdfcc3df4032b791">env_flag</a>(<span class="stringliteral">&quot;IE_DEBUG_RSS&quot;</span>)) <span class="keywordflow">return</span>;</div>
+<div class="line"><a name="l00077"></a><span class="lineno">   77</span>&#160;  va_list ap;</div>
+<div class="line"><a name="l00078"></a><span class="lineno">   78</span>&#160;  va_start(ap, fmt);</div>
+<div class="line"><a name="l00079"></a><span class="lineno">   79</span>&#160;  vfprintf(stderr, fmt, ap);</div>
+<div class="line"><a name="l00080"></a><span class="lineno">   80</span>&#160;  va_end(ap);</div>
+<div class="line"><a name="l00081"></a><span class="lineno">   81</span>&#160;}</div>
+<div class="line"><a name="l00082"></a><span class="lineno">   82</span>&#160; </div>
+<div class="line"><a name="l00088"></a><span class="lineno"><a class="line" href="util__metrics_8c.html#a5994eb8315fd500be4501693592b9c5a">   88</a></span>&#160;<span class="keyword">static</span> uint32_t <a class="code" href="util__metrics_8c.html#a5994eb8315fd500be4501693592b9c5a">kib_to_mib_ceil</a>(uint64_t kib) {</div>
+<div class="line"><a name="l00089"></a><span class="lineno">   89</span>&#160;  <span class="keywordflow">if</span> (kib == 0) <span class="keywordflow">return</span> 0u;</div>
+<div class="line"><a name="l00090"></a><span class="lineno">   90</span>&#160;  <span class="comment">/* ceil(kib/1024) = (kib + 1023) &gt;&gt; 10 */</span></div>
+<div class="line"><a name="l00091"></a><span class="lineno">   91</span>&#160;  <span class="keyword">const</span> uint64_t mib = (kib + 1023u) &gt;&gt; 10;</div>
+<div class="line"><a name="l00092"></a><span class="lineno">   92</span>&#160;  <span class="keywordflow">return</span> (mib &gt; 0xFFFFFFFFu) ? 0xFFFFFFFFu : (uint32_t)mib;</div>
+<div class="line"><a name="l00093"></a><span class="lineno">   93</span>&#160;}</div>
+<div class="line"><a name="l00094"></a><span class="lineno">   94</span>&#160; </div>
+<div class="line"><a name="l00103"></a><span class="lineno"><a class="line" href="util__metrics_8c.html#a586d223d4a6c80952b53d76d31adccc2">  103</a></span>&#160;<span class="keyword">static</span> <span class="keywordtype">int</span> <a class="code" href="util__metrics_8c.html#a586d223d4a6c80952b53d76d31adccc2">parse_status_kb_line</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> *line, <span class="keyword">const</span> <span class="keywordtype">char</span> *key, uint64_t *out_kb) {</div>
+<div class="line"><a name="l00104"></a><span class="lineno">  104</span>&#160;  <span class="keywordflow">if</span> (!line || !key || !out_kb) <span class="keywordflow">return</span> 0;</div>
 <div class="line"><a name="l00105"></a><span class="lineno">  105</span>&#160; </div>
-<div class="line"><a name="l00106"></a><span class="lineno">  106</span>&#160;  *out_kb = val; <span class="comment">/* procfs reports kB */</span></div>
-<div class="line"><a name="l00107"></a><span class="lineno">  107</span>&#160;  <span class="keywordflow">return</span> 1;</div>
-<div class="line"><a name="l00108"></a><span class="lineno">  108</span>&#160;}</div>
-<div class="line"><a name="l00109"></a><span class="lineno">  109</span>&#160; </div>
-<div class="line"><a name="l00118"></a><span class="lineno"><a class="line" href="util__metrics_8c.html#a68100912a526773182982dfe9e401718">  118</a></span>&#160;<span class="keyword">static</span> <span class="keywordtype">int</span> <a class="code" href="util__metrics_8c.html#a68100912a526773182982dfe9e401718">read_proc_kb_single</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> *path, <span class="keyword">const</span> <span class="keywordtype">char</span> *key, uint64_t *out_kb) {</div>
-<div class="line"><a name="l00119"></a><span class="lineno">  119</span>&#160;<span class="preprocessor">#if defined(__linux__)</span></div>
-<div class="line"><a name="l00120"></a><span class="lineno">  120</span>&#160;  FILE *f = fopen(path, <span class="stringliteral">&quot;r&quot;</span>);</div>
-<div class="line"><a name="l00121"></a><span class="lineno">  121</span>&#160;  <span class="keywordflow">if</span> (!f) <span class="keywordflow">return</span> -errno ? -errno : -1;</div>
-<div class="line"><a name="l00122"></a><span class="lineno">  122</span>&#160;  <span class="keywordtype">char</span> buf[512];</div>
-<div class="line"><a name="l00123"></a><span class="lineno">  123</span>&#160;  <span class="keywordflow">while</span> (fgets(buf, <span class="keyword">sizeof</span> buf, f)) {</div>
-<div class="line"><a name="l00124"></a><span class="lineno">  124</span>&#160;    uint64_t kb = 0;</div>
-<div class="line"><a name="l00125"></a><span class="lineno">  125</span>&#160;    <span class="keywordflow">if</span> (<a class="code" href="util__metrics_8c.html#a586d223d4a6c80952b53d76d31adccc2">parse_status_kb_line</a>(buf, key, &amp;kb)) {</div>
-<div class="line"><a name="l00126"></a><span class="lineno">  126</span>&#160;      fclose(f);</div>
-<div class="line"><a name="l00127"></a><span class="lineno">  127</span>&#160;      *out_kb = kb;</div>
-<div class="line"><a name="l00128"></a><span class="lineno">  128</span>&#160;      <span class="keywordflow">return</span> 0;</div>
-<div class="line"><a name="l00129"></a><span class="lineno">  129</span>&#160;    }</div>
-<div class="line"><a name="l00130"></a><span class="lineno">  130</span>&#160;  }</div>
-<div class="line"><a name="l00131"></a><span class="lineno">  131</span>&#160;  fclose(f);</div>
-<div class="line"><a name="l00132"></a><span class="lineno">  132</span>&#160;  <span class="keywordflow">return</span> -ENOENT;</div>
-<div class="line"><a name="l00133"></a><span class="lineno">  133</span>&#160;<span class="preprocessor">#else</span></div>
-<div class="line"><a name="l00134"></a><span class="lineno">  134</span>&#160;  (void)path; (void)key; (void)out_kb;</div>
-<div class="line"><a name="l00135"></a><span class="lineno">  135</span>&#160;  <span class="keywordflow">return</span> -ENOSYS;</div>
-<div class="line"><a name="l00136"></a><span class="lineno">  136</span>&#160;<span class="preprocessor">#endif</span></div>
-<div class="line"><a name="l00137"></a><span class="lineno">  137</span>&#160;}</div>
-<div class="line"><a name="l00138"></a><span class="lineno">  138</span>&#160; </div>
-<div class="line"><a name="l00139"></a><span class="lineno">  139</span>&#160;<span class="comment">/* -------------------------------------------------------------------------- */</span></div>
-<div class="line"><a name="l00140"></a><span class="lineno">  140</span>&#160;<span class="comment">/* KV counters API                                                             */</span></div>
-<div class="line"><a name="l00141"></a><span class="lineno">  141</span>&#160;<span class="comment">/* -------------------------------------------------------------------------- */</span></div>
-<div class="line"><a name="l00142"></a><span class="lineno">  142</span>&#160; </div>
-<div class="line"><a name="l00143"></a><span class="lineno"><a class="line" href="ie__metrics_8h.html#a874413f3f40c7927c465112b7f162656">  143</a></span>&#160;<span class="keywordtype">void</span> <a class="code" href="group__IE__METRICS.html#ga874413f3f40c7927c465112b7f162656">ie_metrics_reset</a>(<span class="keywordtype">void</span>) {</div>
-<div class="line"><a name="l00144"></a><span class="lineno">  144</span>&#160;  atomic_store_explicit(&amp;<a class="code" href="util__metrics_8c.html#a2304e4230799c4132478704188bc8877">g_kv_hits</a>, 0, memory_order_relaxed);</div>
-<div class="line"><a name="l00145"></a><span class="lineno">  145</span>&#160;  atomic_store_explicit(&amp;<a class="code" href="util__metrics_8c.html#a115dd2ed1a4c4c9987ad4c3b1e7ed6fa">g_kv_miss</a>, 0, memory_order_relaxed);</div>
-<div class="line"><a name="l00146"></a><span class="lineno">  146</span>&#160;}</div>
+<div class="line"><a name="l00106"></a><span class="lineno">  106</span>&#160;  <span class="keyword">const</span> <span class="keywordtype">size_t</span> klen = strlen(key);</div>
+<div class="line"><a name="l00107"></a><span class="lineno">  107</span>&#160;  <span class="keywordflow">if</span> (strncmp(line, key, klen) != 0) <span class="keywordflow">return</span> 0;</div>
+<div class="line"><a name="l00108"></a><span class="lineno">  108</span>&#160; </div>
+<div class="line"><a name="l00109"></a><span class="lineno">  109</span>&#160;  <span class="keyword">const</span> <span class="keywordtype">char</span> *p = line + klen;</div>
+<div class="line"><a name="l00110"></a><span class="lineno">  110</span>&#160;  <span class="keywordflow">while</span> (*p == <span class="charliteral">&#39; &#39;</span> || *p == <span class="charliteral">&#39;\t&#39;</span>) ++p;</div>
+<div class="line"><a name="l00111"></a><span class="lineno">  111</span>&#160; </div>
+<div class="line"><a name="l00112"></a><span class="lineno">  112</span>&#160;  uint64_t val = 0;</div>
+<div class="line"><a name="l00113"></a><span class="lineno">  113</span>&#160;  <span class="keywordtype">int</span> matched = 0;</div>
+<div class="line"><a name="l00114"></a><span class="lineno">  114</span>&#160;  <span class="keywordflow">while</span> (*p &gt;= <span class="charliteral">&#39;0&#39;</span> &amp;&amp; *p &lt;= <span class="charliteral">&#39;9&#39;</span>) {</div>
+<div class="line"><a name="l00115"></a><span class="lineno">  115</span>&#160;    matched = 1;</div>
+<div class="line"><a name="l00116"></a><span class="lineno">  116</span>&#160;    val = val * 10 + (uint64_t)(*p - <span class="charliteral">&#39;0&#39;</span>);</div>
+<div class="line"><a name="l00117"></a><span class="lineno">  117</span>&#160;    ++p;</div>
+<div class="line"><a name="l00118"></a><span class="lineno">  118</span>&#160;  }</div>
+<div class="line"><a name="l00119"></a><span class="lineno">  119</span>&#160;  <span class="keywordflow">if</span> (!matched) <span class="keywordflow">return</span> 0;</div>
+<div class="line"><a name="l00120"></a><span class="lineno">  120</span>&#160; </div>
+<div class="line"><a name="l00121"></a><span class="lineno">  121</span>&#160;  *out_kb = val;</div>
+<div class="line"><a name="l00122"></a><span class="lineno">  122</span>&#160;  <span class="keywordflow">return</span> 1;</div>
+<div class="line"><a name="l00123"></a><span class="lineno">  123</span>&#160;}</div>
+<div class="line"><a name="l00124"></a><span class="lineno">  124</span>&#160; </div>
+<div class="line"><a name="l00133"></a><span class="lineno"><a class="line" href="util__metrics_8c.html#a68100912a526773182982dfe9e401718">  133</a></span>&#160;<span class="keyword">static</span> <span class="keywordtype">int</span> <a class="code" href="util__metrics_8c.html#a68100912a526773182982dfe9e401718">read_proc_kb_single</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> *path, <span class="keyword">const</span> <span class="keywordtype">char</span> *key, uint64_t *out_kb) {</div>
+<div class="line"><a name="l00134"></a><span class="lineno">  134</span>&#160;<span class="preprocessor">#if defined(__linux__)</span></div>
+<div class="line"><a name="l00135"></a><span class="lineno">  135</span>&#160;  FILE *f = fopen(path, <span class="stringliteral">&quot;r&quot;</span>);</div>
+<div class="line"><a name="l00136"></a><span class="lineno">  136</span>&#160;  <span class="keywordflow">if</span> (!f) <span class="keywordflow">return</span> (errno ? -errno : -1);</div>
+<div class="line"><a name="l00137"></a><span class="lineno">  137</span>&#160; </div>
+<div class="line"><a name="l00138"></a><span class="lineno">  138</span>&#160;  <span class="keywordtype">char</span> buf[512];</div>
+<div class="line"><a name="l00139"></a><span class="lineno">  139</span>&#160;  <span class="keywordflow">while</span> (fgets(buf, <span class="keyword">sizeof</span> buf, f)) {</div>
+<div class="line"><a name="l00140"></a><span class="lineno">  140</span>&#160;    uint64_t kb = 0;</div>
+<div class="line"><a name="l00141"></a><span class="lineno">  141</span>&#160;    <span class="keywordflow">if</span> (<a class="code" href="util__metrics_8c.html#a586d223d4a6c80952b53d76d31adccc2">parse_status_kb_line</a>(buf, key, &amp;kb)) {</div>
+<div class="line"><a name="l00142"></a><span class="lineno">  142</span>&#160;      fclose(f);</div>
+<div class="line"><a name="l00143"></a><span class="lineno">  143</span>&#160;      *out_kb = kb;</div>
+<div class="line"><a name="l00144"></a><span class="lineno">  144</span>&#160;      <span class="keywordflow">return</span> 0;</div>
+<div class="line"><a name="l00145"></a><span class="lineno">  145</span>&#160;    }</div>
+<div class="line"><a name="l00146"></a><span class="lineno">  146</span>&#160;  }</div>
 <div class="line"><a name="l00147"></a><span class="lineno">  147</span>&#160; </div>
-<div class="line"><a name="l00148"></a><span class="lineno"><a class="line" href="ie__metrics_8h.html#a7102e1b1461b7ac674d42c58660fda0d">  148</a></span>&#160;<span class="keywordtype">void</span> <a class="code" href="group__IE__METRICS.html#ga7102e1b1461b7ac674d42c58660fda0d">ie_metrics_add_kv_hit</a>(uint64_t n) {</div>
-<div class="line"><a name="l00149"></a><span class="lineno">  149</span>&#160;  <span class="keywordflow">if</span> (!n) <span class="keywordflow">return</span>;</div>
-<div class="line"><a name="l00150"></a><span class="lineno">  150</span>&#160;  (void)atomic_fetch_add_explicit(&amp;<a class="code" href="util__metrics_8c.html#a2304e4230799c4132478704188bc8877">g_kv_hits</a>, n, memory_order_relaxed);</div>
-<div class="line"><a name="l00151"></a><span class="lineno">  151</span>&#160;}</div>
-<div class="line"><a name="l00152"></a><span class="lineno">  152</span>&#160; </div>
-<div class="line"><a name="l00153"></a><span class="lineno"><a class="line" href="ie__metrics_8h.html#a8eecda9f8202c3f887066f287d97c954">  153</a></span>&#160;<span class="keywordtype">void</span> <a class="code" href="group__IE__METRICS.html#ga8eecda9f8202c3f887066f287d97c954">ie_metrics_add_kv_miss</a>(uint64_t n) {</div>
-<div class="line"><a name="l00154"></a><span class="lineno">  154</span>&#160;  <span class="keywordflow">if</span> (!n) <span class="keywordflow">return</span>;</div>
-<div class="line"><a name="l00155"></a><span class="lineno">  155</span>&#160;  (void)atomic_fetch_add_explicit(&amp;<a class="code" href="util__metrics_8c.html#a115dd2ed1a4c4c9987ad4c3b1e7ed6fa">g_kv_miss</a>, n, memory_order_relaxed);</div>
+<div class="line"><a name="l00148"></a><span class="lineno">  148</span>&#160;  fclose(f);</div>
+<div class="line"><a name="l00149"></a><span class="lineno">  149</span>&#160;  <span class="keywordflow">return</span> -ENOENT;</div>
+<div class="line"><a name="l00150"></a><span class="lineno">  150</span>&#160;<span class="preprocessor">#else</span></div>
+<div class="line"><a name="l00151"></a><span class="lineno">  151</span>&#160;  (void)path;</div>
+<div class="line"><a name="l00152"></a><span class="lineno">  152</span>&#160;  (void)key;</div>
+<div class="line"><a name="l00153"></a><span class="lineno">  153</span>&#160;  (void)out_kb;</div>
+<div class="line"><a name="l00154"></a><span class="lineno">  154</span>&#160;  <span class="keywordflow">return</span> -ENOSYS;</div>
+<div class="line"><a name="l00155"></a><span class="lineno">  155</span>&#160;<span class="preprocessor">#endif</span></div>
 <div class="line"><a name="l00156"></a><span class="lineno">  156</span>&#160;}</div>
 <div class="line"><a name="l00157"></a><span class="lineno">  157</span>&#160; </div>
-<div class="line"><a name="l00158"></a><span class="lineno"><a class="line" href="ie__metrics_8h.html#af9f02e4faa24298be27d9299df602fca">  158</a></span>&#160;<span class="keywordtype">void</span> <a class="code" href="group__IE__METRICS.html#gaf9f02e4faa24298be27d9299df602fca">ie_metrics_add_kv</a>(uint64_t hits, uint64_t misses) {</div>
-<div class="line"><a name="l00159"></a><span class="lineno">  159</span>&#160;  <span class="keywordflow">if</span> (hits)   (void)atomic_fetch_add_explicit(&amp;<a class="code" href="util__metrics_8c.html#a2304e4230799c4132478704188bc8877">g_kv_hits</a>, hits,  memory_order_relaxed);</div>
-<div class="line"><a name="l00160"></a><span class="lineno">  160</span>&#160;  <span class="keywordflow">if</span> (misses) (void)atomic_fetch_add_explicit(&amp;<a class="code" href="util__metrics_8c.html#a115dd2ed1a4c4c9987ad4c3b1e7ed6fa">g_kv_miss</a>, misses, memory_order_relaxed);</div>
-<div class="line"><a name="l00161"></a><span class="lineno">  161</span>&#160;}</div>
-<div class="line"><a name="l00162"></a><span class="lineno">  162</span>&#160; </div>
-<div class="line"><a name="l00163"></a><span class="lineno"><a class="line" href="ie__metrics_8h.html#a3a6a9208ad3e80cbc57fb1923e5e263f">  163</a></span>&#160;<span class="keywordtype">void</span> <a class="code" href="group__IE__METRICS.html#ga3a6a9208ad3e80cbc57fb1923e5e263f">ie_metrics_snapshot</a>(<a class="code" href="structie__metrics__t.html">ie_metrics_t</a>* out, <span class="keywordtype">int</span> reset_after) {</div>
-<div class="line"><a name="l00164"></a><span class="lineno">  164</span>&#160;  <span class="keywordflow">if</span> (!out) <span class="keywordflow">return</span>;</div>
-<div class="line"><a name="l00165"></a><span class="lineno">  165</span>&#160;  <span class="keyword">const</span> uint64_t hits = atomic_load_explicit(&amp;<a class="code" href="util__metrics_8c.html#a2304e4230799c4132478704188bc8877">g_kv_hits</a>, memory_order_relaxed);</div>
-<div class="line"><a name="l00166"></a><span class="lineno">  166</span>&#160;  <span class="keyword">const</span> uint64_t miss = atomic_load_explicit(&amp;<a class="code" href="util__metrics_8c.html#a115dd2ed1a4c4c9987ad4c3b1e7ed6fa">g_kv_miss</a>, memory_order_relaxed);</div>
-<div class="line"><a name="l00167"></a><span class="lineno">  167</span>&#160; </div>
-<div class="line"><a name="l00168"></a><span class="lineno">  168</span>&#160;  out-&gt;<a class="code" href="structie__metrics__t.html#a8f046409ae21785342371064b2355ce1">kv_hits</a>   = hits;</div>
-<div class="line"><a name="l00169"></a><span class="lineno">  169</span>&#160;  out-&gt;<a class="code" href="structie__metrics__t.html#afc2a1bc5d415d0bdd29350f3d52aab6c">kv_misses</a> = miss;</div>
-<div class="line"><a name="l00170"></a><span class="lineno">  170</span>&#160; </div>
-<div class="line"><a name="l00171"></a><span class="lineno">  171</span>&#160;  <span class="keywordflow">if</span> (reset_after) {</div>
-<div class="line"><a name="l00172"></a><span class="lineno">  172</span>&#160;    atomic_store_explicit(&amp;<a class="code" href="util__metrics_8c.html#a2304e4230799c4132478704188bc8877">g_kv_hits</a>, 0, memory_order_relaxed);</div>
-<div class="line"><a name="l00173"></a><span class="lineno">  173</span>&#160;    atomic_store_explicit(&amp;<a class="code" href="util__metrics_8c.html#a115dd2ed1a4c4c9987ad4c3b1e7ed6fa">g_kv_miss</a>, 0, memory_order_relaxed);</div>
-<div class="line"><a name="l00174"></a><span class="lineno">  174</span>&#160;  }</div>
+<div class="line"><a name="l00158"></a><span class="lineno">  158</span>&#160;<span class="comment">/* -------------------------------------------------------------------------- */</span></div>
+<div class="line"><a name="l00159"></a><span class="lineno">  159</span>&#160;<span class="comment">/* Public API: KV counters                                                     */</span></div>
+<div class="line"><a name="l00160"></a><span class="lineno">  160</span>&#160;<span class="comment">/* -------------------------------------------------------------------------- */</span></div>
+<div class="line"><a name="l00161"></a><span class="lineno">  161</span>&#160; </div>
+<div class="line"><a name="l00162"></a><span class="lineno"><a class="line" href="ie__metrics_8h.html#a874413f3f40c7927c465112b7f162656">  162</a></span>&#160;<span class="keywordtype">void</span> <a class="code" href="group__IE__METRICS.html#ga874413f3f40c7927c465112b7f162656">ie_metrics_reset</a>(<span class="keywordtype">void</span>) {</div>
+<div class="line"><a name="l00163"></a><span class="lineno">  163</span>&#160;  atomic_store_explicit(&amp;<a class="code" href="util__metrics_8c.html#a2304e4230799c4132478704188bc8877">g_kv_hits</a>, 0, memory_order_relaxed);</div>
+<div class="line"><a name="l00164"></a><span class="lineno">  164</span>&#160;  atomic_store_explicit(&amp;<a class="code" href="util__metrics_8c.html#a115dd2ed1a4c4c9987ad4c3b1e7ed6fa">g_kv_miss</a>, 0, memory_order_relaxed);</div>
+<div class="line"><a name="l00165"></a><span class="lineno">  165</span>&#160;}</div>
+<div class="line"><a name="l00166"></a><span class="lineno">  166</span>&#160; </div>
+<div class="line"><a name="l00167"></a><span class="lineno"><a class="line" href="ie__metrics_8h.html#a7102e1b1461b7ac674d42c58660fda0d">  167</a></span>&#160;<span class="keywordtype">void</span> <a class="code" href="group__IE__METRICS.html#ga7102e1b1461b7ac674d42c58660fda0d">ie_metrics_add_kv_hit</a>(uint64_t n) {</div>
+<div class="line"><a name="l00168"></a><span class="lineno">  168</span>&#160;  <span class="keywordflow">if</span> (!n) <span class="keywordflow">return</span>;</div>
+<div class="line"><a name="l00169"></a><span class="lineno">  169</span>&#160;  (void)atomic_fetch_add_explicit(&amp;<a class="code" href="util__metrics_8c.html#a2304e4230799c4132478704188bc8877">g_kv_hits</a>, n, memory_order_relaxed);</div>
+<div class="line"><a name="l00170"></a><span class="lineno">  170</span>&#160;}</div>
+<div class="line"><a name="l00171"></a><span class="lineno">  171</span>&#160; </div>
+<div class="line"><a name="l00172"></a><span class="lineno"><a class="line" href="ie__metrics_8h.html#a8eecda9f8202c3f887066f287d97c954">  172</a></span>&#160;<span class="keywordtype">void</span> <a class="code" href="group__IE__METRICS.html#ga8eecda9f8202c3f887066f287d97c954">ie_metrics_add_kv_miss</a>(uint64_t n) {</div>
+<div class="line"><a name="l00173"></a><span class="lineno">  173</span>&#160;  <span class="keywordflow">if</span> (!n) <span class="keywordflow">return</span>;</div>
+<div class="line"><a name="l00174"></a><span class="lineno">  174</span>&#160;  (void)atomic_fetch_add_explicit(&amp;<a class="code" href="util__metrics_8c.html#a115dd2ed1a4c4c9987ad4c3b1e7ed6fa">g_kv_miss</a>, n, memory_order_relaxed);</div>
 <div class="line"><a name="l00175"></a><span class="lineno">  175</span>&#160;}</div>
 <div class="line"><a name="l00176"></a><span class="lineno">  176</span>&#160; </div>
-<div class="line"><a name="l00177"></a><span class="lineno">  177</span>&#160;<span class="comment">/* -------------------------------------------------------------------------- */</span></div>
-<div class="line"><a name="l00178"></a><span class="lineno">  178</span>&#160;<span class="comment">/* RSS peak sampler                                                            */</span></div>
-<div class="line"><a name="l00179"></a><span class="lineno">  179</span>&#160;<span class="comment">/* -------------------------------------------------------------------------- */</span></div>
-<div class="line"><a name="l00180"></a><span class="lineno">  180</span>&#160; </div>
-<div class="line"><a name="l00181"></a><span class="lineno"><a class="line" href="ie__metrics_8h.html#a0b083c9fbf90d02c9ef387ab34220a34">  181</a></span>&#160;uint32_t <a class="code" href="group__IE__METRICS.html#ga0b083c9fbf90d02c9ef387ab34220a34">ie_metrics_sample_rss_peak</a>(<span class="keywordtype">void</span>) {</div>
-<div class="line"><a name="l00182"></a><span class="lineno">  182</span>&#160;  uint32_t best_mib = 0;</div>
-<div class="line"><a name="l00183"></a><span class="lineno">  183</span>&#160; </div>
-<div class="line"><a name="l00184"></a><span class="lineno">  184</span>&#160;<span class="preprocessor">#if defined(__linux__)</span></div>
-<div class="line"><a name="l00185"></a><span class="lineno">  185</span>&#160;  <span class="comment">/* 1) Prefer VmHWM (kB) — process peak resident set size. */</span></div>
-<div class="line"><a name="l00186"></a><span class="lineno">  186</span>&#160;  {</div>
-<div class="line"><a name="l00187"></a><span class="lineno">  187</span>&#160;    uint64_t kb = 0;</div>
-<div class="line"><a name="l00188"></a><span class="lineno">  188</span>&#160;    <span class="keywordtype">int</span> rc = <a class="code" href="util__metrics_8c.html#a68100912a526773182982dfe9e401718">read_proc_kb_single</a>(<span class="stringliteral">&quot;/proc/self/status&quot;</span>, <span class="stringliteral">&quot;VmHWM:&quot;</span>, &amp;kb);</div>
-<div class="line"><a name="l00189"></a><span class="lineno">  189</span>&#160;    <span class="keywordflow">if</span> (rc == 0) {</div>
-<div class="line"><a name="l00190"></a><span class="lineno">  190</span>&#160;      uint32_t mib = <a class="code" href="util__metrics_8c.html#a5994eb8315fd500be4501693592b9c5a">kib_to_mib_ceil</a>(kb);</div>
-<div class="line"><a name="l00191"></a><span class="lineno">  191</span>&#160;      <span class="keywordflow">if</span> (mib &gt; best_mib) best_mib = mib;</div>
-<div class="line"><a name="l00192"></a><span class="lineno">  192</span>&#160;      <a class="code" href="util__metrics_8c.html#aad9404d49721a4fdd407e2eff25b6489">dbg</a>(<span class="stringliteral">&quot;[RSS] VmHWM: %llu kB -&gt; %u MiB\n&quot;</span>,</div>
-<div class="line"><a name="l00193"></a><span class="lineno">  193</span>&#160;          (<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> <span class="keywordtype">long</span>)kb, mib);</div>
-<div class="line"><a name="l00194"></a><span class="lineno">  194</span>&#160;    } <span class="keywordflow">else</span> {</div>
-<div class="line"><a name="l00195"></a><span class="lineno">  195</span>&#160;      <a class="code" href="util__metrics_8c.html#aad9404d49721a4fdd407e2eff25b6489">dbg</a>(<span class="stringliteral">&quot;[RSS] VmHWM not found (rc=%d)\n&quot;</span>, rc);</div>
-<div class="line"><a name="l00196"></a><span class="lineno">  196</span>&#160;    }</div>
-<div class="line"><a name="l00197"></a><span class="lineno">  197</span>&#160;  }</div>
-<div class="line"><a name="l00198"></a><span class="lineno">  198</span>&#160; </div>
-<div class="line"><a name="l00199"></a><span class="lineno">  199</span>&#160;  <span class="comment">/* 2) Fallback: current VmRSS (kB) as lower bound if HWM is unavailable. */</span></div>
-<div class="line"><a name="l00200"></a><span class="lineno">  200</span>&#160;  <span class="keywordflow">if</span> (best_mib == 0) {</div>
-<div class="line"><a name="l00201"></a><span class="lineno">  201</span>&#160;    uint64_t kb = 0;</div>
-<div class="line"><a name="l00202"></a><span class="lineno">  202</span>&#160;    <span class="keywordtype">int</span> rc = <a class="code" href="util__metrics_8c.html#a68100912a526773182982dfe9e401718">read_proc_kb_single</a>(<span class="stringliteral">&quot;/proc/self/status&quot;</span>, <span class="stringliteral">&quot;VmRSS:&quot;</span>, &amp;kb);</div>
-<div class="line"><a name="l00203"></a><span class="lineno">  203</span>&#160;    <span class="keywordflow">if</span> (rc == 0) {</div>
-<div class="line"><a name="l00204"></a><span class="lineno">  204</span>&#160;      uint32_t mib = <a class="code" href="util__metrics_8c.html#a5994eb8315fd500be4501693592b9c5a">kib_to_mib_ceil</a>(kb);</div>
-<div class="line"><a name="l00205"></a><span class="lineno">  205</span>&#160;      <span class="keywordflow">if</span> (mib &gt; best_mib) best_mib = mib;</div>
-<div class="line"><a name="l00206"></a><span class="lineno">  206</span>&#160;      <a class="code" href="util__metrics_8c.html#aad9404d49721a4fdd407e2eff25b6489">dbg</a>(<span class="stringliteral">&quot;[RSS] VmRSS: %llu kB -&gt; %u MiB\n&quot;</span>,</div>
-<div class="line"><a name="l00207"></a><span class="lineno">  207</span>&#160;          (<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> <span class="keywordtype">long</span>)kb, mib);</div>
-<div class="line"><a name="l00208"></a><span class="lineno">  208</span>&#160;    } <span class="keywordflow">else</span> {</div>
-<div class="line"><a name="l00209"></a><span class="lineno">  209</span>&#160;      <a class="code" href="util__metrics_8c.html#aad9404d49721a4fdd407e2eff25b6489">dbg</a>(<span class="stringliteral">&quot;[RSS] VmRSS not found (rc=%d)\n&quot;</span>, rc);</div>
-<div class="line"><a name="l00210"></a><span class="lineno">  210</span>&#160;    }</div>
-<div class="line"><a name="l00211"></a><span class="lineno">  211</span>&#160;  }</div>
-<div class="line"><a name="l00212"></a><span class="lineno">  212</span>&#160; </div>
-<div class="line"><a name="l00213"></a><span class="lineno">  213</span>&#160;  <span class="comment">/* 3) Try smaps_rollup Rss: (kB) — often more accurate with mmaps. */</span></div>
-<div class="line"><a name="l00214"></a><span class="lineno">  214</span>&#160;  <span class="keywordflow">if</span> (best_mib == 0) {</div>
-<div class="line"><a name="l00215"></a><span class="lineno">  215</span>&#160;    uint64_t kb = 0;</div>
-<div class="line"><a name="l00216"></a><span class="lineno">  216</span>&#160;    <span class="keywordtype">int</span> rc = <a class="code" href="util__metrics_8c.html#a68100912a526773182982dfe9e401718">read_proc_kb_single</a>(<span class="stringliteral">&quot;/proc/self/smaps_rollup&quot;</span>, <span class="stringliteral">&quot;Rss:&quot;</span>, &amp;kb);</div>
-<div class="line"><a name="l00217"></a><span class="lineno">  217</span>&#160;    <span class="keywordflow">if</span> (rc == 0) {</div>
-<div class="line"><a name="l00218"></a><span class="lineno">  218</span>&#160;      uint32_t mib = <a class="code" href="util__metrics_8c.html#a5994eb8315fd500be4501693592b9c5a">kib_to_mib_ceil</a>(kb);</div>
-<div class="line"><a name="l00219"></a><span class="lineno">  219</span>&#160;      <span class="keywordflow">if</span> (mib &gt; best_mib) best_mib = mib;</div>
-<div class="line"><a name="l00220"></a><span class="lineno">  220</span>&#160;      <a class="code" href="util__metrics_8c.html#aad9404d49721a4fdd407e2eff25b6489">dbg</a>(<span class="stringliteral">&quot;[RSS] smaps_rollup Rss: %llu kB -&gt; %u MiB\n&quot;</span>,</div>
-<div class="line"><a name="l00221"></a><span class="lineno">  221</span>&#160;          (<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> <span class="keywordtype">long</span>)kb, mib);</div>
-<div class="line"><a name="l00222"></a><span class="lineno">  222</span>&#160;    } <span class="keywordflow">else</span> {</div>
-<div class="line"><a name="l00223"></a><span class="lineno">  223</span>&#160;      <a class="code" href="util__metrics_8c.html#aad9404d49721a4fdd407e2eff25b6489">dbg</a>(<span class="stringliteral">&quot;[RSS] smaps_rollup Rss not found (rc=%d)\n&quot;</span>, rc);</div>
-<div class="line"><a name="l00224"></a><span class="lineno">  224</span>&#160;    }</div>
-<div class="line"><a name="l00225"></a><span class="lineno">  225</span>&#160;  }</div>
-<div class="line"><a name="l00226"></a><span class="lineno">  226</span>&#160; </div>
-<div class="line"><a name="l00227"></a><span class="lineno">  227</span>&#160;  <span class="comment">/* 4) Final fallback: getrusage (Linux ru_maxrss is kB). */</span></div>
-<div class="line"><a name="l00228"></a><span class="lineno">  228</span>&#160;  <span class="keywordflow">if</span> (best_mib == 0) {</div>
-<div class="line"><a name="l00229"></a><span class="lineno">  229</span>&#160;    <span class="keyword">struct </span>rusage ru;</div>
-<div class="line"><a name="l00230"></a><span class="lineno">  230</span>&#160;    <span class="keywordflow">if</span> (getrusage(RUSAGE_SELF, &amp;ru) == 0) {</div>
-<div class="line"><a name="l00231"></a><span class="lineno">  231</span>&#160;      uint64_t kb = (uint64_t)ru.ru_maxrss;</div>
-<div class="line"><a name="l00232"></a><span class="lineno">  232</span>&#160;      uint32_t mib = <a class="code" href="util__metrics_8c.html#a5994eb8315fd500be4501693592b9c5a">kib_to_mib_ceil</a>(kb);</div>
-<div class="line"><a name="l00233"></a><span class="lineno">  233</span>&#160;      <span class="keywordflow">if</span> (mib &gt; best_mib) best_mib = mib;</div>
-<div class="line"><a name="l00234"></a><span class="lineno">  234</span>&#160;      <a class="code" href="util__metrics_8c.html#aad9404d49721a4fdd407e2eff25b6489">dbg</a>(<span class="stringliteral">&quot;[RSS] getrusage ru_maxrss: %llu kB -&gt; %u MiB\n&quot;</span>,</div>
-<div class="line"><a name="l00235"></a><span class="lineno">  235</span>&#160;          (<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> <span class="keywordtype">long</span>)kb, mib);</div>
-<div class="line"><a name="l00236"></a><span class="lineno">  236</span>&#160;    } <span class="keywordflow">else</span> {</div>
-<div class="line"><a name="l00237"></a><span class="lineno">  237</span>&#160;      <a class="code" href="util__metrics_8c.html#aad9404d49721a4fdd407e2eff25b6489">dbg</a>(<span class="stringliteral">&quot;[RSS] getrusage failed: errno=%d\n&quot;</span>, errno);</div>
-<div class="line"><a name="l00238"></a><span class="lineno">  238</span>&#160;    }</div>
-<div class="line"><a name="l00239"></a><span class="lineno">  239</span>&#160;  }</div>
-<div class="line"><a name="l00240"></a><span class="lineno">  240</span>&#160; </div>
-<div class="line"><a name="l00241"></a><span class="lineno">  241</span>&#160;<span class="preprocessor">#elif defined(__APPLE__)</span></div>
-<div class="line"><a name="l00242"></a><span class="lineno">  242</span>&#160;  <span class="comment">/* macOS primary: mach_task_basic_info (bytes). */</span></div>
-<div class="line"><a name="l00243"></a><span class="lineno">  243</span>&#160;  {</div>
-<div class="line"><a name="l00244"></a><span class="lineno">  244</span>&#160;    mach_task_basic_info info;</div>
-<div class="line"><a name="l00245"></a><span class="lineno">  245</span>&#160;    mach_msg_type_number_t count = MACH_TASK_BASIC_INFO_COUNT;</div>
-<div class="line"><a name="l00246"></a><span class="lineno">  246</span>&#160;    kern_return_t kr = task_info(mach_task_self(), MACH_TASK_BASIC_INFO,</div>
-<div class="line"><a name="l00247"></a><span class="lineno">  247</span>&#160;                                 (task_info_t)&amp;info, &amp;count);</div>
-<div class="line"><a name="l00248"></a><span class="lineno">  248</span>&#160;    <span class="keywordflow">if</span> (kr == KERN_SUCCESS) {</div>
-<div class="line"><a name="l00249"></a><span class="lineno">  249</span>&#160;      <span class="comment">/* resident_size_max is peak if supported; otherwise 0. */</span></div>
-<div class="line"><a name="l00250"></a><span class="lineno">  250</span>&#160;      uint64_t bytes = (uint64_t)info.resident_size_max;</div>
-<div class="line"><a name="l00251"></a><span class="lineno">  251</span>&#160;      if (bytes == 0) bytes = (uint64_t)info.resident_size; <span class="comment">/* at least current */</span></div>
-<div class="line"><a name="l00252"></a><span class="lineno">  252</span>&#160;      uint32_t mib = (uint32_t)((bytes + (1024u*1024u - 1)) / (1024u*1024u));</div>
-<div class="line"><a name="l00253"></a><span class="lineno">  253</span>&#160;      <span class="keywordflow">if</span> (mib &gt; best_mib) best_mib = mib;</div>
-<div class="line"><a name="l00254"></a><span class="lineno">  254</span>&#160;      <a class="code" href="util__metrics_8c.html#aad9404d49721a4fdd407e2eff25b6489">dbg</a>(<span class="stringliteral">&quot;[RSS] mach_task_basic_info: %llu bytes -&gt; %u MiB\n&quot;</span>,</div>
-<div class="line"><a name="l00255"></a><span class="lineno">  255</span>&#160;          (<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> <span class="keywordtype">long</span>)bytes, mib);</div>
-<div class="line"><a name="l00256"></a><span class="lineno">  256</span>&#160;    } <span class="keywordflow">else</span> {</div>
-<div class="line"><a name="l00257"></a><span class="lineno">  257</span>&#160;      <a class="code" href="util__metrics_8c.html#aad9404d49721a4fdd407e2eff25b6489">dbg</a>(<span class="stringliteral">&quot;[RSS] mach task_info failed: kr=%d\n&quot;</span>, (<span class="keywordtype">int</span>)kr);</div>
-<div class="line"><a name="l00258"></a><span class="lineno">  258</span>&#160;    }</div>
-<div class="line"><a name="l00259"></a><span class="lineno">  259</span>&#160;  }</div>
-<div class="line"><a name="l00260"></a><span class="lineno">  260</span>&#160; </div>
-<div class="line"><a name="l00261"></a><span class="lineno">  261</span>&#160;  <span class="comment">/* Fallback: getrusage (on macOS ru_maxrss is bytes). */</span></div>
-<div class="line"><a name="l00262"></a><span class="lineno">  262</span>&#160;  <span class="keywordflow">if</span> (best_mib == 0) {</div>
-<div class="line"><a name="l00263"></a><span class="lineno">  263</span>&#160;    <span class="keyword">struct </span>rusage ru;</div>
-<div class="line"><a name="l00264"></a><span class="lineno">  264</span>&#160;    <span class="keywordflow">if</span> (getrusage(RUSAGE_SELF, &amp;ru) == 0) {</div>
-<div class="line"><a name="l00265"></a><span class="lineno">  265</span>&#160;      uint64_t bytes = (uint64_t)ru.ru_maxrss;</div>
-<div class="line"><a name="l00266"></a><span class="lineno">  266</span>&#160;      uint32_t mib = (uint32_t)((bytes + (1024u*1024u - 1)) / (1024u*1024u));</div>
-<div class="line"><a name="l00267"></a><span class="lineno">  267</span>&#160;      <span class="keywordflow">if</span> (mib &gt; best_mib) best_mib = mib;</div>
-<div class="line"><a name="l00268"></a><span class="lineno">  268</span>&#160;      <a class="code" href="util__metrics_8c.html#aad9404d49721a4fdd407e2eff25b6489">dbg</a>(<span class="stringliteral">&quot;[RSS] getrusage ru_maxrss(bytes): %llu -&gt; %u MiB\n&quot;</span>,</div>
-<div class="line"><a name="l00269"></a><span class="lineno">  269</span>&#160;          (<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> <span class="keywordtype">long</span>)bytes, mib);</div>
-<div class="line"><a name="l00270"></a><span class="lineno">  270</span>&#160;    }</div>
-<div class="line"><a name="l00271"></a><span class="lineno">  271</span>&#160;  }</div>
-<div class="line"><a name="l00272"></a><span class="lineno">  272</span>&#160;<span class="preprocessor">#else</span></div>
-<div class="line"><a name="l00273"></a><span class="lineno">  273</span>&#160;  <span class="comment">/* Other OS: try getrusage and assume kB (conservative). */</span></div>
-<div class="line"><a name="l00274"></a><span class="lineno">  274</span>&#160;  {</div>
-<div class="line"><a name="l00275"></a><span class="lineno">  275</span>&#160;    <span class="keyword">struct </span>rusage ru;</div>
-<div class="line"><a name="l00276"></a><span class="lineno">  276</span>&#160;    <span class="keywordflow">if</span> (getrusage(RUSAGE_SELF, &amp;ru) == 0) {</div>
-<div class="line"><a name="l00277"></a><span class="lineno">  277</span>&#160;      uint64_t kb = (uint64_t)ru.ru_maxrss;</div>
-<div class="line"><a name="l00278"></a><span class="lineno">  278</span>&#160;      uint32_t mib = <a class="code" href="util__metrics_8c.html#a5994eb8315fd500be4501693592b9c5a">kib_to_mib_ceil</a>(kb);</div>
-<div class="line"><a name="l00279"></a><span class="lineno">  279</span>&#160;      <span class="keywordflow">if</span> (mib &gt; best_mib) best_mib = mib;</div>
-<div class="line"><a name="l00280"></a><span class="lineno">  280</span>&#160;      <a class="code" href="util__metrics_8c.html#aad9404d49721a4fdd407e2eff25b6489">dbg</a>(<span class="stringliteral">&quot;[RSS] generic getrusage ru_maxrss: %llu kB -&gt; %u MiB\n&quot;</span>,</div>
-<div class="line"><a name="l00281"></a><span class="lineno">  281</span>&#160;          (<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> <span class="keywordtype">long</span>)kb, mib);</div>
-<div class="line"><a name="l00282"></a><span class="lineno">  282</span>&#160;    }</div>
-<div class="line"><a name="l00283"></a><span class="lineno">  283</span>&#160;  }</div>
-<div class="line"><a name="l00284"></a><span class="lineno">  284</span>&#160;<span class="preprocessor">#endif</span></div>
-<div class="line"><a name="l00285"></a><span class="lineno">  285</span>&#160; </div>
-<div class="line"><a name="l00286"></a><span class="lineno">  286</span>&#160;  <span class="keywordflow">return</span> best_mib;</div>
-<div class="line"><a name="l00287"></a><span class="lineno">  287</span>&#160;}</div>
-<div class="ttc" id="agroup__IE__METRICS_html_ga0b083c9fbf90d02c9ef387ab34220a34"><div class="ttname"><a href="group__IE__METRICS.html#ga0b083c9fbf90d02c9ef387ab34220a34">ie_metrics_sample_rss_peak</a></div><div class="ttdeci">uint32_t ie_metrics_sample_rss_peak(void)</div><div class="ttdoc">Best-effort sampling of peak RSS (resident set size).</div><div class="ttdef"><b>Definition:</b> <a href="util__metrics_8c_source.html#l00181">util_metrics.c:181</a></div></div>
-<div class="ttc" id="agroup__IE__METRICS_html_ga3a6a9208ad3e80cbc57fb1923e5e263f"><div class="ttname"><a href="group__IE__METRICS.html#ga3a6a9208ad3e80cbc57fb1923e5e263f">ie_metrics_snapshot</a></div><div class="ttdeci">void ie_metrics_snapshot(ie_metrics_t *out, int reset_after)</div><div class="ttdoc">Copy current counters into out and optionally reset them.</div><div class="ttdef"><b>Definition:</b> <a href="util__metrics_8c_source.html#l00163">util_metrics.c:163</a></div></div>
-<div class="ttc" id="agroup__IE__METRICS_html_ga7102e1b1461b7ac674d42c58660fda0d"><div class="ttname"><a href="group__IE__METRICS.html#ga7102e1b1461b7ac674d42c58660fda0d">ie_metrics_add_kv_hit</a></div><div class="ttdeci">void ie_metrics_add_kv_hit(uint64_t n)</div><div class="ttdoc">Atomically add to the KV hit counter.</div><div class="ttdef"><b>Definition:</b> <a href="util__metrics_8c_source.html#l00148">util_metrics.c:148</a></div></div>
-<div class="ttc" id="agroup__IE__METRICS_html_ga874413f3f40c7927c465112b7f162656"><div class="ttname"><a href="group__IE__METRICS.html#ga874413f3f40c7927c465112b7f162656">ie_metrics_reset</a></div><div class="ttdeci">void ie_metrics_reset(void)</div><div class="ttdoc">Reset all metrics accumulators to zero.</div><div class="ttdef"><b>Definition:</b> <a href="util__metrics_8c_source.html#l00143">util_metrics.c:143</a></div></div>
-<div class="ttc" id="agroup__IE__METRICS_html_ga8eecda9f8202c3f887066f287d97c954"><div class="ttname"><a href="group__IE__METRICS.html#ga8eecda9f8202c3f887066f287d97c954">ie_metrics_add_kv_miss</a></div><div class="ttdeci">void ie_metrics_add_kv_miss(uint64_t n)</div><div class="ttdoc">Atomically add to the KV miss counter.</div><div class="ttdef"><b>Definition:</b> <a href="util__metrics_8c_source.html#l00153">util_metrics.c:153</a></div></div>
-<div class="ttc" id="agroup__IE__METRICS_html_gaf9f02e4faa24298be27d9299df602fca"><div class="ttname"><a href="group__IE__METRICS.html#gaf9f02e4faa24298be27d9299df602fca">ie_metrics_add_kv</a></div><div class="ttdeci">void ie_metrics_add_kv(uint64_t hits, uint64_t misses)</div><div class="ttdoc">Atomically add to both KV counters.</div><div class="ttdef"><b>Definition:</b> <a href="util__metrics_8c_source.html#l00158">util_metrics.c:158</a></div></div>
+<div class="line"><a name="l00177"></a><span class="lineno"><a class="line" href="ie__metrics_8h.html#af9f02e4faa24298be27d9299df602fca">  177</a></span>&#160;<span class="keywordtype">void</span> <a class="code" href="group__IE__METRICS.html#gaf9f02e4faa24298be27d9299df602fca">ie_metrics_add_kv</a>(uint64_t hits, uint64_t misses) {</div>
+<div class="line"><a name="l00178"></a><span class="lineno">  178</span>&#160;  <span class="keywordflow">if</span> (hits)   (void)atomic_fetch_add_explicit(&amp;<a class="code" href="util__metrics_8c.html#a2304e4230799c4132478704188bc8877">g_kv_hits</a>, hits,  memory_order_relaxed);</div>
+<div class="line"><a name="l00179"></a><span class="lineno">  179</span>&#160;  <span class="keywordflow">if</span> (misses) (void)atomic_fetch_add_explicit(&amp;<a class="code" href="util__metrics_8c.html#a115dd2ed1a4c4c9987ad4c3b1e7ed6fa">g_kv_miss</a>, misses, memory_order_relaxed);</div>
+<div class="line"><a name="l00180"></a><span class="lineno">  180</span>&#160;}</div>
+<div class="line"><a name="l00181"></a><span class="lineno">  181</span>&#160; </div>
+<div class="line"><a name="l00182"></a><span class="lineno"><a class="line" href="ie__metrics_8h.html#a3a6a9208ad3e80cbc57fb1923e5e263f">  182</a></span>&#160;<span class="keywordtype">void</span> <a class="code" href="group__IE__METRICS.html#ga3a6a9208ad3e80cbc57fb1923e5e263f">ie_metrics_snapshot</a>(<a class="code" href="structie__metrics__t.html">ie_metrics_t</a> *out, <span class="keywordtype">int</span> reset_after) {</div>
+<div class="line"><a name="l00183"></a><span class="lineno">  183</span>&#160;  <span class="keywordflow">if</span> (!out) <span class="keywordflow">return</span>;</div>
+<div class="line"><a name="l00184"></a><span class="lineno">  184</span>&#160; </div>
+<div class="line"><a name="l00185"></a><span class="lineno">  185</span>&#160;  <span class="keyword">const</span> uint64_t hits = atomic_load_explicit(&amp;<a class="code" href="util__metrics_8c.html#a2304e4230799c4132478704188bc8877">g_kv_hits</a>, memory_order_relaxed);</div>
+<div class="line"><a name="l00186"></a><span class="lineno">  186</span>&#160;  <span class="keyword">const</span> uint64_t miss = atomic_load_explicit(&amp;<a class="code" href="util__metrics_8c.html#a115dd2ed1a4c4c9987ad4c3b1e7ed6fa">g_kv_miss</a>, memory_order_relaxed);</div>
+<div class="line"><a name="l00187"></a><span class="lineno">  187</span>&#160; </div>
+<div class="line"><a name="l00188"></a><span class="lineno">  188</span>&#160;  out-&gt;<a class="code" href="structie__metrics__t.html#a8f046409ae21785342371064b2355ce1">kv_hits</a>   = hits;</div>
+<div class="line"><a name="l00189"></a><span class="lineno">  189</span>&#160;  out-&gt;<a class="code" href="structie__metrics__t.html#afc2a1bc5d415d0bdd29350f3d52aab6c">kv_misses</a> = miss;</div>
+<div class="line"><a name="l00190"></a><span class="lineno">  190</span>&#160; </div>
+<div class="line"><a name="l00191"></a><span class="lineno">  191</span>&#160;  <span class="keywordflow">if</span> (reset_after) {</div>
+<div class="line"><a name="l00192"></a><span class="lineno">  192</span>&#160;    atomic_store_explicit(&amp;<a class="code" href="util__metrics_8c.html#a2304e4230799c4132478704188bc8877">g_kv_hits</a>, 0, memory_order_relaxed);</div>
+<div class="line"><a name="l00193"></a><span class="lineno">  193</span>&#160;    atomic_store_explicit(&amp;<a class="code" href="util__metrics_8c.html#a115dd2ed1a4c4c9987ad4c3b1e7ed6fa">g_kv_miss</a>, 0, memory_order_relaxed);</div>
+<div class="line"><a name="l00194"></a><span class="lineno">  194</span>&#160;  }</div>
+<div class="line"><a name="l00195"></a><span class="lineno">  195</span>&#160;}</div>
+<div class="line"><a name="l00196"></a><span class="lineno">  196</span>&#160; </div>
+<div class="line"><a name="l00197"></a><span class="lineno">  197</span>&#160;<span class="comment">/* -------------------------------------------------------------------------- */</span></div>
+<div class="line"><a name="l00198"></a><span class="lineno">  198</span>&#160;<span class="comment">/* Public API: RSS peak sampler                                                */</span></div>
+<div class="line"><a name="l00199"></a><span class="lineno">  199</span>&#160;<span class="comment">/* -------------------------------------------------------------------------- */</span></div>
+<div class="line"><a name="l00200"></a><span class="lineno">  200</span>&#160; </div>
+<div class="line"><a name="l00201"></a><span class="lineno"><a class="line" href="ie__metrics_8h.html#a0b083c9fbf90d02c9ef387ab34220a34">  201</a></span>&#160;uint32_t <a class="code" href="group__IE__METRICS.html#ga0b083c9fbf90d02c9ef387ab34220a34">ie_metrics_sample_rss_peak</a>(<span class="keywordtype">void</span>) {</div>
+<div class="line"><a name="l00202"></a><span class="lineno">  202</span>&#160;  uint32_t best_mib = 0;</div>
+<div class="line"><a name="l00203"></a><span class="lineno">  203</span>&#160; </div>
+<div class="line"><a name="l00204"></a><span class="lineno">  204</span>&#160;<span class="preprocessor">#if defined(__linux__)</span></div>
+<div class="line"><a name="l00205"></a><span class="lineno">  205</span>&#160;  <span class="comment">/* 1) Prefer VmHWM (KiB): process peak resident set size. */</span></div>
+<div class="line"><a name="l00206"></a><span class="lineno">  206</span>&#160;  {</div>
+<div class="line"><a name="l00207"></a><span class="lineno">  207</span>&#160;    uint64_t kb = 0;</div>
+<div class="line"><a name="l00208"></a><span class="lineno">  208</span>&#160;    <span class="keyword">const</span> <span class="keywordtype">int</span> rc = <a class="code" href="util__metrics_8c.html#a68100912a526773182982dfe9e401718">read_proc_kb_single</a>(<span class="stringliteral">&quot;/proc/self/status&quot;</span>, <span class="stringliteral">&quot;VmHWM:&quot;</span>, &amp;kb);</div>
+<div class="line"><a name="l00209"></a><span class="lineno">  209</span>&#160;    <span class="keywordflow">if</span> (rc == 0) {</div>
+<div class="line"><a name="l00210"></a><span class="lineno">  210</span>&#160;      <span class="keyword">const</span> uint32_t mib = <a class="code" href="util__metrics_8c.html#a5994eb8315fd500be4501693592b9c5a">kib_to_mib_ceil</a>(kb);</div>
+<div class="line"><a name="l00211"></a><span class="lineno">  211</span>&#160;      <span class="keywordflow">if</span> (mib &gt; best_mib) best_mib = mib;</div>
+<div class="line"><a name="l00212"></a><span class="lineno">  212</span>&#160;      <a class="code" href="util__metrics_8c.html#aad9404d49721a4fdd407e2eff25b6489">dbg</a>(<span class="stringliteral">&quot;[RSS] VmHWM: %llu kB -&gt; %u MiB\n&quot;</span>, (<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> <span class="keywordtype">long</span>)kb, mib);</div>
+<div class="line"><a name="l00213"></a><span class="lineno">  213</span>&#160;    } <span class="keywordflow">else</span> {</div>
+<div class="line"><a name="l00214"></a><span class="lineno">  214</span>&#160;      <a class="code" href="util__metrics_8c.html#aad9404d49721a4fdd407e2eff25b6489">dbg</a>(<span class="stringliteral">&quot;[RSS] VmHWM not found (rc=%d)\n&quot;</span>, rc);</div>
+<div class="line"><a name="l00215"></a><span class="lineno">  215</span>&#160;    }</div>
+<div class="line"><a name="l00216"></a><span class="lineno">  216</span>&#160;  }</div>
+<div class="line"><a name="l00217"></a><span class="lineno">  217</span>&#160; </div>
+<div class="line"><a name="l00218"></a><span class="lineno">  218</span>&#160;  <span class="comment">/* 2) Fallback: VmRSS (KiB): current resident set size. */</span></div>
+<div class="line"><a name="l00219"></a><span class="lineno">  219</span>&#160;  <span class="keywordflow">if</span> (best_mib == 0) {</div>
+<div class="line"><a name="l00220"></a><span class="lineno">  220</span>&#160;    uint64_t kb = 0;</div>
+<div class="line"><a name="l00221"></a><span class="lineno">  221</span>&#160;    <span class="keyword">const</span> <span class="keywordtype">int</span> rc = <a class="code" href="util__metrics_8c.html#a68100912a526773182982dfe9e401718">read_proc_kb_single</a>(<span class="stringliteral">&quot;/proc/self/status&quot;</span>, <span class="stringliteral">&quot;VmRSS:&quot;</span>, &amp;kb);</div>
+<div class="line"><a name="l00222"></a><span class="lineno">  222</span>&#160;    <span class="keywordflow">if</span> (rc == 0) {</div>
+<div class="line"><a name="l00223"></a><span class="lineno">  223</span>&#160;      <span class="keyword">const</span> uint32_t mib = <a class="code" href="util__metrics_8c.html#a5994eb8315fd500be4501693592b9c5a">kib_to_mib_ceil</a>(kb);</div>
+<div class="line"><a name="l00224"></a><span class="lineno">  224</span>&#160;      <span class="keywordflow">if</span> (mib &gt; best_mib) best_mib = mib;</div>
+<div class="line"><a name="l00225"></a><span class="lineno">  225</span>&#160;      <a class="code" href="util__metrics_8c.html#aad9404d49721a4fdd407e2eff25b6489">dbg</a>(<span class="stringliteral">&quot;[RSS] VmRSS: %llu kB -&gt; %u MiB\n&quot;</span>, (<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> <span class="keywordtype">long</span>)kb, mib);</div>
+<div class="line"><a name="l00226"></a><span class="lineno">  226</span>&#160;    } <span class="keywordflow">else</span> {</div>
+<div class="line"><a name="l00227"></a><span class="lineno">  227</span>&#160;      <a class="code" href="util__metrics_8c.html#aad9404d49721a4fdd407e2eff25b6489">dbg</a>(<span class="stringliteral">&quot;[RSS] VmRSS not found (rc=%d)\n&quot;</span>, rc);</div>
+<div class="line"><a name="l00228"></a><span class="lineno">  228</span>&#160;    }</div>
+<div class="line"><a name="l00229"></a><span class="lineno">  229</span>&#160;  }</div>
+<div class="line"><a name="l00230"></a><span class="lineno">  230</span>&#160; </div>
+<div class="line"><a name="l00231"></a><span class="lineno">  231</span>&#160;  <span class="comment">/* 3) Try smaps_rollup Rss: (KiB): often useful with mmaps. */</span></div>
+<div class="line"><a name="l00232"></a><span class="lineno">  232</span>&#160;  <span class="keywordflow">if</span> (best_mib == 0) {</div>
+<div class="line"><a name="l00233"></a><span class="lineno">  233</span>&#160;    uint64_t kb = 0;</div>
+<div class="line"><a name="l00234"></a><span class="lineno">  234</span>&#160;    <span class="keyword">const</span> <span class="keywordtype">int</span> rc = <a class="code" href="util__metrics_8c.html#a68100912a526773182982dfe9e401718">read_proc_kb_single</a>(<span class="stringliteral">&quot;/proc/self/smaps_rollup&quot;</span>, <span class="stringliteral">&quot;Rss:&quot;</span>, &amp;kb);</div>
+<div class="line"><a name="l00235"></a><span class="lineno">  235</span>&#160;    <span class="keywordflow">if</span> (rc == 0) {</div>
+<div class="line"><a name="l00236"></a><span class="lineno">  236</span>&#160;      <span class="keyword">const</span> uint32_t mib = <a class="code" href="util__metrics_8c.html#a5994eb8315fd500be4501693592b9c5a">kib_to_mib_ceil</a>(kb);</div>
+<div class="line"><a name="l00237"></a><span class="lineno">  237</span>&#160;      <span class="keywordflow">if</span> (mib &gt; best_mib) best_mib = mib;</div>
+<div class="line"><a name="l00238"></a><span class="lineno">  238</span>&#160;      <a class="code" href="util__metrics_8c.html#aad9404d49721a4fdd407e2eff25b6489">dbg</a>(<span class="stringliteral">&quot;[RSS] smaps_rollup Rss: %llu kB -&gt; %u MiB\n&quot;</span>, (<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> <span class="keywordtype">long</span>)kb, mib);</div>
+<div class="line"><a name="l00239"></a><span class="lineno">  239</span>&#160;    } <span class="keywordflow">else</span> {</div>
+<div class="line"><a name="l00240"></a><span class="lineno">  240</span>&#160;      <a class="code" href="util__metrics_8c.html#aad9404d49721a4fdd407e2eff25b6489">dbg</a>(<span class="stringliteral">&quot;[RSS] smaps_rollup Rss not found (rc=%d)\n&quot;</span>, rc);</div>
+<div class="line"><a name="l00241"></a><span class="lineno">  241</span>&#160;    }</div>
+<div class="line"><a name="l00242"></a><span class="lineno">  242</span>&#160;  }</div>
+<div class="line"><a name="l00243"></a><span class="lineno">  243</span>&#160; </div>
+<div class="line"><a name="l00244"></a><span class="lineno">  244</span>&#160;  <span class="comment">/* 4) Final fallback: getrusage (Linux ru_maxrss is KiB). */</span></div>
+<div class="line"><a name="l00245"></a><span class="lineno">  245</span>&#160;  <span class="keywordflow">if</span> (best_mib == 0) {</div>
+<div class="line"><a name="l00246"></a><span class="lineno">  246</span>&#160;    <span class="keyword">struct </span>rusage ru;</div>
+<div class="line"><a name="l00247"></a><span class="lineno">  247</span>&#160;    <span class="keywordflow">if</span> (getrusage(RUSAGE_SELF, &amp;ru) == 0) {</div>
+<div class="line"><a name="l00248"></a><span class="lineno">  248</span>&#160;      <span class="keyword">const</span> uint64_t kb = (uint64_t)ru.ru_maxrss;</div>
+<div class="line"><a name="l00249"></a><span class="lineno">  249</span>&#160;      <span class="keyword">const</span> uint32_t mib = <a class="code" href="util__metrics_8c.html#a5994eb8315fd500be4501693592b9c5a">kib_to_mib_ceil</a>(kb);</div>
+<div class="line"><a name="l00250"></a><span class="lineno">  250</span>&#160;      <span class="keywordflow">if</span> (mib &gt; best_mib) best_mib = mib;</div>
+<div class="line"><a name="l00251"></a><span class="lineno">  251</span>&#160;      <a class="code" href="util__metrics_8c.html#aad9404d49721a4fdd407e2eff25b6489">dbg</a>(<span class="stringliteral">&quot;[RSS] getrusage ru_maxrss: %llu kB -&gt; %u MiB\n&quot;</span>, (<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> <span class="keywordtype">long</span>)kb, mib);</div>
+<div class="line"><a name="l00252"></a><span class="lineno">  252</span>&#160;    } <span class="keywordflow">else</span> {</div>
+<div class="line"><a name="l00253"></a><span class="lineno">  253</span>&#160;      <a class="code" href="util__metrics_8c.html#aad9404d49721a4fdd407e2eff25b6489">dbg</a>(<span class="stringliteral">&quot;[RSS] getrusage failed: errno=%d\n&quot;</span>, errno);</div>
+<div class="line"><a name="l00254"></a><span class="lineno">  254</span>&#160;    }</div>
+<div class="line"><a name="l00255"></a><span class="lineno">  255</span>&#160;  }</div>
+<div class="line"><a name="l00256"></a><span class="lineno">  256</span>&#160; </div>
+<div class="line"><a name="l00257"></a><span class="lineno">  257</span>&#160;<span class="preprocessor">#elif defined(__APPLE__)</span></div>
+<div class="line"><a name="l00258"></a><span class="lineno">  258</span>&#160;  <span class="comment">/* macOS primary: mach_task_basic_info (bytes). */</span></div>
+<div class="line"><a name="l00259"></a><span class="lineno">  259</span>&#160;  {</div>
+<div class="line"><a name="l00260"></a><span class="lineno">  260</span>&#160;    mach_task_basic_info info;</div>
+<div class="line"><a name="l00261"></a><span class="lineno">  261</span>&#160;    mach_msg_type_number_t count = MACH_TASK_BASIC_INFO_COUNT;</div>
+<div class="line"><a name="l00262"></a><span class="lineno">  262</span>&#160;    <span class="keyword">const</span> kern_return_t kr = task_info(mach_task_self(),</div>
+<div class="line"><a name="l00263"></a><span class="lineno">  263</span>&#160;                                       MACH_TASK_BASIC_INFO,</div>
+<div class="line"><a name="l00264"></a><span class="lineno">  264</span>&#160;                                       (task_info_t)&amp;info,</div>
+<div class="line"><a name="l00265"></a><span class="lineno">  265</span>&#160;                                       &amp;count);</div>
+<div class="line"><a name="l00266"></a><span class="lineno">  266</span>&#160;    <span class="keywordflow">if</span> (kr == KERN_SUCCESS) {</div>
+<div class="line"><a name="l00267"></a><span class="lineno">  267</span>&#160;      uint64_t bytes = (uint64_t)info.resident_size_max;</div>
+<div class="line"><a name="l00268"></a><span class="lineno">  268</span>&#160;      if (bytes == 0) bytes = (uint64_t)info.resident_size;</div>
+<div class="line"><a name="l00269"></a><span class="lineno">  269</span>&#160; </div>
+<div class="line"><a name="l00270"></a><span class="lineno">  270</span>&#160;      <span class="keyword">const</span> uint32_t mib = (uint32_t)((bytes + (1024u * 1024u - 1)) / (1024u * 1024u));</div>
+<div class="line"><a name="l00271"></a><span class="lineno">  271</span>&#160;      <span class="keywordflow">if</span> (mib &gt; best_mib) best_mib = mib;</div>
+<div class="line"><a name="l00272"></a><span class="lineno">  272</span>&#160;      <a class="code" href="util__metrics_8c.html#aad9404d49721a4fdd407e2eff25b6489">dbg</a>(<span class="stringliteral">&quot;[RSS] mach_task_basic_info: %llu bytes -&gt; %u MiB\n&quot;</span>,</div>
+<div class="line"><a name="l00273"></a><span class="lineno">  273</span>&#160;          (<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> <span class="keywordtype">long</span>)bytes, mib);</div>
+<div class="line"><a name="l00274"></a><span class="lineno">  274</span>&#160;    } <span class="keywordflow">else</span> {</div>
+<div class="line"><a name="l00275"></a><span class="lineno">  275</span>&#160;      <a class="code" href="util__metrics_8c.html#aad9404d49721a4fdd407e2eff25b6489">dbg</a>(<span class="stringliteral">&quot;[RSS] mach task_info failed: kr=%d\n&quot;</span>, (<span class="keywordtype">int</span>)kr);</div>
+<div class="line"><a name="l00276"></a><span class="lineno">  276</span>&#160;    }</div>
+<div class="line"><a name="l00277"></a><span class="lineno">  277</span>&#160;  }</div>
+<div class="line"><a name="l00278"></a><span class="lineno">  278</span>&#160; </div>
+<div class="line"><a name="l00279"></a><span class="lineno">  279</span>&#160;  <span class="comment">/* Fallback: getrusage (macOS ru_maxrss is bytes). */</span></div>
+<div class="line"><a name="l00280"></a><span class="lineno">  280</span>&#160;  <span class="keywordflow">if</span> (best_mib == 0) {</div>
+<div class="line"><a name="l00281"></a><span class="lineno">  281</span>&#160;    <span class="keyword">struct </span>rusage ru;</div>
+<div class="line"><a name="l00282"></a><span class="lineno">  282</span>&#160;    <span class="keywordflow">if</span> (getrusage(RUSAGE_SELF, &amp;ru) == 0) {</div>
+<div class="line"><a name="l00283"></a><span class="lineno">  283</span>&#160;      <span class="keyword">const</span> uint64_t bytes = (uint64_t)ru.ru_maxrss;</div>
+<div class="line"><a name="l00284"></a><span class="lineno">  284</span>&#160;      <span class="keyword">const</span> uint32_t mib = (uint32_t)((bytes + (1024u * 1024u - 1)) / (1024u * 1024u));</div>
+<div class="line"><a name="l00285"></a><span class="lineno">  285</span>&#160;      <span class="keywordflow">if</span> (mib &gt; best_mib) best_mib = mib;</div>
+<div class="line"><a name="l00286"></a><span class="lineno">  286</span>&#160;      <a class="code" href="util__metrics_8c.html#aad9404d49721a4fdd407e2eff25b6489">dbg</a>(<span class="stringliteral">&quot;[RSS] getrusage ru_maxrss(bytes): %llu -&gt; %u MiB\n&quot;</span>,</div>
+<div class="line"><a name="l00287"></a><span class="lineno">  287</span>&#160;          (<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> <span class="keywordtype">long</span>)bytes, mib);</div>
+<div class="line"><a name="l00288"></a><span class="lineno">  288</span>&#160;    }</div>
+<div class="line"><a name="l00289"></a><span class="lineno">  289</span>&#160;  }</div>
+<div class="line"><a name="l00290"></a><span class="lineno">  290</span>&#160; </div>
+<div class="line"><a name="l00291"></a><span class="lineno">  291</span>&#160;<span class="preprocessor">#else</span></div>
+<div class="line"><a name="l00292"></a><span class="lineno">  292</span>&#160;  <span class="comment">/* Other OS: getrusage and conservatively treat ru_maxrss as KiB. */</span></div>
+<div class="line"><a name="l00293"></a><span class="lineno">  293</span>&#160;  {</div>
+<div class="line"><a name="l00294"></a><span class="lineno">  294</span>&#160;    <span class="keyword">struct </span>rusage ru;</div>
+<div class="line"><a name="l00295"></a><span class="lineno">  295</span>&#160;    <span class="keywordflow">if</span> (getrusage(RUSAGE_SELF, &amp;ru) == 0) {</div>
+<div class="line"><a name="l00296"></a><span class="lineno">  296</span>&#160;      <span class="keyword">const</span> uint64_t kb = (uint64_t)ru.ru_maxrss;</div>
+<div class="line"><a name="l00297"></a><span class="lineno">  297</span>&#160;      <span class="keyword">const</span> uint32_t mib = <a class="code" href="util__metrics_8c.html#a5994eb8315fd500be4501693592b9c5a">kib_to_mib_ceil</a>(kb);</div>
+<div class="line"><a name="l00298"></a><span class="lineno">  298</span>&#160;      <span class="keywordflow">if</span> (mib &gt; best_mib) best_mib = mib;</div>
+<div class="line"><a name="l00299"></a><span class="lineno">  299</span>&#160;      <a class="code" href="util__metrics_8c.html#aad9404d49721a4fdd407e2eff25b6489">dbg</a>(<span class="stringliteral">&quot;[RSS] generic getrusage ru_maxrss: %llu kB -&gt; %u MiB\n&quot;</span>,</div>
+<div class="line"><a name="l00300"></a><span class="lineno">  300</span>&#160;          (<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> <span class="keywordtype">long</span>)kb, mib);</div>
+<div class="line"><a name="l00301"></a><span class="lineno">  301</span>&#160;    }</div>
+<div class="line"><a name="l00302"></a><span class="lineno">  302</span>&#160;  }</div>
+<div class="line"><a name="l00303"></a><span class="lineno">  303</span>&#160;<span class="preprocessor">#endif</span></div>
+<div class="line"><a name="l00304"></a><span class="lineno">  304</span>&#160; </div>
+<div class="line"><a name="l00305"></a><span class="lineno">  305</span>&#160;  <span class="keywordflow">return</span> best_mib;</div>
+<div class="line"><a name="l00306"></a><span class="lineno">  306</span>&#160;}</div>
+<div class="ttc" id="agroup__IE__METRICS_html_ga0b083c9fbf90d02c9ef387ab34220a34"><div class="ttname"><a href="group__IE__METRICS.html#ga0b083c9fbf90d02c9ef387ab34220a34">ie_metrics_sample_rss_peak</a></div><div class="ttdeci">uint32_t ie_metrics_sample_rss_peak(void)</div><div class="ttdoc">Best-effort sampling of peak RSS (resident set size).</div><div class="ttdef"><b>Definition:</b> <a href="util__metrics_8c_source.html#l00201">util_metrics.c:201</a></div></div>
+<div class="ttc" id="agroup__IE__METRICS_html_ga3a6a9208ad3e80cbc57fb1923e5e263f"><div class="ttname"><a href="group__IE__METRICS.html#ga3a6a9208ad3e80cbc57fb1923e5e263f">ie_metrics_snapshot</a></div><div class="ttdeci">void ie_metrics_snapshot(ie_metrics_t *out, int reset_after)</div><div class="ttdoc">Copy current counters into out and optionally reset them.</div><div class="ttdef"><b>Definition:</b> <a href="util__metrics_8c_source.html#l00182">util_metrics.c:182</a></div></div>
+<div class="ttc" id="agroup__IE__METRICS_html_ga7102e1b1461b7ac674d42c58660fda0d"><div class="ttname"><a href="group__IE__METRICS.html#ga7102e1b1461b7ac674d42c58660fda0d">ie_metrics_add_kv_hit</a></div><div class="ttdeci">void ie_metrics_add_kv_hit(uint64_t n)</div><div class="ttdoc">Atomically add to the KV hit counter.</div><div class="ttdef"><b>Definition:</b> <a href="util__metrics_8c_source.html#l00167">util_metrics.c:167</a></div></div>
+<div class="ttc" id="agroup__IE__METRICS_html_ga874413f3f40c7927c465112b7f162656"><div class="ttname"><a href="group__IE__METRICS.html#ga874413f3f40c7927c465112b7f162656">ie_metrics_reset</a></div><div class="ttdeci">void ie_metrics_reset(void)</div><div class="ttdoc">Reset all metrics accumulators to zero.</div><div class="ttdef"><b>Definition:</b> <a href="util__metrics_8c_source.html#l00162">util_metrics.c:162</a></div></div>
+<div class="ttc" id="agroup__IE__METRICS_html_ga8eecda9f8202c3f887066f287d97c954"><div class="ttname"><a href="group__IE__METRICS.html#ga8eecda9f8202c3f887066f287d97c954">ie_metrics_add_kv_miss</a></div><div class="ttdeci">void ie_metrics_add_kv_miss(uint64_t n)</div><div class="ttdoc">Atomically add to the KV miss counter.</div><div class="ttdef"><b>Definition:</b> <a href="util__metrics_8c_source.html#l00172">util_metrics.c:172</a></div></div>
+<div class="ttc" id="agroup__IE__METRICS_html_gaf9f02e4faa24298be27d9299df602fca"><div class="ttname"><a href="group__IE__METRICS.html#gaf9f02e4faa24298be27d9299df602fca">ie_metrics_add_kv</a></div><div class="ttdeci">void ie_metrics_add_kv(uint64_t hits, uint64_t misses)</div><div class="ttdoc">Atomically add to both KV counters.</div><div class="ttdef"><b>Definition:</b> <a href="util__metrics_8c_source.html#l00177">util_metrics.c:177</a></div></div>
 <div class="ttc" id="astructie__metrics__t_html"><div class="ttname"><a href="structie__metrics__t.html">ie_metrics_t</a></div><div class="ttdoc">Snapshot of engine metrics for a measurement interval.</div><div class="ttdef"><b>Definition:</b> <a href="ie__metrics_8h_source.html#l00033">ie_metrics.h:33</a></div></div>
 <div class="ttc" id="astructie__metrics__t_html_a8f046409ae21785342371064b2355ce1"><div class="ttname"><a href="structie__metrics__t.html#a8f046409ae21785342371064b2355ce1">ie_metrics_t::kv_hits</a></div><div class="ttdeci">uint64_t kv_hits</div><div class="ttdoc">Total KV cache hits observed in the interval.</div><div class="ttdef"><b>Definition:</b> <a href="ie__metrics_8h_source.html#l00034">ie_metrics.h:34</a></div></div>
 <div class="ttc" id="astructie__metrics__t_html_afc2a1bc5d415d0bdd29350f3d52aab6c"><div class="ttname"><a href="structie__metrics__t.html#afc2a1bc5d415d0bdd29350f3d52aab6c">ie_metrics_t::kv_misses</a></div><div class="ttdeci">uint64_t kv_misses</div><div class="ttdoc">Total KV cache misses observed in the interval.</div><div class="ttdef"><b>Definition:</b> <a href="ie__metrics_8h_source.html#l00035">ie_metrics.h:35</a></div></div>
-<div class="ttc" id="autil__metrics_8c_html_a115dd2ed1a4c4c9987ad4c3b1e7ed6fa"><div class="ttname"><a href="util__metrics_8c.html#a115dd2ed1a4c4c9987ad4c3b1e7ed6fa">g_kv_miss</a></div><div class="ttdeci">static _Atomic uint64_t g_kv_miss</div><div class="ttdef"><b>Definition:</b> <a href="util__metrics_8c_source.html#l00049">util_metrics.c:49</a></div></div>
-<div class="ttc" id="autil__metrics_8c_html_a122cec7f60fc2c07fdfcc3df4032b791"><div class="ttname"><a href="util__metrics_8c.html#a122cec7f60fc2c07fdfcc3df4032b791">env_flag</a></div><div class="ttdeci">static int env_flag(const char *name)</div><div class="ttdoc">Return 1 if the env var name is a truthy flag (1,true,yes,on).</div><div class="ttdef"><b>Definition:</b> <a href="util__metrics_8c_source.html#l00058">util_metrics.c:58</a></div></div>
-<div class="ttc" id="autil__metrics_8c_html_a2304e4230799c4132478704188bc8877"><div class="ttname"><a href="util__metrics_8c.html#a2304e4230799c4132478704188bc8877">g_kv_hits</a></div><div class="ttdeci">static _Atomic uint64_t g_kv_hits</div><div class="ttdef"><b>Definition:</b> <a href="util__metrics_8c_source.html#l00048">util_metrics.c:48</a></div></div>
-<div class="ttc" id="autil__metrics_8c_html_a586d223d4a6c80952b53d76d31adccc2"><div class="ttname"><a href="util__metrics_8c.html#a586d223d4a6c80952b53d76d31adccc2">parse_status_kb_line</a></div><div class="ttdeci">static int parse_status_kb_line(const char *line, const char *key, uint64_t *out_kb)</div><div class="ttdoc">Parse integer kB from a &quot;Key:   12345 kB&quot; style line.</div><div class="ttdef"><b>Definition:</b> <a href="util__metrics_8c_source.html#l00089">util_metrics.c:89</a></div></div>
-<div class="ttc" id="autil__metrics_8c_html_a5994eb8315fd500be4501693592b9c5a"><div class="ttname"><a href="util__metrics_8c.html#a5994eb8315fd500be4501693592b9c5a">kib_to_mib_ceil</a></div><div class="ttdeci">static uint32_t kib_to_mib_ceil(uint64_t kib)</div><div class="ttdoc">Round up kB to MiB (ceil), clamped to 32-bit.</div><div class="ttdef"><b>Definition:</b> <a href="util__metrics_8c_source.html#l00079">util_metrics.c:79</a></div></div>
-<div class="ttc" id="autil__metrics_8c_html_a68100912a526773182982dfe9e401718"><div class="ttname"><a href="util__metrics_8c.html#a68100912a526773182982dfe9e401718">read_proc_kb_single</a></div><div class="ttdeci">static int read_proc_kb_single(const char *path, const char *key, uint64_t *out_kb)</div><div class="ttdoc">Grep one numeric (kB) key from a procfs text file.</div><div class="ttdef"><b>Definition:</b> <a href="util__metrics_8c_source.html#l00118">util_metrics.c:118</a></div></div>
-<div class="ttc" id="autil__metrics_8c_html_aad9404d49721a4fdd407e2eff25b6489"><div class="ttname"><a href="util__metrics_8c.html#aad9404d49721a4fdd407e2eff25b6489">dbg</a></div><div class="ttdeci">static void dbg(const char *fmt,...)</div><div class="ttdoc">Debug print controlled by IE_DEBUG_RSS=1.</div><div class="ttdef"><b>Definition:</b> <a href="util__metrics_8c_source.html#l00068">util_metrics.c:68</a></div></div>
+<div class="ttc" id="autil__metrics_8c_html_a115dd2ed1a4c4c9987ad4c3b1e7ed6fa"><div class="ttname"><a href="util__metrics_8c.html#a115dd2ed1a4c4c9987ad4c3b1e7ed6fa">g_kv_miss</a></div><div class="ttdeci">static _Atomic uint64_t g_kv_miss</div><div class="ttdoc">Process-wide KV miss counter (relaxed atomic).</div><div class="ttdef"><b>Definition:</b> <a href="util__metrics_8c_source.html#l00049">util_metrics.c:49</a></div></div>
+<div class="ttc" id="autil__metrics_8c_html_a122cec7f60fc2c07fdfcc3df4032b791"><div class="ttname"><a href="util__metrics_8c.html#a122cec7f60fc2c07fdfcc3df4032b791">env_flag</a></div><div class="ttdeci">static int env_flag(const char *name)</div><div class="ttdoc">Return 1 if the environment variable name is a truthy flag.</div><div class="ttdef"><b>Definition:</b> <a href="util__metrics_8c_source.html#l00064">util_metrics.c:64</a></div></div>
+<div class="ttc" id="autil__metrics_8c_html_a2304e4230799c4132478704188bc8877"><div class="ttname"><a href="util__metrics_8c.html#a2304e4230799c4132478704188bc8877">g_kv_hits</a></div><div class="ttdeci">static _Atomic uint64_t g_kv_hits</div><div class="ttdoc">Process-wide KV hit counter (relaxed atomic).</div><div class="ttdef"><b>Definition:</b> <a href="util__metrics_8c_source.html#l00046">util_metrics.c:46</a></div></div>
+<div class="ttc" id="autil__metrics_8c_html_a586d223d4a6c80952b53d76d31adccc2"><div class="ttname"><a href="util__metrics_8c.html#a586d223d4a6c80952b53d76d31adccc2">parse_status_kb_line</a></div><div class="ttdeci">static int parse_status_kb_line(const char *line, const char *key, uint64_t *out_kb)</div><div class="ttdoc">Parse an integer KiB value from a &quot;Key:  12345 kB&quot; style procfs line.</div><div class="ttdef"><b>Definition:</b> <a href="util__metrics_8c_source.html#l00103">util_metrics.c:103</a></div></div>
+<div class="ttc" id="autil__metrics_8c_html_a5994eb8315fd500be4501693592b9c5a"><div class="ttname"><a href="util__metrics_8c.html#a5994eb8315fd500be4501693592b9c5a">kib_to_mib_ceil</a></div><div class="ttdeci">static uint32_t kib_to_mib_ceil(uint64_t kib)</div><div class="ttdoc">Round up KiB to MiB using ceil(), clamped to 32-bit.</div><div class="ttdef"><b>Definition:</b> <a href="util__metrics_8c_source.html#l00088">util_metrics.c:88</a></div></div>
+<div class="ttc" id="autil__metrics_8c_html_a68100912a526773182982dfe9e401718"><div class="ttname"><a href="util__metrics_8c.html#a68100912a526773182982dfe9e401718">read_proc_kb_single</a></div><div class="ttdeci">static int read_proc_kb_single(const char *path, const char *key, uint64_t *out_kb)</div><div class="ttdoc">Read a single numeric (KiB) field from a procfs text file.</div><div class="ttdef"><b>Definition:</b> <a href="util__metrics_8c_source.html#l00133">util_metrics.c:133</a></div></div>
+<div class="ttc" id="autil__metrics_8c_html_aad9404d49721a4fdd407e2eff25b6489"><div class="ttname"><a href="util__metrics_8c.html#aad9404d49721a4fdd407e2eff25b6489">dbg</a></div><div class="ttdeci">static void dbg(const char *fmt,...)</div><div class="ttdoc">Debug print controlled by IE_DEBUG_RSS=1.</div><div class="ttdef"><b>Definition:</b> <a href="util__metrics_8c_source.html#l00075">util_metrics.c:75</a></div></div>
 <div class="ttc" id="autil__metrics_8h_html"><div class="ttname"><a href="util__metrics_8h.html">util_metrics.h</a></div><div class="ttdoc">Public helpers for runtime metrics (KV counters + RSS sampling).</div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
