@@ -8,16 +8,15 @@
  *  - A best-effort function to retrieve the process peak RSS (in MiB).
  *
  * Design:
- *  - We intentionally include **ie_api.h** (and NOT ie_metrics.h) so the
- *    project uses the canonical `ie_metrics_t` owned by the engine API,
- *    avoiding duplicate/contradicting typedefs.
+ *  - We intentionally include `ie_api.h` (and NOT `ie_metrics.h`) so the
+ *    project uses the canonical `ie_metrics_t` owned by the engine API.
  */
 
 #ifndef UTIL_METRICS_H
 #define UTIL_METRICS_H
 
 #include <stdint.h>
-#include "ie_api.h"  /* for ie_metrics_t */
+#include "ie_api.h" /* for ie_metrics_t */
 
 /**
  * @defgroup IE_METRICS Utilities: KV counters and RSS sampler
@@ -63,19 +62,19 @@ void ie_metrics_add_kv(uint64_t hits, uint64_t misses);
  * Only KV fields inside @p out are written by this function. Other fields
  * of @p out are left untouched (so callers can compose metrics).
  */
-void ie_metrics_snapshot(ie_metrics_t* out, int reset_after);
+void ie_metrics_snapshot(ie_metrics_t *out, int reset_after);
 
 /**
  * @brief Best-effort sampling of process peak RSS, in MiB.
  *
  * Platform behavior:
- *  - **Linux:** tries `/proc/self/status` `VmHWM:` (kB), falls back to
- *    `VmRSS:` (kB), then `/proc/self/smaps_rollup` `Rss:` (kB), and finally
+ *  - Linux: tries `/proc/self/status` `VmHWM:` (kB), falls back to `VmRSS:`
+ *    (kB), then `/proc/self/smaps_rollup` `Rss:` (kB), and finally
  *    `getrusage()` (kB). kB are rounded up to MiB.
- *  - **macOS:** uses `mach_task_basic_info` (bytes) and falls back to
+ *  - macOS: uses `mach_task_basic_info` (bytes) and falls back to
  *    `getrusage()` (bytes). Bytes are rounded up to MiB.
- *  - **Other OS:** falls back to `getrusage()` and conservatively treats
- *    the value as kB.
+ *  - Other OS: falls back to `getrusage()` and conservatively treats the
+ *    value as kB.
  *
  * Debugging:
  *  - Set `IE_DEBUG_RSS=1` to print sampler decisions to stderr.
@@ -91,3 +90,4 @@ uint32_t ie_metrics_sample_rss_peak(void);
 /** @} */ /* end of group IE_METRICS */
 
 #endif /* UTIL_METRICS_H */
+

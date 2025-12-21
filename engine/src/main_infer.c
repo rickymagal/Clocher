@@ -41,7 +41,9 @@
  *      --dedup-hot-list STR      -> IE_DEDUP_HOT_LIST
  */
 
+#ifndef _POSIX_C_SOURCE
 #define _POSIX_C_SOURCE 200809L
+#endif
 
 #include <errno.h>
 #include <fcntl.h>
@@ -86,11 +88,16 @@
 #endif
 
 /* -------------------------------------------------------------------------- */
-/* Time utilities                                                             */
+/* Time utilities                                                              */
 /* -------------------------------------------------------------------------- */
+
 /**
- * @brief Get a monotonic wall-clock timestamp in seconds.
- * @return Seconds as a double, suitable for interval measurements.
+ * @brief Get a monotonic timestamp in seconds.
+ *
+ * This is used for benchmark timing and must not be affected by wall-clock
+ * changes (NTP adjustments, manual clock edits).
+ *
+ * @return Current monotonic time in seconds, as a double.
  */
 static double now_sec(void) {
   struct timespec ts;
@@ -99,13 +106,18 @@ static double now_sec(void) {
 }
 
 /* -------------------------------------------------------------------------- */
-/* Env helpers                                                                */
+/* Environment helpers                                                        */
 /* -------------------------------------------------------------------------- */
+
 /**
- * @brief Parse an environment variable as a long with a default fallback.
- * @param name Environment variable name (e.g., "IE_STRIDE_BYTES").
- * @param defv Default value when unset or invalid.
- * @return Parsed value, or @p defv on error/unset.
+ * @brief Parse an environment variable as a base-10 long integer.
+ *
+ * If the variable is unset, empty, or contains invalid characters, this
+ * function returns @p defv.
+ *
+ * @param name Environment variable name (NUL-terminated).
+ * @param defv Default value if unset/invalid.
+ * @return Parsed long value, or @p defv on error/unset.
  */
 static long env_long(const char *name, long defv) {
   const char *s = getenv(name);
@@ -116,24 +128,29 @@ static long env_long(const char *name, long defv) {
 }
 
 /**
- * @brief Get environment variable as string with a default fallback.
- * @param name Environment variable name.
- * @param defv Default string when unset/empty.
- * @return Pointer to environment value or @p defv.
+ * @brief Get an environment variable as a string, with a default fallback.
+ *
+ * @param name Environment variable name (NUL-terminated).
+ * @param defv Default string if unset/empty.
+ * @return Pointer to the environment value, or @p defv.
  */
 static const char *env_str(const char *name, const char *defv) {
   const char *s = getenv(name);
   return (s && *s) ? s : defv;
 }
 
+/* -------------------------------------------------------------------------- */
+/* Filesystem helpers                                                         */
+/* -------------------------------------------------------------------------- */
+
 /**
  * @brief Check whether a filesystem path exists.
  *
- * This is a tiny convenience wrapper around stat(2). It is intentionally
- * conservative: it returns 1 if `stat()` succeeds, and 0 otherwise.
+ * This uses stat(2) and returns success for any filesystem node type
+ * (regular file, directory, symlink target, etc.).
  *
- * @param p Null-terminated path.
- * @return 1 if the path exists, 0 otherwise.
+ * @param p Path to check (NUL-terminated).
+ * @return 1 if stat(2) succeeds, 0 otherwise.
  */
 static int path_exists(const char *p) {
   if (!p || !*p) return 0;
@@ -142,9 +159,15 @@ static int path_exists(const char *p) {
 }
 
 /**
- * @brief Check whether a filesystem path is accessible as a directory.
- * @param p Path to check.
- * @return 1 if accessible and is a directory, 0 otherwise.
+ * @brief Check whether a path is an accessible directory.
+ *
+ * The directory must:
+ *  - exist,
+ *  - be a directory,
+ *  - be readable and searchable (R_OK|X_OK).
+ *
+ * @param p Directory path to validate (NUL-terminated).
+ * @return 1 if accessible directory, 0 otherwise.
  */
 static int dir_accessible(const char *p) {
   if (!p || !*p) return 0;
@@ -157,11 +180,15 @@ static int dir_accessible(const char *p) {
 /* -------------------------------------------------------------------------- */
 /* ASCII utilities                                                            */
 /* -------------------------------------------------------------------------- */
+
 /**
  * @brief Case-insensitive ASCII equality check (NULL-safe).
+ *
+ * This intentionally performs ASCII-only folding and does not depend on locale.
+ *
  * @param a First string (may be NULL).
  * @param b Second string (may be NULL).
- * @return 1 if equal ignoring ASCII case; 0 otherwise.
+ * @return 1 if equal ignoring ASCII case, 0 otherwise.
  */
 static int ascii_ieq(const char *a, const char *b) {
   if (!a || !b) return 0;
@@ -178,7 +205,8 @@ static int ascii_ieq(const char *a, const char *b) {
 }
 
 /**
- * @brief ASCII prefix check.
+ * @brief Check whether a string starts with a given prefix (byte-wise).
+ *
  * @param s Input string (may be NULL).
  * @param prefix Prefix string (must be non-NULL).
  * @return 1 if @p s starts with @p prefix, 0 otherwise.
@@ -194,8 +222,10 @@ static int starts_with(const char *s, const char *prefix) {
 /* -------------------------------------------------------------------------- */
 /* Path helpers                                                               */
 /* -------------------------------------------------------------------------- */
+
 /**
- * @brief Check whether a filesystem path is absolute (POSIX).
+ * @brief Check whether a path is absolute (POSIX semantics).
+ *
  * @param p Path string (may be NULL).
  * @return 1 if absolute, 0 otherwise.
  */
@@ -204,9 +234,13 @@ static int path_is_abs(const char *p) {
 }
 
 /**
- * @brief Safely copy a string into a fixed buffer (always NUL-terminates).
+ * @brief Safely copy a string into a fixed buffer.
+ *
+ * This always NUL-terminates @p dst (unless @p dstsz is 0). It is a convenience
+ * wrapper around snprintf to avoid partial memcpy logic.
+ *
  * @param dst Destination buffer.
- * @param dstsz Destination size in bytes.
+ * @param dstsz Destination buffer size in bytes.
  * @param src Source string (may be NULL).
  */
 static void safe_strcpy(char *dst, size_t dstsz, const char *src) {
@@ -219,12 +253,12 @@ static void safe_strcpy(char *dst, size_t dstsz, const char *src) {
 }
 
 /**
- * @brief Join a directory and a leaf name into a single path.
+ * @brief Join a directory and a leaf name into a single POSIX path.
  *
  * Rules:
- *  - If @p leaf is absolute, it is copied as-is.
+ *  - If @p leaf is absolute, it is copied as-is into @p out.
  *  - If @p dir is NULL/empty, the result is just @p leaf.
- *  - Otherwise result is "dir/leaf" (single slash).
+ *  - Otherwise result is "dir/leaf" (ensuring exactly one slash).
  *
  * @param out Output buffer.
  * @param outsz Output buffer size in bytes.
@@ -246,7 +280,7 @@ static void join_path(char *out, size_t outsz, const char *dir, const char *leaf
     return;
   }
 
-  size_t n = strlen(dir);
+  const size_t n = strlen(dir);
   if (n > 0 && dir[n - 1] == '/') {
     snprintf(out, outsz, "%s%s", dir, leaf);
   } else {
@@ -255,14 +289,15 @@ static void join_path(char *out, size_t outsz, const char *dir, const char *leaf
 }
 
 /**
- * @brief Attempt to canonicalize a directory with realpath().
+ * @brief Attempt to canonicalize a directory path with realpath().
  *
- * If realpath() fails, this function falls back to copying the input.
+ * If realpath(3) fails (missing path, permissions, etc.), this function falls
+ * back to copying the input directory string into @p out.
  *
  * @param out Output buffer (PATH_MAX recommended).
- * @param outsz Output size.
+ * @param outsz Output buffer size in bytes.
  * @param dir Input directory path (may be NULL).
- * @return 1 if realpath() succeeded, 0 otherwise.
+ * @return 1 if realpath succeeded, 0 otherwise.
  */
 static int canon_dir(char *out, size_t outsz, const char *dir) {
   if (!out || outsz == 0) return 0;
@@ -281,7 +316,8 @@ static int canon_dir(char *out, size_t outsz, const char *dir) {
 }
 
 /**
- * @brief Check if the precision implies int4-family weights.
+ * @brief Check whether a precision label refers to int4-family weights.
+ *
  * @param p Precision string (may be NULL).
  * @return 1 if int4 or int4w, 0 otherwise.
  */
@@ -297,7 +333,7 @@ static int is_int4_precision(const char *p) {
  *  1) Explicit --model-json / --model-bin:
  *     - If absolute, used as-is.
  *     - If relative and model_dir exists, resolved under model_dir.
- *     - If relative and no model_dir, used relative to CWD.
+ *     - If relative and no model_dir, used relative to the current working directory.
  *  2) Otherwise choose defaults under model_dir (or CWD if none):
  *     - If precision is int4/int4w:
  *         prefer model.ie.compat.json + model.q4.bin if both exist.
@@ -309,10 +345,10 @@ static int is_int4_precision(const char *p) {
  * @param model_json_opt Optional JSON override from CLI (may be NULL).
  * @param model_bin_opt Optional BIN override from CLI (may be NULL).
  * @param precision Effective precision string (e.g., "fp32", "int4", "int4w").
- * @param out_json Output JSON path buffer.
- * @param out_json_sz Output JSON buffer size.
- * @param out_bin Output BIN path buffer.
- * @param out_bin_sz Output BIN buffer size.
+ * @param out_json Output buffer for JSON path.
+ * @param out_json_sz Size of @p out_json in bytes.
+ * @param out_bin Output buffer for BIN path.
+ * @param out_bin_sz Size of @p out_bin in bytes.
  */
 static void resolve_model_paths(const char *model_dir,
                                const char *model_json_opt,
@@ -327,7 +363,6 @@ static void resolve_model_paths(const char *model_dir,
   const char *base_dir = (dir_canon[0] ? dir_canon : model_dir);
   const int want_int4 = is_int4_precision(precision);
 
-  /* CLI overrides first. */
   if (model_json_opt && *model_json_opt) {
     if (path_is_abs(model_json_opt) || !base_dir || !*base_dir) {
       safe_strcpy(out_json, out_json_sz, model_json_opt);
@@ -374,71 +409,85 @@ static void resolve_model_paths(const char *model_dir,
 /* -------------------------------------------------------------------------- */
 /* CLI options                                                                */
 /* -------------------------------------------------------------------------- */
-/** @enum cli_precision_t
- *  @brief Floating-point precision flags for convenience.
+
+/**
+ * @enum cli_precision_t
+ * @brief Floating-point precision flags for convenience.
+ *
+ * Note: int8w/int4/int4w are treated as labels; only fp32/bf16/fp16 map to
+ * the compact enum used by this file.
  */
 typedef enum {
-  CLI_PREC_FP32 = 0,
-  CLI_PREC_BF16 = 1,
-  CLI_PREC_FP16 = 2
+  CLI_PREC_FP32 = 0, /**< FP32 baseline. */
+  CLI_PREC_BF16 = 1, /**< BF16 compute/storage. */
+  CLI_PREC_FP16 = 2  /**< FP16 compute/storage. */
 } cli_precision_t;
 
-/** @enum cli_pretranspose_t
- *  @brief Pretranspose policy hint.
+/**
+ * @enum cli_pretranspose_t
+ * @brief Pretranspose policy hint for weight layouts.
  */
 typedef enum {
-  CLI_PRETX_NONE = 0,
-  CLI_PRETX_WOH = 1,
-  CLI_PRETX_WXH = 2,
-  CLI_PRETX_ALL = 3
+  CLI_PRETX_NONE = 0, /**< No pretranspose. */
+  CLI_PRETX_WOH  = 1, /**< Pretranspose W_O * H. */
+  CLI_PRETX_WXH  = 2, /**< Pretranspose W_X * H. */
+  CLI_PRETX_ALL  = 3  /**< Pretranspose all eligible matrices. */
 } cli_pretranspose_t;
 
 /**
  * @struct cli_extras_t
  * @brief Parsed CLI options container (benchmark/harness friendly).
+ *
+ * This is a minimal, POD-style container to keep parsing logic local to this
+ * translation unit. Engine-facing parameters are composed later into
+ * ie_engine_params_t.
  */
 typedef struct cli_extras {
-  const char *prompt;
-  size_t max_new;
-  int threads;
-  cli_precision_t prec;
-  const char *affinity;
-  cli_pretranspose_t pretx;
-  const char *device;
+  const char *prompt;          /**< Single prompt string (positional or --prompt). */
+  size_t max_new;              /**< Max new tokens for generation. */
+  int threads;                 /**< Thread count override (0 means engine default). */
+  cli_precision_t prec;        /**< Convenience enum for fp32/bf16/fp16. */
+  const char *affinity;        /**< Thread affinity policy string. */
+  cli_pretranspose_t pretx;    /**< Pretranspose policy. */
+  const char *device;          /**< Device label (currently unused by this CLI). */
 
-  const char *prompts_file;
-  int batch;
-  const char *prefetch;
-  int warmup_tokens;
-  int aggregate;
-  int rounds;
+  const char *prompts_file;    /**< Path to prompts file. */
+  int batch;                   /**< Batch size (currently placeholder). */
+  const char *prefetch;        /**< Prefetch policy string for the engine. */
+  int warmup_tokens;           /**< Warmup token count (best-effort). */
+  int aggregate;               /**< If nonzero, read all prompts and aggregate tokens. */
+  int rounds;                  /**< Number of repeated runs for the same invocation. */
 
-  const char *model_dir;
-  const char *model_json;
-  const char *model_bin;
+  const char *model_dir;       /**< Base model directory for resolving defaults. */
+  const char *model_json;      /**< JSON override (may be relative). */
+  const char *model_bin;       /**< BIN override (may be relative). */
 
-  const char *precision_label;
-  int precision_from_flag;
+  const char *precision_label; /**< Precision string passed to the engine. */
+  int precision_from_flag;     /**< 1 if set explicitly via --precision. */
 
-  const char *sparsity;
-  int sparsity_from_flag;
+  const char *sparsity;        /**< Sparsity policy string passed to the engine. */
+  int sparsity_from_flag;      /**< 1 if set explicitly via --sparsity. */
 
-  size_t pf_w_bytes;
-  size_t pf_x_bytes;
-  int force_ntw;
+  size_t pf_w_bytes;           /**< GEMV prefetch distance for W dimension. */
+  size_t pf_x_bytes;           /**< GEMV prefetch distance for X dimension. */
+  int force_ntw;               /**< Non-temporal write override (-1 unset, else 0/1). */
 
-  int dedup_enable;        /**< -1=unset, 0=disable, 1=enable. */
-  const char *dedup_policy;/**< NULL if unset, else string. */
-  long dedup_cache_mb;     /**< -1 unset, else >=0. */
-  long dedup_hot_bytes;    /**< -1 unset, else >=0. */
-  const char *dedup_hot_list; /**< NULL if unset. */
+  int dedup_enable;            /**< -1 unset, 0 disable, 1 enable. */
+  const char *dedup_policy;    /**< NULL if unset, else policy string. */
+  long dedup_cache_mb;         /**< -1 unset, else cache size in MiB. */
+  long dedup_hot_bytes;        /**< -1 unset, else hot bytes threshold. */
+  const char *dedup_hot_list;  /**< NULL if unset, else list string. */
 } cli_extras_t;
 
 /* -------------------------------------------------------------------------- */
 /* CLI parsing                                                                */
 /* -------------------------------------------------------------------------- */
+
 /**
  * @brief Print CLI usage information to stderr.
+ *
+ * This intentionally prints to stderr so stdout can be reserved for the
+ * benchmark JSON line.
  */
 static void usage(void) {
   fprintf(stderr,
@@ -469,7 +518,10 @@ static void usage(void) {
 
 /**
  * @brief Initialize a ::cli_extras_t with default values.
- * @param e Output structure; must be non-NULL.
+ *
+ * Defaults are chosen to be benchmark-friendly and stable across environments.
+ *
+ * @param e Output structure (must be non-NULL).
  */
 static void cli_extras_defaults(cli_extras_t *e) {
   e->prompt = NULL;
@@ -479,15 +531,18 @@ static void cli_extras_defaults(cli_extras_t *e) {
   e->affinity = "auto";
   e->pretx = CLI_PRETX_NONE;
   e->device = "auto";
+
   e->prompts_file = NULL;
   e->batch = 1;
   e->prefetch = "auto";
   e->warmup_tokens = 1;
   e->aggregate = 0;
   e->rounds = 1;
+
   e->model_dir = NULL;
   e->model_json = NULL;
   e->model_bin = NULL;
+
   e->precision_label = IE_PREC_FP32;
   e->precision_from_flag = 0;
 
@@ -506,8 +561,12 @@ static void cli_extras_defaults(cli_extras_t *e) {
 }
 
 /**
- * @brief Convert a string to long with strict validation; exits with code 2 on failure.
- * @param s NUL-terminated string to parse as base-10 integer.
+ * @brief Convert a string to a base-10 long with strict validation.
+ *
+ * On parsing failure, this prints an error and exits with code 2. This keeps
+ * the rest of the flag parsing code branch-free and predictable.
+ *
+ * @param s NUL-terminated string to parse.
  * @return Parsed long value.
  */
 static long safe_atoi(const char *s) {
@@ -527,34 +586,34 @@ static long safe_atoi(const char *s) {
 /**
  * @brief Parse command-line flags into a ::cli_extras_t container.
  *
- * Recognized flags include prefetch/streaming controls:
- *  - --pf-w BYTES, --pf-x BYTES, --force-ntw 0|1
- *
- * Recognized dedup controls:
- *  - --dedup 0|1
- *  - --dedup-policy off|on_demand|cache|replicate_hot
- *  - --dedup-cache-mb N
- *  - --dedup-hot-bytes N
- *  - --dedup-hot-list STR
+ * Parsing rules:
+ *  - Unknown flags cause an error and return -1.
+ *  - A non-flag token (no leading '-') is treated as a positional prompt,
+ *    unless --prompt already set it.
+ *  - This function does not allocate memory; it only stores pointers into argv.
  *
  * @param argc Argument count.
  * @param argv Argument vector.
- * @param out Output structure; must be non-NULL.
- * @return 0 on success; -1 if help was printed or on parsing error.
+ * @param out Output options container (must be non-NULL).
+ * @return 0 on success, -1 on error or if help was printed.
  */
 static int parse_flags(int argc, char **argv, cli_extras_t *out) {
   cli_extras_defaults(out);
+
   for (int i = 1; i < argc; ++i) {
     const char *a = argv[i];
+
     if (!strcmp(a, "--help") || !strcmp(a, "-h")) {
       usage();
       return -1;
+
     } else if (!strcmp(a, "--prompt")) {
       if (++i >= argc) {
         usage();
         return -1;
       }
       out->prompt = argv[i];
+
     } else if (!strcmp(a, "--max-new")) {
       if (++i >= argc) {
         usage();
@@ -566,6 +625,7 @@ static int parse_flags(int argc, char **argv, cli_extras_t *out) {
         return -1;
       }
       out->max_new = (size_t)v;
+
     } else if (!strcmp(a, "--threads")) {
       if (++i >= argc) {
         usage();
@@ -573,12 +633,14 @@ static int parse_flags(int argc, char **argv, cli_extras_t *out) {
       }
       long v = safe_atoi(argv[i]);
       out->threads = (int)v;
+
     } else if (!strcmp(a, "--precision")) {
       if (++i >= argc) {
         usage();
         return -1;
       }
       const char *m = argv[i];
+
       if (ascii_ieq(m, IE_PREC_FP32)) {
         out->prec = CLI_PREC_FP32;
         out->precision_label = IE_PREC_FP32;
@@ -604,12 +666,14 @@ static int parse_flags(int argc, char **argv, cli_extras_t *out) {
         fprintf(stderr, "error: unknown precision '%s'\n", m);
         return -1;
       }
+
     } else if (!strcmp(a, "--sparsity")) {
       if (++i >= argc) {
         usage();
         return -1;
       }
       const char *m = argv[i];
+
       if (ascii_ieq(m, "none") || ascii_ieq(m, "dense")) {
         out->sparsity = "none";
       } else if (ascii_ieq(m, "block") || ascii_ieq(m, "blocksparse")) {
@@ -621,72 +685,79 @@ static int parse_flags(int argc, char **argv, cli_extras_t *out) {
         return -1;
       }
       out->sparsity_from_flag = 1;
+
     } else if (!strcmp(a, "--affinity")) {
       if (++i >= argc) {
         usage();
         return -1;
       }
       out->affinity = argv[i];
+
     } else if (!strcmp(a, "--pretranspose")) {
       if (++i >= argc) {
         usage();
         return -1;
       }
       const char *p = argv[i];
-      if (!strcmp(p, "none"))
-        out->pretx = CLI_PRETX_NONE;
-      else if (!strcmp(p, "woh"))
-        out->pretx = CLI_PRETX_WOH;
-      else if (!strcmp(p, "wxh"))
-        out->pretx = CLI_PRETX_WXH;
-      else if (!strcmp(p, "all"))
-        out->pretx = CLI_PRETX_ALL;
+
+      if (!strcmp(p, "none")) out->pretx = CLI_PRETX_NONE;
+      else if (!strcmp(p, "woh")) out->pretx = CLI_PRETX_WOH;
+      else if (!strcmp(p, "wxh")) out->pretx = CLI_PRETX_WXH;
+      else if (!strcmp(p, "all")) out->pretx = CLI_PRETX_ALL;
       else {
         fprintf(stderr, "error: unknown pretranspose '%s'\n", p);
         return -1;
       }
+
     } else if (!strcmp(a, "--device")) {
       if (++i >= argc) {
         usage();
         return -1;
       }
       out->device = argv[i];
+
     } else if (!strcmp(a, "--model-dir")) {
       if (++i >= argc) {
         usage();
         return -1;
       }
       out->model_dir = argv[i];
+
     } else if (!strcmp(a, "--model-json")) {
       if (++i >= argc) {
         usage();
         return -1;
       }
       out->model_json = argv[i];
+
     } else if (!strcmp(a, "--model-bin")) {
       if (++i >= argc) {
         usage();
         return -1;
       }
       out->model_bin = argv[i];
+
     } else if (!strcmp(a, "--prompts-file")) {
       if (++i >= argc) {
         usage();
         return -1;
       }
       out->prompts_file = argv[i];
+
     } else if (!strcmp(a, "--batch")) {
       if (++i >= argc) {
         usage();
         return -1;
       }
       out->batch = (int)safe_atoi(argv[i]);
+
     } else if (!strcmp(a, "--prefetch")) {
       if (++i >= argc) {
         usage();
         return -1;
       }
       out->prefetch = argv[i];
+
     } else if (!strcmp(a, "--warmup") || !strcmp(a, "--warmup-tokens")) {
       if (++i >= argc) {
         usage();
@@ -695,6 +766,7 @@ static int parse_flags(int argc, char **argv, cli_extras_t *out) {
       long v = safe_atoi(argv[i]);
       if (v < 0) v = 0;
       out->warmup_tokens = (int)v;
+
     } else if (!strcmp(a, "--rounds")) {
       if (++i >= argc) {
         usage();
@@ -703,8 +775,10 @@ static int parse_flags(int argc, char **argv, cli_extras_t *out) {
       long v = safe_atoi(argv[i]);
       if (v < 1) v = 1;
       out->rounds = (int)v;
+
     } else if (!strcmp(a, "--aggregate")) {
       out->aggregate = 1;
+
     } else if (!strcmp(a, "--pf-w")) {
       if (++i >= argc) {
         usage();
@@ -716,6 +790,7 @@ static int parse_flags(int argc, char **argv, cli_extras_t *out) {
         return -1;
       }
       out->pf_w_bytes = (size_t)v;
+
     } else if (!strcmp(a, "--pf-x")) {
       if (++i >= argc) {
         usage();
@@ -727,6 +802,7 @@ static int parse_flags(int argc, char **argv, cli_extras_t *out) {
         return -1;
       }
       out->pf_x_bytes = (size_t)v;
+
     } else if (!strcmp(a, "--force-ntw")) {
       if (++i >= argc) {
         usage();
@@ -738,6 +814,7 @@ static int parse_flags(int argc, char **argv, cli_extras_t *out) {
         return -1;
       }
       out->force_ntw = (int)v;
+
     } else if (!strcmp(a, "--dedup")) {
       if (++i >= argc) {
         usage();
@@ -749,12 +826,14 @@ static int parse_flags(int argc, char **argv, cli_extras_t *out) {
         return -1;
       }
       out->dedup_enable = (int)v;
+
     } else if (!strcmp(a, "--dedup-policy")) {
       if (++i >= argc) {
         usage();
         return -1;
       }
       out->dedup_policy = argv[i];
+
     } else if (!strcmp(a, "--dedup-cache-mb")) {
       if (++i >= argc) {
         usage();
@@ -763,6 +842,7 @@ static int parse_flags(int argc, char **argv, cli_extras_t *out) {
       long v = safe_atoi(argv[i]);
       if (v < 0) v = 0;
       out->dedup_cache_mb = v;
+
     } else if (!strcmp(a, "--dedup-hot-bytes")) {
       if (++i >= argc) {
         usage();
@@ -771,28 +851,38 @@ static int parse_flags(int argc, char **argv, cli_extras_t *out) {
       long v = safe_atoi(argv[i]);
       if (v < 0) v = 0;
       out->dedup_hot_bytes = v;
+
     } else if (!strcmp(a, "--dedup-hot-list")) {
       if (++i >= argc) {
         usage();
         return -1;
       }
       out->dedup_hot_list = argv[i];
+
     } else if (a[0] == '-') {
       fprintf(stderr, "error: unknown flag '%s'\n", a);
       usage();
       return -1;
+
     } else {
       out->prompt = a;
     }
   }
+
   return 0;
 }
 
 /* -------------------------------------------------------------------------- */
 /* Prompts helper                                                             */
 /* -------------------------------------------------------------------------- */
+
 /**
  * @brief Read the first non-empty line from a text file.
+ *
+ * This is used when the harness provides a prompts file but expects a single
+ * prompt per run (non-aggregate mode). The first non-empty line is selected,
+ * stripped of trailing newlines.
+ *
  * @param path Path to the text file.
  * @param buf Output buffer to receive the line.
  * @param bufsz Size of @p buf in bytes.
@@ -804,6 +894,7 @@ static int read_first_nonempty_line(const char *path, char *buf, size_t bufsz) {
     fprintf(stderr, "warn: cannot open prompts file '%s': %s\n", path, strerror(errno));
     return -1;
   }
+
   int ok = 0;
   while (fgets(buf, (int)bufsz, f)) {
     size_t n = strlen(buf);
@@ -812,6 +903,7 @@ static int read_first_nonempty_line(const char *path, char *buf, size_t bufsz) {
     ok = 1;
     break;
   }
+
   fclose(f);
   return ok ? 1 : 0;
 }
@@ -819,8 +911,20 @@ static int read_first_nonempty_line(const char *path, char *buf, size_t bufsz) {
 /* -------------------------------------------------------------------------- */
 /* JSON emitter                                                               */
 /* -------------------------------------------------------------------------- */
+
 /**
  * @brief Print a single JSON summary line for the last run.
+ *
+ * Output is always a single object on stdout so that external harness scripts
+ * can parse results reliably. Token arrays are included only when a single
+ * prompt and single round is used; otherwise an empty array is emitted to
+ * avoid huge output.
+ *
+ * Latency:
+ *  - p50/p95 here are synthetic placeholders computed from average per-token
+ *    time (p95 is scaled by 2x). The harness can compute real distributions
+ *    if it runs multiple iterations.
+ *
  * @param n_tok Number of tokens generated.
  * @param tokens Pointer to tokens (may be NULL to print an empty array).
  * @param wall_s_in Wall-clock seconds for the measured window.
@@ -878,11 +982,28 @@ static void print_json_result(uint32_t n_tok,
 /* -------------------------------------------------------------------------- */
 /* main                                                                       */
 /* -------------------------------------------------------------------------- */
+
 /**
  * @brief Program entry point.
+ *
+ * High-level flow:
+ *  1) Parse CLI arguments into a local options container.
+ *  2) Export tuning knobs as environment variables for the engine/runtime.
+ *  3) Resolve model directory and JSON/BIN paths (precision-aware).
+ *  4) Optionally open/touch weights (strict vs stub behavior).
+ *  5) Create an engine instance and run optional warmup.
+ *  6) Run generation inside a tight timed window, optionally performing a
+ *     post-token "work-touch" loop to simulate/measure bandwidth.
+ *  7) Collect KV hit/miss counters and peak RSS, then print one JSON line.
+ *  8) Release resources and exit.
+ *
+ * Exit behavior:
+ *  - Returns 0 on success (including stub mode).
+ *  - Returns non-zero when strict model requirements fail or engine creation fails.
+ *
  * @param argc Argument count.
  * @param argv Argument vector.
- * @return 0 on success; non-zero on error.
+ * @return Process exit code.
  */
 int main(int argc, char **argv) {
   cli_extras_t opt;
@@ -1069,6 +1190,7 @@ int main(int argc, char **argv) {
   int bin_fd = -1;
   uint8_t *map = NULL;
   size_t map_len = 0;
+
   if (w.loaded && bytes_per_token > 0 && w.bin_size_bytes > 0) {
     const char *binp = (w.weights_path[0] ? w.weights_path : bin_path);
     bin_fd = open(binp, O_RDONLY);
@@ -1088,7 +1210,7 @@ int main(int argc, char **argv) {
   (void)ie_kv_begin_round();
   uint64_t total_tokens_this_round = 0;
 
-  double t0 = now_sec();
+  const double t0 = now_sec();
 
   uint32_t tokens_generated_total = 0;
 
@@ -1108,18 +1230,21 @@ int main(int argc, char **argv) {
             fprintf(stderr, "error: ie_engine_generate (status=%d)\n", (int)st);
             break;
           }
+
           tokens_generated_total += n_here;
           total_tokens_this_round += (uint64_t)n_here;
 
           if (map && map_len && bytes_per_token) {
-            size_t need = (size_t)n_here * bytes_per_token;
+            const size_t need = (size_t)n_here * bytes_per_token;
             size_t pos = 0;
             volatile uint64_t acc = 0;
+
             while (pos < need) {
-              size_t off = (pos % map_len);
+              const size_t off = (pos % map_len);
               acc += map[off];
               pos += (stride_bytes ? stride_bytes : 1);
             }
+
             if (verify_touch) {
               (void)acc;
             }
@@ -1132,22 +1257,26 @@ int main(int argc, char **argv) {
     } else {
       const char *p = (opt.prompt ? opt.prompt : "bench");
       uint32_t n_here = 0;
+
       st = ie_engine_generate(engine, p, cap, tokens, &n_here);
       if (st != IE_OK) {
         fprintf(stderr, "error: ie_engine_generate failed (status=%d)\n", (int)st);
       }
+
       tokens_generated_total += n_here;
       total_tokens_this_round += (uint64_t)n_here;
 
       if (map && map_len && bytes_per_token) {
-        size_t need = (size_t)n_here * bytes_per_token;
+        const size_t need = (size_t)n_here * bytes_per_token;
         size_t pos = 0;
         volatile uint64_t acc = 0;
+
         while (pos < need) {
-          size_t off = (pos % map_len);
+          const size_t off = (pos % map_len);
           acc += map[off];
           pos += (stride_bytes ? stride_bytes : 1);
         }
+
         if (verify_touch) {
           (void)acc;
         }
@@ -1155,7 +1284,7 @@ int main(int argc, char **argv) {
     }
   }
 
-  double t1 = now_sec();
+  const double t1 = now_sec();
 
   uint64_t kv_hits_round = 0, kv_miss_round = 0;
   ie_kv_finish_round(total_tokens_this_round, &kv_hits_round, &kv_miss_round);
@@ -1163,12 +1292,13 @@ int main(int argc, char **argv) {
   ie_metrics_t m;
   memset(&m, 0, sizeof(m));
   (void)ie_engine_metrics(engine, &m);
+
   if (kv_hits_round || kv_miss_round) {
     m.kv_hits = kv_hits_round;
     m.kv_misses = kv_miss_round;
   }
 
-  uint32_t rss_mib = ie_metrics_sample_rss_peak();
+  const uint32_t rss_mib = ie_metrics_sample_rss_peak();
   m.rss_peak_mb = rss_mib;
 
   const uint32_t *tokens_to_print = (opt.aggregate || opt.rounds > 1) ? NULL : tokens;

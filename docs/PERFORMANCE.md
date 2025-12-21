@@ -1,72 +1,42 @@
 # Performance Notes
 
-_Last updated: **2025-12-20 18:24:17 UTC**_
+_Last updated: **2025-12-21 10:12:06 UTC**_
 
 
-**Best true TPS:** **CPU — 38.120**.
-
-## CPU — Summary (latest benchmark)
-- Runs: **3**
-- Tokens generated (Σ): **384**
-- Wall time (Σ): **10.073 s**
-- True TPS (Σ tokens / Σ time): **38.120**
-
-## Latency
-- p50 (mean across runs): **26.233 ms**
-- p95 (mean across runs): **52.466 ms**
-
-## Spatial Complexity (Memory & Cache)
-- RSS peak (mean): **4407.000 MB**
-- RSS peak (max): **4436.000 MB**
-- KV cache: **3 hits / 381 misses**
-- IE_BYTES_PER_TOKEN: **67.1 MB/token**
-- Bytes touched (Σ): **25.8 GB**
-- Working-set coverage (bytes_per_token / model.bin): **0.005**
-- Effective bandwidth: **2.56 GB/s**
-
-### Memory Details
-- PSS peak (mean / max): **0.512 MB / 0.537 MB**
-- VMS peak (mean / max): **4.477 MB / 4.520 MB**
-- RSS floor (mean / max): **1.751 MB / 2.066 MB**
-- RSS delta vs baseline (mean / max): **0.000 MB / 0.000 MB**
-- Page faults (minor Σ / major Σ): **0 / 0**
-- Swap I/O (in Σ / out Σ): **0.0 MB / 0.0 MB**
-- PSI memory 'some' (mean / max): **6.12 % / 6.79 %**
-- PSI memory 'full' (mean / max): **6.07 % / 6.76 %**
-- System MemAvailable (mean): **4445.3 MB** — **57.5 % of MemTotal**
+**Best true TPS:** **GPU — 35.337**.
 
 ## GPU — Summary (latest benchmark)
 - Runs: **3**
 - Tokens generated (Σ): **384**
-- Wall time (Σ): **10.400 s**
-- True TPS (Σ tokens / Σ time): **36.924**
+- Wall time (Σ): **10.867 s**
+- True TPS (Σ tokens / Σ time): **35.337**
 
 ## Latency
-- p50 (mean across runs): **27.082 ms**
-- p95 (mean across runs): **54.165 ms**
+- p50 (mean across runs): **28.299 ms**
+- p95 (mean across runs): **56.597 ms**
 
 ## Spatial Complexity (Memory & Cache)
-- RSS peak (mean): **3815.667 MB**
-- RSS peak (max): **3853.000 MB**
+- RSS peak (mean): **2847.333 MB**
+- RSS peak (max): **3028.000 MB**
 - KV cache: **3 hits / 381 misses**
 - IE_BYTES_PER_TOKEN: **67.1 MB/token**
 - Bytes touched (Σ): **25.8 GB**
 - Working-set coverage (bytes_per_token / model.bin): **0.005**
-- Effective bandwidth: **2.48 GB/s**
+- Effective bandwidth: **2.37 GB/s**
 
 ### Memory Details
-- PSS peak (mean / max): **0.528 MB / 0.556 MB**
+- PSS peak (mean / max): **0.519 MB / 0.545 MB**
 - VMS peak (mean / max): **4.477 MB / 4.520 MB**
-- RSS floor (mean / max): **1.836 MB / 2.164 MB**
+- RSS floor (mean / max): **1.589 MB / 1.949 MB**
 - RSS delta vs baseline (mean / max): **0.000 MB / 0.000 MB**
 - Page faults (minor Σ / major Σ): **0 / 0**
 - Swap I/O (in Σ / out Σ): **0.0 MB / 0.0 MB**
-- PSI memory 'some' (mean / max): **6.23 % / 7.70 %**
-- PSI memory 'full' (mean / max): **6.23 % / 7.70 %**
-- System MemAvailable (mean): **3924.4 MB** — **50.8 % of MemTotal**
+- PSI memory 'some' (mean / max): **4.15 % / 6.69 %**
+- PSI memory 'full' (mean / max): **4.08 % / 6.52 %**
+- System MemAvailable (mean): **3022.4 MB** — **39.1 % of MemTotal**
 
 ## Run Parameters & Conditions
-- Engine bin: `/home/ricky/Desktop/Clocher/build/inference-engine`
+- Engine bin: `/home/ricky/Desktop/Clocher/build/inference-engine.cuda`
 - Prompts file: `/home/ricky/Desktop/Clocher/benchmarks/prompts_10.txt`
 - Threads: **12**
 - Precision: **fp32**
@@ -86,7 +56,7 @@ _Last updated: **2025-12-20 18:24:17 UTC**_
 - RAM (MemTotal): **8.1 GB**
 - OS: **Linux Mint 21.3**
 - Kernel: **5.15.0-163-generic-x86_64**
-- Git commit: **0edbb92 DIRTY**
+- Git commit: **b13da1a DIRTY**
 - Model file: **/home/ricky/Desktop/Clocher/models/gpt-oss-20b/model.ie.bin**
 - Model size: **13.761 GB**
 
@@ -94,9 +64,6 @@ _Last updated: **2025-12-20 18:24:17 UTC**_
 
 | Device | Run | Tokens | Wall (s) | TPS | p50 (ms) | p95 (ms) | RSS peak (MB) | PSS peak (MB) | VMS peak (MB) | minflt | majflt |
 |:------:|----:|-------:|---------:|----:|---------:|---------:|--------------:|--------------:|--------------:|------:|------:|
-| CPU | 1 | 128 | 3.470 | 36.891 | 27.107 | 54.214 | 4369.000 | 0.468 | 4.391 | 0 | 0 |
-| CPU | 2 | 128 | 3.310 | 38.666 | 25.863 | 51.726 | 4416.000 | 0.531 | 4.520 | 0 | 0 |
-| CPU | 3 | 128 | 3.293 | 38.866 | 25.730 | 51.459 | 4436.000 | 0.537 | 4.520 | 0 | 0 |
-| GPU | 1 | 128 | 3.461 | 36.981 | 27.041 | 54.081 | 3785.000 | 0.481 | 4.391 | 0 | 0 |
-| GPU | 2 | 128 | 3.466 | 36.928 | 27.079 | 54.159 | 3809.000 | 0.546 | 4.520 | 0 | 0 |
-| GPU | 3 | 128 | 3.472 | 36.864 | 27.127 | 54.254 | 3853.000 | 0.556 | 4.520 | 0 | 0 |
+| GPU | 1 | 128 | 3.703 | 34.566 | 28.930 | 57.861 | 2517.000 | 0.474 | 4.391 | 0 | 0 |
+| GPU | 2 | 128 | 3.917 | 32.675 | 30.605 | 61.209 | 2997.000 | 0.537 | 4.520 | 0 | 0 |
+| GPU | 3 | 128 | 3.246 | 39.431 | 25.361 | 50.722 | 3028.000 | 0.545 | 4.520 | 0 | 0 |
