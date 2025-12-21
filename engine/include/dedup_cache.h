@@ -3,194 +3,121 @@
 
 /**
  * @file dedup_cache.h
- * @brief Runtime cache and reconstruction helpers for lossless deduplicated weights.
+ * @brief In-memory cache for reconstructed (materialized) tensors.
  *
- * This module provides:
- * - Fast lookup: map a tensor_index -> (group, target) metadata.
- * - Lossless reconstruction: patch a default blob using mask + exceptions.
- * - Optional caching: keep reconstructed tensors in a fixed-capacity cache (LRU-ish).
+ * @details
+ * This cache exists to convert the dedup storage format (defaults + mask +
+ * exceptions) into a stable, directly usable byte buffer.
  *
- * The API is byte-oriented and intentionally does not assume a specific tensor dtype.
+ * Key requirements for real hits:
+ *  - Cache keys must be stable (e.g. tensor name or tensor index).
+ *  - The engine must request the same key repeatedly across tokens/steps.
+ *  - Cached pointers must remain valid for the duration of the run.
+ *
+ * This is a generic cache: it does not know about NUMA replication; callers can
+ * replicate "hot" cached blobs separately when needed.
  */
 
-#include <stdint.h>
 #include <stddef.h>
-
-#include "dedup_spec.h"
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+/** Opaque cache type. */
+typedef struct ie_dedup_cache ie_dedup_cache_t;
+
 /**
- * @struct ie_dedup_files_t
- * @brief Memory views of dedup artifact files (mmap'd or fully loaded).
+ * @struct ie_dedup_cache_opts_t
+ * @brief Cache configuration options.
  */
-typedef struct ie_dedup_files_s {
-  /** @brief Pointer to defaults.bin contents. */
-  const uint8_t* defaults;
+typedef struct ie_dedup_cache_opts_t {
+  /**
+   * Maximum bytes the cache may retain.
+   * If 0, the cache behaves like "no caching" (always misses).
+   */
+  size_t bytes_limit;
 
-  /** @brief defaults.bin size in bytes. */
-  uint64_t defaults_size;
-
-  /** @brief Pointer to masks.bin contents. */
-  const uint8_t* masks;
-
-  /** @brief masks.bin size in bytes. */
-  uint64_t masks_size;
-
-  /** @brief Pointer to exceptions.bin contents. */
-  const uint8_t* exceptions;
-
-  /** @brief exceptions.bin size in bytes. */
-  uint64_t exceptions_size;
-} ie_dedup_files_t;
+  /**
+   * If non-zero, enables basic internal validation (bounds checks).
+   * Keep this enabled for now; disable only once stable.
+   */
+  int enable_safety_checks;
+} ie_dedup_cache_opts_t;
 
 /**
- * @struct ie_dedup_cache_entry_t
- * @brief One cached reconstructed tensor blob.
- */
-typedef struct ie_dedup_cache_entry_s {
-  /** @brief Tensor index this entry corresponds to. */
-  uint32_t tensor_index;
-
-  /** @brief Size in bytes. */
-  uint64_t nbytes;
-
-  /** @brief Pointer to owned storage holding reconstructed bytes. */
-  uint8_t* data;
-
-  /** @brief Monotonic counter for simple eviction policy. */
-  uint64_t stamp;
-} ie_dedup_cache_entry_t;
-
-/**
- * @struct ie_dedup_cache_t
- * @brief Dedup reconstruction cache.
+ * @brief Create a dedup cache instance.
  *
- * The cache is optional: you can call ie_dedup_reconstruct_into() directly if you
- * want on-demand reconstruction into a caller-provided buffer.
+ * @param opts Options (may be NULL for defaults).
+ * @return New cache pointer, or NULL on OOM.
  */
-typedef struct ie_dedup_cache_s {
-  /** @brief Spec describing groups/targets. */
-  const ie_dedup_spec_t* spec;
-
-  /** @brief File views for defaults/masks/exceptions. */
-  ie_dedup_files_t files;
-
-  /** @brief Lookup table: tensor_index -> flat target pointer (or NULL). */
-  const ie_dedup_target_t** target_by_index;
-
-  /** @brief Size of target_by_index array (max tensor_index + 1). */
-  uint32_t target_by_index_len;
-
-  /** @brief Default tensor index -> group pointer lookup (optional fast path). */
-  const ie_dedup_group_t** group_by_default_index;
-
-  /** @brief Size of group_by_default_index array. */
-  uint32_t group_by_default_index_len;
-
-  /** @brief Cache entries (fixed capacity). */
-  ie_dedup_cache_entry_t* entries;
-
-  /** @brief Number of entries allocated. */
-  uint32_t entry_cap;
-
-  /** @brief Monotonic stamp counter. */
-  uint64_t stamp_now;
-
-  /** @brief Total bytes allocated for cached tensor buffers. */
-  uint64_t bytes_cached;
-
-  /** @brief Soft byte limit for cached buffers (0 disables caching). */
-  uint64_t bytes_limit;
-} ie_dedup_cache_t;
+ie_dedup_cache_t* ie_dedup_cache_create(const ie_dedup_cache_opts_t* opts);
 
 /**
- * @brief Initialize a dedup cache.
+ * @brief Destroy a cache and release all retained buffers.
  *
- * This builds fast lookup tables for tensor_index -> target metadata.
- * If bytes_limit is 0, the cache storage is not used (but the lookup and reconstruction helpers still work).
- *
- * @param c Cache instance.
- * @param spec Parsed and validated dedup spec.
- * @param files Memory views of defaults/masks/exceptions (must stay valid for cache lifetime).
- * @param max_tensor_index Maximum tensor index in the model (used to size lookup tables).
- * @param entry_cap Number of cache slots to allocate (used only if bytes_limit > 0).
- * @param bytes_limit Soft cap on cached reconstructed bytes. Set to 0 to disable caching.
- * @return 0 on success, non-zero on error.
- */
-int ie_dedup_cache_init(
-  ie_dedup_cache_t* c,
-  const ie_dedup_spec_t* spec,
-  const ie_dedup_files_t* files,
-  uint32_t max_tensor_index,
-  uint32_t entry_cap,
-  uint64_t bytes_limit);
-
-/**
- * @brief Destroy a dedup cache and free any owned memory.
- * @param c Cache instance.
+ * @param c Cache (NULL allowed).
  */
 void ie_dedup_cache_destroy(ie_dedup_cache_t* c);
 
 /**
- * @brief Find a target record for a given tensor_index.
- * @param c Cache instance.
- * @param tensor_index Target tensor index.
- * @return Pointer to target metadata, or NULL if the tensor is not deduplicated.
+ * @brief Current total bytes retained in the cache.
+ *
+ * @param c Cache (non-NULL).
+ * @return Retained bytes.
  */
-const ie_dedup_target_t* ie_dedup_cache_find_target(const ie_dedup_cache_t* c, uint32_t tensor_index);
+size_t ie_dedup_cache_bytes_used(const ie_dedup_cache_t* c);
 
 /**
- * @brief Find the group that owns a given target record.
+ * @brief Maximum bytes allowed for this cache.
  *
- * @param c Cache instance.
- * @param t Target metadata pointer (must come from this cache/spec).
- * @return Pointer to owning group, or NULL if not found (should not happen if spec is valid).
+ * @param c Cache (non-NULL).
+ * @return Configured byte limit.
  */
-const ie_dedup_group_t* ie_dedup_cache_find_group_for_target(const ie_dedup_cache_t* c, const ie_dedup_target_t* t);
+size_t ie_dedup_cache_bytes_limit(const ie_dedup_cache_t* c);
 
 /**
- * @brief Reconstruct a target tensor into a caller-provided buffer (lossless).
+ * @brief Evict everything from the cache.
  *
- * This performs:
- * - memcpy(default -> dst)
- * - scan mask bits; for each 1-bit at byte index i, overwrite dst[i] from exceptions stream
- *
- * @param dst Destination buffer (size must be t->nbytes).
- * @param default_bytes Pointer to the default blob bytes (size must be t->nbytes).
- * @param mask Pointer to mask bytes (size must be t->mask_nbytes).
- * @param exceptions Pointer to exception payload bytes (size must be t->exc_nbytes).
- * @param nbytes Tensor size in bytes.
- * @return 0 on success, non-zero on mismatch (e.g., ran out of exceptions).
+ * @param c Cache (non-NULL).
  */
-int ie_dedup_reconstruct_into(
-  uint8_t* dst,
-  const uint8_t* default_bytes,
-  const uint8_t* mask,
-  const uint8_t* exceptions,
-  uint64_t nbytes);
+void ie_dedup_cache_clear(ie_dedup_cache_t* c);
 
 /**
- * @brief Get a reconstructed weight blob for a tensor.
+ * @brief Lookup a cached tensor by key.
  *
- * If caching is enabled (bytes_limit > 0), this may return a pointer to cached storage.
- * Otherwise, this reconstructs into the provided scratch buffer.
+ * @details
+ * The returned pointer is owned by the cache and remains valid until the entry
+ * is evicted or the cache is destroyed.
  *
- * @param c Cache instance.
- * @param tensor_index Target tensor index.
- * @param scratch Scratch buffer (required if caching disabled, optional otherwise).
- * @param scratch_cap Scratch capacity in bytes.
- * @param out_nbytes Output tensor size in bytes.
- * @return Pointer to reconstructed bytes (either cache-owned or scratch), or NULL on error.
+ * @param c Cache (non-NULL).
+ * @param key Tensor key (stable string).
+ * @param out_ptr Output pointer to cached bytes.
+ * @param out_size Output size in bytes.
+ * @return 1 if hit, 0 if miss.
  */
-const uint8_t* ie_dedup_cache_get_bytes(
-  ie_dedup_cache_t* c,
-  uint32_t tensor_index,
-  uint8_t* scratch,
-  uint64_t scratch_cap,
-  uint64_t* out_nbytes);
+int ie_dedup_cache_get(const ie_dedup_cache_t* c,
+                       const char* key,
+                       const void** out_ptr,
+                       size_t* out_size);
+
+/**
+ * @brief Insert (or replace) an entry in the cache.
+ *
+ * @details
+ * The cache makes a private copy of @p data.
+ *
+ * @param c Cache (non-NULL).
+ * @param key Tensor key (stable string).
+ * @param data Bytes to copy into the cache.
+ * @param size Number of bytes.
+ * @return 0 on success, negative errno-like value on failure.
+ */
+int ie_dedup_cache_put(ie_dedup_cache_t* c,
+                       const char* key,
+                       const void* data,
+                       size_t size);
 
 #ifdef __cplusplus
 } /* extern "C" */

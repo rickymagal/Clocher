@@ -6,7 +6,7 @@ set -euo pipefail
 # Optional env (with defaults):
 #   THREADS, PRECISION, BATCH, PREFETCH, PRETRANSPOSE, AFFINITY, MAX_NEW
 #   IE_REQUIRE_MODEL, IE_BYTES_PER_TOKEN, IE_STRIDE_BYTES, IE_VERIFY_TOUCH
-#   RUNS
+#   RUNS, ROUNDS
 #
 # Output:
 #   JSONL to stdout:
@@ -32,6 +32,7 @@ IE_STRIDE_BYTES="${IE_STRIDE_BYTES:-256}"
 IE_VERIFY_TOUCH="${IE_VERIFY_TOUCH:-1}"
 
 RUNS="${RUNS:-3}"
+ROUNDS="${ROUNDS:-1}"
 
 # Precision passthrough (accepts int4; also tolerate int4w alias)
 case "${PRECISION}" in
@@ -144,15 +145,16 @@ PY
 # To make bench robust, we always run the engine with CWD = MODEL_DIR.
 run_one() {
   local run_idx="$1"
-
   local out_raw="${_tmpdir}/run_${run_idx}.raw.txt"
 
   local sw_in0 sw_out0
   read -r sw_in0 sw_out0 < <(read_vmstat_swaps)
 
+  # IMPORTANT:
+  # Use 'exec' so the background PID is the engine PID (not the subshell PID).
   (
     cd "${MODEL_DIR}"
-    "${ENGINE_BIN}" \
+    exec "${ENGINE_BIN}" \
       --device "${DEVICE}" \
       --model-dir "." \
       --prompts-file "${PROMPTS}" \
@@ -163,10 +165,9 @@ run_one() {
       --pretranspose "${PRETRANSPOSE}" \
       --affinity "${AFFINITY}" \
       --max-new "${MAX_NEW}" \
-      --rounds 1
+      --rounds "${ROUNDS}"
   ) > "${out_raw}" 2>&1 &
   local pid="$!"
-  disown || true
 
   local rss_floor_kb=0
   local rss_peak_kb=0
@@ -341,7 +342,7 @@ PY
     "${psi_some_mean}" "${psi_full_mean}" \
     "${memavail_mean_mb}" "${memavail_mean_pct}" \
     "${MODEL_DIR}" "${ENGINE_BIN}" "${DEVICE}" <<'PY'
-import sys, json, os
+import sys, json
 
 raw_path=sys.argv[1]
 rss_floor=float(sys.argv[2])
@@ -433,6 +434,7 @@ summary = {
   "model_dir": os.environ.get("MODEL_DIR",""),
   "prompts": os.environ.get("PROMPTS",""),
   "runs": int(os.environ.get("RUNS","3") or 3),
+  "rounds": int(os.environ.get("ROUNDS","1") or 1),
   "device": os.environ.get("DEVICE",""),
   "engine_bin": os.environ.get("ENGINE_BIN",""),
   "batch": int(os.environ.get("BATCH","1") or 1),

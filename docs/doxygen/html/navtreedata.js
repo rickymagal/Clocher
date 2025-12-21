@@ -184,15 +184,15 @@ var NAVTREE =
 var NAVTREEINDEX =
 [
 "act__fp8_8c.html",
-"functions_g.html",
-"group__ie__int4__quant.html#ga7aaa2156d41e9a58eb6013cec4b32d78",
-"ie__kernels__ze_8cl.html#ac201a9ea4df331010c34a2c99cb2be56",
-"main__infer_8c.html#a9973434ae2443cc726369b714df7b2cb",
-"namespaceq4__pack__stream.html#ae292d439353d8cc1084e8b0d18d1b389",
-"spec_8h.html#aca385869a249a66b951f04b73feff41e",
-"structie__dedup__target__s.html",
-"test__cli_8py.html",
-"weights__dedup_8c.html#a82535eef357e00f15379d3a922d6593d"
+"functions.html",
+"group__ie__int4__quant.html#ga5eab5a797587f75e75af981b851f3d4d",
+"ie__kernels__cuda_8h_source.html",
+"main__infer_8c.html#a680d5eb9763f52ea89ce1764e01121dc",
+"namespaceptq__from__source.html#aa66029bb09d156055e81635a23485ba4",
+"spec_8h.html#a7bad93fc007d692d16eeaa767540ccb8",
+"structie__device__vtbl.html#af53f74e97e8a3331b3c9edd24a64e668",
+"test__dedup__loader_8c_source.html",
+"weights__dedup_8h.html#a5579991d9297cadd067b31d66b3005a5"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

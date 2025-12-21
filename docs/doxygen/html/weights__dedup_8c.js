@@ -4,6 +4,7 @@ var weights__dedup_8c =
     [ "ie_file_ref", "structie__file__ref.html", "structie__file__ref" ],
     [ "ie_tensor_ref", "structie__tensor__ref.html", "structie__tensor__ref" ],
     [ "ie_weights_dedup", "structie__weights__dedup.html", "structie__weights__dedup" ],
+    [ "IE_WDEDUP_MAX_RANK", "weights__dedup_8c.html#aa2216aef65948cf32ff1ff7b2d8ca579", null ],
     [ "ie_file_ref_t", "weights__dedup_8c.html#a58a903034aff2e64811cb92c4b262552", null ],
     [ "ie_mmap_file_t", "weights__dedup_8c.html#ade0929ee0ba5e7b49bd5f0ece10bb384", null ],
     [ "ie_tensor_ref_t", "weights__dedup_8c.html#afa29a3b35e915292bfedf09c457b1524", null ],

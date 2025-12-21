@@ -1,7 +1,3 @@
-/* ============================================================================
- * File: engine/src/opt/replicate_hot.c
- * ============================================================================
- */
 /**
  * @file replicate_hot.c
  * @brief Replication of hot weight blobs per socket using first-touch placement.
@@ -33,7 +29,7 @@
 #include <stdio.h>
 
 #if defined(__linux__) || defined(__APPLE__)
-  #include <sys/mman.h> /* posix_madvise / MADV_* if present */
+  #include <sys/mman.h>
 #endif
 
 #include "ie_topology.h"
@@ -46,7 +42,6 @@
 #  define IE_UNLIKELY(x) __builtin_expect(!!(x), 0)
 #endif
 
-/* ----- logging fallbacks (in case util_logging.h provides none) ----------- */
 #ifndef IE_LOG_INFO
 #  define IE_LOG_INFO(...)  do { fprintf(stderr, "[info] "  __VA_ARGS__); fputc('\n', stderr); } while (0)
 #endif
@@ -58,15 +53,7 @@
 #endif
 
 /**
- * @struct ie_hot_replica_t
- * @brief A single per-socket replica descriptor.
- *
- * @var ie_hot_replica_t::ptr
- * Base address of the replica, or NULL if not created.
- * @var ie_hot_replica_t::size
- * Size of the replica in bytes.
- * @var ie_hot_replica_t::socket_id
- * Socket id that owns this replica.
+ * @brief Per-socket replica descriptor.
  */
 typedef struct ie_hot_replica_t {
   void*  ptr;
@@ -75,13 +62,7 @@ typedef struct ie_hot_replica_t {
 } ie_hot_replica_t;
 
 /**
- * @struct ie_hot_replicas_t
  * @brief Container of all per-socket replicas.
- *
- * @var ie_hot_replicas_t::n_sockets
- * Number of sockets represented in the container.
- * @var ie_hot_replicas_t::r
- * Array of length n_sockets with the per-socket replica descriptors.
  */
 typedef struct ie_hot_replicas_t {
   int               n_sockets;
@@ -89,27 +70,28 @@ typedef struct ie_hot_replicas_t {
 } ie_hot_replicas_t;
 
 /**
- * @typedef ie_hot_replica_fill_fn
- * @brief Callback type for fill-mode replica construction.
+ * @brief Callback signature for fill-mode replica construction.
  *
  * @param socket_id Socket id being built.
- * @param dst Destination buffer for the replica (first-touched for locality).
+ * @param dst Destination buffer for the replica.
  * @param dst_size Destination buffer size in bytes.
  * @param user Opaque user context.
  * @return 0 on success, negative errno-like value on failure.
  */
 typedef int (*ie_hot_replica_fill_fn)(int socket_id, void* dst, size_t dst_size, void* user);
 
-/* ------------------------------ local helpers ------------------------------ */
+/* -------------------------------------------------------------------------- */
+/* Internal helpers                                                           */
+/* -------------------------------------------------------------------------- */
 
 /**
  * @brief First-touch a writable buffer to bias NUMA page placement.
  *
  * @details
- * Writes one byte per cache line across the region so the kernel maps resident
- * pages to the NUMA node for the current CPU affinity.
+ * Writes one byte per cache line across the region so the kernel maps pages
+ * to the NUMA node local to the current CPU affinity.
  *
- * @param p Pointer to writable memory (non-NULL).
+ * @param p Pointer to writable memory.
  * @param sz Size in bytes.
  */
 static void first_touch_write(void* p, size_t sz) {
@@ -121,11 +103,7 @@ static void first_touch_write(void* p, size_t sz) {
 
 /**
  * @brief Best-effort hint that the region will be needed soon.
- *
- * @details
- * Uses posix_madvise/madvise when available. Degrades to a no-op otherwise.
- *
- * @param p Pointer to memory (non-NULL).
+ * @param p Pointer to memory.
  * @param sz Size in bytes.
  */
 static void advise_willneed(void* p, size_t sz) {
@@ -141,7 +119,6 @@ static void advise_willneed(void* p, size_t sz) {
 
 /**
  * @brief Best-effort hint that the region will be accessed sequentially.
- *
  * @param p Pointer to memory.
  * @param sz Size in bytes.
  */
@@ -158,9 +135,8 @@ static void advise_sequential(void* p, size_t sz) {
 
 /**
  * @brief Allocate a replica buffer and establish locality via first-touch.
- *
  * @param blob_size Size in bytes (> 0).
- * @return Pointer to allocated memory, or NULL on failure.
+ * @return Allocated pointer, or NULL on failure.
  */
 static void* alloc_replica_first_touch(size_t blob_size) {
   void* buf = malloc(blob_size);
@@ -171,7 +147,6 @@ static void* alloc_replica_first_touch(size_t blob_size) {
 
 /**
  * @brief Free all allocations owned by a replica set.
- *
  * @param reps Replica set (may be NULL).
  */
 static void free_replicas_internal(ie_hot_replicas_t* reps) {
@@ -189,26 +164,10 @@ static void free_replicas_internal(ie_hot_replicas_t* reps) {
   free(reps);
 }
 
-/* ------------------------------- public API -------------------------------- */
+/* -------------------------------------------------------------------------- */
+/* Public API                                                                 */
+/* -------------------------------------------------------------------------- */
 
-/**
- * @brief Create per-socket replicas of an existing blob using memcpy (copy mode).
- *
- * @details
- * For each socket:
- *  1) Bind to that socket via ie_topology_bind_thread_to_socket().
- *  2) Allocate replica memory and first-touch it to establish locality.
- *  3) memcpy() the source blob into the local replica.
- *  4) Provide best-effort paging hints to the OS.
- *
- * @param topo Topology handle (non-NULL recommended; if NULL, binding is skipped).
- * @param n_sockets Desired number of sockets; if <= 0, derived from @p topo
- *                  or defaults to 1 if unknown.
- * @param blob Source blob pointer (non-NULL).
- * @param blob_size Size of @p blob in bytes (> 0).
- * @param out Output pointer for the replicas object (non-NULL).
- * @return 0 on success; negative errno-like code on failure.
- */
 int ie_hot_replicate_build(const ie_topology_t* topo,
                            int n_sockets,
                            const void* blob,
@@ -253,28 +212,6 @@ fail:
   return rc ? rc : -ENOMEM;
 }
 
-/**
- * @brief Create per-socket replicas using a user callback to fill them (fill mode).
- *
- * @details
- * Preferred for runtime reconstruction: each replica is constructed in-place on
- * its socket after first-touch to avoid cross-socket memcpy bandwidth.
- *
- * For each socket:
- *  1) Bind to that socket via ie_topology_bind_thread_to_socket().
- *  2) Allocate replica memory and first-touch it to establish locality.
- *  3) Invoke @p fill(socket_id, replica_ptr, replica_size, user).
- *  4) Provide best-effort paging hints to the OS.
- *
- * @param topo Topology handle (non-NULL recommended; if NULL, binding is skipped).
- * @param n_sockets Desired number of sockets; if <= 0, derived from @p topo
- *                  or defaults to 1 if unknown.
- * @param replica_size Size in bytes of each replica (> 0).
- * @param fill Callback to populate each per-socket replica (non-NULL).
- * @param user Opaque user pointer passed to @p fill.
- * @param out Output pointer for the replicas object (non-NULL).
- * @return 0 on success; negative errno-like code on failure.
- */
 int ie_hot_replicate_build_fill(const ie_topology_t* topo,
                                 int n_sockets,
                                 size_t replica_size,
@@ -326,23 +263,10 @@ fail:
   return rc ? rc : -ENOMEM;
 }
 
-/**
- * @brief Free replicas previously built by the build functions.
- *
- * @param reps Replicas object (NULL is allowed).
- */
 void ie_hot_replicas_free(ie_hot_replicas_t* reps) {
   free_replicas_internal(reps);
 }
 
-/**
- * @brief Retrieve the replica pointer for a specific socket.
- *
- * @param reps Replicas object (non-NULL).
- * @param socket_id Socket id (>= 0).
- * @param size_out Optional return for replica size; may be NULL.
- * @return Pointer to replica memory or NULL on error.
- */
 void* ie_hot_replica_for_socket(const ie_hot_replicas_t* reps,
                                 int socket_id,
                                 size_t* size_out)
@@ -352,17 +276,6 @@ void* ie_hot_replica_for_socket(const ie_hot_replicas_t* reps,
   return reps->r[socket_id].ptr;
 }
 
-/**
- * @brief Convenience API: memcpy into a given socket’s replica.
- *
- * @details
- * Copies exactly the size of the existing replica buffer for @p socket_id.
- *
- * @param reps Replicas object (non-NULL).
- * @param socket_id Target socket id (>= 0).
- * @param src Source bytes (non-NULL). Must be at least replica size.
- * @return 0 on success; -EINVAL on bad args; -ENOBUFS if replica size is zero.
- */
 int ie_hot_replica_memcpy(ie_hot_replicas_t* reps, int socket_id, const void* src) {
   if (!reps || !src || socket_id < 0 || socket_id >= reps->n_sockets) return -EINVAL;
   void* dst = reps->r[socket_id].ptr;

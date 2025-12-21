@@ -14,5 +14,5 @@ var structie__tensor__ref =
     [ "off_exceptions", "structie__tensor__ref.html#a610ac41d587364cb6d32e37d797e97cc", null ],
     [ "off_mask", "structie__tensor__ref.html#aaf650d42ae89c734d23bcd72a6d0123f", null ],
     [ "rank", "structie__tensor__ref.html#aae2e0c21e7005e36c31bd1f5c62720d7", null ],
-    [ "shape", "structie__tensor__ref.html#a95e95e5a2dc842559a6a34bc74659637", null ]
+    [ "shape", "structie__tensor__ref.html#a417b5912b4fbd1873f05e0bde0bd87bd", null ]
 ];

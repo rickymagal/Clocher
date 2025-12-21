@@ -3,188 +3,158 @@
 
 /**
  * @file dedup_spec.h
- * @brief Lossless deduplication specification for "defaults + masks + exceptions".
+ * @brief Types that describe the on-disk lossless deduplicated weights layout.
  *
- * This header defines the in-memory representation of a deduplication specification and
- * the binary file layout used to store deduplicated weights losslessly.
+ * @details
+ * The dedup format splits weights into:
+ *  - defaults: a baseline tensor byte stream,
+ *  - mask: a bitset that marks which logical elements are overridden,
+ *  - exceptions: a packed stream of overridden elements.
  *
- * The design is intentionally byte-oriented:
- * - A "tensor" is treated as a raw byte blob (works for FP16, BF16, INT8, packed INT4, etc.).
- * - The mask has 1 bit per byte in the tensor blob.
- * - The exception payload stores the exact original bytes at masked positions in ascending byte index order.
+ * A tensor is reconstructed by copying defaults then patching in exceptions
+ * wherever the mask bit is 1.
  *
- * Reconstruction rule for a target tensor:
- *   target_bytes = default_bytes (same size) patched by (mask, exceptions).
- *
- * Files (relative to model directory):
- * - model.defaults.bin    concatenated default blobs (raw bytes)
- * - model.masks.bin       concatenated bitmasks (ceil(nbytes/8) bytes each)
- * - model.exceptions.bin  concatenated exception bytes (popcount(mask) bytes each)
- *
- * The JSON spec (model.dedup.json) links logical tensors to slices of those files.
+ * The "spec" describes where each of those byte ranges live inside one or more
+ * binary files. It is intentionally lightweight and loader-agnostic.
  */
 
-#include <stdint.h>
 #include <stddef.h>
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/** @brief Magic value for validating a parsed spec in memory ("DUDP"). */
-#define IE_DEDUP_MAGIC 0x44554450u
-
-/** @brief Spec version supported by this header. */
-#define IE_DEDUP_VERSION 1u
+/** Maximum tensor rank supported by the dedup loader/spec. */
+#ifndef IE_DEDUP_MAX_RANK
+#define IE_DEDUP_MAX_RANK 8
+#endif
 
 /**
- * @struct ie_dedup_target_t
- * @brief One deduplicated target tensor entry.
- *
- * Each target tensor is reconstructed by taking a default blob and applying a sparse patch.
- * All offsets are byte offsets into their respective files.
+ * @enum ie_wdtype_t
+ * @brief Minimal dtype set used by the dedup weights layer.
  */
-typedef struct ie_dedup_target_s {
-  /** @brief Tensor index in the engine's tensor table (caller-defined mapping). */
-  uint32_t tensor_index;
+typedef enum ie_wdtype_t {
+  IE_WDTYPE_UNKNOWN = 0,
+  IE_WDTYPE_FP32,
+  IE_WDTYPE_FP16,
+  IE_WDTYPE_BF16,
+  IE_WDTYPE_INT8,
+  IE_WDTYPE_INT4
+} ie_wdtype_t;
 
-  /** @brief Tensor size in bytes. Must equal the group's default_nbytes. */
+/**
+ * @struct ie_dedup_blobref_t
+ * @brief Reference to a contiguous byte range inside a logical file.
+ */
+typedef struct ie_dedup_blobref_t {
+  /** Index into ie_dedup_spec_t::files[] */
+  uint32_t file_index;
+  /** Offset in bytes from the start of that file. */
+  uint64_t offset;
+  /** Number of bytes in the referenced range. */
   uint64_t nbytes;
-
-  /** @brief Offset into masks.bin where this target's mask starts. */
-  uint64_t mask_off;
-
-  /** @brief Size of this target's mask in bytes (ceil(nbytes/8)). */
-  uint64_t mask_nbytes;
-
-  /** @brief Offset into exceptions.bin where this target's exception bytes start. */
-  uint64_t exc_off;
-
-  /** @brief Size of this target's exception byte payload (popcount(mask)). */
-  uint64_t exc_nbytes;
-} ie_dedup_target_t;
+} ie_dedup_blobref_t;
 
 /**
- * @struct ie_dedup_group_t
- * @brief A group of targets that share one default tensor blob.
- *
- * A group defines:
- * - one default blob slice in defaults.bin
- * - N target tensors each with their own (mask, exceptions) slices
+ * @struct ie_dedup_tensor_t
+ * @brief Specification entry for one tensor in the dedup format.
  */
-typedef struct ie_dedup_group_s {
-  /** @brief Tensor index of the default reference tensor (caller-defined mapping). */
-  uint32_t default_tensor_index;
+typedef struct ie_dedup_tensor_t {
+  /** Tensor name (NUL-terminated). Owned by the spec object. */
+  char* name;
 
-  /** @brief Size of the default tensor blob in bytes. */
-  uint64_t default_nbytes;
+  /** Tensor dtype. */
+  ie_wdtype_t dtype;
 
-  /** @brief Offset into defaults.bin where this group's default blob starts. */
-  uint64_t default_off;
+  /** Tensor rank. */
+  int32_t rank;
 
-  /** @brief Number of targets in this group. */
-  uint32_t ntargets;
+  /** Tensor shape (length = rank). */
+  int64_t shape[IE_DEDUP_MAX_RANK];
 
-  /** @brief Pointer to the first target entry (owned by the spec). */
-  const ie_dedup_target_t* targets;
-} ie_dedup_group_t;
+  /** Defaults payload location. */
+  ie_dedup_blobref_t defaults;
+
+  /** Mask payload location. */
+  ie_dedup_blobref_t mask;
+
+  /** Exceptions payload location. */
+  ie_dedup_blobref_t exceptions;
+
+  /** Logical element count (product(shape)). */
+  size_t elem_count;
+
+  /**
+   * Size in bytes of one logical element for non-int4 dtypes.
+   * For int4, elem_size is 0 (nibbles are packed).
+   */
+  size_t elem_size;
+} ie_dedup_tensor_t;
+
+/**
+ * @struct ie_dedup_file_t
+ * @brief One file listed in the spec.
+ */
+typedef struct ie_dedup_file_t {
+  /** Logical name used in the JSON. */
+  char* logical;
+  /** Relative path (as stored in JSON). */
+  char* relpath;
+} ie_dedup_file_t;
 
 /**
  * @struct ie_dedup_spec_t
- * @brief Top-level parsed dedup spec.
- *
- * Ownership model:
- * - groups and targets_flat are owned by the spec parser / arena.
- * - pointers in groups point into targets_flat.
- *
- * The engine typically keeps one spec per model directory.
+ * @brief Full dedup spec describing all files and tensors.
  */
-typedef struct ie_dedup_spec_s {
-  /** @brief Must be IE_DEDUP_MAGIC after successful parsing/validation. */
-  uint32_t magic;
+typedef struct ie_dedup_spec_t {
+  /** Model directory the spec was loaded from (NUL-terminated). */
+  char* model_dir;
 
-  /** @brief Must be IE_DEDUP_VERSION after successful parsing/validation. */
-  uint32_t version;
+  /** File table. */
+  ie_dedup_file_t* files;
+  size_t files_count;
 
-  /** @brief Number of groups. */
-  uint32_t ngroups;
-
-  /** @brief Pointer to groups array (owned by the spec). */
-  const ie_dedup_group_t* groups;
-
-  /** @brief Flat storage of all targets (owned by the spec). */
-  const ie_dedup_target_t* targets_flat;
-
-  /** @brief Number of entries in targets_flat. */
-  uint32_t targets_flat_count;
-
-  /** @brief Total file sizes in bytes for sanity checks (optional but recommended). */
-  uint64_t defaults_size;
-
-  /** @brief Total masks.bin size in bytes for sanity checks. */
-  uint64_t masks_size;
-
-  /** @brief Total exceptions.bin size in bytes for sanity checks. */
-  uint64_t exceptions_size;
+  /** Tensor table (usually sorted by name for lookup). */
+  ie_dedup_tensor_t* tensors;
+  size_t tensors_count;
 } ie_dedup_spec_t;
 
 /**
- * @struct ie_dedup_spec_arena_t
- * @brief Simple bump allocator used by a spec parser to avoid heap fragmentation.
+ * @brief Parse a dtype string into ie_wdtype_t.
  *
- * This is intentionally minimal: allocate from a caller-provided buffer.
+ * @param s Dtype string (e.g. "fp16", "int4").
+ * @return Parsed dtype or IE_WDTYPE_UNKNOWN.
  */
-typedef struct ie_dedup_spec_arena_s {
-  /** @brief Base address of the arena storage. */
-  void* base;
-
-  /** @brief Total arena capacity in bytes. */
-  size_t cap;
-
-  /** @brief Bytes already allocated (bump pointer). */
-  size_t len;
-} ie_dedup_spec_arena_t;
+ie_wdtype_t ie_dedup_parse_dtype(const char* s);
 
 /**
- * @brief Initialize a spec arena using caller-provided storage.
- * @param a Arena instance.
- * @param mem Backing storage.
- * @param cap Capacity in bytes.
+ * @brief Return the element size (bytes) for a dtype.
+ *
+ * @details
+ * For int4 this returns 0 because elements are packed into nibbles.
+ *
+ * @param dt Dtype.
+ * @return Size in bytes (0 for int4 / unknown).
  */
-static inline void ie_dedup_arena_init(ie_dedup_spec_arena_t* a, void* mem, size_t cap) {
-  a->base = mem;
-  a->cap = cap;
-  a->len = 0;
-}
+size_t ie_dedup_dtype_elem_size(ie_wdtype_t dt);
 
 /**
- * @brief Allocate aligned memory from a bump arena.
+ * @brief Compute element count from shape.
  *
- * @param a Arena instance.
- * @param nbytes Number of bytes requested.
- * @param align Alignment (power of two).
- * @return Pointer to allocated space, or NULL on out-of-memory.
+ * @param shape Shape array.
+ * @param rank Rank.
+ * @param out_elem_count Output element count.
+ * @return 1 on success, 0 on overflow/invalid.
  */
-void* ie_dedup_arena_alloc(ie_dedup_spec_arena_t* a, size_t nbytes, size_t align);
+int ie_dedup_shape_elem_count(const int64_t* shape, int32_t rank, size_t* out_elem_count);
 
 /**
- * @brief Compute mask size in bytes for a tensor byte length.
- * @param nbytes Tensor size in bytes.
- * @return ceil(nbytes/8).
- */
-static inline uint64_t ie_dedup_mask_nbytes(uint64_t nbytes) {
-  return (nbytes + 7u) / 8u;
-}
-
-/**
- * @brief Validate basic invariants of a parsed spec.
+ * @brief Free all heap memory owned by a spec and set *spec to NULL.
  *
- * This checks only structural constraints; it does not require opening files.
- *
- * @param s Spec pointer.
- * @return 0 on success, non-zero on validation error.
+ * @param spec Pointer to spec pointer.
  */
-int ie_dedup_spec_validate(const ie_dedup_spec_t* s);
+void ie_dedup_spec_free(ie_dedup_spec_t** spec);
 
 #ifdef __cplusplus
 } /* extern "C" */

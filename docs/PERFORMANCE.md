@@ -1,69 +1,69 @@
 # Performance Notes
 
-_Last updated: **2025-12-21 12:26:31 UTC**_
+_Last updated: **2025-12-21 15:12:50 UTC**_
 
 
-**Best true TPS:** **CPU — 33.717**.
+**Best true TPS:** **CPU — 34.205**.
 
 ## CPU — Summary (latest benchmark)
 - Runs: **1**
-- Tokens generated (Σ): **128**
-- Wall time (Σ): **3.796 s**
-- True TPS (Σ tokens / Σ time): **33.717**
+- Tokens generated (Σ): **256**
+- Wall time (Σ): **7.484 s**
+- True TPS (Σ tokens / Σ time): **34.205**
 
 ## Latency
-- p50 (mean across runs): **29.659 ms**
-- p95 (mean across runs): **59.318 ms**
+- p50 (mean across runs): **29.235 ms**
+- p95 (mean across runs): **58.471 ms**
 
 ## Spatial Complexity (Memory & Cache)
-- RSS peak (mean): **4629.000 MB**
-- RSS peak (max): **4629.000 MB**
-- KV cache: **1 hits / 127 misses**
+- RSS peak (mean): **4160.000 MB**
+- RSS peak (max): **4160.000 MB**
+- KV cache: **129 hits / 127 misses**
 - IE_BYTES_PER_TOKEN: **64.0 MB/token**
-- Bytes touched (Σ): **8.2 GB**
+- Bytes touched (Σ): **16.4 GB**
 - Working-set coverage (bytes_per_token / model.bin): **0.005**
-- Effective bandwidth: **2.16 GB/s**
+- Effective bandwidth: **2.19 GB/s**
 
 ### Memory Details
-- PSS peak (mean / max): **0.472 MB / 0.472 MB**
-- VMS peak (mean / max): **4.391 MB / 4.391 MB**
-- RSS floor (mean / max): **1.922 MB / 1.922 MB**
-- RSS delta vs baseline (mean / max): **0.000 MB / 0.000 MB**
+- PSS peak (mean / max): **4245.127 MB / 4245.127 MB**
+- VMS peak (mean / max): **13127.461 MB / 13127.461 MB**
+- RSS floor (mean / max): **27.254 MB / 27.254 MB**
+- RSS delta vs baseline (mean / max): **4127.891 MB / 4127.891 MB**
 - Page faults (minor Σ / major Σ): **0 / 0**
 - Swap I/O (in Σ / out Σ): **0.0 MB / 0.0 MB**
-- PSI memory 'some' (mean / max): **1.91 % / 1.91 %**
-- PSI memory 'full' (mean / max): **1.91 % / 1.91 %**
-- System MemAvailable (mean): **4634.5 MB** — **60.0 % of MemTotal**
+- PSI memory 'some' (mean / max): **5.56 % / 5.56 %**
+- PSI memory 'full' (mean / max): **5.56 % / 5.56 %**
+- System MemAvailable (mean): **4187.2 MB** — **54.2 % of MemTotal**
 
 ## GPU — Summary (latest benchmark)
 - Runs: **1**
-- Tokens generated (Σ): **128**
-- Wall time (Σ): **3.986 s**
-- True TPS (Σ tokens / Σ time): **32.110**
+- Tokens generated (Σ): **256**
+- Wall time (Σ): **8.273 s**
+- True TPS (Σ tokens / Σ time): **30.944**
 
 ## Latency
-- p50 (mean across runs): **31.143 ms**
-- p95 (mean across runs): **62.286 ms**
+- p50 (mean across runs): **32.316 ms**
+- p95 (mean across runs): **64.632 ms**
 
 ## Spatial Complexity (Memory & Cache)
-- RSS peak (mean): **4636.000 MB**
-- RSS peak (max): **4636.000 MB**
-- KV cache: **1 hits / 127 misses**
+- RSS peak (mean): **4101.000 MB**
+- RSS peak (max): **4101.000 MB**
+- KV cache: **129 hits / 127 misses**
 - IE_BYTES_PER_TOKEN: **64.0 MB/token**
-- Bytes touched (Σ): **8.2 GB**
+- Bytes touched (Σ): **16.4 GB**
 - Working-set coverage (bytes_per_token / model.bin): **0.005**
-- Effective bandwidth: **2.06 GB/s**
+- Effective bandwidth: **1.98 GB/s**
 
 ### Memory Details
-- PSS peak (mean / max): **0.472 MB / 0.472 MB**
-- VMS peak (mean / max): **4.391 MB / 4.391 MB**
-- RSS floor (mean / max): **1.984 MB / 1.984 MB**
-- RSS delta vs baseline (mean / max): **0.000 MB / 0.000 MB**
+- PSS peak (mean / max): **4196.646 MB / 4196.646 MB**
+- VMS peak (mean / max): **13130.234 MB / 13130.234 MB**
+- RSS floor (mean / max): **29.520 MB / 29.520 MB**
+- RSS delta vs baseline (mean / max): **4048.340 MB / 4048.340 MB**
 - Page faults (minor Σ / major Σ): **0 / 0**
 - Swap I/O (in Σ / out Σ): **0.0 MB / 0.0 MB**
-- PSI memory 'some' (mean / max): **1.74 % / 1.74 %**
-- PSI memory 'full' (mean / max): **1.74 % / 1.74 %**
-- System MemAvailable (mean): **4688.6 MB** — **60.7 % of MemTotal**
+- PSI memory 'some' (mean / max): **4.04 % / 4.04 %**
+- PSI memory 'full' (mean / max): **4.04 % / 4.04 %**
+- System MemAvailable (mean): **4182.3 MB** — **54.1 % of MemTotal**
 
 ## Run Parameters & Conditions
 - Engine bin: `/home/ricky/Desktop/Clocher/build/inference-engine`
@@ -86,7 +86,7 @@ _Last updated: **2025-12-21 12:26:31 UTC**_
 - RAM (MemTotal): **8.1 GB**
 - OS: **Linux Mint 21.3**
 - Kernel: **5.15.0-163-generic-x86_64**
-- Git commit: **8dd5437 DIRTY**
+- Git commit: **7de6f91 DIRTY**
 - Model file: **/home/ricky/Desktop/Clocher/models/gpt-oss-20b/model.ie.bin**
 - Model size: **13.761 GB**
 
@@ -94,5 +94,5 @@ _Last updated: **2025-12-21 12:26:31 UTC**_
 
 | Device | Run | Tokens | Wall (s) | TPS | p50 (ms) | p95 (ms) | RSS peak (MB) | PSS peak (MB) | VMS peak (MB) | minflt | majflt |
 |:------:|----:|-------:|---------:|----:|---------:|---------:|--------------:|--------------:|--------------:|------:|------:|
-| CPU | 1 | 128 | 3.796 | 33.717 | 29.659 | 59.318 | 4629.000 | 0.472 | 4.391 | 0 | 0 |
-| GPU | 1 | 128 | 3.986 | 32.110 | 31.143 | 62.286 | 4636.000 | 0.472 | 4.391 | 0 | 0 |
+| CPU | 1 | 256 | 7.484 | 34.205 | 29.235 | 58.471 | 4160.000 | 4245.127 | 13127.461 | 0 | 0 |
+| GPU | 1 | 256 | 8.273 | 30.944 | 32.316 | 64.632 | 4101.000 | 4196.646 | 13130.234 | 0 | 0 |

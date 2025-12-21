@@ -1,39 +1,22 @@
-/* engine/src/io/weights_dedup.c */
 /**
  * @file weights_dedup.c
- * @brief Lossless deduplicated-weights loader implementation.
+ * @brief Lossless deduplicated-weights loader and materialization utilities.
+ *
+ * @details
+ * This module loads a deduplicated weights manifest (model.dedup.json) and
+ * mmaps the referenced blobs (defaults / masks / exceptions). It exposes
+ * tensor "views" that either:
+ *   - directly reference contiguous bytes (direct view), or
+ *   - describe a lossless reconstruction (dedup view) via (defaults + mask + exceptions).
  *
  * Design goals:
- *  - mmap-friendly: map large blobs once, return pointer views
- *  - low overhead lookup: sorted tensor table + binary search
+ *  - mmap-friendly: map large blobs once and provide pointer views
+ *  - low overhead lookup: sort tensor table by name and binary search
  *  - lossless: exact reconstruction via mask + exceptions stream
- *
- * This module intentionally uses a minimal, self-contained JSON scanner that supports
- * the subset of JSON needed for `model.dedup.json`. This avoids hard dependencies on
- * external JSON libraries and keeps build integration simple.
- *
- * Expected JSON shape (subset):
- *
- * {
- *   "files": {
- *     "defaults": "model.defaults.bin",
- *     "exceptions": "model.exceptions.bin",
- *     "masks": "model.masks.bin"
- *   },
- *   "tensors": [
- *     {
- *       "name": "layers.0.attn.q_proj.weight",
- *       "dtype": "fp16",
- *       "shape": [4096, 4096],
- *       "default":    {"file":"defaults",   "offset":123, "nbytes":456},
- *       "mask":       {"file":"masks",      "offset":789, "nbytes":1011},
- *       "exceptions": {"file":"exceptions", "offset":1213,"nbytes":1415}
- *     }
- *   ]
- * }
+ *  - minimal dependencies: internal JSON scanner for a strict subset of JSON
  *
  * Mask semantics:
- *  - bit=1 indicates an exception element is present and consumed from exceptions stream.
+ *  - bit=1 indicates an exception element is present and consumed from the exceptions stream.
  *  - For int4, elements are nibbles in row-major order (index i maps to byte i/2, nibble i%2).
  */
 
@@ -49,8 +32,33 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-/* ----------------------------- Internal helpers ----------------------------- */
+/* -------------------------------------------------------------------------- */
+/* Compatibility macros                                                       */
+/* -------------------------------------------------------------------------- */
+/**
+ * @brief Compatibility alias for rank macro across header revisions.
+ *
+ * @details
+ * Some header versions expose IE_DEDUP_MAX_RANK, while older code used
+ * IE_WDEDUP_MAX_RANK. This module supports both without requiring header edits.
+ */
+#ifndef IE_WDEDUP_MAX_RANK
+  #ifdef IE_DEDUP_MAX_RANK
+    #define IE_WDEDUP_MAX_RANK IE_DEDUP_MAX_RANK
+  #else
+    #define IE_WDEDUP_MAX_RANK 8
+  #endif
+#endif
 
+/* -------------------------------------------------------------------------- */
+/* Internal helpers                                                           */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * @brief Duplicate a C string (NULL-safe).
+ * @param s Input string (may be NULL).
+ * @return Newly allocated copy, or NULL on allocation failure.
+ */
 static char *ie_strdup(const char *s) {
   const char *src = s ? s : "";
   size_t n = strlen(src);
@@ -61,6 +69,12 @@ static char *ie_strdup(const char *s) {
   return out;
 }
 
+/**
+ * @brief Read a full file into an allocated NUL-terminated buffer.
+ * @param path File path.
+ * @param out_size Optional size output (bytes excluding trailing NUL).
+ * @return Allocated text buffer, or NULL on failure.
+ */
 static char *ie_read_file_text(const char *path, size_t *out_size) {
   int fd = open(path, O_RDONLY);
   if (fd < 0) return NULL;
@@ -101,6 +115,12 @@ static char *ie_read_file_text(const char *path, size_t *out_size) {
   return buf;
 }
 
+/**
+ * @brief Join directory and relative path with exactly one '/' separator.
+ * @param dir Base directory.
+ * @param rel Relative path.
+ * @return Newly allocated joined path, or NULL on allocation failure.
+ */
 static char *ie_path_join(const char *dir, const char *rel) {
   if (!dir || !rel) return NULL;
   size_t nd = strlen(dir);
@@ -119,6 +139,12 @@ static char *ie_path_join(const char *dir, const char *rel) {
   return p;
 }
 
+/**
+ * @brief Apply best-effort madvise policy for mapped files.
+ * @param addr Base address.
+ * @param len Length in bytes.
+ * @param policy 0=none, 1=sequential, 2=willneed.
+ */
 static void ie_madvise_policy(void *addr, size_t len, int policy) {
   if (!addr || len == 0) return;
 #if defined(MADV_SEQUENTIAL) && defined(MADV_WILLNEED)
@@ -131,6 +157,9 @@ static void ie_madvise_policy(void *addr, size_t len, int policy) {
 #endif
 }
 
+/**
+ * @brief Small mmap descriptor for a single file.
+ */
 typedef struct ie_mmap_file {
   char *path;
   int fd;
@@ -138,6 +167,13 @@ typedef struct ie_mmap_file {
   size_t size;
 } ie_mmap_file_t;
 
+/**
+ * @brief mmap a file read-only.
+ * @param mf Output descriptor.
+ * @param path Path to file.
+ * @param policy madvise policy (see ie_madvise_policy()).
+ * @return Status code.
+ */
 static ie_wdedup_status_t ie_mmap_ro(ie_mmap_file_t *mf, const char *path, int policy) {
   if (!mf || !path) return IE_WDEDUP_EINVAL;
 
@@ -185,6 +221,10 @@ static ie_wdedup_status_t ie_mmap_ro(ie_mmap_file_t *mf, const char *path, int p
   return IE_WDEDUP_OK;
 }
 
+/**
+ * @brief Close/unmap a mapped file descriptor.
+ * @param mf Descriptor to close.
+ */
 static void ie_mmap_close(ie_mmap_file_t *mf) {
   if (!mf) return;
   if (mf->base && mf->size) (void)munmap(mf->base, mf->size);
@@ -194,18 +234,37 @@ static void ie_mmap_close(ie_mmap_file_t *mf) {
   mf->fd = -1;
 }
 
-/* ----------------------------- Minimal JSON scan ---------------------------- */
+/* -------------------------------------------------------------------------- */
+/* Minimal JSON scan                                                          */
+/* -------------------------------------------------------------------------- */
 
+/**
+ * @brief Skip whitespace for the internal JSON scanner.
+ * @param p Input pointer.
+ * @return First non-whitespace char pointer.
+ */
 static const char *js_skip_ws(const char *p) {
   while (*p == ' ' || *p == '\t' || *p == '\n' || *p == '\r') p++;
   return p;
 }
 
+/**
+ * @brief Match a literal token at p.
+ * @param p Input pointer.
+ * @param lit Literal string to match.
+ * @return Non-zero if matched.
+ */
 static int js_match_lit(const char *p, const char *lit) {
   size_t n = strlen(lit);
   return (strncmp(p, lit, n) == 0);
 }
 
+/**
+ * @brief Parse a JSON string into an allocated C string.
+ * @param p In/out pointer.
+ * @param out Allocated output string (caller must free).
+ * @return 1 on success, 0 on failure.
+ */
 static int js_parse_string(const char **p, char **out) {
   const char *s = js_skip_ws(*p);
   if (*s != '"') return 0;
@@ -254,6 +313,12 @@ static int js_parse_string(const char **p, char **out) {
   return 1;
 }
 
+/**
+ * @brief Parse a signed JSON integer (int64).
+ * @param p In/out pointer.
+ * @param out Parsed value.
+ * @return 1 on success, 0 on failure.
+ */
 static int js_parse_i64(const char **p, int64_t *out) {
   const char *s = js_skip_ws(*p);
   int neg = 0;
@@ -277,6 +342,11 @@ static int js_parse_i64(const char **p, int64_t *out) {
 
 static int js_skip_value(const char **p);
 
+/**
+ * @brief Skip a JSON array (recursively skipping nested values).
+ * @param p In/out pointer.
+ * @return 1 on success, 0 on failure.
+ */
 static int js_skip_array(const char **p) {
   const char *s = js_skip_ws(*p);
   if (*s != '[') return 0;
@@ -303,6 +373,11 @@ static int js_skip_array(const char **p) {
   }
 }
 
+/**
+ * @brief Skip a JSON object (recursively skipping nested values).
+ * @param p In/out pointer.
+ * @return 1 on success, 0 on failure.
+ */
 static int js_skip_object(const char **p) {
   const char *s = js_skip_ws(*p);
   if (*s != '{') return 0;
@@ -336,6 +411,11 @@ static int js_skip_object(const char **p) {
   }
 }
 
+/**
+ * @brief Skip an arbitrary JSON value.
+ * @param p In/out pointer.
+ * @return 1 on success, 0 on failure.
+ */
 static int js_skip_value(const char **p) {
   const char *s = js_skip_ws(*p);
   if (*s == '"') {
@@ -375,6 +455,13 @@ static int js_skip_value(const char **p) {
   return 0;
 }
 
+/**
+ * @brief Find member value pointer inside an object (top-level scan).
+ * @param json Pointer to object start.
+ * @param key Member name to find.
+ * @param out_val Output pointer to the start of the member value.
+ * @return 1 if found, 0 otherwise.
+ */
 static int js_find_member_value(const char *json, const char *key, const char **out_val) {
   const char *p = js_skip_ws(json);
   if (*p != '{') return 0;
@@ -413,13 +500,21 @@ static int js_find_member_value(const char *json, const char *key, const char **
   }
 }
 
-/* --------------------------- Dedup data structures -------------------------- */
+/* -------------------------------------------------------------------------- */
+/* Dedup data structures                                                       */
+/* -------------------------------------------------------------------------- */
 
+/**
+ * @brief Manifest "files" entry: maps logical names to relative paths.
+ */
 typedef struct ie_file_ref {
   char *logical;
   char *relpath;
 } ie_file_ref_t;
 
+/**
+ * @brief One tensor entry from the manifest.
+ */
 typedef struct ie_tensor_ref {
   char *name;
   ie_wdtype_t dtype;
@@ -443,6 +538,9 @@ typedef struct ie_tensor_ref {
   size_t elem_size;
 } ie_tensor_ref_t;
 
+/**
+ * @brief Main handle for dedup weights access.
+ */
 struct ie_weights_dedup {
   char *model_dir;
 
@@ -455,7 +553,9 @@ struct ie_weights_dedup {
   int prefault_policy;
 };
 
-/* ----------------------------- Dtype utilities ------------------------------ */
+/* -------------------------------------------------------------------------- */
+/* Dtype utilities                                                             */
+/* -------------------------------------------------------------------------- */
 
 ie_wdtype_t ie_weights_dedup_parse_dtype(const char *s) {
   if (!s) return IE_WDTYPE_UNKNOWN;
@@ -467,6 +567,11 @@ ie_wdtype_t ie_weights_dedup_parse_dtype(const char *s) {
   return IE_WDTYPE_UNKNOWN;
 }
 
+/**
+ * @brief Return element size in bytes for non-int4 dtypes.
+ * @param dt Dtype.
+ * @return Element size in bytes; returns 0 for int4 and unknown.
+ */
 static size_t ie_dtype_elem_size(ie_wdtype_t dt) {
   switch (dt) {
     case IE_WDTYPE_FP32: return 4;
@@ -478,6 +583,13 @@ static size_t ie_dtype_elem_size(ie_wdtype_t dt) {
   }
 }
 
+/**
+ * @brief Compute element count from shape (checked multiplication).
+ * @param shape Shape array.
+ * @param rank Rank.
+ * @param out Output element count.
+ * @return 1 on success, 0 on failure (overflow or invalid dims).
+ */
 static int ie_shape_elem_count(const int64_t *shape, int32_t rank, size_t *out) {
   if (!shape || !out || rank < 0 || rank > IE_WDEDUP_MAX_RANK) return 0;
   size_t n = 1;
@@ -494,14 +606,25 @@ static int ie_shape_elem_count(const int64_t *shape, int32_t rank, size_t *out) 
   return 1;
 }
 
-/* ------------------------- Tensor table / lookup ---------------------------- */
+/* -------------------------------------------------------------------------- */
+/* Tensor table / lookup                                                       */
+/* -------------------------------------------------------------------------- */
 
+/**
+ * @brief Comparator for sorting/bsearch by tensor name.
+ */
 static int ie_tensor_cmp_name(const void *a, const void *b) {
   const ie_tensor_ref_t *A = (const ie_tensor_ref_t *)a;
   const ie_tensor_ref_t *B = (const ie_tensor_ref_t *)b;
   return strcmp(A->name, B->name);
 }
 
+/**
+ * @brief Lookup tensor metadata by name via bsearch.
+ * @param h Handle.
+ * @param name Tensor name.
+ * @return Pointer to tensor ref or NULL if not found.
+ */
 static const ie_tensor_ref_t *ie_find_tensor(const ie_weights_dedup_t *h, const char *name) {
   if (!h || !name || !h->tensors || h->tensors_count == 0) return NULL;
 
@@ -513,8 +636,17 @@ static const ie_tensor_ref_t *ie_find_tensor(const ie_weights_dedup_t *h, const 
                                           sizeof(h->tensors[0]), ie_tensor_cmp_name);
 }
 
-/* ------------------------------- JSON parsing ------------------------------- */
+/* -------------------------------------------------------------------------- */
+/* JSON parsing                                                                */
+/* -------------------------------------------------------------------------- */
 
+/**
+ * @brief Parse a JSON array of int64 as a shape.
+ * @param p In/out pointer.
+ * @param shape Output shape.
+ * @param rank Output rank.
+ * @return 1 on success, 0 on failure.
+ */
 static int js_parse_shape(const char **p, int64_t *shape, int32_t *rank) {
   const char *s = js_skip_ws(*p);
   if (*s != '[') return 0;
@@ -550,6 +682,14 @@ static int js_parse_shape(const char **p, int64_t *shape, int32_t *rank) {
   }
 }
 
+/**
+ * @brief Parse a blob reference object: {"file": "...", "offset": N, "nbytes": N}
+ * @param p In/out pointer.
+ * @param out_file Allocated logical filename string.
+ * @param out_off Offset output.
+ * @param out_nb Size output.
+ * @return 1 on success, 0 on failure.
+ */
 static int js_parse_blobref(const char **p, char **out_file, int64_t *out_off, int64_t *out_nb) {
   if (!p || !*p || !out_file || !out_off || !out_nb) return 0;
 
@@ -572,6 +712,13 @@ static int js_parse_blobref(const char **p, char **out_file, int64_t *out_off, i
   return js_skip_object(p);
 }
 
+/**
+ * @brief Parse the "files" object mapping logical names to relative file paths.
+ * @param json_obj Pointer to the object value.
+ * @param out Output array.
+ * @param out_count Output count.
+ * @return Status code.
+ */
 static ie_wdedup_status_t ie_parse_files_object(const char *json_obj,
                                                 ie_file_ref_t **out,
                                                 size_t *out_count) {
@@ -656,6 +803,14 @@ static ie_wdedup_status_t ie_parse_files_object(const char *json_obj,
   return IE_WDEDUP_OK;
 }
 
+/**
+ * @brief Find file index in parsed file refs by logical name.
+ * @param refs Array.
+ * @param n Count.
+ * @param logical Logical name.
+ * @param out_idx Output index.
+ * @return 1 if found, 0 otherwise.
+ */
 static int ie_find_file_index(const ie_file_ref_t *refs, size_t n, const char *logical, uint32_t *out_idx) {
   if (!refs || !logical || !out_idx) return 0;
   for (size_t i = 0; i < n; i++) {
@@ -667,6 +822,14 @@ static int ie_find_file_index(const ie_file_ref_t *refs, size_t n, const char *l
   return 0;
 }
 
+/**
+ * @brief Parse one tensor object from the "tensors" array.
+ * @param p In/out pointer (must point at '{').
+ * @param files File refs.
+ * @param files_n File refs count.
+ * @param out Output tensor ref.
+ * @return Status code.
+ */
 static ie_wdedup_status_t ie_parse_one_tensor(const char **p,
                                               const ie_file_ref_t *files,
                                               size_t files_n,
@@ -761,6 +924,15 @@ static ie_wdedup_status_t ie_parse_one_tensor(const char **p,
   return IE_WDEDUP_OK;
 }
 
+/**
+ * @brief Parse the "tensors" array.
+ * @param json_val Pointer to array start.
+ * @param files File refs.
+ * @param files_n File refs count.
+ * @param out Output tensor refs array.
+ * @param out_count Output count.
+ * @return Status code.
+ */
 static ie_wdedup_status_t ie_parse_tensors_array(const char *json_val,
                                                  const ie_file_ref_t *files,
                                                  size_t files_n,
@@ -826,7 +998,9 @@ static ie_wdedup_status_t ie_parse_tensors_array(const char *json_val,
   return IE_WDEDUP_OK;
 }
 
-/* ------------------------------- Public API -------------------------------- */
+/* -------------------------------------------------------------------------- */
+/* Public API                                                                  */
+/* -------------------------------------------------------------------------- */
 
 ie_wdedup_status_t ie_weights_dedup_open(ie_weights_dedup_t **out,
                                         const char *model_dir,
@@ -981,18 +1155,38 @@ ie_wdedup_status_t ie_weights_dedup_get_weight_view(const ie_weights_dedup_t *h,
   return IE_WDEDUP_OK;
 }
 
-/* -------------------------- Materialization helpers ------------------------- */
+/* -------------------------------------------------------------------------- */
+/* Materialization helpers                                                     */
+/* -------------------------------------------------------------------------- */
 
+/**
+ * @brief Read a bit from a packed bitset.
+ * @param bits Bitset base.
+ * @param i Bit index.
+ * @return 0 or 1.
+ */
 static inline int ie_bitset_get(const uint8_t *bits, size_t i) {
   return (bits[i >> 3] >> (unsigned)(i & 7u)) & 1u;
 }
 
+/**
+ * @brief Read one int4 nibble from a packed int4 buffer.
+ * @param p Base pointer.
+ * @param idx Element index.
+ * @return Nibble value [0..15].
+ */
 static inline uint8_t ie_int4_get_nibble(const uint8_t *p, size_t idx) {
   uint8_t b = p[idx >> 1];
   if ((idx & 1u) == 0) return (uint8_t)(b & 0x0F);
   return (uint8_t)((b >> 4) & 0x0F);
 }
 
+/**
+ * @brief Write one int4 nibble into a packed int4 buffer.
+ * @param p Base pointer.
+ * @param idx Element index.
+ * @param v Nibble value [0..15].
+ */
 static inline void ie_int4_set_nibble(uint8_t *p, size_t idx, uint8_t v) {
   uint8_t *b = &p[idx >> 1];
   v &= 0x0F;

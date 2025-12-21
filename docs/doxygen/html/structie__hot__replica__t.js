@@ -1,6 +1,6 @@
 var structie__hot__replica__t =
 [
-    [ "ptr", "structie__hot__replica__t.html#ad38d8c5efa881485a09a53e60841506f", null ],
-    [ "size", "structie__hot__replica__t.html#ac8d68a5a102adead1ecb936e7668610f", null ],
-    [ "socket_id", "structie__hot__replica__t.html#aba7f17e47c7049c70c2b084147cab3e9", null ]
+    [ "ptr", "structie__hot__replica__t.html#af4412cf7939ff90d9c555798440859be", null ],
+    [ "size", "structie__hot__replica__t.html#a44b95560c1c0c45396fdc30ad6fa3a72", null ],
+    [ "socket_id", "structie__hot__replica__t.html#a266ab40a9f3ef0866e6cef7cb8ffad95", null ]
 ];

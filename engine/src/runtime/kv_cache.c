@@ -16,15 +16,54 @@
  *
  * This file contains no dynamic threading or allocator hooks; callers control
  * parallelism outside and provide FP32 views on demand via ::ie_kv_load_token_f32.
+ *
+ * KV hit/miss instrumentation:
+ *   This module can optionally report "KV hits" and "KV misses" via the metrics
+ *   layer. We define safe no-op fallbacks so this file compiles regardless of
+ *   whether the build exposes hit/miss macros.
+ *
+ *   Semantics (within this module):
+ *     - hit:  ie_kv_load_token_f32() successfully loads token t
+ *     - miss: load request is out of range (t >= max_seq) or storage unknown
  */
 
 #include "ie_kv_cache.h"
 #include "ie_quant_act.h"
 
+/* Optional: metrics hooks (safe fallbacks). */
+#include "ie_metrics.h"
+
 #include <stdlib.h>
 #include <string.h>
-#include <math.h>
 #include <stdint.h>
+
+/* ----------------------------- instrumentation ----------------------------- */
+
+/**
+ * @brief Add KV hit count (safe fallback).
+ *
+ * @param n Number of hits to add.
+ */
+static inline void ie_kv_hit_add_local(uint64_t n) {
+#if defined(IE_KV_HIT)
+  IE_KV_HIT(n);
+#else
+  (void)n;
+#endif
+}
+
+/**
+ * @brief Add KV miss count (safe fallback).
+ *
+ * @param n Number of misses to add.
+ */
+static inline void ie_kv_miss_add_local(uint64_t n) {
+#if defined(IE_KV_MISS)
+  IE_KV_MISS(n);
+#else
+  (void)n;
+#endif
+}
 
 /* --------------------------------- helpers -------------------------------- */
 
@@ -71,7 +110,7 @@ static int kv_validate_and_derive(ie_kv_cache* kv, const ie_kv_opts* opts) {
   kv->symmetric  = opts->symmetric;
   kv->fp8_format = opts->fp8_format;
 
-  kv->elem_count = (size_t)kv->heads * (size_t)kv->max_seq * (size_t)kv->head_dim;
+  kv->elem_count  = (size_t)kv->heads * (size_t)kv->max_seq * (size_t)kv->head_dim;
   kv->group_count = ceil_div_sz((size_t)kv->head_dim, kv->group_size);
 
   kv->K = kv->V = NULL;
@@ -85,7 +124,7 @@ static int kv_validate_and_derive(ie_kv_cache* kv, const ie_kv_opts* opts) {
 
 size_t ie_kv_element_size(ie_kv_storage_type storage) {
   switch (storage) {
-    case IE_KV_STORAGE_F32: return sizeof(float);
+    case IE_KV_STORAGE_F32:  return sizeof(float);
     case IE_KV_STORAGE_INT8: return sizeof(int8_t);
     case IE_KV_STORAGE_FP8:  return sizeof(uint8_t);
     default: return 0;
@@ -132,7 +171,8 @@ void ie_kv_free(ie_kv_cache* kv) {
   if (kv->zeros_V)  { free(kv->zeros_V);  kv->zeros_V  = NULL; }
 
   /* Keep metadata so double-free is harmless; caller may reuse the struct. */
-  kv->elem_count = kv->group_count = 0;
+  kv->elem_count = 0;
+  kv->group_count = 0;
 }
 
 int ie_kv_store_token_f32(ie_kv_cache* kv, size_t t,
@@ -177,10 +217,12 @@ int ie_kv_store_token_int8_per_tensor(ie_kv_cache* kv, size_t t,
     float Kmn = Ksrc[0], Kmx = Ksrc[0];
     float Vmn = Vsrc[0], Vmx = Vsrc[0];
     for (size_t d = 1; d < D; ++d) {
-      float kv = Ksrc[d];
-      float vv = Vsrc[d];
-      if (kv < Kmn) Kmn = kv; if (kv > Kmx) Kmx = kv;
-      if (vv < Vmn) Vmn = vv; if (vv > Vmx) Vmx = vv;
+      float kvv = Ksrc[d];
+      float vvv = Vsrc[d];
+      if (kvv < Kmn) Kmn = kvv;
+      if (kvv > Kmx) Kmx = kvv;
+      if (vvv < Vmn) Vmn = vvv;
+      if (vvv > Vmx) Vmx = vvv;
     }
 
     ie_act_i8_params pK, pV;
@@ -285,7 +327,12 @@ int ie_kv_store_token_fp8(ie_kv_cache* kv, size_t t,
 int ie_kv_load_token_f32(const ie_kv_cache* kv, size_t t,
                          float* K_out, float* V_out) {
   if (!kv || !K_out || !V_out) return -1;
-  if (t >= (size_t)kv->max_seq) return -2;
+
+  /* If request is out of the configured cache capacity, treat as miss. */
+  if (t >= (size_t)kv->max_seq) {
+    ie_kv_miss_add_local(1);
+    return -2;
+  }
 
   const size_t H = (size_t)kv->heads;
   const size_t D = (size_t)kv->head_dim;
@@ -298,6 +345,7 @@ int ie_kv_load_token_f32(const ie_kv_cache* kv, size_t t,
       memcpy(K_out + h * D, Ksrc + off, D * sizeof(float));
       memcpy(V_out + h * D, Vsrc + off, D * sizeof(float));
     }
+    ie_kv_hit_add_local(1);
     return 0;
   }
 
@@ -312,22 +360,23 @@ int ie_kv_load_token_f32(const ie_kv_cache* kv, size_t t,
 
       /* Dequant K */
       for (size_t d = 0; d < D; ++d) {
-        const size_t g = d / Gs;
+        const size_t g  = d / Gs;
         const size_t pi = param_index(t, h, g, H, G);
-        const float s = kv->scales_K[pi];
-        const int   z = (int)kv->zeros_K[pi];
+        const float s   = kv->scales_K[pi];
+        const int   z   = (int)kv->zeros_K[pi];
         K_out[h * D + d] = s * ((int)Kq[off + d] - z);
       }
 
       /* Dequant V */
       for (size_t d = 0; d < D; ++d) {
-        const size_t g = d / Gs;
+        const size_t g  = d / Gs;
         const size_t pi = param_index(t, h, g, H, G);
-        const float s = kv->scales_V[pi];
-        const int   z = (int)kv->zeros_V[pi];
+        const float s   = kv->scales_V[pi];
+        const int   z   = (int)kv->zeros_V[pi];
         V_out[h * D + d] = s * ((int)Vq[off + d] - z);
       }
     }
+    ie_kv_hit_add_local(1);
     return 0;
   }
 
@@ -337,19 +386,22 @@ int ie_kv_load_token_f32(const ie_kv_cache* kv, size_t t,
 
     for (size_t h = 0; h < H; ++h) {
       const size_t off = payload_index(t, h, 0, H, D);
-      ie_dequantize_act_fp8(K8 + off, K_out + h*D, D, kv->fp8_format);
-      ie_dequantize_act_fp8(V8 + off, V_out + h*D, D, kv->fp8_format);
+      ie_dequantize_act_fp8(K8 + off, K_out + h * D, D, kv->fp8_format);
+      ie_dequantize_act_fp8(V8 + off, V_out + h * D, D, kv->fp8_format);
     }
+    ie_kv_hit_add_local(1);
     return 0;
   }
 
-  return -3; /* Unknown storage. */
+  /* Unknown storage: treat as miss. */
+  ie_kv_miss_add_local(1);
+  return -3;
 }
 
 int ie_kv_raw_ptrs(ie_kv_cache* kv, void** out_K, void** out_V, size_t* out_lds) {
   if (!kv) return -1;
-  if (out_K)  *out_K  = kv->K;
-  if (out_V)  *out_V  = kv->V;
+  if (out_K)   *out_K   = kv->K;
+  if (out_V)   *out_V   = kv->V;
   if (out_lds) *out_lds = (size_t)kv->head_dim;
   return 0;
 }

@@ -1,14 +1,14 @@
 var searchData=
 [
   ['bad_5ffloat3_73',['bad_float3',['../int4__ptq_8c.html#adac55944e6da576f6745a6ad26c4cb79',1,'int4_ptq.c']]],
-  ['base_74',['base',['../structie__dedup__spec__arena__s.html#a9bf9ab74c5083e2fd2841f19539e72a4',1,'ie_dedup_spec_arena_s::base()'],['../structie__mmap__file.html#a1f966d06ae17da8bca4c2ba24c66348d',1,'ie_mmap_file::base()']]],
+  ['base_74',['base',['../structie__mmap__file.html#a1f966d06ae17da8bca4c2ba24c66348d',1,'ie_mmap_file']]],
   ['batch_75',['batch',['../structie__cli__extras.html#a6d65ced667b70b4eaac6543425c6949c',1,'ie_cli_extras::batch()'],['../structcli__extras.html#a4af612c719a80234b4e753bc559f358c',1,'cli_extras::batch()']]],
   ['bench_2etoml_76',['bench.toml',['../bench_8toml.html',1,'']]],
   ['bench_5ffp8_77',['bench_fp8',['../microbench__act__path_8c.html#a3ddaada8ef50378cb1e48d907c7b6430',1,'microbench_act_path.c']]],
   ['bench_5fint8_78',['bench_int8',['../microbench__act__path_8c.html#aa8d8e89d147a706279cd7995fcc08571',1,'microbench_act_path.c']]],
   ['best_5feffort_5fmadvise_79',['best_effort_madvise',['../mmap__tuning_8c.html#abaa8ca2b5cd2d97f8cc65b901fe8f158',1,'mmap_tuning.c']]],
-  ['bin_80',['BIN',['../namespacetest__cli__flags.html#a79fa2e0d5e94f1508875d643dcfa6430',1,'test_cli_flags.BIN()'],['../namespacetest__determinism.html#affcb5fa9fb60dcc0bc9a1898f1a646b2',1,'test_determinism.BIN()'],['../namespacetest__cli__error__paths.html#a9e965922d2fbb4003a0524232d17f8c6',1,'test_cli_error_paths.BIN()'],['../namespacetest__metrics__ring.html#a8363ca5e02a8a38b989e9b1959d99148',1,'test_metrics_ring.BIN()']]],
-  ['bin_5fpath_81',['bin_path',['../classtest__harness_1_1HarnessTests.html#a8bc7259f330d59333416afff528438fc',1,'test_harness.HarnessTests.bin_path()'],['../classtest__cli_1_1CLITests.html#a7c4946fadeef77a479060eee1effd0de',1,'test_cli.CLITests.bin_path()']]],
+  ['bin_80',['BIN',['../namespacetest__metrics__ring.html#a8363ca5e02a8a38b989e9b1959d99148',1,'test_metrics_ring.BIN()'],['../namespacetest__determinism.html#affcb5fa9fb60dcc0bc9a1898f1a646b2',1,'test_determinism.BIN()'],['../namespacetest__cli__flags.html#a79fa2e0d5e94f1508875d643dcfa6430',1,'test_cli_flags.BIN()'],['../namespacetest__cli__error__paths.html#a9e965922d2fbb4003a0524232d17f8c6',1,'test_cli_error_paths.BIN()']]],
+  ['bin_5fpath_81',['bin_path',['../classtest__cli_1_1CLITests.html#a7c4946fadeef77a479060eee1effd0de',1,'test_cli.CLITests.bin_path()'],['../classtest__harness_1_1HarnessTests.html#a8bc7259f330d59333416afff528438fc',1,'test_harness.HarnessTests.bin_path()']]],
   ['bin_5fsize_5fbytes_82',['bin_size_bytes',['../structie__weights__s.html#a19f9137cca00113908b495a70769805e',1,'ie_weights_s']]],
   ['blk_5fk_83',['blk_k',['../structie__wblocked__desc.html#aecbe9b5f97e69baf611e6b01a0b6b699',1,'ie_wblocked_desc']]],
   ['blob_5flist_5fs_84',['blob_list_s',['../structblob__list__s.html',1,'']]],
@@ -28,7 +28,6 @@ var searchData=
   ['build_5fdense_5f4x4_98',['build_dense_4x4',['../test__block__sparse_8c.html#a54712de2a8aa57ae2a28c7af95650b31',1,'test_block_sparse.c']]],
   ['build_5fgroups_5fauto_99',['build_groups_auto',['../dedup__extract_8c.html#a69a295127a2ec3426ecba96808dab155',1,'dedup_extract.c']]],
   ['bytes_100',['bytes',['../structblob__ref__s.html#a78e89da1b1317764f48f635a53761e1f',1,'blob_ref_s']]],
-  ['bytes_5fcached_101',['bytes_cached',['../structie__dedup__cache__s.html#a98751134704e43b5b68ed672df5c3d53',1,'ie_dedup_cache_s']]],
-  ['bytes_5flimit_102',['bytes_limit',['../structie__dedup__cache__s.html#a36023588211816d86b5205fac88c7ab6',1,'ie_dedup_cache_s']]],
-  ['bytes_5fper_5ftoken_103',['bytes_per_token',['../structie__config__env.html#a2a703e25faf741d95d283aa2276728fa',1,'ie_config_env']]]
+  ['bytes_5flimit_101',['bytes_limit',['../structie__dedup__cache__opts__t.html#a6de49d0540d303912b21c8a2874f432e',1,'ie_dedup_cache_opts_t']]],
+  ['bytes_5fper_5ftoken_102',['bytes_per_token',['../structie__config__env.html#a2a703e25faf741d95d283aa2276728fa',1,'ie_config_env']]]
 ];

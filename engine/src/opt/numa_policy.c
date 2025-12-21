@@ -1,5 +1,4 @@
-/* File: engine/src/opt/numa_policy.c
- * -----------------------------------------------------------------------------
+/**
  * @file numa_policy.c
  * @brief NUMA-aware policy initialization and helper decisions.
  *
@@ -38,14 +37,12 @@
   #define IE_LOG_WARN(...) do { fprintf(stderr, "[warn] " __VA_ARGS__); fputc('\n', stderr); } while (0)
 #endif
 
-/* ------------------------------ env parsing -------------------------------- */
+/* -------------------------------------------------------------------------- */
+/* Internal env parsing                                                        */
+/* -------------------------------------------------------------------------- */
 
 /**
  * @brief Case-insensitive ASCII equality helper.
- *
- * @details
- * This helper compares two NUL-terminated strings using ASCII case folding.
- * It is intentionally minimal and does not attempt locale-sensitive behavior.
  *
  * @param a NUL-terminated string (may be NULL).
  * @param b NUL-terminated string (may be NULL).
@@ -132,23 +129,10 @@ static size_t env_sizet_get(const char *name, size_t def, size_t min_v, size_t m
   return (size_t)x;
 }
 
-/* ------------------------------- public API -------------------------------- */
+/* -------------------------------------------------------------------------- */
+/* Public API                                                                  */
+/* -------------------------------------------------------------------------- */
 
-/**
- * @brief Initialize a NUMA policy snapshot from topology detection and env knobs.
- *
- * @details
- * This function is meant to be called during startup to capture a stable
- * policy snapshot. It does not allocate memory and has no side effects beyond
- * reading environment variables.
- *
- * Socket count is sourced from @p topo (if provided), using ie_topology_sockets().
- * Node count is sourced from ie_numa_detect_nodes() (sysfs-based on Linux).
- *
- * @param out  Output policy object (non-NULL).
- * @param topo Optional topology handle (may be NULL).
- * @return 0 on success, negative errno-like value on failure.
- */
 int ie_numa_policy_init(ie_numa_policy_t *out, const ie_topology_t *topo) {
   if (!out) return -EINVAL;
   memset(out, 0, sizeof(*out));
@@ -172,7 +156,6 @@ int ie_numa_policy_init(ie_numa_policy_t *out, const ie_topology_t *topo) {
   if (out->max_replicas > 64) out->max_replicas = 64;
   out->max_replicas = env_int_get("IE_NUMA_MAX_REPLICAS", out->max_replicas, 1, 64);
 
-  /* Default: 32 MiB, clamped to 1 TiB. */
   out->hot_min_bytes = env_sizet_get("IE_NUMA_HOT_MIN_BYTES",
                                      (size_t)33554432u,
                                      (size_t)0u,
@@ -181,18 +164,6 @@ int ie_numa_policy_init(ie_numa_policy_t *out, const ie_topology_t *topo) {
   return 0;
 }
 
-/**
- * @brief Decide if a blob of @p bytes should be replicated per socket.
- *
- * @details
- * Replication is intended for large/hot blobs where remote NUMA access would
- * otherwise dominate runtime. This function only provides a policy decision;
- * actual replication and placement are handled elsewhere.
- *
- * @param p     Policy object (non-NULL).
- * @param bytes Blob size in bytes.
- * @return true if replication should happen, false otherwise.
- */
 bool ie_numa_policy_should_replicate_hot(const ie_numa_policy_t *p, size_t bytes) {
   if (!p) return false;
   if (!p->enable_numa) return false;
@@ -202,16 +173,6 @@ bool ie_numa_policy_should_replicate_hot(const ie_numa_policy_t *p, size_t bytes
   return true;
 }
 
-/**
- * @brief Compute the replica count to build under this policy.
- *
- * @details
- * This returns min(detected_sockets, max_replicas), clamped to at least 1.
- * Callers can use this as the number of per-socket replicas to allocate.
- *
- * @param p Policy object (non-NULL).
- * @return Number of replicas to create (>= 1).
- */
 int ie_numa_policy_replica_count(const ie_numa_policy_t *p) {
   if (!p) return 1;
   int s = (p->detected_sockets > 0) ? p->detected_sockets : 1;

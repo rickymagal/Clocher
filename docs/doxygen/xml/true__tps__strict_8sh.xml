@@ -15,7 +15,7 @@
 <codeline><highlight class="normal">#<sp/>Optional<sp/>env<sp/>(with<sp/>defaults):</highlight></codeline>
 <codeline><highlight class="normal">#<sp/><sp/><sp/>THREADS,<sp/>PRECISION,<sp/>BATCH,<sp/>PREFETCH,<sp/>PRETRANSPOSE,<sp/>AFFINITY,<sp/>MAX_NEW</highlight></codeline>
 <codeline><highlight class="normal">#<sp/><sp/><sp/>IE_REQUIRE_MODEL,<sp/>IE_BYTES_PER_TOKEN,<sp/>IE_STRIDE_BYTES,<sp/>IE_VERIFY_TOUCH</highlight></codeline>
-<codeline><highlight class="normal">#<sp/><sp/><sp/>RUNS</highlight></codeline>
+<codeline><highlight class="normal">#<sp/><sp/><sp/>RUNS,<sp/>ROUNDS</highlight></codeline>
 <codeline><highlight class="normal">#</highlight></codeline>
 <codeline><highlight class="normal">#<sp/>Output:</highlight></codeline>
 <codeline><highlight class="normal">#<sp/><sp/><sp/>JSONL<sp/>to<sp/>stdout:</highlight></codeline>
@@ -41,6 +41,7 @@
 <codeline><highlight class="normal">IE_VERIFY_TOUCH=&quot;${IE_VERIFY_TOUCH:-1}&quot;</highlight></codeline>
 <codeline></codeline>
 <codeline><highlight class="normal">RUNS=&quot;${RUNS:-3}&quot;</highlight></codeline>
+<codeline><highlight class="normal">ROUNDS=&quot;${ROUNDS:-1}&quot;</highlight></codeline>
 <codeline></codeline>
 <codeline><highlight class="normal">#<sp/>Precision<sp/>passthrough<sp/>(accepts<sp/>int4;<sp/>also<sp/>tolerate<sp/>int4w<sp/>alias)</highlight></codeline>
 <codeline><highlight class="normal">case<sp/>&quot;${PRECISION}&quot;<sp/>in</highlight></codeline>
@@ -153,15 +154,16 @@
 <codeline><highlight class="normal">#<sp/>To<sp/>make<sp/>bench<sp/>robust,<sp/>we<sp/>always<sp/>run<sp/>the<sp/>engine<sp/>with<sp/>CWD<sp/>=<sp/>MODEL_DIR.</highlight></codeline>
 <codeline><highlight class="normal">run_one()<sp/>{</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/>local<sp/>run_idx=&quot;$1&quot;</highlight></codeline>
-<codeline></codeline>
 <codeline><highlight class="normal"><sp/><sp/>local<sp/>out_raw=&quot;${_tmpdir}/run_${run_idx}.raw.txt&quot;</highlight></codeline>
 <codeline></codeline>
 <codeline><highlight class="normal"><sp/><sp/>local<sp/>sw_in0<sp/>sw_out0</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/>read<sp/>-r<sp/>sw_in0<sp/>sw_out0<sp/>&lt;<sp/>&lt;(read_vmstat_swaps)</highlight></codeline>
 <codeline></codeline>
+<codeline><highlight class="normal"><sp/><sp/>#<sp/>IMPORTANT:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>#<sp/>Use<sp/>&apos;exec&apos;<sp/>so<sp/>the<sp/>background<sp/>PID<sp/>is<sp/>the<sp/>engine<sp/>PID<sp/>(not<sp/>the<sp/>subshell<sp/>PID).</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/>(</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/><sp/><sp/>cd<sp/>&quot;${MODEL_DIR}&quot;</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&quot;${ENGINE_BIN}&quot;<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>exec<sp/>&quot;${ENGINE_BIN}&quot;<sp/>\</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>--device<sp/>&quot;${DEVICE}&quot;<sp/>\</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>--model-dir<sp/>&quot;.&quot;<sp/>\</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>--prompts-file<sp/>&quot;${PROMPTS}&quot;<sp/>\</highlight></codeline>
@@ -172,10 +174,9 @@
 <codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>--pretranspose<sp/>&quot;${PRETRANSPOSE}&quot;<sp/>\</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>--affinity<sp/>&quot;${AFFINITY}&quot;<sp/>\</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>--max-new<sp/>&quot;${MAX_NEW}&quot;<sp/>\</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>--rounds<sp/>1</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>--rounds<sp/>&quot;${ROUNDS}&quot;</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/>)<sp/>&gt;<sp/>&quot;${out_raw}&quot;<sp/>2&gt;&amp;1<sp/>&amp;</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/>local<sp/>pid=&quot;$!&quot;</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/>disown<sp/>||<sp/>true</highlight></codeline>
 <codeline></codeline>
 <codeline><highlight class="normal"><sp/><sp/>local<sp/>rss_floor_kb=0</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/>local<sp/>rss_peak_kb=0</highlight></codeline>
@@ -350,7 +351,7 @@
 <codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&quot;${psi_some_mean}&quot;<sp/>&quot;${psi_full_mean}&quot;<sp/>\</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&quot;${memavail_mean_mb}&quot;<sp/>&quot;${memavail_mean_pct}&quot;<sp/>\</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&quot;${MODEL_DIR}&quot;<sp/>&quot;${ENGINE_BIN}&quot;<sp/>&quot;${DEVICE}&quot;<sp/>&lt;&lt;&apos;PY&apos;</highlight></codeline>
-<codeline><highlight class="normal">import<sp/>sys,<sp/>json,<sp/>os</highlight></codeline>
+<codeline><highlight class="normal">import<sp/>sys,<sp/>json</highlight></codeline>
 <codeline></codeline>
 <codeline><highlight class="normal">raw_path=sys.argv[1]</highlight></codeline>
 <codeline><highlight class="normal">rss_floor=float(sys.argv[2])</highlight></codeline>
@@ -442,6 +443,7 @@
 <codeline><highlight class="normal"><sp/><sp/>&quot;model_dir&quot;:<sp/>os.environ.get(&quot;MODEL_DIR&quot;,&quot;&quot;),</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/>&quot;prompts&quot;:<sp/>os.environ.get(&quot;PROMPTS&quot;,&quot;&quot;),</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/>&quot;runs&quot;:<sp/>int(os.environ.get(&quot;RUNS&quot;,&quot;3&quot;)<sp/>or<sp/>3),</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>&quot;rounds&quot;:<sp/>int(os.environ.get(&quot;ROUNDS&quot;,&quot;1&quot;)<sp/>or<sp/>1),</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/>&quot;device&quot;:<sp/>os.environ.get(&quot;DEVICE&quot;,&quot;&quot;),</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/>&quot;engine_bin&quot;:<sp/>os.environ.get(&quot;ENGINE_BIN&quot;,&quot;&quot;),</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/>&quot;batch&quot;:<sp/>int(os.environ.get(&quot;BATCH&quot;,&quot;1&quot;)<sp/>or<sp/>1),</highlight></codeline>
