@@ -1,0 +1,17 @@
+digraph "ie_layout_build_blockedK"
+{
+ // INTERACTIVE_SVG=YES
+ // LATEX_PDF_SIZE
+  bgcolor="transparent";
+  edge [fontname=Helvetica,fontsize=10,labelfontname=Helvetica,labelfontsize=10];
+  node [fontname=Helvetica,fontsize=10,shape=box,height=0.2,width=0.4];
+  rankdir="LR";
+  Node1 [id="Node000001",label="ie_layout_build_blockedK",height=0.2,width=0.4,color="gray40", fillcolor="grey60", style="filled", fontcolor="black",tooltip="Build a per-row Blocked-K layout from a row-major matrix."];
+  Node1 -> Node2 [id="edge1_Node000001_Node000002",color="steelblue1",style="solid",tooltip=" "];
+  Node2 [id="Node000002",label="k_gemv_rowwise_f32",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$ie__kernels__cuda_8cu.html#af00402674d56c833c92c62df1cef1e84",tooltip="Row-wise GEMV kernel: y = alpha * W * x + beta * y."];
+  Node1 -> Node3 [id="edge2_Node000001_Node000003",color="steelblue1",style="solid",tooltip=" "];
+  Node3 [id="Node000003",label="load_cache",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$pretranspose_8c.html#a3b1361210ce0850cf868bc60c96d4b6e",tooltip="Load a blocked buffer from disk cache into a freshly malloc'ed array."];
+  Node1 -> Node4 [id="edge3_Node000001_Node000004",color="steelblue1",style="solid",tooltip=" "];
+  Node4 [id="Node000004",label="save_cache_atomic",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$pretranspose_8c.html#aa32af2b1dc7c23ae2f05e78492d5e71d",tooltip="Save a blocked buffer to disk cache using an atomic rename."];
+  Node4 -> Node2 [id="edge4_Node000004_Node000002",color="steelblue1",style="solid",tooltip=" "];
+}

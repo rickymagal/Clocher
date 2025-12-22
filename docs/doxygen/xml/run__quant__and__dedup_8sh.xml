@@ -1,0 +1,62 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.8" xml:lang="en-US">
+  <compounddef id="run__quant__and__dedup_8sh" kind="file" language="C++">
+    <compoundname>run_quant_and_dedup.sh</compoundname>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline><highlight class="normal">#!/usr/bin/env<sp/>bash</highlight></codeline>
+<codeline><highlight class="normal">set<sp/>-euo<sp/>pipefail</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">MODEL_DIR=&quot;${1:-models/gpt-oss-20b}&quot;</highlight></codeline>
+<codeline><highlight class="normal">MANIFEST=&quot;${2:-${MODEL_DIR}/manifest.dedup.json}&quot;</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">SCALE_ENCODING=&quot;${SCALE_ENCODING:-fp16}&quot;<sp/><sp/><sp/>#<sp/>fp16<sp/>or<sp/>log2_u8_q3</highlight></codeline>
+<codeline><highlight class="normal">GROUP_SIZE=&quot;${GROUP_SIZE:-64}&quot;</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">BASE_IE_JSON=&quot;${MODEL_DIR}/model.ie.json&quot;</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">OUT_DIR=&quot;${MODEL_DIR}/dedup_quant_out&quot;</highlight></codeline>
+<codeline><highlight class="normal">mkdir<sp/>-p<sp/>&quot;${OUT_DIR}&quot;</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">OUT_BIN=&quot;${OUT_DIR}/dedup_source.bin&quot;</highlight></codeline>
+<codeline><highlight class="normal">OUT_IE_JSON=&quot;${OUT_DIR}/dedup_source.ie.json&quot;</highlight></codeline>
+<codeline><highlight class="normal">TENSOR_MAP=&quot;${OUT_DIR}/tensor_map.for_dedup.json&quot;</highlight></codeline>
+<codeline><highlight class="normal">GROUPS=&quot;${OUT_DIR}/groups.for_dedup.json&quot;</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">echo<sp/>&quot;[1/3]<sp/>Build<sp/>compact<sp/>dedup+quant<sp/>source&quot;</highlight></codeline>
+<codeline><highlight class="normal">python3<sp/>tools/build_dedup_source_from_manifest.py<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>--base-ie-json<sp/>&quot;${BASE_IE_JSON}&quot;<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>--manifest<sp/>&quot;${MANIFEST}&quot;<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>--out-bin<sp/>&quot;${OUT_BIN}&quot;<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>--out-ie-json<sp/>&quot;${OUT_IE_JSON}&quot;<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>--group-size<sp/>&quot;${GROUP_SIZE}&quot;<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>--scale-encoding<sp/>&quot;${SCALE_ENCODING}&quot;<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>--include-blocks</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">echo<sp/>&quot;[2/3]<sp/>Prepare<sp/>tensor_map<sp/>+<sp/>groups&quot;</highlight></codeline>
+<codeline><highlight class="normal">python3<sp/>tools/dedup_prepare_and_extract_all.py<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>--ie-json<sp/>&quot;${OUT_IE_JSON}&quot;<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>--manifest<sp/>&quot;${MANIFEST}&quot;<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>--out-tensor-map<sp/>&quot;${TENSOR_MAP}&quot;<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>--out-groups<sp/>&quot;${GROUPS}&quot;</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">echo<sp/>&quot;[3/3]<sp/>Run<sp/>lossless<sp/>dedup<sp/>extractor&quot;</highlight></codeline>
+<codeline><highlight class="normal">python3<sp/>tools/dedup_extract_int4.py<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>--model-dir<sp/>&quot;${OUT_DIR}&quot;<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>--tensor-map<sp/>&quot;${TENSOR_MAP}&quot;<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>--groups<sp/>&quot;${GROUPS}&quot;<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>--out-prefix<sp/>&quot;${MODEL_DIR}/model.dedup&quot;</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">echo<sp/>&quot;Done.&quot;</highlight></codeline>
+<codeline><highlight class="normal">echo<sp/>&quot;Outputs:&quot;</highlight></codeline>
+<codeline><highlight class="normal">echo<sp/>&quot;<sp/><sp/>${MODEL_DIR}/model.dedup.defaults.bin&quot;</highlight></codeline>
+<codeline><highlight class="normal">echo<sp/>&quot;<sp/><sp/>${MODEL_DIR}/model.dedup.masks.bin&quot;</highlight></codeline>
+<codeline><highlight class="normal">echo<sp/>&quot;<sp/><sp/>${MODEL_DIR}/model.dedup.exceptions.bin&quot;</highlight></codeline>
+<codeline><highlight class="normal">echo<sp/>&quot;<sp/><sp/>${MODEL_DIR}/model.dedup.json&quot;</highlight></codeline>
+    </programlisting>
+    <location file="scripts/run_quant_and_dedup.sh"/>
+  </compounddef>
+</doxygen>

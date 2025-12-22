@@ -1,0 +1,135 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.8" xml:lang="en-US">
+  <compounddef id="rebuild__dedup__and__quant_8sh" kind="file" language="C++">
+    <compoundname>rebuild_dedup_and_quant.sh</compoundname>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline><highlight class="normal">#!/usr/bin/env<sp/>bash</highlight></codeline>
+<codeline><highlight class="normal">set<sp/>-euo<sp/>pipefail</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">MODEL_DIR=&quot;${MODEL_DIR:-models/gpt-oss-20b}&quot;</highlight></codeline>
+<codeline><highlight class="normal">HF_DIR=&quot;${HF_DIR:-$MODEL_DIR/hf}&quot;</highlight></codeline>
+<codeline><highlight class="normal">OUT_DIR=&quot;${OUT_DIR:-$MODEL_DIR}&quot;</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">need()<sp/>{<sp/>command<sp/>-v<sp/>&quot;$1&quot;<sp/>&gt;/dev/null<sp/>2&gt;&amp;1<sp/>||<sp/>{<sp/>echo<sp/>&quot;ERROR:<sp/>missing<sp/>&apos;$1&apos;&quot;;<sp/>exit<sp/>2;<sp/>};<sp/>}</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">need<sp/>python3</highlight></codeline>
+<codeline><highlight class="normal">need<sp/>rg</highlight></codeline>
+<codeline><highlight class="normal">need<sp/>find</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">IE_JSON=&quot;$OUT_DIR/model.ie.json&quot;</highlight></codeline>
+<codeline><highlight class="normal">IE_BIN=&quot;$OUT_DIR/model.ie.bin&quot;</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">if<sp/>[[<sp/>!<sp/>-f<sp/>&quot;$IE_JSON&quot;<sp/>||<sp/>!<sp/>-f<sp/>&quot;$IE_BIN&quot;<sp/>]];<sp/>then</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>echo<sp/>&quot;ERROR:<sp/>missing<sp/>$IE_JSON<sp/>/<sp/>$IE_BIN<sp/>(run<sp/>hf_to_iebin_raw.py<sp/>first)&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>exit<sp/>2</highlight></codeline>
+<codeline><highlight class="normal">fi</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">echo<sp/>&quot;[ok]<sp/>IEBIN<sp/>present:&quot;</highlight></codeline>
+<codeline><highlight class="normal">ls<sp/>-lh<sp/>&quot;$IE_JSON&quot;<sp/>&quot;$IE_BIN&quot;</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>----<sp/>locate<sp/>manifest.dedup.json<sp/>(Downloads<sp/>-&gt;<sp/>model<sp/>dir)<sp/>---------------------</highlight></codeline>
+<codeline><highlight class="normal">MANIFEST_CANDIDATES=(</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>&quot;$OUT_DIR/manifest.dedup.json&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>&quot;$OUT_DIR/dedup_manifest.json&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>&quot;$HOME/Downloads/manifest.dedup.json&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>&quot;$HOME/Downloads/dedup_manifest.json&quot;</highlight></codeline>
+<codeline><highlight class="normal">)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">MANIFEST=&quot;&quot;</highlight></codeline>
+<codeline><highlight class="normal">for<sp/>p<sp/>in<sp/>&quot;${MANIFEST_CANDIDATES[@]}&quot;;<sp/>do</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>if<sp/>[[<sp/>-f<sp/>&quot;$p&quot;<sp/>]];<sp/>then<sp/>MANIFEST=&quot;$p&quot;;<sp/>break;<sp/>fi</highlight></codeline>
+<codeline><highlight class="normal">done</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">if<sp/>[[<sp/>-z<sp/>&quot;$MANIFEST&quot;<sp/>]];<sp/>then</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>echo<sp/>&quot;ERROR:<sp/>could<sp/>not<sp/>find<sp/>manifest.dedup.json.<sp/>Put<sp/>it<sp/>in:&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>echo<sp/>&quot;<sp/><sp/>$OUT_DIR/manifest.dedup.json&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>exit<sp/>2</highlight></codeline>
+<codeline><highlight class="normal">fi</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">if<sp/>[[<sp/>&quot;$MANIFEST&quot;<sp/>!=<sp/>&quot;$OUT_DIR/manifest.dedup.json&quot;<sp/>]];<sp/>then</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>echo<sp/>&quot;[copy]<sp/>manifest<sp/>-&gt;<sp/>$OUT_DIR/manifest.dedup.json&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>cp<sp/>-f<sp/>&quot;$MANIFEST&quot;<sp/>&quot;$OUT_DIR/manifest.dedup.json&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>MANIFEST=&quot;$OUT_DIR/manifest.dedup.json&quot;</highlight></codeline>
+<codeline><highlight class="normal">fi</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">echo<sp/>&quot;[ok]<sp/>manifest:<sp/>$MANIFEST&quot;</highlight></codeline>
+<codeline><highlight class="normal">ls<sp/>-lh<sp/>&quot;$MANIFEST&quot;</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>----<sp/>find<sp/>and<sp/>run<sp/>dedup<sp/>artifact<sp/>generator<sp/>----------------------------------</highlight></codeline>
+<codeline><highlight class="normal">echo<sp/>&quot;[dedup]<sp/>searching<sp/>for<sp/>generator...&quot;</highlight></codeline>
+<codeline><highlight class="normal">DEDUP_SCRIPT=&quot;$(find<sp/>scripts<sp/>-maxdepth<sp/>2<sp/>-type<sp/>f<sp/>-name<sp/>&apos;*.py&apos;<sp/>-print<sp/>|<sp/>rg<sp/>-n<sp/>&apos;(dedup).*\.py$&apos;<sp/>|<sp/>head<sp/>-n<sp/>1<sp/>|<sp/>cut<sp/>-d:<sp/>-f1<sp/>||<sp/>true)&quot;</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">if<sp/>[[<sp/>-z<sp/>&quot;$DEDUP_SCRIPT&quot;<sp/>]];<sp/>then</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>echo<sp/>&quot;ERROR:<sp/>no<sp/>obvious<sp/>dedup<sp/>python<sp/>script<sp/>found<sp/>under<sp/>scripts/.&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>echo<sp/>&quot;Try:<sp/>ls<sp/>scripts<sp/>|<sp/>rg<sp/>-n<sp/>&apos;dedup&apos;&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>exit<sp/>2</highlight></codeline>
+<codeline><highlight class="normal">fi</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">echo<sp/>&quot;[dedup]<sp/>candidate:<sp/>$DEDUP_SCRIPT&quot;</highlight></codeline>
+<codeline><highlight class="normal">echo<sp/>&quot;[dedup]<sp/>attempting<sp/>common<sp/>invocations...&quot;</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">set<sp/>+e</highlight></codeline>
+<codeline><highlight class="normal">python3<sp/>&quot;$DEDUP_SCRIPT&quot;<sp/>--model-dir<sp/>&quot;$OUT_DIR&quot;<sp/>--manifest<sp/>&quot;$MANIFEST&quot;</highlight></codeline>
+<codeline><highlight class="normal">STATUS=$?</highlight></codeline>
+<codeline><highlight class="normal">if<sp/>[[<sp/>$STATUS<sp/>-ne<sp/>0<sp/>]];<sp/>then</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>python3<sp/>&quot;$DEDUP_SCRIPT&quot;<sp/>--model<sp/>&quot;$OUT_DIR&quot;<sp/>--manifest<sp/>&quot;$MANIFEST&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>STATUS=$?</highlight></codeline>
+<codeline><highlight class="normal">fi</highlight></codeline>
+<codeline><highlight class="normal">if<sp/>[[<sp/>$STATUS<sp/>-ne<sp/>0<sp/>]];<sp/>then</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>python3<sp/>&quot;$DEDUP_SCRIPT&quot;<sp/>--model-dir<sp/>&quot;$OUT_DIR&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>STATUS=$?</highlight></codeline>
+<codeline><highlight class="normal">fi</highlight></codeline>
+<codeline><highlight class="normal">set<sp/>-e</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">if<sp/>[[<sp/>$STATUS<sp/>-ne<sp/>0<sp/>]];<sp/>then</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>echo<sp/>&quot;ERROR:<sp/>dedup<sp/>generator<sp/>failed.<sp/>Show<sp/>its<sp/>usage:&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>python3<sp/>&quot;$DEDUP_SCRIPT&quot;<sp/>--help<sp/>||<sp/>true</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>exit<sp/>2</highlight></codeline>
+<codeline><highlight class="normal">fi</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">echo<sp/>&quot;[dedup]<sp/>done.&quot;</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>----<sp/>find<sp/>and<sp/>run<sp/>offline<sp/>INT4<sp/>artifact<sp/>generator<sp/>---------------------------</highlight></codeline>
+<codeline><highlight class="normal">echo<sp/>&quot;[int4]<sp/>searching<sp/>for<sp/>PTQ/export<sp/>script...&quot;</highlight></codeline>
+<codeline><highlight class="normal">PTQ_SCRIPT=&quot;$(find<sp/>scripts<sp/>-maxdepth<sp/>2<sp/>-type<sp/>f<sp/>-name<sp/>&apos;*.py&apos;<sp/>-print<sp/>|<sp/>rg<sp/>-n<sp/>&apos;(ptq|int4|quant).*\.py$&apos;<sp/>|<sp/>head<sp/>-n<sp/>1<sp/>|<sp/>cut<sp/>-d:<sp/>-f1<sp/>||<sp/>true)&quot;</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">if<sp/>[[<sp/>-z<sp/>&quot;$PTQ_SCRIPT&quot;<sp/>]];<sp/>then</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>echo<sp/>&quot;ERROR:<sp/>no<sp/>obvious<sp/>quant/PTQ<sp/>script<sp/>found<sp/>under<sp/>scripts/.&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>echo<sp/>&quot;Try:<sp/>ls<sp/>scripts<sp/>|<sp/>rg<sp/>-n<sp/>&apos;(ptq|int4|quant)&apos;&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>exit<sp/>2</highlight></codeline>
+<codeline><highlight class="normal">fi</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">echo<sp/>&quot;[int4]<sp/>candidate:<sp/>$PTQ_SCRIPT&quot;</highlight></codeline>
+<codeline><highlight class="normal">echo<sp/>&quot;[int4]<sp/>attempting<sp/>common<sp/>invocations...&quot;</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">set<sp/>+e</highlight></codeline>
+<codeline><highlight class="normal">python3<sp/>&quot;$PTQ_SCRIPT&quot;<sp/>--model-dir<sp/>&quot;$OUT_DIR&quot;<sp/>--precision<sp/>int4</highlight></codeline>
+<codeline><highlight class="normal">STATUS=$?</highlight></codeline>
+<codeline><highlight class="normal">if<sp/>[[<sp/>$STATUS<sp/>-ne<sp/>0<sp/>]];<sp/>then</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>python3<sp/>&quot;$PTQ_SCRIPT&quot;<sp/>--model<sp/>&quot;$OUT_DIR&quot;<sp/>--precision<sp/>int4</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>STATUS=$?</highlight></codeline>
+<codeline><highlight class="normal">fi</highlight></codeline>
+<codeline><highlight class="normal">if<sp/>[[<sp/>$STATUS<sp/>-ne<sp/>0<sp/>]];<sp/>then</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>python3<sp/>&quot;$PTQ_SCRIPT&quot;<sp/>--model-dir<sp/>&quot;$OUT_DIR&quot;<sp/>--int4</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>STATUS=$?</highlight></codeline>
+<codeline><highlight class="normal">fi</highlight></codeline>
+<codeline><highlight class="normal">set<sp/>-e</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">if<sp/>[[<sp/>$STATUS<sp/>-ne<sp/>0<sp/>]];<sp/>then</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>echo<sp/>&quot;ERROR:<sp/>PTQ/int4<sp/>generator<sp/>failed.<sp/>Show<sp/>its<sp/>usage:&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>python3<sp/>&quot;$PTQ_SCRIPT&quot;<sp/>--help<sp/>||<sp/>true</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>exit<sp/>2</highlight></codeline>
+<codeline><highlight class="normal">fi</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">echo<sp/>&quot;[int4]<sp/>done.&quot;</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">echo<sp/>&quot;[ok]<sp/>listing<sp/>likely<sp/>artifacts:&quot;</highlight></codeline>
+<codeline><highlight class="normal">ls<sp/>-lah<sp/>&quot;$OUT_DIR&quot;<sp/>|<sp/>rg<sp/>-n<sp/>&apos;(dedup|int4|quant|ptq|mask|exceptions|default|replicate|hot|cache|patch|recon)&apos;<sp/>||<sp/>true</highlight></codeline>
+    </programlisting>
+    <location file="scripts/rebuild_dedup_and_quant.sh"/>
+  </compounddef>
+</doxygen>

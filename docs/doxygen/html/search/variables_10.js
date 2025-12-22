@@ -1,4 +1,27 @@
 var searchData=
 [
-  ['q4_5fdir_2342',['Q4_DIR',['../namespaceq4__pack__stream.html#ae14b77ca8a412d1fa973d25b3e12f54c',1,'q4_pack_stream']]]
+  ['pack_0',['pack',['../structie__int4__quant__meta.html#a9d23834e0981f2a33f3abda8cb03740b',1,'ie_int4_quant_meta']]],
+  ['path_1',['path',['../structie__mmap__file.html#a97331764332500953ea890e540eb7028',1,'ie_mmap_file']]],
+  ['payload_5fkind_2',['payload_kind',['../structdedup__spec__entry__s.html#a24519733602e4f2e6651ef3c35883448',1,'dedup_spec_entry_s']]],
+  ['per_5frow_3',['per_row',['../structie__int4__quant__meta.html#af2eabba20f874aaa1a8721ef0109c61d',1,'ie_int4_quant_meta']]],
+  ['pf_5fw_5fbytes_4',['pf_w_bytes',['../structcli__extras.html#a99623e7cab74ad7f26c1658cebeb133c',1,'cli_extras']]],
+  ['pf_5fx_5fbytes_5',['pf_x_bytes',['../structcli__extras.html#a675c90cc2f75f90fa8c30ce516c2f0e5',1,'cli_extras']]],
+  ['prec_6',['prec',['../structcli__extras.html#a8d2e77b03a5d60f1620594428885c49f',1,'cli_extras']]],
+  ['precision_7',['precision',['../structie__engine__params.html#a92b02bad12cb4e8173728311c00960b7',1,'ie_engine_params::precision'],['../structie__config__env.html#a4f111100f4d884b5106b6e4bc69e8aca',1,'ie_config_env::precision']]],
+  ['precision_5ffrom_5fflag_8',['precision_from_flag',['../structcli__extras.html#a49d7c958a59c223a1f66d6aedc796e68',1,'cli_extras']]],
+  ['precision_5flabel_9',['precision_label',['../structcli__extras.html#a061a8ed1f6671ad018d99db180df06c2',1,'cli_extras']]],
+  ['prefault_5fpolicy_10',['prefault_policy',['../structie__weights__dedup__opts__t.html#a86ae82fb8029f319a275251de5918035',1,'ie_weights_dedup_opts_t::prefault_policy'],['../structie__weights__dedup.html#a01e30db91371738f85dff6864eb316bc',1,'ie_weights_dedup::prefault_policy']]],
+  ['prefetch_11',['prefetch',['../structcli__extras.html#a01be4e3c92d754527967d04b729e4ee6',1,'cli_extras::prefetch'],['../structie__cli__extras.html#adabeb6985b713f2cef2e63ba67379ecf',1,'ie_cli_extras::prefetch'],['../structie__engine__params.html#a34f965300425f8c1115b2408a4adc04a',1,'ie_engine_params::prefetch']]],
+  ['prefetch_5fdistance_12',['prefetch_distance',['../structie__stream__policy.html#a5068fd9f871400a3905ae657f6a6c468',1,'ie_stream_policy']]],
+  ['prefetch_5fhint_13',['prefetch_hint',['../structie__stream__policy.html#a3460579286e9f7c546a5e8e884257043',1,'ie_stream_policy']]],
+  ['present_14',['present',['../structie__int4__quant__meta.html#afdbdb2603142f1f64704233a8e9f44a7',1,'ie_int4_quant_meta']]],
+  ['pretranspose_15',['pretranspose',['../structie__engine__params.html#a992270ba61612b2acb319aed5cbfca13',1,'ie_engine_params']]],
+  ['pretx_16',['pretx',['../structcli__extras.html#a648dda8436ede182650f29f0460fa6a3',1,'cli_extras']]],
+  ['produced_17',['produced',['../structie__batcher.html#a44d6005b526564d22fb886e27821bf62',1,'ie_batcher']]],
+  ['producer_5fdone_18',['producer_done',['../structie__batcher.html#a5da8fcc389db0f782f507b934397f13c',1,'ie_batcher']]],
+  ['prompt_19',['prompt',['../structie__batcher__item__t.html#a29bbd077e2e4a2c0e8fad18a2a8ae7cd',1,'ie_batcher_item_t::prompt'],['../structcli__extras.html#aa45c7376781454d767d2202800c27a3e',1,'cli_extras::prompt']]],
+  ['prompts_20',['prompts',['../structie__batcher.html#aae1727714bdd5df07625bd6c6099db09',1,'ie_batcher']]],
+  ['prompts_5ffile_21',['prompts_file',['../structie__cli__extras.html#a90cfb62097607907fe50c00016ea2e53',1,'ie_cli_extras::prompts_file'],['../structcli__extras.html#a992ba8185b17f227f60e2e570441b63f',1,'cli_extras::prompts_file']]],
+  ['ptq_22',['PTQ',['../namespacetest__ptq__calib__pipeline.html#a98e7dc6c13a5a2a46ee2171be741a367',1,'test_ptq_calib_pipeline']]],
+  ['ptr_23',['ptr',['../structie__hot__replica__t.html#af4412cf7939ff90d9c555798440859be',1,'ie_hot_replica_t']]]
 ];

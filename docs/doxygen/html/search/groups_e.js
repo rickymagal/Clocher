@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['v1_20weights_20loader_0',['IEBIN v1 Weights Loader',['../group__ie__io__weights.html',1,'']]]
+  ['zero_20oneapi_20gpu_20backend_0',['Level Zero (oneAPI) GPU backend',['../group__IE__GPU__ZE.html',1,'']]]
 ];

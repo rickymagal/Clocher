@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['ie_5fint4_5fquant_2628',['Ie_int4_quant',['../group__ie__int4__quant.html',1,'']]]
+  ['backend_0',['Level Zero (oneAPI) GPU backend',['../group__IE__GPU__ZE.html',1,'']]]
 ];

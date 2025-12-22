@@ -23,7 +23,7 @@ var spec_8h =
     ] ],
     [ "dedup_fnv1a64", "spec_8h.html#a8d80797ffd39d0463f8274bfd05b51a8", null ],
     [ "dedup_spec_builder_add_entry", "spec_8h.html#aaec23b4132eb724935798d82eb8fbb13", null ],
-    [ "dedup_spec_builder_create", "spec_8h.html#ae3854dd4b00cbdf8e864ff6664296100", null ],
+    [ "dedup_spec_builder_create", "spec_8h.html#a3f08d8f81fdefd7da22524edfcb56891", null ],
     [ "dedup_spec_builder_destroy", "spec_8h.html#a300efcff3e42f940842bee59b47992b0", null ],
     [ "dedup_spec_builder_intern_string", "spec_8h.html#a201f5b2eae10d58c45dffceea3d1a6ea", null ],
     [ "dedup_spec_builder_write_file", "spec_8h.html#acded5265b0bad8d45d2106bef8d4876b", null ]

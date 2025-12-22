@@ -1,6 +1,4 @@
 var searchData=
 [
-  ['weights_2ec_1548',['weights.c',['../weights_8c.html',1,'']]],
-  ['weights_5fdedup_2ec_1549',['weights_dedup.c',['../weights__dedup_8c.html',1,'']]],
-  ['weights_5fdedup_2eh_1550',['weights_dedup.h',['../weights__dedup_8h.html',1,'']]]
+  ['validate_5fie_5fjson_2epy_0',['validate_ie_json.py',['../validate__ie__json_8py.html',1,'']]]
 ];

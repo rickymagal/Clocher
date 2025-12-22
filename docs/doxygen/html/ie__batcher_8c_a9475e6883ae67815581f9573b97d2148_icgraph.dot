@@ -1,0 +1,24 @@
+digraph "enqueue_item"
+{
+ // INTERACTIVE_SVG=YES
+ // LATEX_PDF_SIZE
+  bgcolor="transparent";
+  edge [fontname=Helvetica,fontsize=10,labelfontname=Helvetica,labelfontsize=10];
+  node [fontname=Helvetica,fontsize=10,shape=box,height=0.2,width=0.4];
+  rankdir="RL";
+  Node1 [id="Node000001",label="enqueue_item",height=0.2,width=0.4,color="gray40", fillcolor="grey60", style="filled", fontcolor="black",tooltip="Enqueue a tokenized item into the ring (blocks if full)."];
+  Node1 -> Node2 [id="edge1_Node000001_Node000002",dir="back",color="steelblue1",style="solid",tooltip=" "];
+  Node2 [id="Node000002",label="worker_main",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$ie__batcher_8c.html#ab50c928126740940413626fd7ab7ce72",tooltip="Producer thread entry: tokenizes prompts in ascending index order."];
+  Node2 -> Node3 [id="edge2_Node000002_Node000003",dir="back",color="steelblue1",style="solid",tooltip=" "];
+  Node3 [id="Node000003",label="ie_batcher_create",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$ie__batcher_8c.html#ab201d312c4f0fa59e31e99e221bd71f6",tooltip="Create a new asynchronous tokenizer batcher."];
+  Node3 -> Node4 [id="edge3_Node000003_Node000004",dir="back",color="steelblue1",style="solid",tooltip=" "];
+  Node4 [id="Node000004",label="test_basic_prefetch\l_and_order",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$test__batcher_8c.html#a840a5fb06d03045c6f4e645ed682b7ad",tooltip="Validate basic prefetch, ordering, microbatch slicing and draining."];
+  Node4 -> Node5 [id="edge4_Node000004_Node000005",dir="back",color="steelblue1",style="solid",tooltip=" "];
+  Node5 [id="Node000005",label="main",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$test__batcher_8c.html#a840291bc02cba5474a4cb46a9b9566fe",tooltip=" "];
+  Node3 -> Node6 [id="edge5_Node000003_Node000006",dir="back",color="steelblue1",style="solid",tooltip=" "];
+  Node6 [id="Node000006",label="test_partial_teardown",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$test__batcher_8c.html#acebcf748df4676af1488302913dcc33e",tooltip="Validate graceful teardown: destroy after partial consumption."];
+  Node6 -> Node5 [id="edge6_Node000006_Node000005",dir="back",color="steelblue1",style="solid",tooltip=" "];
+  Node3 -> Node7 [id="edge7_Node000003_Node000007",dir="back",color="steelblue1",style="solid",tooltip=" "];
+  Node7 [id="Node000007",label="test_wrap_and_view\l_limits",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$test__batcher_8c.html#ae1015c7a7a149612ed323d43e7c93a0c",tooltip="Validate ring wrap behavior (tail truncation) and view sizes."];
+  Node7 -> Node5 [id="edge8_Node000007_Node000005",dir="back",color="steelblue1",style="solid",tooltip=" "];
+}

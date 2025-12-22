@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['cuda_20kernels_20_26_20launchers_2627',['CUDA kernels &amp; launchers',['../group__IE__GPU.html',1,'']]]
+  ['and_20rss_20sampler_0',['Utilities: KV counters and RSS sampler',['../group__IE__METRICS.html',1,'']]],
+  ['api_20compat_1',['Public Engine API (compat)',['../group__ie__engine.html',1,'']]]
 ];

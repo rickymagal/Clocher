@@ -19,5 +19,5 @@ var sparse__format_8h =
     [ "ie_block_sparse_n_block_rows", "sparse__format_8h.html#a2df04db78871f064e33eb709ed62ed4f", null ],
     [ "ie_block_sparse_release", "sparse__format_8h.html#ac8f8ef0741fb1ea4ea51a9e41414c318", null ],
     [ "ie_gemv_block_sparse_f32", "sparse__format_8h.html#ae9a2aad0ec5332237097030acf034961", null ],
-    [ "ie_sparse_status_str", "sparse__format_8h.html#a9815937097fd0b8a59ac40fe89618e16", null ]
+    [ "ie_sparse_status_str", "sparse__format_8h.html#a09b5db477af8f3af042f66530b5fe929", null ]
 ];

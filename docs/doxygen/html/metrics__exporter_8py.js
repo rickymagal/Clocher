@@ -1,6 +1,6 @@
 var metrics__exporter_8py =
 [
-    [ "Handler", "classmetrics__exporter_1_1Handler.html", "classmetrics__exporter_1_1Handler" ],
+    [ "metrics_exporter.Handler", "classmetrics__exporter_1_1Handler.html", "classmetrics__exporter_1_1Handler" ],
     [ "_find_latest_json", "metrics__exporter_8py.html#ab6cd6cba024cfad0fe4d6606d65f1d49", null ],
     [ "_gauge_line", "metrics__exporter_8py.html#a524a69c6d1d2cb93c5395e646fd38a17", null ],
     [ "_help_type", "metrics__exporter_8py.html#a4a94480fb22d48f18b188821dcefad52", null ],

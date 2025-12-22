@@ -1,4 +1,6 @@
 var searchData=
 [
-  ['level_20zero_20_28oneapi_29_20gpu_20backend_2629',['Level Zero (oneAPI) GPU backend',['../group__IE__GPU__ZE.html',1,'']]]
+  ['compat_0',['Public Engine API (compat)',['../group__ie__engine.html',1,'']]],
+  ['counters_20and_20rss_20sampler_1',['Utilities: KV counters and RSS sampler',['../group__IE__METRICS.html',1,'']]],
+  ['cuda_20kernels_20launchers_2',['CUDA kernels &amp; launchers',['../group__IE__GPU.html',1,'']]]
 ];

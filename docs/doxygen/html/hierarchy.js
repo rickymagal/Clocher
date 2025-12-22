@@ -38,6 +38,7 @@ var hierarchy =
     [ "ie_file_ref", "structie__file__ref.html", null ],
     [ "ie_hot_replica_t", "structie__hot__replica__t.html", null ],
     [ "ie_hot_replicas_t", "structie__hot__replicas__t.html", null ],
+    [ "ie_iejson_tensor", "structie__iejson__tensor.html", null ],
     [ "ie_int4_quant_meta", "structie__int4__quant__meta.html", null ],
     [ "ie_kv_cache", "structie__kv__cache.html", null ],
     [ "ie_kv_opts", "structie__kv__opts.html", null ],
@@ -62,6 +63,7 @@ var hierarchy =
     [ "ie_weights_dedup_opts_t", "structie__weights__dedup__opts__t.html", null ],
     [ "ie_weights_s", "structie__weights__s.html", null ],
     [ "ie_worker_arg_t", "structie__worker__arg__t.html", null ],
+    [ "build_dedup_source_from_manifest.OutTensor", "classbuild__dedup__source__from__manifest_1_1OutTensor.html", null ],
     [ "dedup_extract_int4.TensorRec", "classdedup__extract__int4_1_1TensorRec.html", null ],
     [ "dedup_verify_int4.TensorRec", "classdedup__verify__int4_1_1TensorRec.html", null ],
     [ "unittest.TestCase", null, [

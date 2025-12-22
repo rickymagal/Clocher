@@ -8,6 +8,6 @@ var sparse__io_8c =
     [ "ie_block_sparse_n_block_cols", "sparse__io_8c.html#afcc239def447f7ccdf07b59ce0e47467", null ],
     [ "ie_block_sparse_n_block_rows", "sparse__io_8c.html#a2df04db78871f064e33eb709ed62ed4f", null ],
     [ "ie_block_sparse_release", "sparse__io_8c.html#ac8f8ef0741fb1ea4ea51a9e41414c318", null ],
-    [ "ie_sparse_status_str", "sparse__io_8c.html#a9815937097fd0b8a59ac40fe89618e16", null ],
+    [ "ie_sparse_status_str", "sparse__io_8c.html#a09b5db477af8f3af042f66530b5fe929", null ],
     [ "read_fully", "sparse__io_8c.html#a5a59341233785d180347a51141e56235", null ]
 ];

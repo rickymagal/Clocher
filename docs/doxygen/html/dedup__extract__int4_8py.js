@@ -1,6 +1,6 @@
 var dedup__extract__int4_8py =
 [
-    [ "TensorRec", "classdedup__extract__int4_1_1TensorRec.html", null ],
+    [ "dedup_extract_int4.TensorRec", "classdedup__extract__int4_1_1TensorRec.html", "classdedup__extract__int4_1_1TensorRec" ],
     [ "_bitset_popcount", "dedup__extract__int4_8py.html#a57d59c8c9f4c8e010b307c3aa29e66a3", null ],
     [ "_bitset_set", "dedup__extract__int4_8py.html#a5016107a71fd3ff0d055392d4bd529c3", null ],
     [ "_ceil_div", "dedup__extract__int4_8py.html#a79e4668e369ab3af8602b22e2fe13168", null ],

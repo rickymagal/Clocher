@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8' standalone='no'?>
-<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.1" xml:lang="en-US">
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.8" xml:lang="en-US">
   <compounddef id="indexpage" kind="page">
     <compoundname>index</compoundname>
     <title>Inference Engine (Clocher)</title>
@@ -61,7 +61,7 @@
 <para>This writes <computeroutput>model.ie.json</computeroutput> and <computeroutput>model.ie.bin</computeroutput> in <computeroutput>models/gpt-oss-20b/</computeroutput> (or as configured).</para>
 <para>4) <bold>Run the benchmark (CPU or CUDA) with INT4 weights</bold></para>
 <para>The engine selects kernels by <bold>precision</bold>. For INT4 <bold>weight‑only</bold>, use <computeroutput>int4w</computeroutput>.</para>
-<para><blockquote><para><bold>64 MB per token</bold> = <computeroutput>IE_BYTES_PER_TOKEN=64000000</computeroutput> (decimal bytes). </para>
+<para><blockquote><para><zwj/><bold>64 MB per token</bold> = <computeroutput>IE_BYTES_PER_TOKEN=64000000</computeroutput> (decimal bytes). </para>
 </blockquote><bold>CPU:</bold></para>
 <para><programlisting filename=".bash"><codeline><highlight class="normal">cd<sp/>models/gpt-oss-20b</highlight></codeline>
 <codeline><highlight class="normal">PROMPTS=../../benchmarks/prompts_10..txt<sp/>IE_PRECISION=int4w<sp/>IE_REQUIRE_MODEL=1<sp/>IE_BYTES_PER_TOKEN=64000000<sp/>IE_STRIDE_BYTES=256<sp/>RUNS=3<sp/>make<sp/>-C<sp/>../..<sp/>bench</highlight></codeline>
@@ -145,7 +145,7 @@
 <title>Export to IEBIN with INT4</title>
 <para><programlisting filename=".bash"><codeline><highlight class="normal">python3<sp/>scripts/hf_to_iebin.py<sp/><sp/><sp/>--hf-dir<sp/>models/gpt-oss-20b/hf<sp/><sp/><sp/>--out-dir<sp/>models/gpt-oss-20b<sp/><sp/><sp/>--q4-map<sp/>quant/q4_manifest.json</highlight></codeline>
 </programlisting> This produces (or updates) <computeroutput>models/gpt-oss-20b/model.ie.json</computeroutput> and <computeroutput>models/gpt-oss-20b/model.ie.bin</computeroutput> with weight-only INT4 packing per manifest.</para>
-<para><blockquote><para>Tip: if you see <computeroutput>ERROR: --q4-map not found</computeroutput>, double‑check the path to your manifest. </para>
+<para><blockquote><para><zwj/>Tip: if you see <computeroutput>ERROR: --q4-map not found</computeroutput>, double‑check the path to your manifest. </para>
 </blockquote></para>
 </sect2>
 <sect2 id="index_1autotoc_md111">
@@ -273,7 +273,7 @@
 </listitem><listitem><para><computeroutput>make bench-cuda</computeroutput> — run CUDA benchmark harness (updates <computeroutput><ref refid="PERFORMANCE_8md" kindref="compound">docs/PERFORMANCE.md</ref></computeroutput>).</para>
 </listitem></itemizedlist>
 </para>
-<para><blockquote><para>Tip: these benchmarks call the <emphasis>same</emphasis> CLI under the hood (<computeroutput>build/inference-engine*</computeroutput>). </para>
+<para><blockquote><para><zwj/>Tip: these benchmarks call the <emphasis>same</emphasis> CLI under the hood (<computeroutput>build/inference-engine*</computeroutput>). </para>
 </blockquote></para>
 </sect2>
 <sect2 id="index_1autotoc_md119">
@@ -416,7 +416,7 @@
 <codeline><highlight class="normal"><sp/><sp/>[<sp/>&quot;$NODES&quot;<sp/>-gt<sp/>1<sp/>]<sp/>&amp;&amp;<sp/>exec<sp/>numactl<sp/>--cpunodebind=0<sp/>--membind=0<sp/>bash<sp/>-lc<sp/>&apos;PROMPTS=benchmarks/prompts_10..txt<sp/>RUNS=3<sp/>make<sp/>bench&apos;</highlight></codeline>
 <codeline><highlight class="normal">fi</highlight></codeline>
 </programlisting></para>
-<para><blockquote><para>Note: If <computeroutput>numactl -H</computeroutput> shows a single node, skip <computeroutput>numactl --cpunodebind/--membind</computeroutput>. </para>
+<para><blockquote><para><zwj/>Note: If <computeroutput>numactl -H</computeroutput> shows a single node, skip <computeroutput>numactl --cpunodebind/--membind</computeroutput>. </para>
 </blockquote><mdash/> </para>
 </sect2>
 </sect1>
@@ -459,7 +459,7 @@
 </listitem><listitem><para>CPU: dispatcher keeps AVX2/FMA fast path; generic C path honors blocked‑K and activation dequant (INT8 per‑tensor / per‑group).</para>
 </listitem></itemizedlist>
 </para>
-<para><blockquote><para>Tip: for strict, bandwidth‑bound tests use: <computeroutput>IE_REQUIRE_MODEL=1 IE_BYTES_PER_TOKEN=64000000 IE_STRIDE_BYTES=256</computeroutput>. </para>
+<para><blockquote><para><zwj/>Tip: for strict, bandwidth‑bound tests use: <computeroutput>IE_REQUIRE_MODEL=1 IE_BYTES_PER_TOKEN=64000000 IE_STRIDE_BYTES=256</computeroutput>. </para>
 </blockquote></para>
 </sect2>
 </sect1>

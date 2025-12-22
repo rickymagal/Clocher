@@ -1,12 +1,23 @@
 var searchData=
 [
-  ['off_5fdefaults_2308',['off_defaults',['../structie__tensor__ref.html#afc0d1756c72cc99d663603546d836fe7',1,'ie_tensor_ref']]],
-  ['off_5fexceptions_2309',['off_exceptions',['../structie__tensor__ref.html#a610ac41d587364cb6d32e37d797e97cc',1,'ie_tensor_ref']]],
-  ['off_5fmask_2310',['off_mask',['../structie__tensor__ref.html#aaf650d42ae89c734d23bcd72a6d0123f',1,'ie_tensor_ref']]],
-  ['offset_2311',['offset',['../structie__dedup__blobref__t.html#a68ffe8fd064c7486eb169ad30e829e08',1,'ie_dedup_blobref_t::offset()'],['../structblob__ref__s.html#a8eaf0a3abfc602479cf0d5b58c944eff',1,'blob_ref_s::offset()']]],
-  ['original_5fbytes_2312',['original_bytes',['../structdedup__spec__entry__s.html#a92b187c2ce0c9c860a70639dd601a670',1,'dedup_spec_entry_s']]],
-  ['out_5fdir_2313',['out_dir',['../structargs__s.html#a78002a7cbeb2ef20e8ce093d239413b0',1,'args_s']]],
-  ['out_5fdir_2314',['OUT_DIR',['../namespacededup__prepare__and__extract__all.html#a72458e773fc9e8a16ef13d5314e4d045',1,'dedup_prepare_and_extract_all']]],
-  ['out_5fpath_2315',['out_path',['../structcli__opts.html#ae588e29b31d460811e799282cc9c1519',1,'cli_opts']]],
-  ['out_5fprefix_2316',['OUT_PREFIX',['../namespacededup__prepare__and__extract__all.html#ac2dea6b54ef781b4e1835a85de866dd8',1,'dedup_prepare_and_extract_all']]]
+  ['n_0',['n',['../structblob__list__s.html#a0a54386dd3148e9a69be2c0587c16b94',1,'blob_list_s::n'],['../structgroup__list__s.html#ad8ccac6465f996132a46b83c31fa0d39',1,'group_list_s::n'],['../structtp__ctx__t.html#aa6fbac1cc8db863c595541b8405db24e',1,'tp_ctx_t::N']]],
+  ['n_5fblock_5fcols_1',['n_block_cols',['../structie__block__sparse__matrix.html#a7df64b3120302415724bf9f70846616a',1,'ie_block_sparse_matrix']]],
+  ['n_5fblock_5frows_2',['n_block_rows',['../structie__block__sparse__matrix.html#ae07fcb7d88ab31f89fdcc3bcdcdb021f',1,'ie_block_sparse_matrix']]],
+  ['n_5fcpus_3',['n_cpus',['../structie__topology.html#a2d0ca7f30433587739d648a24099d7ec',1,'ie_topology']]],
+  ['n_5fids_4',['n_ids',['../structie__batcher__item__t.html#a6fa5aa6d85ddca6b90125464f1332626',1,'ie_batcher_item_t']]],
+  ['n_5fnodes_5',['n_nodes',['../structie__topology.html#a63a704cd69563af051f3e3e493f689af',1,'ie_topology']]],
+  ['n_5fprompts_6',['n_prompts',['../structie__batcher.html#a66273bd78b7aa9abc1bbc175b9e9d567',1,'ie_batcher']]],
+  ['n_5fsockets_7',['n_sockets',['../structie__hot__replicas__t.html#a3506dc4197fb5808f4bfb57a81b8888d',1,'ie_hot_replicas_t::n_sockets'],['../structie__topology.html#abdc518fc315aa6192d15885ef4619547',1,'ie_topology::n_sockets']]],
+  ['n_5fworkers_8',['n_workers',['../structie__batcher.html#a239b1f5bb428b7f4510c36afa720047d',1,'ie_batcher']]],
+  ['name_9',['name',['../classdedup__verify__int4_1_1TensorRec.html#a1bf8099cf93ac2c20dd4d4a953e7da49',1,'dedup_verify_int4.TensorRec.name'],['../classdedup__extract__int4_1_1TensorRec.html#abab2c358d3be332d822f5f93f0cc2f69',1,'dedup_extract_int4.TensorRec.name'],['../structblob__ref__s.html#a8aecb7e30b1099267f4e698025cebeeb',1,'blob_ref_s::name'],['../classbuild__dedup__source__from__manifest_1_1OutTensor.html#ab5ec10fb3b4e3003e9517e52abf52d55',1,'build_dedup_source_from_manifest.OutTensor.name'],['../structie__tensor__ref.html#aa91de44910fe5518cb64585fd463947b',1,'ie_tensor_ref::name'],['../structze__impl.html#a04b0234eeba1b0a50b302d5bb975faa2',1,'ze_impl::name'],['../structcuda__impl.html#a9cf11521fb3e883109ee50c99faa7843',1,'cuda_impl::name'],['../structcpu__impl.html#a4479a15d3566dee6e784b5341e9374a8',1,'cpu_impl::name'],['../structie__device__caps.html#a8077e475ea6ed7a265e255add0454957',1,'ie_device_caps::name'],['../structie__dedup__tensor__t.html#a019acf3da2cf2805922a8661f3fcda72',1,'ie_dedup_tensor_t::name'],['../structie__iejson__tensor.html#a4315903e702738a36dc99572eff4d0b8',1,'ie_iejson_tensor::name']]],
+  ['name_5foff_10',['name_off',['../structdedup__spec__entry__s.html#a02f8670133b35e5332f1e659be2ce96b',1,'dedup_spec_entry_s']]],
+  ['nbytes_11',['nbytes',['../classbuild__dedup__source__from__manifest_1_1OutTensor.html#acb9fcdb41bf6499418a5bc979c4d9a23',1,'build_dedup_source_from_manifest.OutTensor.nbytes'],['../classdedup__verify__int4_1_1TensorRec.html#a4de79a8cc8dd01fa71cd2612779d1720',1,'dedup_verify_int4.TensorRec.nbytes'],['../classdedup__extract__int4_1_1TensorRec.html#ae0e592719ed1107e70664d8661c85b2d',1,'dedup_extract_int4.TensorRec.nbytes'],['../structie__iejson__tensor.html#a3540b76c37e7771612d0149f0395cfc3',1,'ie_iejson_tensor::nbytes'],['../structie__patch__list__hdr__s.html#a8b2c657ce50b918c9148f0a456a80686',1,'ie_patch_list_hdr_s::nbytes'],['../structie__weight__view__t.html#aaf93cc566a043394c3cb05949dbc9f3e',1,'ie_weight_view_t::nbytes'],['../structie__patch__list__s.html#ada7241edd184e33207830e566fb913b3',1,'ie_patch_list_s::nbytes'],['../structie__dedup__blobref__t.html#a04cadc8480028216206f571778a35ea2',1,'ie_dedup_blobref_t::nbytes']]],
+  ['nbytes_5fdefaults_12',['nbytes_defaults',['../structie__tensor__ref.html#a194e67ea04dbc634e22660a239ff8d22',1,'ie_tensor_ref']]],
+  ['nbytes_5fexceptions_13',['nbytes_exceptions',['../structie__tensor__ref.html#a6a020cb89904da93ada41fb17d0e07e5',1,'ie_tensor_ref']]],
+  ['nbytes_5fmask_14',['nbytes_mask',['../structie__tensor__ref.html#a917611b928fd7d85fdc22108bd0c99e4',1,'ie_tensor_ref']]],
+  ['nitems_15',['nitems',['../structie__patch__list__s.html#a59f8e8e8ef28d80521accfc7d6f5d523',1,'ie_patch_list_s::nitems'],['../structie__patch__list__hdr__s.html#a23b9de79544d9f0eb05e39d7ace6ee61',1,'ie_patch_list_hdr_s::nitems']]],
+  ['nnzb_16',['nnzb',['../structie__block__sparse__matrix.html#a8f73164fd4166248801d695c668e8764',1,'ie_block_sparse_matrix::nnzb'],['../structie__block__sparse__header__disk.html#aaf7a8ac378e87d45dd806acf58360c14',1,'ie_block_sparse_header_disk::nnzb']]],
+  ['nt_5fthreshold_5fbytes_17',['nt_threshold_bytes',['../structie__stream__policy.html#a482106e29e235d9dd7594b9564d733cd',1,'ie_stream_policy']]],
+  ['nth_18',['nth',['../structie__threadpool.html#a049cb6c4affb07f0eb1199091bdfa6ce',1,'ie_threadpool']]],
+  ['nth_5fmap_19',['nth_map',['../structie__task__arg__t.html#aa687c7daa39cacca34ab74ff58f433d5',1,'ie_task_arg_t']]]
 ];

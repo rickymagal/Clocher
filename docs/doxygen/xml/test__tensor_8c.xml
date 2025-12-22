@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8' standalone='no'?>
-<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.1" xml:lang="en-US">
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.8" xml:lang="en-US">
   <compounddef id="test__tensor_8c" kind="file" language="C++">
     <compoundname>test_tensor.c</compoundname>
     <includes local="no">assert.h</includes>
@@ -14,12 +14,6 @@
         <childnode refid="6" relation="include">
         </childnode>
       </node>
-      <node id="2">
-        <label>assert.h</label>
-      </node>
-      <node id="6">
-        <label>stdint.h</label>
-      </node>
       <node id="1">
         <label>tests/c/test_tensor.c</label>
         <link refid="test__tensor_8c"/>
@@ -30,21 +24,27 @@
         <childnode refid="4" relation="include">
         </childnode>
       </node>
+      <node id="2">
+        <label>assert.h</label>
+      </node>
       <node id="5">
         <label>stddef.h</label>
+      </node>
+      <node id="6">
+        <label>stdint.h</label>
       </node>
       <node id="3">
         <label>stdio.h</label>
       </node>
     </incdepgraph>
-      <sectiondef kind="func">
+    <sectiondef kind="func">
       <memberdef kind="function" id="test__tensor_8c_1a840291bc02cba5474a4cb46a9b9566fe" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
-        <type>int</type>
+        <type><ref refid="ie__kernels__cuda_8cu_1af00402674d56c833c92c62df1cef1e84" kindref="member">int</ref></type>
         <definition>int main</definition>
         <argsstring>(void)</argsstring>
         <name>main</name>
         <param>
-          <type>void</type>
+          <type><ref refid="ie__kernels__cuda_8cu_1af00402674d56c833c92c62df1cef1e84" kindref="member">void</ref></type>
         </param>
         <briefdescription>
 <para>Program entrypoint for the tensor tests. </para>
@@ -60,9 +60,10 @@
         <location file="tests/c/test_tensor.c" line="21" column="5" bodyfile="tests/c/test_tensor.c" bodystart="21" bodyend="33"/>
         <references refid="structie__f32__vec__t_1abfa7cc8f0cfe5b985246c08b54fb342e" compoundref="ie__tensor_8h" startline="24">ie_f32_vec_t::data</references>
         <references refid="group__IE__TENSOR_1gadf1b7c1f8917680e925db00f4f6fb89f" compoundref="ie__tensor_8h" startline="35" endline="37">ie_f32_vec</references>
+        <references refid="ie__kernels__cuda_8cu_1af00402674d56c833c92c62df1cef1e84" compoundref="ie__kernels__cuda_8cu" startline="157" endline="189">k_gemv_rowwise_f32</references>
         <references refid="structie__f32__vec__t_1ad2393d51e0d947e540deffc6ecc2cd36" compoundref="ie__tensor_8h" startline="25">ie_f32_vec_t::len</references>
       </memberdef>
-      </sectiondef>
+    </sectiondef>
     <briefdescription>
 <para>Unit tests for basic tensor view helpers. </para>
     </briefdescription>
@@ -76,16 +77,16 @@
 <codeline lineno="11"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;<ref refid="ie__tensor_8h" kindref="compound">ie_tensor.h</ref>&quot;</highlight><highlight class="normal"></highlight></codeline>
 <codeline lineno="12"><highlight class="normal"></highlight></codeline>
 <codeline lineno="21" refid="test__tensor_8c_1a840291bc02cba5474a4cb46a9b9566fe" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="test__tensor_8c_1a840291bc02cba5474a4cb46a9b9566fe" kindref="member">main</ref>(</highlight><highlight class="keywordtype">void</highlight><highlight class="normal">)<sp/>{</highlight></codeline>
-<codeline lineno="22"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>buf[4]<sp/>=<sp/>{1.0f,<sp/>2.0f,<sp/>3.0f,<sp/>4.0f};</highlight></codeline>
+<codeline lineno="22"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/><ref refid="ie__kernels__cuda_8cu_1af00402674d56c833c92c62df1cef1e84" kindref="member">buf</ref>[4]<sp/>=<sp/>{1.0f,<sp/>2.0f,<sp/>3.0f,<sp/>4.0f};</highlight></codeline>
 <codeline lineno="23"><highlight class="normal"></highlight></codeline>
 <codeline lineno="24"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">/*<sp/>Construct<sp/>view<sp/>and<sp/>check<sp/>invariants<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="25"><highlight class="normal"><sp/><sp/><ref refid="structie__f32__vec__t" kindref="compound">ie_f32_vec_t</ref><sp/>v<sp/>=<sp/><ref refid="group__IE__TENSOR_1gadf1b7c1f8917680e925db00f4f6fb89f" kindref="member">ie_f32_vec</ref>(buf,<sp/>4);</highlight></codeline>
-<codeline lineno="26"><highlight class="normal"><sp/><sp/>assert(v.<ref refid="structie__f32__vec__t_1ad2393d51e0d947e540deffc6ecc2cd36" kindref="member">len</ref><sp/>==<sp/>4);</highlight></codeline>
-<codeline lineno="27"><highlight class="normal"><sp/><sp/>assert(v.<ref refid="structie__f32__vec__t_1abfa7cc8f0cfe5b985246c08b54fb342e" kindref="member">data</ref><sp/>==<sp/>buf);</highlight></codeline>
-<codeline lineno="28"><highlight class="normal"><sp/><sp/>assert(v.<ref refid="structie__f32__vec__t_1abfa7cc8f0cfe5b985246c08b54fb342e" kindref="member">data</ref>[0]<sp/>==<sp/>1.0f);</highlight></codeline>
-<codeline lineno="29"><highlight class="normal"><sp/><sp/>assert(v.<ref refid="structie__f32__vec__t_1abfa7cc8f0cfe5b985246c08b54fb342e" kindref="member">data</ref>[2]<sp/>==<sp/>3.0f);</highlight></codeline>
+<codeline lineno="25"><highlight class="normal"><sp/><sp/><ref refid="structie__f32__vec__t" kindref="compound">ie_f32_vec_t</ref><sp/>v<sp/>=<sp/><ref refid="group__IE__TENSOR_1gadf1b7c1f8917680e925db00f4f6fb89f" kindref="member">ie_f32_vec</ref>(<ref refid="ie__kernels__cuda_8cu_1af00402674d56c833c92c62df1cef1e84" kindref="member">buf</ref>,<sp/>4);</highlight></codeline>
+<codeline lineno="26"><highlight class="normal"><sp/><sp/><ref refid="ie__kernels__cuda_8cu_1af00402674d56c833c92c62df1cef1e84" kindref="member">assert</ref>(v.<ref refid="structie__f32__vec__t_1ad2393d51e0d947e540deffc6ecc2cd36" kindref="member">len</ref><sp/>==<sp/>4);</highlight></codeline>
+<codeline lineno="27"><highlight class="normal"><sp/><sp/><ref refid="ie__kernels__cuda_8cu_1af00402674d56c833c92c62df1cef1e84" kindref="member">assert</ref>(v.<ref refid="structie__f32__vec__t_1abfa7cc8f0cfe5b985246c08b54fb342e" kindref="member">data</ref><sp/>==<sp/><ref refid="ie__kernels__cuda_8cu_1af00402674d56c833c92c62df1cef1e84" kindref="member">buf</ref>);</highlight></codeline>
+<codeline lineno="28"><highlight class="normal"><sp/><sp/><ref refid="ie__kernels__cuda_8cu_1af00402674d56c833c92c62df1cef1e84" kindref="member">assert</ref>(v.<ref refid="structie__f32__vec__t_1abfa7cc8f0cfe5b985246c08b54fb342e" kindref="member">data</ref>[0]<sp/>==<sp/>1.0f);</highlight></codeline>
+<codeline lineno="29"><highlight class="normal"><sp/><sp/><ref refid="ie__kernels__cuda_8cu_1af00402674d56c833c92c62df1cef1e84" kindref="member">assert</ref>(v.<ref refid="structie__f32__vec__t_1abfa7cc8f0cfe5b985246c08b54fb342e" kindref="member">data</ref>[2]<sp/>==<sp/>3.0f);</highlight></codeline>
 <codeline lineno="30"><highlight class="normal"></highlight></codeline>
-<codeline lineno="31"><highlight class="normal"><sp/><sp/>printf(</highlight><highlight class="stringliteral">&quot;ok<sp/>test_tensor\n&quot;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="31"><highlight class="normal"><sp/><sp/><ref refid="ie__kernels__cuda_8cu_1af00402674d56c833c92c62df1cef1e84" kindref="member">printf</ref>(</highlight><highlight class="stringliteral">&quot;ok<sp/>test_tensor\n&quot;</highlight><highlight class="normal">);</highlight></codeline>
 <codeline lineno="32"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>0;</highlight></codeline>
 <codeline lineno="33"><highlight class="normal">}</highlight></codeline>
     </programlisting>

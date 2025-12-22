@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8' standalone='no'?>
-<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.1" xml:lang="en-US">
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.8" xml:lang="en-US">
   <compounddef id="util__metrics_8h" kind="file" language="C++">
     <compoundname>util_metrics.h</compoundname>
     <includes local="no">stdint.h</includes>
@@ -7,8 +7,13 @@
     <includedby refid="main__infer_8c" local="yes">engine/src/main_infer.c</includedby>
     <includedby refid="util__metrics_8c" local="yes">engine/src/util_metrics.c</includedby>
     <incdepgraph>
-      <node id="2">
-        <label>stdint.h</label>
+      <node id="3">
+        <label>ie_api.h</label>
+        <link refid="ie__api_8h"/>
+        <childnode refid="4" relation="include">
+        </childnode>
+        <childnode refid="2" relation="include">
+        </childnode>
       </node>
       <node id="1">
         <label>engine/include/util_metrics.h</label>
@@ -21,13 +26,8 @@
       <node id="4">
         <label>stddef.h</label>
       </node>
-      <node id="3">
-        <label>ie_api.h</label>
-        <link refid="ie__api_8h"/>
-        <childnode refid="4" relation="include">
-        </childnode>
-        <childnode refid="2" relation="include">
-        </childnode>
+      <node id="2">
+        <label>stdint.h</label>
       </node>
     </incdepgraph>
     <invincdepgraph>
@@ -39,266 +39,23 @@
         <childnode refid="3" relation="include">
         </childnode>
       </node>
-      <node id="3">
-        <label>engine/src/util_metrics.c</label>
-        <link refid="util__metrics_8c"/>
-      </node>
       <node id="2">
         <label>engine/src/main_infer.c</label>
         <link refid="main__infer_8c"/>
       </node>
+      <node id="3">
+        <label>engine/src/util_metrics.c</label>
+        <link refid="util__metrics_8c"/>
+      </node>
     </invincdepgraph>
-      <sectiondef kind="func">
-      <memberdef kind="function" id="group__IE__METRICS_1ga874413f3f40c7927c465112b7f162656" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
-        <type>void</type>
-        <definition>void ie_metrics_reset</definition>
-        <argsstring>(void)</argsstring>
-        <name>ie_metrics_reset</name>
-        <param>
-          <type>void</type>
-        </param>
-        <briefdescription>
-<para>Reset process-wide KV counters to zero. </para>
-        </briefdescription>
-        <detaileddescription>
-<para>Thread-safe (uses relaxed atomics). Intended for tests or to delimit rounds.</para>
-<para>Reset process-wide KV counters to zero.</para>
-<para><simplesect kind="post"><para>Subsequent snapshots will report zeros until producers add counts.</para>
-</simplesect>
-@thread_safety Safe; uses C11 atomics. </para>
-        </detaileddescription>
-        <inbodydescription>
-        </inbodydescription>
-        <location file="engine/include/util_metrics.h" line="35" column="6" bodyfile="engine/src/util_metrics.c" bodystart="162" bodyend="165" declfile="engine/include/util_metrics.h" declline="35" declcolumn="6"/>
-      </memberdef>
-      <memberdef kind="function" id="group__IE__METRICS_1ga7102e1b1461b7ac674d42c58660fda0d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
-        <type>void</type>
-        <definition>void ie_metrics_add_kv_hit</definition>
-        <argsstring>(uint64_t n)</argsstring>
-        <name>ie_metrics_add_kv_hit</name>
-        <param>
-          <type>uint64_t</type>
-          <declname>n</declname>
-        </param>
-        <briefdescription>
-<para>Add <computeroutput>n</computeroutput> KV hits to the process-wide counter. </para>
-        </briefdescription>
-        <detaileddescription>
-<para><parameterlist kind="param"><parameteritem>
-<parameternamelist>
-<parametername>n</parametername>
-</parameternamelist>
-<parameterdescription>
-<para>Number of hits to add (no-op if 0).</para>
-</parameterdescription>
-</parameteritem>
-</parameterlist>
-Add <computeroutput>n</computeroutput> KV hits to the process-wide counter.</para>
-<para><parameterlist kind="param"><parameteritem>
-<parameternamelist>
-<parametername>n</parametername>
-</parameternamelist>
-<parameterdescription>
-<para>Number of hits to add (may be zero). </para>
-</parameterdescription>
-</parameteritem>
-</parameterlist>
-</para>
-        </detaileddescription>
-        <inbodydescription>
-        </inbodydescription>
-        <location file="engine/include/util_metrics.h" line="41" column="6" bodyfile="engine/src/util_metrics.c" bodystart="167" bodyend="170" declfile="engine/include/util_metrics.h" declline="41" declcolumn="6"/>
-      </memberdef>
-      <memberdef kind="function" id="group__IE__METRICS_1ga8eecda9f8202c3f887066f287d97c954" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
-        <type>void</type>
-        <definition>void ie_metrics_add_kv_miss</definition>
-        <argsstring>(uint64_t n)</argsstring>
-        <name>ie_metrics_add_kv_miss</name>
-        <param>
-          <type>uint64_t</type>
-          <declname>n</declname>
-        </param>
-        <briefdescription>
-<para>Add <computeroutput>n</computeroutput> KV misses to the process-wide counter. </para>
-        </briefdescription>
-        <detaileddescription>
-<para><parameterlist kind="param"><parameteritem>
-<parameternamelist>
-<parametername>n</parametername>
-</parameternamelist>
-<parameterdescription>
-<para>Number of misses to add (no-op if 0).</para>
-</parameterdescription>
-</parameteritem>
-</parameterlist>
-Add <computeroutput>n</computeroutput> KV misses to the process-wide counter.</para>
-<para><parameterlist kind="param"><parameteritem>
-<parameternamelist>
-<parametername>n</parametername>
-</parameternamelist>
-<parameterdescription>
-<para>Number of misses to add (may be zero). </para>
-</parameterdescription>
-</parameteritem>
-</parameterlist>
-</para>
-        </detaileddescription>
-        <inbodydescription>
-        </inbodydescription>
-        <location file="engine/include/util_metrics.h" line="47" column="6" bodyfile="engine/src/util_metrics.c" bodystart="172" bodyend="175" declfile="engine/include/util_metrics.h" declline="47" declcolumn="6"/>
-      </memberdef>
-      <memberdef kind="function" id="group__IE__METRICS_1gaf9f02e4faa24298be27d9299df602fca" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
-        <type>void</type>
-        <definition>void ie_metrics_add_kv</definition>
-        <argsstring>(uint64_t hits, uint64_t misses)</argsstring>
-        <name>ie_metrics_add_kv</name>
-        <param>
-          <type>uint64_t</type>
-          <declname>hits</declname>
-        </param>
-        <param>
-          <type>uint64_t</type>
-          <declname>misses</declname>
-        </param>
-        <briefdescription>
-<para>Add both hits and misses in one call (each may be zero). </para>
-        </briefdescription>
-        <detaileddescription>
-<para><parameterlist kind="param"><parameteritem>
-<parameternamelist>
-<parametername>hits</parametername>
-</parameternamelist>
-<parameterdescription>
-<para>Hits to add. </para>
-</parameterdescription>
-</parameteritem>
-<parameteritem>
-<parameternamelist>
-<parametername>misses</parametername>
-</parameternamelist>
-<parameterdescription>
-<para>Misses to add.</para>
-</parameterdescription>
-</parameteritem>
-</parameterlist>
-Add both hits and misses in one call (each may be zero).</para>
-<para><parameterlist kind="param"><parameteritem>
-<parameternamelist>
-<parametername>hits</parametername>
-</parameternamelist>
-<parameterdescription>
-<para>Hits to add. </para>
-</parameterdescription>
-</parameteritem>
-<parameteritem>
-<parameternamelist>
-<parametername>misses</parametername>
-</parameternamelist>
-<parameterdescription>
-<para>Misses to add. </para>
-</parameterdescription>
-</parameteritem>
-</parameterlist>
-</para>
-        </detaileddescription>
-        <inbodydescription>
-        </inbodydescription>
-        <location file="engine/include/util_metrics.h" line="54" column="6" bodyfile="engine/src/util_metrics.c" bodystart="177" bodyend="180" declfile="engine/include/util_metrics.h" declline="54" declcolumn="6"/>
-      </memberdef>
-      <memberdef kind="function" id="group__IE__METRICS_1ga3a6a9208ad3e80cbc57fb1923e5e263f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
-        <type>void</type>
-        <definition>void ie_metrics_snapshot</definition>
-        <argsstring>(ie_metrics_t *out, int reset_after)</argsstring>
-        <name>ie_metrics_snapshot</name>
-        <param>
-          <type><ref refid="structie__metrics__t" kindref="compound">ie_metrics_t</ref> *</type>
-          <declname>out</declname>
-        </param>
-        <param>
-          <type>int</type>
-          <declname>reset_after</declname>
-        </param>
-        <briefdescription>
-<para>Snapshot process-wide KV counters into <computeroutput>out</computeroutput>. </para>
-        </briefdescription>
-        <detaileddescription>
-<para><parameterlist kind="param"><parameteritem>
-<parameternamelist>
-<parametername>out</parametername>
-</parameternamelist>
-<parameterdescription>
-<para>Destination snapshot (must be non-NULL). </para>
-</parameterdescription>
-</parameteritem>
-<parameteritem>
-<parameternamelist>
-<parametername>reset_after</parametername>
-</parameternamelist>
-<parameterdescription>
-<para>If nonzero, counters are reset after reading.</para>
-</parameterdescription>
-</parameteritem>
-</parameterlist>
-Only KV fields inside <computeroutput>out</computeroutput> are written by this function. Other fields of <computeroutput>out</computeroutput> are left untouched (so callers can compose metrics).</para>
-<para>Snapshot process-wide KV counters into <computeroutput>out</computeroutput>.</para>
-<para><parameterlist kind="param"><parameteritem>
-<parameternamelist>
-<parametername direction="out">out</parametername>
-</parameternamelist>
-<parameterdescription>
-<para>Destination snapshot structure (must not be NULL). </para>
-</parameterdescription>
-</parameteritem>
-<parameteritem>
-<parameternamelist>
-<parametername direction="in">reset_after</parametername>
-</parameternamelist>
-<parameterdescription>
-<para>If non-zero, zeroes accumulators after copying. </para>
-</parameterdescription>
-</parameteritem>
-</parameterlist>
-</para>
-        </detaileddescription>
-        <inbodydescription>
-        </inbodydescription>
-        <location file="engine/include/util_metrics.h" line="65" column="6" bodyfile="engine/src/util_metrics.c" bodystart="182" bodyend="195" declfile="engine/include/util_metrics.h" declline="65" declcolumn="6"/>
-      </memberdef>
-      <memberdef kind="function" id="group__IE__METRICS_1ga0b083c9fbf90d02c9ef387ab34220a34" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
-        <type>uint32_t</type>
-        <definition>uint32_t ie_metrics_sample_rss_peak</definition>
-        <argsstring>(void)</argsstring>
-        <name>ie_metrics_sample_rss_peak</name>
-        <param>
-          <type>void</type>
-        </param>
-        <briefdescription>
-<para>Best-effort sampling of process peak RSS, in MiB. </para>
-        </briefdescription>
-        <detaileddescription>
-<para>Platform behavior:<itemizedlist>
-<listitem><para>Linux: tries <computeroutput>/proc/self/status</computeroutput> <computeroutput>VmHWM:</computeroutput> (kB), falls back to <computeroutput>VmRSS:</computeroutput> (kB), then <computeroutput>/proc/self/smaps_rollup</computeroutput> <computeroutput>Rss:</computeroutput> (kB), and finally <computeroutput>getrusage()</computeroutput> (kB). kB are rounded up to MiB.</para>
-</listitem><listitem><para>macOS: uses <computeroutput>mach_task_basic_info</computeroutput> (bytes) and falls back to <computeroutput>getrusage()</computeroutput> (bytes). Bytes are rounded up to MiB.</para>
-</listitem><listitem><para>Other OS: falls back to <computeroutput>getrusage()</computeroutput> and conservatively treats the value as kB.</para>
-</listitem></itemizedlist>
-</para>
-<para>Debugging:<itemizedlist>
-<listitem><para>Set <computeroutput>IE_DEBUG_RSS=1</computeroutput> to print sampler decisions to stderr.</para>
-</listitem></itemizedlist>
-</para>
-<para><simplesect kind="return"><para>Peak RSS in MiB (0 if unavailable or reported &lt; 1 MiB).</para>
-</simplesect>
-Best-effort sampling of process peak RSS, in MiB.</para>
-<para>On Linux, prefers reading <computeroutput>/proc/self/status</computeroutput> (VmHWM). If unavailable, falls back to <computeroutput>getrusage(RUSAGE_SELF).ru_maxrss</computeroutput>. On non-Linux, only the <computeroutput>getrusage</computeroutput> fallback is used where available. Returns 0 if unsupported.</para>
-<para><simplesect kind="return"><para>Peak RSS in megabytes (MB), rounded down; 0 if unknown. </para>
-</simplesect>
-</para>
-        </detaileddescription>
-        <inbodydescription>
-        </inbodydescription>
-        <location file="engine/include/util_metrics.h" line="84" column="10" bodyfile="engine/src/util_metrics.c" bodystart="201" bodyend="306" declfile="engine/include/util_metrics.h" declline="84" declcolumn="10"/>
-      </memberdef>
-      </sectiondef>
+    <sectiondef kind="func">
+      <member refid="group__IE__METRICS_1ga874413f3f40c7927c465112b7f162656" kind="function"><name>ie_metrics_reset</name></member>
+      <member refid="group__IE__METRICS_1ga7102e1b1461b7ac674d42c58660fda0d" kind="function"><name>ie_metrics_add_kv_hit</name></member>
+      <member refid="group__IE__METRICS_1ga8eecda9f8202c3f887066f287d97c954" kind="function"><name>ie_metrics_add_kv_miss</name></member>
+      <member refid="group__IE__METRICS_1gaf9f02e4faa24298be27d9299df602fca" kind="function"><name>ie_metrics_add_kv</name></member>
+      <member refid="group__IE__METRICS_1ga3a6a9208ad3e80cbc57fb1923e5e263f" kind="function"><name>ie_metrics_snapshot</name></member>
+      <member refid="group__IE__METRICS_1ga0b083c9fbf90d02c9ef387ab34220a34" kind="function"><name>ie_metrics_sample_rss_peak</name></member>
+    </sectiondef>
     <briefdescription>
 <para>Public helpers for runtime metrics (KV counters + RSS sampling). </para>
     </briefdescription>
@@ -327,21 +84,21 @@ Best-effort sampling of process peak RSS, in MiB.</para>
 <codeline lineno="29"><highlight class="normal"></highlight></codeline>
 <codeline lineno="35"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="group__IE__METRICS_1ga874413f3f40c7927c465112b7f162656" kindref="member">ie_metrics_reset</ref>(</highlight><highlight class="keywordtype">void</highlight><highlight class="normal">);</highlight></codeline>
 <codeline lineno="36"><highlight class="normal"></highlight></codeline>
-<codeline lineno="41"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="group__IE__METRICS_1ga7102e1b1461b7ac674d42c58660fda0d" kindref="member">ie_metrics_add_kv_hit</ref>(uint64_t<sp/>n);</highlight></codeline>
+<codeline lineno="41"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="group__IE__METRICS_1ga7102e1b1461b7ac674d42c58660fda0d" kindref="member">ie_metrics_add_kv_hit</ref>(<ref refid="ie__kernels__cuda_8cu_1af00402674d56c833c92c62df1cef1e84" kindref="member">uint64_t</ref><sp/>n);</highlight></codeline>
 <codeline lineno="42"><highlight class="normal"></highlight></codeline>
-<codeline lineno="47"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="group__IE__METRICS_1ga8eecda9f8202c3f887066f287d97c954" kindref="member">ie_metrics_add_kv_miss</ref>(uint64_t<sp/>n);</highlight></codeline>
+<codeline lineno="47"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="group__IE__METRICS_1ga8eecda9f8202c3f887066f287d97c954" kindref="member">ie_metrics_add_kv_miss</ref>(<ref refid="ie__kernels__cuda_8cu_1af00402674d56c833c92c62df1cef1e84" kindref="member">uint64_t</ref><sp/>n);</highlight></codeline>
 <codeline lineno="48"><highlight class="normal"></highlight></codeline>
-<codeline lineno="54"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="group__IE__METRICS_1gaf9f02e4faa24298be27d9299df602fca" kindref="member">ie_metrics_add_kv</ref>(uint64_t<sp/>hits,<sp/>uint64_t<sp/>misses);</highlight></codeline>
+<codeline lineno="54"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="group__IE__METRICS_1gaf9f02e4faa24298be27d9299df602fca" kindref="member">ie_metrics_add_kv</ref>(<ref refid="ie__kernels__cuda_8cu_1af00402674d56c833c92c62df1cef1e84" kindref="member">uint64_t</ref><sp/>hits,<sp/><ref refid="ie__kernels__cuda_8cu_1af00402674d56c833c92c62df1cef1e84" kindref="member">uint64_t</ref><sp/>misses);</highlight></codeline>
 <codeline lineno="55"><highlight class="normal"></highlight></codeline>
-<codeline lineno="65"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="group__IE__METRICS_1ga3a6a9208ad3e80cbc57fb1923e5e263f" kindref="member">ie_metrics_snapshot</ref>(<ref refid="structie__metrics__t" kindref="compound">ie_metrics_t</ref><sp/>*out,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>reset_after);</highlight></codeline>
+<codeline lineno="65"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="group__IE__METRICS_1ga3a6a9208ad3e80cbc57fb1923e5e263f" kindref="member">ie_metrics_snapshot</ref>(<ref refid="structie__metrics__t" kindref="compound">ie_metrics_t</ref><sp/>*<ref refid="ie__kernels__cuda_8cu_1af00402674d56c833c92c62df1cef1e84" kindref="member">out</ref>,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="ie__kernels__cuda_8cu_1af00402674d56c833c92c62df1cef1e84" kindref="member">reset_after</ref>);</highlight></codeline>
 <codeline lineno="66"><highlight class="normal"></highlight></codeline>
-<codeline lineno="84"><highlight class="normal">uint32_t<sp/><ref refid="group__IE__METRICS_1ga0b083c9fbf90d02c9ef387ab34220a34" kindref="member">ie_metrics_sample_rss_peak</ref>(</highlight><highlight class="keywordtype">void</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="84"><highlight class="normal"><ref refid="ie__kernels__cuda_8cu_1af00402674d56c833c92c62df1cef1e84" kindref="member">uint32_t</ref><sp/><ref refid="group__IE__METRICS_1ga0b083c9fbf90d02c9ef387ab34220a34" kindref="member">ie_metrics_sample_rss_peak</ref>(</highlight><highlight class="keywordtype">void</highlight><highlight class="normal">);</highlight></codeline>
 <codeline lineno="85"><highlight class="normal"></highlight></codeline>
 <codeline lineno="86"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
 <codeline lineno="87"><highlight class="normal">}</highlight></codeline>
 <codeline lineno="88"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="89"><highlight class="normal"><sp/></highlight><highlight class="comment">/*<sp/>end<sp/>of<sp/>group<sp/>IE_METRICS<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="91"><highlight class="normal"></highlight></codeline>
+<codeline lineno="89"><highlight class="normal"></highlight></codeline>
+<sp/><highlight class="comment">/*<sp/>end<sp/>of<sp/>group<sp/>IE_METRICS<sp/>*/</highlight><codeline lineno="91"><highlight class="normal"></highlight></codeline>
 <codeline lineno="92"><highlight class="normal"></highlight><highlight class="preprocessor">#endif<sp/></highlight><highlight class="comment">/*<sp/>UTIL_METRICS_H<sp/>*/</highlight><highlight class="preprocessor"></highlight><highlight class="normal"></highlight></codeline>
 <codeline lineno="93"><highlight class="normal"></highlight></codeline>
     </programlisting>

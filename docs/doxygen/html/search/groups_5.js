@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['utilities_3a_20kv_20counters_20and_20rss_20sampler_2632',['Utilities: KV counters and RSS sampler',['../group__IE__METRICS.html',1,'']]]
+  ['ie_5fint4_5fquant_0',['Ie_int4_quant',['../group__ie__int4__quant.html',1,'']]]
 ];

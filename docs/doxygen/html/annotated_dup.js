@@ -1,10 +1,13 @@
 var annotated_dup =
 [
+    [ "build_dedup_source_from_manifest", "namespacebuild__dedup__source__from__manifest.html", [
+      [ "OutTensor", "classbuild__dedup__source__from__manifest_1_1OutTensor.html", "classbuild__dedup__source__from__manifest_1_1OutTensor" ]
+    ] ],
     [ "dedup_extract_int4", "namespacededup__extract__int4.html", [
-      [ "TensorRec", "classdedup__extract__int4_1_1TensorRec.html", null ]
+      [ "TensorRec", "classdedup__extract__int4_1_1TensorRec.html", "classdedup__extract__int4_1_1TensorRec" ]
     ] ],
     [ "dedup_verify_int4", "namespacededup__verify__int4.html", [
-      [ "TensorRec", "classdedup__verify__int4_1_1TensorRec.html", null ]
+      [ "TensorRec", "classdedup__verify__int4_1_1TensorRec.html", "classdedup__verify__int4_1_1TensorRec" ]
     ] ],
     [ "metrics_exporter", "namespacemetrics__exporter.html", [
       [ "Handler", "classmetrics__exporter_1_1Handler.html", "classmetrics__exporter_1_1Handler" ]
@@ -71,6 +74,7 @@ var annotated_dup =
     [ "ie_file_ref", "structie__file__ref.html", "structie__file__ref" ],
     [ "ie_hot_replica_t", "structie__hot__replica__t.html", "structie__hot__replica__t" ],
     [ "ie_hot_replicas_t", "structie__hot__replicas__t.html", "structie__hot__replicas__t" ],
+    [ "ie_iejson_tensor", "structie__iejson__tensor.html", "structie__iejson__tensor" ],
     [ "ie_int4_quant_meta", "structie__int4__quant__meta.html", "structie__int4__quant__meta" ],
     [ "ie_kv_cache", "structie__kv__cache.html", "structie__kv__cache" ],
     [ "ie_kv_opts", "structie__kv__opts.html", "structie__kv__opts" ],

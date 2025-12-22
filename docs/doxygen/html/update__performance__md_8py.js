@@ -23,7 +23,7 @@ var update__performance__md_8py =
     [ "_now_utc_str", "update__performance__md_8py.html#aabfd2fcbd91951cc329b904d3f67847a", null ],
     [ "_parse", "update__performance__md_8py.html#a17ae6536535cdd081f87d0a1f28fe161", null ],
     [ "_partition_runs_and_summary", "update__performance__md_8py.html#ac4d341cc6dc059359d9ed3dd061352d5", null ],
-    [ "_pick_first", "update__performance__md_8py.html#afebdb419bea0315b156a97c1e753a755", null ],
+    [ "_pick_first", "update__performance__md_8py.html#a58798198c090e92e0b0e5886cb68d58a", null ],
     [ "_read_json_lines", "update__performance__md_8py.html#a9bc426f3865fd06809eade1e79ea91a4", null ],
     [ "_render_device", "update__performance__md_8py.html#aa6279954597713b99c29f22496f5beb6", null ],
     [ "_render_memory_details", "update__performance__md_8py.html#abf22fbfdc994349f7c3f7dbdafde0ae1", null ],

@@ -1,13 +1,8 @@
 var searchData=
 [
-  ['l1_5fbytes_2251',['l1_bytes',['../structie__stream__policy.html#ae6809aac957bc384749db8d23fd160ce',1,'ie_stream_policy']]],
-  ['l2_5fbytes_2252',['l2_bytes',['../structie__stream__policy.html#a75f0a7fb9e8ba9febd2f961d1915ff07',1,'ie_stream_policy']]],
-  ['l3_5fbytes_2253',['l3_bytes',['../structie__stream__policy.html#a93b26b01c6c413aad99cb8dbe3e546a8',1,'ie_stream_policy']]],
-  ['last_2254',['last',['../structie__engine.html#aac6bf09043eb30698b226cbac9a5903b',1,'ie_engine']]],
-  ['latency_5fp50_5fms_2255',['latency_p50_ms',['../structie__metrics.html#aa309d0758ab70ad511b771b893bf1859',1,'ie_metrics']]],
-  ['latency_5fp95_5fms_2256',['latency_p95_ms',['../structie__metrics.html#a2285c7c529760ddbd5d8a81732bdf98d',1,'ie_metrics']]],
-  ['len_2257',['len',['../structie__f32__vec__t.html#ad2393d51e0d947e540deffc6ecc2cd36',1,'ie_f32_vec_t']]],
-  ['loaded_2258',['loaded',['../structie__weights__s.html#a0e365369fa9f9920eda71bd9be50c5bb',1,'ie_weights_s']]],
-  ['local_5fdir_2259',['local_dir',['../namespacedownload__gpt__oss__20b.html#aecd562067554e1acea55bc9e8f001abe',1,'download_gpt_oss_20b']]],
-  ['logical_2260',['logical',['../structie__dedup__file__t.html#aba685e7bdb888d0de3b4e9245a291879',1,'ie_dedup_file_t::logical()'],['../structie__file__ref.html#a188fc244bdc2b8fde0a54239de79075d',1,'ie_file_ref::logical()']]]
+  ['k_0',['K',['../structie__kv__cache.html#a9e6a8eae8f60ca5906d3009c7bda555a',1,'ie_kv_cache']]],
+  ['kdefaultspvpath_1',['kDefaultSPVPath',['../ie__kernel__ze_8cpp.html#a1b4f5224f122671c62dd85d1b7e6eb20',1,'ie_kernel_ze.cpp']]],
+  ['kind_2',['kind',['../structie__weight__view__t.html#a068b4df0c2d3213839f897eea779e4a2',1,'ie_weight_view_t::kind'],['../structie__device.html#a155ab991692fdcd2c49275a73416dfba',1,'ie_device::kind'],['../structblob__ref__s.html#a5798521c002368ec3e338bf30eb0d8b4',1,'blob_ref_s::kind']]],
+  ['kv_5fhits_3',['kv_hits',['../structie__metrics.html#a1583bee100f691bc5d673138373393c4',1,'ie_metrics::kv_hits'],['../structie__metrics__t.html#a8f046409ae21785342371064b2355ce1',1,'ie_metrics_t::kv_hits']]],
+  ['kv_5fmisses_4',['kv_misses',['../structie__metrics.html#abdbfea4007d54a071049764a1b573af6',1,'ie_metrics::kv_misses'],['../structie__metrics__t.html#afc2a1bc5d415d0bdd29350f3d52aab6c',1,'ie_metrics_t::kv_misses']]]
 ];

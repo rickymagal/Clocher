@@ -1,16 +1,18 @@
 var searchData=
 [
-  ['join_5fpath_1964',['join_path',['../weights_8c.html#a7bb1dd9958b072fc5d1a80373cc074ff',1,'join_path(char *out, size_t outsz, const char *dir, const char *file):&#160;weights.c'],['../main__infer_8c.html#adca9b33a342b8635e28ba51aecb365f6',1,'join_path(char *out, size_t outsz, const char *dir, const char *leaf):&#160;main_infer.c'],['../test__dedup__loader_8c.html#adca9b33a342b8635e28ba51aecb365f6',1,'join_path(char *out, size_t outsz, const char *dir, const char *leaf):&#160;test_dedup_loader.c']]],
-  ['js_5ffind_5fmember_5fvalue_1965',['js_find_member_value',['../weights__dedup_8c.html#ae0494f541a190a9ecf82c11c5eb22952',1,'weights_dedup.c']]],
-  ['js_5fmatch_5flit_1966',['js_match_lit',['../weights__dedup_8c.html#acb6d250836afa5eddeb1985efad8afa4',1,'weights_dedup.c']]],
-  ['js_5fparse_5fblobref_1967',['js_parse_blobref',['../weights__dedup_8c.html#ac65e64ed76368c21cf76399a4eed1b90',1,'weights_dedup.c']]],
-  ['js_5fparse_5fi64_1968',['js_parse_i64',['../weights__dedup_8c.html#a080768f8631e237e2467fc47a7d4d6a0',1,'weights_dedup.c']]],
-  ['js_5fparse_5fshape_1969',['js_parse_shape',['../weights__dedup_8c.html#a176ff7ed51749363637a7ad5366cf4e9',1,'weights_dedup.c']]],
-  ['js_5fparse_5fstring_1970',['js_parse_string',['../weights__dedup_8c.html#a7e3b6f5b10e0d8d68272d2e80523813b',1,'weights_dedup.c']]],
-  ['js_5fskip_5farray_1971',['js_skip_array',['../weights__dedup_8c.html#aeb7fa9bc2ccc7b24ae16f647bcafb49b',1,'weights_dedup.c']]],
-  ['js_5fskip_5fobject_1972',['js_skip_object',['../weights__dedup_8c.html#ae1e5c9a54a8c0312241d17afd01c40a0',1,'weights_dedup.c']]],
-  ['js_5fskip_5fvalue_1973',['js_skip_value',['../weights__dedup_8c.html#aec6b7531542a45304d1f17d108a6d2ea',1,'weights_dedup.c']]],
-  ['js_5fskip_5fws_1974',['js_skip_ws',['../weights__dedup_8c.html#a82535eef357e00f15379d3a922d6593d',1,'weights_dedup.c']]],
-  ['json_5ffind_5fstring_1975',['json_find_string',['../dedup__extract_8c.html#a2b5b434ab05d0e379abc64e4736f7916',1,'dedup_extract.c']]],
-  ['json_5ffind_5fu64_1976',['json_find_u64',['../dedup__extract_8c.html#a94accf41f931a3d64a21b9c56ca95c83',1,'dedup_extract.c']]]
+  ['join_5fpath_0',['join_path',['../main__infer_8c.html#adca9b33a342b8635e28ba51aecb365f6',1,'join_path(char *out, size_t outsz, const char *dir, const char *leaf):&#160;main_infer.c'],['../test__dedup__loader_8c.html#adca9b33a342b8635e28ba51aecb365f6',1,'join_path(char *out, size_t outsz, const char *dir, const char *leaf):&#160;test_dedup_loader.c'],['../weights_8c.html#a7bb1dd9958b072fc5d1a80373cc074ff',1,'join_path(char *out, size_t outsz, const char *dir, const char *file):&#160;weights.c']]],
+  ['js_5ffind_5fmember_5fvalue_1',['js_find_member_value',['../weights__dedup_8c.html#ae0494f541a190a9ecf82c11c5eb22952',1,'weights_dedup.c']]],
+  ['js_5fmatch_5flit_2',['js_match_lit',['../weights__dedup_8c.html#acb6d250836afa5eddeb1985efad8afa4',1,'weights_dedup.c']]],
+  ['js_5fparse_5fblobref_3',['js_parse_blobref',['../weights__dedup_8c.html#ac65e64ed76368c21cf76399a4eed1b90',1,'weights_dedup.c']]],
+  ['js_5fparse_5fi64_4',['js_parse_i64',['../weights__dedup_8c.html#a080768f8631e237e2467fc47a7d4d6a0',1,'weights_dedup.c']]],
+  ['js_5fparse_5fshape_5',['js_parse_shape',['../weights__dedup_8c.html#a176ff7ed51749363637a7ad5366cf4e9',1,'weights_dedup.c']]],
+  ['js_5fparse_5fstring_6',['js_parse_string',['../weights__dedup_8c.html#a7e3b6f5b10e0d8d68272d2e80523813b',1,'weights_dedup.c']]],
+  ['js_5fread_5fstr_5fmember_7',['js_read_str_member',['../weights__dedup_8c.html#ace1eab87292a3ab28bc10e2a8741b84b',1,'weights_dedup.c']]],
+  ['js_5fread_5fu64_5fmember_8',['js_read_u64_member',['../weights__dedup_8c.html#ad380703417334421d025a859a9a6e67e',1,'weights_dedup.c']]],
+  ['js_5fskip_5farray_9',['js_skip_array',['../weights__dedup_8c.html#aeb7fa9bc2ccc7b24ae16f647bcafb49b',1,'weights_dedup.c']]],
+  ['js_5fskip_5fobject_10',['js_skip_object',['../weights__dedup_8c.html#ae1e5c9a54a8c0312241d17afd01c40a0',1,'weights_dedup.c']]],
+  ['js_5fskip_5fvalue_11',['js_skip_value',['../weights__dedup_8c.html#aec6b7531542a45304d1f17d108a6d2ea',1,'weights_dedup.c']]],
+  ['js_5fskip_5fws_12',['js_skip_ws',['../weights__dedup_8c.html#a21501177295cc06eaf7d981f7d437c0c',1,'weights_dedup.c']]],
+  ['json_5ffind_5fstring_13',['json_find_string',['../dedup__extract_8c.html#a97baf0b47b71bc968743bcd64951e92a',1,'dedup_extract.c']]],
+  ['json_5ffind_5fu64_14',['json_find_u64',['../dedup__extract_8c.html#a94accf41f931a3d64a21b9c56ca95c83',1,'dedup_extract.c']]]
 ];

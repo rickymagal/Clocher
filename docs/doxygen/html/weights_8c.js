@@ -2,8 +2,12 @@ var weights_8c =
 [
     [ "ie_int4_quant_meta", "structie__int4__quant__meta.html", "structie__int4__quant__meta" ],
     [ "_POSIX_C_SOURCE", "weights_8c.html#a3024ccd4a9af5109d24e6c57565d74a1", null ],
+    [ "IE_WEIGHTS_HAS_DEDUP_FIELDS", "weights_8c.html#a09848cf2dc0076d1bdd76ec962abeeae", null ],
     [ "ascii_ieq", "weights_8c.html#a72ab94aafe7740f1343d317daa89ca15", null ],
     [ "cpyz", "weights_8c.html#ae3307b59271742c37862abf0b9698d23", null ],
+    [ "ensure_dedup_manifest_link", "weights_8c.html#a5b123cfce35efe0ac7475c10419f9373", null ],
+    [ "env_flag_get", "weights_8c.html#a93c92a71a0cf18f3eea8623ea9524d54", null ],
+    [ "file_exists_readable", "weights_8c.html#a8adb51cd6c239a9589d4d66cd0cf989e", null ],
     [ "fp16_to_fp32", "weights_8c.html#a45b3ddd20d46adc5338518e4d68a293d", null ],
     [ "ie_pread", "weights_8c.html#aabb19f4a5e5385962c6db57f611bb785", null ],
     [ "ie_weights_close", "weights_8c.html#a06c2b7e35d1f82a11e4605e23a1976f5", null ],
@@ -12,10 +16,11 @@ var weights_8c =
     [ "ie_weights_read_int4_meta", "weights_8c.html#a1c8fc195c7c1f4e503920578dbaf1d02", null ],
     [ "ie_weights_touch", "weights_8c.html#a095d7f59c4cba2b530bac039bca8b7a9", null ],
     [ "join_path", "weights_8c.html#a7bb1dd9958b072fc5d1a80373cc074ff", null ],
-    [ "last_slash", "weights_8c.html#a911b2111036aebbe893bacad82040caf", null ],
+    [ "last_slash", "weights_8c.html#a7415d89bc8bd657819e06ac0fc53da95", null ],
     [ "read_all_text", "weights_8c.html#a7d467c1ab0baceed9b0fdad7b5a8accf", null ],
     [ "scan_json_key_int", "weights_8c.html#a5c6ba72035c0c5110c91879350c8647f", null ],
     [ "scan_json_key_string", "weights_8c.html#a3c438658d11f74ba4af8273c7e390311", null ],
     [ "scan_json_key_string_in_range", "weights_8c.html#a110cc679cd45b43c11f22ba749bd0ea3", null ],
-    [ "scan_json_object_range", "weights_8c.html#a853d256b28c7e6c404c035fc1a16a454", null ]
+    [ "scan_json_object_range", "weights_8c.html#a853d256b28c7e6c404c035fc1a16a454", null ],
+    [ "touch_file_small", "weights_8c.html#ae3235e5160399c1e4465d1abf866571d", null ]
 ];

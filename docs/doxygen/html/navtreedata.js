@@ -74,80 +74,80 @@ var NAVTREE =
       [ "New artifacts", "index.html#autotoc_md139", null ],
       [ "Scope and current limitations", "index.html#autotoc_md140", null ]
     ] ],
-    [ "Architectural Decision Records", "md_docs_DECISIONS.html", [
-      [ "<strong>ADR-0013 (2025-10-24): Adopt INT4 weight-only PTQ & manifest-guided packing</strong>", "md_docs_DECISIONS.html#autotoc_md15", null ],
-      [ "Decision: Add INT4 (Weight-Only) Optional Pipeline (2025-10-24 21:04:23 UTC)", "md_docs_DECISIONS.html#autotoc_md17", null ],
-      [ "Appendix — INT4 (Weight‑Only) Step (Summary)", "md_docs_DECISIONS.html#autotoc_md19", null ],
-      [ "- <strong>Status:</strong> Accepted. Backward‑compatible; default remains FP32 if unset.", "md_docs_DECISIONS.html#autotoc_md21", null ],
-      [ "ADR‑0017 (Memory Streaming Heuristics): Prefetch & Non‑Temporal Loads — 2025-11-12 18:01:19 UTC", "md_docs_DECISIONS.html#autotoc_md22", null ],
-      [ "ADR‑0018 (Metrics & Reporting): Spatial Metrics in PERFORMANCE.md — 2025-11-12 18:01:19 UTC", "md_docs_DECISIONS.html#autotoc_md24", null ],
-      [ "ADR‑0019 (Sparsity): Block‑sparse weights, CPU‑only prototype — 2025‑11‑14 23:00:00 UTC", "md_docs_DECISIONS.html#autotoc_md25", null ]
+    [ "Architectural Decision Records", "md_docs_2DECISIONS.html", [
+      [ "<strong>ADR-0013 (2025-10-24): Adopt INT4 weight-only PTQ & manifest-guided packing</strong>", "md_docs_2DECISIONS.html#autotoc_md59", null ],
+      [ "Decision: Add INT4 (Weight-Only) Optional Pipeline (2025-10-24 21:04:23 UTC)", "md_docs_2DECISIONS.html#autotoc_md61", null ],
+      [ "Appendix — INT4 (Weight‑Only) Step (Summary)", "md_docs_2DECISIONS.html#autotoc_md63", null ],
+      [ "- <strong>Status:</strong> Accepted. Backward‑compatible; default remains FP32 if unset.", "md_docs_2DECISIONS.html#autotoc_md65", null ],
+      [ "ADR‑0017 (Memory Streaming Heuristics): Prefetch & Non‑Temporal Loads — 2025-11-12 18:01:19 UTC", "md_docs_2DECISIONS.html#autotoc_md66", null ],
+      [ "ADR‑0018 (Metrics & Reporting): Spatial Metrics in PERFORMANCE.md — 2025-11-12 18:01:19 UTC", "md_docs_2DECISIONS.html#autotoc_md68", null ],
+      [ "ADR‑0019 (Sparsity): Block‑sparse weights, CPU‑only prototype — 2025‑11‑14 23:00:00 UTC", "md_docs_2DECISIONS.html#autotoc_md69", null ]
     ] ],
-    [ "Design (CPU baseline + INT4 path)", "md_docs_DESIGN.html", [
-      [ "Process and boundaries", "md_docs_DESIGN.html#autotoc_md26", null ],
-      [ "API surface (high level)", "md_docs_DESIGN.html#autotoc_md27", null ],
-      [ "Hot path layout", "md_docs_DESIGN.html#autotoc_md28", null ],
-      [ "Precision modes", "md_docs_DESIGN.html#autotoc_md29", [
-        [ "Floating point", "md_docs_DESIGN.html#autotoc_md30", null ],
-        [ "INT8 PTQ (reference)", "md_docs_DESIGN.html#autotoc_md31", null ],
-        [ "<strong>NEW — INT4 PTQ (weight‑only)</strong>", "md_docs_DESIGN.html#autotoc_md32", null ]
+    [ "Design (CPU baseline + INT4 path)", "md_docs_2DESIGN.html", [
+      [ "Process and boundaries", "md_docs_2DESIGN.html#autotoc_md13", null ],
+      [ "API surface (high level)", "md_docs_2DESIGN.html#autotoc_md14", null ],
+      [ "Hot path layout", "md_docs_2DESIGN.html#autotoc_md15", null ],
+      [ "Precision modes", "md_docs_2DESIGN.html#autotoc_md16", [
+        [ "Floating point", "md_docs_2DESIGN.html#autotoc_md17", null ],
+        [ "INT8 PTQ (reference)", "md_docs_2DESIGN.html#autotoc_md18", null ],
+        [ "<strong>NEW — INT4 PTQ (weight‑only)</strong>", "md_docs_2DESIGN.html#autotoc_md19", null ]
       ] ],
-      [ "Threading model", "md_docs_DESIGN.html#autotoc_md33", null ],
-      [ "Layout and caching", "md_docs_DESIGN.html#autotoc_md34", null ],
-      [ "Metrics", "md_docs_DESIGN.html#autotoc_md35", null ],
-      [ "GPU integration (CUDA path)", "md_docs_DESIGN.html#autotoc_md36", null ],
-      [ "INT4 Weight-Only Path — Design Addendum (2025-10-24 21:04:23 UTC)", "md_docs_DESIGN.html#autotoc_md38", [
-        [ "Goals", "md_docs_DESIGN.html#autotoc_md39", null ],
-        [ "Design Choices", "md_docs_DESIGN.html#autotoc_md40", null ],
-        [ "Data Flow (INT4 path)", "md_docs_DESIGN.html#autotoc_md41", null ],
-        [ "Metrics Integrity", "md_docs_DESIGN.html#autotoc_md42", null ]
+      [ "Threading model", "md_docs_2DESIGN.html#autotoc_md20", null ],
+      [ "Layout and caching", "md_docs_2DESIGN.html#autotoc_md21", null ],
+      [ "Metrics", "md_docs_2DESIGN.html#autotoc_md22", null ],
+      [ "GPU integration (CUDA path)", "md_docs_2DESIGN.html#autotoc_md23", null ],
+      [ "INT4 Weight-Only Path — Design Addendum (2025-10-24 21:04:23 UTC)", "md_docs_2DESIGN.html#autotoc_md25", [
+        [ "Goals", "md_docs_2DESIGN.html#autotoc_md26", null ],
+        [ "Design Choices", "md_docs_2DESIGN.html#autotoc_md27", null ],
+        [ "Data Flow (INT4 path)", "md_docs_2DESIGN.html#autotoc_md28", null ],
+        [ "Metrics Integrity", "md_docs_2DESIGN.html#autotoc_md29", null ]
       ] ],
-      [ "Appendix — INT4 (Weight‑Only) Step (Summary)", "md_docs_DESIGN.html#autotoc_md44", null ],
-      [ "Updates — 2025-11-10", "md_docs_DESIGN.html#autotoc_md46", [
-        [ "NUMA‑aware topology (<tt>ie_topology</tt>)", "md_docs_DESIGN.html#autotoc_md47", null ],
-        [ "Hot weights replication", "md_docs_DESIGN.html#autotoc_md48", null ],
-        [ "Activation precision hint", "md_docs_DESIGN.html#autotoc_md49", null ],
-        [ "Timing discipline (unchanged semantics)", "md_docs_DESIGN.html#autotoc_md50", null ],
-        [ "Example configurations", "md_docs_DESIGN.html#autotoc_md51", null ]
+      [ "Appendix — INT4 (Weight‑Only) Step (Summary)", "md_docs_2DESIGN.html#autotoc_md32", null ],
+      [ "Updates — 2025-11-10", "md_docs_2DESIGN.html#autotoc_md34", [
+        [ "NUMA‑aware topology (<tt>ie_topology</tt>)", "md_docs_2DESIGN.html#autotoc_md35", null ],
+        [ "Hot weights replication", "md_docs_2DESIGN.html#autotoc_md36", null ],
+        [ "Activation precision hint", "md_docs_2DESIGN.html#autotoc_md37", null ],
+        [ "Timing discipline (unchanged semantics)", "md_docs_2DESIGN.html#autotoc_md38", null ],
+        [ "Example configurations", "md_docs_2DESIGN.html#autotoc_md39", null ]
       ] ],
-      [ "@code{bash}", "md_docs_DESIGN.html#autotoc_md52", null ],
-      [ "Memory Phase Design Addendum (updated 2025-11-12 18:01:19 UTC)", "md_docs_DESIGN.html#autotoc_md53", [
-        [ "Goals", "md_docs_DESIGN.html#autotoc_md54", null ],
-        [ "Components", "md_docs_DESIGN.html#autotoc_md55", null ],
-        [ "Measurement", "md_docs_DESIGN.html#autotoc_md56", null ],
-        [ "Backward Compatibility & Fallbacks", "md_docs_DESIGN.html#autotoc_md57", null ],
-        [ "Risks & Mitigations", "md_docs_DESIGN.html#autotoc_md58", null ]
+      [ "@icode{bash}", "md_docs_2DESIGN.html#autotoc_md40", null ],
+      [ "Memory Phase Design Addendum (updated 2025-11-12 18:01:19 UTC)", "md_docs_2DESIGN.html#autotoc_md41", [
+        [ "Goals", "md_docs_2DESIGN.html#autotoc_md42", null ],
+        [ "Components", "md_docs_2DESIGN.html#autotoc_md43", null ],
+        [ "Measurement", "md_docs_2DESIGN.html#autotoc_md44", null ],
+        [ "Backward Compatibility & Fallbacks", "md_docs_2DESIGN.html#autotoc_md45", null ],
+        [ "Risks & Mitigations", "md_docs_2DESIGN.html#autotoc_md46", null ]
       ] ],
-      [ "Block‑sparse weights (Phase 2, CPU only)", "md_docs_DESIGN.html#autotoc_md59", [
-        [ "Goals", "md_docs_DESIGN.html#autotoc_md60", null ],
-        [ "In‑memory layout: <tt>ie_block_sparse_matrix_t</tt>", "md_docs_DESIGN.html#autotoc_md61", null ],
-        [ "On‑disk format and loader (<tt>engine/src/sparse_io.c</tt>)", "md_docs_DESIGN.html#autotoc_md62", null ],
-        [ "CPU kernel (<tt>engine/src/gemm_block_sparse.c</tt>)", "md_docs_DESIGN.html#autotoc_md63", null ],
-        [ "Device abstraction (<tt>engine/src/devices/ie_device_common.c</tt>)", "md_docs_DESIGN.html#autotoc_md64", null ],
-        [ "Tools and tests", "md_docs_DESIGN.html#autotoc_md65", [
-          [ "Offline converter (<tt>tools/convert_to_block_sparse.c</tt>)", "md_docs_DESIGN.html#autotoc_md66", null ],
-          [ "C unit tests (<tt>tests/c/test_block_sparse.c</tt>)", "md_docs_DESIGN.html#autotoc_md67", null ],
-          [ "Microbenchmark (<tt>benchmarks/src/microbench_gemv_block_sparse.c</tt>)", "md_docs_DESIGN.html#autotoc_md68", null ]
+      [ "Block‑sparse weights (Phase 2, CPU only)", "md_docs_2DESIGN.html#autotoc_md47", [
+        [ "Goals", "md_docs_2DESIGN.html#autotoc_md48", null ],
+        [ "In‑memory layout: <tt>ie_block_sparse_matrix_t</tt>", "md_docs_2DESIGN.html#autotoc_md49", null ],
+        [ "On‑disk format and loader (<tt>engine/src/sparse_io.c</tt>)", "md_docs_2DESIGN.html#autotoc_md50", null ],
+        [ "CPU kernel (<tt>engine/src/gemm_block_sparse.c</tt>)", "md_docs_2DESIGN.html#autotoc_md51", null ],
+        [ "Device abstraction (<tt>engine/src/devices/ie_device_common.c</tt>)", "md_docs_2DESIGN.html#autotoc_md52", null ],
+        [ "Tools and tests", "md_docs_2DESIGN.html#autotoc_md53", [
+          [ "Offline converter (<tt>tools/convert_to_block_sparse.c</tt>)", "md_docs_2DESIGN.html#autotoc_md54", null ],
+          [ "C unit tests (<tt>tests/c/test_block_sparse.c</tt>)", "md_docs_2DESIGN.html#autotoc_md55", null ],
+          [ "Microbenchmark (<tt>benchmarks/src/microbench_gemv_block_sparse.c</tt>)", "md_docs_2DESIGN.html#autotoc_md56", null ]
         ] ],
-        [ "Integration strategy and future work", "md_docs_DESIGN.html#autotoc_md69", null ]
+        [ "Integration strategy and future work", "md_docs_2DESIGN.html#autotoc_md57", null ]
       ] ]
     ] ],
-    [ "Performance Notes", "md_docs_PERFORMANCE.html", [
-      [ "CPU — Summary (latest benchmark)", "md_docs_PERFORMANCE.html#autotoc_md3", null ],
-      [ "Latency", "md_docs_PERFORMANCE.html#autotoc_md4", null ],
-      [ "Spatial Complexity (Memory & Cache)", "md_docs_PERFORMANCE.html#autotoc_md5", [
-        [ "Memory Details", "md_docs_PERFORMANCE.html#autotoc_md6", null ]
+    [ "Performance Notes", "md_docs_2PERFORMANCE.html", [
+      [ "CPU — Summary (latest benchmark)", "md_docs_2PERFORMANCE.html#autotoc_md1", null ],
+      [ "Latency", "md_docs_2PERFORMANCE.html#autotoc_md2", null ],
+      [ "Spatial Complexity (Memory & Cache)", "md_docs_2PERFORMANCE.html#autotoc_md3", [
+        [ "Memory Details", "md_docs_2PERFORMANCE.html#autotoc_md4", null ]
       ] ],
-      [ "GPU — Summary (latest benchmark)", "md_docs_PERFORMANCE.html#autotoc_md7", null ],
-      [ "Latency", "md_docs_PERFORMANCE.html#autotoc_md8", null ],
-      [ "Spatial Complexity (Memory & Cache)", "md_docs_PERFORMANCE.html#autotoc_md9", [
-        [ "Memory Details", "md_docs_PERFORMANCE.html#autotoc_md10", null ]
+      [ "GPU — Summary (latest benchmark)", "md_docs_2PERFORMANCE.html#autotoc_md5", null ],
+      [ "Latency", "md_docs_2PERFORMANCE.html#autotoc_md6", null ],
+      [ "Spatial Complexity (Memory & Cache)", "md_docs_2PERFORMANCE.html#autotoc_md7", [
+        [ "Memory Details", "md_docs_2PERFORMANCE.html#autotoc_md8", null ]
       ] ],
-      [ "Run Parameters & Conditions", "md_docs_PERFORMANCE.html#autotoc_md11", null ],
-      [ "System & Model Info", "md_docs_PERFORMANCE.html#autotoc_md12", null ],
-      [ "Comparative Runs", "md_docs_PERFORMANCE.html#autotoc_md13", null ]
+      [ "Run Parameters & Conditions", "md_docs_2PERFORMANCE.html#autotoc_md9", null ],
+      [ "System & Model Info", "md_docs_2PERFORMANCE.html#autotoc_md10", null ],
+      [ "Comparative Runs", "md_docs_2PERFORMANCE.html#autotoc_md11", null ]
     ] ],
-    [ "Modules", "modules.html", "modules" ],
+    [ "Topics", "topics.html", "topics" ],
     [ "Namespaces", "namespaces.html", [
       [ "Namespace List", "namespaces.html", "namespaces_dup" ],
       [ "Namespace Members", "namespacemembers.html", [
@@ -184,15 +184,15 @@ var NAVTREE =
 var NAVTREEINDEX =
 [
 "act__fp8_8c.html",
-"functions.html",
-"group__ie__int4__quant.html#ga5eab5a797587f75e75af981b851f3d4d",
-"ie__kernels__cuda_8h_source.html",
-"main__infer_8c.html#a680d5eb9763f52ea89ce1764e01121dc",
-"namespaceptq__from__source.html#aa66029bb09d156055e81635a23485ba4",
-"spec_8h.html#a7bad93fc007d692d16eeaa767540ccb8",
-"structie__device__vtbl.html#af53f74e97e8a3331b3c9edd24a64e668",
-"test__dedup__loader_8c_source.html",
-"weights__dedup_8h.html#a5579991d9297cadd067b31d66b3005a5"
+"dedup__spec_8h.html#a1dbf1873c01aa1c83ff0a1c15bb4ee0f",
+"group__IE__GPU__ZE.html#ggab2c254b332e574ed55c2537075337f85a5c3ab96a97ea7aa059b44e7508c28a08",
+"ie__kernels_8h.html#a7548a57990692513f283a22543688e1b",
+"loader__mmap_8c.html#a751882cdc8516d2e234680d4f89b7d81ace5144926055034bacd1f224c994c336",
+"namespacehf__to__iebin__stream.html#aaac90de3ec7303ed1f6912aaf7316080",
+"run__benchmark_8sh.html",
+"structie__block__sparse__matrix.html#ae07fcb7d88ab31f89fdcc3bcdcdb021f",
+"structie__weights__dedup__opts__t.html#a86ae82fb8029f319a275251de5918035",
+"util__metrics_8c.html#a115dd2ed1a4c4c9987ad4c3b1e7ed6fa"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

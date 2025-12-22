@@ -1,6 +1,6 @@
 var namespacededup__verify__int4 =
 [
-    [ "TensorRec", "classdedup__verify__int4_1_1TensorRec.html", null ],
+    [ "TensorRec", "classdedup__verify__int4_1_1TensorRec.html", "classdedup__verify__int4_1_1TensorRec" ],
     [ "_ceil_div", "namespacededup__verify__int4.html#a9afff5005d6f44db475458f3b5cb4a4d", null ],
     [ "_load_json", "namespacededup__verify__int4.html#a50ebc96274885e224b879ee106b7bf7f", null ],
     [ "_mask_nbytes", "namespacededup__verify__int4.html#a788d976f08691140744343eb98f7a064", null ],
