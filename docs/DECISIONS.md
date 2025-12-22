@@ -153,3 +153,34 @@ and harness sweep labels for memory knobs.
 **Status.**
 - Accepted. Implemented as a **CPU‑only prototype**; further ADRs will cover wiring full‑model weights and any GPU/quantized variants.
 
+
+---
+
+## ADR-0020 (2025-12-22): Adopt lossless dedup artifacts and schema2 runtime loader
+
+**Context.** The engine is primarily memory-bandwidth bound at inference time. We already attack the problem
+via INT4 weight-only storage and streaming heuristics, but dense IEBIN still requires reading large swaths of
+the weight blob repeatedly. We need a **lossless** dedup scheme that can reduce DRAM traffic without changing
+model outputs.
+
+**Decision.**
+- Adopt a three-blob dedup artifact set alongside IEBIN:
+  - `model.defaults.bin`
+  - `model.masks.bin`
+  - `model.exceptions.bin`
+- Enable the loader behind runtime flags:
+  - `IE_DEDUP=1`, `IE_DEDUP_POLICY=lossless`
+  - `IE_DEDUP_STRICT=1` for “fail fast” correctness runs
+  - `IE_DEDUP_CACHE_MB` to cap reconstruction cache memory
+  - `IE_DEDUP_DEBUG=1` for verbose diagnostics
+- Keep schema2 metadata parsing strict, but allow compatibility with HF-derived metadata by:
+  - requiring lowercase `dtype`
+  - supporting `file`/`file_data_offset` (and generating aliases from `shard`/`shard_data_offset` in the metadata pipeline when needed)
+
+**Consequences.**
+- Offline extraction time increases (diffing defaults vs targets), but runtime is simplified to patch-apply.
+- Production runs must ship three additional binary files next to `model.ie.json` / `model.ie.bin` (or symlink them).
+- Benchmarks can now report meaningful “dedup on/off” TPS deltas under strict work-touch conditions.
+
+**Status.** Accepted. Implemented (CPU path) and integrated in strict harness runs. CUDA path uses the same
+artifact layout and flags where supported.

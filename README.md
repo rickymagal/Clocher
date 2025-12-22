@@ -481,3 +481,87 @@ Build/Makefile:
 See `DESIGN.md` (Block‑sparse weights chapter) and `DECISIONS.md` (ADR for
 block‑sparse) for full details.
 
+
+---
+
+## NEW: Lossless Deduplication (defaults + masks + exceptions)
+
+This repository supports an **exact (lossless)** dedup path that reconstructs weights at runtime from:
+- `model.defaults.bin` (default bytes)
+- `model.masks.bin` (exception mask)
+- `model.exceptions.bin` (exception bytes)
+
+These files must live next to `model.ie.json` / `model.ie.bin` in the model directory (or be symlinked there).
+
+### 1) Generate the three dedup blobs
+
+This step assumes you already have:
+- `models/gpt-oss-20b/dedup_out/tensor_map.json`
+- `models/gpt-oss-20b/dedup_out/groups.indices.json`
+
+```bash
+python3 tools/dedup_extract_int4.py \
+  --model-dir "models/gpt-oss-20b" \
+  --tensor-map "models/gpt-oss-20b/dedup_out/tensor_map.json" \
+  --groups "models/gpt-oss-20b/dedup_out/groups.indices.json" \
+  --out-prefix "models/gpt-oss-20b/dedup_out/model"
+
+# Confirm they exist (must be non-zero)
+ls -la \
+  models/gpt-oss-20b/dedup_out/model.defaults.bin \
+  models/gpt-oss-20b/dedup_out/model.masks.bin \
+  models/gpt-oss-20b/dedup_out/model.exceptions.bin
+```
+
+### 2) Place/symlink blobs where the runtime loader expects them
+
+```bash
+cd models/gpt-oss-20b
+rm -f model.defaults.bin model.masks.bin model.exceptions.bin
+ln -s dedup_out/model.defaults.bin   model.defaults.bin
+ln -s dedup_out/model.masks.bin      model.masks.bin
+ln -s dedup_out/model.exceptions.bin model.exceptions.bin
+cd ../..
+```
+
+### 3) Strict benchmark with dedup enabled (CPU)
+
+```bash
+RUNS=3 ROUNDS=1 \
+DEVICE=cpu \
+MODEL_DIR="$(pwd)/models/gpt-oss-20b" \
+PROMPTS="$(pwd)/benchmarks/prompts_10.txt" \
+IE_REQUIRE_MODEL=1 \
+IE_VERIFY_TOUCH=1 \
+IE_BYTES_PER_TOKEN=67108864 \
+IE_STRIDE_BYTES=256 \
+IE_DEDUP=1 \
+IE_DEDUP_STRICT=1 \
+IE_DEDUP_POLICY=lossless \
+IE_DEDUP_CACHE_MB=512 \
+PRECISION=int4w \
+make bench
+```
+
+### 4) Strict benchmark with dedup enabled (CUDA)
+
+```bash
+RUNS=3 ROUNDS=1 \
+DEVICE=cuda \
+MODEL_DIR="$(pwd)/models/gpt-oss-20b" \
+PROMPTS="$(pwd)/benchmarks/prompts_10.txt" \
+IE_REQUIRE_MODEL=1 \
+IE_VERIFY_TOUCH=1 \
+IE_BYTES_PER_TOKEN=67108864 \
+IE_STRIDE_BYTES=256 \
+IE_DEDUP=1 \
+IE_DEDUP_STRICT=1 \
+IE_DEDUP_POLICY=lossless \
+IE_DEDUP_CACHE_MB=512 \
+PRECISION=int4w \
+make bench-cuda
+```
+
+Notes:
+- `IE_BYTES_PER_TOKEN` must be non-zero and `IE_VERIFY_TOUCH=1` for trustworthy “work-touch” benchmarks.
+- Use `IE_DEDUP_DEBUG=1` to print schema/parse warnings and the dedup loader status line.

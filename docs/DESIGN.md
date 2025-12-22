@@ -392,3 +392,124 @@ For now, the block‑sparse prototype gives us a solid, CPU‑only baseline to
 reason about algorithmic sparsity independently of lower‑level memory and
 topology tricks introduced in the first phase.
 
+
+---
+
+## Lossless Deduplication (Schema2): defaults + masks + exceptions
+
+This project includes a **lossless** dedup path that reduces DRAM reads by reusing repeated weight content.
+The runtime reconstructs bytes exactly (bit-for-bit) by applying a sparse patch stream over shared defaults.
+
+### Artifacts
+
+The runtime loader expects these files in the model directory (next to `model.ie.json` / `model.ie.bin`):
+
+- `model.defaults.bin` — concatenated default payload bytes
+- `model.masks.bin` — exception mask bits/bytes (identifies where defaults differ)
+- `model.exceptions.bin` — exception bytes (dense list of the differing bytes)
+
+In the current workflow, these are typically generated into `models/<MODEL>/dedup_out/` and then symlinked.
+
+### Offline generation: extract defaults/masks/exceptions
+
+The extractor takes:
+- `tensor_map.json` (maps tensor names to on-disk byte ranges / sources)
+- `groups.indices.json` (dedup grouping and indices)
+and produces the three binary blobs:
+
+```bash
+python3 tools/dedup_extract_int4.py \
+  --model-dir "models/gpt-oss-20b" \
+  --tensor-map "models/gpt-oss-20b/dedup_out/tensor_map.json" \
+  --groups "models/gpt-oss-20b/dedup_out/groups.indices.json" \
+  --out-prefix "models/gpt-oss-20b/dedup_out/model"
+```
+
+Then link them into the model root:
+
+```bash
+cd models/gpt-oss-20b
+ln -sf dedup_out/model.defaults.bin   model.defaults.bin
+ln -sf dedup_out/model.masks.bin      model.masks.bin
+ln -sf dedup_out/model.exceptions.bin model.exceptions.bin
+cd ../..
+```
+
+### Runtime controls
+
+- `IE_DEDUP=1` enables the dedup loader.
+- `IE_DEDUP_STRICT=1` fails fast if dedup artifacts are missing or malformed.
+- `IE_DEDUP_POLICY=lossless` selects the exact reconstruction policy (no approximations).
+- `IE_DEDUP_CACHE_MB=<N>` configures the in-memory cache used by the dedup loader.
+- `IE_DEDUP_DEBUG=1` enables verbose parsing/debug logs.
+
+Strict runs should also enforce real IEBIN loading and anti-optimization work-touch:
+
+- `IE_REQUIRE_MODEL=1`
+- `IE_VERIFY_TOUCH=1`
+- `IE_BYTES_PER_TOKEN=<nonzero>`
+- `IE_STRIDE_BYTES=256` (default baseline)
+
+### Schema2 JSON compatibility notes (model.ie.json)
+
+The schema2 parser is strict about per-tensor metadata. When ingesting IEBIN metadata derived from HF shards,
+ensure the following are true for each tensor entry:
+
+- `dtype` is lowercase (`bf16`, `f16`, `f32`, `u8`, ...)
+- file metadata uses the schema2 keys:
+  - `file` (the backing shard filename)
+  - `file_data_offset` (byte offset inside that shard)
+
+If your `model.ie.json` uses `shard` / `shard_data_offset` instead, you can add aliases:
+
+```bash
+python3 - <<'PY'
+import json
+from pathlib import Path
+
+p = Path("models/gpt-oss-20b/model.ie.json")
+j = json.loads(p.read_text(encoding="utf-8"))
+
+t = j.get("tensors")
+if not isinstance(t, list):
+    raise SystemExit("ERROR: tensors is not a list")
+
+for e in t:
+    if not isinstance(e, dict):
+        continue
+    d = e.get("dtype")
+    if isinstance(d, str):
+        e["dtype"] = d.lower()
+    if "file" not in e and "shard" in e and isinstance(e["shard"], str):
+        e["file"] = e["shard"]
+    if "file_data_offset" not in e and "shard_data_offset" in e and isinstance(e["shard_data_offset"], int):
+        e["file_data_offset"] = e["shard_data_offset"]
+
+p.write_text(json.dumps(j, ensure_ascii=False, separators=(",", ":"), sort_keys=True) + "\n", encoding="utf-8")
+print("OK: tensors =", len(t))
+PY
+```
+
+You may see warnings like `unknown dtype=u8 ... (continuing)` for quantized auxiliary tensors (blocks/scales);
+these are expected as long as the loader is configured to ignore/skip unknown storage dtypes where safe.
+
+### Example strict run (CPU)
+
+```bash
+env -i \
+  IE_REQUIRE_MODEL=1 \
+  IE_VERIFY_TOUCH=1 \
+  IE_BYTES_PER_TOKEN=67108864 \
+  IE_STRIDE_BYTES=256 \
+  IE_DEDUP=1 \
+  IE_DEDUP_STRICT=1 \
+  IE_DEDUP_POLICY=lossless \
+  IE_DEDUP_CACHE_MB=512 \
+  IE_DEDUP_DEBUG=1 \
+  PRECISION=int4w \
+  ./build/inference-engine \
+    --device cpu \
+    --model-dir "$(pwd)/models/gpt-oss-20b" \
+    --prompts-file "$(pwd)/benchmarks/prompts_10.txt" \
+    --max-new 8 --rounds 1
+```
