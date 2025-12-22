@@ -6,6 +6,7 @@ set -euo pipefail
 # Optional env (with defaults):
 #   THREADS, PRECISION, BATCH, PREFETCH, PRETRANSPOSE, AFFINITY, MAX_NEW
 #   IE_REQUIRE_MODEL, IE_BYTES_PER_TOKEN, IE_STRIDE_BYTES, IE_VERIFY_TOUCH
+#   IE_DEDUP, IE_DEDUP_STRICT, IE_DEDUP_POLICY, IE_DEDUP_CACHE_MB
 #   RUNS, ROUNDS
 #
 # Output:
@@ -31,6 +32,12 @@ IE_BYTES_PER_TOKEN="${IE_BYTES_PER_TOKEN:-67108864}"
 IE_STRIDE_BYTES="${IE_STRIDE_BYTES:-256}"
 IE_VERIFY_TOUCH="${IE_VERIFY_TOUCH:-1}"
 
+# Dedup (optional; default disabled)
+IE_DEDUP="${IE_DEDUP:-0}"
+IE_DEDUP_STRICT="${IE_DEDUP_STRICT:-0}"
+IE_DEDUP_POLICY="${IE_DEDUP_POLICY:-lossless}"
+IE_DEDUP_CACHE_MB="${IE_DEDUP_CACHE_MB:-0}"
+
 RUNS="${RUNS:-3}"
 ROUNDS="${ROUNDS:-1}"
 
@@ -45,6 +52,7 @@ case "${PRECISION}" in
 esac
 
 export IE_REQUIRE_MODEL IE_BYTES_PER_TOKEN IE_STRIDE_BYTES IE_VERIFY_TOUCH
+export IE_DEDUP IE_DEDUP_STRICT IE_DEDUP_POLICY IE_DEDUP_CACHE_MB
 
 _tmpdir="$(mktemp -d)"
 cleanup() { rm -rf "${_tmpdir}"; }
@@ -66,7 +74,6 @@ read_vmstat_swaps() {
 }
 
 read_psi_mem_some_avg10() {
-  # returns avg10 numeric (e.g., 0.00)
   awk '
     $1=="some" {
       for(i=1;i<=NF;i++){
@@ -111,7 +118,6 @@ read_proc_status_kb() {
 }
 
 read_proc_pss_kb() {
-  # returns Pss in kB from smaps_rollup when available
   local pid="$1"
   if [[ -r "/proc/${pid}/smaps_rollup" ]]; then
     awk '$1=="Pss:" {print $2; exit}' "/proc/${pid}/smaps_rollup" 2>/dev/null || echo "0"
@@ -121,8 +127,6 @@ read_proc_pss_kb() {
 }
 
 read_proc_faults() {
-  # returns: "minflt majflt" from /proc/<pid>/stat
-  # Need to handle comm field with spaces inside parentheses.
   local pid="$1"
   python3 - "$pid" <<'PY'
 import sys
@@ -131,8 +135,6 @@ try:
     s=open(f"/proc/{pid}/stat","r").read()
     rparen=s.rfind(")")
     tail=s[rparen+2:].split()
-    # minflt is field 10 overall -> tail index 7
-    # majflt is field 12 overall -> tail index 9
     minflt=int(tail[7])
     majflt=int(tail[9])
     print(minflt, majflt)
@@ -141,8 +143,15 @@ except Exception:
 PY
 }
 
-# Some engine paths still open IEBIN as ./model.ie.{json,bin}.
-# To make bench robust, we always run the engine with CWD = MODEL_DIR.
+stat_bytes_or_empty() {
+  local p="$1"
+  if [[ -e "${p}" ]]; then
+    stat -c '%s' "${p}" 2>/dev/null || echo ""
+  else
+    echo ""
+  fi
+}
+
 run_one() {
   local run_idx="$1"
   local out_raw="${_tmpdir}/run_${run_idx}.raw.txt"
@@ -150,8 +159,6 @@ run_one() {
   local sw_in0 sw_out0
   read -r sw_in0 sw_out0 < <(read_vmstat_swaps)
 
-  # IMPORTANT:
-  # Use 'exec' so the background PID is the engine PID (not the subshell PID).
   (
     cd "${MODEL_DIR}"
     exec "${ENGINE_BIN}" \
@@ -185,7 +192,6 @@ run_one() {
   local minflt0 majflt0
   read -r minflt0 majflt0 < <(read_proc_faults "${pid}")
 
-  # Poll loop
   while kill -0 "${pid}" 2>/dev/null; do
     local rss_kb vms_kb swp_kb
     read -r rss_kb vms_kb swp_kb < <(read_proc_status_kb "${pid}")
@@ -334,14 +340,14 @@ print((a-b)/1024.0 if a>=b else 0.0)
 PY
 )"
 
-  # Extract last JSON object printed by the engine (ignore non-JSON noise)
   python3 - "${out_raw}" \
     "${rss_floor_mb}" "${rss_delta_mb}" "${pss_peak_mb}" "${vms_peak_mb}" \
     "${minflt_delta}" "${majflt_delta}" \
     "${swap_in_mb}" "${swap_out_mb}" \
     "${psi_some_mean}" "${psi_full_mean}" \
     "${memavail_mean_mb}" "${memavail_mean_pct}" \
-    "${MODEL_DIR}" "${ENGINE_BIN}" "${DEVICE}" <<'PY'
+    "${MODEL_DIR}" "${ENGINE_BIN}" "${DEVICE}" \
+    "${IE_DEDUP}" "${IE_DEDUP_STRICT}" "${IE_DEDUP_POLICY}" "${IE_DEDUP_CACHE_MB}" <<'PY'
 import sys, json
 
 raw_path=sys.argv[1]
@@ -367,6 +373,11 @@ mem_av_pct=to_opt_float(sys.argv[13])
 model_dir=sys.argv[14]
 engine_bin=sys.argv[15]
 device=sys.argv[16]
+
+ie_dedup=int(float(sys.argv[17]))
+ie_dedup_strict=int(float(sys.argv[18]))
+ie_dedup_policy=sys.argv[19]
+ie_dedup_cache_mb=int(float(sys.argv[20]))
 
 last=None
 with open(raw_path,"r",encoding="utf-8",errors="ignore") as f:
@@ -399,7 +410,7 @@ if last is None:
     sys.stderr.write("".join(tail))
     raise SystemExit(1)
 
-# Inject extended memory metrics (names match update_performance_md.py)
+# Inject extended memory metrics
 last["pss_peak_mb"]=pss_peak
 last["vms_peak_mb"]=vms_peak
 last["rss_floor_mb"]=rss_floor
@@ -417,6 +428,12 @@ if mem_av_mb is not None:
 if mem_av_pct is not None:
     last["mem_available_pct"]=mem_av_pct
 
+# Stamp dedup config into each run (helps downstream reports and comparisons)
+last["ie_dedup"]=ie_dedup
+last["ie_dedup_strict"]=ie_dedup_strict
+last["ie_dedup_policy"]=ie_dedup_policy
+last["ie_dedup_cache_mb"]=ie_dedup_cache_mb
+
 print(json.dumps(last, separators=(",",":")))
 PY
 }
@@ -425,27 +442,74 @@ for i in $(seq 1 "${RUNS}"); do
   run_one "${i}"
 done
 
+# Dedup artifact sizes (real, from filesystem)
+model_ie_bin_bytes="$(stat_bytes_or_empty "${MODEL_DIR}/model.ie.bin")"
+dedup_defaults_bytes="$(stat_bytes_or_empty "${MODEL_DIR}/model.defaults.bin")"
+dedup_masks_bytes="$(stat_bytes_or_empty "${MODEL_DIR}/model.masks.bin")"
+dedup_exceptions_bytes="$(stat_bytes_or_empty "${MODEL_DIR}/model.exceptions.bin")"
+
+dedup_total_bytes=""
+if [[ -n "${dedup_defaults_bytes}" || -n "${dedup_masks_bytes}" || -n "${dedup_exceptions_bytes}" ]]; then
+  dedup_total_bytes="$(python3 - <<PY
+d=${dedup_defaults_bytes:-0}
+m=${dedup_masks_bytes:-0}
+e=${dedup_exceptions_bytes:-0}
+print(int(d)+int(m)+int(e))
+PY
+)"
+fi
+
 python3 - <<PY
 import json, os, time
+
+def i(env, default="0"):
+    s=os.environ.get(env, default)
+    try:
+        return int(s)
+    except Exception:
+        return int(default)
+
+def s(env, default=""):
+    return os.environ.get(env, default)
+
+def opt_int_from_shell(x):
+    try:
+        return int(x) if x != "" else None
+    except Exception:
+        return None
+
 summary = {
   "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
-  "threads": int(os.environ.get("THREADS","0") or 0),
-  "precision": os.environ.get("PRECISION","fp32"),
-  "model_dir": os.environ.get("MODEL_DIR",""),
-  "prompts": os.environ.get("PROMPTS",""),
-  "runs": int(os.environ.get("RUNS","3") or 3),
-  "rounds": int(os.environ.get("ROUNDS","1") or 1),
-  "device": os.environ.get("DEVICE",""),
-  "engine_bin": os.environ.get("ENGINE_BIN",""),
-  "batch": int(os.environ.get("BATCH","1") or 1),
-  "max_new": int(os.environ.get("MAX_NEW","128") or 128),
-  "affinity": os.environ.get("AFFINITY","auto"),
-  "pretranspose": os.environ.get("PRETRANSPOSE","all"),
-  "prefetch": os.environ.get("PREFETCH","auto"),
-  "ie_require_model": int(os.environ.get("IE_REQUIRE_MODEL","1") or 1),
-  "ie_bytes_per_token": int(os.environ.get("IE_BYTES_PER_TOKEN","0") or 0),
-  "ie_stride_bytes": int(os.environ.get("IE_STRIDE_BYTES","0") or 0),
-  "ie_verify_touch": int(os.environ.get("IE_VERIFY_TOUCH","0") or 0),
+  "threads": i("THREADS", "0"),
+  "precision": s("PRECISION", "fp32"),
+  "model_dir": s("MODEL_DIR", ""),
+  "prompts": s("PROMPTS", ""),
+  "runs": i("RUNS", "3"),
+  "rounds": i("ROUNDS", "1"),
+  "device": s("DEVICE", ""),
+  "engine_bin": s("ENGINE_BIN", ""),
+  "batch": i("BATCH", "1"),
+  "max_new": i("MAX_NEW", "128"),
+  "affinity": s("AFFINITY", "auto"),
+  "pretranspose": s("PRETRANSPOSE", "all"),
+  "prefetch": s("PREFETCH", "auto"),
+  "ie_require_model": i("IE_REQUIRE_MODEL", "1"),
+  "ie_bytes_per_token": i("IE_BYTES_PER_TOKEN", "0"),
+  "ie_stride_bytes": i("IE_STRIDE_BYTES", "0"),
+  "ie_verify_touch": i("IE_VERIFY_TOUCH", "0"),
+
+  # Dedup config
+  "ie_dedup": i("IE_DEDUP", "0"),
+  "ie_dedup_strict": i("IE_DEDUP_STRICT", "0"),
+  "ie_dedup_policy": s("IE_DEDUP_POLICY", "lossless"),
+  "ie_dedup_cache_mb": i("IE_DEDUP_CACHE_MB", "0"),
+
+  # Dedup artifacts (bytes)
+  "model_ie_bin_bytes": opt_int_from_shell("${model_ie_bin_bytes}"),
+  "dedup_defaults_bytes": opt_int_from_shell("${dedup_defaults_bytes}"),
+  "dedup_masks_bytes": opt_int_from_shell("${dedup_masks_bytes}"),
+  "dedup_exceptions_bytes": opt_int_from_shell("${dedup_exceptions_bytes}"),
+  "dedup_total_bytes": opt_int_from_shell("${dedup_total_bytes}"),
 }
 print(json.dumps(summary, separators=(",",":")))
 PY

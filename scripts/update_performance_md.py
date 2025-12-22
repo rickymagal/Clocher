@@ -14,17 +14,26 @@ Behavior:
 - Spatial metrics include MB/token, total bytes touched, coverage vs model.bin, and effective bandwidth.
 - System & Model Info is discovered locally (Linux-friendly).
 
-New in this version:
-- Memory-Detail metrics support (aligned with monitoring/metrics_memory.toml):
-  Optional per-run fields are aggregated when present:
-    * pss_peak_mb, vms_peak_mb
-    * rss_floor_mb, rss_delta_mb
-    * minflt, majflt
-    * swap_in_mb, swap_out_mb
-    * psi_mem_some_pct, psi_mem_full_pct (PSI averages/percentiles)
-    * numa_locality_pct
-    * mem_available_mb, mem_available_pct
-  The renderer adds a "Memory Details" subsection under each device.
+Memory-Detail metrics support (aligned with monitoring/metrics_memory.toml):
+Optional per-run fields are aggregated when present:
+  * pss_peak_mb, vms_peak_mb
+  * rss_floor_mb, rss_delta_mb
+  * minflt, majflt
+  * swap_in_mb, swap_out_mb
+  * psi_mem_some_pct, psi_mem_full_pct (PSI averages/percentiles)
+  * numa_locality_pct
+  * mem_available_mb, mem_available_pct
+The renderer adds a "Memory Details" subsection under each device.
+
+Dedup reporting (new section, keeps all existing sections):
+- Adds a "Deduplication" subsection under each device.
+- Uses summary fields emitted by scripts/true_tps_strict.sh when present:
+    ie_dedup, ie_dedup_strict, ie_dedup_policy, ie_dedup_cache_mb
+    dedup_defaults_bytes, dedup_masks_bytes, dedup_exceptions_bytes, dedup_total_bytes
+    model_ie_bin_bytes
+- Also performs best-effort local discovery of dedup artifacts under model_dir:
+    model.defaults.bin, model.masks.bin, model.exceptions.bin
+  and reports their sizes if available.
 
 Inputs (per device JSONL):
 - Per-run rows: include tokens_generated, wall_time_s, tps_true, latency_p50_ms, latency_p95_ms,
@@ -34,6 +43,7 @@ Inputs (per device JSONL):
 """
 
 from __future__ import annotations
+
 import argparse
 import datetime as dt
 import json
@@ -42,15 +52,18 @@ import os
 import platform
 import re
 import subprocess
+from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 Run = Dict[str, Any]
 Agg = Dict[str, Any]
 
+
 # --------------------------- IO helpers ---------------------------
 
 def _now_utc_str() -> str:
     return dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
+
 
 def _read_json_lines(path: str) -> List[Dict[str, Any]]:
     out: List[Dict[str, Any]] = []
@@ -66,17 +79,19 @@ def _read_json_lines(path: str) -> List[Dict[str, Any]]:
                 pass
     return out
 
+
 def _partition_runs_and_summary(objs: List[Dict[str, Any]]) -> Tuple[List[Run], Optional[Dict[str, Any]]]:
     runs: List[Run] = []
     summary: Optional[Dict[str, Any]] = None
     for o in objs:
-        is_summary = any(k in o for k in ("threads", "precision", "model_dir", "prompts", "runs", "rss_peak_mb_max"))
+        is_summary = any(k in o for k in ("threads", "precision", "model_dir", "prompts", "runs", "rss_peak_mb_max", "engine_bin"))
         is_run = all(k in o for k in ("tokens_generated", "wall_time_s", "tps_true"))
         if is_summary:
             summary = o
         elif is_run:
             runs.append(o)
     return runs, summary
+
 
 # ------------------------- math / formatting ------------------------
 
@@ -86,20 +101,50 @@ def _fmt_float(x: Optional[float], digits: int = 3, unit: str = "", na: str = "n
     s = f"{x:.{digits}f}"
     return f"{s} {unit}".strip()
 
+
+def _fmt_int(x: Optional[int], na: str = "n/a") -> str:
+    if x is None:
+        return na
+    try:
+        return str(int(x))
+    except Exception:
+        return na
+
+
+def _fmt_bytes(n: Optional[int], na: str = "n/a") -> str:
+    if n is None:
+        return na
+    try:
+        return f"{int(n):,}".replace(",", "_")
+    except Exception:
+        return na
+
+
+def _fmt_mb(n_bytes: Optional[int], digits: int = 2, na: str = "n/a") -> str:
+    if n_bytes is None:
+        return na
+    return _fmt_float(n_bytes / 1_000_000.0, digits, "MB", na=na)
+
+
 def _mean(xs: List[float]) -> Optional[float]:
     return sum(xs) / len(xs) if xs else None
+
 
 def _max_or_none(xs: List[float]) -> Optional[float]:
     return max(xs) if xs else None
 
+
 def _min_or_none(xs: List[float]) -> Optional[float]:
     return min(xs) if xs else None
+
 
 def _sum_i(xs: List[int]) -> int:
     return int(sum(xs)) if xs else 0
 
+
 def _sum_f(xs: List[float]) -> float:
     return float(sum(xs)) if xs else 0.0
+
 
 def _pick_first(*vals):
     for v in vals:
@@ -107,15 +152,12 @@ def _pick_first(*vals):
             return v
     return None
 
+
 def _bytes_to_gb(n: Optional[float]) -> Optional[float]:
     if n is None:
         return None
     return n / 1_000_000_000.0
 
-def _bytes_to_mb(n: Optional[float]) -> Optional[float]:
-    if n is None:
-        return None
-    return n / 1_000_000.0
 
 # ---------------------- system discovery ---------------------------
 
@@ -129,6 +171,7 @@ def _discover_cpu_model() -> Optional[str]:
         pass
     return platform.processor() or platform.machine() or None
 
+
 def _discover_mem_total_gb() -> Optional[float]:
     try:
         with open("/proc/meminfo", "r", encoding="utf-8") as f:
@@ -139,6 +182,7 @@ def _discover_mem_total_gb() -> Optional[float]:
     except Exception:
         pass
     return None
+
 
 def _discover_os() -> Optional[str]:
     try:
@@ -151,12 +195,14 @@ def _discover_os() -> Optional[str]:
     except Exception:
         return platform.platform()
 
+
 def _discover_kernel() -> Optional[str]:
     try:
         u = platform.uname()
         return f"{u.release}-{u.machine}"
     except Exception:
         return platform.version()
+
 
 def _discover_git() -> Optional[str]:
     try:
@@ -165,6 +211,7 @@ def _discover_git() -> Optional[str]:
         return f"{sha} {'DIRTY' if dirty != 0 else ''}".strip()
     except Exception:
         return None
+
 
 def _find_model_bin(model_dir: Optional[str]) -> Optional[str]:
     if not model_dir:
@@ -175,6 +222,7 @@ def _find_model_bin(model_dir: Optional[str]) -> Optional[str]:
             return p
     return None
 
+
 def _filesize(path: Optional[str]) -> Optional[int]:
     if not path:
         return None
@@ -183,10 +231,50 @@ def _filesize(path: Optional[str]) -> Optional[int]:
     except Exception:
         return None
 
+
+def _discover_dedup_artifacts(model_dir: Optional[str]) -> Dict[str, Any]:
+    """
+    Best-effort discovery of dedup artifacts in model_dir:
+      model.defaults.bin, model.masks.bin, model.exceptions.bin
+    Returns dict with paths and sizes (bytes) when available.
+    """
+    out: Dict[str, Any] = {"model_dir": model_dir}
+    if not model_dir:
+        return out
+
+    md = Path(model_dir)
+    candidates = {
+        "defaults": md / "model.defaults.bin",
+        "masks": md / "model.masks.bin",
+        "exceptions": md / "model.exceptions.bin",
+    }
+
+    for k, p in candidates.items():
+        out[f"{k}_path"] = str(p)
+        try:
+            out[f"{k}_bytes"] = p.stat().st_size
+            out[f"{k}_exists"] = True
+        except Exception:
+            out[f"{k}_bytes"] = None
+            out[f"{k}_exists"] = False
+
+    total = 0
+    any_present = False
+    for k in ("defaults", "masks", "exceptions"):
+        b = out.get(f"{k}_bytes")
+        if isinstance(b, int) and b > 0:
+            total += b
+            any_present = True
+    out["total_bytes"] = total if any_present else None
+    out["any_present"] = any_present
+    return out
+
+
 # ---------------------- aggregation logic --------------------------
 
 def _take_last3(runs: List[Run]) -> List[Run]:
     return runs[-3:] if len(runs) > 3 else runs
+
 
 def _agg_numeric(runs: List[Run], key: str) -> Tuple[Optional[float], Optional[float], Optional[float]]:
     vals = [float(r.get(key)) for r in runs if r.get(key) is not None]
@@ -194,25 +282,25 @@ def _agg_numeric(runs: List[Run], key: str) -> Tuple[Optional[float], Optional[f
         return None, None, None
     return _mean(vals), _min_or_none(vals), _max_or_none(vals)
 
+
 def _agg_sum(runs: List[Run], key: str) -> Optional[float]:
     vals = [float(r.get(key)) for r in runs if r.get(key) is not None]
     return _sum_f(vals) if vals else None
 
+
 def _agg(runs: List[Run]) -> Agg:
     tokens = [int(r.get("tokens_generated", 0)) for r in runs]
-    wall   = [float(r.get("wall_time_s", 0.0)) for r in runs]
-    p50    = [float(r.get("latency_p50_ms", r.get("p50_ms", 0.0))) for r in runs if ("latency_p50_ms" in r or "p50_ms" in r)]
-    p95    = [float(r.get("latency_p95_ms", r.get("p95_ms", 0.0))) for r in runs if ("latency_p95_ms" in r or "p95_ms" in r)]
+    wall = [float(r.get("wall_time_s", 0.0)) for r in runs]
+    p50 = [float(r.get("latency_p50_ms", r.get("p50_ms", 0.0))) for r in runs if ("latency_p50_ms" in r or "p50_ms" in r)]
+    p95 = [float(r.get("latency_p95_ms", r.get("p95_ms", 0.0))) for r in runs if ("latency_p95_ms" in r or "p95_ms" in r)]
 
-    # Core aggregates
     tokens_sum = _sum_i(tokens)
-    wall_sum   = _sum_f(wall)
-    tps_true   = (float(tokens_sum) / wall_sum) if wall_sum > 0 else None
+    wall_sum = _sum_f(wall)
+    tps_true = (float(tokens_sum) / wall_sum) if wall_sum > 0 else None
 
-    # Memory aggregates (optional fields)
-    rss_mean, rss_min, rss_max = _agg_numeric(runs, "rss_peak_mb")
-    pss_mean, pss_min, pss_max = _agg_numeric(runs, "pss_peak_mb")
-    vms_mean, vms_min, vms_max = _agg_numeric(runs, "vms_peak_mb")
+    rss_mean, _, rss_max = _agg_numeric(runs, "rss_peak_mb")
+    pss_mean, _, pss_max = _agg_numeric(runs, "pss_peak_mb")
+    vms_mean, _, vms_max = _agg_numeric(runs, "vms_peak_mb")
 
     rss_floor_mean, _, rss_floor_max = _agg_numeric(runs, "rss_floor_mb")
     rss_delta_mean, _, rss_delta_max = _agg_numeric(runs, "rss_delta_mb")
@@ -220,7 +308,7 @@ def _agg(runs: List[Run]) -> Agg:
     minflt_sum = _agg_sum(runs, "minflt")
     majflt_sum = _agg_sum(runs, "majflt")
 
-    swap_in_sum_mb  = _agg_sum(runs, "swap_in_mb")
+    swap_in_sum_mb = _agg_sum(runs, "swap_in_mb")
     swap_out_sum_mb = _agg_sum(runs, "swap_out_mb")
 
     psi_some_mean, _, psi_some_max = _agg_numeric(runs, "psi_mem_some_pct")
@@ -231,7 +319,6 @@ def _agg(runs: List[Run]) -> Agg:
     mem_avail_mb_mean, _, _ = _agg_numeric(runs, "mem_available_mb")
     mem_avail_pct_mean, _, _ = _agg_numeric(runs, "mem_available_pct")
 
-    # KV cache / RSS kept for backwards compatibility
     kvh = [int(r.get("kv_hits", 0)) for r in runs]
     kvm = [int(r.get("kv_misses", 0)) for r in runs]
 
@@ -243,11 +330,9 @@ def _agg(runs: List[Run]) -> Agg:
         "p50_mean": _mean(p50),
         "p95_mean": _mean(p95),
 
-        # Memory: classic
         "rss_mean": rss_mean,
         "rss_max": rss_max,
 
-        # Memory: extended
         "pss_mean": pss_mean, "pss_max": pss_max,
         "vms_mean": vms_mean, "vms_max": vms_max,
         "rss_floor_mean": rss_floor_mean, "rss_floor_max": rss_floor_max,
@@ -260,30 +345,32 @@ def _agg(runs: List[Run]) -> Agg:
         "mem_available_mb_mean": mem_avail_mb_mean,
         "mem_available_pct_mean": mem_avail_pct_mean,
 
-        # KV
         "kv_hits": _sum_i(kvh),
         "kv_misses": _sum_i(kvm),
     }
+
 
 def _mb_per_token(bpt: Optional[int]) -> str:
     if bpt is None:
         return "n/a"
     return f"{_fmt_float(bpt / 1_000_000.0, 1)} MB/token"
 
+
 def _bytes_touched(tokens_sum: int, bpt: Optional[int]) -> Optional[float]:
     if not bpt or tokens_sum <= 0:
         return None
     return float(tokens_sum) * float(bpt)
+
 
 def _bandwidth_gbps(bytes_touched: Optional[float], wall_sum: Optional[float]) -> Optional[float]:
     if bytes_touched is None or wall_sum is None or wall_sum <= 0:
         return None
     return _bytes_to_gb(bytes_touched) / wall_sum
 
+
 # ------------------------- rendering helpers -----------------------
 
 def _render_memory_details(agg: Agg) -> str:
-    # Only show rows when values exist.
     lines: List[str] = []
     lines.append("### Memory Details")
 
@@ -311,20 +398,95 @@ def _render_memory_details(agg: Agg) -> str:
         lines.append(f"- NUMA locality ratio (mean / max): **{_fmt_float(agg.get('numa_locality_mean'), 1, '%')} / {_fmt_float(agg.get('numa_locality_max'), 1, '%')}**")
 
     if agg.get("mem_available_mb_mean") is not None or agg.get("mem_available_pct_mean") is not None:
-        lines.append(f"- System MemAvailable (mean): **{_fmt_float(agg.get('mem_available_mb_mean'), 1, 'MB')}**"
-                     f" — **{_fmt_float(agg.get('mem_available_pct_mean'), 1, '%')} of MemTotal**")
+        lines.append(
+            f"- System MemAvailable (mean): **{_fmt_float(agg.get('mem_available_mb_mean'), 1, 'MB')}**"
+            f" — **{_fmt_float(agg.get('mem_available_pct_mean'), 1, '%')} of MemTotal**"
+        )
 
-    # Fallback message if nothing extra is available.
     if len(lines) == 1:
         lines.append("- No extended memory metrics were present in the logs.")
     return "\n".join(lines) + "\n"
 
-def _render_device(title: str, agg: Agg, bpt: Optional[int], model_size: Optional[int]) -> str:
+
+def _render_dedup_details(shared: Dict[str, Any], artifacts: Dict[str, Any], model_ie_bin_bytes: Optional[int]) -> str:
+    lines: List[str] = []
+    lines.append("### Deduplication")
+
+    ie_dedup = shared.get("ie_dedup")
+    ie_dedup_strict = shared.get("ie_dedup_strict")
+    ie_dedup_policy = shared.get("ie_dedup_policy")
+    ie_dedup_cache_mb = shared.get("ie_dedup_cache_mb")
+
+    # Emit dedup config regardless of artifact presence.
+    lines.append(f"- IE_DEDUP: **{_fmt_int(ie_dedup)}**")
+    lines.append(f"- IE_DEDUP_STRICT: **{_fmt_int(ie_dedup_strict)}**")
+    lines.append(f"- IE_DEDUP_POLICY: **{ie_dedup_policy if ie_dedup_policy is not None else 'n/a'}**")
+    lines.append(f"- IE_DEDUP_CACHE_MB: **{_fmt_int(ie_dedup_cache_mb)}**")
+
+    # Prefer summary-provided sizes if present, otherwise fallback to filesystem discovery.
+    def _from_shared_or_fs(shared_key: str, fs_key: str) -> Optional[int]:
+        v = shared.get(shared_key)
+        if isinstance(v, int) and v >= 0:
+            return v
+        if isinstance(v, str):
+            try:
+                return int(v)
+            except Exception:
+                pass
+        fs_v = artifacts.get(fs_key)
+        if isinstance(fs_v, int) and fs_v >= 0:
+            return fs_v
+        return None
+
+    defaults_b = _from_shared_or_fs("dedup_defaults_bytes", "defaults_bytes")
+    masks_b = _from_shared_or_fs("dedup_masks_bytes", "masks_bytes")
+    exc_b = _from_shared_or_fs("dedup_exceptions_bytes", "exceptions_bytes")
+
+    total_b = shared.get("dedup_total_bytes")
+    if not isinstance(total_b, int):
+        total_calc = 0
+        any_present = False
+        for b in (defaults_b, masks_b, exc_b):
+            if isinstance(b, int) and b > 0:
+                total_calc += b
+                any_present = True
+        total_b = total_calc if any_present else None
+
+    lines.append("- Artifacts (bytes / MB):")
+    lines.append(f"  - model.defaults.bin: **{_fmt_bytes(defaults_b)}** ({_fmt_mb(defaults_b)})")
+    lines.append(f"  - model.masks.bin: **{_fmt_bytes(masks_b)}** ({_fmt_mb(masks_b)})")
+    lines.append(f"  - model.exceptions.bin: **{_fmt_bytes(exc_b)}** ({_fmt_mb(exc_b)})")
+    lines.append(f"  - Total dedup blobs: **{_fmt_bytes(total_b)}** ({_fmt_mb(total_b)})")
+
+    # Compare to model.ie.bin when possible.
+    mie = model_ie_bin_bytes
+    if mie is None:
+        mie = shared.get("model_ie_bin_bytes") if isinstance(shared.get("model_ie_bin_bytes"), int) else None
+
+    if isinstance(total_b, int) and isinstance(mie, int) and mie > 0:
+        ratio = float(total_b) / float(mie)
+        lines.append(f"- Dedup blobs / model.ie.bin: **{ratio:.4f}**")
+        lines.append(f"- model.ie.bin size: **{_fmt_bytes(mie)}** ({_fmt_mb(mie)})")
+    else:
+        lines.append(f"- model.ie.bin size: **{_fmt_bytes(mie)}** ({_fmt_mb(mie)})")
+
+    # If filesystem discovery knows paths, show them (helps debugging symlinks vs missing).
+    if artifacts.get("model_dir"):
+        lines.append("- Artifact paths (best effort):")
+        lines.append(f"  - defaults: `{artifacts.get('defaults_path', 'n/a')}`")
+        lines.append(f"  - masks: `{artifacts.get('masks_path', 'n/a')}`")
+        lines.append(f"  - exceptions: `{artifacts.get('exceptions_path', 'n/a')}`")
+
+    return "\n".join(lines) + "\n"
+
+
+def _render_device(title: str, agg: Agg, bpt: Optional[int], model_ie_bin_bytes: Optional[int], shared: Dict[str, Any], artifacts: Dict[str, Any]) -> str:
     bt = _bytes_touched(agg["tokens_sum"], bpt)
     bw = _bandwidth_gbps(bt, agg["wall_sum"])
     coverage = "n/a"
-    if bpt and model_size and model_size > 0:
-        coverage = f"{(float(bpt)/float(model_size)):.3f}"
+    if bpt and model_ie_bin_bytes and model_ie_bin_bytes > 0:
+        coverage = f"{(float(bpt) / float(model_ie_bin_bytes)):.6f}"
+
     body = f"""## {title} — Summary (latest benchmark)
 - Runs: **{agg['runs']}**
 - Tokens generated (Σ): **{agg['tokens_sum']}**
@@ -341,12 +503,13 @@ def _render_device(title: str, agg: Agg, bpt: Optional[int], model_size: Optiona
 - KV cache: **{agg['kv_hits']} hits / {agg['kv_misses']} misses**
 - IE_BYTES_PER_TOKEN: **{_mb_per_token(bpt)}**
 - Bytes touched (Σ): **{_fmt_float(_bytes_to_gb(bt), 1, 'GB')}**
-- Working-set coverage (bytes_per_token / model.bin): **{coverage}**
+- Working-set coverage (bytes_per_token / model.ie.bin): **{coverage}**
 - Effective bandwidth: **{_fmt_float(bw, 2, 'GB/s')}**
 """
-    # Append extended memory details (if present)
     body += "\n" + _render_memory_details(agg)
+    body += "\n" + _render_dedup_details(shared, artifacts, model_ie_bin_bytes)
     return body
+
 
 def _render_shared(shared: Dict[str, Any]) -> str:
     return f"""## Run Parameters & Conditions
@@ -363,9 +526,14 @@ def _render_shared(shared: Dict[str, Any]) -> str:
 - IE_BYTES_PER_TOKEN: **{shared.get('ie_bytes_per_token','n/a')}**
 - IE_STRIDE_BYTES: **{shared.get('ie_stride_bytes','n/a')}**
 - IE_VERIFY_TOUCH: **{shared.get('ie_verify_touch','n/a')}**
+- IE_DEDUP: **{shared.get('ie_dedup','n/a')}**
+- IE_DEDUP_STRICT: **{shared.get('ie_dedup_strict','n/a')}**
+- IE_DEDUP_POLICY: **{shared.get('ie_dedup_policy','n/a')}**
+- IE_DEDUP_CACHE_MB: **{shared.get('ie_dedup_cache_mb','n/a')}**
 """
 
-def _render_system(model_dir: Optional[str]) -> str:
+
+def _render_system(model_dir: Optional[str], model_ie_bin_bytes: Optional[int]) -> str:
     cpu = _discover_cpu_model() or "n/a"
     cores = os.cpu_count() or 0
     mem = _discover_mem_total_gb()
@@ -375,6 +543,12 @@ def _render_system(model_dir: Optional[str]) -> str:
     model_bin = _find_model_bin(model_dir)
     model_size = _filesize(model_bin)
 
+    # Prefer model_ie_bin_bytes if available and the discovered file is model.ie.bin.
+    if model_bin and model_bin.endswith("model.ie.bin") and isinstance(model_ie_bin_bytes, int) and model_ie_bin_bytes > 0:
+        model_size = model_ie_bin_bytes
+
+    size_gb = _bytes_to_gb(float(model_size)) if model_size else None
+
     return f"""## System & Model Info
 - CPU: **{cpu}**
 - Logical cores: **{cores if cores else 'n/a'}**
@@ -383,32 +557,39 @@ def _render_system(model_dir: Optional[str]) -> str:
 - Kernel: **{kernel}**
 - Git commit: **{git}**
 - Model file: **{model_bin or 'n/a'}**
-- Model size: **{_fmt_float(_bytes_to_gb(float(model_size)) if model_size else None, 3, 'GB')}**
+- Model size: **{_fmt_float(size_gb, 3, 'GB')}**
 """
 
+
 def _render_table(cpu_runs: List[Run], gpu_runs: List[Run]) -> str:
-    lines = []
+    lines: List[str] = []
     lines.append("## Comparative Runs\n")
     lines.append("| Device | Run | Tokens | Wall (s) | TPS | p50 (ms) | p95 (ms) | RSS peak (MB) | PSS peak (MB) | VMS peak (MB) | minflt | majflt |")
     lines.append("|:------:|----:|-------:|---------:|----:|---------:|---------:|--------------:|--------------:|--------------:|------:|------:|")
+
     def row(dv: str, r: Run, idx: int) -> str:
+        p50 = r.get("latency_p50_ms", r.get("p50_ms"))
+        p95 = r.get("latency_p95_ms", r.get("p95_ms"))
         return (
             f"| {dv} | {idx} | "
             f"{int(r.get('tokens_generated', 0))} | "
             f"{_fmt_float(float(r.get('wall_time_s', 0.0)), 3)} | "
             f"{_fmt_float(float(r.get('tps_true', 0.0)), 3)} | "
-            f"{_fmt_float(float(r.get('latency_p50_ms', r.get('p50_ms', 0.0))), 3)} | "
-            f"{_fmt_float(float(r.get('latency_p95_ms', r.get('p95_ms', 0.0))), 3)} | "
-            f"{_fmt_float(float(r.get('rss_peak_mb', 0.0)), 3)} | "
-            f"{_fmt_float(float(r.get('pss_peak_mb', 0.0)) if r.get('pss_peak_mb') is not None else None, 3)} | "
-            f"{_fmt_float(float(r.get('vms_peak_mb', 0.0)) if r.get('vms_peak_mb') is not None else None, 3)} | "
-            f"{int(r.get('minflt', 0))} | {int(r.get('majflt', 0))} |"
+            f"{_fmt_float(float(p50) if p50 is not None else None, 3)} | "
+            f"{_fmt_float(float(p95) if p95 is not None else None, 3)} | "
+            f"{_fmt_float(float(r.get('rss_peak_mb', 0.0)) if r.get('rss_peak_mb') is not None else None, 3)} | "
+            f"{_fmt_float(float(r.get('pss_peak_mb')) if r.get('pss_peak_mb') is not None else None, 3)} | "
+            f"{_fmt_float(float(r.get('vms_peak_mb')) if r.get('vms_peak_mb') is not None else None, 3)} | "
+            f"{int(r.get('minflt', 0) or 0)} | {int(r.get('majflt', 0) or 0)} |"
         )
+
     for i, r in enumerate(cpu_runs, 1):
         lines.append(row("CPU", r, i))
     for i, r in enumerate(gpu_runs, 1):
         lines.append(row("GPU", r, i))
+
     return "\n".join(lines) + "\n"
+
 
 def _merge_shared(cli: Dict[str, Any], cpu_sum: Optional[Dict[str, Any]], gpu_sum: Optional[Dict[str, Any]]) -> Dict[str, Any]:
     def g(k: str) -> Any:
@@ -421,11 +602,19 @@ def _merge_shared(cli: Dict[str, Any], cpu_sum: Optional[Dict[str, Any]], gpu_su
         return None
 
     keys = [
-        "engine_bin","prompts","threads","precision","batch","prefetch","pretranspose",
-        "affinity","max_new","ie_require_model","ie_bytes_per_token","ie_stride_bytes",
-        "ie_verify_touch","model_dir"
+        "engine_bin", "prompts", "threads", "precision", "batch", "prefetch", "pretranspose",
+        "affinity", "max_new", "ie_require_model", "ie_bytes_per_token", "ie_stride_bytes",
+        "ie_verify_touch", "model_dir",
+
+        # Dedup config (new)
+        "ie_dedup", "ie_dedup_strict", "ie_dedup_policy", "ie_dedup_cache_mb",
+
+        # Dedup artifacts / model size (new)
+        "dedup_defaults_bytes", "dedup_masks_bytes", "dedup_exceptions_bytes", "dedup_total_bytes",
+        "model_ie_bin_bytes",
     ]
     return {k: g(k) for k in keys}
+
 
 # ------------------------------ CLI -------------------------------
 
@@ -452,7 +641,15 @@ def _parse() -> argparse.Namespace:
     p.add_argument("--ie-stride-bytes", dest="ie_stride_bytes", type=int, default=None)
     p.add_argument("--ie-verify-touch", dest="ie_verify_touch", type=int, default=None)
     p.add_argument("--model-dir", dest="model_dir", default=None)
+
+    # Dedup CLI overrides (optional)
+    p.add_argument("--ie-dedup", dest="ie_dedup", type=int, default=None)
+    p.add_argument("--ie-dedup-strict", dest="ie_dedup_strict", type=int, default=None)
+    p.add_argument("--ie-dedup-policy", dest="ie_dedup_policy", default=None)
+    p.add_argument("--ie-dedup-cache-mb", dest="ie_dedup_cache_mb", type=int, default=None)
+
     return p.parse_args()
+
 
 # ------------------------------ main ------------------------------
 
@@ -460,8 +657,8 @@ def main() -> int:
     args = _parse()
 
     # If args not provided, try defaults under build/
-    cpu_json = args.cpu_json or (os.path.exists("build/strict_cpu.json") and "build/strict_cpu.json") or None
-    gpu_json = args.gpu_json or (os.path.exists("build/strict_gpu.json") and "build/strict_gpu.json") or None
+    cpu_json = args.cpu_json or ("build/strict_cpu.json" if os.path.exists("build/strict_cpu.json") else None)
+    gpu_json = args.gpu_json or ("build/strict_gpu.json" if os.path.exists("build/strict_gpu.json") else None)
 
     # Load CPU
     cpu_runs: List[Run] = []
@@ -499,8 +696,14 @@ def main() -> int:
         "ie_stride_bytes": args.ie_stride_bytes,
         "ie_verify_touch": args.ie_verify_touch,
         "model_dir": args.model_dir,
+
+        "ie_dedup": args.ie_dedup,
+        "ie_dedup_strict": args.ie_dedup_strict,
+        "ie_dedup_policy": args.ie_dedup_policy,
+        "ie_dedup_cache_mb": args.ie_dedup_cache_mb,
     }
     shared = _merge_shared(cli_shared, cpu_sum, gpu_sum)
+
     if cpu_engine_bin:
         shared["engine_bin"] = cpu_engine_bin
     elif gpu_engine_bin and not shared.get("engine_bin"):
@@ -517,9 +720,17 @@ def main() -> int:
     cpu_agg = _agg(cpu_runs) if cpu_runs else None
     gpu_agg = _agg(gpu_runs) if gpu_runs else None
 
-    # Model size and coverage
-    model_bin_path = _find_model_bin(shared.get("model_dir"))
-    model_size = _filesize(model_bin_path)
+    # model.ie.bin size: prefer summary field, fallback to filesystem discovery
+    model_ie_bin_bytes = None
+    if isinstance(shared.get("model_ie_bin_bytes"), int):
+        model_ie_bin_bytes = int(shared["model_ie_bin_bytes"])
+    else:
+        model_bin_path = _find_model_bin(shared.get("model_dir"))
+        if model_bin_path and model_bin_path.endswith("model.ie.bin"):
+            model_ie_bin_bytes = _filesize(model_bin_path)
+
+    # Dedup artifacts discovery
+    artifacts = _discover_dedup_artifacts(shared.get("model_dir"))
 
     # Best TPS (current snapshot)
     best_label = "n/a"
@@ -541,12 +752,12 @@ def main() -> int:
     out_lines.append(f"\n**Best true TPS:** **{best_label} — {_fmt_float(best_tps, 3)}**.\n")
 
     if cpu_agg:
-        out_lines.append(_render_device("CPU", cpu_agg, bpt, model_size))
+        out_lines.append(_render_device("CPU", cpu_agg, bpt, model_ie_bin_bytes, shared, artifacts))
     if gpu_agg:
-        out_lines.append(_render_device("GPU", gpu_agg, bpt, model_size))
+        out_lines.append(_render_device("GPU", gpu_agg, bpt, model_ie_bin_bytes, shared, artifacts))
 
     out_lines.append(_render_shared(shared))
-    out_lines.append(_render_system(shared.get("model_dir")))
+    out_lines.append(_render_system(shared.get("model_dir"), model_ie_bin_bytes))
     out_lines.append(_render_table(cpu_runs, gpu_runs))
 
     # Write file
@@ -557,6 +768,7 @@ def main() -> int:
 
     print(f"[update_performance_md] Wrote {out_path}")
     return 0
+
 
 if __name__ == "__main__":
     raise SystemExit(main())
