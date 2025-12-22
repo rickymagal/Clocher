@@ -1,236 +1,298 @@
-# tools/dedup_prepare_and_extract_all.py
-import json, subprocess, sys
-from pathlib import Path
-from typing import Dict, List, Tuple
+#!/usr/bin/env python3
+"""
+Prepare inputs for the lossless byte-level dedup extractor.
 
-MD = Path("models/gpt-oss-20b")
-IE_JSON = MD / "model.ie.json"
-MANIFEST = MD / "model.dedup.json"
-OUT_DIR = MD / "dedup_out"
-OUT_DIR.mkdir(parents=True, exist_ok=True)
+This script converts:
+  - an IE weight manifest (model.ie*.json) into tensor_map.for_dedup.json
+  - a dedup pairing manifest (manifest.dedup.json) into groups.for_dedup.json
 
-TENSOR_MAP_OUT = OUT_DIR / "tensor_map.for_dedup.json"
-GROUPS_OUT = OUT_DIR / "model.dedup.groups.for_dedup.json"
-OUT_PREFIX = OUT_DIR / "model"
+It is intentionally tolerant of multiple IE JSON layouts:
+  - weights_bin vs bin
+  - tensors as a list vs a dict keyed by tensor name
+  - dtype spelled as torch.* or short forms (BF16/F16/F32/U8/I32)
 
-DTYPE_SIZES = {
+Outputs match tools/dedup_extract_int4.py:
+  groups: [{"default_index": int, "targets": [int, ...]}, ...]
+  tensor_map: {"weights_bin": "file.bin", "tensors": [{"index": i, "name": ..., "offset": ..., "nbytes": ...}, ...]}
+"""
+from __future__ import annotations
+
+import argparse
+import json
+import os
+from typing import Any, Dict, List, Tuple
+
+
+_DTYPE_SIZES: Dict[str, int] = {
     "torch.uint8": 1,
     "torch.int8": 1,
-    "torch.bfloat16": 2,
-    "torch.float16": 2,
-    "torch.float32": 4,
+    "torch.int16": 2,
     "torch.int32": 4,
     "torch.int64": 8,
+    "torch.float16": 2,
+    "torch.bfloat16": 2,
+    "torch.float32": 4,
+    "torch.float64": 8,
+    "U8": 1,
+    "I8": 1,
+    "I16": 2,
+    "I32": 4,
+    "I64": 8,
+    "F16": 2,
+    "BF16": 2,
+    "F32": 4,
+    "F64": 8,
 }
 
-def load_ie() -> Tuple[str, List[dict], Dict[str, int]]:
-    ie = json.loads(IE_JSON.read_text())
-    weights_bin = ie.get("weights_bin")
+
+def _dtype_size(dtype: str) -> int:
+    if dtype in _DTYPE_SIZES:
+        return _DTYPE_SIZES[dtype]
+    raise SystemExit(f"ERROR: unsupported dtype '{dtype}'")
+
+
+def _as_list_tensors(ie: Dict[str, Any]) -> Tuple[str, List[Dict[str, Any]]]:
+    """
+    Return (weights_bin_rel, tensors_list) where each tensor has:
+      name, dtype, shape, offset, nbytes
+    """
+    weights_bin = ie.get("weights_bin") or ie.get("bin")
+    if not isinstance(weights_bin, str) or not weights_bin:
+        weights_bin = "model.ie.bin"
+
     tensors = ie.get("tensors")
-    if not isinstance(weights_bin, str) or not isinstance(tensors, list):
-        raise SystemExit("model.ie.json missing weights_bin or tensors[]")
-    name_to_base = {t["name"]: i for i, t in enumerate(tensors) if isinstance(t, dict) and "name" in t}
-    return weights_bin, tensors, name_to_base
+    if tensors is None:
+        raise SystemExit("ERROR: IE json missing 'tensors'")
 
-def dtype_size(dtype: str) -> int:
-    s = DTYPE_SIZES.get(dtype)
-    if s is None:
-        raise SystemExit(f"Unsupported dtype in IE: {dtype}")
-    return s
+    out: List[Dict[str, Any]] = []
+    if isinstance(tensors, list):
+        for t in tensors:
+            if not isinstance(t, dict):
+                continue
+            out.append(dict(t))
+    elif isinstance(tensors, dict):
+        for name, meta in tensors.items():
+            if not isinstance(meta, dict):
+                continue
+            d = dict(meta)
+            d.setdefault("name", name)
+            out.append(d)
+    else:
+        raise SystemExit(f"ERROR: unsupported tensors container type: {type(tensors)}")
 
-def per_expert_slices(base: dict, expert_count: int) -> int:
-    # base["shape"] is expected like [32, ..., ..., ...] where dim0 is experts
-    shape = base["shape"]
-    if not isinstance(shape, list) or len(shape) < 1:
-        return 0
-    return expert_count if shape[0] == expert_count else 0
+    norm: List[Dict[str, Any]] = []
+    for t in out:
+        name = t.get("name")
+        dtype = t.get("dtype")
+        shape = t.get("shape")
+        offset = t.get("offset")
+        nbytes = t.get("nbytes")
 
-def make_virtual_slices(base: dict, expert_count: int) -> List[dict]:
-    # Returns a list of virtual tensor entries (index/name/dtype/shape/offset/nbytes) for each expert slice.
-    # We slice along dim0 (experts).
-    shape = list(base["shape"])
-    dtype = base["dtype"]
-    base_offset = int(base["offset"])
+        if not isinstance(name, str) or not name:
+            continue
+        if not isinstance(dtype, str) or not dtype:
+            raise SystemExit(f"ERROR: tensor '{name}' missing dtype")
+        if not isinstance(shape, list) or not all(isinstance(x, int) for x in shape):
+            raise SystemExit(f"ERROR: tensor '{name}' has invalid shape")
+        if not isinstance(offset, int):
+            raise SystemExit(f"ERROR: tensor '{name}' missing offset")
+
+        if not isinstance(nbytes, int):
+            esz = _dtype_size(dtype)
+            elems = 1
+            for d in shape:
+                elems *= int(d)
+            nbytes = elems * esz
+
+        norm.append(
+            {
+                "name": name,
+                "dtype": dtype,
+                "shape": shape,
+                "offset": int(offset),
+                "nbytes": int(nbytes),
+            }
+        )
+
+    norm.sort(key=lambda x: (x["offset"], x["name"]))
+    for i, t in enumerate(norm):
+        t["index"] = i
+    return weights_bin, norm
+
+
+def _load_json(path: str) -> Any:
+    with open(path, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+def _save_json(path: str, obj: Any) -> None:
+    tmp = path + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as f:
+        json.dump(obj, f, indent=2, sort_keys=False)
+        f.write("\n")
+    os.replace(tmp, path)
+
+
+def _build_name_to_index(tensors: List[Dict[str, Any]]) -> Dict[str, int]:
+    m: Dict[str, int] = {}
+    for t in tensors:
+        m[t["name"]] = int(t["index"])
+    return m
+
+
+def _make_virtual_slices(base: Dict[str, Any], slice_count: int) -> List[Dict[str, Any]]:
+    """
+    Create virtual tensors representing slicing along dimension 0 of a fused tensor.
+
+    Slice size is derived from nbytes/slice_count (byte-accurate).
+    Slice shape is base.shape[1:].
+    """
+    base_shape = base["shape"]
+    if not base_shape or not isinstance(base_shape[0], int):
+        raise SystemExit(f"ERROR: base tensor '{base['name']}' has invalid shape")
+    if base_shape[0] != slice_count:
+        raise SystemExit(
+            f"ERROR: fused tensor '{base['name']}' shape[0]={base_shape[0]} "
+            f"does not match expected expert_count={slice_count}"
+        )
+
     total_bytes = int(base["nbytes"])
-    esize = dtype_size(dtype)
-    # Elements per expert = total_elements / expert_count
-    total_elems = 1
-    for d in shape:
-        total_elems *= int(d)
-    if total_elems * esize != total_bytes:
-        raise SystemExit(f"IE tensor size mismatch for {base.get('name')}")
+    if total_bytes % slice_count != 0:
+        raise SystemExit(
+            f"ERROR: fused tensor '{base['name']}' nbytes={total_bytes} is not divisible by expert_count={slice_count}"
+        )
+    slice_nbytes = total_bytes // slice_count
 
-    if shape[0] != expert_count:
-        # Not an expert-fused tensor; no slices.
-        return []
+    slice_shape = list(base_shape[1:])
+    if not slice_shape:
+        slice_shape = [1]
 
-    elems_per_expert = total_elems // expert_count
-    bytes_per_expert = elems_per_expert * esize
+    slices: List[Dict[str, Any]] = []
+    for i in range(slice_count):
+        slices.append(
+            {
+                "name": f"{base['name']}#slice{i}",
+                "dtype": base["dtype"],
+                "shape": slice_shape,
+                "offset": int(base["offset"]) + i * slice_nbytes,
+                "nbytes": slice_nbytes,
+            }
+        )
+    return slices
 
-    out = []
-    # Slice shape drops the first dim
-    slice_shape = shape[1:]
-    for e in range(expert_count):
-        out.append({
-            "dtype": dtype,
-            "shape": slice_shape,
-            "offset": base_offset + e * bytes_per_expert,
-            "nbytes": bytes_per_expert,
-            # Name is filled by caller for context; index assigned later.
-        })
-    return out
 
-def main() -> int:
-    # 1) Load IE and manifest
-    weights_bin, base_tensors, name_to_base = load_ie()
-    manifest = json.loads(MANIFEST.read_text())
-    groups = manifest["groups"] if isinstance(manifest, dict) else manifest
+def _prepare_groups_and_tensor_map(
+    ie_json_path: str,
+    manifest_path: str,
+    out_tensor_map_path: str,
+    out_groups_path: str,
+) -> None:
+    ie = _load_json(ie_json_path)
+    weights_bin, base_tensors = _as_list_tensors(ie)
+
+    name_to_index = _build_name_to_index(base_tensors)
+    compat_tensors = list(base_tensors)
+    compat_name_to_index = dict(name_to_index)
+
+    out_groups: List[Dict[str, Any]] = []
+
+    man = _load_json(manifest_path)
+    groups = man.get("groups", man)
     if not isinstance(groups, list):
-        raise SystemExit("model.dedup.json: expected groups list")
+        raise SystemExit("ERROR: manifest is neither a list nor an object with 'groups'")
 
-    # 2) Build an extended tensor list for dedup extractor:
-    #    - All original tensors with explicit indices
-    #    - Dynamic virtual slices for expert fused tensors when needed
-    compat_raw: List[dict] = []
-    compat_name_to_idx: Dict[str, int] = {}
-
-    # Start with base tensors
-    for i, t in enumerate(base_tensors):
-        compat_raw.append({
-            "index": i,
-            "name": t["name"],
-            "dtype": t["dtype"],
-            "shape": t["shape"],
-            "offset": t["offset"],
-            "nbytes": t["nbytes"],
-        })
-        compat_name_to_idx[t["name"]] = i
-
-    next_index = len(compat_raw)
-
-    # 3) Prepare groups (kv_pair + expert_pair)
-    out_groups: List[dict] = []
-    missing = 0
-    converted_kv = 0
-    converted_expert = 0
-
-    # Utility to register a virtual slice tensor by name
-    def ensure_virtual_slice(base_name: str, suffix: str, expert_idx: int, expert_count: int) -> int:
-        nonlocal next_index
-        base_idx = name_to_base.get(base_name)
+    def ensure_virtual_slice(base_name: str, slice_idx: int, expected_slices: int) -> int:
+        vname = f"{base_name}#slice{slice_idx}"
+        if vname in compat_name_to_index:
+            return compat_name_to_index[vname]
+        base_idx = name_to_index.get(base_name)
         if base_idx is None:
-            return -1
+            raise SystemExit(f"ERROR: fused tensor '{base_name}' not found in IE json")
         base = base_tensors[base_idx]
-        vslices = make_virtual_slices(base, expert_count)
-        if not vslices:
-            return -1
-        # Assign a stable name for this slice
-        virt_name = f"{base_name}#slice{expert_idx}"
-        if virt_name in compat_name_to_idx:
-            return compat_name_to_idx[virt_name]
-        v = vslices[expert_idx]
-        entry = {
-            "index": next_index,
-            "name": virt_name,
-            "dtype": v["dtype"],
-            "shape": v["shape"],
-            "offset": v["offset"],
-            "nbytes": v["nbytes"],
-        }
-        compat_raw.append(entry)
-        compat_name_to_idx[virt_name] = next_index
-        next_index += 1
-        return entry["index"]
+        new_slices = _make_virtual_slices(base, expected_slices)
+        start_index = len(compat_tensors)
+        for j, s in enumerate(new_slices):
+            s["index"] = start_index + j
+            compat_tensors.append(s)
+            compat_name_to_index[s["name"]] = s["index"]
+        return compat_name_to_index[vname]
 
-    # Walk manifest groups
     for g in groups:
+        if not isinstance(g, dict):
+            continue
         kind = g.get("kind")
         if kind == "kv_pair":
             members = g.get("members")
-            if not (isinstance(members, list) and len(members) >= 2):
+            if not isinstance(members, list) or len(members) < 2:
                 continue
-            names = [m for m in members if isinstance(m, str)]
-            if len(names) < 2:
-                continue
-            # Simple: default is first, members are the rest
-            try:
-                default_index = compat_name_to_idx[names[0]]
-                member_indices = [compat_name_to_idx[n] for n in names[1:]]
-            except KeyError:
-                missing += 1
-                continue
-            out_groups.append({"default_index": default_index, "member_indices": member_indices})
-            converted_kv += 1
+            member_indices: List[int] = []
+            for name in members:
+                if not isinstance(name, str):
+                    continue
+                idx = name_to_index.get(name)
+                if idx is None:
+                    raise SystemExit(f"ERROR: kv_pair member '{name}' not found in IE json")
+                member_indices.append(idx)
+            if len(member_indices) >= 2:
+                out_groups.append({"default_index": member_indices[0], "targets": member_indices[1:]})
 
         elif kind == "expert_pair":
-            # Example fields:
-            #   "fused_tensor": "model.layers.0.mlp.experts.gate_up_proj_scales"
-            #   "expert_indices": [0, 1]
-            #   "component": "gate_up_proj_scales" (or blocks/bias)
             fused_name = g.get("fused_tensor")
             expert_indices = g.get("expert_indices")
-            if not (isinstance(fused_name, str) and isinstance(expert_indices, list) and len(expert_indices) >= 2):
+            if not isinstance(fused_name, str) or not fused_name:
                 continue
-            # We assume 32 experts; if different, infer from IE shape.
-            base_idx = name_to_base.get(fused_name)
+            if not isinstance(expert_indices, list) or len(expert_indices) < 2:
+                continue
+            base_idx = name_to_index.get(fused_name)
             if base_idx is None:
-                missing += 1
-                continue
+                raise SystemExit(f"ERROR: expert_pair fused_tensor '{fused_name}' not found in IE json")
             base = base_tensors[base_idx]
-            expert_count = base["shape"][0]
-            # Ensure virtual slices for each expert index
-            slice_indices = []
-            okay = True
-            for eidx in expert_indices:
-                if not isinstance(eidx, int) or not (0 <= eidx < expert_count):
-                    okay = False
-                    break
-                virt_idx = ensure_virtual_slice(fused_name, "#slice", eidx, expert_count)
-                if virt_idx < 0:
-                    okay = False
-                    break
-                slice_indices.append(virt_idx)
-            if not okay or len(slice_indices) < 2:
-                missing += 1
-                continue
-            # default is first expert slice; members are the remainder
-            default_index = slice_indices[0]
-            member_indices = slice_indices[1:]
-            out_groups.append({"default_index": default_index, "member_indices": member_indices})
-            converted_expert += 1
+            expert_count = int(base["shape"][0])
 
-        else:
-            # Unknown group kind; skip
-            continue
+            slice_indices: List[int] = []
+            for ei in expert_indices:
+                if not isinstance(ei, int):
+                    continue
+                slice_indices.append(ensure_virtual_slice(fused_name, ei, expert_count))
+            if len(slice_indices) >= 2:
+                out_groups.append({"default_index": slice_indices[0], "targets": slice_indices[1:]})
 
-    # 4) Write tensor_map and groups for extractor
     tensor_map = {
-        "weights_bin": str(Path(weights_bin).name),
-        "tensors": compat_raw,  # entries have explicit "index"
+        "weights_bin": weights_bin,
+        "tensors": [
+            {
+                "index": int(t["index"]),
+                "name": t["name"],
+                "offset": int(t["offset"]),
+                "nbytes": int(t["nbytes"]),
+            }
+            for t in compat_tensors
+        ],
     }
-    TENSOR_MAP_OUT.write_text(json.dumps(tensor_map, indent=2))
-    GROUPS_OUT.write_text(json.dumps(out_groups, indent=2))
 
-    print(f"[dedup] weights_bin={Path(weights_bin).name}")
-    print(f"[dedup] ie_tensors={len(base_tensors)} base_indices={len(compat_raw) - (next_index - len(compat_raw))}")
-    print(f"[dedup] fused_needed={(next_index - len(base_tensors))} sliced_ok={(next_index - len(base_tensors))} sliced_fail=0")
-    print(f"[dedup] groups_in_manifest={len(groups)} converted_expert={converted_expert} converted_kv={converted_kv} skipped=0 missing={missing}")
-    print(f"[dedup] wrote tensor_map: {TENSOR_MAP_OUT}")
-    print(f"[dedup] wrote groups:    {GROUPS_OUT}")
+    _save_json(out_tensor_map_path, tensor_map)
+    _save_json(out_groups_path, out_groups)
 
-    # 5) Call your extractor to emit defaults/masks/exceptions
-    cmd = [
-        sys.executable,
-        "tools/dedup_extract_int4.py",
-        "--model-dir", str(MD),
-        "--tensor-map", str(TENSOR_MAP_OUT),
-        "--groups", str(GROUPS_OUT),
-        "--out-prefix", str(OUT_PREFIX),
-    ]
-    print("[dedup] running:", " ".join(cmd))
-    subprocess.run(cmd, check=True)
-    print("[dedup] done.")
-    return 0
+    print(f"Wrote: {out_tensor_map_path}")
+    print(f"Wrote: {out_groups_path}")
+    print(f"Tensors: base={len(base_tensors)} total(with slices)={len(compat_tensors)} groups={len(out_groups)}")
+
+
+def main() -> None:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--ie-json", required=True)
+    ap.add_argument("--manifest", required=True)
+    ap.add_argument("--out-tensor-map", required=True)
+    ap.add_argument("--out-groups", required=True)
+    args = ap.parse_args()
+
+    _prepare_groups_and_tensor_map(
+        ie_json_path=args.ie_json,
+        manifest_path=args.manifest,
+        out_tensor_map_path=args.out_tensor_map,
+        out_groups_path=args.out_groups,
+    )
+
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    main()

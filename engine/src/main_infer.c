@@ -101,7 +101,7 @@
  */
 static double now_sec(void) {
   struct timespec ts;
-  clock_gettime(CLOCK_MONOTONIC, &ts);
+  (void)clock_gettime(CLOCK_MONOTONIC, &ts);
   return (double)ts.tv_sec + (double)ts.tv_nsec * 1e-9;
 }
 
@@ -249,7 +249,7 @@ static void safe_strcpy(char *dst, size_t dstsz, const char *src) {
     dst[0] = '\0';
     return;
   }
-  snprintf(dst, dstsz, "%s", src);
+  (void)snprintf(dst, dstsz, "%s", src);
 }
 
 /**
@@ -282,9 +282,9 @@ static void join_path(char *out, size_t outsz, const char *dir, const char *leaf
 
   const size_t n = strlen(dir);
   if (n > 0 && dir[n - 1] == '/') {
-    snprintf(out, outsz, "%s%s", dir, leaf);
+    (void)snprintf(out, outsz, "%s%s", dir, leaf);
   } else {
-    snprintf(out, outsz, "%s/%s", dir, leaf);
+    (void)snprintf(out, outsz, "%s/%s", dir, leaf);
   }
 }
 
@@ -865,7 +865,7 @@ static int parse_flags(int argc, char **argv, cli_extras_t *out) {
       return -1;
 
     } else {
-      out->prompt = a;
+      if (!out->prompt) out->prompt = a;
     }
   }
 
@@ -904,7 +904,7 @@ static int read_first_nonempty_line(const char *path, char *buf, size_t bufsz) {
     break;
   }
 
-  fclose(f);
+  (void)fclose(f);
   return ok ? 1 : 0;
 }
 
@@ -1012,37 +1012,37 @@ int main(int argc, char **argv) {
   /* Export GEMV tuning knobs. */
   if (opt.pf_w_bytes > 0) {
     char buf[32];
-    snprintf(buf, sizeof buf, "%zu", opt.pf_w_bytes);
-    setenv("IE_GEMV_PFDIST_W", buf, 1);
+    (void)snprintf(buf, sizeof buf, "%zu", opt.pf_w_bytes);
+    (void)setenv("IE_GEMV_PFDIST_W", buf, 1);
   }
   if (opt.pf_x_bytes > 0) {
     char buf[32];
-    snprintf(buf, sizeof buf, "%zu", opt.pf_x_bytes);
-    setenv("IE_GEMV_PFDIST_X", buf, 1);
+    (void)snprintf(buf, sizeof buf, "%zu", opt.pf_x_bytes);
+    (void)setenv("IE_GEMV_PFDIST_X", buf, 1);
   }
   if (opt.force_ntw == 0 || opt.force_ntw == 1) {
-    setenv("IE_GEMV_FORCE_NTW", opt.force_ntw ? "1" : "0", 1);
+    (void)setenv("IE_GEMV_FORCE_NTW", opt.force_ntw ? "1" : "0", 1);
   }
 
   /* Export dedup knobs as env vars (loader/runtime consumes these). */
   if (opt.dedup_enable == 0 || opt.dedup_enable == 1) {
-    setenv("IE_DEDUP", opt.dedup_enable ? "1" : "0", 1);
+    (void)setenv("IE_DEDUP", opt.dedup_enable ? "1" : "0", 1);
   }
   if (opt.dedup_policy && *opt.dedup_policy) {
-    setenv("IE_DEDUP_POLICY", opt.dedup_policy, 1);
+    (void)setenv("IE_DEDUP_POLICY", opt.dedup_policy, 1);
   }
   if (opt.dedup_cache_mb >= 0) {
     char buf[32];
-    snprintf(buf, sizeof buf, "%ld", opt.dedup_cache_mb);
-    setenv("IE_DEDUP_CACHE_MB", buf, 1);
+    (void)snprintf(buf, sizeof buf, "%ld", opt.dedup_cache_mb);
+    (void)setenv("IE_DEDUP_CACHE_MB", buf, 1);
   }
   if (opt.dedup_hot_bytes >= 0) {
     char buf[32];
-    snprintf(buf, sizeof buf, "%ld", opt.dedup_hot_bytes);
-    setenv("IE_DEDUP_HOT_BYTES", buf, 1);
+    (void)snprintf(buf, sizeof buf, "%ld", opt.dedup_hot_bytes);
+    (void)setenv("IE_DEDUP_HOT_BYTES", buf, 1);
   }
   if (opt.dedup_hot_list && *opt.dedup_hot_list) {
-    setenv("IE_DEDUP_HOT_LIST", opt.dedup_hot_list, 1);
+    (void)setenv("IE_DEDUP_HOT_LIST", opt.dedup_hot_list, 1);
   }
 
   /* Determine effective precision from CLI or env. */
@@ -1120,23 +1120,24 @@ int main(int argc, char **argv) {
   /* Open weights metadata to validate model presence and optionally touch. */
   ie_weights_t w;
   memset(&w, 0, sizeof(w));
-  {
-    int wrc = ie_weights_open(json_path, bin_path, &w);
-    if (wrc != IE_IO_OK) {
-      if (require_model) {
-        fprintf(stderr,
-                "error: failed to open model (%s, %s), status=%d, errno=%d (%s)\n",
-                json_path, bin_path, wrc, errno, strerror(errno));
-        return 3;
-      }
-      fprintf(stderr, "# -> warn: model metadata not found; continuing in stub mode...\n");
-    } else {
-      if (ie_weights_touch(&w) != 0) {
-        fprintf(stderr, "error: model present but unreadable (prefault/touch failed)\n");
-        ie_weights_close(&w);
-        return 3;
-      }
+
+  int wrc = ie_weights_open(json_path, bin_path, &w);
+  if (wrc != IE_IO_OK) {
+    if (require_model) {
+      fprintf(stderr,
+              "error: failed to open model (%s, %s), status=%d, errno=%d (%s)\n",
+              json_path, bin_path, wrc, errno, strerror(errno));
+      return 3;
     }
+    fprintf(stderr, "warn: model metadata not found; stub JSON output\n");
+    print_json_result(0, NULL, 0.0, 0, 0, 0);
+    return 0;
+  }
+
+  if (ie_weights_touch(&w) != 0) {
+    fprintf(stderr, "error: model present but unreadable (prefault/touch failed)\n");
+    ie_weights_close(&w);
+    return 3;
   }
 
   /* Create engine. */
@@ -1197,11 +1198,11 @@ int main(int argc, char **argv) {
     if (bin_fd >= 0) {
       map_len = (size_t)w.bin_size_bytes;
       void *p = mmap(NULL, map_len, PROT_READ, MAP_PRIVATE, bin_fd, 0);
-      if (p == MAP_FAILED) {
+      if (p != MAP_FAILED) {
+        map = (uint8_t *)p;
+      } else {
         map = NULL;
         map_len = 0;
-      } else {
-        map = (uint8_t *)p;
       }
     }
   }
@@ -1250,7 +1251,7 @@ int main(int argc, char **argv) {
             }
           }
         }
-        fclose(pf);
+        (void)fclose(pf);
       } else {
         fprintf(stderr, "warn: cannot open prompts-file '%s'\n", opt.prompts_file);
       }
@@ -1312,8 +1313,8 @@ int main(int argc, char **argv) {
 
   /* Cleanup. */
   free(tokens);
-  if (map && map != MAP_FAILED) munmap(map, map_len);
-  if (bin_fd >= 0) close(bin_fd);
+  if (map) (void)munmap((void *)map, map_len);
+  if (bin_fd >= 0) (void)close(bin_fd);
   ie_engine_destroy(engine);
   ie_weights_close(&w);
   return 0;

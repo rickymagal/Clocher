@@ -42,6 +42,11 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+/* Force-enable the optional dedup fields unless the build explicitly disables them. */
+#ifndef IE_WEIGHTS_HAS_DEDUP_FIELDS
+#define IE_WEIGHTS_HAS_DEDUP_FIELDS 1
+#endif
+
 /* -------------------------------------------------------------------------- */
 /* Small helpers                                                              */
 /* -------------------------------------------------------------------------- */
@@ -385,18 +390,6 @@ static int ascii_ieq(const char *a, const char *b) {
   return *a == '\0' && *b == '\0';
 }
 
-#if defined(IE_WEIGHTS_HAS_DEDUP_FIELDS) && (IE_WEIGHTS_HAS_DEDUP_FIELDS == 1)
-/**
- * @brief Check if a path exists and is readable.
- *
- * @param path NUL-terminated path.
- * @return 1 if readable, else 0.
- */
-static int file_exists_readable(const char *path) {
-  if (!path || !*path) return 0;
-  return access(path, R_OK) == 0;
-}
-
 /**
  * @brief Parse environment flag-like strings into a boolean.
  *
@@ -416,6 +409,17 @@ static int env_flag_get(const char *name, int default_value) {
   if (ascii_ieq(v, "1") || ascii_ieq(v, "true") || ascii_ieq(v, "yes") || ascii_ieq(v, "on"))
     return 1;
   return 1;
+}
+
+/**
+ * @brief Check if a path exists and is readable.
+ *
+ * @param path NUL-terminated path.
+ * @return 1 if readable, else 0.
+ */
+static int file_exists_readable(const char *path) {
+  if (!path || !*path) return 0;
+  return access(path, R_OK) == 0;
 }
 
 /**
@@ -440,11 +444,46 @@ static int ensure_dedup_manifest_link(const char *dir) {
   if (!file_exists_readable(manifest)) return 0;
 
   cpyz(target, sizeof(target), "dedup_manifest.json");
-  (void)symlink(target, linkpath);
+
+  int rc = symlink(target, linkpath);
+  if (rc != 0) {
+    if (errno != EEXIST) {
+      /* best-effort only */
+    }
+  }
 
   return file_exists_readable(linkpath) ? 1 : 0;
 }
-#endif /* IE_WEIGHTS_HAS_DEDUP_FIELDS */
+
+/**
+ * @brief Touch a file by doing small reads near start/end.
+ *
+ * @param path Path to file.
+ * @return 1 if read succeeded, 0 otherwise.
+ */
+static int touch_file_small(const char *path) {
+  if (!path || !*path) return 0;
+  int fd = open(path, O_RDONLY);
+  if (fd < 0) return 0;
+
+  struct stat st;
+  if (fstat(fd, &st) != 0 || st.st_size < 0) {
+    close(fd);
+    return 0;
+  }
+
+  unsigned char buf[4096];
+  ssize_t r1 = ie_pread(fd, buf, sizeof(buf), 0);
+  ssize_t r2 = 0;
+  if ((size_t)st.st_size > sizeof(buf)) {
+    off_t off = (off_t)((size_t)st.st_size - sizeof(buf));
+    r2 = ie_pread(fd, buf, sizeof(buf), off);
+  }
+  close(fd);
+
+  if (r1 < 0 || r2 < 0) return 0;
+  return 1;
+}
 
 /* -------------------------------------------------------------------------- */
 /* Public IEBIN v1 loader                                                     */
@@ -528,10 +567,10 @@ int ie_weights_open(const char *json_path, const char *bin_path, ie_weights_t *o
   out->bin_size_bytes = (size_t)st.st_size;
   out->loaded = 1;
 
-#if defined(IE_WEIGHTS_HAS_DEDUP_FIELDS) && (IE_WEIGHTS_HAS_DEDUP_FIELDS == 1)
+#if (IE_WEIGHTS_HAS_DEDUP_FIELDS == 1)
   {
-    const int dedup_enabled = env_flag_get("IE_DEDUP", 1);
-    const int dedup_strict  = env_flag_get("IE_DEDUP_STRICT", 0);
+    const int dedup_enabled = env_flag_get("IE_DEDUP", 0);
+    const int dedup_strict = env_flag_get("IE_DEDUP_STRICT", 0);
 
     if (dedup_enabled) {
       const char *slash = last_slash(json_path);
@@ -570,6 +609,11 @@ int ie_weights_open(const char *json_path, const char *bin_path, ie_weights_t *o
           out->is_dedup = 0;
           out->dedup_handle = NULL;
         }
+      } else {
+        if (dedup_strict) {
+          free(jbuf);
+          return IE_IO_ERR_JSON;
+        }
       }
     }
   }
@@ -584,12 +628,16 @@ int ie_weights_open(const char *json_path, const char *bin_path, ie_weights_t *o
  *
  * @details
  * Performs small positional reads near the start and end if the file is large.
+ * If IE_DEDUP=1, also touches model.dedup.json and the default/exception/mask bins
+ * in the same directory as model.ie.json. If IE_DEDUP_STRICT=1, missing artifacts
+ * cause failure.
  *
  * @param w Opened weights descriptor.
  * @return IE_IO_OK on success, IE_IO_ERR_* on error.
  */
 int ie_weights_touch(const ie_weights_t *w) {
   if (!w || !w->weights_path[0]) return IE_IO_ERR_ARGS;
+
   int fd = open(w->weights_path, O_RDONLY);
   if (fd < 0) return IE_IO_ERR_OPEN;
 
@@ -603,6 +651,45 @@ int ie_weights_touch(const ie_weights_t *w) {
   close(fd);
 
   if (r1 < 0 || r2 < 0) return IE_IO_ERR_READ;
+
+#if (IE_WEIGHTS_HAS_DEDUP_FIELDS == 1)
+  {
+    const int dedup_enabled = env_flag_get("IE_DEDUP", 0);
+    const int dedup_strict = env_flag_get("IE_DEDUP_STRICT", 0);
+
+    if (dedup_enabled) {
+      const char *slash = last_slash(w->json_path[0] ? w->json_path : w->weights_path);
+      char dir[512];
+      dir[0] = '\0';
+      if (slash) {
+        size_t dn = (size_t)(slash - (w->json_path[0] ? w->json_path : w->weights_path));
+        if (dn >= sizeof(dir)) dn = sizeof(dir) - 1;
+        memcpy(dir, (w->json_path[0] ? w->json_path : w->weights_path), dn);
+        dir[dn] = '\0';
+      } else {
+        cpyz(dir, sizeof(dir), ".");
+      }
+
+      char p_dedup[512], p_def[512], p_exc[512], p_msk[512];
+      p_dedup[0] = p_def[0] = p_exc[0] = p_msk[0] = '\0';
+
+      join_path(p_dedup, sizeof(p_dedup), dir, "model.dedup.json");
+      join_path(p_def, sizeof(p_def), dir, "model.defaults.bin");
+      join_path(p_exc, sizeof(p_exc), dir, "model.exceptions.bin");
+      join_path(p_msk, sizeof(p_msk), dir, "model.masks.bin");
+
+      int ok_dedup = touch_file_small(p_dedup);
+      int ok_def = touch_file_small(p_def);
+      int ok_exc = touch_file_small(p_exc);
+      int ok_msk = touch_file_small(p_msk);
+
+      if (dedup_strict && (!(ok_dedup && ok_def && ok_exc && ok_msk))) {
+        return IE_IO_ERR_JSON;
+      }
+    }
+  }
+#endif
+
   return IE_IO_OK;
 }
 
@@ -614,7 +701,7 @@ int ie_weights_touch(const ie_weights_t *w) {
 void ie_weights_close(ie_weights_t *w) {
   if (!w) return;
 
-#if defined(IE_WEIGHTS_HAS_DEDUP_FIELDS) && (IE_WEIGHTS_HAS_DEDUP_FIELDS == 1)
+#if (IE_WEIGHTS_HAS_DEDUP_FIELDS == 1)
   if (w->is_dedup && w->dedup_handle) {
     ie_weights_dedup_t *dh = (ie_weights_dedup_t *)w->dedup_handle;
     ie_weights_dedup_close(&dh);
@@ -743,7 +830,7 @@ int ie_weights_read_int4_meta(const char *json_path, struct ie_int4_quant_meta *
  */
 static float fp16_to_fp32(uint16_t h) {
   uint32_t sign = (uint32_t)(h & 0x8000u) << 16;
-  uint32_t exp  = (h & 0x7C00u) >> 10;
+  uint32_t exp = (h & 0x7C00u) >> 10;
   uint32_t mant = (h & 0x03FFu);
   uint32_t f;
   if (exp == 0) {
@@ -824,7 +911,7 @@ int ie_weights_decode_int4(const char *packed_path, const char *scales_path, siz
     return IE_IO_ERR_STAT;
   }
 
-  size_t nsc   = per_row ? rows : 1;
+  size_t nsc = per_row ? rows : 1;
   size_t need16 = nsc * sizeof(uint16_t);
   size_t need32 = nsc * sizeof(float);
 

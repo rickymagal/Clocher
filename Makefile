@@ -53,7 +53,7 @@ HF_DIR        ?= $(MODEL_DIR_DEFAULT)/hf
 MODEL_OUT_DIR ?= $(MODEL_DIR_DEFAULT)
 IEBIN_JSON    := $(MODEL_OUT_DIR)/model.ie.json
 IEBIN_BIN     := $(MODEL_OUT_DIR)/model.ie.bin
-HF_SHARDS     := $(wildcard $(HF_DIR)/pytorch_model-*-of-*.bin)
+HF_SHARDS := $(wildcard $(HF_DIR)/pytorch_model-*-of-*.bin) $(wildcard $(HF_DIR)/*.safetensors)
 
 BIN_CPU   := $(BUILD)/inference-engine
 BIN_CUDA  := $(BUILD)/inference-engine.cuda
@@ -161,7 +161,7 @@ repack-hf:
 .iebin.check:
 	@test -d "$(HF_DIR)" || { echo "ERROR: HF_DIR '$(HF_DIR)' not found"; exit 2; }
 	@test -f "$(HF_DIR)/config.json" || { echo "ERROR: $(HF_DIR)/config.json not found"; exit 2; }
-	@test -n "$(HF_SHARDS)" || { echo "ERROR: no shards found under $(HF_DIR) (pytorch_model-*-of-*.bin)"; exit 2; }
+	@test -n "$(HF_SHARDS)" || { echo "ERROR: no HF weights found under $(HF_DIR) (*.safetensors or pytorch_model-*-of-*.bin)"; exit 2; }
 	@touch $@
 
 .iebin.pack: .iebin.check scripts/hf_to_iebin.py
