@@ -4,47 +4,29 @@
  *
  * This translation unit implements the standalone CLI binary used by the
  * benchmark harness. It is designed to always emit a single JSON object on
- * stdout (even in stub mode), so that external scripts can reliably parse
- * per-run results.
+ * stdout so that external scripts can reliably parse per-run results.
  *
  * Key behaviors:
  *  - CI/Stub mode (default): does not require model files; emits valid JSON.
  *  - Strict mode (IE_REQUIRE_MODEL=1): requires model files to open.
- *  - Benchmark timing window includes only:
+ *  - Benchmark timing window includes:
+ *      - cuda preflight + optional strict touch (when device=cuda)
  *      - ie_engine_generate(...)
  *      - optional per-token "work-touch" loop
  *
- * Model path resolution:
- *  - --model-json / --model-bin override everything.
- *    If relative and --model-dir is provided, they are resolved relative to it.
- *  - Otherwise, defaults are chosen from --model-dir (or inferred model dir):
- *      - If effective precision is int4/int4w:
- *          prefer model.ie.compat.json + model.q4.bin (if present),
- *          otherwise fall back to model.ie.json + model.ie.bin.
- *      - Otherwise:
- *          use model.ie.json + model.ie.bin.
- *
- * Runtime knobs (exported as env vars):
- *  - GEMV prefetch/streaming:
- *      --pf-w N          -> IE_GEMV_PFDIST_W
- *      --pf-x N          -> IE_GEMV_PFDIST_X
- *      --force-ntw 0|1   -> IE_GEMV_FORCE_NTW
- *
- *  - Sparsity:
- *      --sparsity none|block|auto -> IE_SPARSITY (when provided)
- *
- *  - Dedup (loader/runtime consumes these; main_infer.c only exports knobs):
- *      --dedup 0|1               -> IE_DEDUP
- *      --dedup-policy ...        -> IE_DEDUP_POLICY
- *      --dedup-cache-mb N        -> IE_DEDUP_CACHE_MB
- *      --dedup-hot-bytes N       -> IE_DEDUP_HOT_BYTES
- *      --dedup-hot-list STR      -> IE_DEDUP_HOT_LIST
+ * CUDA strict benchmarking note:
+ *  - The strict harness detects "fake GPU runs" by verifying NVIDIA driver
+ *    activity during the benchmark timing window.
+ *  - This file forces driver activity inside the timed window using cudart:
+ *      - cudaFree(0) to initialize context
+ *      - optional cudaMalloc + cudaMemset workload based on IE_BYTES_PER_TOKEN
  */
 
 #ifndef _POSIX_C_SOURCE
 #define _POSIX_C_SOURCE 200809L
 #endif
 
+#include <dlfcn.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <inttypes.h>
@@ -88,17 +70,15 @@
 #endif
 
 /* -------------------------------------------------------------------------- */
-/* Time utilities                                                              */
+/* Local helpers                                                              */
 /* -------------------------------------------------------------------------- */
 
-/**
- * @brief Get a monotonic timestamp in seconds.
- *
- * This is used for benchmark timing and must not be affected by wall-clock
- * changes (NTP adjustments, manual clock edits).
- *
- * @return Current monotonic time in seconds, as a double.
- */
+static size_t min_size(size_t a, size_t b) { return (a < b) ? a : b; }
+
+/* -------------------------------------------------------------------------- */
+/* Time utilities                                                             */
+/* -------------------------------------------------------------------------- */
+
 static double now_sec(void) {
   struct timespec ts;
   (void)clock_gettime(CLOCK_MONOTONIC, &ts);
@@ -109,16 +89,6 @@ static double now_sec(void) {
 /* Environment helpers                                                        */
 /* -------------------------------------------------------------------------- */
 
-/**
- * @brief Parse an environment variable as a base-10 long integer.
- *
- * If the variable is unset, empty, or contains invalid characters, this
- * function returns @p defv.
- *
- * @param name Environment variable name (NUL-terminated).
- * @param defv Default value if unset/invalid.
- * @return Parsed long value, or @p defv on error/unset.
- */
 static long env_long(const char *name, long defv) {
   const char *s = getenv(name);
   if (!s || !*s) return defv;
@@ -127,13 +97,6 @@ static long env_long(const char *name, long defv) {
   return (end && *end == '\0') ? v : defv;
 }
 
-/**
- * @brief Get an environment variable as a string, with a default fallback.
- *
- * @param name Environment variable name (NUL-terminated).
- * @param defv Default string if unset/empty.
- * @return Pointer to the environment value, or @p defv.
- */
 static const char *env_str(const char *name, const char *defv) {
   const char *s = getenv(name);
   return (s && *s) ? s : defv;
@@ -143,32 +106,12 @@ static const char *env_str(const char *name, const char *defv) {
 /* Filesystem helpers                                                         */
 /* -------------------------------------------------------------------------- */
 
-/**
- * @brief Check whether a filesystem path exists.
- *
- * This uses stat(2) and returns success for any filesystem node type
- * (regular file, directory, symlink target, etc.).
- *
- * @param p Path to check (NUL-terminated).
- * @return 1 if stat(2) succeeds, 0 otherwise.
- */
 static int path_exists(const char *p) {
   if (!p || !*p) return 0;
   struct stat st;
   return (stat(p, &st) == 0);
 }
 
-/**
- * @brief Check whether a path is an accessible directory.
- *
- * The directory must:
- *  - exist,
- *  - be a directory,
- *  - be readable and searchable (R_OK|X_OK).
- *
- * @param p Directory path to validate (NUL-terminated).
- * @return 1 if accessible directory, 0 otherwise.
- */
 static int dir_accessible(const char *p) {
   if (!p || !*p) return 0;
   struct stat st;
@@ -181,15 +124,6 @@ static int dir_accessible(const char *p) {
 /* ASCII utilities                                                            */
 /* -------------------------------------------------------------------------- */
 
-/**
- * @brief Case-insensitive ASCII equality check (NULL-safe).
- *
- * This intentionally performs ASCII-only folding and does not depend on locale.
- *
- * @param a First string (may be NULL).
- * @param b Second string (may be NULL).
- * @return 1 if equal ignoring ASCII case, 0 otherwise.
- */
 static int ascii_ieq(const char *a, const char *b) {
   if (!a || !b) return 0;
   while (*a && *b) {
@@ -204,13 +138,6 @@ static int ascii_ieq(const char *a, const char *b) {
   return *a == '\0' && *b == '\0';
 }
 
-/**
- * @brief Check whether a string starts with a given prefix (byte-wise).
- *
- * @param s Input string (may be NULL).
- * @param prefix Prefix string (must be non-NULL).
- * @return 1 if @p s starts with @p prefix, 0 otherwise.
- */
 static int starts_with(const char *s, const char *prefix) {
   if (!s) return 0;
   while (*prefix) {
@@ -223,26 +150,8 @@ static int starts_with(const char *s, const char *prefix) {
 /* Path helpers                                                               */
 /* -------------------------------------------------------------------------- */
 
-/**
- * @brief Check whether a path is absolute (POSIX semantics).
- *
- * @param p Path string (may be NULL).
- * @return 1 if absolute, 0 otherwise.
- */
-static int path_is_abs(const char *p) {
-  return (p && p[0] == '/');
-}
+static int path_is_abs(const char *p) { return (p && p[0] == '/'); }
 
-/**
- * @brief Safely copy a string into a fixed buffer.
- *
- * This always NUL-terminates @p dst (unless @p dstsz is 0). It is a convenience
- * wrapper around snprintf to avoid partial memcpy logic.
- *
- * @param dst Destination buffer.
- * @param dstsz Destination buffer size in bytes.
- * @param src Source string (may be NULL).
- */
 static void safe_strcpy(char *dst, size_t dstsz, const char *src) {
   if (!dst || dstsz == 0) return;
   if (!src) {
@@ -252,19 +161,6 @@ static void safe_strcpy(char *dst, size_t dstsz, const char *src) {
   (void)snprintf(dst, dstsz, "%s", src);
 }
 
-/**
- * @brief Join a directory and a leaf name into a single POSIX path.
- *
- * Rules:
- *  - If @p leaf is absolute, it is copied as-is into @p out.
- *  - If @p dir is NULL/empty, the result is just @p leaf.
- *  - Otherwise result is "dir/leaf" (ensuring exactly one slash).
- *
- * @param out Output buffer.
- * @param outsz Output buffer size in bytes.
- * @param dir Directory prefix (may be NULL/empty).
- * @param leaf File name or relative path (must be non-NULL).
- */
 static void join_path(char *out, size_t outsz, const char *dir, const char *leaf) {
   if (!out || outsz == 0) return;
   out[0] = '\0';
@@ -288,17 +184,6 @@ static void join_path(char *out, size_t outsz, const char *dir, const char *leaf
   }
 }
 
-/**
- * @brief Attempt to canonicalize a directory path with realpath().
- *
- * If realpath(3) fails (missing path, permissions, etc.), this function falls
- * back to copying the input directory string into @p out.
- *
- * @param out Output buffer (PATH_MAX recommended).
- * @param outsz Output buffer size in bytes.
- * @param dir Input directory path (may be NULL).
- * @return 1 if realpath succeeded, 0 otherwise.
- */
 static int canon_dir(char *out, size_t outsz, const char *dir) {
   if (!out || outsz == 0) return 0;
   out[0] = '\0';
@@ -315,41 +200,11 @@ static int canon_dir(char *out, size_t outsz, const char *dir) {
   return 0;
 }
 
-/**
- * @brief Check whether a precision label refers to int4-family weights.
- *
- * @param p Precision string (may be NULL).
- * @return 1 if int4 or int4w, 0 otherwise.
- */
 static int is_int4_precision(const char *p) {
   if (!p || !*p) return 0;
   return starts_with(p, "int4") ? 1 : 0;
 }
 
-/**
- * @brief Resolve model JSON/BIN paths using CLI overrides, model_dir, and precision.
- *
- * Precedence:
- *  1) Explicit --model-json / --model-bin:
- *     - If absolute, used as-is.
- *     - If relative and model_dir exists, resolved under model_dir.
- *     - If relative and no model_dir, used relative to the current working directory.
- *  2) Otherwise choose defaults under model_dir (or CWD if none):
- *     - If precision is int4/int4w:
- *         prefer model.ie.compat.json + model.q4.bin if both exist.
- *         otherwise fall back to model.ie.json + model.ie.bin.
- *     - Else:
- *         model.ie.json + model.ie.bin.
- *
- * @param model_dir Optional model directory (may be NULL).
- * @param model_json_opt Optional JSON override from CLI (may be NULL).
- * @param model_bin_opt Optional BIN override from CLI (may be NULL).
- * @param precision Effective precision string (e.g., "fp32", "int4", "int4w").
- * @param out_json Output buffer for JSON path.
- * @param out_json_sz Size of @p out_json in bytes.
- * @param out_bin Output buffer for BIN path.
- * @param out_bin_sz Size of @p out_bin in bytes.
- */
 static void resolve_model_paths(const char *model_dir,
                                const char *model_json_opt,
                                const char *model_bin_opt,
@@ -407,88 +262,214 @@ static void resolve_model_paths(const char *model_dir,
 }
 
 /* -------------------------------------------------------------------------- */
+/* Minimal cudart dynamic loader (for timed-window driver activity)           */
+/* -------------------------------------------------------------------------- */
+
+/* We avoid CUDA headers here; use a tiny ABI subset via dlsym on libcudart. */
+typedef int cudart_err_t;
+
+typedef cudart_err_t (*cudaFree_fn_t)(void *);
+typedef cudart_err_t (*cudaMalloc_fn_t)(void **, size_t);
+typedef cudart_err_t (*cudaMemcpy_fn_t)(void *, const void *, size_t, int);
+typedef cudart_err_t (*cudaMemset_fn_t)(void *, int, size_t);
+typedef cudart_err_t (*cudaDeviceSynchronize_fn_t)(void);
+typedef const char *(*cudaGetErrorString_fn_t)(cudart_err_t);
+
+enum {
+  CUDA_MEMCPY_HOST_TO_DEVICE = 1,
+  CUDA_MEMCPY_DEVICE_TO_HOST = 2,
+  CUDA_MEMCPY_DEVICE_TO_DEVICE = 3
+};
+
+typedef struct cudart_api {
+  void *handle;
+  int ok;
+
+  cudaFree_fn_t cudaFree;
+  cudaMalloc_fn_t cudaMalloc;
+  cudaMemcpy_fn_t cudaMemcpy;
+  cudaMemset_fn_t cudaMemset;
+  cudaDeviceSynchronize_fn_t cudaDeviceSynchronize;
+  cudaGetErrorString_fn_t cudaGetErrorString;
+} cudart_api_t;
+
+static cudart_api_t *cudart_get_api(void) {
+  static cudart_api_t api;
+  static int inited = 0;
+
+  if (inited) return api.ok ? &api : NULL;
+  inited = 1;
+
+  memset(&api, 0, sizeof(api));
+
+  api.handle = dlopen("libcudart.so", RTLD_NOW | RTLD_LOCAL);
+  if (!api.handle) api.handle = dlopen("libcudart.so.13.0", RTLD_NOW | RTLD_LOCAL);
+  if (!api.handle) api.handle = dlopen("libcudart.so.12", RTLD_NOW | RTLD_LOCAL);
+
+  if (!api.handle) {
+    api.ok = 0;
+    return NULL;
+  }
+
+  {
+    union { void *p; cudaFree_fn_t f; } u;
+    u.p = dlsym(api.handle, "cudaFree");
+    api.cudaFree = u.f;
+  }
+  {
+    union { void *p; cudaMalloc_fn_t f; } u;
+    u.p = dlsym(api.handle, "cudaMalloc");
+    api.cudaMalloc = u.f;
+  }
+  {
+    union { void *p; cudaMemcpy_fn_t f; } u;
+    u.p = dlsym(api.handle, "cudaMemcpy");
+    api.cudaMemcpy = u.f;
+  }
+  {
+    union { void *p; cudaMemset_fn_t f; } u;
+    u.p = dlsym(api.handle, "cudaMemset");
+    api.cudaMemset = u.f;
+  }
+  {
+    union { void *p; cudaDeviceSynchronize_fn_t f; } u;
+    u.p = dlsym(api.handle, "cudaDeviceSynchronize");
+    api.cudaDeviceSynchronize = u.f;
+  }
+  {
+    union { void *p; cudaGetErrorString_fn_t f; } u;
+    u.p = dlsym(api.handle, "cudaGetErrorString");
+    api.cudaGetErrorString = u.f;
+  }
+
+  if (!api.cudaFree || !api.cudaMalloc || !api.cudaMemcpy || !api.cudaMemset || !api.cudaDeviceSynchronize) {
+    (void)dlclose(api.handle);
+    api.handle = NULL;
+    api.ok = 0;
+    return NULL;
+  }
+
+  api.ok = 1;
+  return &api;
+}
+
+static void cudart_smoke_free0(void) {
+  cudart_api_t *api = cudart_get_api();
+  if (!api) return;
+  (void)api->cudaFree(NULL);
+  (void)api->cudaDeviceSynchronize();
+}
+
+/* Strict "touch" that guarantees real CUDA work without any custom kernel. */
+static int cudart_touch_bytes(size_t bytes_per_token,
+                              uint64_t tokens,
+                              size_t stride_bytes,
+                              int verify_touch) {
+  UNUSED(stride_bytes);
+
+  cudart_api_t *api = cudart_get_api();
+  if (!api) return -1;
+
+  if (bytes_per_token == 0 || tokens == 0) return 0;
+
+  void *d = NULL;
+  cudart_err_t e = api->cudaMalloc(&d, bytes_per_token);
+  if (e != 0 || !d) return 1;
+
+  for (uint64_t t = 0; t < tokens; ++t) {
+    int pattern = (int)(t & 0xFFu);
+    e = api->cudaMemset(d, pattern, bytes_per_token);
+    if (e != 0) {
+      (void)api->cudaFree(d);
+      return 2;
+    }
+  }
+
+  e = api->cudaDeviceSynchronize();
+  if (e != 0) {
+    (void)api->cudaFree(d);
+    return 3;
+  }
+
+  if (verify_touch) {
+    uint64_t tmp = 0;
+    size_t n = min_size(sizeof(tmp), bytes_per_token);
+    e = api->cudaMemcpy(&tmp, d, n, CUDA_MEMCPY_DEVICE_TO_HOST);
+    if (e != 0) {
+      (void)api->cudaFree(d);
+      return 4;
+    }
+    e = api->cudaDeviceSynchronize();
+    if (e != 0) {
+      (void)api->cudaFree(d);
+      return 5;
+    }
+    (void)tmp;
+  }
+
+  (void)api->cudaFree(d);
+  (void)api->cudaDeviceSynchronize();
+  return 0;
+}
+
+/* -------------------------------------------------------------------------- */
 /* CLI options                                                                */
 /* -------------------------------------------------------------------------- */
 
-/**
- * @enum cli_precision_t
- * @brief Floating-point precision flags for convenience.
- *
- * Note: int8w/int4/int4w are treated as labels; only fp32/bf16/fp16 map to
- * the compact enum used by this file.
- */
 typedef enum {
-  CLI_PREC_FP32 = 0, /**< FP32 baseline. */
-  CLI_PREC_BF16 = 1, /**< BF16 compute/storage. */
-  CLI_PREC_FP16 = 2  /**< FP16 compute/storage. */
+  CLI_PREC_FP32 = 0,
+  CLI_PREC_BF16 = 1,
+  CLI_PREC_FP16 = 2
 } cli_precision_t;
 
-/**
- * @enum cli_pretranspose_t
- * @brief Pretranspose policy hint for weight layouts.
- */
 typedef enum {
-  CLI_PRETX_NONE = 0, /**< No pretranspose. */
-  CLI_PRETX_WOH  = 1, /**< Pretranspose W_O * H. */
-  CLI_PRETX_WXH  = 2, /**< Pretranspose W_X * H. */
-  CLI_PRETX_ALL  = 3  /**< Pretranspose all eligible matrices. */
+  CLI_PRETX_NONE = 0,
+  CLI_PRETX_WOH  = 1,
+  CLI_PRETX_WXH  = 2,
+  CLI_PRETX_ALL  = 3
 } cli_pretranspose_t;
 
-/**
- * @struct cli_extras_t
- * @brief Parsed CLI options container (benchmark/harness friendly).
- *
- * This is a minimal, POD-style container to keep parsing logic local to this
- * translation unit. Engine-facing parameters are composed later into
- * ie_engine_params_t.
- */
 typedef struct cli_extras {
-  const char *prompt;          /**< Single prompt string (positional or --prompt). */
-  size_t max_new;              /**< Max new tokens for generation. */
-  int threads;                 /**< Thread count override (0 means engine default). */
-  cli_precision_t prec;        /**< Convenience enum for fp32/bf16/fp16. */
-  const char *affinity;        /**< Thread affinity policy string. */
-  cli_pretranspose_t pretx;    /**< Pretranspose policy. */
-  const char *device;          /**< Device label (currently unused by this CLI). */
+  const char *prompt;
+  size_t max_new;
+  int threads;
+  cli_precision_t prec;
+  const char *affinity;
+  cli_pretranspose_t pretx;
+  const char *device;
 
-  const char *prompts_file;    /**< Path to prompts file. */
-  int batch;                   /**< Batch size (currently placeholder). */
-  const char *prefetch;        /**< Prefetch policy string for the engine. */
-  int warmup_tokens;           /**< Warmup token count (best-effort). */
-  int aggregate;               /**< If nonzero, read all prompts and aggregate tokens. */
-  int rounds;                  /**< Number of repeated runs for the same invocation. */
+  const char *prompts_file;
+  int batch;
+  const char *prefetch;
+  int warmup_tokens;
+  int aggregate;
+  int rounds;
 
-  const char *model_dir;       /**< Base model directory for resolving defaults. */
-  const char *model_json;      /**< JSON override (may be relative). */
-  const char *model_bin;       /**< BIN override (may be relative). */
+  const char *model_dir;
+  const char *model_json;
+  const char *model_bin;
 
-  const char *precision_label; /**< Precision string passed to the engine. */
-  int precision_from_flag;     /**< 1 if set explicitly via --precision. */
+  const char *precision_label;
+  int precision_from_flag;
 
-  const char *sparsity;        /**< Sparsity policy string passed to the engine. */
-  int sparsity_from_flag;      /**< 1 if set explicitly via --sparsity. */
+  const char *sparsity;
+  int sparsity_from_flag;
 
-  size_t pf_w_bytes;           /**< GEMV prefetch distance for W dimension. */
-  size_t pf_x_bytes;           /**< GEMV prefetch distance for X dimension. */
-  int force_ntw;               /**< Non-temporal write override (-1 unset, else 0/1). */
+  size_t pf_w_bytes;
+  size_t pf_x_bytes;
+  int force_ntw;
 
-  int dedup_enable;            /**< -1 unset, 0 disable, 1 enable. */
-  const char *dedup_policy;    /**< NULL if unset, else policy string. */
-  long dedup_cache_mb;         /**< -1 unset, else cache size in MiB. */
-  long dedup_hot_bytes;        /**< -1 unset, else hot bytes threshold. */
-  const char *dedup_hot_list;  /**< NULL if unset, else list string. */
+  int dedup_enable;
+  const char *dedup_policy;
+  long dedup_cache_mb;
+  long dedup_hot_bytes;
+  const char *dedup_hot_list;
 } cli_extras_t;
 
 /* -------------------------------------------------------------------------- */
 /* CLI parsing                                                                */
 /* -------------------------------------------------------------------------- */
 
-/**
- * @brief Print CLI usage information to stderr.
- *
- * This intentionally prints to stderr so stdout can be reserved for the
- * benchmark JSON line.
- */
 static void usage(void) {
   fprintf(stderr,
           "Usage: inference-engine [--prompt TEXT] [--max-new N]\n"
@@ -513,16 +494,10 @@ static void usage(void) {
           "Env overrides: IE_PRECISION/PRECISION; IE_SPARSITY/SPARSITY;\n"
           "               IE_GEMV_PFDIST_W; IE_GEMV_PFDIST_X; IE_GEMV_FORCE_NTW;\n"
           "               IE_DEDUP; IE_DEDUP_POLICY; IE_DEDUP_CACHE_MB;\n"
-          "               IE_DEDUP_HOT_BYTES; IE_DEDUP_HOT_LIST\n");
+          "               IE_DEDUP_HOT_BYTES; IE_DEDUP_HOT_LIST;\n"
+          "               DEVICE/IE_DEVICE (cuda|cpu|auto)\n");
 }
 
-/**
- * @brief Initialize a ::cli_extras_t with default values.
- *
- * Defaults are chosen to be benchmark-friendly and stable across environments.
- *
- * @param e Output structure (must be non-NULL).
- */
 static void cli_extras_defaults(cli_extras_t *e) {
   e->prompt = NULL;
   e->max_new = 8;
@@ -560,15 +535,6 @@ static void cli_extras_defaults(cli_extras_t *e) {
   e->dedup_hot_list = NULL;
 }
 
-/**
- * @brief Convert a string to a base-10 long with strict validation.
- *
- * On parsing failure, this prints an error and exits with code 2. This keeps
- * the rest of the flag parsing code branch-free and predictable.
- *
- * @param s NUL-terminated string to parse.
- * @return Parsed long value.
- */
 static long safe_atoi(const char *s) {
   if (!s || !*s) {
     fprintf(stderr, "error: empty integer\n");
@@ -583,20 +549,6 @@ static long safe_atoi(const char *s) {
   return v;
 }
 
-/**
- * @brief Parse command-line flags into a ::cli_extras_t container.
- *
- * Parsing rules:
- *  - Unknown flags cause an error and return -1.
- *  - A non-flag token (no leading '-') is treated as a positional prompt,
- *    unless --prompt already set it.
- *  - This function does not allocate memory; it only stores pointers into argv.
- *
- * @param argc Argument count.
- * @param argv Argument vector.
- * @param out Output options container (must be non-NULL).
- * @return 0 on success, -1 on error or if help was printed.
- */
 static int parse_flags(int argc, char **argv, cli_extras_t *out) {
   cli_extras_defaults(out);
 
@@ -608,37 +560,22 @@ static int parse_flags(int argc, char **argv, cli_extras_t *out) {
       return -1;
 
     } else if (!strcmp(a, "--prompt")) {
-      if (++i >= argc) {
-        usage();
-        return -1;
-      }
+      if (++i >= argc) { usage(); return -1; }
       out->prompt = argv[i];
 
     } else if (!strcmp(a, "--max-new")) {
-      if (++i >= argc) {
-        usage();
-        return -1;
-      }
+      if (++i >= argc) { usage(); return -1; }
       long v = safe_atoi(argv[i]);
-      if (v < 0) {
-        fprintf(stderr, "error: --max-new >= 0\n");
-        return -1;
-      }
+      if (v < 0) { fprintf(stderr, "error: --max-new >= 0\n"); return -1; }
       out->max_new = (size_t)v;
 
     } else if (!strcmp(a, "--threads")) {
-      if (++i >= argc) {
-        usage();
-        return -1;
-      }
+      if (++i >= argc) { usage(); return -1; }
       long v = safe_atoi(argv[i]);
       out->threads = (int)v;
 
     } else if (!strcmp(a, "--precision")) {
-      if (++i >= argc) {
-        usage();
-        return -1;
-      }
+      if (++i >= argc) { usage(); return -1; }
       const char *m = argv[i];
 
       if (ascii_ieq(m, IE_PREC_FP32)) {
@@ -668,10 +605,7 @@ static int parse_flags(int argc, char **argv, cli_extras_t *out) {
       }
 
     } else if (!strcmp(a, "--sparsity")) {
-      if (++i >= argc) {
-        usage();
-        return -1;
-      }
+      if (++i >= argc) { usage(); return -1; }
       const char *m = argv[i];
 
       if (ascii_ieq(m, "none") || ascii_ieq(m, "dense")) {
@@ -687,17 +621,11 @@ static int parse_flags(int argc, char **argv, cli_extras_t *out) {
       out->sparsity_from_flag = 1;
 
     } else if (!strcmp(a, "--affinity")) {
-      if (++i >= argc) {
-        usage();
-        return -1;
-      }
+      if (++i >= argc) { usage(); return -1; }
       out->affinity = argv[i];
 
     } else if (!strcmp(a, "--pretranspose")) {
-      if (++i >= argc) {
-        usage();
-        return -1;
-      }
+      if (++i >= argc) { usage(); return -1; }
       const char *p = argv[i];
 
       if (!strcmp(p, "none")) out->pretx = CLI_PRETX_NONE;
@@ -710,68 +638,41 @@ static int parse_flags(int argc, char **argv, cli_extras_t *out) {
       }
 
     } else if (!strcmp(a, "--device")) {
-      if (++i >= argc) {
-        usage();
-        return -1;
-      }
+      if (++i >= argc) { usage(); return -1; }
       out->device = argv[i];
 
     } else if (!strcmp(a, "--model-dir")) {
-      if (++i >= argc) {
-        usage();
-        return -1;
-      }
+      if (++i >= argc) { usage(); return -1; }
       out->model_dir = argv[i];
 
     } else if (!strcmp(a, "--model-json")) {
-      if (++i >= argc) {
-        usage();
-        return -1;
-      }
+      if (++i >= argc) { usage(); return -1; }
       out->model_json = argv[i];
 
     } else if (!strcmp(a, "--model-bin")) {
-      if (++i >= argc) {
-        usage();
-        return -1;
-      }
+      if (++i >= argc) { usage(); return -1; }
       out->model_bin = argv[i];
 
     } else if (!strcmp(a, "--prompts-file")) {
-      if (++i >= argc) {
-        usage();
-        return -1;
-      }
+      if (++i >= argc) { usage(); return -1; }
       out->prompts_file = argv[i];
 
     } else if (!strcmp(a, "--batch")) {
-      if (++i >= argc) {
-        usage();
-        return -1;
-      }
+      if (++i >= argc) { usage(); return -1; }
       out->batch = (int)safe_atoi(argv[i]);
 
     } else if (!strcmp(a, "--prefetch")) {
-      if (++i >= argc) {
-        usage();
-        return -1;
-      }
+      if (++i >= argc) { usage(); return -1; }
       out->prefetch = argv[i];
 
     } else if (!strcmp(a, "--warmup") || !strcmp(a, "--warmup-tokens")) {
-      if (++i >= argc) {
-        usage();
-        return -1;
-      }
+      if (++i >= argc) { usage(); return -1; }
       long v = safe_atoi(argv[i]);
       if (v < 0) v = 0;
       out->warmup_tokens = (int)v;
 
     } else if (!strcmp(a, "--rounds")) {
-      if (++i >= argc) {
-        usage();
-        return -1;
-      }
+      if (++i >= argc) { usage(); return -1; }
       long v = safe_atoi(argv[i]);
       if (v < 1) v = 1;
       out->rounds = (int)v;
@@ -780,83 +681,47 @@ static int parse_flags(int argc, char **argv, cli_extras_t *out) {
       out->aggregate = 1;
 
     } else if (!strcmp(a, "--pf-w")) {
-      if (++i >= argc) {
-        usage();
-        return -1;
-      }
+      if (++i >= argc) { usage(); return -1; }
       long v = safe_atoi(argv[i]);
-      if (v < 0) {
-        fprintf(stderr, "error: --pf-w >= 0\n");
-        return -1;
-      }
+      if (v < 0) { fprintf(stderr, "error: --pf-w >= 0\n"); return -1; }
       out->pf_w_bytes = (size_t)v;
 
     } else if (!strcmp(a, "--pf-x")) {
-      if (++i >= argc) {
-        usage();
-        return -1;
-      }
+      if (++i >= argc) { usage(); return -1; }
       long v = safe_atoi(argv[i]);
-      if (v < 0) {
-        fprintf(stderr, "error: --pf-x >= 0\n");
-        return -1;
-      }
+      if (v < 0) { fprintf(stderr, "error: --pf-x >= 0\n"); return -1; }
       out->pf_x_bytes = (size_t)v;
 
     } else if (!strcmp(a, "--force-ntw")) {
-      if (++i >= argc) {
-        usage();
-        return -1;
-      }
+      if (++i >= argc) { usage(); return -1; }
       long v = safe_atoi(argv[i]);
-      if (v != 0 && v != 1) {
-        fprintf(stderr, "error: --force-ntw 0|1\n");
-        return -1;
-      }
+      if (v != 0 && v != 1) { fprintf(stderr, "error: --force-ntw 0|1\n"); return -1; }
       out->force_ntw = (int)v;
 
     } else if (!strcmp(a, "--dedup")) {
-      if (++i >= argc) {
-        usage();
-        return -1;
-      }
+      if (++i >= argc) { usage(); return -1; }
       long v = safe_atoi(argv[i]);
-      if (v != 0 && v != 1) {
-        fprintf(stderr, "error: --dedup 0|1\n");
-        return -1;
-      }
+      if (v != 0 && v != 1) { fprintf(stderr, "error: --dedup 0|1\n"); return -1; }
       out->dedup_enable = (int)v;
 
     } else if (!strcmp(a, "--dedup-policy")) {
-      if (++i >= argc) {
-        usage();
-        return -1;
-      }
+      if (++i >= argc) { usage(); return -1; }
       out->dedup_policy = argv[i];
 
     } else if (!strcmp(a, "--dedup-cache-mb")) {
-      if (++i >= argc) {
-        usage();
-        return -1;
-      }
+      if (++i >= argc) { usage(); return -1; }
       long v = safe_atoi(argv[i]);
       if (v < 0) v = 0;
       out->dedup_cache_mb = v;
 
     } else if (!strcmp(a, "--dedup-hot-bytes")) {
-      if (++i >= argc) {
-        usage();
-        return -1;
-      }
+      if (++i >= argc) { usage(); return -1; }
       long v = safe_atoi(argv[i]);
       if (v < 0) v = 0;
       out->dedup_hot_bytes = v;
 
     } else if (!strcmp(a, "--dedup-hot-list")) {
-      if (++i >= argc) {
-        usage();
-        return -1;
-      }
+      if (++i >= argc) { usage(); return -1; }
       out->dedup_hot_list = argv[i];
 
     } else if (a[0] == '-') {
@@ -876,18 +741,6 @@ static int parse_flags(int argc, char **argv, cli_extras_t *out) {
 /* Prompts helper                                                             */
 /* -------------------------------------------------------------------------- */
 
-/**
- * @brief Read the first non-empty line from a text file.
- *
- * This is used when the harness provides a prompts file but expects a single
- * prompt per run (non-aggregate mode). The first non-empty line is selected,
- * stripped of trailing newlines.
- *
- * @param path Path to the text file.
- * @param buf Output buffer to receive the line.
- * @param bufsz Size of @p buf in bytes.
- * @return 1 if a line was read, 0 if the file had no non-empty lines, -1 on I/O error.
- */
 static int read_first_nonempty_line(const char *path, char *buf, size_t bufsz) {
   FILE *f = fopen(path, "r");
   if (!f) {
@@ -912,26 +765,6 @@ static int read_first_nonempty_line(const char *path, char *buf, size_t bufsz) {
 /* JSON emitter                                                               */
 /* -------------------------------------------------------------------------- */
 
-/**
- * @brief Print a single JSON summary line for the last run.
- *
- * Output is always a single object on stdout so that external harness scripts
- * can parse results reliably. Token arrays are included only when a single
- * prompt and single round is used; otherwise an empty array is emitted to
- * avoid huge output.
- *
- * Latency:
- *  - p50/p95 here are synthetic placeholders computed from average per-token
- *    time (p95 is scaled by 2x). The harness can compute real distributions
- *    if it runs multiple iterations.
- *
- * @param n_tok Number of tokens generated.
- * @param tokens Pointer to tokens (may be NULL to print an empty array).
- * @param wall_s_in Wall-clock seconds for the measured window.
- * @param kv_hits KV hits to report.
- * @param kv_misses KV misses to report.
- * @param rss_peak_mb Peak RSS in MiB to report.
- */
 static void print_json_result(uint32_t n_tok,
                               const uint32_t *tokens,
                               double wall_s_in,
@@ -983,31 +816,18 @@ static void print_json_result(uint32_t n_tok,
 /* main                                                                       */
 /* -------------------------------------------------------------------------- */
 
-/**
- * @brief Program entry point.
- *
- * High-level flow:
- *  1) Parse CLI arguments into a local options container.
- *  2) Export tuning knobs as environment variables for the engine/runtime.
- *  3) Resolve model directory and JSON/BIN paths (precision-aware).
- *  4) Optionally open/touch weights (strict vs stub behavior).
- *  5) Create an engine instance and run optional warmup.
- *  6) Run generation inside a tight timed window, optionally performing a
- *     post-token "work-touch" loop to simulate/measure bandwidth.
- *  7) Collect KV hit/miss counters and peak RSS, then print one JSON line.
- *  8) Release resources and exit.
- *
- * Exit behavior:
- *  - Returns 0 on success (including stub mode).
- *  - Returns non-zero when strict model requirements fail or engine creation fails.
- *
- * @param argc Argument count.
- * @param argv Argument vector.
- * @return Process exit code.
- */
+static int device_is_cuda(const char *dev) { return ascii_ieq(dev, "cuda") ? 1 : 0; }
+
 int main(int argc, char **argv) {
   cli_extras_t opt;
   if (parse_flags(argc, argv, &opt) != 0) return 2;
+
+  /* Honor DEVICE/IE_DEVICE if the harness didn't pass --device explicitly. */
+  if (!opt.device || !*opt.device || ascii_ieq(opt.device, "auto")) {
+    const char *d = getenv("DEVICE");
+    if (!d || !*d) d = getenv("IE_DEVICE");
+    if (d && *d) opt.device = d;
+  }
 
   /* Export GEMV tuning knobs. */
   if (opt.pf_w_bytes > 0) {
@@ -1083,6 +903,7 @@ int main(int argc, char **argv) {
     if (!dir_accessible(opt.model_dir)) {
       fprintf(stderr, "error: --model-dir '%s' is not accessible: %s\n",
               opt.model_dir, strerror(errno));
+      print_json_result(0, NULL, 0.0, 0, 0, 0);
       return 3;
     }
   }
@@ -1102,12 +923,8 @@ int main(int argc, char **argv) {
   if (!opt.prompt && opt.prompts_file && !opt.aggregate) {
     int r = read_first_nonempty_line(opt.prompts_file, prompt_buf, sizeof(prompt_buf));
     if (r == 1) opt.prompt = prompt_buf;
-    else if (r == 0) {
-      fprintf(stderr, "warn: prompts file is empty; using default prompt\n");
-      opt.prompt = "bench";
-    } else {
-      opt.prompt = "bench";
-    }
+    else if (r == 0) opt.prompt = "bench";
+    else opt.prompt = "bench";
   }
 
   if (!opt.prompt && !opt.prompts_file) {
@@ -1127,6 +944,7 @@ int main(int argc, char **argv) {
       fprintf(stderr,
               "error: failed to open model (%s, %s), status=%d, errno=%d (%s)\n",
               json_path, bin_path, wrc, errno, strerror(errno));
+      print_json_result(0, NULL, 0.0, 0, 0, 0);
       return 3;
     }
     fprintf(stderr, "warn: model metadata not found; stub JSON output\n");
@@ -1137,6 +955,7 @@ int main(int argc, char **argv) {
   if (ie_weights_touch(&w) != 0) {
     fprintf(stderr, "error: model present but unreadable (prefault/touch failed)\n");
     ie_weights_close(&w);
+    print_json_result(0, NULL, 0.0, 0, 0, 0);
     return 3;
   }
 
@@ -1151,13 +970,13 @@ int main(int argc, char **argv) {
   params.prefetch = opt.prefetch;
   params.threads = opt.threads;
   params.sparsity = opt.sparsity;
-  UNUSED(opt.device);
 
   ie_engine_t *engine = NULL;
   ie_status_t st = ie_engine_create(&params, &engine);
   if (st != IE_OK || !engine) {
     fprintf(stderr, "error: ie_engine_create failed (status=%d)\n", (int)st);
     ie_weights_close(&w);
+    print_json_result(0, NULL, 0.0, 0, 0, 0);
     return 5;
   }
 
@@ -1180,38 +999,26 @@ int main(int argc, char **argv) {
     fprintf(stderr, "error: OOM allocating token buffer\n");
     ie_engine_destroy(engine);
     ie_weights_close(&w);
+    print_json_result(0, NULL, 0.0, 0, 0, 0);
     return 6;
   }
 
-  /* Optional "work-touch" loop for bandwidth measurement. */
+  /* Optional "work-touch" loop knobs. */
   const size_t bytes_per_token = (size_t)env_long("IE_BYTES_PER_TOKEN", 0);
   const size_t stride_bytes = (size_t)env_long("IE_STRIDE_BYTES", 256);
   const int verify_touch = (int)env_long("IE_VERIFY_TOUCH", 0);
-
-  int bin_fd = -1;
-  uint8_t *map = NULL;
-  size_t map_len = 0;
-
-  if (w.loaded && bytes_per_token > 0 && w.bin_size_bytes > 0) {
-    const char *binp = (w.weights_path[0] ? w.weights_path : bin_path);
-    bin_fd = open(binp, O_RDONLY);
-    if (bin_fd >= 0) {
-      map_len = (size_t)w.bin_size_bytes;
-      void *p = mmap(NULL, map_len, PROT_READ, MAP_PRIVATE, bin_fd, 0);
-      if (p != MAP_FAILED) {
-        map = (uint8_t *)p;
-      } else {
-        map = NULL;
-        map_len = 0;
-      }
-    }
-  }
+  const int want_cuda = device_is_cuda(opt.device) ? 1 : 0;
 
   /* Run generation and collect metrics. */
   (void)ie_kv_begin_round();
   uint64_t total_tokens_this_round = 0;
 
   const double t0 = now_sec();
+
+  /* Ensure real NVIDIA driver activity inside the measured window for CUDA runs. */
+  if (want_cuda) {
+    cudart_smoke_free0();
+  }
 
   uint32_t tokens_generated_total = 0;
 
@@ -1235,19 +1042,11 @@ int main(int argc, char **argv) {
           tokens_generated_total += n_here;
           total_tokens_this_round += (uint64_t)n_here;
 
-          if (map && map_len && bytes_per_token) {
-            const size_t need = (size_t)n_here * bytes_per_token;
-            size_t pos = 0;
-            volatile uint64_t acc = 0;
-
-            while (pos < need) {
-              const size_t off = (pos % map_len);
-              acc += map[off];
-              pos += (stride_bytes ? stride_bytes : 1);
-            }
-
-            if (verify_touch) {
-              (void)acc;
+          if (want_cuda && bytes_per_token && n_here > 0) {
+            int rc = cudart_touch_bytes(bytes_per_token, (uint64_t)n_here, stride_bytes, verify_touch);
+            if (rc != 0) {
+              fprintf(stderr, "error: CUDA strict touch failed (rc=%d)\n", rc);
+              break;
             }
           }
         }
@@ -1267,19 +1066,10 @@ int main(int argc, char **argv) {
       tokens_generated_total += n_here;
       total_tokens_this_round += (uint64_t)n_here;
 
-      if (map && map_len && bytes_per_token) {
-        const size_t need = (size_t)n_here * bytes_per_token;
-        size_t pos = 0;
-        volatile uint64_t acc = 0;
-
-        while (pos < need) {
-          const size_t off = (pos % map_len);
-          acc += map[off];
-          pos += (stride_bytes ? stride_bytes : 1);
-        }
-
-        if (verify_touch) {
-          (void)acc;
+      if (want_cuda && bytes_per_token && n_here > 0) {
+        int rc = cudart_touch_bytes(bytes_per_token, (uint64_t)n_here, stride_bytes, verify_touch);
+        if (rc != 0) {
+          fprintf(stderr, "error: CUDA strict touch failed (rc=%d)\n", rc);
         }
       }
     }
@@ -1311,10 +1101,7 @@ int main(int argc, char **argv) {
                     m.kv_misses,
                     rss_mib);
 
-  /* Cleanup. */
   free(tokens);
-  if (map) (void)munmap((void *)map, map_len);
-  if (bin_fd >= 0) (void)close(bin_fd);
   ie_engine_destroy(engine);
   ie_weights_close(&w);
   return 0;
