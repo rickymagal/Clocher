@@ -1,122 +1,117 @@
 /**
  * @file ie_device_cuda.h
- * @brief CUDA backend entry points (first-party, no cuBLAS).
+ * @brief C ABI wrapper for CUDA runtime functionality used by the engine.
  *
- * This header exposes a minimal C ABI to offload FP32 GEMV to CUDA.
- * It is backend-agnostic for the engine core: you can call these
- * utilities opportunistically when CUDA is present, and fall back
- * to the CPU path otherwise. No global state is leaked.
+ * This header intentionally exposes a small, C-callable surface so that C
+ * translation units (compiled with a C compiler) can drive CUDA work without
+ * including CUDA headers.
  *
- * ## Design goals
- * - Keep the ABI in plain C for easy inclusion in C11 code.
- * - Avoid third-party libraries (no cuBLAS); ship a simple kernel.
- * - Permit "one-shot" usage (alloc/copy/launch/free) for correctness
- *   first; later we can add persistent buffers for performance.
- *
- * ## Thread safety
- * All functions are thread-safe as long as you do not share the same
- * device pointers across threads. These entry points do not expose
- * device pointers, so they are safe by construction.
- *
- * ## Return codes
- * -  0: success
- * - -1: runtime error (CUDA API error)
- * - -2: unavailable (no CUDA device detected / not compiled with CUDA)
- * - -3: invalid arguments
- *
- * @note Build is controlled by a compile-time macro:
- *       Define IE_WITH_CUDA=1 to compile/link the CUDA backend.
+ * The implementation is provided by a .cu translation unit compiled by NVCC.
  */
 
-#ifndef IE_DEVICE_CUDA_H_
-#define IE_DEVICE_CUDA_H_
+#pragma once
 
 #include <stddef.h>
-#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/** @brief Return codes for CUDA backend. */
-enum {
-  IE_CUDA_OK            =  0,  /**< Success. */
-  IE_CUDA_ERR_RUNTIME   = -1,  /**< CUDA runtime API error. */
-  IE_CUDA_UNAVAILABLE   = -2,  /**< CUDA not available or not compiled in. */
-  IE_CUDA_EINVAL        = -3   /**< Invalid arguments. */
-};
+/**
+ * @brief Copy direction selector for ie_cuda_memcpy().
+ *
+ * IE_CUDA_COPY_DEFAULT uses cudaMemcpyDefault, which relies on unified virtual
+ * addressing when available. If you know the direction, prefer the explicit
+ * modes.
+ */
+typedef enum ie_cuda_copy_kind {
+  IE_CUDA_COPY_DEFAULT = 0, /**< Use cudaMemcpyDefault. */
+  IE_CUDA_COPY_H2D     = 1, /**< Host to device. */
+  IE_CUDA_COPY_D2H     = 2, /**< Device to host. */
+  IE_CUDA_COPY_D2D     = 3  /**< Device to device. */
+} ie_cuda_copy_kind_t;
 
 /**
- * @brief Check if a CUDA device is available at runtime.
+ * @brief Returns non-zero if at least one CUDA device is available.
  *
- * This attempts to initialize the CUDA runtime and query the
- * number of devices. When the code is compiled without CUDA
- * support (IE_WITH_CUDA!=1), this returns IE_CUDA_UNAVAILABLE.
+ * This call will initialize the CUDA runtime enough to query device count.
  *
- * @return IE_CUDA_OK if at least one device is present;
- *         IE_CUDA_UNAVAILABLE otherwise;
- *         IE_CUDA_ERR_RUNTIME on CUDA API failure.
+ * @return 1 if devices exist, 0 otherwise.
  */
 int ie_cuda_is_available(void);
 
 /**
- * @brief Run y = W * x using a native CUDA kernel (FP32).
+ * @brief Initialize CUDA for a given device ordinal and return basic identity strings.
  *
- * Layout:
- * - W is row-major with leading dimension @p ldw (ldw >= cols).
- * - x is a length-@p cols vector.
- * - y is a length-@p rows vector (output).
+ * This performs cudaSetDevice() and a minimal runtime initialization (cudaFree(0))
+ * so that driver activity is observable (e.g., /dev/nvidiactl gets touched).
  *
- * Semantics:
- * - Allocates device buffers, copies W and x H2D, launches kernel,
- *   copies y D2H, and frees device buffers. This is correctness-first.
- *   We can add persistent allocations in a later iteration.
- *
- * Preconditions:
- * - All pointers must be non-NULL.
- * - rows > 0, cols > 0, ldw >= cols.
- *
- * @param W    Host pointer to row-major matrix of shape (rows, cols).
- * @param x    Host pointer to vector of shape (cols).
- * @param y    Host pointer to output vector of shape (rows).
- * @param rows Number of rows in W / y length.
- * @param cols Number of cols in W / x length.
- * @param ldw  Leading dimension of W in elements (>= cols).
- * @return IE_CUDA_OK on success; see return codes above otherwise.
+ * @param device_ordinal CUDA device ordinal (0..N-1).
+ * @param out_name Output buffer for the GPU name (may be NULL if name_cap=0).
+ * @param name_cap Capacity of out_name in bytes.
+ * @param out_driver Output buffer for a driver/runtime version string (may be NULL if driver_cap=0).
+ * @param driver_cap Capacity of out_driver in bytes.
+ * @return 0 on success, negative on failure.
  */
-int ie_cuda_gemv_f32(const float *W,
-                     const float *x,
-                     float *y,
-                     int rows,
-                     int cols,
-                     int ldw);
+int ie_cuda_init(int device_ordinal,
+                 char *out_name, size_t name_cap,
+                 char *out_driver, size_t driver_cap);
 
 /**
- * @brief Convenience that also accepts strides in bytes.
+ * @brief Allocate device memory.
  *
- * Same as @ref ie_cuda_gemv_f32 but allows a byte-stride for W.
- * Useful if the host matrix is subviewed or padded in bytes.
- *
- * @param W        Host pointer to W (row-major).
- * @param x        Host pointer to x.
- * @param y        Host pointer to y.
- * @param rows     Rows.
- * @param cols     Cols.
- * @param ldw_e    Leading dimension in elements (>= cols).
- * @param row_stride_bytes  Distance in bytes from W[r,0] to W[r+1,0].
- *                          If 0, computed as ldw_e*sizeof(float).
- * @return IE_CUDA_OK on success or an error code.
+ * @param nbytes Number of bytes.
+ * @return Device pointer on success, NULL on failure.
  */
-int ie_cuda_gemv_f32_strided(const float *W,
-                             const float *x,
-                             float *y,
-                             int rows,
-                             int cols,
-                             int ldw_e,
-                             size_t row_stride_bytes);
+void *ie_cuda_malloc(size_t nbytes);
+
+/**
+ * @brief Free device memory allocated by ie_cuda_malloc().
+ *
+ * @param p Device pointer (may be NULL).
+ */
+void ie_cuda_free(void *p);
+
+/**
+ * @brief Copy memory using CUDA.
+ *
+ * For IE_CUDA_COPY_DEFAULT, cudaMemcpyDefault is used.
+ *
+ * @param dst Destination pointer.
+ * @param src Source pointer.
+ * @param nbytes Number of bytes.
+ * @param kind Copy kind.
+ * @return 0 on success, negative on failure.
+ */
+int ie_cuda_memcpy(void *dst, const void *src, size_t nbytes, ie_cuda_copy_kind_t kind);
+
+/**
+ * @brief Launch a GEMV FP32 kernel: y = W*x + bias (bias optional).
+ *
+ * All pointers must be device pointers. bias may be NULL.
+ *
+ * @param dW Device pointer to row-major matrix W (rows x cols).
+ * @param dx Device pointer to vector x (cols).
+ * @param dy Device pointer to vector y (rows).
+ * @param rows Number of rows in W / entries in y.
+ * @param cols Number of cols in W / entries in x.
+ * @param dbias Optional device pointer to bias (rows) or NULL.
+ * @return 0 on success, negative on failure.
+ */
+int ie_cuda_gemv_f32(const float *dW,
+                     const float *dx,
+                     float *dy,
+                     size_t rows,
+                     size_t cols,
+                     const float *dbias);
+
+/**
+ * @brief Return a human-readable description of the last CUDA error seen by this wrapper.
+ *
+ * @return Pointer to an internal static string (valid until next CUDA wrapper call).
+ */
+const char *ie_cuda_last_error_string(void);
 
 #ifdef __cplusplus
 } /* extern "C" */
 #endif
-
-#endif /* IE_DEVICE_CUDA_H_ */

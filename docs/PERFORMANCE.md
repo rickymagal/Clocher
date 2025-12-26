@@ -1,6 +1,6 @@
 # Performance Notes
 
-_Last updated: **2025-12-26 16:48:48 UTC**_
+_Last updated: **2025-12-26 20:09:56 UTC**_
 
 
 **Best true TPS:** **n/a — n/a**.
@@ -9,7 +9,7 @@ _Last updated: **2025-12-26 16:48:48 UTC**_
 - Engine bin: `/home/ricardomag/Desktop/Clocher/build/inference-engine.cuda`
 - Prompts file: `/home/ricardomag/Desktop/Clocher/benchmarks/prompts_10.txt`
 - Threads: **12**
-- Precision: **fp32**
+- Precision: **int4w**
 - Batch: **1**
 - Prefetch: **auto**
 - Pretranspose: **all**
@@ -19,10 +19,10 @@ _Last updated: **2025-12-26 16:48:48 UTC**_
 - IE_BYTES_PER_TOKEN: **67108864**
 - IE_STRIDE_BYTES: **256**
 - IE_VERIFY_TOUCH: **None**
-- IE_DEDUP: ****
-- IE_DEDUP_STRICT: **None**
-- IE_DEDUP_POLICY: ****
-- IE_DEDUP_CACHE_MB: ****
+- IE_DEDUP: **0**
+- IE_DEDUP_STRICT: **0**
+- IE_DEDUP_POLICY: **lossless**
+- IE_DEDUP_CACHE_MB: **512**
 
 ## System & Model Info
 - CPU: **12th Gen Intel(R) Core(TM) i5-12450H**
@@ -30,7 +30,7 @@ _Last updated: **2025-12-26 16:48:48 UTC**_
 - RAM (MemTotal): **8.1 GB**
 - OS: **KDE neon User Edition**
 - Kernel: **6.14.0-37-generic-x86_64**
-- Git commit: **f7d3a85 DIRTY**
+- Git commit: **1fbd6d9 DIRTY**
 - Model file: **/home/ricardomag/Desktop/Clocher/models/gpt-oss-20b/model.ie.bin**
 - Model size: **13.761 GB**
 
