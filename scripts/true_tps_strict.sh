@@ -152,6 +152,109 @@ stat_bytes_or_empty() {
   fi
 }
 
+# -----------------------------
+# CUDA guard (prevents fake GPU runs)
+# -----------------------------
+CUDA_GUARD="${CUDA_GUARD:-1}"
+
+cuda_guard_preflight() {
+  if [[ "${DEVICE}" != "cuda" ]]; then
+    return 0
+  fi
+  if [[ "${CUDA_GUARD}" == "0" ]]; then
+    echo "[strict] WARN: CUDA_GUARD=0; skipping CUDA validity guard" >&2
+    return 0
+  fi
+
+  if ! command -v nvidia-smi >/dev/null 2>&1; then
+    echo "[strict] ERROR: DEVICE=cuda but nvidia-smi is not available. Refusing to generate a GPU report." >&2
+    exit 97
+  fi
+
+  # Basic sanity: driver visible
+  if ! nvidia-smi -L >/dev/null 2>&1; then
+    echo "[strict] ERROR: DEVICE=cuda but nvidia-smi cannot see a GPU/driver. Refusing to generate a GPU report." >&2
+    exit 98
+  fi
+
+  # Prefer strace-based proof: we must see /dev/nvidia* and/or libcuda usage.
+  if command -v strace >/dev/null 2>&1; then
+    local trace="${_tmpdir}/cuda_preflight.trace"
+    local out="${_tmpdir}/cuda_preflight.out"
+
+    # Keep preflight short but enough to force context init (if code is correct).
+    # If the engine is broken and doesn't touch the driver, we catch it here.
+    local pf_max_new=8
+    local pf_rounds=1
+
+    set +e
+    strace -f -e trace=openat,ioctl -o "${trace}" \
+      "${ENGINE_BIN}" \
+        --device cuda \
+        --model-dir "${MODEL_DIR}" \
+        --prompts-file "${PROMPTS}" \
+        --threads 1 \
+        --precision "${CLI_PREC}" \
+        --batch 1 \
+        --prefetch "${PREFETCH}" \
+        --pretranspose "${PRETRANSPOSE}" \
+        --affinity "${AFFINITY}" \
+        --max-new "${pf_max_new}" \
+        --rounds "${pf_rounds}" > "${out}" 2>&1
+    local rc=$?
+    set -e
+
+    # Even if rc!=0, we can still inspect whether it attempted driver init.
+    if grep -Eq '(/dev/nvidia|nvidiactl|nvidia-uvm|libcuda\.so)' "${trace}"; then
+      echo "[strict] CUDA guard: NVIDIA driver activity detected (OK)" >&2
+      return 0
+    fi
+
+    echo "[strict] ERROR: DEVICE=cuda but preflight shows NO NVIDIA driver activity." >&2
+    echo "[strict] ERROR: This would produce a fake GPU report (CPU path or stub)." >&2
+    echo "[strict] DEBUG: trace=${trace} out=${out} rc=${rc}" >&2
+    exit 99
+  fi
+
+  # Fallback: try to catch the process as a compute app during a longer preflight.
+  # This is weaker than strace (some systems may hide compute-apps),
+  # but better than nothing if strace isn't installed.
+  local log="${_tmpdir}/cuda_compute_apps.log"
+  rm -f "${log}"
+  set +e
+  nvidia-smi --query-compute-apps=pid,process_name,used_gpu_memory --format=csv,noheader -lms 200 > "${log}" &
+  local wpid=$!
+  "${ENGINE_BIN}" \
+    --device cuda \
+    --model-dir "${MODEL_DIR}" \
+    --prompts-file "${PROMPTS}" \
+    --threads 1 \
+    --precision "${CLI_PREC}" \
+    --batch 1 \
+    --prefetch "${PREFETCH}" \
+    --pretranspose "${PRETRANSPOSE}" \
+    --affinity "${AFFINITY}" \
+    --max-new 256 \
+    --rounds 1 >/dev/null 2>&1
+  local rc=$?
+  kill "${wpid}" >/dev/null 2>&1 || true
+  wait "${wpid}" >/dev/null 2>&1 || true
+  set -e
+
+  if grep -Eq 'inference-engine\.cuda|inference-engine' "${log}"; then
+    echo "[strict] CUDA guard: compute app detected (OK)" >&2
+    return 0
+  fi
+
+  echo "[strict] ERROR: DEVICE=cuda but could not detect any CUDA compute app activity during preflight." >&2
+  echo "[strict] ERROR: Install strace for a stronger guard, or fix the CUDA backend initialization." >&2
+  echo "[strict] DEBUG: compute_apps_log=${log} rc=${rc}" >&2
+  exit 96
+}
+
+# Run the guard once up front.
+cuda_guard_preflight
+
 run_one() {
   local run_idx="$1"
   local out_raw="${_tmpdir}/run_${run_idx}.raw.txt"
