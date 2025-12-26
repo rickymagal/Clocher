@@ -5,11 +5,17 @@ var searchData=
   ['caps_2',['caps',['../structie__device__vtbl.html#a44354d7416675f3c11452b5767d392ff',1,'ie_device_vtbl']]],
   ['cfg_3',['cfg',['../structie__engine.html#a7ae7f7efbee346d04370ee09f5f6cd68',1,'ie_engine']]],
   ['col_5fidx_4',['col_idx',['../structie__block__sparse__matrix.html#adaacfdccbe3af8af266235880acc72e1',1,'ie_block_sparse_matrix']]],
-  ['cols_5',['cols',['../structie__block__sparse__header__disk.html#af10718b48d03cfdae97033ee817ff0e7',1,'ie_block_sparse_header_disk::cols'],['../structcli__opts.html#a7c2e8b7585fc254530d2593dde244be7',1,'cli_opts::cols'],['../structie__block__sparse__matrix.html#a153358c4549c88a51c341e9ed55ec367',1,'ie_block_sparse_matrix::cols'],['../structie__wblocked__desc.html#a7adf6c23e6798f2fae5ba7b6ddaadcd7',1,'ie_wblocked_desc::cols']]],
-  ['count_6',['count',['../structie__batcher__view.html#a2efe82b85f967469f6f22777eb739f2d',1,'ie_batcher_view::count'],['../structie__kv__state__t.html#a0719757df84d8f699aec2dcc427a8674',1,'ie_kv_state_t::count']]],
+  ['cols_5',['cols',['../structie__wblocked__desc.html#a7adf6c23e6798f2fae5ba7b6ddaadcd7',1,'ie_wblocked_desc::cols'],['../structie__block__sparse__matrix.html#a153358c4549c88a51c341e9ed55ec367',1,'ie_block_sparse_matrix::cols'],['../structie__block__sparse__header__disk.html#af10718b48d03cfdae97033ee817ff0e7',1,'ie_block_sparse_header_disk::cols'],['../structcli__opts.html#a7c2e8b7585fc254530d2593dde244be7',1,'cli_opts::cols']]],
+  ['count_6',['count',['../structie__kv__state__t.html#a0719757df84d8f699aec2dcc427a8674',1,'ie_kv_state_t::count'],['../structie__batcher__view.html#a2efe82b85f967469f6f22777eb739f2d',1,'ie_batcher_view::count']]],
   ['cpu_5fto_5fnode_7',['cpu_to_node',['../structie__topology.html#ae3cdc37cc42f71d8b974f149b018ea77',1,'ie_topology']]],
   ['cpu_5fto_5fsocket_8',['cpu_to_socket',['../structie__topology.html#a87d2b98c1d17d93ca728c73e7cb16d74',1,'ie_topology']]],
   ['ctx_9',['ctx',['../structie__task__arg__t.html#ad0a63b137b85c1b50a797cd54204fd69',1,'ie_task_arg_t']]],
-  ['cv_5fnot_5fempty_10',['cv_not_empty',['../structie__batcher.html#a599d1e40ff4b757a3811f6494e07ea63',1,'ie_batcher']]],
-  ['cv_5fnot_5ffull_11',['cv_not_full',['../structie__batcher.html#a87540ee2e8097ba46efe82af0ce1d3c5',1,'ie_batcher']]]
+  ['cudadevicesynchronize_10',['cudaDeviceSynchronize',['../structcudart__api.html#a8885e8aa343a956388d6fc359994b5b6',1,'cudart_api']]],
+  ['cudafree_11',['cudaFree',['../structcudart__api.html#a2c3660d016022d753aa36e57b5ed469c',1,'cudart_api']]],
+  ['cudageterrorstring_12',['cudaGetErrorString',['../structcudart__api.html#a5b73d3ef348086a31846475a8b4d702a',1,'cudart_api']]],
+  ['cudamalloc_13',['cudaMalloc',['../structcudart__api.html#a90ebdb0591a336ef47414cd285d15371',1,'cudart_api']]],
+  ['cudamemcpy_14',['cudaMemcpy',['../structcudart__api.html#a6e790e818a18bd526582a098649f2f92',1,'cudart_api']]],
+  ['cudamemset_15',['cudaMemset',['../structcudart__api.html#a7e9b278453c583049fcbb790bfa32c5d',1,'cudart_api']]],
+  ['cv_5fnot_5fempty_16',['cv_not_empty',['../structie__batcher.html#a599d1e40ff4b757a3811f6494e07ea63',1,'ie_batcher']]],
+  ['cv_5fnot_5ffull_17',['cv_not_full',['../structie__batcher.html#a87540ee2e8097ba46efe82af0ce1d3c5',1,'ie_batcher']]]
 ];

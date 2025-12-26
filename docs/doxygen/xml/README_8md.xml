@@ -490,6 +490,90 @@
 <codeline><highlight class="normal">See<sp/>`DESIGN.md`<sp/>(Block‑sparse<sp/>weights<sp/>chapter)<sp/>and<sp/>`DECISIONS.md`<sp/>(ADR<sp/>for</highlight></codeline>
 <codeline><highlight class="normal">block‑sparse)<sp/>for<sp/>full<sp/>details.</highlight></codeline>
 <codeline></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">---</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>NEW:<sp/>Lossless<sp/>Deduplication<sp/>(defaults<sp/>+<sp/>masks<sp/>+<sp/>exceptions)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">This<sp/>repository<sp/>supports<sp/>an<sp/>**exact<sp/>(lossless)**<sp/>dedup<sp/>path<sp/>that<sp/>reconstructs<sp/>weights<sp/>at<sp/>runtime<sp/>from:</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`model.defaults.bin`<sp/>(default<sp/>bytes)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`model.masks.bin`<sp/>(exception<sp/>mask)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`model.exceptions.bin`<sp/>(exception<sp/>bytes)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">These<sp/>files<sp/>must<sp/>live<sp/>next<sp/>to<sp/>`model.ie.json`<sp/>/<sp/>`model.ie.bin`<sp/>in<sp/>the<sp/>model<sp/>directory<sp/>(or<sp/>be<sp/>symlinked<sp/>there).</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>1)<sp/>Generate<sp/>the<sp/>three<sp/>dedup<sp/>blobs</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">This<sp/>step<sp/>assumes<sp/>you<sp/>already<sp/>have:</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`models/gpt-oss-20b/dedup_out/tensor_map.json`</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`models/gpt-oss-20b/dedup_out/groups.indices.json`</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">python3<sp/>tools/dedup_extract_int4.py<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>--model-dir<sp/>&quot;models/gpt-oss-20b&quot;<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>--tensor-map<sp/>&quot;models/gpt-oss-20b/dedup_out/tensor_map.json&quot;<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>--groups<sp/>&quot;models/gpt-oss-20b/dedup_out/groups.indices.json&quot;<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>--out-prefix<sp/>&quot;models/gpt-oss-20b/dedup_out/model&quot;</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Confirm<sp/>they<sp/>exist<sp/>(must<sp/>be<sp/>non-zero)</highlight></codeline>
+<codeline><highlight class="normal">ls<sp/>-la<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>models/gpt-oss-20b/dedup_out/model.defaults.bin<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>models/gpt-oss-20b/dedup_out/model.masks.bin<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>models/gpt-oss-20b/dedup_out/model.exceptions.bin</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>2)<sp/>Place/symlink<sp/>blobs<sp/>where<sp/>the<sp/>runtime<sp/>loader<sp/>expects<sp/>them</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">cd<sp/>models/gpt-oss-20b</highlight></codeline>
+<codeline><highlight class="normal">rm<sp/>-f<sp/>model.defaults.bin<sp/>model.masks.bin<sp/>model.exceptions.bin</highlight></codeline>
+<codeline><highlight class="normal">ln<sp/>-s<sp/>dedup_out/model.defaults.bin<sp/><sp/><sp/>model.defaults.bin</highlight></codeline>
+<codeline><highlight class="normal">ln<sp/>-s<sp/>dedup_out/model.masks.bin<sp/><sp/><sp/><sp/><sp/><sp/>model.masks.bin</highlight></codeline>
+<codeline><highlight class="normal">ln<sp/>-s<sp/>dedup_out/model.exceptions.bin<sp/>model.exceptions.bin</highlight></codeline>
+<codeline><highlight class="normal">cd<sp/>../..</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>3)<sp/>Strict<sp/>benchmark<sp/>with<sp/>dedup<sp/>enabled<sp/>(CPU)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">RUNS=3<sp/>ROUNDS=1<sp/>\</highlight></codeline>
+<codeline><highlight class="normal">DEVICE=cpu<sp/>\</highlight></codeline>
+<codeline><highlight class="normal">MODEL_DIR=&quot;$(pwd)/models/gpt-oss-20b&quot;<sp/>\</highlight></codeline>
+<codeline><highlight class="normal">PROMPTS=&quot;$(pwd)/benchmarks/prompts_10.txt&quot;<sp/>\</highlight></codeline>
+<codeline><highlight class="normal">IE_REQUIRE_MODEL=1<sp/>\</highlight></codeline>
+<codeline><highlight class="normal">IE_VERIFY_TOUCH=1<sp/>\</highlight></codeline>
+<codeline><highlight class="normal">IE_BYTES_PER_TOKEN=67108864<sp/>\</highlight></codeline>
+<codeline><highlight class="normal">IE_STRIDE_BYTES=256<sp/>\</highlight></codeline>
+<codeline><highlight class="normal">IE_DEDUP=1<sp/>\</highlight></codeline>
+<codeline><highlight class="normal">IE_DEDUP_STRICT=1<sp/>\</highlight></codeline>
+<codeline><highlight class="normal">IE_DEDUP_POLICY=lossless<sp/>\</highlight></codeline>
+<codeline><highlight class="normal">IE_DEDUP_CACHE_MB=512<sp/>\</highlight></codeline>
+<codeline><highlight class="normal">PRECISION=int4w<sp/>\</highlight></codeline>
+<codeline><highlight class="normal">make<sp/>bench</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>4)<sp/>Strict<sp/>benchmark<sp/>with<sp/>dedup<sp/>enabled<sp/>(CUDA)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">RUNS=3<sp/>ROUNDS=1<sp/>\</highlight></codeline>
+<codeline><highlight class="normal">DEVICE=cuda<sp/>\</highlight></codeline>
+<codeline><highlight class="normal">MODEL_DIR=&quot;$(pwd)/models/gpt-oss-20b&quot;<sp/>\</highlight></codeline>
+<codeline><highlight class="normal">PROMPTS=&quot;$(pwd)/benchmarks/prompts_10.txt&quot;<sp/>\</highlight></codeline>
+<codeline><highlight class="normal">IE_REQUIRE_MODEL=1<sp/>\</highlight></codeline>
+<codeline><highlight class="normal">IE_VERIFY_TOUCH=1<sp/>\</highlight></codeline>
+<codeline><highlight class="normal">IE_BYTES_PER_TOKEN=67108864<sp/>\</highlight></codeline>
+<codeline><highlight class="normal">IE_STRIDE_BYTES=256<sp/>\</highlight></codeline>
+<codeline><highlight class="normal">IE_DEDUP=1<sp/>\</highlight></codeline>
+<codeline><highlight class="normal">IE_DEDUP_STRICT=1<sp/>\</highlight></codeline>
+<codeline><highlight class="normal">IE_DEDUP_POLICY=lossless<sp/>\</highlight></codeline>
+<codeline><highlight class="normal">IE_DEDUP_CACHE_MB=512<sp/>\</highlight></codeline>
+<codeline><highlight class="normal">PRECISION=int4w<sp/>\</highlight></codeline>
+<codeline><highlight class="normal">make<sp/>bench-cuda</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Notes:</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`IE_BYTES_PER_TOKEN`<sp/>must<sp/>be<sp/>non-zero<sp/>and<sp/>`IE_VERIFY_TOUCH=1`<sp/>for<sp/>trustworthy<sp/>“work-touch”<sp/>benchmarks.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Use<sp/>`IE_DEDUP_DEBUG=1`<sp/>to<sp/>print<sp/>schema/parse<sp/>warnings<sp/>and<sp/>the<sp/>dedup<sp/>loader<sp/>status<sp/>line.</highlight></codeline>
     </programlisting>
     <location file="README.md"/>
   </compounddef>

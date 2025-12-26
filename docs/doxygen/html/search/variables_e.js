@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['n_0',['n',['../structblob__list__s.html#a0a54386dd3148e9a69be2c0587c16b94',1,'blob_list_s::n'],['../structgroup__list__s.html#ad8ccac6465f996132a46b83c31fa0d39',1,'group_list_s::n'],['../structtp__ctx__t.html#aa6fbac1cc8db863c595541b8405db24e',1,'tp_ctx_t::N']]],
+  ['n_0',['n',['../structgroup__list__s.html#ad8ccac6465f996132a46b83c31fa0d39',1,'group_list_s::n'],['../structtp__ctx__t.html#aa6fbac1cc8db863c595541b8405db24e',1,'tp_ctx_t::N'],['../structblob__list__s.html#a0a54386dd3148e9a69be2c0587c16b94',1,'blob_list_s::n']]],
   ['n_5fblock_5fcols_1',['n_block_cols',['../structie__block__sparse__matrix.html#a7df64b3120302415724bf9f70846616a',1,'ie_block_sparse_matrix']]],
   ['n_5fblock_5frows_2',['n_block_rows',['../structie__block__sparse__matrix.html#ae07fcb7d88ab31f89fdcc3bcdcdb021f',1,'ie_block_sparse_matrix']]],
   ['n_5fcpus_3',['n_cpus',['../structie__topology.html#a2d0ca7f30433587739d648a24099d7ec',1,'ie_topology']]],

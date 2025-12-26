@@ -401,6 +401,127 @@
 <codeline><highlight class="normal">reason<sp/>about<sp/>algorithmic<sp/>sparsity<sp/>independently<sp/>of<sp/>lower‑level<sp/>memory<sp/>and</highlight></codeline>
 <codeline><highlight class="normal">topology<sp/>tricks<sp/>introduced<sp/>in<sp/>the<sp/>first<sp/>phase.</highlight></codeline>
 <codeline></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">---</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>Lossless<sp/>Deduplication<sp/>(Schema2):<sp/>defaults<sp/>+<sp/>masks<sp/>+<sp/>exceptions</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">This<sp/>project<sp/>includes<sp/>a<sp/>**lossless**<sp/>dedup<sp/>path<sp/>that<sp/>reduces<sp/>DRAM<sp/>reads<sp/>by<sp/>reusing<sp/>repeated<sp/>weight<sp/>content.</highlight></codeline>
+<codeline><highlight class="normal">The<sp/>runtime<sp/>reconstructs<sp/>bytes<sp/>exactly<sp/>(bit-for-bit)<sp/>by<sp/>applying<sp/>a<sp/>sparse<sp/>patch<sp/>stream<sp/>over<sp/>shared<sp/>defaults.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Artifacts</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">The<sp/>runtime<sp/>loader<sp/>expects<sp/>these<sp/>files<sp/>in<sp/>the<sp/>model<sp/>directory<sp/>(next<sp/>to<sp/>`model.ie.json`<sp/>/<sp/>`model.ie.bin`):</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>`model.defaults.bin`<sp/>—<sp/>concatenated<sp/>default<sp/>payload<sp/>bytes</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`model.masks.bin`<sp/>—<sp/>exception<sp/>mask<sp/>bits/bytes<sp/>(identifies<sp/>where<sp/>defaults<sp/>differ)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`model.exceptions.bin`<sp/>—<sp/>exception<sp/>bytes<sp/>(dense<sp/>list<sp/>of<sp/>the<sp/>differing<sp/>bytes)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">In<sp/>the<sp/>current<sp/>workflow,<sp/>these<sp/>are<sp/>typically<sp/>generated<sp/>into<sp/>`models/&lt;MODEL&gt;/dedup_out/`<sp/>and<sp/>then<sp/>symlinked.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Offline<sp/>generation:<sp/>extract<sp/>defaults/masks/exceptions</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">The<sp/>extractor<sp/>takes:</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`tensor_map.json`<sp/>(maps<sp/>tensor<sp/>names<sp/>to<sp/>on-disk<sp/>byte<sp/>ranges<sp/>/<sp/>sources)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`groups.indices.json`<sp/>(dedup<sp/>grouping<sp/>and<sp/>indices)</highlight></codeline>
+<codeline><highlight class="normal">and<sp/>produces<sp/>the<sp/>three<sp/>binary<sp/>blobs:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">python3<sp/>tools/dedup_extract_int4.py<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>--model-dir<sp/>&quot;models/gpt-oss-20b&quot;<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>--tensor-map<sp/>&quot;models/gpt-oss-20b/dedup_out/tensor_map.json&quot;<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>--groups<sp/>&quot;models/gpt-oss-20b/dedup_out/groups.indices.json&quot;<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>--out-prefix<sp/>&quot;models/gpt-oss-20b/dedup_out/model&quot;</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Then<sp/>link<sp/>them<sp/>into<sp/>the<sp/>model<sp/>root:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">cd<sp/>models/gpt-oss-20b</highlight></codeline>
+<codeline><highlight class="normal">ln<sp/>-sf<sp/>dedup_out/model.defaults.bin<sp/><sp/><sp/>model.defaults.bin</highlight></codeline>
+<codeline><highlight class="normal">ln<sp/>-sf<sp/>dedup_out/model.masks.bin<sp/><sp/><sp/><sp/><sp/><sp/>model.masks.bin</highlight></codeline>
+<codeline><highlight class="normal">ln<sp/>-sf<sp/>dedup_out/model.exceptions.bin<sp/>model.exceptions.bin</highlight></codeline>
+<codeline><highlight class="normal">cd<sp/>../..</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Runtime<sp/>controls</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>`IE_DEDUP=1`<sp/>enables<sp/>the<sp/>dedup<sp/>loader.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`IE_DEDUP_STRICT=1`<sp/>fails<sp/>fast<sp/>if<sp/>dedup<sp/>artifacts<sp/>are<sp/>missing<sp/>or<sp/>malformed.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`IE_DEDUP_POLICY=lossless`<sp/>selects<sp/>the<sp/>exact<sp/>reconstruction<sp/>policy<sp/>(no<sp/>approximations).</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`IE_DEDUP_CACHE_MB=&lt;N&gt;`<sp/>configures<sp/>the<sp/>in-memory<sp/>cache<sp/>used<sp/>by<sp/>the<sp/>dedup<sp/>loader.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`IE_DEDUP_DEBUG=1`<sp/>enables<sp/>verbose<sp/>parsing/debug<sp/>logs.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">Strict<sp/>runs<sp/>should<sp/>also<sp/>enforce<sp/>real<sp/>IEBIN<sp/>loading<sp/>and<sp/>anti-optimization<sp/>work-touch:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>`IE_REQUIRE_MODEL=1`</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`IE_VERIFY_TOUCH=1`</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`IE_BYTES_PER_TOKEN=&lt;nonzero&gt;`</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>`IE_STRIDE_BYTES=256`<sp/>(default<sp/>baseline)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Schema2<sp/>JSON<sp/>compatibility<sp/>notes<sp/>(model.ie.json)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">The<sp/>schema2<sp/>parser<sp/>is<sp/>strict<sp/>about<sp/>per-tensor<sp/>metadata.<sp/>When<sp/>ingesting<sp/>IEBIN<sp/>metadata<sp/>derived<sp/>from<sp/>HF<sp/>shards,</highlight></codeline>
+<codeline><highlight class="normal">ensure<sp/>the<sp/>following<sp/>are<sp/>true<sp/>for<sp/>each<sp/>tensor<sp/>entry:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">-<sp/>`dtype`<sp/>is<sp/>lowercase<sp/>(`bf16`,<sp/>`f16`,<sp/>`f32`,<sp/>`u8`,<sp/>...)</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>file<sp/>metadata<sp/>uses<sp/>the<sp/>schema2<sp/>keys:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>`file`<sp/>(the<sp/>backing<sp/>shard<sp/>filename)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>`file_data_offset`<sp/>(byte<sp/>offset<sp/>inside<sp/>that<sp/>shard)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">If<sp/>your<sp/>`model.ie.json`<sp/>uses<sp/>`shard`<sp/>/<sp/>`shard_data_offset`<sp/>instead,<sp/>you<sp/>can<sp/>add<sp/>aliases:</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">python3<sp/>-<sp/>&lt;&lt;&apos;PY&apos;</highlight></codeline>
+<codeline><highlight class="normal">import<sp/>json</highlight></codeline>
+<codeline><highlight class="normal">from<sp/>pathlib<sp/>import<sp/>Path</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">p<sp/>=<sp/>Path(&quot;models/gpt-oss-20b/model.ie.json&quot;)</highlight></codeline>
+<codeline><highlight class="normal">j<sp/>=<sp/>json.loads(p.read_text(encoding=&quot;utf-8&quot;))</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">t<sp/>=<sp/>j.get(&quot;tensors&quot;)</highlight></codeline>
+<codeline><highlight class="normal">if<sp/>not<sp/>isinstance(t,<sp/>list):</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>raise<sp/>SystemExit(&quot;ERROR:<sp/>tensors<sp/>is<sp/>not<sp/>a<sp/>list&quot;)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">for<sp/>e<sp/>in<sp/>t:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>if<sp/>not<sp/>isinstance(e,<sp/>dict):</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>continue</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>d<sp/>=<sp/>e.get(&quot;dtype&quot;)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>if<sp/>isinstance(d,<sp/>str):</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>e[&quot;dtype&quot;]<sp/>=<sp/>d.lower()</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>if<sp/>&quot;file&quot;<sp/>not<sp/>in<sp/>e<sp/>and<sp/>&quot;shard&quot;<sp/>in<sp/>e<sp/>and<sp/>isinstance(e[&quot;shard&quot;],<sp/>str):</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>e[&quot;file&quot;]<sp/>=<sp/>e[&quot;shard&quot;]</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>if<sp/>&quot;file_data_offset&quot;<sp/>not<sp/>in<sp/>e<sp/>and<sp/>&quot;shard_data_offset&quot;<sp/>in<sp/>e<sp/>and<sp/>isinstance(e[&quot;shard_data_offset&quot;],<sp/>int):</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>e[&quot;file_data_offset&quot;]<sp/>=<sp/>e[&quot;shard_data_offset&quot;]</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">p.write_text(json.dumps(j,<sp/>ensure_ascii=False,<sp/>separators=(&quot;,&quot;,<sp/>&quot;:&quot;),<sp/>sort_keys=True)<sp/>+<sp/>&quot;\n&quot;,<sp/>encoding=&quot;utf-8&quot;)</highlight></codeline>
+<codeline><highlight class="normal">print(&quot;OK:<sp/>tensors<sp/>=&quot;,<sp/>len(t))</highlight></codeline>
+<codeline><highlight class="normal">PY</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">You<sp/>may<sp/>see<sp/>warnings<sp/>like<sp/>`unknown<sp/>dtype=u8<sp/>...<sp/>(continuing)`<sp/>for<sp/>quantized<sp/>auxiliary<sp/>tensors<sp/>(blocks/scales);</highlight></codeline>
+<codeline><highlight class="normal">these<sp/>are<sp/>expected<sp/>as<sp/>long<sp/>as<sp/>the<sp/>loader<sp/>is<sp/>configured<sp/>to<sp/>ignore/skip<sp/>unknown<sp/>storage<sp/>dtypes<sp/>where<sp/>safe.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">###<sp/>Example<sp/>strict<sp/>run<sp/>(CPU)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">```bash</highlight></codeline>
+<codeline><highlight class="normal">env<sp/>-i<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>IE_REQUIRE_MODEL=1<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>IE_VERIFY_TOUCH=1<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>IE_BYTES_PER_TOKEN=67108864<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>IE_STRIDE_BYTES=256<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>IE_DEDUP=1<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>IE_DEDUP_STRICT=1<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>IE_DEDUP_POLICY=lossless<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>IE_DEDUP_CACHE_MB=512<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>IE_DEDUP_DEBUG=1<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>PRECISION=int4w<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>./build/inference-engine<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>--device<sp/>cpu<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>--model-dir<sp/>&quot;$(pwd)/models/gpt-oss-20b&quot;<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>--prompts-file<sp/>&quot;$(pwd)/benchmarks/prompts_10.txt&quot;<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>--max-new<sp/>8<sp/>--rounds<sp/>1</highlight></codeline>
+<codeline><highlight class="normal">```</highlight></codeline>
     </programlisting>
     <location file="docs/DESIGN.md"/>
   </compounddef>

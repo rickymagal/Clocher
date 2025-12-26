@@ -23,8 +23,12 @@ var searchData=
   ['cpyz_20',['cpyz',['../weights_8c.html#ae3307b59271742c37862abf0b9698d23',1,'weights.c']]],
   ['cuda_5fcaps_5fthunk_21',['cuda_caps_thunk',['../ie__device__common_8c.html#afbcd46d9b25dd33110fdf48f5c83b017',1,'ie_device_common.c']]],
   ['cuda_5fdestroy_5fthunk_22',['cuda_destroy_thunk',['../ie__device__common_8c.html#a7ecb9f771aea0ef0d125bbe31b53c87a',1,'ie_device_common.c']]],
-  ['cuda_5fgemv_5fblock_5fsparse_5ff32_5fstub_23',['cuda_gemv_block_sparse_f32_stub',['../ie__device__common_8c.html#a7bd28e144c0f372417e90fae8ece5ecc',1,'ie_device_common.c']]],
-  ['cuda_5fgemv_5ff32_5fstub_24',['cuda_gemv_f32_stub',['../ie__device__common_8c.html#a21aa199bdf7a1b0f258b1ef483fa9880',1,'ie_device_common.c']]],
-  ['cuda_5fmemcpy_5fstub_25',['cuda_memcpy_stub',['../ie__device__common_8c.html#a917925724f117893e02930b1df41c2fd',1,'ie_device_common.c']]],
-  ['cuda_5ftry_5fcreate_26',['cuda_try_create',['../ie__device__common_8c.html#ae4ac15a3b8fea25568b8cdeb2cd781fe',1,'ie_device_common.c']]]
+  ['cuda_5fensure_5fcapacity_23',['cuda_ensure_capacity',['../ie__device__common_8c.html#a56608584d5096e56c6de8baeb07edb11',1,'ie_device_common.c']]],
+  ['cuda_5fgemv_5fblock_5fsparse_5ff32_5funimpl_24',['cuda_gemv_block_sparse_f32_unimpl',['../ie__device__common_8c.html#a921cb64a1eee6157e3e99dbef039632c',1,'ie_device_common.c']]],
+  ['cuda_5fgemv_5ff32_5fthunk_25',['cuda_gemv_f32_thunk',['../ie__device__common_8c.html#a10d98754f37925ce0fd653a011fc9d47',1,'ie_device_common.c']]],
+  ['cuda_5fmemcpy_5fthunk_26',['cuda_memcpy_thunk',['../ie__device__common_8c.html#a3e7e82d7cc2da1e044d74015a6ac37cd',1,'ie_device_common.c']]],
+  ['cuda_5ftry_5fcreate_27',['cuda_try_create',['../ie__device__common_8c.html#ae4ac15a3b8fea25568b8cdeb2cd781fe',1,'ie_device_common.c']]],
+  ['cudart_5fget_5fapi_28',['cudart_get_api',['../main__infer_8c.html#aca4f099fbc130845b4af6c57ca21b3ef',1,'main_infer.c']]],
+  ['cudart_5fsmoke_5ffree0_29',['cudart_smoke_free0',['../main__infer_8c.html#a68fd8617e0f6826e69767125be3a6333',1,'main_infer.c']]],
+  ['cudart_5ftouch_5fbytes_30',['cudart_touch_bytes',['../main__infer_8c.html#a44a0de9d17f6eff8a4764537268ab5d1',1,'main_infer.c']]]
 ];

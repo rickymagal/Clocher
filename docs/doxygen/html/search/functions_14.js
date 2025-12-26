@@ -34,6 +34,5 @@ var searchData=
   ['test_5ftokenize_5fcb_31',['test_tokenize_cb',['../test__batcher_8c.html#a4818ddbc1b516bbe63d2a991a2b1b4bd',1,'test_batcher.c']]],
   ['test_5fwrap_5fand_5fview_5flimits_32',['test_wrap_and_view_limits',['../test__batcher_8c.html#ae1015c7a7a149612ed323d43e7c93a0c',1,'test_batcher.c']]],
   ['test_5fzero_5ftokens_5fgraceful_33',['test_zero_tokens_graceful',['../classtest__cli__error__paths_1_1CLIErrorPathsTests.html#a888bfbdccd9ff6501ab591a6cb48e19d',1,'test_cli_error_paths::CLIErrorPathsTests']]],
-  ['touch_5ffile_5fsmall_34',['touch_file_small',['../weights_8c.html#ae3235e5160399c1e4465d1abf866571d',1,'weights.c']]],
-  ['try_5fopen_5fany_35',['try_open_any',['../ie__device__common_8c.html#a5b5f48338cddd2bed011b4c2384bac25',1,'ie_device_common.c']]]
+  ['touch_5ffile_5fsmall_34',['touch_file_small',['../weights_8c.html#ae3235e5160399c1e4465d1abf866571d',1,'weights.c']]]
 ];

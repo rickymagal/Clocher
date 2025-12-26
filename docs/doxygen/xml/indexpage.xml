@@ -498,7 +498,90 @@
 </listitem><listitem><para><bold>Integration:</bold> the block‑sparse path is currently exercised via the C tests and the dedicated microbenchmark. The CLI still consumes dense <computeroutput>model.ie.bin</computeroutput>; wiring full‑model block‑sparse weights will be a separate ADR/phase.</para>
 </listitem></itemizedlist>
 </para>
-<para>See <computeroutput><ref refid="DESIGN_8md" kindref="compound">DESIGN.md</ref></computeroutput> (Block‑sparse weights chapter) and <computeroutput><ref refid="DECISIONS_8md" kindref="compound">DECISIONS.md</ref></computeroutput> (ADR for block‑sparse) for full details. </para>
+<para>See <computeroutput><ref refid="DESIGN_8md" kindref="compound">DESIGN.md</ref></computeroutput> (Block‑sparse weights chapter) and <computeroutput><ref refid="DECISIONS_8md" kindref="compound">DECISIONS.md</ref></computeroutput> (ADR for block‑sparse) for full details.</para>
+<para><hruler/>
+</para>
+</sect2>
+</sect1>
+<sect1 id="index_1autotoc_md142">
+<title>NEW: Lossless Deduplication (defaults + masks + exceptions)</title>
+<para>This repository supports an <bold>exact (lossless)</bold> dedup path that reconstructs weights at runtime from:<itemizedlist>
+<listitem><para><computeroutput>model.defaults.bin</computeroutput> (default bytes)</para>
+</listitem><listitem><para><computeroutput>model.masks.bin</computeroutput> (exception mask)</para>
+</listitem><listitem><para><computeroutput>model.exceptions.bin</computeroutput> (exception bytes)</para>
+</listitem></itemizedlist>
+</para>
+<para>These files must live next to <computeroutput>model.ie.json</computeroutput> / <computeroutput>model.ie.bin</computeroutput> in the model directory (or be symlinked there).</para>
+<sect2 id="index_1autotoc_md143">
+<title>1) Generate the three dedup blobs</title>
+<para>This step assumes you already have:<itemizedlist>
+<listitem><para><computeroutput>models/gpt-oss-20b/dedup_out/tensor_map.json</computeroutput></para>
+</listitem><listitem><para><computeroutput>models/gpt-oss-20b/dedup_out/groups.indices.json</computeroutput></para>
+</listitem></itemizedlist>
+</para>
+<para><programlisting filename=".bash"><codeline><highlight class="normal">python3<sp/>tools/dedup_extract_int4.py<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>--model-dir<sp/>&quot;models/gpt-oss-20b&quot;<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>--tensor-map<sp/>&quot;models/gpt-oss-20b/dedup_out/tensor_map.json&quot;<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>--groups<sp/>&quot;models/gpt-oss-20b/dedup_out/groups.indices.json&quot;<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>--out-prefix<sp/>&quot;models/gpt-oss-20b/dedup_out/model&quot;</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>Confirm<sp/>they<sp/>exist<sp/>(must<sp/>be<sp/>non-zero)</highlight></codeline>
+<codeline><highlight class="normal">ls<sp/>-la<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>models/gpt-oss-20b/dedup_out/model.defaults.bin<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>models/gpt-oss-20b/dedup_out/model.masks.bin<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>models/gpt-oss-20b/dedup_out/model.exceptions.bin</highlight></codeline>
+</programlisting></para>
+</sect2>
+<sect2 id="index_1autotoc_md144">
+<title>2) Place/symlink blobs where the runtime loader expects them</title>
+<para><programlisting filename=".bash"><codeline><highlight class="normal">cd<sp/>models/gpt-oss-20b</highlight></codeline>
+<codeline><highlight class="normal">rm<sp/>-f<sp/>model.defaults.bin<sp/>model.masks.bin<sp/>model.exceptions.bin</highlight></codeline>
+<codeline><highlight class="normal">ln<sp/>-s<sp/>dedup_out/model.defaults.bin<sp/><sp/><sp/>model.defaults.bin</highlight></codeline>
+<codeline><highlight class="normal">ln<sp/>-s<sp/>dedup_out/model.masks.bin<sp/><sp/><sp/><sp/><sp/><sp/>model.masks.bin</highlight></codeline>
+<codeline><highlight class="normal">ln<sp/>-s<sp/>dedup_out/model.exceptions.bin<sp/>model.exceptions.bin</highlight></codeline>
+<codeline><highlight class="normal">cd<sp/>../..</highlight></codeline>
+</programlisting></para>
+</sect2>
+<sect2 id="index_1autotoc_md145">
+<title>3) Strict benchmark with dedup enabled (CPU)</title>
+<para><programlisting filename=".bash"><codeline><highlight class="normal">RUNS=3<sp/>ROUNDS=1<sp/>\</highlight></codeline>
+<codeline><highlight class="normal">DEVICE=cpu<sp/>\</highlight></codeline>
+<codeline><highlight class="normal">MODEL_DIR=&quot;$(pwd)/models/gpt-oss-20b&quot;<sp/>\</highlight></codeline>
+<codeline><highlight class="normal">PROMPTS=&quot;$(pwd)/benchmarks/prompts_10.txt&quot;<sp/>\</highlight></codeline>
+<codeline><highlight class="normal">IE_REQUIRE_MODEL=1<sp/>\</highlight></codeline>
+<codeline><highlight class="normal">IE_VERIFY_TOUCH=1<sp/>\</highlight></codeline>
+<codeline><highlight class="normal">IE_BYTES_PER_TOKEN=67108864<sp/>\</highlight></codeline>
+<codeline><highlight class="normal">IE_STRIDE_BYTES=256<sp/>\</highlight></codeline>
+<codeline><highlight class="normal">IE_DEDUP=1<sp/>\</highlight></codeline>
+<codeline><highlight class="normal">IE_DEDUP_STRICT=1<sp/>\</highlight></codeline>
+<codeline><highlight class="normal">IE_DEDUP_POLICY=lossless<sp/>\</highlight></codeline>
+<codeline><highlight class="normal">IE_DEDUP_CACHE_MB=512<sp/>\</highlight></codeline>
+<codeline><highlight class="normal">PRECISION=int4w<sp/>\</highlight></codeline>
+<codeline><highlight class="normal">make<sp/>bench</highlight></codeline>
+</programlisting></para>
+</sect2>
+<sect2 id="index_1autotoc_md146">
+<title>4) Strict benchmark with dedup enabled (CUDA)</title>
+<para><programlisting filename=".bash"><codeline><highlight class="normal">RUNS=3<sp/>ROUNDS=1<sp/>\</highlight></codeline>
+<codeline><highlight class="normal">DEVICE=cuda<sp/>\</highlight></codeline>
+<codeline><highlight class="normal">MODEL_DIR=&quot;$(pwd)/models/gpt-oss-20b&quot;<sp/>\</highlight></codeline>
+<codeline><highlight class="normal">PROMPTS=&quot;$(pwd)/benchmarks/prompts_10.txt&quot;<sp/>\</highlight></codeline>
+<codeline><highlight class="normal">IE_REQUIRE_MODEL=1<sp/>\</highlight></codeline>
+<codeline><highlight class="normal">IE_VERIFY_TOUCH=1<sp/>\</highlight></codeline>
+<codeline><highlight class="normal">IE_BYTES_PER_TOKEN=67108864<sp/>\</highlight></codeline>
+<codeline><highlight class="normal">IE_STRIDE_BYTES=256<sp/>\</highlight></codeline>
+<codeline><highlight class="normal">IE_DEDUP=1<sp/>\</highlight></codeline>
+<codeline><highlight class="normal">IE_DEDUP_STRICT=1<sp/>\</highlight></codeline>
+<codeline><highlight class="normal">IE_DEDUP_POLICY=lossless<sp/>\</highlight></codeline>
+<codeline><highlight class="normal">IE_DEDUP_CACHE_MB=512<sp/>\</highlight></codeline>
+<codeline><highlight class="normal">PRECISION=int4w<sp/>\</highlight></codeline>
+<codeline><highlight class="normal">make<sp/>bench-cuda</highlight></codeline>
+</programlisting></para>
+<para>Notes:<itemizedlist>
+<listitem><para><computeroutput>IE_BYTES_PER_TOKEN</computeroutput> must be non-zero and <computeroutput>IE_VERIFY_TOUCH=1</computeroutput> for trustworthy “work-touch” benchmarks.</para>
+</listitem><listitem><para>Use <computeroutput>IE_DEDUP_DEBUG=1</computeroutput> to print schema/parse warnings and the dedup loader status line. </para>
+</listitem></itemizedlist>
+</para>
 </sect2>
 </sect1>
     </detaileddescription>

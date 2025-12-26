@@ -162,6 +162,37 @@
 <codeline><highlight class="normal">**Status.**</highlight></codeline>
 <codeline><highlight class="normal">-<sp/>Accepted.<sp/>Implemented<sp/>as<sp/>a<sp/>**CPU‑only<sp/>prototype**;<sp/>further<sp/>ADRs<sp/>will<sp/>cover<sp/>wiring<sp/>full‑model<sp/>weights<sp/>and<sp/>any<sp/>GPU/quantized<sp/>variants.</highlight></codeline>
 <codeline></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">---</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>ADR-0020<sp/>(2025-12-22):<sp/>Adopt<sp/>lossless<sp/>dedup<sp/>artifacts<sp/>and<sp/>schema2<sp/>runtime<sp/>loader</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Context.**<sp/>The<sp/>engine<sp/>is<sp/>primarily<sp/>memory-bandwidth<sp/>bound<sp/>at<sp/>inference<sp/>time.<sp/>We<sp/>already<sp/>attack<sp/>the<sp/>problem</highlight></codeline>
+<codeline><highlight class="normal">via<sp/>INT4<sp/>weight-only<sp/>storage<sp/>and<sp/>streaming<sp/>heuristics,<sp/>but<sp/>dense<sp/>IEBIN<sp/>still<sp/>requires<sp/>reading<sp/>large<sp/>swaths<sp/>of</highlight></codeline>
+<codeline><highlight class="normal">the<sp/>weight<sp/>blob<sp/>repeatedly.<sp/>We<sp/>need<sp/>a<sp/>**lossless**<sp/>dedup<sp/>scheme<sp/>that<sp/>can<sp/>reduce<sp/>DRAM<sp/>traffic<sp/>without<sp/>changing</highlight></codeline>
+<codeline><highlight class="normal">model<sp/>outputs.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Decision.**</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Adopt<sp/>a<sp/>three-blob<sp/>dedup<sp/>artifact<sp/>set<sp/>alongside<sp/>IEBIN:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>`model.defaults.bin`</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>`model.masks.bin`</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>`model.exceptions.bin`</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Enable<sp/>the<sp/>loader<sp/>behind<sp/>runtime<sp/>flags:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>`IE_DEDUP=1`,<sp/>`IE_DEDUP_POLICY=lossless`</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>`IE_DEDUP_STRICT=1`<sp/>for<sp/>“fail<sp/>fast”<sp/>correctness<sp/>runs</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>`IE_DEDUP_CACHE_MB`<sp/>to<sp/>cap<sp/>reconstruction<sp/>cache<sp/>memory</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>`IE_DEDUP_DEBUG=1`<sp/>for<sp/>verbose<sp/>diagnostics</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Keep<sp/>schema2<sp/>metadata<sp/>parsing<sp/>strict,<sp/>but<sp/>allow<sp/>compatibility<sp/>with<sp/>HF-derived<sp/>metadata<sp/>by:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>requiring<sp/>lowercase<sp/>`dtype`</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>-<sp/>supporting<sp/>`file`/`file_data_offset`<sp/>(and<sp/>generating<sp/>aliases<sp/>from<sp/>`shard`/`shard_data_offset`<sp/>in<sp/>the<sp/>metadata<sp/>pipeline<sp/>when<sp/>needed)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Consequences.**</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Offline<sp/>extraction<sp/>time<sp/>increases<sp/>(diffing<sp/>defaults<sp/>vs<sp/>targets),<sp/>but<sp/>runtime<sp/>is<sp/>simplified<sp/>to<sp/>patch-apply.</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Production<sp/>runs<sp/>must<sp/>ship<sp/>three<sp/>additional<sp/>binary<sp/>files<sp/>next<sp/>to<sp/>`model.ie.json`<sp/>/<sp/>`model.ie.bin`<sp/>(or<sp/>symlink<sp/>them).</highlight></codeline>
+<codeline><highlight class="normal">-<sp/>Benchmarks<sp/>can<sp/>now<sp/>report<sp/>meaningful<sp/>“dedup<sp/>on/off”<sp/>TPS<sp/>deltas<sp/>under<sp/>strict<sp/>work-touch<sp/>conditions.</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">**Status.**<sp/>Accepted.<sp/>Implemented<sp/>(CPU<sp/>path)<sp/>and<sp/>integrated<sp/>in<sp/>strict<sp/>harness<sp/>runs.<sp/>CUDA<sp/>path<sp/>uses<sp/>the<sp/>same</highlight></codeline>
+<codeline><highlight class="normal">artifact<sp/>layout<sp/>and<sp/>flags<sp/>where<sp/>supported.</highlight></codeline>
     </programlisting>
     <location file="docs/DECISIONS.md"/>
   </compounddef>

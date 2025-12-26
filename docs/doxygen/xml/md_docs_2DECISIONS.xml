@@ -6,7 +6,7 @@
     <briefdescription>
     </briefdescription>
     <detaileddescription>
-<para><anchor id="md_docs_2DECISIONS_1autotoc_md30"/> <bold>Last updated:</bold> 2025-10-24 21:00:48 UTC</para>
+<para><anchor id="md_docs_2DECISIONS_1autotoc_md9"/> <bold>Last updated:</bold> 2025-10-24 21:00:48 UTC</para>
 <para><itemizedlist>
 <listitem><para><bold>ADR-0001 (2025-10-13)</bold>: Core in C11, zero third-party runtime; Python stdlib harness.</para>
 </listitem><listitem><para><bold>ADR-0002 (2025-10-13)</bold>: IEBIN v1 weights: <computeroutput>model.ie.json</computeroutput> + <computeroutput>model.ie.bin</computeroutput> + <computeroutput>vocab.json</computeroutput> (mmap-friendly).</para>
@@ -18,7 +18,7 @@
 </para>
 <para><hruler/>
 </para>
-<sect1 id="md_docs_2DECISIONS_1autotoc_md59">
+<sect1 id="md_docs_2DECISIONS_1autotoc_md11">
 <title>&lt;strong&gt;ADR-0013 (2025-10-24): Adopt INT4 weight-only PTQ &amp; manifest-guided packing&lt;/strong&gt;</title>
 <para><bold>Context.</bold> The engine is primarily <bold>memory-bandwidth bound</bold> at inference time. Even with blocked‑K packing and prefetch, large models remain limited by weight fetch. INT8 provided a 2× compression; we want a <bold>denser format</bold> while preserving a simple compute path.</para>
 <para><bold>Decision.</bold><itemizedlist>
@@ -41,7 +41,7 @@
 <para><hruler/>
  </para>
 </sect1>
-<sect1 id="md_docs_2DECISIONS_1autotoc_md61">
+<sect1 id="md_docs_2DECISIONS_1autotoc_md13">
 <title>Decision: Add INT4 (Weight-Only) Optional Pipeline (2025-10-24 21:04:23 UTC)</title>
 <para><bold>Context.</bold> We already ship FP32/BF16/FP16 flows. We add a <emphasis>weight-only</emphasis> INT4 path to reduce bandwidth and model footprint while keeping API stability.</para>
 <para><bold>Decision.</bold><itemizedlist>
@@ -60,7 +60,7 @@
 <para><hruler/>
 </para>
 </sect1>
-<sect1 id="md_docs_2DECISIONS_1autotoc_md63">
+<sect1 id="md_docs_2DECISIONS_1autotoc_md15">
 <title>Appendix — INT4 (Weight‑Only) Step (Summary)</title>
 <para><itemizedlist>
 <listitem><para>Convert HF shards → IEBIN with an INT4 manifest: <programlisting filename=".bash"><codeline><highlight class="normal">python3<sp/>scripts/hf_to_iebin.py<sp/><sp/><sp/><sp/><sp/>--hf-dir<sp/>models/gpt-oss-20b/hf<sp/><sp/><sp/><sp/><sp/>--out-dir<sp/>models/gpt-oss-20b<sp/><sp/><sp/><sp/><sp/>--q4-map<sp/>quant/q4_manifest.json</highlight></codeline>
@@ -96,10 +96,10 @@
 </listitem></itemizedlist>
 </para>
 </sect1>
-<sect1 id="md_docs_2DECISIONS_1autotoc_md65">
+<sect1 id="md_docs_2DECISIONS_1autotoc_md17">
 <title>- &lt;strong&gt;Status:&lt;/strong&gt; Accepted. Backward‑compatible; default remains FP32 if unset.</title>
 </sect1>
-<sect1 id="md_docs_2DECISIONS_1autotoc_md66">
+<sect1 id="md_docs_2DECISIONS_1autotoc_md18">
 <title>ADR‑0017 (Memory Streaming Heuristics): Prefetch &amp; Non‑Temporal Loads — 2025-11-12 18:01:19 UTC</title>
 <para><bold>Context.</bold> GEMV paths are bandwidth‑bound. Sequential blocked‑K layouts help, but cache pollution and late prefetch still cap TPS.</para>
 <para><bold>Decision.</bold><itemizedlist>
@@ -116,7 +116,7 @@
 <para><hruler/>
  </para>
 </sect1>
-<sect1 id="md_docs_2DECISIONS_1autotoc_md68">
+<sect1 id="md_docs_2DECISIONS_1autotoc_md20">
 <title>ADR‑0018 (Metrics &amp; Reporting): Spatial Metrics in PERFORMANCE.md — 2025-11-12 18:01:19 UTC</title>
 <para><bold>Context.</bold> Throughput alone hides memory behavior. We need bytes/token, coverage vs model, RSS peak, and effective bandwidth.</para>
 <para><bold>Decision.</bold><itemizedlist>
@@ -131,7 +131,7 @@
 </para>
 <para><bold>Status.</bold> Accepted. Shipped with <computeroutput><ref refid="metrics__memory_8toml" kindref="compound">monitoring/metrics_memory.toml</ref></computeroutput>, updated <computeroutput><ref refid="metrics__exporter_8py" kindref="compound">scripts/metrics_exporter.py</ref></computeroutput>, and harness sweep labels for memory knobs.</para>
 </sect1>
-<sect1 id="md_docs_2DECISIONS_1autotoc_md69">
+<sect1 id="md_docs_2DECISIONS_1autotoc_md21">
 <title>ADR‑0019 (Sparsity): Block‑sparse weights, CPU‑only prototype — 2025‑11‑14 23:00:00 UTC</title>
 <para><bold>Context.</bold><itemizedlist>
 <listitem><para>Phase 1 of the memory work focused on <emphasis>dense</emphasis> optimizations: INT4/INT8 activations, NUMA‑aware topology, hot‑weights replication, and streaming loads.</para>
@@ -189,9 +189,43 @@
 </listitem></itemizedlist>
 </para>
 <para><bold>Status.</bold><itemizedlist>
-<listitem><para>Accepted. Implemented as a <bold>CPU‑only prototype</bold>; further ADRs will cover wiring full‑model weights and any GPU/quantized variants. </para>
+<listitem><para>Accepted. Implemented as a <bold>CPU‑only prototype</bold>; further ADRs will cover wiring full‑model weights and any GPU/quantized variants.</para>
 </listitem></itemizedlist>
 </para>
+<para><hruler/>
+</para>
+</sect1>
+<sect1 id="md_docs_2DECISIONS_1autotoc_md23">
+<title>ADR-0020 (2025-12-22): Adopt lossless dedup artifacts and schema2 runtime loader</title>
+<para><bold>Context.</bold> The engine is primarily memory-bandwidth bound at inference time. We already attack the problem via INT4 weight-only storage and streaming heuristics, but dense IEBIN still requires reading large swaths of the weight blob repeatedly. We need a <bold>lossless</bold> dedup scheme that can reduce DRAM traffic without changing model outputs.</para>
+<para><bold>Decision.</bold><itemizedlist>
+<listitem><para>Adopt a three-blob dedup artifact set alongside IEBIN:<itemizedlist>
+<listitem><para><computeroutput>model.defaults.bin</computeroutput></para>
+</listitem><listitem><para><computeroutput>model.masks.bin</computeroutput></para>
+</listitem><listitem><para><computeroutput>model.exceptions.bin</computeroutput></para>
+</listitem></itemizedlist>
+</para>
+</listitem><listitem><para>Enable the loader behind runtime flags:<itemizedlist>
+<listitem><para><computeroutput>IE_DEDUP=1</computeroutput>, <computeroutput>IE_DEDUP_POLICY=lossless</computeroutput></para>
+</listitem><listitem><para><computeroutput>IE_DEDUP_STRICT=1</computeroutput> for “fail fast” correctness runs</para>
+</listitem><listitem><para><computeroutput>IE_DEDUP_CACHE_MB</computeroutput> to cap reconstruction cache memory</para>
+</listitem><listitem><para><computeroutput>IE_DEDUP_DEBUG=1</computeroutput> for verbose diagnostics</para>
+</listitem></itemizedlist>
+</para>
+</listitem><listitem><para>Keep schema2 metadata parsing strict, but allow compatibility with HF-derived metadata by:<itemizedlist>
+<listitem><para>requiring lowercase <computeroutput>dtype</computeroutput></para>
+</listitem><listitem><para>supporting <computeroutput>file</computeroutput>/<computeroutput>file_data_offset</computeroutput> (and generating aliases from <computeroutput>shard</computeroutput>/<computeroutput>shard_data_offset</computeroutput> in the metadata pipeline when needed)</para>
+</listitem></itemizedlist>
+</para>
+</listitem></itemizedlist>
+</para>
+<para><bold>Consequences.</bold><itemizedlist>
+<listitem><para>Offline extraction time increases (diffing defaults vs targets), but runtime is simplified to patch-apply.</para>
+</listitem><listitem><para>Production runs must ship three additional binary files next to <computeroutput>model.ie.json</computeroutput> / <computeroutput>model.ie.bin</computeroutput> (or symlink them).</para>
+</listitem><listitem><para>Benchmarks can now report meaningful “dedup on/off” TPS deltas under strict work-touch conditions.</para>
+</listitem></itemizedlist>
+</para>
+<para><bold>Status.</bold> Accepted. Implemented (CPU path) and integrated in strict harness runs. CUDA path uses the same artifact layout and flags where supported. </para>
 </sect1>
     </detaileddescription>
     <location file="docs/DECISIONS.md"/>

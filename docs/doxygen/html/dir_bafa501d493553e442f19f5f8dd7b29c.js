@@ -7,6 +7,7 @@ var dir_bafa501d493553e442f19f5f8dd7b29c =
     [ "ie_cli_extras.h", "ie__cli__extras_8h.html", "ie__cli__extras_8h" ],
     [ "ie_config.h", "ie__config_8h.html", "ie__config_8h" ],
     [ "ie_cpu.h", "ie__cpu_8h.html", "ie__cpu_8h" ],
+    [ "ie_cuda_errors.h", "ie__cuda__errors_8h.html", "ie__cuda__errors_8h" ],
     [ "ie_device.h", "ie__device_8h.html", "ie__device_8h" ],
     [ "ie_device_cuda.h", "ie__device__cuda_8h.html", "ie__device__cuda_8h" ],
     [ "ie_device_ze.h", "ie__device__ze_8h.html", "ie__device__ze_8h" ],

@@ -485,7 +485,7 @@ New artifacts</h2>
 <li><code><a class="el" href="sparse__format_8h.html" title="In-memory representation and loader interface for block-sparse matrices.">engine/include/sparse_format.h</a></code> — public descriptor for block‑sparse matrices (<code>ie_block_sparse_matrix_t</code>) plus helpers and status codes.</li>
 <li><code><a class="el" href="sparse__io_8c.html" title="Loader for block-sparse weight matrices from a compact binary format.">engine/src/sparse_io.c</a></code> — on‑disk header/loader for a compact block‑sparse binary format (<code>ie_block_sparse_load</code>).</li>
 <li><code><a class="el" href="gemm__block__sparse_8c.html" title="Block-sparse GEMV kernel for single-precision weights.">engine/src/gemm_block_sparse.c</a></code> — single‑threaded reference GEMV (<code>ie_gemv_block_sparse_f32</code>) over the BSR structure.</li>
-<li><code><a class="el" href="ie__device__common_8c.html" title="C11 implementation of the device abstraction with CPU backend and CUDA/Level Zero stubs resolved via ...">engine/src/devices/ie_device_common.c</a></code> — device vtable extended with a <code>gemv_block_sparse_f32</code> entry and a CPU fallback implementation.</li>
+<li><code><a class="el" href="ie__device__common_8c.html" title="C11 device abstraction with CPU backend and a real CUDA backend.">engine/src/devices/ie_device_common.c</a></code> — device vtable extended with a <code>gemv_block_sparse_f32</code> entry and a CPU fallback implementation.</li>
 <li><code><a class="el" href="test__block__sparse_8c.html" title="Unit tests for block-sparse format helpers and GEMV kernel.">tests/c/test_block_sparse.c</a></code> — C unit tests that validate the loader and GEMV on small hand‑built matrices.</li>
 <li><code>benchmarks/src/microbench_gemv_block_sparse.c</code> — standalone microbenchmark that compares dense vs block‑sparse GEMV on CPU.</li>
 <li><code><a class="el" href="convert__to__block__sparse_8c.html" title="Offline converter from dense FP32 matrix to block-sparse binary file.">tools/convert_to_block_sparse.c</a></code> — offline converter from a dense row‑major weight matrix to the on‑disk block‑sparse format.</li>
@@ -503,7 +503,77 @@ Scope and current limitations</h2>
 <li><b>Datatype:</b> FP32 weights only. Activations, quantized paths and mixed precision remain dense for now.</li>
 <li><b>Integration:</b> the block‑sparse path is currently exercised via the C tests and the dedicated microbenchmark. The CLI still consumes dense <code>model.ie.bin</code>; wiring full‑model block‑sparse weights will be a separate ADR/phase.</li>
 </ul>
-<p>See <code><a class="el" href="DESIGN_8md.html">DESIGN.md</a></code> (Block‑sparse weights chapter) and <code><a class="el" href="DECISIONS_8md.html">DECISIONS.md</a></code> (ADR for block‑sparse) for full details. </p>
+<p>See <code><a class="el" href="DESIGN_8md.html">DESIGN.md</a></code> (Block‑sparse weights chapter) and <code><a class="el" href="DECISIONS_8md.html">DECISIONS.md</a></code> (ADR for block‑sparse) for full details.</p>
+<hr  />
+<h1><a class="anchor" id="autotoc_md142"></a>
+NEW: Lossless Deduplication (defaults + masks + exceptions)</h1>
+<p>This repository supports an <b>exact (lossless)</b> dedup path that reconstructs weights at runtime from:</p><ul>
+<li><code>model.defaults.bin</code> (default bytes)</li>
+<li><code>model.masks.bin</code> (exception mask)</li>
+<li><code>model.exceptions.bin</code> (exception bytes)</li>
+</ul>
+<p>These files must live next to <code>model.ie.json</code> / <code>model.ie.bin</code> in the model directory (or be symlinked there).</p>
+<h2><a class="anchor" id="autotoc_md143"></a>
+1) Generate the three dedup blobs</h2>
+<p>This step assumes you already have:</p><ul>
+<li><code>models/gpt-oss-20b/dedup_out/tensor_map.json</code></li>
+<li><code>models/gpt-oss-20b/dedup_out/groups.indices.json</code></li>
+</ul>
+<div class="fragment"><div class="line">python3 tools/dedup_extract_int4.py \</div>
+<div class="line">  --model-dir &quot;models/gpt-oss-20b&quot; \</div>
+<div class="line">  --tensor-map &quot;models/gpt-oss-20b/dedup_out/tensor_map.json&quot; \</div>
+<div class="line">  --groups &quot;models/gpt-oss-20b/dedup_out/groups.indices.json&quot; \</div>
+<div class="line">  --out-prefix &quot;models/gpt-oss-20b/dedup_out/model&quot;</div>
+<div class="line"> </div>
+<div class="line"># Confirm they exist (must be non-zero)</div>
+<div class="line">ls -la \</div>
+<div class="line">  models/gpt-oss-20b/dedup_out/model.defaults.bin \</div>
+<div class="line">  models/gpt-oss-20b/dedup_out/model.masks.bin \</div>
+<div class="line">  models/gpt-oss-20b/dedup_out/model.exceptions.bin</div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md144"></a>
+2) Place/symlink blobs where the runtime loader expects them</h2>
+<div class="fragment"><div class="line">cd models/gpt-oss-20b</div>
+<div class="line">rm -f model.defaults.bin model.masks.bin model.exceptions.bin</div>
+<div class="line">ln -s dedup_out/model.defaults.bin   model.defaults.bin</div>
+<div class="line">ln -s dedup_out/model.masks.bin      model.masks.bin</div>
+<div class="line">ln -s dedup_out/model.exceptions.bin model.exceptions.bin</div>
+<div class="line">cd ../..</div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md145"></a>
+3) Strict benchmark with dedup enabled (CPU)</h2>
+<div class="fragment"><div class="line">RUNS=3 ROUNDS=1 \</div>
+<div class="line">DEVICE=cpu \</div>
+<div class="line">MODEL_DIR=&quot;$(pwd)/models/gpt-oss-20b&quot; \</div>
+<div class="line">PROMPTS=&quot;$(pwd)/benchmarks/prompts_10.txt&quot; \</div>
+<div class="line">IE_REQUIRE_MODEL=1 \</div>
+<div class="line">IE_VERIFY_TOUCH=1 \</div>
+<div class="line">IE_BYTES_PER_TOKEN=67108864 \</div>
+<div class="line">IE_STRIDE_BYTES=256 \</div>
+<div class="line">IE_DEDUP=1 \</div>
+<div class="line">IE_DEDUP_STRICT=1 \</div>
+<div class="line">IE_DEDUP_POLICY=lossless \</div>
+<div class="line">IE_DEDUP_CACHE_MB=512 \</div>
+<div class="line">PRECISION=int4w \</div>
+<div class="line">make bench</div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md146"></a>
+4) Strict benchmark with dedup enabled (CUDA)</h2>
+<div class="fragment"><div class="line">RUNS=3 ROUNDS=1 \</div>
+<div class="line">DEVICE=cuda \</div>
+<div class="line">MODEL_DIR=&quot;$(pwd)/models/gpt-oss-20b&quot; \</div>
+<div class="line">PROMPTS=&quot;$(pwd)/benchmarks/prompts_10.txt&quot; \</div>
+<div class="line">IE_REQUIRE_MODEL=1 \</div>
+<div class="line">IE_VERIFY_TOUCH=1 \</div>
+<div class="line">IE_BYTES_PER_TOKEN=67108864 \</div>
+<div class="line">IE_STRIDE_BYTES=256 \</div>
+<div class="line">IE_DEDUP=1 \</div>
+<div class="line">IE_DEDUP_STRICT=1 \</div>
+<div class="line">IE_DEDUP_POLICY=lossless \</div>
+<div class="line">IE_DEDUP_CACHE_MB=512 \</div>
+<div class="line">PRECISION=int4w \</div>
+<div class="line">make bench-cuda</div>
+</div><!-- fragment --><p>Notes:</p><ul>
+<li><code>IE_BYTES_PER_TOKEN</code> must be non-zero and <code>IE_VERIFY_TOUCH=1</code> for trustworthy “work-touch” benchmarks.</li>
+<li>Use <code>IE_DEDUP_DEBUG=1</code> to print schema/parse warnings and the dedup loader status line. </li>
+</ul>
 </div></div><!-- PageDoc -->
 </div><!-- contents -->
 </div><!-- doc-content -->
