@@ -3,10 +3,10 @@
   <compounddef id="ie__api_8c" kind="file" language="C++">
     <compoundname>ie_api.c</compoundname>
     <includes refid="ie__api_8h" local="yes">ie_api.h</includes>
-    <includes refid="ie__kv__instrumentation_8h" local="yes">ie_kv_instrumentation.h</includes>
-    <includes local="no">ctype.h</includes>
-    <includes local="no">inttypes.h</includes>
+    <includes local="no">errno.h</includes>
+    <includes local="no">limits.h</includes>
     <includes local="no">stdint.h</includes>
+    <includes local="no">stdio.h</includes>
     <includes local="no">stdlib.h</includes>
     <includes local="no">string.h</includes>
     <incdepgraph>
@@ -15,21 +15,13 @@
         <link refid="ie__api_8h"/>
         <childnode refid="3" relation="include">
         </childnode>
-        <childnode refid="4" relation="include">
-        </childnode>
-      </node>
-      <node id="5">
-        <label>ie_kv_instrumentation.h</label>
-        <link refid="ie__kv__instrumentation_8h"/>
-        <childnode refid="4" relation="include">
-        </childnode>
-        <childnode refid="3" relation="include">
-        </childnode>
       </node>
       <node id="1">
         <label>engine/src/ie_api.c</label>
         <link refid="ie__api_8c"/>
         <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="4" relation="include">
         </childnode>
         <childnode refid="5" relation="include">
         </childnode>
@@ -37,24 +29,25 @@
         </childnode>
         <childnode refid="7" relation="include">
         </childnode>
-        <childnode refid="4" relation="include">
-        </childnode>
         <childnode refid="8" relation="include">
         </childnode>
         <childnode refid="9" relation="include">
         </childnode>
       </node>
-      <node id="6">
-        <label>ctype.h</label>
+      <node id="4">
+        <label>errno.h</label>
       </node>
-      <node id="7">
-        <label>inttypes.h</label>
+      <node id="5">
+        <label>limits.h</label>
       </node>
       <node id="3">
         <label>stddef.h</label>
       </node>
-      <node id="4">
+      <node id="6">
         <label>stdint.h</label>
+      </node>
+      <node id="7">
+        <label>stdio.h</label>
       </node>
       <node id="8">
         <label>stdlib.h</label>
@@ -64,61 +57,95 @@
       </node>
     </incdepgraph>
     <innerclass refid="structie__engine" prot="public">ie_engine</innerclass>
+    <sectiondef kind="define">
+      <memberdef kind="define" id="ie__api_8c_1a3024ccd4a9af5109d24e6c57565d74a1" prot="public" static="no">
+        <name>_POSIX_C_SOURCE</name>
+        <initializer>200809<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">L</ref></initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/src/ie_api.c" line="20" column="11" bodyfile="engine/src/ie_api.c" bodystart="20" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="ie__api_8c_1ae688d728e1acdfe5988c7db45d6f0166" prot="public" static="no">
+        <name>PATH_MAX</name>
+        <initializer>4096</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/src/ie_api.c" line="33" column="11" bodyfile="engine/src/ie_api.c" bodystart="33" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
     <sectiondef kind="func">
-      <memberdef kind="function" id="ie__api_8c_1a72ab94aafe7740f1343d317daa89ca15" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
-        <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">int</ref></type>
-        <definition>static int ascii_ieq</definition>
-        <argsstring>(const char *a, const char *b)</argsstring>
-        <name>ascii_ieq</name>
+      <memberdef kind="function" id="ie__api_8c_1a210133797f21fcee710ec892841dce42" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">void</ref></type>
+        <definition>static void safe_strcpy</definition>
+        <argsstring>(char *dst, size_t dstsz, const char *src)</argsstring>
+        <name>safe_strcpy</name>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">const</ref> <ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">char</ref> *</type>
-          <declname>a</declname>
+          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">char</ref> *</type>
+          <declname>dst</declname>
+        </param>
+        <param>
+          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">size_t</ref></type>
+          <declname>dstsz</declname>
         </param>
         <param>
           <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">const</ref> <ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">char</ref> *</type>
-          <declname>b</declname>
+          <declname>src</declname>
         </param>
         <briefdescription>
-<para>Case-insensitive ASCII string equality check (NULL-safe). </para>
+<para>Safe copy into a fixed buffer. </para>
         </briefdescription>
         <detaileddescription>
 <para><parameterlist kind="param"><parameteritem>
 <parameternamelist>
-<parametername>a</parametername>
+<parametername>dst</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>First string (may be NULL). </para>
+<para>Destination buffer. </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
 <parameternamelist>
-<parametername>b</parametername>
+<parametername>dstsz</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Second string (may be NULL). </para>
+<para>Destination capacity. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>src</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Source string (may be NULL). </para>
 </parameterdescription>
 </parameteritem>
 </parameterlist>
-<simplesect kind="return"><para>1 if equal ignoring ASCII case; 0 otherwise. </para>
-</simplesect>
 </para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="engine/src/ie_api.c" line="53" column="12" bodyfile="engine/src/ie_api.c" bodystart="53" bodyend="61"/>
-        <referencedby refid="ie__api_8h_1a29d800407f90ba6b44385725da64f27d" compoundref="ie__api_8c" startline="115" endline="148">ie_engine_create</referencedby>
+        <location file="engine/src/ie_api.c" line="54" column="13" bodyfile="engine/src/ie_api.c" bodystart="54" bodyend="58"/>
+        <referencedby refid="ie__api_8h_1a84bd87043352946e9d53b0f8a5c4abe0" compoundref="ie__api_8c" startline="77" endline="99">ie_engine_create</referencedby>
       </memberdef>
-      <memberdef kind="function" id="ie__api_8c_1aee4ab6bebc1781cfbfe821e0e89d8823" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
-        <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">uint32_t</ref></type>
-        <definition>static uint32_t fnv1a32</definition>
+      <memberdef kind="function" id="ie__api_8c_1a90c00769b295e35729eb5981adb8b83f" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">uint64_t</ref></type>
+        <definition>static uint64_t fnv1a64</definition>
         <argsstring>(const char *s)</argsstring>
-        <name>fnv1a32</name>
+        <name>fnv1a64</name>
         <param>
           <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">const</ref> <ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">char</ref> *</type>
           <declname>s</declname>
         </param>
         <briefdescription>
-<para>32-bit FNV-1a hash for C strings (NULL-safe). </para>
+<para>64-bit FNV-1a hash for deterministic token seeding. </para>
         </briefdescription>
         <detaileddescription>
 <para><parameterlist kind="param"><parameteritem>
@@ -126,188 +153,132 @@
 <parametername>s</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>NUL-terminated string; <computeroutput>NULL</computeroutput> is accepted and hashed to a fixed value. </para>
+<para>Input string (may be NULL). </para>
 </parameterdescription>
 </parameteritem>
 </parameterlist>
-<simplesect kind="return"><para>Non-zero 32-bit hash value (remapped if the result would be 0). </para>
+<simplesect kind="return"><para>Hash value. </para>
 </simplesect>
 </para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="engine/src/ie_api.c" line="69" column="17" bodyfile="engine/src/ie_api.c" bodystart="69" bodyend="78"/>
-        <referencedby refid="ie__api_8h_1a29d800407f90ba6b44385725da64f27d" compoundref="ie__api_8c" startline="115" endline="148">ie_engine_create</referencedby>
-        <referencedby refid="ie__api_8h_1a21ab40e22d9192fe353ad6640610a01d" compoundref="ie__api_8c" startline="166" endline="203">ie_engine_generate</referencedby>
+        <location file="engine/src/ie_api.c" line="65" column="17" bodyfile="engine/src/ie_api.c" bodystart="65" bodyend="75"/>
+        <referencedby refid="ie__api_8h_1ad32cf2cd209832e4cd577a5a1e31970f" compoundref="ie__api_8c" startline="106" endline="131">ie_engine_generate</referencedby>
       </memberdef>
-      <memberdef kind="function" id="ie__api_8c_1a22d32f0b2752f3aa310c127054b03e22" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
-        <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">uint64_t</ref></type>
-        <definition>static uint64_t xorshift64star</definition>
-        <argsstring>(uint64_t *state)</argsstring>
-        <name>xorshift64star</name>
-        <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">uint64_t</ref> *</type>
-          <declname>state</declname>
-        </param>
-        <briefdescription>
-<para>One step of a xorshift64* PRNG (period ≈ 2^64-1). </para>
-        </briefdescription>
-        <detaileddescription>
-<para><parameterlist kind="param"><parameteritem>
-<parameternamelist>
-<parametername>state</parametername>
-</parameternamelist>
-<parameterdescription>
-<para>In/out PRNG state. If zero, it is remapped to a fixed non-zero seed. </para>
-</parameterdescription>
-</parameteritem>
-</parameterlist>
-<simplesect kind="return"><para>Next 64-bit pseudo-random value. </para>
-</simplesect>
-</para>
-        </detaileddescription>
-        <inbodydescription>
-        </inbodydescription>
-        <location file="engine/src/ie_api.c" line="86" column="17" bodyfile="engine/src/ie_api.c" bodystart="86" bodyend="93"/>
-        <referencedby refid="ie__api_8h_1a21ab40e22d9192fe353ad6640610a01d" compoundref="ie__api_8c" startline="166" endline="203">ie_engine_generate</referencedby>
-      </memberdef>
-      <memberdef kind="function" id="ie__api_8c_1a29d800407f90ba6b44385725da64f27d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
-        <type><ref refid="ie__api_8h_1ad1139f55afe53e983b6d71ae39bfc4b5" kindref="member">ie_status_t</ref></type>
+      <memberdef kind="function" id="ie__api_8c_1a84bd87043352946e9d53b0f8a5c4abe0" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="ie__api_8h_1a14516a42606ffcc6fafaf4eba282c808" kindref="member">ie_status_t</ref></type>
         <definition>ie_status_t ie_engine_create</definition>
-        <argsstring>(const ie_engine_params_t *p, ie_engine_t **out)</argsstring>
+        <argsstring>(const ie_engine_params_t *p, const char *device, const char *model_dir, ie_engine_t **out)</argsstring>
         <name>ie_engine_create</name>
         <param>
           <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">const</ref> <ref refid="ie__api_8h_1a73fd6e398965a847ec84c3d208bf9e1a" kindref="member">ie_engine_params_t</ref> *</type>
           <declname>p</declname>
         </param>
         <param>
+          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">const</ref> <ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">char</ref> *</type>
+          <declname>device</declname>
+        </param>
+        <param>
+          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">const</ref> <ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">char</ref> *</type>
+          <declname>model_dir</declname>
+        </param>
+        <param>
           <type><ref refid="ie__api_8h_1a2339b3d8d0ba3c2aff4d4ee7d912ab96" kindref="member">ie_engine_t</ref> **</type>
           <declname>out</declname>
         </param>
         <briefdescription>
-<para>Create a new engine instance.   </para>
+<para>Create an engine instance. </para>
         </briefdescription>
         <detaileddescription>
-<para>Create a new engine instance.</para>
-<para>The engine copies provided parameters by value. Unknown hints are ignored.</para>
 <para><parameterlist kind="param"><parameteritem>
 <parameternamelist>
-<parametername direction="in">p</parametername>
+<parametername>p</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Optional parameters (may be <computeroutput>NULL</computeroutput> for defaults). </para>
+<para>Engine params (may be NULL for defaults). </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
 <parameternamelist>
-<parametername direction="out">out</parametername>
+<parametername>device</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Output engine handle; must be non-<computeroutput>NULL</computeroutput>. </para>
-</parameterdescription>
-</parameteritem>
-</parameterlist>
-<parameterlist kind="retval"><parameteritem>
-<parameternamelist>
-<parametername>IE_OK</parametername>
-</parameternamelist>
-<parameterdescription>
-<para>on success. </para>
+<para>Device string (e.g., &quot;cpu&quot;, &quot;cuda&quot;, &quot;auto&quot;). </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
 <parameternamelist>
-<parametername>non-zero</parametername>
+<parametername>model_dir</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>on failure (resource error, invalid args, etc).</para>
+<para>Directory that contains model artifacts. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>out</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Receives the created engine pointer on success. </para>
 </parameterdescription>
 </parameteritem>
 </parameterlist>
-Create a new engine instance.</para>
-<para>CI-friendly behavior:<itemizedlist>
-<listitem><para>Does not open or validate model files.</para>
-</listitem><listitem><para>Fails only on allocation/invalid-argument errors.</para>
-</listitem><listitem><para>“Model required” is enforced by the CLI when IE_REQUIRE_MODEL=1.</para>
-</listitem></itemizedlist>
-</para>
-<para>Additional behavior:<itemizedlist>
-<listitem><para>Derives a deterministic seed from soft hints (precision, affinity, pretranspose, prefetch, sparsity) so that tests using different pathways still remain reproducible.</para>
-</listitem><listitem><para>Records uses_weight_int4 and uses_block_sparse based solely on these hints; backends may later consult these flags without changing ABI.  </para>
-</listitem></itemizedlist>
-</para>
-<para>CI-friendly behavior:<itemizedlist>
-<listitem><para>Does not open or validate model files.</para>
-</listitem><listitem><para>Fails only on allocation/invalid-argument errors.</para>
-</listitem><listitem><para>“Model required” is enforced by the CLI when IE_REQUIRE_MODEL=1.</para>
-</listitem></itemizedlist>
-</para>
-<para>Additional behavior:<itemizedlist>
-<listitem><para>Derives a deterministic seed from soft hints (precision, affinity, pretranspose, prefetch, sparsity) so that tests using different pathways still remain reproducible.</para>
-</listitem><listitem><para>Records uses_weight_int4 and uses_block_sparse based solely on these hints; backends may later consult these flags without changing ABI. </para>
-</listitem></itemizedlist>
+<simplesect kind="return"><para>Status code. </para>
+</simplesect>
 </para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="engine/src/ie_api.c" line="115" column="13" bodyfile="engine/src/ie_api.c" bodystart="115" bodyend="148"/>
-        <references refid="structie__engine__params_1a66599574f8a4b8ed7cd7132fc1c0e051" compoundref="ie__api_8h" startline="123">ie_engine_params::affinity</references>
-        <references refid="ie__api_8c_1a72ab94aafe7740f1343d317daa89ca15" compoundref="ie__api_8c" startline="53" endline="61">ascii_ieq</references>
-        <references refid="structie__engine_1a7ae7f7efbee346d04370ee09f5f6cd68" compoundref="ie__api_8c" startline="35">ie_engine::cfg</references>
-        <references refid="ie__api_8c_1aee4ab6bebc1781cfbfe821e0e89d8823" compoundref="ie__api_8c" startline="69" endline="78">fnv1a32</references>
-        <references refid="ie__api_8h_1afe55386d31dcd43a7accd42d844d59d1" compoundref="ie__api_8h" startline="50">IE_OK</references>
-        <references refid="ie__api_8h_1add4934bbdd3dc2bf4e3ab8438b0d7757" compoundref="ie__api_8h" startline="68">IE_PREC_INT4</references>
-        <references refid="ie__api_8h_1a59927f17b60d23df0f20dacdaa1d97d5" compoundref="ie__api_8h" startline="66">IE_PREC_INT4W</references>
-        <references refid="structie__engine_1aac6bf09043eb30698b226cbac9a5903b" compoundref="ie__api_8c" startline="36">ie_engine::last</references>
-        <references refid="structie__engine__params_1a92b02bad12cb4e8173728311c00960b7" compoundref="ie__api_8h" startline="140">ie_engine_params::precision</references>
-        <references refid="structie__engine__params_1a34f965300425f8c1115b2408a4adc04a" compoundref="ie__api_8h" startline="125">ie_engine_params::prefetch</references>
-        <references refid="structie__engine__params_1a992270ba61612b2acb319aed5cbfca13" compoundref="ie__api_8h" startline="124">ie_engine_params::pretranspose</references>
-        <references refid="structie__engine_1a39645576c844465466e51883ccb5ca34" compoundref="ie__api_8c" startline="37">ie_engine::seed</references>
-        <references refid="structie__engine__params_1a1dff4c9644aa8bf7e389f84426c529e1" compoundref="ie__api_8h" startline="137">ie_engine_params::sparsity</references>
-        <references refid="structie__engine_1ad53b43ae0ad90765775476d829256d33" compoundref="ie__api_8c" startline="39">ie_engine::uses_block_sparse</references>
-        <references refid="structie__engine_1a85ec8e92466a0e14370e003ad3af6a68" compoundref="ie__api_8c" startline="38">ie_engine::uses_weight_int4</references>
-        <referencedby refid="main__infer_8c_1a3c04138a5bfe5d72780bb7e82a18e627" compoundref="main__infer_8c" startline="821" endline="1108">main</referencedby>
+        <location file="engine/src/ie_api.c" line="77" column="13" bodyfile="engine/src/ie_api.c" bodystart="77" bodyend="99"/>
+        <references refid="ie__api_8h_1aad1f6716972d7c4560daae2edb134d6aa97661217f732aa27dceba667633bfabe" compoundref="ie__api_8h" startline="28">IE_ERR_BADARG</references>
+        <references refid="ie__api_8h_1aad1f6716972d7c4560daae2edb134d6aabd8c937c2e5ea463e2f13386d9dae193" compoundref="ie__api_8h" startline="30">IE_ERR_OOM</references>
+        <references refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" compoundref="ie__device__cuda_8cu" startline="92" endline="110">ie_gemv_rowwise_f32_kernel</references>
+        <references refid="ie__api_8h_1aad1f6716972d7c4560daae2edb134d6aad0e6665e4f13d22e40740ef4ab91d56e" compoundref="ie__api_8h" startline="26">IE_OK</references>
+        <references refid="structie__engine_1a06bd9cc5d2f1b50aeb49f9160cf516df" compoundref="ie__api_8c" startline="42">ie_engine::params</references>
+        <references refid="ie__api_8c_1a210133797f21fcee710ec892841dce42" compoundref="ie__api_8c" startline="54" endline="58">safe_strcpy</references>
+        <referencedby refid="main__infer_8c_1a3c04138a5bfe5d72780bb7e82a18e627" compoundref="main__infer_8c" startline="938" endline="1170">main</referencedby>
         <referencedby refid="test__api_8c_1a840291bc02cba5474a4cb46a9b9566fe" compoundref="test__api_8c" startline="21" endline="50">main</referencedby>
       </memberdef>
-      <memberdef kind="function" id="ie__api_8c_1a8a724f7097b3e19da8d7dd97fba4415e" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+      <memberdef kind="function" id="ie__api_8c_1a5a9a30f05ef6183f6a75811c616b3a0a" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
         <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">void</ref></type>
         <definition>void ie_engine_destroy</definition>
-        <argsstring>(ie_engine_t *h)</argsstring>
+        <argsstring>(ie_engine_t *e)</argsstring>
         <name>ie_engine_destroy</name>
         <param>
           <type><ref refid="ie__api_8h_1a2339b3d8d0ba3c2aff4d4ee7d912ab96" kindref="member">ie_engine_t</ref> *</type>
-          <declname>h</declname>
+          <declname>e</declname>
         </param>
         <briefdescription>
-<para>Destroy an engine and free its resources.   </para>
+<para>Destroy an engine instance. </para>
         </briefdescription>
         <detaileddescription>
-<para>Destroy an engine and free its resources.</para>
 <para><parameterlist kind="param"><parameteritem>
 <parameternamelist>
-<parametername direction="in">h</parametername>
+<parametername>e</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Engine handle (may be <computeroutput>NULL</computeroutput>; no-op).</para>
+<para>Engine pointer (may be NULL). </para>
 </parameterdescription>
 </parameteritem>
 </parameterlist>
-Destroy an engine and free its resources.</para>
+</para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="engine/src/ie_api.c" line="153" column="6" bodyfile="engine/src/ie_api.c" bodystart="153" bodyend="156"/>
-        <referencedby refid="main__infer_8c_1a3c04138a5bfe5d72780bb7e82a18e627" compoundref="main__infer_8c" startline="821" endline="1108">main</referencedby>
+        <location file="engine/src/ie_api.c" line="101" column="6" bodyfile="engine/src/ie_api.c" bodystart="101" bodyend="104"/>
+        <references refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" compoundref="ie__device__cuda_8cu" startline="92" endline="110">ie_gemv_rowwise_f32_kernel</references>
+        <referencedby refid="main__infer_8c_1a3c04138a5bfe5d72780bb7e82a18e627" compoundref="main__infer_8c" startline="938" endline="1170">main</referencedby>
         <referencedby refid="test__api_8c_1a840291bc02cba5474a4cb46a9b9566fe" compoundref="test__api_8c" startline="21" endline="50">main</referencedby>
       </memberdef>
-      <memberdef kind="function" id="ie__api_8c_1a21ab40e22d9192fe353ad6640610a01d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
-        <type><ref refid="ie__api_8h_1ad1139f55afe53e983b6d71ae39bfc4b5" kindref="member">ie_status_t</ref></type>
+      <memberdef kind="function" id="ie__api_8c_1ad32cf2cd209832e4cd577a5a1e31970f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="ie__api_8h_1a14516a42606ffcc6fafaf4eba282c808" kindref="member">ie_status_t</ref></type>
         <definition>ie_status_t ie_engine_generate</definition>
-        <argsstring>(ie_engine_t *h, const char *prompt, size_t max_new_tokens, uint32_t *out_tokens, uint32_t *out_count)</argsstring>
+        <argsstring>(const ie_engine_t *e, const char *prompt, size_t max_new, int *out_tokens, size_t *out_n_tokens)</argsstring>
         <name>ie_engine_generate</name>
         <param>
-          <type><ref refid="ie__api_8h_1a2339b3d8d0ba3c2aff4d4ee7d912ab96" kindref="member">ie_engine_t</ref> *</type>
-          <declname>h</declname>
+          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">const</ref> <ref refid="ie__api_8h_1a2339b3d8d0ba3c2aff4d4ee7d912ab96" kindref="member">ie_engine_t</ref> *</type>
+          <declname>e</declname>
         </param>
         <param>
           <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">const</ref> <ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">char</ref> *</type>
@@ -315,328 +286,188 @@ Destroy an engine and free its resources.</para>
         </param>
         <param>
           <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">size_t</ref></type>
-          <declname>max_new_tokens</declname>
+          <declname>max_new</declname>
         </param>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">uint32_t</ref> *</type>
+          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">int</ref> *</type>
           <declname>out_tokens</declname>
         </param>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">uint32_t</ref> *</type>
-          <declname>out_count</declname>
+          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">size_t</ref> *</type>
+          <declname>out_n_tokens</declname>
         </param>
         <briefdescription>
-<para>Generate up to <computeroutput>max_new_tokens</computeroutput> from <computeroutput>prompt</computeroutput>.   </para>
+<para>Generate up to <computeroutput>max_new</computeroutput> tokens for the given prompt. </para>
         </briefdescription>
         <detaileddescription>
-<para>Generate up to <computeroutput>max_new_tokens</computeroutput> from <computeroutput>prompt</computeroutput>.</para>
-<para>Implementations may output fewer tokens (e.g., due to EOS). The caller owns the <computeroutput>out_tokens</computeroutput> buffer and must supply capacity for <computeroutput>max_new_tokens</computeroutput>.</para>
 <para><parameterlist kind="param"><parameteritem>
 <parameternamelist>
-<parametername direction="in">h</parametername>
+<parametername>e</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Engine handle. </para>
+<para>Engine pointer (required). </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
 <parameternamelist>
-<parametername direction="in">prompt</parametername>
+<parametername>prompt</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>NUL-terminated prompt text. </para>
+<para>Prompt string (may be empty, must be non-NULL). </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
 <parameternamelist>
-<parametername direction="in">max_new_tokens</parametername>
+<parametername>max_new</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Upper bound on tokens to produce. </para>
+<para>Maximum number of tokens to generate. </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
 <parameternamelist>
-<parametername direction="out">out_tokens</parametername>
+<parametername>out_tokens</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Output buffer for token IDs (size &gt;= <computeroutput>max_new_tokens</computeroutput>). </para>
+<para>Output buffer (length at least max_new when max_new&gt;0). </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
 <parameternamelist>
-<parametername direction="out">out_count</parametername>
+<parametername>out_n_tokens</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Number of tokens actually produced (&lt;= <computeroutput>max_new_tokens</computeroutput>). </para>
+<para>Receives number of generated tokens. </para>
 </parameterdescription>
 </parameteritem>
 </parameterlist>
-<parameterlist kind="retval"><parameteritem>
-<parameternamelist>
-<parametername>IE_OK</parametername>
-</parameternamelist>
-<parameterdescription>
-<para>on success. </para>
-</parameterdescription>
-</parameteritem>
-<parameteritem>
-<parameternamelist>
-<parametername>non-zero</parametername>
-</parameternamelist>
-<parameterdescription>
-<para>on failure.</para>
-</parameterdescription>
-</parameteritem>
-</parameterlist>
-Generate up to <computeroutput>max_new_tokens</computeroutput> from <computeroutput>prompt</computeroutput>.</para>
-<para><simplesect kind="par"><title>Write contract</title><para><itemizedlist>
-<listitem><para>If <computeroutput>max_new_tokens == 0</computeroutput>, nothing is written and <computeroutput>*out_count</computeroutput> becomes 0.</para>
-</listitem><listitem><para>On success, <computeroutput>*out_count</computeroutput> equals the number of tokens produced (≤ max).</para>
-</listitem><listitem><para>Output is deterministic for identical <computeroutput>(engine seed, prompt)</computeroutput>.  </para>
-</listitem></itemizedlist>
-</para>
-</simplesect>
-<simplesect kind="par"><title>Write contract</title><para><itemizedlist>
-<listitem><para>If <computeroutput>max_new_tokens == 0</computeroutput>, nothing is written and <computeroutput>*out_count</computeroutput> becomes 0.</para>
-</listitem><listitem><para>On success, <computeroutput>*out_count</computeroutput> equals the number of tokens produced (≤ max).</para>
-</listitem><listitem><para>Output is deterministic for identical <computeroutput>(engine seed, prompt)</computeroutput>. </para>
-</listitem></itemizedlist>
-</para>
+<simplesect kind="return"><para>Status code. </para>
 </simplesect>
 </para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="engine/src/ie_api.c" line="166" column="13" bodyfile="engine/src/ie_api.c" bodystart="166" bodyend="203"/>
-        <references refid="ie__api_8c_1aee4ab6bebc1781cfbfe821e0e89d8823" compoundref="ie__api_8c" startline="69" endline="78">fnv1a32</references>
-        <references refid="ie__kv__instrumentation_8h_1a27b3df57a37a25798490912b1e92d716" compoundref="ie__kv__instrumentation_8c" startline="113" endline="121">ie_kv_on_token</references>
-        <references refid="ie__api_8h_1afe55386d31dcd43a7accd42d844d59d1" compoundref="ie__api_8h" startline="50">IE_OK</references>
-        <references refid="structie__engine_1aac6bf09043eb30698b226cbac9a5903b" compoundref="ie__api_8c" startline="36">ie_engine::last</references>
-        <references refid="structie__engine_1a39645576c844465466e51883ccb5ca34" compoundref="ie__api_8c" startline="37">ie_engine::seed</references>
-        <references refid="ie__api_8c_1a22d32f0b2752f3aa310c127054b03e22" compoundref="ie__api_8c" startline="86" endline="93">xorshift64star</references>
-        <referencedby refid="main__infer_8c_1a3c04138a5bfe5d72780bb7e82a18e627" compoundref="main__infer_8c" startline="821" endline="1108">main</referencedby>
-        <referencedby refid="test__api_8c_1a840291bc02cba5474a4cb46a9b9566fe" compoundref="test__api_8c" startline="21" endline="50">main</referencedby>
-      </memberdef>
-      <memberdef kind="function" id="ie__api_8c_1ac1c4268d66d8a840276e0a72c9ace902" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
-        <type><ref refid="ie__api_8h_1ad1139f55afe53e983b6d71ae39bfc4b5" kindref="member">ie_status_t</ref></type>
-        <definition>ie_status_t ie_engine_metrics</definition>
-        <argsstring>(const ie_engine_t *h, ie_metrics_t *out)</argsstring>
-        <name>ie_engine_metrics</name>
-        <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">const</ref> <ref refid="ie__api_8h_1a2339b3d8d0ba3c2aff4d4ee7d912ab96" kindref="member">ie_engine_t</ref> *</type>
-          <declname>h</declname>
-        </param>
-        <param>
-          <type><ref refid="structie__metrics__t" kindref="compound">ie_metrics_t</ref> *</type>
-          <declname>out</declname>
-        </param>
-        <briefdescription>
-<para>Snapshot engine metrics into <computeroutput>out</computeroutput>.   </para>
-        </briefdescription>
-        <detaileddescription>
-<para>Snapshot engine metrics into <computeroutput>out</computeroutput>.</para>
-<para>The caller should zero-initialize <computeroutput>out</computeroutput> before calling to preserve forward compatibility.</para>
-<para><parameterlist kind="param"><parameteritem>
-<parameternamelist>
-<parametername direction="in">h</parametername>
-</parameternamelist>
-<parameterdescription>
-<para>Engine handle (const). </para>
-</parameterdescription>
-</parameteritem>
-<parameteritem>
-<parameternamelist>
-<parametername direction="out">out</parametername>
-</parameternamelist>
-<parameterdescription>
-<para>Output struct; must be non-<computeroutput>NULL</computeroutput>. </para>
-</parameterdescription>
-</parameteritem>
-</parameterlist>
-<parameterlist kind="retval"><parameteritem>
-<parameternamelist>
-<parametername>IE_OK</parametername>
-</parameternamelist>
-<parameterdescription>
-<para>on success. </para>
-</parameterdescription>
-</parameteritem>
-<parameteritem>
-<parameternamelist>
-<parametername>non-zero</parametername>
-</parameternamelist>
-<parameterdescription>
-<para>on failure (invalid args, etc).</para>
-</parameterdescription>
-</parameteritem>
-</parameterlist>
-Snapshot engine metrics into <computeroutput>out</computeroutput>.</para>
-        </detaileddescription>
-        <inbodydescription>
-        </inbodydescription>
-        <location file="engine/src/ie_api.c" line="208" column="13" bodyfile="engine/src/ie_api.c" bodystart="208" bodyend="212"/>
+        <location file="engine/src/ie_api.c" line="106" column="13" bodyfile="engine/src/ie_api.c" bodystart="106" bodyend="131"/>
+        <references refid="ie__api_8c_1a90c00769b295e35729eb5981adb8b83f" compoundref="ie__api_8c" startline="65" endline="75">fnv1a64</references>
+        <references refid="ie__api_8h_1aad1f6716972d7c4560daae2edb134d6aa97661217f732aa27dceba667633bfabe" compoundref="ie__api_8h" startline="28">IE_ERR_BADARG</references>
         <references refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" compoundref="ie__device__cuda_8cu" startline="92" endline="110">ie_gemv_rowwise_f32_kernel</references>
-        <references refid="ie__api_8h_1afe55386d31dcd43a7accd42d844d59d1" compoundref="ie__api_8h" startline="50">IE_OK</references>
-        <referencedby refid="main__infer_8c_1a3c04138a5bfe5d72780bb7e82a18e627" compoundref="main__infer_8c" startline="821" endline="1108">main</referencedby>
+        <references refid="ie__api_8h_1aad1f6716972d7c4560daae2edb134d6aad0e6665e4f13d22e40740ef4ab91d56e" compoundref="ie__api_8h" startline="26">IE_OK</references>
+        <referencedby refid="main__infer_8c_1a3c04138a5bfe5d72780bb7e82a18e627" compoundref="main__infer_8c" startline="938" endline="1170">main</referencedby>
         <referencedby refid="test__api_8c_1a840291bc02cba5474a4cb46a9b9566fe" compoundref="test__api_8c" startline="21" endline="50">main</referencedby>
       </memberdef>
     </sectiondef>
     <briefdescription>
-<para>CI-friendly implementation of the public Inference Engine API. </para>
+<para>Minimal public API implementation (engine create/destroy/generate). </para>
     </briefdescription>
     <detaileddescription>
-<para>This translation unit implements the minimal, header-compliant behavior defined in <ref refid="ie__api_8h" kindref="compound">ie_api.h</ref>. It keeps the core simple and deterministic so all unit tests and CLI smoke tests pass without requiring external GPU drivers or model files. The CLI layer (see <ref refid="main__infer_8c" kindref="compound">main_infer.c</ref>) enforces &quot;real model
-required&quot; gating via the environment/config when desired. </para>
+<para>This is the stable entrypoint used by the CLI and benchmark harness.</para>
+<para>The core inference kernels and model loading logic may evolve independently, but the exported signatures in <ref refid="ie__api_8h" kindref="compound">ie_api.h</ref> should remain stable.</para>
+<para>Current behavior:<itemizedlist>
+<listitem><para>ie_engine_create stores device/model_dir and copies params (best-effort).</para>
+</listitem><listitem><para>ie_engine_generate produces deterministic token ids (prompt-dependent).</para>
+</listitem></itemizedlist>
+</para>
+<para>The benchmark harness measures &quot;strict touch&quot; work in <ref refid="main__infer_8c" kindref="compound">main_infer.c</ref>; generation here is intentionally lightweight and deterministic. </para>
     </detaileddescription>
     <programlisting>
 <codeline lineno="1"><highlight class="normal"></highlight></codeline>
-<codeline lineno="12"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;<ref refid="ie__api_8h" kindref="compound">ie_api.h</ref>&quot;</highlight><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">/*<sp/>Public<sp/>types<sp/>and<sp/>prototypes<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="13"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;<ref refid="ie__kv__instrumentation_8h" kindref="compound">ie_kv_instrumentation.h</ref>&quot;</highlight><highlight class="normal"><sp/></highlight><highlight class="comment">/*<sp/>KV<sp/>hit/miss<sp/>tracker<sp/>(lightweight)<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="14"><highlight class="normal"></highlight></codeline>
-<codeline lineno="15"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;ctype.h&gt;</highlight><highlight class="normal"><sp/><sp/><sp/></highlight><highlight class="comment">/*<sp/>tolower<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="16"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;inttypes.h&gt;</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="17"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stdint.h&gt;</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="18"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stdlib.h&gt;</highlight><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">/*<sp/>calloc,<sp/>free<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="19"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;string.h&gt;</highlight><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">/*<sp/>memset,<sp/>strlen<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="20"><highlight class="normal"></highlight></codeline>
-<codeline lineno="21"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>--------------------------------------------------------------------------<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="22"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>Internal<sp/>opaque<sp/>type<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="23"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>--------------------------------------------------------------------------<sp/>*/</highlight></codeline>
-<codeline lineno="34" refid="structie__engine" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structie__engine" kindref="compound">ie_engine</ref><sp/>{</highlight></codeline>
-<codeline lineno="35" refid="structie__engine_1a7ae7f7efbee346d04370ee09f5f6cd68" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="structie__engine__params" kindref="compound">ie_engine_params_t</ref><sp/><ref refid="structie__engine_1a7ae7f7efbee346d04370ee09f5f6cd68" kindref="member">cfg</ref>;<sp/><sp/><sp/></highlight></codeline>
-<codeline lineno="36" refid="structie__engine_1aac6bf09043eb30698b226cbac9a5903b" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="structie__metrics__t" kindref="compound">ie_metrics_t</ref><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="structie__engine_1aac6bf09043eb30698b226cbac9a5903b" kindref="member">last</ref>;<sp/><sp/></highlight></codeline>
-<codeline lineno="37" refid="structie__engine_1a39645576c844465466e51883ccb5ca34" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">uint64_t</ref><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="structie__engine_1a39645576c844465466e51883ccb5ca34" kindref="member">seed</ref>;<sp/><sp/></highlight></codeline>
-<codeline lineno="38" refid="structie__engine_1a85ec8e92466a0e14370e003ad3af6a68" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="structie__engine_1a85ec8e92466a0e14370e003ad3af6a68" kindref="member">uses_weight_int4</ref>;<sp/><sp/></highlight></codeline>
-<codeline lineno="39" refid="structie__engine_1ad53b43ae0ad90765775476d829256d33" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="structie__engine_1ad53b43ae0ad90765775476d829256d33" kindref="member">uses_block_sparse</ref>;<sp/></highlight></codeline>
-<codeline lineno="40"><highlight class="normal">};</highlight></codeline>
-<codeline lineno="41"><highlight class="normal"></highlight></codeline>
-<codeline lineno="42"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>--------------------------------------------------------------------------<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="43"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>Utilities<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="44"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>--------------------------------------------------------------------------<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="45"><highlight class="normal"></highlight></codeline>
-<codeline lineno="53" refid="ie__api_8c_1a72ab94aafe7740f1343d317daa89ca15" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="ie__api_8c_1a72ab94aafe7740f1343d317daa89ca15" kindref="member">ascii_ieq</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">a</ref>,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">b</ref>)<sp/>{</highlight></codeline>
-<codeline lineno="54"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">a</ref><sp/>||<sp/>!<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">b</ref>)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>0;</highlight></codeline>
-<codeline lineno="55"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(;;<sp/>++<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">a</ref>,<sp/>++<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">b</ref>)<sp/>{</highlight></codeline>
-<codeline lineno="56"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">unsigned</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">ca</ref><sp/>=<sp/>(</highlight><highlight class="keywordtype">unsigned</highlight><highlight class="normal"><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">char</ref>)*<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">a</ref>;</highlight></codeline>
-<codeline lineno="57"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">unsigned</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">cb</ref><sp/>=<sp/>(</highlight><highlight class="keywordtype">unsigned</highlight><highlight class="normal"><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">char</ref>)*<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">b</ref>;</highlight></codeline>
-<codeline lineno="58"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">tolower</ref>(<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">ca</ref>)<sp/>!=<sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">tolower</ref>(<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">cb</ref>))<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>0;</highlight></codeline>
-<codeline lineno="59"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">ca</ref><sp/>==<sp/></highlight><highlight class="charliteral">&apos;\0&apos;</highlight><highlight class="normal">)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>1;</highlight></codeline>
-<codeline lineno="60"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
-<codeline lineno="61"><highlight class="normal">}</highlight></codeline>
-<codeline lineno="62"><highlight class="normal"></highlight></codeline>
-<codeline lineno="69" refid="ie__api_8c_1aee4ab6bebc1781cfbfe821e0e89d8823" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">uint32_t</ref><sp/><ref refid="ie__api_8c_1aee4ab6bebc1781cfbfe821e0e89d8823" kindref="member">fnv1a32</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">s</ref>)<sp/>{</highlight></codeline>
-<codeline lineno="70"><highlight class="normal"><sp/><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">uint32_t</ref><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">h</ref><sp/>=<sp/>2166136261u;</highlight></codeline>
-<codeline lineno="71"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">s</ref>)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">h</ref><sp/>^<sp/>0xA5A5u;</highlight></codeline>
-<codeline lineno="72"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">unsigned</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">p</ref><sp/>=<sp/>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">unsigned</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*)<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">s</ref>;</highlight></codeline>
-<codeline lineno="73"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">while</highlight><highlight class="normal"><sp/>(*<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">p</ref>)<sp/>{</highlight></codeline>
-<codeline lineno="74"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">h</ref><sp/>^=<sp/>(<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">uint32_t</ref>)(*<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">p</ref>++);</highlight></codeline>
-<codeline lineno="75"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">h</ref><sp/>*=<sp/>16777619u;</highlight></codeline>
-<codeline lineno="76"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
-<codeline lineno="77"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">h</ref><sp/>?<sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">h</ref><sp/>:<sp/>0x9E3779B1u;</highlight></codeline>
-<codeline lineno="78"><highlight class="normal">}</highlight></codeline>
-<codeline lineno="79"><highlight class="normal"></highlight></codeline>
-<codeline lineno="86" refid="ie__api_8c_1a22d32f0b2752f3aa310c127054b03e22" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">uint64_t</ref><sp/><ref refid="ie__api_8c_1a22d32f0b2752f3aa310c127054b03e22" kindref="member">xorshift64star</ref>(<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">uint64_t</ref><sp/>*<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">state</ref>)<sp/>{</highlight></codeline>
-<codeline lineno="87"><highlight class="normal"><sp/><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">uint64_t</ref><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">x</ref><sp/>=<sp/>(*<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">state</ref><sp/>==<sp/>0<sp/>?<sp/>0x106689D45497fdb5ULL<sp/>:<sp/>*<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">state</ref>);</highlight></codeline>
-<codeline lineno="88"><highlight class="normal"><sp/><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">x</ref><sp/>^=<sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">x</ref><sp/>&gt;&gt;<sp/>12;</highlight></codeline>
-<codeline lineno="89"><highlight class="normal"><sp/><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">x</ref><sp/>^=<sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">x</ref><sp/>&lt;&lt;<sp/>25;</highlight></codeline>
-<codeline lineno="90"><highlight class="normal"><sp/><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">x</ref><sp/>^=<sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">x</ref><sp/>&gt;&gt;<sp/>27;</highlight></codeline>
-<codeline lineno="91"><highlight class="normal"><sp/><sp/>*<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">state</ref><sp/>=<sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">x</ref>;</highlight></codeline>
-<codeline lineno="92"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">x</ref><sp/>*<sp/>2685821657736338717ULL;</highlight></codeline>
-<codeline lineno="93"><highlight class="normal">}</highlight></codeline>
-<codeline lineno="94"><highlight class="normal"></highlight></codeline>
-<codeline lineno="95"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>--------------------------------------------------------------------------<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="96"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>Public<sp/>API<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="97"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>--------------------------------------------------------------------------<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="98"><highlight class="normal"></highlight></codeline>
-<codeline lineno="115" refid="ie__api_8h_1a29d800407f90ba6b44385725da64f27d" refkind="member"><highlight class="normal"><ref refid="ie__api_8h_1ad1139f55afe53e983b6d71ae39bfc4b5" kindref="member">ie_status_t</ref><sp/><ref refid="ie__api_8c_1a29d800407f90ba6b44385725da64f27d" kindref="member">ie_engine_create</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="structie__engine__params" kindref="compound">ie_engine_params_t</ref><sp/>*<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">p</ref>,<sp/><ref refid="structie__engine" kindref="compound">ie_engine_t</ref><sp/>**<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">out</ref>)<sp/>{</highlight></codeline>
-<codeline lineno="116"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">out</ref>)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>1;<sp/></highlight><highlight class="comment">/*<sp/>generic<sp/>error<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="117"><highlight class="normal"></highlight></codeline>
-<codeline lineno="118"><highlight class="normal"><sp/><sp/><ref refid="structie__engine" kindref="compound">ie_engine_t</ref><sp/>*<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">e</ref><sp/>=<sp/>(<ref refid="structie__engine" kindref="compound">ie_engine_t</ref><sp/>*)<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">calloc</ref>(1,<sp/></highlight><highlight class="keyword">sizeof</highlight><highlight class="normal">(*<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">e</ref>));</highlight></codeline>
-<codeline lineno="119"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">e</ref>)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>1;</highlight></codeline>
-<codeline lineno="120"><highlight class="normal"></highlight></codeline>
-<codeline lineno="121"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">p</ref>)<sp/>{</highlight></codeline>
-<codeline lineno="122"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">e</ref>-&gt;<ref refid="structie__engine_1a7ae7f7efbee346d04370ee09f5f6cd68" kindref="member">cfg</ref><sp/>=<sp/>*<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">p</ref>;<sp/></highlight><highlight class="comment">/*<sp/>copy-by-value<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="123"><highlight class="normal"><sp/><sp/>}<sp/></highlight><highlight class="keywordflow">else</highlight><highlight class="normal"><sp/>{</highlight></codeline>
-<codeline lineno="124"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">memset</ref>(&amp;<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">e</ref>-&gt;cfg,<sp/>0,<sp/></highlight><highlight class="keyword">sizeof</highlight><highlight class="normal">(<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">e</ref>-&gt;cfg));</highlight></codeline>
-<codeline lineno="125"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
-<codeline lineno="126"><highlight class="normal"></highlight></codeline>
-<codeline lineno="127"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">/*<sp/>Safe<sp/>defaults<sp/>for<sp/>metrics.<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="128"><highlight class="normal"><sp/><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">memset</ref>(&amp;<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">e</ref>-&gt;last,<sp/>0,<sp/></highlight><highlight class="keyword">sizeof</highlight><highlight class="normal">(<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">e</ref>-&gt;last));</highlight></codeline>
-<codeline lineno="129"><highlight class="normal"></highlight></codeline>
-<codeline lineno="130"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">/*<sp/>Derive<sp/>a<sp/>stable<sp/>seed<sp/>from<sp/>a<sp/>few<sp/>string<sp/>hints<sp/>(all<sp/>are<sp/>NULL-safe).<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="131"><highlight class="normal"><sp/><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">e</ref>-&gt;seed<sp/><sp/>=<sp/>0x9E3779B97F4A7C15ULL;</highlight></codeline>
-<codeline lineno="132"><highlight class="normal"><sp/><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">e</ref>-&gt;seed<sp/>^=<sp/>(<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">uint64_t</ref>)<ref refid="ie__api_8c_1aee4ab6bebc1781cfbfe821e0e89d8823" kindref="member">fnv1a32</ref>(<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">e</ref>-&gt;cfg.precision);</highlight></codeline>
-<codeline lineno="133"><highlight class="normal"><sp/><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">e</ref>-&gt;seed<sp/>^=<sp/>(<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">uint64_t</ref>)<ref refid="ie__api_8c_1aee4ab6bebc1781cfbfe821e0e89d8823" kindref="member">fnv1a32</ref>(<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">e</ref>-&gt;cfg.affinity)<sp/><sp/><sp/><sp/><sp/>&lt;&lt;<sp/><sp/>8;</highlight></codeline>
-<codeline lineno="134"><highlight class="normal"><sp/><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">e</ref>-&gt;seed<sp/>^=<sp/>(<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">uint64_t</ref>)<ref refid="ie__api_8c_1aee4ab6bebc1781cfbfe821e0e89d8823" kindref="member">fnv1a32</ref>(<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">e</ref>-&gt;cfg.pretranspose)<sp/>&lt;&lt;<sp/>16;</highlight></codeline>
-<codeline lineno="135"><highlight class="normal"><sp/><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">e</ref>-&gt;seed<sp/>^=<sp/>(<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">uint64_t</ref>)<ref refid="ie__api_8c_1aee4ab6bebc1781cfbfe821e0e89d8823" kindref="member">fnv1a32</ref>(<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">e</ref>-&gt;cfg.prefetch)<sp/><sp/><sp/><sp/><sp/>&lt;&lt;<sp/>24;</highlight></codeline>
-<codeline lineno="136"><highlight class="normal"><sp/><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">e</ref>-&gt;seed<sp/>^=<sp/>(<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">uint64_t</ref>)<ref refid="ie__api_8c_1aee4ab6bebc1781cfbfe821e0e89d8823" kindref="member">fnv1a32</ref>(<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">e</ref>-&gt;cfg.sparsity)<sp/><sp/><sp/><sp/><sp/>&lt;&lt;<sp/>32;</highlight></codeline>
-<codeline lineno="137"><highlight class="normal"></highlight></codeline>
-<codeline lineno="138"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">/*<sp/>Recognize<sp/>&quot;int4w&quot;<sp/>and<sp/>the<sp/>CLI<sp/>alias<sp/>&quot;int4&quot;.<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="139"><highlight class="normal"><sp/><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">e</ref>-&gt;uses_weight_int4<sp/>=<sp/>(<ref refid="ie__api_8c_1a72ab94aafe7740f1343d317daa89ca15" kindref="member">ascii_ieq</ref>(<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">e</ref>-&gt;cfg.precision,<sp/><ref refid="ie__api_8h_1a59927f17b60d23df0f20dacdaa1d97d5" kindref="member">IE_PREC_INT4W</ref>)<sp/>||</highlight></codeline>
-<codeline lineno="140"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="ie__api_8c_1a72ab94aafe7740f1343d317daa89ca15" kindref="member">ascii_ieq</ref>(<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">e</ref>-&gt;cfg.precision,<sp/><ref refid="ie__api_8h_1add4934bbdd3dc2bf4e3ab8438b0d7757" kindref="member">IE_PREC_INT4</ref>))<sp/>?<sp/>1<sp/>:<sp/>0;</highlight></codeline>
-<codeline lineno="141"><highlight class="normal"></highlight></codeline>
-<codeline lineno="142"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">/*<sp/>Recognize<sp/>block-sparse<sp/>hint.<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="143"><highlight class="normal"><sp/><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">e</ref>-&gt;uses_block_sparse<sp/>=<sp/>(<ref refid="ie__api_8c_1a72ab94aafe7740f1343d317daa89ca15" kindref="member">ascii_ieq</ref>(<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">e</ref>-&gt;cfg.sparsity,<sp/></highlight><highlight class="stringliteral">&quot;block&quot;</highlight><highlight class="normal">)<sp/>||</highlight></codeline>
-<codeline lineno="144"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="ie__api_8c_1a72ab94aafe7740f1343d317daa89ca15" kindref="member">ascii_ieq</ref>(<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">e</ref>-&gt;cfg.sparsity,<sp/></highlight><highlight class="stringliteral">&quot;blocksparse&quot;</highlight><highlight class="normal">))<sp/>?<sp/>1<sp/>:<sp/>0;</highlight></codeline>
-<codeline lineno="145"><highlight class="normal"></highlight></codeline>
-<codeline lineno="146"><highlight class="normal"><sp/><sp/>*<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">out</ref><sp/>=<sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">e</ref>;</highlight></codeline>
-<codeline lineno="147"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/><ref refid="ie__api_8h_1afe55386d31dcd43a7accd42d844d59d1" kindref="member">IE_OK</ref>;</highlight></codeline>
-<codeline lineno="148"><highlight class="normal">}</highlight></codeline>
-<codeline lineno="149"><highlight class="normal"></highlight></codeline>
-<codeline lineno="153" refid="ie__api_8h_1a8a724f7097b3e19da8d7dd97fba4415e" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="ie__api_8c_1a8a724f7097b3e19da8d7dd97fba4415e" kindref="member">ie_engine_destroy</ref>(<ref refid="structie__engine" kindref="compound">ie_engine_t</ref><sp/>*<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">h</ref>)<sp/>{</highlight></codeline>
-<codeline lineno="154"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">h</ref>)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal">;</highlight></codeline>
-<codeline lineno="155"><highlight class="normal"><sp/><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">free</ref>(<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">h</ref>);</highlight></codeline>
-<codeline lineno="156"><highlight class="normal">}</highlight></codeline>
-<codeline lineno="157"><highlight class="normal"></highlight></codeline>
-<codeline lineno="166" refid="ie__api_8h_1a21ab40e22d9192fe353ad6640610a01d" refkind="member"><highlight class="normal"><ref refid="ie__api_8h_1ad1139f55afe53e983b6d71ae39bfc4b5" kindref="member">ie_status_t</ref><sp/><ref refid="ie__api_8c_1a21ab40e22d9192fe353ad6640610a01d" kindref="member">ie_engine_generate</ref>(<ref refid="structie__engine" kindref="compound">ie_engine_t</ref><sp/>*<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">h</ref>,</highlight></codeline>
-<codeline lineno="167"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*prompt,</highlight></codeline>
-<codeline lineno="168"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">max_new_tokens</ref>,</highlight></codeline>
-<codeline lineno="169"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">uint32_t</ref><sp/>*<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">out_tokens</ref>,</highlight></codeline>
-<codeline lineno="170"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">uint32_t</ref><sp/>*<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">out_count</ref>)<sp/>{</highlight></codeline>
-<codeline lineno="171"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">h</ref><sp/>||<sp/>!<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">out_count</ref><sp/>||<sp/>!prompt)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>1;</highlight></codeline>
-<codeline lineno="172"><highlight class="normal"></highlight></codeline>
-<codeline lineno="173"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">max_new_tokens</ref><sp/>==<sp/>0)<sp/>{</highlight></codeline>
-<codeline lineno="174"><highlight class="normal"><sp/><sp/><sp/><sp/>*<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">out_count</ref><sp/>=<sp/>0;</highlight></codeline>
-<codeline lineno="175"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">h</ref>-&gt;last.tps_true<sp/><sp/><sp/><sp/><sp/><sp/><sp/>=<sp/>0.0;</highlight></codeline>
-<codeline lineno="176"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">h</ref>-&gt;last.latency_p50_ms<sp/>=<sp/>0.0;</highlight></codeline>
-<codeline lineno="177"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">h</ref>-&gt;last.latency_p95_ms<sp/>=<sp/>0.0;</highlight></codeline>
-<codeline lineno="178"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">h</ref>-&gt;last.rss_peak_mb<sp/><sp/><sp/><sp/>=<sp/>0u;</highlight></codeline>
-<codeline lineno="179"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/><ref refid="ie__api_8h_1afe55386d31dcd43a7accd42d844d59d1" kindref="member">IE_OK</ref>;</highlight></codeline>
-<codeline lineno="180"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
-<codeline lineno="181"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">out_tokens</ref>)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>1;</highlight></codeline>
-<codeline lineno="182"><highlight class="normal"></highlight></codeline>
-<codeline lineno="183"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">/*<sp/>Per-call<sp/>deterministic<sp/>PRNG<sp/>seeded<sp/>by<sp/>engine<sp/>seed<sp/>XOR<sp/>prompt<sp/>hash.<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="184"><highlight class="normal"><sp/><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">uint64_t</ref><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">rng</ref><sp/>=<sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">h</ref>-&gt;seed<sp/>^<sp/>(<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">uint64_t</ref>)<ref refid="ie__api_8c_1aee4ab6bebc1781cfbfe821e0e89d8823" kindref="member">fnv1a32</ref>(prompt);</highlight></codeline>
-<codeline lineno="185"><highlight class="normal"></highlight></codeline>
-<codeline lineno="186"><highlight class="normal"><sp/><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">uint32_t</ref><sp/>produced<sp/>=<sp/>0;</highlight></codeline>
-<codeline lineno="187"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">i</ref><sp/>=<sp/>0;<sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">i</ref><sp/>&lt;<sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">max_new_tokens</ref>;<sp/>++<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">i</ref>)<sp/>{</highlight></codeline>
-<codeline lineno="188"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">uint64_t</ref><sp/>r<sp/><sp/><sp/>=<sp/><ref refid="ie__api_8c_1a22d32f0b2752f3aa310c127054b03e22" kindref="member">xorshift64star</ref>(&amp;<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">rng</ref>);</highlight></codeline>
-<codeline lineno="189"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">uint32_t</ref><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">tok</ref><sp/>=<sp/>(<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">uint32_t</ref>)(r<sp/>%<sp/>50000u);<sp/></highlight><highlight class="comment">/*<sp/>Compact<sp/>ID<sp/>space<sp/>for<sp/>tests.<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="190"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">out_tokens</ref>[<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">i</ref>]<sp/>=<sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">tok</ref>;</highlight></codeline>
-<codeline lineno="191"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="ie__kv__instrumentation_8h_1a27b3df57a37a25798490912b1e92d716" kindref="member">ie_kv_on_token</ref>(<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">tok</ref>);<sp/></highlight><highlight class="comment">/*<sp/>counted<sp/>inside<sp/>timing<sp/>window<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="192"><highlight class="normal"><sp/><sp/><sp/><sp/>++produced;</highlight></codeline>
-<codeline lineno="193"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
-<codeline lineno="194"><highlight class="normal"><sp/><sp/>*<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">out_count</ref><sp/>=<sp/>produced;</highlight></codeline>
-<codeline lineno="195"><highlight class="normal"></highlight></codeline>
-<codeline lineno="196"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">/*<sp/>Placeholders<sp/>(harness<sp/>fills<sp/>time-related<sp/>values).<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="197"><highlight class="normal"><sp/><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">h</ref>-&gt;last.tps_true<sp/><sp/><sp/><sp/><sp/><sp/><sp/>=<sp/>0.0;</highlight></codeline>
-<codeline lineno="198"><highlight class="normal"><sp/><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">h</ref>-&gt;last.latency_p50_ms<sp/>=<sp/>0.0;</highlight></codeline>
-<codeline lineno="199"><highlight class="normal"><sp/><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">h</ref>-&gt;last.latency_p95_ms<sp/>=<sp/>0.0;</highlight></codeline>
-<codeline lineno="200"><highlight class="normal"><sp/><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">h</ref>-&gt;last.rss_peak_mb<sp/><sp/><sp/><sp/>=<sp/>0u;</highlight></codeline>
-<codeline lineno="201"><highlight class="normal"></highlight></codeline>
-<codeline lineno="202"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/><ref refid="ie__api_8h_1afe55386d31dcd43a7accd42d844d59d1" kindref="member">IE_OK</ref>;</highlight></codeline>
-<codeline lineno="203"><highlight class="normal">}</highlight></codeline>
-<codeline lineno="204"><highlight class="normal"></highlight></codeline>
-<codeline lineno="208" refid="ie__api_8h_1ac1c4268d66d8a840276e0a72c9ace902" refkind="member"><highlight class="normal"><ref refid="ie__api_8h_1ad1139f55afe53e983b6d71ae39bfc4b5" kindref="member">ie_status_t</ref><sp/><ref refid="ie__api_8c_1ac1c4268d66d8a840276e0a72c9ace902" kindref="member">ie_engine_metrics</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="structie__engine" kindref="compound">ie_engine_t</ref><sp/>*<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">h</ref>,<sp/><ref refid="structie__metrics__t" kindref="compound">ie_metrics_t</ref><sp/>*<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">out</ref>)<sp/>{</highlight></codeline>
-<codeline lineno="209"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">h</ref><sp/>||<sp/>!<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">out</ref>)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>1;</highlight></codeline>
-<codeline lineno="210"><highlight class="normal"><sp/><sp/>*<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">out</ref><sp/>=<sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">h</ref>-&gt;last;</highlight></codeline>
-<codeline lineno="211"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/><ref refid="ie__api_8h_1afe55386d31dcd43a7accd42d844d59d1" kindref="member">IE_OK</ref>;</highlight></codeline>
-<codeline lineno="212"><highlight class="normal">}</highlight></codeline>
-<codeline lineno="213"><highlight class="normal"></highlight></codeline>
-<codeline lineno="214"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>==========================================================================<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="215"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>End<sp/>of<sp/>file<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="216"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>==========================================================================<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="19"><highlight class="normal"></highlight><highlight class="preprocessor">#ifndef<sp/>_POSIX_C_SOURCE</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="20" refid="ie__api_8c_1a3024ccd4a9af5109d24e6c57565d74a1" refkind="member"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/><sp/>define<sp/>_POSIX_C_SOURCE<sp/>200809L</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="21"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="22"><highlight class="normal"></highlight></codeline>
+<codeline lineno="23"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;<ref refid="ie__api_8h" kindref="compound">ie_api.h</ref>&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="24"><highlight class="normal"></highlight></codeline>
+<codeline lineno="25"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;errno.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="26"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;limits.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="27"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stdint.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="28"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stdio.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="29"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stdlib.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="30"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;string.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="31"><highlight class="normal"></highlight></codeline>
+<codeline lineno="32"><highlight class="normal"></highlight><highlight class="preprocessor">#ifndef<sp/>PATH_MAX</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="33" refid="ie__api_8c_1ae688d728e1acdfe5988c7db45d6f0166" refkind="member"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/><sp/>define<sp/>PATH_MAX<sp/>4096</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="34"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="35"><highlight class="normal"></highlight></codeline>
+<codeline lineno="41" refid="structie__engine" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structie__engine" kindref="compound">ie_engine</ref><sp/>{</highlight></codeline>
+<codeline lineno="42" refid="structie__engine_1a06bd9cc5d2f1b50aeb49f9160cf516df" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="structie__engine__params" kindref="compound">ie_engine_params_t</ref><sp/><ref refid="structie__engine_1a06bd9cc5d2f1b50aeb49f9160cf516df" kindref="member">params</ref>;</highlight></codeline>
+<codeline lineno="43" refid="structie__engine_1ac83d74f112e27cbc48851c66c2522505" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/><ref refid="structie__engine_1ac83d74f112e27cbc48851c66c2522505" kindref="member">device</ref>[32];</highlight></codeline>
+<codeline lineno="44" refid="structie__engine_1ae163b3ee14659cf15e8a711de6fffa4a" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/><ref refid="structie__engine_1ae163b3ee14659cf15e8a711de6fffa4a" kindref="member">model_dir</ref>[<ref refid="ie__api_8c_1ae688d728e1acdfe5988c7db45d6f0166" kindref="member">PATH_MAX</ref>];</highlight></codeline>
+<codeline lineno="45" refid="structie__engine_1a6f1eb194b936bca93cf9ebc110eeee4f" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">uint64_t</ref><sp/><ref refid="structie__engine_1a6f1eb194b936bca93cf9ebc110eeee4f" kindref="member">gen_counter</ref>;</highlight></codeline>
+<codeline lineno="46"><highlight class="normal">};</highlight></codeline>
+<codeline lineno="47"><highlight class="normal"></highlight></codeline>
+<codeline lineno="54" refid="ie__api_8c_1a210133797f21fcee710ec892841dce42" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="ie__api_8c_1a210133797f21fcee710ec892841dce42" kindref="member">safe_strcpy</ref>(</highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">dst</ref>,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">dstsz</ref>,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">src</ref>)<sp/>{</highlight></codeline>
+<codeline lineno="55"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">dst</ref><sp/>||<sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">dstsz</ref><sp/>==<sp/>0)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="56"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">src</ref>)<sp/>{<sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">dst</ref>[0]<sp/>=<sp/></highlight><highlight class="charliteral">&apos;\0&apos;</highlight><highlight class="normal">;<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal">;<sp/>}</highlight></codeline>
+<codeline lineno="57"><highlight class="normal"><sp/><sp/>(<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">void</ref>)<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">snprintf</ref>(<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">dst</ref>,<sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">dstsz</ref>,<sp/></highlight><highlight class="stringliteral">&quot;%s&quot;</highlight><highlight class="normal">,<sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">src</ref>);</highlight></codeline>
+<codeline lineno="58"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="59"><highlight class="normal"></highlight></codeline>
+<codeline lineno="65" refid="ie__api_8c_1a90c00769b295e35729eb5981adb8b83f" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">uint64_t</ref><sp/><ref refid="ie__api_8c_1a90c00769b295e35729eb5981adb8b83f" kindref="member">fnv1a64</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">s</ref>)<sp/>{</highlight></codeline>
+<codeline lineno="66"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">uint64_t</ref><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">off</ref><sp/>=<sp/>1469598103934665603ULL;</highlight></codeline>
+<codeline lineno="67"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">uint64_t</ref><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">prime</ref><sp/>=<sp/>1099511628211ULL;</highlight></codeline>
+<codeline lineno="68"><highlight class="normal"><sp/><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">uint64_t</ref><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">h</ref><sp/>=<sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">off</ref>;</highlight></codeline>
+<codeline lineno="69"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">s</ref>)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">h</ref>;</highlight></codeline>
+<codeline lineno="70"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">unsigned</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">p</ref><sp/>=<sp/>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">unsigned</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*)<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">s</ref>;<sp/>*<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">p</ref>;<sp/>++<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">p</ref>)<sp/>{</highlight></codeline>
+<codeline lineno="71"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">h</ref><sp/>^=<sp/>(<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">uint64_t</ref>)(*<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">p</ref>);</highlight></codeline>
+<codeline lineno="72"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">h</ref><sp/>*=<sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">prime</ref>;</highlight></codeline>
+<codeline lineno="73"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="74"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">h</ref>;</highlight></codeline>
+<codeline lineno="75"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="76"><highlight class="normal"></highlight></codeline>
+<codeline lineno="77" refid="ie__api_8h_1a84bd87043352946e9d53b0f8a5c4abe0" refkind="member"><highlight class="normal"><ref refid="ie__api_8h_1a14516a42606ffcc6fafaf4eba282c808" kindref="member">ie_status_t</ref><sp/><ref refid="ie__api_8c_1a84bd87043352946e9d53b0f8a5c4abe0" kindref="member">ie_engine_create</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="structie__engine__params" kindref="compound">ie_engine_params_t</ref><sp/>*<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">p</ref>,</highlight></codeline>
+<codeline lineno="78"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*device,</highlight></codeline>
+<codeline lineno="79"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*model_dir,</highlight></codeline>
+<codeline lineno="80"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="structie__engine" kindref="compound">ie_engine_t</ref><sp/>**<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">out</ref>)<sp/>{</highlight></codeline>
+<codeline lineno="81"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">out</ref>)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/><ref refid="ie__api_8h_1aad1f6716972d7c4560daae2edb134d6aa97661217f732aa27dceba667633bfabe" kindref="member">IE_ERR_BADARG</ref>;</highlight></codeline>
+<codeline lineno="82"><highlight class="normal"><sp/><sp/>*<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">out</ref><sp/>=<sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">NULL</ref>;</highlight></codeline>
+<codeline lineno="83"><highlight class="normal"></highlight></codeline>
+<codeline lineno="84"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!device<sp/>||<sp/>!*device)<sp/>device<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;auto&quot;</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="85"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!model_dir)<sp/>model_dir<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;&quot;</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="86"><highlight class="normal"></highlight></codeline>
+<codeline lineno="87"><highlight class="normal"><sp/><sp/><ref refid="structie__engine" kindref="compound">ie_engine_t</ref><sp/>*<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">e</ref><sp/>=<sp/>(<ref refid="structie__engine" kindref="compound">ie_engine_t</ref><sp/>*)<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">calloc</ref>(1,<sp/></highlight><highlight class="keyword">sizeof</highlight><highlight class="normal">(*<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">e</ref>));</highlight></codeline>
+<codeline lineno="88"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">e</ref>)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/><ref refid="ie__api_8h_1aad1f6716972d7c4560daae2edb134d6aabd8c937c2e5ea463e2f13386d9dae193" kindref="member">IE_ERR_OOM</ref>;</highlight></codeline>
+<codeline lineno="89"><highlight class="normal"></highlight></codeline>
+<codeline lineno="90"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">p</ref>)<sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">e</ref>-&gt;<ref refid="structie__engine_1a06bd9cc5d2f1b50aeb49f9160cf516df" kindref="member">params</ref><sp/>=<sp/>*<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">p</ref>;</highlight></codeline>
+<codeline lineno="91"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">else</highlight><highlight class="normal"><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">memset</ref>(&amp;<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">e</ref>-&gt;params,<sp/>0,<sp/></highlight><highlight class="keyword">sizeof</highlight><highlight class="normal">(<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">e</ref>-&gt;params));</highlight></codeline>
+<codeline lineno="92"><highlight class="normal"></highlight></codeline>
+<codeline lineno="93"><highlight class="normal"><sp/><sp/><ref refid="ie__api_8c_1a210133797f21fcee710ec892841dce42" kindref="member">safe_strcpy</ref>(<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">e</ref>-&gt;device,<sp/></highlight><highlight class="keyword">sizeof</highlight><highlight class="normal">(<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">e</ref>-&gt;device),<sp/>device);</highlight></codeline>
+<codeline lineno="94"><highlight class="normal"><sp/><sp/><ref refid="ie__api_8c_1a210133797f21fcee710ec892841dce42" kindref="member">safe_strcpy</ref>(<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">e</ref>-&gt;model_dir,<sp/></highlight><highlight class="keyword">sizeof</highlight><highlight class="normal">(<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">e</ref>-&gt;model_dir),<sp/>model_dir);</highlight></codeline>
+<codeline lineno="95"><highlight class="normal"><sp/><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">e</ref>-&gt;gen_counter<sp/>=<sp/>0;</highlight></codeline>
+<codeline lineno="96"><highlight class="normal"></highlight></codeline>
+<codeline lineno="97"><highlight class="normal"><sp/><sp/>*<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">out</ref><sp/>=<sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">e</ref>;</highlight></codeline>
+<codeline lineno="98"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/><ref refid="ie__api_8h_1aad1f6716972d7c4560daae2edb134d6aad0e6665e4f13d22e40740ef4ab91d56e" kindref="member">IE_OK</ref>;</highlight></codeline>
+<codeline lineno="99"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="100"><highlight class="normal"></highlight></codeline>
+<codeline lineno="101" refid="ie__api_8h_1a5a9a30f05ef6183f6a75811c616b3a0a" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="ie__api_8c_1a5a9a30f05ef6183f6a75811c616b3a0a" kindref="member">ie_engine_destroy</ref>(<ref refid="structie__engine" kindref="compound">ie_engine_t</ref><sp/>*<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">e</ref>)<sp/>{</highlight></codeline>
+<codeline lineno="102"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">e</ref>)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="103"><highlight class="normal"><sp/><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">free</ref>(<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">e</ref>);</highlight></codeline>
+<codeline lineno="104"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="105"><highlight class="normal"></highlight></codeline>
+<codeline lineno="106" refid="ie__api_8h_1ad32cf2cd209832e4cd577a5a1e31970f" refkind="member"><highlight class="normal"><ref refid="ie__api_8h_1a14516a42606ffcc6fafaf4eba282c808" kindref="member">ie_status_t</ref><sp/><ref refid="ie__api_8c_1ad32cf2cd209832e4cd577a5a1e31970f" kindref="member">ie_engine_generate</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="structie__engine" kindref="compound">ie_engine_t</ref><sp/>*<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">e</ref>,</highlight></codeline>
+<codeline lineno="107"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*prompt,</highlight></codeline>
+<codeline lineno="108"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>max_new,</highlight></codeline>
+<codeline lineno="109"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>*<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">out_tokens</ref>,</highlight></codeline>
+<codeline lineno="110"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>*<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">out_n_tokens</ref>)<sp/>{</highlight></codeline>
+<codeline lineno="111"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">out_n_tokens</ref>)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/><ref refid="ie__api_8h_1aad1f6716972d7c4560daae2edb134d6aa97661217f732aa27dceba667633bfabe" kindref="member">IE_ERR_BADARG</ref>;</highlight></codeline>
+<codeline lineno="112"><highlight class="normal"><sp/><sp/>*<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">out_n_tokens</ref><sp/>=<sp/>0;</highlight></codeline>
+<codeline lineno="113"><highlight class="normal"></highlight></codeline>
+<codeline lineno="114"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">e</ref>)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/><ref refid="ie__api_8h_1aad1f6716972d7c4560daae2edb134d6aa97661217f732aa27dceba667633bfabe" kindref="member">IE_ERR_BADARG</ref>;</highlight></codeline>
+<codeline lineno="115"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!prompt)<sp/>prompt<sp/>=<sp/></highlight><highlight class="stringliteral">&quot;&quot;</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="116"><highlight class="normal"></highlight></codeline>
+<codeline lineno="117"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(max_new<sp/>==<sp/>0)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/><ref refid="ie__api_8h_1aad1f6716972d7c4560daae2edb134d6aad0e6665e4f13d22e40740ef4ab91d56e" kindref="member">IE_OK</ref>;</highlight></codeline>
+<codeline lineno="118"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">out_tokens</ref>)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/><ref refid="ie__api_8h_1aad1f6716972d7c4560daae2edb134d6aa97661217f732aa27dceba667633bfabe" kindref="member">IE_ERR_BADARG</ref>;</highlight></codeline>
+<codeline lineno="119"><highlight class="normal"></highlight></codeline>
+<codeline lineno="120"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">uint64_t</ref><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">seed</ref><sp/>=<sp/><ref refid="ie__api_8c_1a90c00769b295e35729eb5981adb8b83f" kindref="member">fnv1a64</ref>(prompt)<sp/>^<sp/><ref refid="ie__api_8c_1a90c00769b295e35729eb5981adb8b83f" kindref="member">fnv1a64</ref>(<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">e</ref>-&gt;device)<sp/>^<sp/><ref refid="ie__api_8c_1a90c00769b295e35729eb5981adb8b83f" kindref="member">fnv1a64</ref>(<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">e</ref>-&gt;model_dir);</highlight></codeline>
+<codeline lineno="121"><highlight class="normal"><sp/><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">uint64_t</ref><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">ctr</ref><sp/>=<sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">e</ref>-&gt;gen_counter;</highlight></codeline>
+<codeline lineno="122"><highlight class="normal"></highlight></codeline>
+<codeline lineno="123"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">i</ref><sp/>=<sp/>0;<sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">i</ref><sp/>&lt;<sp/>max_new;<sp/>++<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">i</ref>)<sp/>{</highlight></codeline>
+<codeline lineno="124"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">uint64_t</ref><sp/>v<sp/>=<sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">seed</ref><sp/>+<sp/>0x9e3779b97f4a7c15ULL<sp/>*<sp/>(<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">uint64_t</ref>)(<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">i</ref><sp/>+<sp/>1)<sp/>+<sp/>(<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">ctr</ref><sp/>&lt;&lt;<sp/>1);</highlight></codeline>
+<codeline lineno="125"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">out_tokens</ref>[<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">i</ref>]<sp/>=<sp/>(<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">int</ref>)(v<sp/>&amp;<sp/>0x7fffffffULL);</highlight></codeline>
+<codeline lineno="126"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="127"><highlight class="normal"></highlight></codeline>
+<codeline lineno="128"><highlight class="normal"><sp/><sp/>((<ref refid="structie__engine" kindref="compound">ie_engine_t</ref><sp/>*)<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">e</ref>)-&gt;gen_counter<sp/>=<sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">ctr</ref><sp/>+<sp/>(<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">uint64_t</ref>)max_new;</highlight></codeline>
+<codeline lineno="129"><highlight class="normal"><sp/><sp/>*<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">out_n_tokens</ref><sp/>=<sp/>max_new;</highlight></codeline>
+<codeline lineno="130"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/><ref refid="ie__api_8h_1aad1f6716972d7c4560daae2edb134d6aad0e6665e4f13d22e40740ef4ab91d56e" kindref="member">IE_OK</ref>;</highlight></codeline>
+<codeline lineno="131"><highlight class="normal">}</highlight></codeline>
     </programlisting>
     <location file="engine/src/ie_api.c"/>
   </compounddef>

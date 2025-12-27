@@ -1,5 +1,11 @@
 var NAVTREEINDEX5 =
 {
+"namespacededup__prepare__and__extract__all.html#a45246e5fd8e820172df1bd4e9253a791":[20,0,3,6],
+"namespacededup__prepare__and__extract__all.html#a75e66061d3a65f6e4777698ac5cb20a7":[20,0,3,2],
+"namespacededup__prepare__and__extract__all.html#a7ef0a8be0b6025496d8c6c17c27ffa54":[20,0,3,8],
+"namespacededup__prepare__and__extract__all.html#a8775f6b101d32d056aebff3d069f65a4":[20,0,3,3],
+"namespacededup__prepare__and__extract__all.html#af483d81f771e2aefe15bf2b91c56cb9c":[20,0,3,7],
+"namespacededup__prepare__and__extract__all.html#aff86add16d357753dee28bda484019c6":[20,0,3,4],
 "namespacededup__verify__int4.html":[20,0,4],
 "namespacededup__verify__int4.html#a0d8b8a07124bb237925517046ff60605":[20,0,4,8],
 "namespacededup__verify__int4.html#a269856b1624aef4d1351b79182380938":[20,0,4,4],
@@ -243,11 +249,5 @@ var NAVTREEINDEX5 =
 "ptq__calib_8py.html":[22,0,0,2],
 "ptq__calib_8py.html#a0ff53d4b3af1bcce6cc9aa70c71ad741":[22,0,0,2,8],
 "ptq__calib_8py.html#a15c1ec510d143c4356e29ed8922e51bc":[22,0,0,2,6],
-"ptq__calib_8py.html#a3c61645c84bf45ea46988b90da7eacf2":[22,0,0,2,3],
-"ptq__calib_8py.html#a411585cffe038415fa4a50d31152a8fc":[22,0,0,2,0],
-"ptq__calib_8py.html#a6855dfc7d067ff09439e3ea0902bbd25":[22,0,0,2,7],
-"ptq__calib_8py.html#a8091bc9c066240fc12d193762c5c17f6":[22,0,0,2,5],
-"ptq__calib_8py.html#a8c5f80e88cff2f08011a13e1a7b9ea6e":[22,0,0,2,4],
-"ptq__calib_8py.html#a9805c5526e7e404510096d4c348247e1":[22,0,0,2,1],
-"ptq__calib_8py.html#af0f830db41d66b7dc2d9462dfc37133c":[22,0,0,2,2]
+"ptq__calib_8py.html#a3c61645c84bf45ea46988b90da7eacf2":[22,0,0,2,3]
 };

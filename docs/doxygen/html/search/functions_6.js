@@ -9,7 +9,7 @@ var searchData=
   ['fill_5fvector_6',['fill_vector',['../test__kernels_8c.html#af2adbc5a2d06d3fde32de9e00526ec02',1,'test_kernels.c']]],
   ['find_5fcheckpoint_7',['find_checkpoint',['../namespaceptq__from__hf.html#aff4e5ceded2fc089de036435b5d6ba25',1,'ptq_from_hf']]],
   ['first_5ftouch_5fwrite_8',['first_touch_write',['../replicate__hot_8c.html#aa966a1d17ddd373703a273d4b5bb3c30',1,'replicate_hot.c']]],
-  ['fnv1a32_9',['fnv1a32',['../ie__api_8c.html#aee4ab6bebc1781cfbfe821e0e89d8823',1,'ie_api.c']]],
+  ['fnv1a64_9',['fnv1a64',['../ie__api_8c.html#a90c00769b295e35729eb5981adb8b83f',1,'ie_api.c']]],
   ['fnv1a_5f32_10',['fnv1a_32',['../tokenizer_8c.html#ab65f36294d9d8ee9d8b027673b01de30',1,'tokenizer.c']]],
   ['fp16_5fto_5ffp32_11',['fp16_to_fp32',['../weights_8c.html#a45b3ddd20d46adc5338518e4d68a293d',1,'weights.c']]],
   ['free_5freplicas_5finternal_12',['free_replicas_internal',['../replicate__hot_8c.html#ab7ebdb34710a404bb4d9483a37bac091',1,'replicate_hot.c']]],

@@ -14,6 +14,7 @@ var searchData=
   ['ref_5fgemv_5fbias_11',['ref_gemv_bias',['../test__kernels_8c.html#aae1e14b05adc3adcbe1ee42f54e885d8',1,'test_kernels.c']]],
   ['ref_5fgemv_5fnominal_12',['ref_gemv_nominal',['../test__kernels_8c.html#ae89d2fea722183ea2429cdc3d369c509',1,'test_kernels.c']]],
   ['resolve_5fmodel_5fpaths_13',['resolve_model_paths',['../main__infer_8c.html#ad6b894571e18a35f21d8451e008fae37',1,'main_infer.c']]],
-  ['run_5fcli_14',['run_cli',['../classtest__cli__flags_1_1CLIFeatureFlagsTests.html#a0e8f2a628b325d1948ba522fb21933ce',1,'test_cli_flags::CLIFeatureFlagsTests']]],
-  ['run_5fptq_15',['run_ptq',['../classtest__ptq__calib__pipeline_1_1PTQCalibPipelineTests.html#a1825079e8ddd10734388091f18e5e2d0',1,'test_ptq_calib_pipeline::PTQCalibPipelineTests']]]
+  ['rss_5fpeak_5fmib_14',['rss_peak_mib',['../main__infer_8c.html#a0d90177eef91d08c3d9a38fb00df3e62',1,'main_infer.c']]],
+  ['run_5fcli_15',['run_cli',['../classtest__cli__flags_1_1CLIFeatureFlagsTests.html#a0e8f2a628b325d1948ba522fb21933ce',1,'test_cli_flags::CLIFeatureFlagsTests']]],
+  ['run_5fptq_16',['run_ptq',['../classtest__ptq__calib__pipeline_1_1PTQCalibPipelineTests.html#a1825079e8ddd10734388091f18e5e2d0',1,'test_ptq_calib_pipeline::PTQCalibPipelineTests']]]
 ];

@@ -11,7 +11,7 @@ var searchData=
   ['masks_5fbytes_8',['masks_bytes',['../structdedup__spec__header__s.html#a2a775f0c8230bb2f01795343dd37ee34',1,'dedup_spec_header_s']]],
   ['max_5fnew_9',['max_new',['../structcli__extras.html#a5eb0317aa09b90f400b657245b41e92c',1,'cli_extras']]],
   ['max_5freplicas_10',['max_replicas',['../structie__numa__policy__t.html#a4210d29bb974c0baa18abd9e04219d5a',1,'ie_numa_policy_t']]],
-  ['max_5fseq_11',['max_seq',['../structie__kv__cache.html#a4cbe1fc1959314c75e9d61f9c24d5671',1,'ie_kv_cache::max_seq'],['../structie__kv__opts.html#ad9dcb92aedeedbeddfbde834d4395421',1,'ie_kv_opts::max_seq']]],
+  ['max_5fseq_11',['max_seq',['../structie__kv__opts.html#ad9dcb92aedeedbeddfbde834d4395421',1,'ie_kv_opts::max_seq'],['../structie__kv__cache.html#a4cbe1fc1959314c75e9d61f9c24d5671',1,'ie_kv_cache::max_seq']]],
   ['max_5fworkers_12',['max_workers',['../namespacedownload__gpt__oss__20b.html#a1834ec644fd503af4dcc6adc27259162',1,'download_gpt_oss_20b']]],
   ['members_13',['members',['../structgroup__s.html#aa12a7ce7a83c581c8f8de239c9f48314',1,'group_s']]],
   ['members_5fcap_14',['members_cap',['../structgroup__s.html#a0944ff5d344391a556c90fb1b41ec863',1,'group_s']]],
@@ -20,7 +20,7 @@ var searchData=
   ['microbatch_17',['microbatch',['../structie__batcher.html#a6634ddc5b22f958c4a965030d33ea01d',1,'ie_batcher']]],
   ['misses_18',['misses',['../structie__kv__state__t.html#a1fa1e42d45d8cc9ac8305769f5afc259',1,'ie_kv_state_t']]],
   ['model_5fbin_19',['model_bin',['../structcli__extras.html#ae2401ceced12a603aabefd22f57584bd',1,'cli_extras']]],
-  ['model_5fdir_20',['model_dir',['../structie__dedup__spec__t.html#a75966ba428d58a746d34c3cd63ed6854',1,'ie_dedup_spec_t::model_dir'],['../structie__weights__dedup.html#a04ec94ca1a9891914683af43355c4df6',1,'ie_weights_dedup::model_dir'],['../structcli__extras.html#aa52e671b92aa5a9099153b609a0c5792',1,'cli_extras::model_dir']]],
+  ['model_5fdir_20',['model_dir',['../structie__dedup__spec__t.html#a75966ba428d58a746d34c3cd63ed6854',1,'ie_dedup_spec_t::model_dir'],['../structie__engine.html#ae163b3ee14659cf15e8a711de6fffa4a',1,'ie_engine::model_dir'],['../structie__weights__dedup.html#a04ec94ca1a9891914683af43355c4df6',1,'ie_weights_dedup::model_dir'],['../structcli__extras.html#aa52e671b92aa5a9099153b609a0c5792',1,'cli_extras::model_dir']]],
   ['model_5fjson_21',['model_json',['../structcli__extras.html#a96d26a6a2f436fb0b232d383f321c3e6',1,'cli_extras']]],
   ['mu_22',['mu',['../structie__batcher.html#af9832623e01b36b40b66f1807c150053',1,'ie_batcher']]]
 ];

@@ -3,10 +3,9 @@
   <compounddef id="ie__api_8h" kind="file" language="C++">
     <compoundname>ie_api.h</compoundname>
     <includes local="no">stddef.h</includes>
-    <includes local="no">stdint.h</includes>
     <includedby refid="ie__engine_8h" local="yes">engine/include/ie_engine.h</includedby>
-    <includedby refid="util__metrics_8h" local="yes">engine/include/util_metrics.h</includedby>
     <includedby refid="ie__api_8c" local="yes">engine/src/ie_api.c</includedby>
+    <includedby refid="main__infer_8c" local="yes">engine/src/main_infer.c</includedby>
     <includedby refid="test__api_8c" local="yes">tests/c/test_api.c</includedby>
     <incdepgraph>
       <node id="1">
@@ -14,14 +13,9 @@
         <link refid="ie__api_8h"/>
         <childnode refid="2" relation="include">
         </childnode>
-        <childnode refid="3" relation="include">
-        </childnode>
       </node>
       <node id="2">
         <label>stddef.h</label>
-      </node>
-      <node id="3">
-        <label>stdint.h</label>
       </node>
     </incdepgraph>
     <invincdepgraph>
@@ -30,172 +24,113 @@
         <link refid="ie__api_8h"/>
         <childnode refid="2" relation="include">
         </childnode>
+        <childnode refid="3" relation="include">
+        </childnode>
         <childnode refid="4" relation="include">
         </childnode>
-        <childnode refid="6" relation="include">
-        </childnode>
-        <childnode refid="7" relation="include">
+        <childnode refid="5" relation="include">
         </childnode>
       </node>
       <node id="2">
         <label>engine/include/ie_engine.h</label>
         <link refid="ie__engine_8h"/>
-        <childnode refid="3" relation="include">
-        </childnode>
       </node>
-      <node id="4">
-        <label>engine/include/util_metrics.h</label>
-        <link refid="util__metrics_8h"/>
-        <childnode refid="3" relation="include">
-        </childnode>
-        <childnode refid="5" relation="include">
-        </childnode>
-      </node>
-      <node id="6">
+      <node id="3">
         <label>engine/src/ie_api.c</label>
         <link refid="ie__api_8c"/>
       </node>
-      <node id="3">
+      <node id="4">
         <label>engine/src/main_infer.c</label>
         <link refid="main__infer_8c"/>
       </node>
       <node id="5">
-        <label>engine/src/util_metrics.c</label>
-        <link refid="util__metrics_8c"/>
-      </node>
-      <node id="7">
         <label>tests/c/test_api.c</label>
         <link refid="test__api_8c"/>
       </node>
     </invincdepgraph>
-    <innerclass refid="structie__metrics" prot="public">ie_metrics</innerclass>
     <innerclass refid="structie__engine__params" prot="public">ie_engine_params</innerclass>
-    <sectiondef kind="define">
-      <memberdef kind="define" id="ie__api_8h_1afe55386d31dcd43a7accd42d844d59d1" prot="public" static="no">
-        <name>IE_OK</name>
-        <initializer>0</initializer>
+    <sectiondef kind="enum">
+      <memberdef kind="enum" id="ie__api_8h_1aad1f6716972d7c4560daae2edb134d6a" prot="public" static="no" strong="no">
+        <type></type>
+        <name>ie_status</name>
+        <enumvalue id="ie__api_8h_1aad1f6716972d7c4560daae2edb134d6aad0e6665e4f13d22e40740ef4ab91d56e" prot="public">
+          <name>IE_OK</name>
+          <initializer>= 0</initializer>
+          <briefdescription>
+<para>Success. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ie__api_8h_1aad1f6716972d7c4560daae2edb134d6aa97661217f732aa27dceba667633bfabe" prot="public">
+          <name>IE_ERR_BADARG</name>
+          <initializer>= 1</initializer>
+          <briefdescription>
+<para>Invalid argument. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ie__api_8h_1aad1f6716972d7c4560daae2edb134d6aabd8c937c2e5ea463e2f13386d9dae193" prot="public">
+          <name>IE_ERR_OOM</name>
+          <initializer>= 2</initializer>
+          <briefdescription>
+<para>Allocation failed. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ie__api_8h_1aad1f6716972d7c4560daae2edb134d6aa84ac59294416abed65324b43d7fd4406" prot="public">
+          <name>IE_ERR_MODEL</name>
+          <initializer>= 3</initializer>
+          <briefdescription>
+<para>Model could not be loaded or accessed. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ie__api_8h_1aad1f6716972d7c4560daae2edb134d6aa9b9f3972b5933df9b01dbb86a5c01da8" prot="public">
+          <name>IE_ERR_UNSUPPORTED</name>
+          <initializer>= 4</initializer>
+          <briefdescription>
+<para>Unsupported device or configuration. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ie__api_8h_1aad1f6716972d7c4560daae2edb134d6aae28c4b2f5bbc19786a7fae92476e20e6" prot="public">
+          <name>IE_ERR_INTERNAL</name>
+          <initializer>= 5</initializer>
+          <briefdescription>
+<para>Internal failure. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
         <briefdescription>
-<para>Success (used by unit tests that assert IE_OK). </para>
+<para>Status codes returned by the public API. </para>
         </briefdescription>
         <detaileddescription>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="engine/include/ie_api.h" line="50" column="9" bodyfile="engine/include/ie_api.h" bodystart="50" bodyend="-1"/>
-      </memberdef>
-      <memberdef kind="define" id="ie__api_8h_1a02291efdcf17c32155732deab5abe056" prot="public" static="no">
-        <name>IE_PREC_FP32</name>
-        <initializer>&quot;fp32&quot;</initializer>
-        <briefdescription>
-<para>Label for 32-bit floating-point precision hint (&quot;fp32&quot;). </para>
-        </briefdescription>
-        <detaileddescription>
-        </detaileddescription>
-        <inbodydescription>
-        </inbodydescription>
-        <location file="engine/include/ie_api.h" line="58" column="9" bodyfile="engine/include/ie_api.h" bodystart="58" bodyend="-1"/>
-      </memberdef>
-      <memberdef kind="define" id="ie__api_8h_1a36369ac12d8f6028086c6d8287357d09" prot="public" static="no">
-        <name>IE_PREC_BF16</name>
-        <initializer>&quot;bf16&quot;</initializer>
-        <briefdescription>
-<para>Label for bfloat16 precision hint (&quot;bf16&quot;). </para>
-        </briefdescription>
-        <detaileddescription>
-        </detaileddescription>
-        <inbodydescription>
-        </inbodydescription>
-        <location file="engine/include/ie_api.h" line="60" column="9" bodyfile="engine/include/ie_api.h" bodystart="60" bodyend="-1"/>
-      </memberdef>
-      <memberdef kind="define" id="ie__api_8h_1af38bbb40dd97fe07d6fb6304d969d3a3" prot="public" static="no">
-        <name>IE_PREC_FP16</name>
-        <initializer>&quot;fp16&quot;</initializer>
-        <briefdescription>
-<para>Label for 16-bit floating-point precision hint (&quot;fp16&quot;). </para>
-        </briefdescription>
-        <detaileddescription>
-        </detaileddescription>
-        <inbodydescription>
-        </inbodydescription>
-        <location file="engine/include/ie_api.h" line="62" column="9" bodyfile="engine/include/ie_api.h" bodystart="62" bodyend="-1"/>
-      </memberdef>
-      <memberdef kind="define" id="ie__api_8h_1a39d144d612b28562fa770e6b80e4158b" prot="public" static="no">
-        <name>IE_PREC_INT8W</name>
-        <initializer>&quot;int8w&quot;</initializer>
-        <briefdescription>
-<para>Label for weight-only INT8 precision hint (&quot;int8w&quot;). </para>
-        </briefdescription>
-        <detaileddescription>
-        </detaileddescription>
-        <inbodydescription>
-        </inbodydescription>
-        <location file="engine/include/ie_api.h" line="64" column="9" bodyfile="engine/include/ie_api.h" bodystart="64" bodyend="-1"/>
-      </memberdef>
-      <memberdef kind="define" id="ie__api_8h_1a59927f17b60d23df0f20dacdaa1d97d5" prot="public" static="no">
-        <name>IE_PREC_INT4W</name>
-        <initializer>&quot;int4w&quot;</initializer>
-        <briefdescription>
-<para>Label for weight-only INT4 precision hint (&quot;int4w&quot;). </para>
-        </briefdescription>
-        <detaileddescription>
-        </detaileddescription>
-        <inbodydescription>
-        </inbodydescription>
-        <location file="engine/include/ie_api.h" line="66" column="9" bodyfile="engine/include/ie_api.h" bodystart="66" bodyend="-1"/>
-      </memberdef>
-      <memberdef kind="define" id="ie__api_8h_1add4934bbdd3dc2bf4e3ab8438b0d7757" prot="public" static="no">
-        <name>IE_PREC_INT4</name>
-        <initializer>&quot;int4&quot;</initializer>
-        <briefdescription>
-<para>Convenience alias accepted by the CLI; normalized to &quot;int4w&quot;. </para>
-        </briefdescription>
-        <detaileddescription>
-        </detaileddescription>
-        <inbodydescription>
-        </inbodydescription>
-        <location file="engine/include/ie_api.h" line="68" column="9" bodyfile="engine/include/ie_api.h" bodystart="68" bodyend="-1"/>
+        <location file="engine/include/ie_api.h" line="24" column="1" bodyfile="engine/include/ie_api.h" bodystart="24" bodyend="37"/>
       </memberdef>
     </sectiondef>
     <sectiondef kind="typedef">
-      <memberdef kind="typedef" id="ie__api_8h_1ad1139f55afe53e983b6d71ae39bfc4b5" prot="public" static="no">
-        <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">int</ref></type>
-        <definition>ie_status_t</definition>
+      <memberdef kind="typedef" id="ie__api_8h_1a14516a42606ffcc6fafaf4eba282c808" prot="public" static="no">
+        <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">enum</ref> <ref refid="ie__api_8h_1aad1f6716972d7c4560daae2edb134d6a" kindref="member">ie_status</ref></type>
+        <definition>typedef enum ie_status ie_status_t</definition>
         <argsstring></argsstring>
         <name>ie_status_t</name>
         <briefdescription>
-<para>Status/result type where <computeroutput>0</computeroutput> indicates success. </para>
+<para>Status codes returned by the public API. </para>
         </briefdescription>
         <detaileddescription>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="engine/include/ie_api.h" line="46" column="13" bodyfile="engine/include/ie_api.h" bodystart="46" bodyend="-1"/>
-      </memberdef>
-      <memberdef kind="typedef" id="ie__api_8h_1a2339b3d8d0ba3c2aff4d4ee7d912ab96" prot="public" static="no">
-        <type>struct <ref refid="structie__engine" kindref="compound">ie_engine</ref></type>
-        <definition>typedef struct ie_engine ie_engine_t</definition>
-        <argsstring></argsstring>
-        <name>ie_engine_t</name>
-        <briefdescription>
-        </briefdescription>
-        <detaileddescription>
-        </detaileddescription>
-        <inbodydescription>
-        </inbodydescription>
-        <location file="engine/include/ie_api.h" line="78" column="24" bodyfile="engine/include/ie_api.h" bodystart="78" bodyend="-1"/>
-      </memberdef>
-      <memberdef kind="typedef" id="ie__api_8h_1a5221fcb8bdbe1d8fb80a0cae2cb4361c" prot="public" static="no">
-        <type>struct <ref refid="structie__metrics" kindref="compound">ie_metrics</ref></type>
-        <definition>typedef struct ie_metrics ie_metrics_t</definition>
-        <argsstring></argsstring>
-        <name>ie_metrics_t</name>
-        <briefdescription>
-        </briefdescription>
-        <detaileddescription>
-        </detaileddescription>
-        <inbodydescription>
-        </inbodydescription>
-        <location file="engine/include/ie_api.h" line="98" column="14"/>
+        <location file="engine/include/ie_api.h" line="37" column="13"/>
       </memberdef>
       <memberdef kind="typedef" id="ie__api_8h_1a73fd6e398965a847ec84c3d208bf9e1a" prot="public" static="no">
         <type>struct <ref refid="structie__engine__params" kindref="compound">ie_engine_params</ref></type>
@@ -203,156 +138,144 @@
         <argsstring></argsstring>
         <name>ie_engine_params_t</name>
         <briefdescription>
+<para>Engine creation parameters. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>All string fields are expected to be long-lived for the duration of engine use (or copied by the implementation). </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/ie_api.h" line="63" column="20"/>
+      </memberdef>
+      <memberdef kind="typedef" id="ie__api_8h_1a2339b3d8d0ba3c2aff4d4ee7d912ab96" prot="public" static="no">
+        <type>struct <ref refid="structie__engine" kindref="compound">ie_engine</ref></type>
+        <definition>typedef struct ie_engine ie_engine_t</definition>
+        <argsstring></argsstring>
+        <name>ie_engine_t</name>
+        <briefdescription>
+<para>Opaque engine type. </para>
         </briefdescription>
         <detaileddescription>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="engine/include/ie_api.h" line="141" column="20"/>
+        <location file="engine/include/ie_api.h" line="66" column="24" bodyfile="engine/include/ie_api.h" bodystart="66" bodyend="-1"/>
       </memberdef>
     </sectiondef>
     <sectiondef kind="func">
-      <memberdef kind="function" id="ie__api_8h_1a29d800407f90ba6b44385725da64f27d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
-        <type><ref refid="ie__api_8h_1ad1139f55afe53e983b6d71ae39bfc4b5" kindref="member">ie_status_t</ref></type>
+      <memberdef kind="function" id="ie__api_8h_1a84bd87043352946e9d53b0f8a5c4abe0" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="ie__api_8h_1a14516a42606ffcc6fafaf4eba282c808" kindref="member">ie_status_t</ref></type>
         <definition>ie_status_t ie_engine_create</definition>
-        <argsstring>(const ie_engine_params_t *p, ie_engine_t **out)</argsstring>
+        <argsstring>(const ie_engine_params_t *p, const char *device, const char *model_dir, ie_engine_t **out)</argsstring>
         <name>ie_engine_create</name>
         <param>
           <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">const</ref> <ref refid="ie__api_8h_1a73fd6e398965a847ec84c3d208bf9e1a" kindref="member">ie_engine_params_t</ref> *</type>
           <declname>p</declname>
         </param>
         <param>
+          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">const</ref> <ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">char</ref> *</type>
+          <declname>device</declname>
+        </param>
+        <param>
+          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">const</ref> <ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">char</ref> *</type>
+          <declname>model_dir</declname>
+        </param>
+        <param>
           <type><ref refid="ie__api_8h_1a2339b3d8d0ba3c2aff4d4ee7d912ab96" kindref="member">ie_engine_t</ref> **</type>
           <declname>out</declname>
         </param>
         <briefdescription>
-<para>Create a new engine instance. </para>
+<para>Create an engine instance. </para>
         </briefdescription>
         <detaileddescription>
-<para>The engine copies provided parameters by value. Unknown hints are ignored.</para>
 <para><parameterlist kind="param"><parameteritem>
 <parameternamelist>
-<parametername direction="in">p</parametername>
+<parametername>p</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Optional parameters (may be <computeroutput>NULL</computeroutput> for defaults). </para>
+<para>Engine params (may be NULL for defaults). </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
 <parameternamelist>
-<parametername direction="out">out</parametername>
+<parametername>device</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Output engine handle; must be non-<computeroutput>NULL</computeroutput>. </para>
-</parameterdescription>
-</parameteritem>
-</parameterlist>
-<parameterlist kind="retval"><parameteritem>
-<parameternamelist>
-<parametername>IE_OK</parametername>
-</parameternamelist>
-<parameterdescription>
-<para>on success. </para>
+<para>Device string (e.g., &quot;cpu&quot;, &quot;cuda&quot;, &quot;auto&quot;). </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
 <parameternamelist>
-<parametername>non-zero</parametername>
+<parametername>model_dir</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>on failure (resource error, invalid args, etc).</para>
-</parameterdescription>
-</parameteritem>
-</parameterlist>
-Create a new engine instance.</para>
-<para>The engine copies provided parameters by value. Unknown hints are ignored.</para>
-<para><parameterlist kind="param"><parameteritem>
-<parameternamelist>
-<parametername direction="in">p</parametername>
-</parameternamelist>
-<parameterdescription>
-<para>Optional parameters (may be <computeroutput>NULL</computeroutput> for defaults). </para>
+<para>Directory that contains model artifacts. </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
 <parameternamelist>
-<parametername direction="out">out</parametername>
+<parametername>out</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Output engine handle; must be non-<computeroutput>NULL</computeroutput>. </para>
+<para>Receives the created engine pointer on success. </para>
 </parameterdescription>
 </parameteritem>
 </parameterlist>
-<parameterlist kind="retval"><parameteritem>
-<parameternamelist>
-<parametername>IE_OK</parametername>
-</parameternamelist>
-<parameterdescription>
-<para>on success. </para>
-</parameterdescription>
-</parameteritem>
-<parameteritem>
-<parameternamelist>
-<parametername>non-zero</parametername>
-</parameternamelist>
-<parameterdescription>
-<para>on failure (resource error, invalid args, etc).</para>
-</parameterdescription>
-</parameteritem>
-</parameterlist>
-Create a new engine instance.</para>
-<para>CI-friendly behavior:<itemizedlist>
-<listitem><para>Does not open or validate model files.</para>
-</listitem><listitem><para>Fails only on allocation/invalid-argument errors.</para>
-</listitem><listitem><para>“Model required” is enforced by the CLI when IE_REQUIRE_MODEL=1.</para>
-</listitem></itemizedlist>
-</para>
-<para>Additional behavior:<itemizedlist>
-<listitem><para>Derives a deterministic seed from soft hints (precision, affinity, pretranspose, prefetch, sparsity) so that tests using different pathways still remain reproducible.</para>
-</listitem><listitem><para>Records uses_weight_int4 and uses_block_sparse based solely on these hints; backends may later consult these flags without changing ABI.  </para>
-</listitem></itemizedlist>
-</para>
-<para>CI-friendly behavior:<itemizedlist>
-<listitem><para>Does not open or validate model files.</para>
-</listitem><listitem><para>Fails only on allocation/invalid-argument errors.</para>
-</listitem><listitem><para>“Model required” is enforced by the CLI when IE_REQUIRE_MODEL=1.</para>
-</listitem></itemizedlist>
-</para>
-<para>Additional behavior:<itemizedlist>
-<listitem><para>Derives a deterministic seed from soft hints (precision, affinity, pretranspose, prefetch, sparsity) so that tests using different pathways still remain reproducible.</para>
-</listitem><listitem><para>Records uses_weight_int4 and uses_block_sparse based solely on these hints; backends may later consult these flags without changing ABI. </para>
-</listitem></itemizedlist>
+<simplesect kind="return"><para>Status code. </para>
+</simplesect>
 </para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="engine/include/ie_api.h" line="157" column="13" bodyfile="engine/src/ie_api.c" bodystart="115" bodyend="148" declfile="engine/include/ie_api.h" declline="157" declcolumn="13"/>
-        <references refid="structie__engine__params_1a66599574f8a4b8ed7cd7132fc1c0e051" compoundref="ie__api_8h" startline="123">ie_engine_params::affinity</references>
-        <references refid="ie__api_8c_1a72ab94aafe7740f1343d317daa89ca15" compoundref="ie__api_8c" startline="53" endline="61">ascii_ieq</references>
-        <references refid="structie__engine_1a7ae7f7efbee346d04370ee09f5f6cd68" compoundref="ie__api_8c" startline="35">ie_engine::cfg</references>
-        <references refid="ie__api_8c_1aee4ab6bebc1781cfbfe821e0e89d8823" compoundref="ie__api_8c" startline="69" endline="78">fnv1a32</references>
-        <references refid="ie__api_8h_1afe55386d31dcd43a7accd42d844d59d1" compoundref="ie__api_8h" startline="50">IE_OK</references>
-        <references refid="ie__api_8h_1add4934bbdd3dc2bf4e3ab8438b0d7757" compoundref="ie__api_8h" startline="68">IE_PREC_INT4</references>
-        <references refid="ie__api_8h_1a59927f17b60d23df0f20dacdaa1d97d5" compoundref="ie__api_8h" startline="66">IE_PREC_INT4W</references>
-        <references refid="structie__engine_1aac6bf09043eb30698b226cbac9a5903b" compoundref="ie__api_8c" startline="36">ie_engine::last</references>
-        <references refid="structie__engine__params_1a92b02bad12cb4e8173728311c00960b7" compoundref="ie__api_8h" startline="140">ie_engine_params::precision</references>
-        <references refid="structie__engine__params_1a34f965300425f8c1115b2408a4adc04a" compoundref="ie__api_8h" startline="125">ie_engine_params::prefetch</references>
-        <references refid="structie__engine__params_1a992270ba61612b2acb319aed5cbfca13" compoundref="ie__api_8h" startline="124">ie_engine_params::pretranspose</references>
-        <references refid="structie__engine_1a39645576c844465466e51883ccb5ca34" compoundref="ie__api_8c" startline="37">ie_engine::seed</references>
-        <references refid="structie__engine__params_1a1dff4c9644aa8bf7e389f84426c529e1" compoundref="ie__api_8h" startline="137">ie_engine_params::sparsity</references>
-        <references refid="structie__engine_1ad53b43ae0ad90765775476d829256d33" compoundref="ie__api_8c" startline="39">ie_engine::uses_block_sparse</references>
-        <references refid="structie__engine_1a85ec8e92466a0e14370e003ad3af6a68" compoundref="ie__api_8c" startline="38">ie_engine::uses_weight_int4</references>
-        <referencedby refid="main__infer_8c_1a3c04138a5bfe5d72780bb7e82a18e627" compoundref="main__infer_8c" startline="821" endline="1108">main</referencedby>
+        <location file="engine/include/ie_api.h" line="77" column="13" bodyfile="engine/src/ie_api.c" bodystart="77" bodyend="99" declfile="engine/include/ie_api.h" declline="77" declcolumn="13"/>
+        <references refid="ie__api_8h_1aad1f6716972d7c4560daae2edb134d6aa97661217f732aa27dceba667633bfabe" compoundref="ie__api_8h" startline="28">IE_ERR_BADARG</references>
+        <references refid="ie__api_8h_1aad1f6716972d7c4560daae2edb134d6aabd8c937c2e5ea463e2f13386d9dae193" compoundref="ie__api_8h" startline="30">IE_ERR_OOM</references>
+        <references refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" compoundref="ie__device__cuda_8cu" startline="92" endline="110">ie_gemv_rowwise_f32_kernel</references>
+        <references refid="ie__api_8h_1aad1f6716972d7c4560daae2edb134d6aad0e6665e4f13d22e40740ef4ab91d56e" compoundref="ie__api_8h" startline="26">IE_OK</references>
+        <references refid="structie__engine_1a06bd9cc5d2f1b50aeb49f9160cf516df" compoundref="ie__api_8c" startline="42">ie_engine::params</references>
+        <references refid="ie__api_8c_1a210133797f21fcee710ec892841dce42" compoundref="ie__api_8c" startline="54" endline="58">safe_strcpy</references>
+        <referencedby refid="main__infer_8c_1a3c04138a5bfe5d72780bb7e82a18e627" compoundref="main__infer_8c" startline="938" endline="1170">main</referencedby>
         <referencedby refid="test__api_8c_1a840291bc02cba5474a4cb46a9b9566fe" compoundref="test__api_8c" startline="21" endline="50">main</referencedby>
       </memberdef>
-      <memberdef kind="function" id="ie__api_8h_1a21ab40e22d9192fe353ad6640610a01d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
-        <type><ref refid="ie__api_8h_1ad1139f55afe53e983b6d71ae39bfc4b5" kindref="member">ie_status_t</ref></type>
-        <definition>ie_status_t ie_engine_generate</definition>
-        <argsstring>(ie_engine_t *h, const char *prompt, size_t max_new_tokens, uint32_t *out_tokens, uint32_t *out_count)</argsstring>
-        <name>ie_engine_generate</name>
+      <memberdef kind="function" id="ie__api_8h_1a5a9a30f05ef6183f6a75811c616b3a0a" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">void</ref></type>
+        <definition>void ie_engine_destroy</definition>
+        <argsstring>(ie_engine_t *e)</argsstring>
+        <name>ie_engine_destroy</name>
         <param>
           <type><ref refid="ie__api_8h_1a2339b3d8d0ba3c2aff4d4ee7d912ab96" kindref="member">ie_engine_t</ref> *</type>
-          <declname>h</declname>
+          <declname>e</declname>
+        </param>
+        <briefdescription>
+<para>Destroy an engine instance. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>e</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Engine pointer (may be NULL). </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/ie_api.h" line="86" column="6" bodyfile="engine/src/ie_api.c" bodystart="101" bodyend="104" declfile="engine/include/ie_api.h" declline="86" declcolumn="6"/>
+        <references refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" compoundref="ie__device__cuda_8cu" startline="92" endline="110">ie_gemv_rowwise_f32_kernel</references>
+        <referencedby refid="main__infer_8c_1a3c04138a5bfe5d72780bb7e82a18e627" compoundref="main__infer_8c" startline="938" endline="1170">main</referencedby>
+        <referencedby refid="test__api_8c_1a840291bc02cba5474a4cb46a9b9566fe" compoundref="test__api_8c" startline="21" endline="50">main</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="ie__api_8h_1ad32cf2cd209832e4cd577a5a1e31970f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="ie__api_8h_1a14516a42606ffcc6fafaf4eba282c808" kindref="member">ie_status_t</ref></type>
+        <definition>ie_status_t ie_engine_generate</definition>
+        <argsstring>(const ie_engine_t *e, const char *prompt, size_t max_new, int *out_tokens, size_t *out_n_tokens)</argsstring>
+        <name>ie_engine_generate</name>
+        <param>
+          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">const</ref> <ref refid="ie__api_8h_1a2339b3d8d0ba3c2aff4d4ee7d912ab96" kindref="member">ie_engine_t</ref> *</type>
+          <declname>e</declname>
         </param>
         <param>
           <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">const</ref> <ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">char</ref> *</type>
@@ -360,419 +283,138 @@ Create a new engine instance.</para>
         </param>
         <param>
           <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">size_t</ref></type>
-          <declname>max_new_tokens</declname>
+          <declname>max_new</declname>
         </param>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">uint32_t</ref> *</type>
+          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">int</ref> *</type>
           <declname>out_tokens</declname>
         </param>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">uint32_t</ref> *</type>
-          <declname>out_count</declname>
+          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">size_t</ref> *</type>
+          <declname>out_n_tokens</declname>
         </param>
         <briefdescription>
-<para>Generate up to <computeroutput>max_new_tokens</computeroutput> from <computeroutput>prompt</computeroutput>. </para>
+<para>Generate up to <computeroutput>max_new</computeroutput> tokens for the given prompt. </para>
         </briefdescription>
         <detaileddescription>
-<para>Implementations may output fewer tokens (e.g., due to EOS). The caller owns the <computeroutput>out_tokens</computeroutput> buffer and must supply capacity for <computeroutput>max_new_tokens</computeroutput>.</para>
 <para><parameterlist kind="param"><parameteritem>
 <parameternamelist>
-<parametername direction="in">h</parametername>
+<parametername>e</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Engine handle. </para>
+<para>Engine pointer (required). </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
 <parameternamelist>
-<parametername direction="in">prompt</parametername>
+<parametername>prompt</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>NUL-terminated prompt text. </para>
+<para>Prompt string (may be empty, must be non-NULL). </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
 <parameternamelist>
-<parametername direction="in">max_new_tokens</parametername>
+<parametername>max_new</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Upper bound on tokens to produce. </para>
+<para>Maximum number of tokens to generate. </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
 <parameternamelist>
-<parametername direction="out">out_tokens</parametername>
+<parametername>out_tokens</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Output buffer for token IDs (size &gt;= <computeroutput>max_new_tokens</computeroutput>). </para>
+<para>Output buffer (length at least max_new when max_new&gt;0). </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
 <parameternamelist>
-<parametername direction="out">out_count</parametername>
+<parametername>out_n_tokens</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Number of tokens actually produced (&lt;= <computeroutput>max_new_tokens</computeroutput>). </para>
+<para>Receives number of generated tokens. </para>
 </parameterdescription>
 </parameteritem>
 </parameterlist>
-<parameterlist kind="retval"><parameteritem>
-<parameternamelist>
-<parametername>IE_OK</parametername>
-</parameternamelist>
-<parameterdescription>
-<para>on success. </para>
-</parameterdescription>
-</parameteritem>
-<parameteritem>
-<parameternamelist>
-<parametername>non-zero</parametername>
-</parameternamelist>
-<parameterdescription>
-<para>on failure.</para>
-</parameterdescription>
-</parameteritem>
-</parameterlist>
-Generate up to <computeroutput>max_new_tokens</computeroutput> from <computeroutput>prompt</computeroutput>.</para>
-<para>Implementations may output fewer tokens (e.g., due to EOS). The caller owns the <computeroutput>out_tokens</computeroutput> buffer and must supply capacity for <computeroutput>max_new_tokens</computeroutput>.</para>
-<para><parameterlist kind="param"><parameteritem>
-<parameternamelist>
-<parametername direction="in">h</parametername>
-</parameternamelist>
-<parameterdescription>
-<para>Engine handle. </para>
-</parameterdescription>
-</parameteritem>
-<parameteritem>
-<parameternamelist>
-<parametername direction="in">prompt</parametername>
-</parameternamelist>
-<parameterdescription>
-<para>NUL-terminated prompt text. </para>
-</parameterdescription>
-</parameteritem>
-<parameteritem>
-<parameternamelist>
-<parametername direction="in">max_new_tokens</parametername>
-</parameternamelist>
-<parameterdescription>
-<para>Upper bound on tokens to produce. </para>
-</parameterdescription>
-</parameteritem>
-<parameteritem>
-<parameternamelist>
-<parametername direction="out">out_tokens</parametername>
-</parameternamelist>
-<parameterdescription>
-<para>Output buffer for token IDs (size &gt;= <computeroutput>max_new_tokens</computeroutput>). </para>
-</parameterdescription>
-</parameteritem>
-<parameteritem>
-<parameternamelist>
-<parametername direction="out">out_count</parametername>
-</parameternamelist>
-<parameterdescription>
-<para>Number of tokens actually produced (&lt;= <computeroutput>max_new_tokens</computeroutput>). </para>
-</parameterdescription>
-</parameteritem>
-</parameterlist>
-<parameterlist kind="retval"><parameteritem>
-<parameternamelist>
-<parametername>IE_OK</parametername>
-</parameternamelist>
-<parameterdescription>
-<para>on success. </para>
-</parameterdescription>
-</parameteritem>
-<parameteritem>
-<parameternamelist>
-<parametername>non-zero</parametername>
-</parameternamelist>
-<parameterdescription>
-<para>on failure.</para>
-</parameterdescription>
-</parameteritem>
-</parameterlist>
-Generate up to <computeroutput>max_new_tokens</computeroutput> from <computeroutput>prompt</computeroutput>.</para>
-<para><simplesect kind="par"><title>Write contract</title><para><itemizedlist>
-<listitem><para>If <computeroutput>max_new_tokens == 0</computeroutput>, nothing is written and <computeroutput>*out_count</computeroutput> becomes 0.</para>
-</listitem><listitem><para>On success, <computeroutput>*out_count</computeroutput> equals the number of tokens produced (≤ max).</para>
-</listitem><listitem><para>Output is deterministic for identical <computeroutput>(engine seed, prompt)</computeroutput>.  </para>
-</listitem></itemizedlist>
-</para>
-</simplesect>
-<simplesect kind="par"><title>Write contract</title><para><itemizedlist>
-<listitem><para>If <computeroutput>max_new_tokens == 0</computeroutput>, nothing is written and <computeroutput>*out_count</computeroutput> becomes 0.</para>
-</listitem><listitem><para>On success, <computeroutput>*out_count</computeroutput> equals the number of tokens produced (≤ max).</para>
-</listitem><listitem><para>Output is deterministic for identical <computeroutput>(engine seed, prompt)</computeroutput>. </para>
-</listitem></itemizedlist>
-</para>
+<simplesect kind="return"><para>Status code. </para>
 </simplesect>
 </para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="engine/include/ie_api.h" line="173" column="13" bodyfile="engine/src/ie_api.c" bodystart="166" bodyend="203" declfile="engine/include/ie_api.h" declline="173" declcolumn="13"/>
-        <references refid="ie__api_8c_1aee4ab6bebc1781cfbfe821e0e89d8823" compoundref="ie__api_8c" startline="69" endline="78">fnv1a32</references>
-        <references refid="ie__kv__instrumentation_8h_1a27b3df57a37a25798490912b1e92d716" compoundref="ie__kv__instrumentation_8c" startline="113" endline="121">ie_kv_on_token</references>
-        <references refid="ie__api_8h_1afe55386d31dcd43a7accd42d844d59d1" compoundref="ie__api_8h" startline="50">IE_OK</references>
-        <references refid="structie__engine_1aac6bf09043eb30698b226cbac9a5903b" compoundref="ie__api_8c" startline="36">ie_engine::last</references>
-        <references refid="structie__engine_1a39645576c844465466e51883ccb5ca34" compoundref="ie__api_8c" startline="37">ie_engine::seed</references>
-        <references refid="ie__api_8c_1a22d32f0b2752f3aa310c127054b03e22" compoundref="ie__api_8c" startline="86" endline="93">xorshift64star</references>
-        <referencedby refid="main__infer_8c_1a3c04138a5bfe5d72780bb7e82a18e627" compoundref="main__infer_8c" startline="821" endline="1108">main</referencedby>
-        <referencedby refid="test__api_8c_1a840291bc02cba5474a4cb46a9b9566fe" compoundref="test__api_8c" startline="21" endline="50">main</referencedby>
-      </memberdef>
-      <memberdef kind="function" id="ie__api_8h_1ac1c4268d66d8a840276e0a72c9ace902" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
-        <type><ref refid="ie__api_8h_1ad1139f55afe53e983b6d71ae39bfc4b5" kindref="member">ie_status_t</ref></type>
-        <definition>ie_status_t ie_engine_metrics</definition>
-        <argsstring>(const ie_engine_t *h, ie_metrics_t *out)</argsstring>
-        <name>ie_engine_metrics</name>
-        <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">const</ref> <ref refid="ie__api_8h_1a2339b3d8d0ba3c2aff4d4ee7d912ab96" kindref="member">ie_engine_t</ref> *</type>
-          <declname>h</declname>
-        </param>
-        <param>
-          <type><ref refid="structie__metrics__t" kindref="compound">ie_metrics_t</ref> *</type>
-          <declname>out</declname>
-        </param>
-        <briefdescription>
-<para>Snapshot engine metrics into <computeroutput>out</computeroutput>. </para>
-        </briefdescription>
-        <detaileddescription>
-<para>The caller should zero-initialize <computeroutput>out</computeroutput> before calling to preserve forward compatibility.</para>
-<para><parameterlist kind="param"><parameteritem>
-<parameternamelist>
-<parametername direction="in">h</parametername>
-</parameternamelist>
-<parameterdescription>
-<para>Engine handle (const). </para>
-</parameterdescription>
-</parameteritem>
-<parameteritem>
-<parameternamelist>
-<parametername direction="out">out</parametername>
-</parameternamelist>
-<parameterdescription>
-<para>Output struct; must be non-<computeroutput>NULL</computeroutput>. </para>
-</parameterdescription>
-</parameteritem>
-</parameterlist>
-<parameterlist kind="retval"><parameteritem>
-<parameternamelist>
-<parametername>IE_OK</parametername>
-</parameternamelist>
-<parameterdescription>
-<para>on success. </para>
-</parameterdescription>
-</parameteritem>
-<parameteritem>
-<parameternamelist>
-<parametername>non-zero</parametername>
-</parameternamelist>
-<parameterdescription>
-<para>on failure (invalid args, etc).</para>
-</parameterdescription>
-</parameteritem>
-</parameterlist>
-Snapshot engine metrics into <computeroutput>out</computeroutput>.</para>
-<para>The caller should zero-initialize <computeroutput>out</computeroutput> before calling to preserve forward compatibility.</para>
-<para><parameterlist kind="param"><parameteritem>
-<parameternamelist>
-<parametername direction="in">h</parametername>
-</parameternamelist>
-<parameterdescription>
-<para>Engine handle (const). </para>
-</parameterdescription>
-</parameteritem>
-<parameteritem>
-<parameternamelist>
-<parametername direction="out">out</parametername>
-</parameternamelist>
-<parameterdescription>
-<para>Output struct; must be non-<computeroutput>NULL</computeroutput>. </para>
-</parameterdescription>
-</parameteritem>
-</parameterlist>
-<parameterlist kind="retval"><parameteritem>
-<parameternamelist>
-<parametername>IE_OK</parametername>
-</parameternamelist>
-<parameterdescription>
-<para>on success. </para>
-</parameterdescription>
-</parameteritem>
-<parameteritem>
-<parameternamelist>
-<parametername>non-zero</parametername>
-</parameternamelist>
-<parameterdescription>
-<para>on failure (invalid args, etc).</para>
-</parameterdescription>
-</parameteritem>
-</parameterlist>
-Snapshot engine metrics into <computeroutput>out</computeroutput>.</para>
-        </detaileddescription>
-        <inbodydescription>
-        </inbodydescription>
-        <location file="engine/include/ie_api.h" line="190" column="13" bodyfile="engine/src/ie_api.c" bodystart="208" bodyend="212" declfile="engine/include/ie_api.h" declline="190" declcolumn="13"/>
+        <location file="engine/include/ie_api.h" line="98" column="13" bodyfile="engine/src/ie_api.c" bodystart="106" bodyend="131" declfile="engine/include/ie_api.h" declline="98" declcolumn="13"/>
+        <references refid="ie__api_8c_1a90c00769b295e35729eb5981adb8b83f" compoundref="ie__api_8c" startline="65" endline="75">fnv1a64</references>
+        <references refid="ie__api_8h_1aad1f6716972d7c4560daae2edb134d6aa97661217f732aa27dceba667633bfabe" compoundref="ie__api_8h" startline="28">IE_ERR_BADARG</references>
         <references refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" compoundref="ie__device__cuda_8cu" startline="92" endline="110">ie_gemv_rowwise_f32_kernel</references>
-        <references refid="ie__api_8h_1afe55386d31dcd43a7accd42d844d59d1" compoundref="ie__api_8h" startline="50">IE_OK</references>
-        <referencedby refid="main__infer_8c_1a3c04138a5bfe5d72780bb7e82a18e627" compoundref="main__infer_8c" startline="821" endline="1108">main</referencedby>
-        <referencedby refid="test__api_8c_1a840291bc02cba5474a4cb46a9b9566fe" compoundref="test__api_8c" startline="21" endline="50">main</referencedby>
-      </memberdef>
-      <memberdef kind="function" id="ie__api_8h_1a8a724f7097b3e19da8d7dd97fba4415e" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
-        <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">void</ref></type>
-        <definition>void ie_engine_destroy</definition>
-        <argsstring>(ie_engine_t *h)</argsstring>
-        <name>ie_engine_destroy</name>
-        <param>
-          <type><ref refid="ie__api_8h_1a2339b3d8d0ba3c2aff4d4ee7d912ab96" kindref="member">ie_engine_t</ref> *</type>
-          <declname>h</declname>
-        </param>
-        <briefdescription>
-<para>Destroy an engine and free its resources. </para>
-        </briefdescription>
-        <detaileddescription>
-<para><parameterlist kind="param"><parameteritem>
-<parameternamelist>
-<parametername direction="in">h</parametername>
-</parameternamelist>
-<parameterdescription>
-<para>Engine handle (may be <computeroutput>NULL</computeroutput>; no-op).</para>
-</parameterdescription>
-</parameteritem>
-</parameterlist>
-Destroy an engine and free its resources.</para>
-<para><parameterlist kind="param"><parameteritem>
-<parameternamelist>
-<parametername direction="in">h</parametername>
-</parameternamelist>
-<parameterdescription>
-<para>Engine handle (may be <computeroutput>NULL</computeroutput>; no-op).</para>
-</parameterdescription>
-</parameteritem>
-</parameterlist>
-Destroy an engine and free its resources.</para>
-        </detaileddescription>
-        <inbodydescription>
-        </inbodydescription>
-        <location file="engine/include/ie_api.h" line="197" column="6" bodyfile="engine/src/ie_api.c" bodystart="153" bodyend="156" declfile="engine/include/ie_api.h" declline="197" declcolumn="6"/>
-        <referencedby refid="main__infer_8c_1a3c04138a5bfe5d72780bb7e82a18e627" compoundref="main__infer_8c" startline="821" endline="1108">main</referencedby>
+        <references refid="ie__api_8h_1aad1f6716972d7c4560daae2edb134d6aad0e6665e4f13d22e40740ef4ab91d56e" compoundref="ie__api_8h" startline="26">IE_OK</references>
+        <referencedby refid="main__infer_8c_1a3c04138a5bfe5d72780bb7e82a18e627" compoundref="main__infer_8c" startline="938" endline="1170">main</referencedby>
         <referencedby refid="test__api_8c_1a840291bc02cba5474a4cb46a9b9566fe" compoundref="test__api_8c" startline="21" endline="50">main</referencedby>
       </memberdef>
     </sectiondef>
     <briefdescription>
-<para>Public C API for the inference engine (minimal surface used by CLI/tests). </para>
+<para>Public C API for creating an inference engine instance and generating tokens. </para>
     </briefdescription>
     <detaileddescription>
-<para>The API surface is intentionally small. Fields like <ref refid="structie__engine__params_1a92b02bad12cb4e8173728311c00960b7" kindref="member">ie_engine_params_t::precision</ref> exist as <emphasis>soft hints</emphasis> that backends may honor or ignore.</para>
-<sect1 id="ie__api_8h_1precision">
-<title>Precision labels</title>
-<para>The <computeroutput>precision</computeroutput> hint is a string label accepted by the CLI/tests to describe the desired numeric pathway. In addition to floating-point labels, two weight-only quantization labels are documented:<itemizedlist>
-<listitem><para>&quot;int8w&quot; : weight-only INT8 (activations in fp32/fp16/bf16 as the backend decides)</para>
-</listitem><listitem><para>&quot;int4w&quot; : weight-only INT4 (packed nibbles, symmetric, zero-point = 0)</para>
+<para>This header intentionally keeps the interface small and stable:<itemizedlist>
+<listitem><para>The CLI can create an engine for a given (device, model_dir) pair.</para>
+</listitem><listitem><para>Generation emits integer token ids into a caller-provided buffer.</para>
 </listitem></itemizedlist>
 </para>
-<para>Engines are free to ignore these hints or to act on them. The CLI never remaps &quot;int4&quot; to &quot;fp32&quot; — when seen, it normalizes to &quot;int4w&quot;.</para>
-</sect1>
-<sect1 id="ie__api_8h_1sparsity">
-<title>Sparsity labels</title>
-<para>The optional <computeroutput>sparsity</computeroutput> hint describes whether the engine should attempt to use sparse kernels/layouts when available. This is a soft hint:<itemizedlist>
-<listitem><para>&quot;none&quot; : dense weights (default when unset).</para>
-</listitem><listitem><para>&quot;block&quot; : block-sparse weights (e.g., BSR layout).</para>
-</listitem><listitem><para>&quot;auto&quot; : let the backend decide based on model metadata.</para>
-</listitem></itemizedlist>
-</para>
-<para>Backends that do not support sparsity should silently ignore this hint. </para>
-</sect1>
+<para>This API does not require callers to know engine internals. </para>
     </detaileddescription>
     <programlisting>
-<codeline lineno="1"><highlight class="preprocessor">#ifndef<sp/>IE_API_H_</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="2"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>IE_API_H_</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="3"><highlight class="normal"></highlight></codeline>
-<codeline lineno="31"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stddef.h&gt;</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="32"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stdint.h&gt;</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="33"><highlight class="normal"></highlight></codeline>
-<codeline lineno="34"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="35"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/></highlight><highlight class="stringliteral">&quot;C&quot;</highlight><highlight class="normal"><sp/>{</highlight></codeline>
-<codeline lineno="36"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="37"><highlight class="normal"></highlight></codeline>
-<codeline lineno="38"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>--------------------------------------------------------------------------<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="39"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>Status<sp/>codes<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="40"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>--------------------------------------------------------------------------<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="41"><highlight class="normal"></highlight></codeline>
-<codeline lineno="46" refid="ie__api_8h_1ad1139f55afe53e983b6d71ae39bfc4b5" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="ie__api_8h_1ad1139f55afe53e983b6d71ae39bfc4b5" kindref="member">ie_status_t</ref>;</highlight></codeline>
-<codeline lineno="47"><highlight class="normal"></highlight></codeline>
-<codeline lineno="49"><highlight class="normal"></highlight><highlight class="preprocessor">#ifndef<sp/>IE_OK</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="50" refid="ie__api_8h_1afe55386d31dcd43a7accd42d844d59d1" refkind="member"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>IE_OK<sp/>0</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="51"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="52"><highlight class="normal"></highlight></codeline>
-<codeline lineno="53"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>--------------------------------------------------------------------------<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="54"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>Precision<sp/>labels<sp/>(soft<sp/>hints)<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="55"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>--------------------------------------------------------------------------<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="56"><highlight class="normal"></highlight></codeline>
-<codeline lineno="58" refid="ie__api_8h_1a02291efdcf17c32155732deab5abe056" refkind="member"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>IE_PREC_FP32<sp/><sp/>&quot;fp32&quot;</highlight></codeline>
-<codeline lineno="60" refid="ie__api_8h_1a36369ac12d8f6028086c6d8287357d09" refkind="member"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>IE_PREC_BF16<sp/><sp/>&quot;bf16&quot;</highlight></codeline>
-<codeline lineno="62" refid="ie__api_8h_1af38bbb40dd97fe07d6fb6304d969d3a3" refkind="member"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>IE_PREC_FP16<sp/><sp/>&quot;fp16&quot;</highlight></codeline>
-<codeline lineno="64" refid="ie__api_8h_1a39d144d612b28562fa770e6b80e4158b" refkind="member"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>IE_PREC_INT8W<sp/>&quot;int8w&quot;</highlight></codeline>
-<codeline lineno="66" refid="ie__api_8h_1a59927f17b60d23df0f20dacdaa1d97d5" refkind="member"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>IE_PREC_INT4W<sp/>&quot;int4w&quot;</highlight></codeline>
-<codeline lineno="68" refid="ie__api_8h_1add4934bbdd3dc2bf4e3ab8438b0d7757" refkind="member"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>IE_PREC_INT4<sp/><sp/>&quot;int4&quot;</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="69"><highlight class="normal"></highlight></codeline>
-<codeline lineno="70"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>--------------------------------------------------------------------------<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="71"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>Opaque<sp/>handle<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="72"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>--------------------------------------------------------------------------<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="73"><highlight class="normal"></highlight></codeline>
-<codeline lineno="78" refid="ie__api_8h_1a2339b3d8d0ba3c2aff4d4ee7d912ab96" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structie__engine" kindref="compound">ie_engine</ref><sp/><ref refid="structie__engine" kindref="compound">ie_engine_t</ref>;</highlight></codeline>
-<codeline lineno="79"><highlight class="normal"></highlight></codeline>
-<codeline lineno="80"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>--------------------------------------------------------------------------<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="81"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>Metrics<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="82"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>--------------------------------------------------------------------------<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="83"><highlight class="normal"></highlight></codeline>
-<codeline lineno="91" refid="structie__metrics" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structie__metrics" kindref="compound">ie_metrics</ref><sp/>{</highlight></codeline>
-<codeline lineno="92" refid="structie__metrics_1a3c947a74937640d7b1300df6a6ccf3b7" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">double</highlight><highlight class="normal"><sp/><sp/><sp/><ref refid="structie__metrics_1a3c947a74937640d7b1300df6a6ccf3b7" kindref="member">tps_true</ref>;<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight></codeline>
-<codeline lineno="93" refid="structie__metrics_1aa309d0758ab70ad511b771b893bf1859" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">double</highlight><highlight class="normal"><sp/><sp/><sp/><ref refid="structie__metrics_1aa309d0758ab70ad511b771b893bf1859" kindref="member">latency_p50_ms</ref>;<sp/><sp/></highlight></codeline>
-<codeline lineno="94" refid="structie__metrics_1a2285c7c529760ddbd5d8a81732bdf98d" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">double</highlight><highlight class="normal"><sp/><sp/><sp/><ref refid="structie__metrics_1a2285c7c529760ddbd5d8a81732bdf98d" kindref="member">latency_p95_ms</ref>;<sp/><sp/></highlight></codeline>
-<codeline lineno="95" refid="structie__metrics_1aaba3f47eb3330e79ef9e127586f3d223" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/><sp/><sp/><ref refid="structie__metrics_1aaba3f47eb3330e79ef9e127586f3d223" kindref="member">rss_peak_mb</ref>;<sp/><sp/><sp/><sp/><sp/></highlight></codeline>
-<codeline lineno="96" refid="structie__metrics_1a1583bee100f691bc5d673138373393c4" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">uint64_t</ref><sp/><ref refid="structie__metrics_1a1583bee100f691bc5d673138373393c4" kindref="member">kv_hits</ref>;<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight></codeline>
-<codeline lineno="97" refid="structie__metrics_1abdbfea4007d54a071049764a1b573af6" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">uint64_t</ref><sp/><ref refid="structie__metrics_1abdbfea4007d54a071049764a1b573af6" kindref="member">kv_misses</ref>;<sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight></codeline>
-<codeline lineno="98" refid="ie__api_8h_1a5221fcb8bdbe1d8fb80a0cae2cb4361c" refkind="member"><highlight class="normal">}<sp/><ref refid="ie__api_8h_1a5221fcb8bdbe1d8fb80a0cae2cb4361c" kindref="member">ie_metrics_t</ref>;</highlight></codeline>
-<codeline lineno="99"><highlight class="normal"></highlight></codeline>
-<codeline lineno="100"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>--------------------------------------------------------------------------<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="101"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>Engine<sp/>parameters<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="102"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>--------------------------------------------------------------------------<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="1"><highlight class="normal"></highlight></codeline>
+<codeline lineno="13"><highlight class="normal"></highlight><highlight class="preprocessor">#pragma<sp/>once</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="14"><highlight class="normal"></highlight></codeline>
+<codeline lineno="15"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stddef.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="16"><highlight class="normal"></highlight></codeline>
+<codeline lineno="17"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="18"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/></highlight><highlight class="stringliteral">&quot;C&quot;</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="19"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="20"><highlight class="normal"></highlight></codeline>
+<codeline lineno="24" refid="ie__api_8h_1aad1f6716972d7c4560daae2edb134d6a" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">enum</highlight><highlight class="normal"><sp/><ref refid="ie__api_8h_1aad1f6716972d7c4560daae2edb134d6a" kindref="member">ie_status</ref><sp/>{</highlight></codeline>
+<codeline lineno="26" refid="ie__api_8h_1aad1f6716972d7c4560daae2edb134d6aad0e6665e4f13d22e40740ef4ab91d56e" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="ie__api_8h_1aad1f6716972d7c4560daae2edb134d6aad0e6665e4f13d22e40740ef4ab91d56e" kindref="member">IE_OK</ref><sp/>=<sp/>0,</highlight></codeline>
+<codeline lineno="28" refid="ie__api_8h_1aad1f6716972d7c4560daae2edb134d6aa97661217f732aa27dceba667633bfabe" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="ie__api_8h_1aad1f6716972d7c4560daae2edb134d6aa97661217f732aa27dceba667633bfabe" kindref="member">IE_ERR_BADARG</ref><sp/>=<sp/>1,</highlight></codeline>
+<codeline lineno="30" refid="ie__api_8h_1aad1f6716972d7c4560daae2edb134d6aabd8c937c2e5ea463e2f13386d9dae193" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="ie__api_8h_1aad1f6716972d7c4560daae2edb134d6aabd8c937c2e5ea463e2f13386d9dae193" kindref="member">IE_ERR_OOM</ref><sp/>=<sp/>2,</highlight></codeline>
+<codeline lineno="32" refid="ie__api_8h_1aad1f6716972d7c4560daae2edb134d6aa84ac59294416abed65324b43d7fd4406" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="ie__api_8h_1aad1f6716972d7c4560daae2edb134d6aa84ac59294416abed65324b43d7fd4406" kindref="member">IE_ERR_MODEL</ref><sp/>=<sp/>3,</highlight></codeline>
+<codeline lineno="34" refid="ie__api_8h_1aad1f6716972d7c4560daae2edb134d6aa9b9f3972b5933df9b01dbb86a5c01da8" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="ie__api_8h_1aad1f6716972d7c4560daae2edb134d6aa9b9f3972b5933df9b01dbb86a5c01da8" kindref="member">IE_ERR_UNSUPPORTED</ref><sp/>=<sp/>4,</highlight></codeline>
+<codeline lineno="36"><highlight class="normal"><sp/><sp/><ref refid="ie__api_8h_1aad1f6716972d7c4560daae2edb134d6aae28c4b2f5bbc19786a7fae92476e20e6" kindref="member">IE_ERR_INTERNAL</ref><sp/>=<sp/>5</highlight></codeline>
+<codeline lineno="37" refid="ie__api_8h_1aad1f6716972d7c4560daae2edb134d6aae28c4b2f5bbc19786a7fae92476e20e6" refkind="member"><highlight class="normal">}<sp/><ref refid="ie__api_8h_1a14516a42606ffcc6fafaf4eba282c808" kindref="member">ie_status_t</ref>;</highlight></codeline>
+<codeline lineno="38"><highlight class="normal"></highlight></codeline>
+<codeline lineno="45" refid="structie__engine__params" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structie__engine__params" kindref="compound">ie_engine_params</ref><sp/>{</highlight></codeline>
+<codeline lineno="47" refid="structie__engine__params_1a92b02bad12cb4e8173728311c00960b7" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*<ref refid="structie__engine__params_1a92b02bad12cb4e8173728311c00960b7" kindref="member">precision</ref>;</highlight></codeline>
+<codeline lineno="48"><highlight class="normal"></highlight></codeline>
+<codeline lineno="50" refid="structie__engine__params_1a1dff4c9644aa8bf7e389f84426c529e1" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*<ref refid="structie__engine__params_1a1dff4c9644aa8bf7e389f84426c529e1" kindref="member">sparsity</ref>;</highlight></codeline>
+<codeline lineno="51"><highlight class="normal"></highlight></codeline>
+<codeline lineno="53" refid="structie__engine__params_1a66599574f8a4b8ed7cd7132fc1c0e051" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*<ref refid="structie__engine__params_1a66599574f8a4b8ed7cd7132fc1c0e051" kindref="member">affinity</ref>;</highlight></codeline>
+<codeline lineno="54"><highlight class="normal"></highlight></codeline>
+<codeline lineno="56" refid="structie__engine__params_1a992270ba61612b2acb319aed5cbfca13" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*<ref refid="structie__engine__params_1a992270ba61612b2acb319aed5cbfca13" kindref="member">pretranspose</ref>;</highlight></codeline>
+<codeline lineno="57"><highlight class="normal"></highlight></codeline>
+<codeline lineno="59" refid="structie__engine__params_1a34f965300425f8c1115b2408a4adc04a" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*<ref refid="structie__engine__params_1a34f965300425f8c1115b2408a4adc04a" kindref="member">prefetch</ref>;</highlight></codeline>
+<codeline lineno="60"><highlight class="normal"></highlight></codeline>
+<codeline lineno="62" refid="structie__engine__params_1a0c0b5f7588c98d30e0d2535790f6f24c" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="structie__engine__params_1a0c0b5f7588c98d30e0d2535790f6f24c" kindref="member">threads</ref>;</highlight></codeline>
+<codeline lineno="63" refid="ie__api_8h_1a73fd6e398965a847ec84c3d208bf9e1a" refkind="member"><highlight class="normal">}<sp/><ref refid="ie__api_8h_1a73fd6e398965a847ec84c3d208bf9e1a" kindref="member">ie_engine_params_t</ref>;</highlight></codeline>
+<codeline lineno="64"><highlight class="normal"></highlight></codeline>
+<codeline lineno="66" refid="ie__api_8h_1a2339b3d8d0ba3c2aff4d4ee7d912ab96" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structie__engine" kindref="compound">ie_engine</ref><sp/><ref refid="structie__engine" kindref="compound">ie_engine_t</ref>;</highlight></codeline>
+<codeline lineno="67"><highlight class="normal"></highlight></codeline>
+<codeline lineno="77"><highlight class="normal"><ref refid="ie__api_8h_1a14516a42606ffcc6fafaf4eba282c808" kindref="member">ie_status_t</ref><sp/><ref refid="ie__api_8h_1a84bd87043352946e9d53b0f8a5c4abe0" kindref="member">ie_engine_create</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="structie__engine__params" kindref="compound">ie_engine_params_t</ref><sp/>*<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">p</ref>,</highlight></codeline>
+<codeline lineno="78"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*<ref refid="structie__engine_1ac83d74f112e27cbc48851c66c2522505" kindref="member">device</ref>,</highlight></codeline>
+<codeline lineno="79"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*<ref refid="structie__engine_1ae163b3ee14659cf15e8a711de6fffa4a" kindref="member">model_dir</ref>,</highlight></codeline>
+<codeline lineno="80"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="structie__engine" kindref="compound">ie_engine_t</ref><sp/>**<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">out</ref>);</highlight></codeline>
+<codeline lineno="81"><highlight class="normal"></highlight></codeline>
+<codeline lineno="86"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="ie__api_8h_1a5a9a30f05ef6183f6a75811c616b3a0a" kindref="member">ie_engine_destroy</ref>(<ref refid="structie__engine" kindref="compound">ie_engine_t</ref><sp/>*<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">e</ref>);</highlight></codeline>
+<codeline lineno="87"><highlight class="normal"></highlight></codeline>
+<codeline lineno="98"><highlight class="normal"><ref refid="ie__api_8h_1a14516a42606ffcc6fafaf4eba282c808" kindref="member">ie_status_t</ref><sp/><ref refid="ie__api_8h_1ad32cf2cd209832e4cd577a5a1e31970f" kindref="member">ie_engine_generate</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="structie__engine" kindref="compound">ie_engine_t</ref><sp/>*<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">e</ref>,</highlight></codeline>
+<codeline lineno="99"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*prompt,</highlight></codeline>
+<codeline lineno="100"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>max_new,</highlight></codeline>
+<codeline lineno="101"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>*<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">out_tokens</ref>,</highlight></codeline>
+<codeline lineno="102"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>*<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">out_n_tokens</ref>);</highlight></codeline>
 <codeline lineno="103"><highlight class="normal"></highlight></codeline>
-<codeline lineno="121" refid="structie__engine__params" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structie__engine__params" kindref="compound">ie_engine_params</ref><sp/>{</highlight></codeline>
-<codeline lineno="122" refid="structie__engine__params_1a0c0b5f7588c98d30e0d2535790f6f24c" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="structie__engine__params_1a0c0b5f7588c98d30e0d2535790f6f24c" kindref="member">threads</ref>;<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight></codeline>
-<codeline lineno="123" refid="structie__engine__params_1a66599574f8a4b8ed7cd7132fc1c0e051" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*<ref refid="structie__engine__params_1a66599574f8a4b8ed7cd7132fc1c0e051" kindref="member">affinity</ref>;<sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight></codeline>
-<codeline lineno="124" refid="structie__engine__params_1a992270ba61612b2acb319aed5cbfca13" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*<ref refid="structie__engine__params_1a992270ba61612b2acb319aed5cbfca13" kindref="member">pretranspose</ref>;<sp/><sp/><sp/></highlight></codeline>
-<codeline lineno="125" refid="structie__engine__params_1a34f965300425f8c1115b2408a4adc04a" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*<ref refid="structie__engine__params_1a34f965300425f8c1115b2408a4adc04a" kindref="member">prefetch</ref>;<sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight></codeline>
-<codeline lineno="137" refid="structie__engine__params_1a1dff4c9644aa8bf7e389f84426c529e1" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*<ref refid="structie__engine__params_1a1dff4c9644aa8bf7e389f84426c529e1" kindref="member">sparsity</ref>;</highlight></codeline>
-<codeline lineno="138"><highlight class="normal"></highlight></codeline>
-<codeline lineno="139"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">/*<sp/>----<sp/>compatibility<sp/>field<sp/>consumed<sp/>by<sp/>CLI/tests<sp/>----<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="140" refid="structie__engine__params_1a92b02bad12cb4e8173728311c00960b7" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*<ref refid="structie__engine__params_1a92b02bad12cb4e8173728311c00960b7" kindref="member">precision</ref>;<sp/><sp/><sp/><sp/><sp/><sp/></highlight></codeline>
-<codeline lineno="141" refid="ie__api_8h_1a73fd6e398965a847ec84c3d208bf9e1a" refkind="member"><highlight class="normal">}<sp/><ref refid="ie__api_8h_1a73fd6e398965a847ec84c3d208bf9e1a" kindref="member">ie_engine_params_t</ref>;</highlight></codeline>
-<codeline lineno="142"><highlight class="normal"></highlight></codeline>
-<codeline lineno="143"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>--------------------------------------------------------------------------<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="144"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>API<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="145"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>--------------------------------------------------------------------------<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="146"><highlight class="normal"></highlight></codeline>
-<codeline lineno="157"><highlight class="normal"><ref refid="ie__api_8h_1ad1139f55afe53e983b6d71ae39bfc4b5" kindref="member">ie_status_t</ref><sp/><ref refid="ie__api_8h_1a29d800407f90ba6b44385725da64f27d" kindref="member">ie_engine_create</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="structie__engine__params" kindref="compound">ie_engine_params_t</ref><sp/>*<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">p</ref>,<sp/><ref refid="structie__engine" kindref="compound">ie_engine_t</ref><sp/>**<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">out</ref>);</highlight></codeline>
-<codeline lineno="158"><highlight class="normal"></highlight></codeline>
-<codeline lineno="173"><highlight class="normal"><ref refid="ie__api_8h_1ad1139f55afe53e983b6d71ae39bfc4b5" kindref="member">ie_status_t</ref><sp/><ref refid="ie__api_8h_1a21ab40e22d9192fe353ad6640610a01d" kindref="member">ie_engine_generate</ref>(<ref refid="structie__engine" kindref="compound">ie_engine_t</ref><sp/>*<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">h</ref>,</highlight></codeline>
-<codeline lineno="174"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*prompt,</highlight></codeline>
-<codeline lineno="175"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">max_new_tokens</ref>,</highlight></codeline>
-<codeline lineno="176"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">uint32_t</ref><sp/>*<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">out_tokens</ref>,</highlight></codeline>
-<codeline lineno="177"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">uint32_t</ref><sp/>*<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">out_count</ref>);</highlight></codeline>
-<codeline lineno="178"><highlight class="normal"></highlight></codeline>
-<codeline lineno="190"><highlight class="normal"><ref refid="ie__api_8h_1ad1139f55afe53e983b6d71ae39bfc4b5" kindref="member">ie_status_t</ref><sp/><ref refid="ie__api_8h_1ac1c4268d66d8a840276e0a72c9ace902" kindref="member">ie_engine_metrics</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="structie__engine" kindref="compound">ie_engine_t</ref><sp/>*<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">h</ref>,<sp/><ref refid="structie__metrics__t" kindref="compound">ie_metrics_t</ref><sp/>*<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">out</ref>);</highlight></codeline>
-<codeline lineno="191"><highlight class="normal"></highlight></codeline>
-<codeline lineno="197"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="ie__api_8h_1a8a724f7097b3e19da8d7dd97fba4415e" kindref="member">ie_engine_destroy</ref>(<ref refid="structie__engine" kindref="compound">ie_engine_t</ref><sp/>*<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">h</ref>);</highlight></codeline>
-<codeline lineno="198"><highlight class="normal"></highlight></codeline>
-<codeline lineno="199"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="200"><highlight class="normal">}<sp/></highlight><highlight class="comment">/*<sp/>extern<sp/>&quot;C&quot;<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="201"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="202"><highlight class="normal"></highlight></codeline>
-<codeline lineno="203"><highlight class="normal"></highlight><highlight class="preprocessor">#endif<sp/></highlight><highlight class="comment">/*<sp/>IE_API_H_<sp/>*/</highlight><highlight class="preprocessor"></highlight></codeline>
+<codeline lineno="104"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="105"><highlight class="normal">}<sp/></highlight><highlight class="comment">/*<sp/>extern<sp/>&quot;C&quot;<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="106"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight></codeline>
     </programlisting>
     <location file="engine/include/ie_api.h"/>
   </compounddef>

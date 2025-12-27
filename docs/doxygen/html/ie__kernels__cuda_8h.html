@@ -167,17 +167,17 @@ Functions</h2></td></tr>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>CUDA GPU kernels and C-ABI launchers for hot-path vector/matrix ops. </p>
 <p>This header exposes a minimal C ABI to launch CUDA kernels from the engine without leaking CUDA types into other translation units.</p>
-<h3><a class="anchor" id="autotoc_md79"></a>
+<h3><a class="anchor" id="autotoc_md85"></a>
 Design goals</h3>
 <ul>
 <li>Stable C ABI: callable from C or C++.</li>
 <li>CUDA isolation: only this header/TU knows about CUDA; the rest of the project remains CUDA-agnostic.</li>
 <li>No global state: all configuration is passed via arguments.</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md80"></a>
+<h3><a class="anchor" id="autotoc_md86"></a>
 Error model</h3>
 <p>All launchers return <code>0</code> on success and a negative value on failure. Call <a class="el" href="group__IE__GPU.html#ga6656c0ddd9df382048e7cd162e0c1d64" title="Return a thread-local message describing the last CUDA error.">ie_cuda_last_error_string()</a> to retrieve a printable diagnostic.</p>
-<h3><a class="anchor" id="autotoc_md81"></a>
+<h3><a class="anchor" id="autotoc_md87"></a>
 Pointer / memory rules</h3>
 <p>Unless explicitly stated otherwise, all pointers refer to device memory. Passing host pointers is undefined behavior and will surface as CUDA errors. </p>
 

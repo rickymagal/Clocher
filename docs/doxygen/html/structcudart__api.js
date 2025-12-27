@@ -2,7 +2,6 @@ var structcudart__api =
 [
     [ "cudaDeviceSynchronize", "structcudart__api.html#a8885e8aa343a956388d6fc359994b5b6", null ],
     [ "cudaFree", "structcudart__api.html#a2c3660d016022d753aa36e57b5ed469c", null ],
-    [ "cudaGetErrorString", "structcudart__api.html#a5b73d3ef348086a31846475a8b4d702a", null ],
     [ "cudaMalloc", "structcudart__api.html#a90ebdb0591a336ef47414cd285d15371", null ],
     [ "cudaMemcpy", "structcudart__api.html#a6e790e818a18bd526582a098649f2f92", null ],
     [ "cudaMemset", "structcudart__api.html#a7e9b278453c583049fcbb790bfa32c5d", null ],

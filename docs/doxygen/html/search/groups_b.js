@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['sampler_0',['Utilities: KV counters and RSS sampler',['../group__IE__METRICS.html',1,'']]]
+  ['utilities_0',['Tensor Utilities',['../group__IE__TENSOR.html',1,'']]]
 ];

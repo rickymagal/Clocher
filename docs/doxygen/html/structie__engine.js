@@ -1,8 +1,7 @@
 var structie__engine =
 [
-    [ "cfg", "structie__engine.html#a7ae7f7efbee346d04370ee09f5f6cd68", null ],
-    [ "last", "structie__engine.html#aac6bf09043eb30698b226cbac9a5903b", null ],
-    [ "seed", "structie__engine.html#a39645576c844465466e51883ccb5ca34", null ],
-    [ "uses_block_sparse", "structie__engine.html#ad53b43ae0ad90765775476d829256d33", null ],
-    [ "uses_weight_int4", "structie__engine.html#a85ec8e92466a0e14370e003ad3af6a68", null ]
+    [ "device", "structie__engine.html#ac83d74f112e27cbc48851c66c2522505", null ],
+    [ "gen_counter", "structie__engine.html#a6f1eb194b936bca93cf9ebc110eeee4f", null ],
+    [ "model_dir", "structie__engine.html#ae163b3ee14659cf15e8a711de6fffa4a", null ],
+    [ "params", "structie__engine.html#a06bd9cc5d2f1b50aeb49f9160cf516df", null ]
 ];

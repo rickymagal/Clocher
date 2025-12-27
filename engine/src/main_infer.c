@@ -414,32 +414,58 @@ static int model_touch_bytes(model_mmap_touch_t *ctx,
                              size_t bytes_to_touch,
                              size_t stride_bytes,
                              int verify_touch) {
-  if (!ctx || !ctx->base || ctx->size == 0) return 1;
-  if (bytes_to_touch == 0) return 0;
-  if (stride_bytes == 0) stride_bytes = 1;
+  if (!ctx || !ctx->base || ctx->size == 0) {
+    return 1;
+  }
+
+  if (bytes_to_touch == 0) {
+    return 0;
+  }
+
+  if (stride_bytes == 0) {
+    stride_bytes = 1;
+  }
+
+  const size_t size = ctx->size;
 
   size_t n = bytes_to_touch;
-  if (n > ctx->size) n = ctx->size;
+  if (n > size) {
+    n = size;
+  }
 
   volatile const unsigned char *p = (volatile const unsigned char *)ctx->base;
   volatile uint64_t acc = 0;
 
-  size_t start = ctx->cursor;
-  size_t end = start + n;
-  if (end < start) end = ctx->size;
+  size_t start = ctx->cursor % size;
 
-  for (size_t off = start; off < end; off += stride_bytes) acc ^= (uint64_t)p[off];
+  if (start + n <= size) {
+    size_t end = start + n;
 
-  if (end == ctx->size) {
-    size_t rem = (start + n) - ctx->size;
-    for (size_t off = 0; off < rem; off += stride_bytes) acc ^= (uint64_t)p[off];
-    ctx->cursor = (ctx->size ? (rem % ctx->size) : 0);
+    for (size_t off = start; off < end; off += stride_bytes) {
+      acc ^= (uint64_t)p[off];
+    }
+
+    ctx->cursor = end % size;
   } else {
-    ctx->cursor = (ctx->size ? (end % ctx->size) : 0);
+    size_t first = size - start;
+
+    for (size_t off = start; off < size; off += stride_bytes) {
+      acc ^= (uint64_t)p[off];
+    }
+
+    size_t rem = n - first;
+
+    for (size_t off = 0; off < rem; off += stride_bytes) {
+      acc ^= (uint64_t)p[off];
+    }
+
+    ctx->cursor = rem % size;
   }
 
   if (verify_touch) {
-    if (acc == 0x9e3779b97f4a7c15ULL) fprintf(stderr, "touch verify: improbable accumulator value (ignore)\n");
+    if (acc == 0x9e3779b97f4a7c15ULL) {
+      fprintf(stderr, "touch verify: improbable accumulator value (ignore)\n");
+    }
   }
 
   return 0;

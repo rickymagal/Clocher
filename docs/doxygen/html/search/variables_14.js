@@ -8,6 +8,5 @@ var searchData=
   ['tidx_5',['tidx',['../structie__worker__arg__t.html#aafb928d17efdf95af0fdcde45c4592f5',1,'ie_worker_arg_t']]],
   ['tidx_5fmap_6',['tidx_map',['../structie__task__arg__t.html#a67e8d3401edad2240d6c2f4d398fc6d0',1,'ie_task_arg_t']]],
   ['tokenize_7',['tokenize',['../structie__batcher.html#a206c1683ca1028598ab358c226900796',1,'ie_batcher']]],
-  ['tp_8',['tp',['../structie__worker__arg__t.html#a2d5b690772e7feda6de890a2f06cb033',1,'ie_worker_arg_t']]],
-  ['tps_5ftrue_9',['tps_true',['../structie__metrics.html#a3c947a74937640d7b1300df6a6ccf3b7',1,'ie_metrics']]]
+  ['tp_8',['tp',['../structie__worker__arg__t.html#a2d5b690772e7feda6de890a2f06cb033',1,'ie_worker_arg_t']]]
 ];

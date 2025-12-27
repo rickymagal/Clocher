@@ -80,7 +80,6 @@ var annotated_dup =
     [ "ie_kv_opts", "structie__kv__opts.html", "structie__kv__opts" ],
     [ "ie_kv_state_t", "structie__kv__state__t.html", "structie__kv__state__t" ],
     [ "ie_metrics", "structie__metrics.html", "structie__metrics" ],
-    [ "ie_metrics_t", "structie__metrics__t.html", "structie__metrics__t" ],
     [ "ie_mmap_file", "structie__mmap__file.html", "structie__mmap__file" ],
     [ "ie_numa_policy_t", "structie__numa__policy__t.html", "structie__numa__policy__t" ],
     [ "ie_patch_list_hdr_s", "structie__patch__list__hdr__s.html", "structie__patch__list__hdr__s" ],
@@ -99,6 +98,7 @@ var annotated_dup =
     [ "ie_weights_dedup_opts_t", "structie__weights__dedup__opts__t.html", "structie__weights__dedup__opts__t" ],
     [ "ie_weights_s", "structie__weights__s.html", "structie__weights__s" ],
     [ "ie_worker_arg_t", "structie__worker__arg__t.html", "structie__worker__arg__t" ],
+    [ "model_mmap_touch", "structmodel__mmap__touch.html", "structmodel__mmap__touch" ],
     [ "tp_ctx_t", "structtp__ctx__t.html", "structtp__ctx__t" ],
     [ "ze_impl", "structze__impl.html", "structze__impl" ]
 ];

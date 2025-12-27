@@ -13,12 +13,10 @@
     <includes local="no">sys/resource.h</includes>
     <includes local="no">strings.h</includes>
     <incdepgraph>
-      <node id="4">
-        <label>ie_api.h</label>
-        <link refid="ie__api_8h"/>
-        <childnode refid="5" relation="include">
-        </childnode>
-        <childnode refid="3" relation="include">
+      <node id="3">
+        <label>ie_metrics.h</label>
+        <link refid="ie__metrics_8h"/>
+        <childnode refid="4" relation="include">
         </childnode>
       </node>
       <node id="2">
@@ -26,21 +24,21 @@
         <link refid="util__metrics_8h"/>
         <childnode refid="3" relation="include">
         </childnode>
-        <childnode refid="4" relation="include">
-        </childnode>
       </node>
       <node id="1">
         <label>engine/src/util_metrics.c</label>
         <link refid="util__metrics_8c"/>
         <childnode refid="2" relation="include">
         </childnode>
+        <childnode refid="5" relation="include">
+        </childnode>
         <childnode refid="6" relation="include">
         </childnode>
         <childnode refid="7" relation="include">
         </childnode>
-        <childnode refid="8" relation="include">
+        <childnode refid="4" relation="include">
         </childnode>
-        <childnode refid="3" relation="include">
+        <childnode refid="8" relation="include">
         </childnode>
         <childnode refid="9" relation="include">
         </childnode>
@@ -50,37 +48,32 @@
         </childnode>
         <childnode refid="12" relation="include">
         </childnode>
-        <childnode refid="13" relation="include">
-        </childnode>
-      </node>
-      <node id="6">
-        <label>errno.h</label>
-      </node>
-      <node id="8">
-        <label>stdarg.h</label>
-      </node>
-      <node id="7">
-        <label>stdatomic.h</label>
       </node>
       <node id="5">
-        <label>stddef.h</label>
+        <label>errno.h</label>
       </node>
-      <node id="3">
+      <node id="7">
+        <label>stdarg.h</label>
+      </node>
+      <node id="6">
+        <label>stdatomic.h</label>
+      </node>
+      <node id="4">
         <label>stdint.h</label>
       </node>
-      <node id="9">
+      <node id="8">
         <label>stdio.h</label>
       </node>
-      <node id="10">
+      <node id="9">
         <label>stdlib.h</label>
       </node>
-      <node id="11">
+      <node id="10">
         <label>string.h</label>
       </node>
-      <node id="13">
+      <node id="12">
         <label>strings.h</label>
       </node>
-      <node id="12">
+      <node id="11">
         <label>sys/resource.h</label>
       </node>
     </incdepgraph>
@@ -353,12 +346,200 @@
         <references refid="util__metrics_8c_1a586d223d4a6c80952b53d76d31adccc2" compoundref="util__metrics_8c" startline="103" endline="123">parse_status_kb_line</references>
         <referencedby refid="ie__metrics_8h_1a0b083c9fbf90d02c9ef387ab34220a34" compoundref="util__metrics_8c" startline="201" endline="306">ie_metrics_sample_rss_peak</referencedby>
       </memberdef>
-      <member refid="group__IE__METRICS_1ga874413f3f40c7927c465112b7f162656" kind="function"><name>ie_metrics_reset</name></member>
-      <member refid="group__IE__METRICS_1ga7102e1b1461b7ac674d42c58660fda0d" kind="function"><name>ie_metrics_add_kv_hit</name></member>
-      <member refid="group__IE__METRICS_1ga8eecda9f8202c3f887066f287d97c954" kind="function"><name>ie_metrics_add_kv_miss</name></member>
-      <member refid="group__IE__METRICS_1gaf9f02e4faa24298be27d9299df602fca" kind="function"><name>ie_metrics_add_kv</name></member>
-      <member refid="group__IE__METRICS_1ga3a6a9208ad3e80cbc57fb1923e5e263f" kind="function"><name>ie_metrics_snapshot</name></member>
-      <member refid="group__IE__METRICS_1ga0b083c9fbf90d02c9ef387ab34220a34" kind="function"><name>ie_metrics_sample_rss_peak</name></member>
+      <memberdef kind="function" id="util__metrics_8c_1a874413f3f40c7927c465112b7f162656" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">void</ref></type>
+        <definition>void ie_metrics_reset</definition>
+        <argsstring>(void)</argsstring>
+        <name>ie_metrics_reset</name>
+        <param>
+          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">void</ref></type>
+        </param>
+        <briefdescription>
+<para>Reset all process-wide counters (KV hits/misses). </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Reset all process-wide metrics counters. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/src/util_metrics.c" line="162" column="6" bodyfile="engine/src/util_metrics.c" bodystart="162" bodyend="165"/>
+        <references refid="util__metrics_8c_1a2304e4230799c4132478704188bc8877" compoundref="util__metrics_8c" startline="46">g_kv_hits</references>
+        <references refid="util__metrics_8c_1a115dd2ed1a4c4c9987ad4c3b1e7ed6fa" compoundref="util__metrics_8c" startline="49">g_kv_miss</references>
+        <references refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" compoundref="ie__device__cuda_8cu" startline="92" endline="110">ie_gemv_rowwise_f32_kernel</references>
+      </memberdef>
+      <memberdef kind="function" id="util__metrics_8c_1a7102e1b1461b7ac674d42c58660fda0d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">void</ref></type>
+        <definition>void ie_metrics_add_kv_hit</definition>
+        <argsstring>(uint64_t n)</argsstring>
+        <name>ie_metrics_add_kv_hit</name>
+        <param>
+          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">uint64_t</ref></type>
+          <declname>n</declname>
+        </param>
+        <briefdescription>
+<para>Add <computeroutput>n</computeroutput> KV hits to the global counter. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Add KV cache hits to the process-wide counter.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>n</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of hits to add. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/src/util_metrics.c" line="167" column="6" bodyfile="engine/src/util_metrics.c" bodystart="167" bodyend="170"/>
+        <references refid="util__metrics_8c_1a2304e4230799c4132478704188bc8877" compoundref="util__metrics_8c" startline="46">g_kv_hits</references>
+        <references refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" compoundref="ie__device__cuda_8cu" startline="92" endline="110">ie_gemv_rowwise_f32_kernel</references>
+      </memberdef>
+      <memberdef kind="function" id="util__metrics_8c_1a8eecda9f8202c3f887066f287d97c954" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">void</ref></type>
+        <definition>void ie_metrics_add_kv_miss</definition>
+        <argsstring>(uint64_t n)</argsstring>
+        <name>ie_metrics_add_kv_miss</name>
+        <param>
+          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">uint64_t</ref></type>
+          <declname>n</declname>
+        </param>
+        <briefdescription>
+<para>Add <computeroutput>n</computeroutput> KV misses to the global counter. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Add KV cache misses to the process-wide counter.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>n</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of misses to add. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/src/util_metrics.c" line="172" column="6" bodyfile="engine/src/util_metrics.c" bodystart="172" bodyend="175"/>
+        <references refid="util__metrics_8c_1a115dd2ed1a4c4c9987ad4c3b1e7ed6fa" compoundref="util__metrics_8c" startline="49">g_kv_miss</references>
+        <references refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" compoundref="ie__device__cuda_8cu" startline="92" endline="110">ie_gemv_rowwise_f32_kernel</references>
+      </memberdef>
+      <memberdef kind="function" id="util__metrics_8c_1af9f02e4faa24298be27d9299df602fca" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">void</ref></type>
+        <definition>void ie_metrics_add_kv</definition>
+        <argsstring>(uint64_t hits, uint64_t misses)</argsstring>
+        <name>ie_metrics_add_kv</name>
+        <param>
+          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">uint64_t</ref></type>
+          <declname>hits</declname>
+        </param>
+        <param>
+          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">uint64_t</ref></type>
+          <declname>misses</declname>
+        </param>
+        <briefdescription>
+<para>Add both hits and misses to the global counters. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Add KV cache hits and misses to the process-wide counters.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>hits</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Hits to add. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>misses</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Misses to add. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/src/util_metrics.c" line="177" column="6" bodyfile="engine/src/util_metrics.c" bodystart="177" bodyend="180"/>
+        <references refid="util__metrics_8c_1a2304e4230799c4132478704188bc8877" compoundref="util__metrics_8c" startline="46">g_kv_hits</references>
+        <references refid="util__metrics_8c_1a115dd2ed1a4c4c9987ad4c3b1e7ed6fa" compoundref="util__metrics_8c" startline="49">g_kv_miss</references>
+        <references refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" compoundref="ie__device__cuda_8cu" startline="92" endline="110">ie_gemv_rowwise_f32_kernel</references>
+      </memberdef>
+      <memberdef kind="function" id="util__metrics_8c_1a3a6a9208ad3e80cbc57fb1923e5e263f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">void</ref></type>
+        <definition>void ie_metrics_snapshot</definition>
+        <argsstring>(ie_metrics_t *out, int reset_after)</argsstring>
+        <name>ie_metrics_snapshot</name>
+        <param>
+          <type><ref refid="ie__metrics_8h_1a5221fcb8bdbe1d8fb80a0cae2cb4361c" kindref="member">ie_metrics_t</ref> *</type>
+          <declname>out</declname>
+        </param>
+        <param>
+          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">int</ref></type>
+          <declname>reset_after</declname>
+        </param>
+        <briefdescription>
+<para>Snapshot KV counters into <computeroutput>out</computeroutput>. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>out</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Destination snapshot (required). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>reset_after</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>If nonzero, reset counters after snapshot. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/src/util_metrics.c" line="182" column="6" bodyfile="engine/src/util_metrics.c" bodystart="182" bodyend="195"/>
+        <references refid="util__metrics_8c_1a2304e4230799c4132478704188bc8877" compoundref="util__metrics_8c" startline="46">g_kv_hits</references>
+        <references refid="util__metrics_8c_1a115dd2ed1a4c4c9987ad4c3b1e7ed6fa" compoundref="util__metrics_8c" startline="49">g_kv_miss</references>
+        <references refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" compoundref="ie__device__cuda_8cu" startline="92" endline="110">ie_gemv_rowwise_f32_kernel</references>
+      </memberdef>
+      <memberdef kind="function" id="util__metrics_8c_1a0b083c9fbf90d02c9ef387ab34220a34" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">uint32_t</ref></type>
+        <definition>uint32_t ie_metrics_sample_rss_peak</definition>
+        <argsstring>(void)</argsstring>
+        <name>ie_metrics_sample_rss_peak</name>
+        <param>
+          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">void</ref></type>
+        </param>
+        <briefdescription>
+<para>Sample best-effort process peak RSS in MiB. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="return"><para>Peak RSS in MiB, or 0 if unavailable. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/src/util_metrics.c" line="201" column="10" bodyfile="engine/src/util_metrics.c" bodystart="201" bodyend="306"/>
+        <references refid="util__metrics_8c_1aad9404d49721a4fdd407e2eff25b6489" compoundref="util__metrics_8c" startline="75" endline="81">dbg</references>
+        <references refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" compoundref="ie__device__cuda_8cu" startline="92" endline="110">ie_gemv_rowwise_f32_kernel</references>
+        <references refid="util__metrics_8c_1a5994eb8315fd500be4501693592b9c5a" compoundref="util__metrics_8c" startline="88" endline="93">kib_to_mib_ceil</references>
+        <references refid="util__metrics_8c_1a68100912a526773182982dfe9e401718" compoundref="util__metrics_8c" startline="133" endline="156">read_proc_kb_single</references>
+      </memberdef>
     </sectiondef>
     <briefdescription>
 <para>Implementation of runtime metrics (KV counters + RSS sampling). </para>
@@ -487,27 +668,27 @@
 <codeline lineno="159"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>Public<sp/>API:<sp/>KV<sp/>counters<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
 <codeline lineno="160"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>--------------------------------------------------------------------------<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
 <codeline lineno="161"><highlight class="normal"></highlight></codeline>
-<codeline lineno="162" refid="ie__metrics_8h_1a874413f3f40c7927c465112b7f162656" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="group__IE__METRICS_1ga874413f3f40c7927c465112b7f162656" kindref="member">ie_metrics_reset</ref>(</highlight><highlight class="keywordtype">void</highlight><highlight class="normal">)<sp/>{</highlight></codeline>
+<codeline lineno="162" refid="ie__metrics_8h_1a874413f3f40c7927c465112b7f162656" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="util__metrics_8c_1a874413f3f40c7927c465112b7f162656" kindref="member">ie_metrics_reset</ref>(</highlight><highlight class="keywordtype">void</highlight><highlight class="normal">)<sp/>{</highlight></codeline>
 <codeline lineno="163"><highlight class="normal"><sp/><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">atomic_store_explicit</ref>(&amp;<ref refid="util__metrics_8c_1a2304e4230799c4132478704188bc8877" kindref="member">g_kv_hits</ref>,<sp/>0,<sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">memory_order_relaxed</ref>);</highlight></codeline>
 <codeline lineno="164"><highlight class="normal"><sp/><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">atomic_store_explicit</ref>(&amp;<ref refid="util__metrics_8c_1a115dd2ed1a4c4c9987ad4c3b1e7ed6fa" kindref="member">g_kv_miss</ref>,<sp/>0,<sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">memory_order_relaxed</ref>);</highlight></codeline>
 <codeline lineno="165"><highlight class="normal">}</highlight></codeline>
 <codeline lineno="166"><highlight class="normal"></highlight></codeline>
-<codeline lineno="167" refid="ie__metrics_8h_1a7102e1b1461b7ac674d42c58660fda0d" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="group__IE__METRICS_1ga7102e1b1461b7ac674d42c58660fda0d" kindref="member">ie_metrics_add_kv_hit</ref>(<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">uint64_t</ref><sp/>n)<sp/>{</highlight></codeline>
+<codeline lineno="167" refid="ie__metrics_8h_1a7102e1b1461b7ac674d42c58660fda0d" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="util__metrics_8c_1a7102e1b1461b7ac674d42c58660fda0d" kindref="member">ie_metrics_add_kv_hit</ref>(<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">uint64_t</ref><sp/>n)<sp/>{</highlight></codeline>
 <codeline lineno="168"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!n)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal">;</highlight></codeline>
 <codeline lineno="169"><highlight class="normal"><sp/><sp/>(<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">void</ref>)<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">atomic_fetch_add_explicit</ref>(&amp;<ref refid="util__metrics_8c_1a2304e4230799c4132478704188bc8877" kindref="member">g_kv_hits</ref>,<sp/>n,<sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">memory_order_relaxed</ref>);</highlight></codeline>
 <codeline lineno="170"><highlight class="normal">}</highlight></codeline>
 <codeline lineno="171"><highlight class="normal"></highlight></codeline>
-<codeline lineno="172" refid="ie__metrics_8h_1a8eecda9f8202c3f887066f287d97c954" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="group__IE__METRICS_1ga8eecda9f8202c3f887066f287d97c954" kindref="member">ie_metrics_add_kv_miss</ref>(<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">uint64_t</ref><sp/>n)<sp/>{</highlight></codeline>
+<codeline lineno="172" refid="ie__metrics_8h_1a8eecda9f8202c3f887066f287d97c954" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="util__metrics_8c_1a8eecda9f8202c3f887066f287d97c954" kindref="member">ie_metrics_add_kv_miss</ref>(<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">uint64_t</ref><sp/>n)<sp/>{</highlight></codeline>
 <codeline lineno="173"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!n)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal">;</highlight></codeline>
 <codeline lineno="174"><highlight class="normal"><sp/><sp/>(<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">void</ref>)<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">atomic_fetch_add_explicit</ref>(&amp;<ref refid="util__metrics_8c_1a115dd2ed1a4c4c9987ad4c3b1e7ed6fa" kindref="member">g_kv_miss</ref>,<sp/>n,<sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">memory_order_relaxed</ref>);</highlight></codeline>
 <codeline lineno="175"><highlight class="normal">}</highlight></codeline>
 <codeline lineno="176"><highlight class="normal"></highlight></codeline>
-<codeline lineno="177" refid="ie__metrics_8h_1af9f02e4faa24298be27d9299df602fca" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="group__IE__METRICS_1gaf9f02e4faa24298be27d9299df602fca" kindref="member">ie_metrics_add_kv</ref>(<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">uint64_t</ref><sp/>hits,<sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">uint64_t</ref><sp/>misses)<sp/>{</highlight></codeline>
+<codeline lineno="177" refid="ie__metrics_8h_1af9f02e4faa24298be27d9299df602fca" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="util__metrics_8c_1af9f02e4faa24298be27d9299df602fca" kindref="member">ie_metrics_add_kv</ref>(<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">uint64_t</ref><sp/>hits,<sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">uint64_t</ref><sp/>misses)<sp/>{</highlight></codeline>
 <codeline lineno="178"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(hits)<sp/><sp/><sp/>(<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">void</ref>)<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">atomic_fetch_add_explicit</ref>(&amp;<ref refid="util__metrics_8c_1a2304e4230799c4132478704188bc8877" kindref="member">g_kv_hits</ref>,<sp/>hits,<sp/><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">memory_order_relaxed</ref>);</highlight></codeline>
 <codeline lineno="179"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(misses)<sp/>(<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">void</ref>)<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">atomic_fetch_add_explicit</ref>(&amp;<ref refid="util__metrics_8c_1a115dd2ed1a4c4c9987ad4c3b1e7ed6fa" kindref="member">g_kv_miss</ref>,<sp/>misses,<sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">memory_order_relaxed</ref>);</highlight></codeline>
 <codeline lineno="180"><highlight class="normal">}</highlight></codeline>
 <codeline lineno="181"><highlight class="normal"></highlight></codeline>
-<codeline lineno="182" refid="ie__metrics_8h_1a3a6a9208ad3e80cbc57fb1923e5e263f" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="group__IE__METRICS_1ga3a6a9208ad3e80cbc57fb1923e5e263f" kindref="member">ie_metrics_snapshot</ref>(<ref refid="structie__metrics__t" kindref="compound">ie_metrics_t</ref><sp/>*<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">out</ref>,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">reset_after</ref>)<sp/>{</highlight></codeline>
+<codeline lineno="182" refid="ie__metrics_8h_1a3a6a9208ad3e80cbc57fb1923e5e263f" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="util__metrics_8c_1a3a6a9208ad3e80cbc57fb1923e5e263f" kindref="member">ie_metrics_snapshot</ref>(<ref refid="structie__metrics" kindref="compound">ie_metrics_t</ref><sp/>*<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">out</ref>,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">reset_after</ref>)<sp/>{</highlight></codeline>
 <codeline lineno="183"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">out</ref>)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal">;</highlight></codeline>
 <codeline lineno="184"><highlight class="normal"></highlight></codeline>
 <codeline lineno="185"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">uint64_t</ref><sp/>hits<sp/>=<sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">atomic_load_explicit</ref>(&amp;<ref refid="util__metrics_8c_1a2304e4230799c4132478704188bc8877" kindref="member">g_kv_hits</ref>,<sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">memory_order_relaxed</ref>);</highlight></codeline>
@@ -526,7 +707,7 @@
 <codeline lineno="198"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>Public<sp/>API:<sp/>RSS<sp/>peak<sp/>sampler<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
 <codeline lineno="199"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>--------------------------------------------------------------------------<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
 <codeline lineno="200"><highlight class="normal"></highlight></codeline>
-<codeline lineno="201" refid="ie__metrics_8h_1a0b083c9fbf90d02c9ef387ab34220a34" refkind="member"><highlight class="normal"><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">uint32_t</ref><sp/><ref refid="group__IE__METRICS_1ga0b083c9fbf90d02c9ef387ab34220a34" kindref="member">ie_metrics_sample_rss_peak</ref>(</highlight><highlight class="keywordtype">void</highlight><highlight class="normal">)<sp/>{</highlight></codeline>
+<codeline lineno="201" refid="ie__metrics_8h_1a0b083c9fbf90d02c9ef387ab34220a34" refkind="member"><highlight class="normal"><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">uint32_t</ref><sp/><ref refid="util__metrics_8c_1a0b083c9fbf90d02c9ef387ab34220a34" kindref="member">ie_metrics_sample_rss_peak</ref>(</highlight><highlight class="keywordtype">void</highlight><highlight class="normal">)<sp/>{</highlight></codeline>
 <codeline lineno="202"><highlight class="normal"><sp/><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">uint32_t</ref><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">best_mib</ref><sp/>=<sp/>0;</highlight></codeline>
 <codeline lineno="203"><highlight class="normal"></highlight></codeline>
 <codeline lineno="204"><highlight class="normal"></highlight><highlight class="preprocessor">#if<sp/>defined(__linux__)</highlight><highlight class="normal"></highlight></codeline>

@@ -1,12 +1,12 @@
 var searchData=
 [
-  ['v_0',['v',['../structblob__list__s.html#a9a053e577a404465f3bcbd5b56044f7c',1,'blob_list_s::v'],['../structgroup__list__s.html#a19a3099bdd407ca093490ea5852bed52',1,'group_list_s::v'],['../structie__kv__cache.html#aab8e8a472aacd8cfce26a16b79f1995c',1,'ie_kv_cache::V']]],
-  ['v1_1',['Model format (IEBIN v1)',['../index.html#autotoc_md94',1,'']]],
+  ['v_0',['v',['../structie__kv__cache.html#aab8e8a472aacd8cfce26a16b79f1995c',1,'ie_kv_cache::V'],['../structblob__list__s.html#a9a053e577a404465f3bcbd5b56044f7c',1,'blob_list_s::v'],['../structgroup__list__s.html#a19a3099bdd407ca093490ea5852bed52',1,'group_list_s::v']]],
+  ['v1_1',['Model format (IEBIN v1)',['../index.html#autotoc_md99',1,'']]],
   ['val_2',['val',['../structie__patch__list__s.html#a5387aae25be6ab6a23cadd30671681f3',1,'ie_patch_list_s']]],
   ['validate_5fie_5fjson_3',['validate_ie_json',['../namespacevalidate__ie__json.html',1,'']]],
   ['validate_5fie_5fjson_2epy_4',['validate_ie_json.py',['../validate__ie__json_8py.html',1,'']]],
   ['values_5',['values',['../structie__block__sparse__matrix.html#af5c7c7b79def98eb4d9285b39718444f',1,'ie_block_sparse_matrix']]],
-  ['variables_20consumed_20by_20tt_20make_20bench_20tt_20and_20or_20the_20cli_6',['Environment Variables (consumed by &lt;tt&gt;make bench*&lt;/tt&gt; and/or the CLI)',['../index.html#autotoc_md119',1,'']]],
+  ['variables_20consumed_20by_20tt_20make_20bench_20tt_20and_20or_20the_20cli_6',['Environment Variables (consumed by &lt;tt&gt;make bench*&lt;/tt&gt; and/or the CLI)',['../index.html#autotoc_md124',1,'']]],
   ['vec_5fallclose_7',['vec_allclose',['../test__kernels_8c.html#a717bb0a59e17d86f4d2bfd483cbefdf7',1,'test_kernels.c']]],
   ['vec_5ftanh_8',['vec_tanh',['../microbench__gemv_8c.html#a5ad63b621cb6206300427b7af31c3146',1,'microbench_gemv.c']]],
   ['vec_5ftanh_5ff32_9',['vec_tanh_f32',['../ie__kernels__ze_8cl.html#a2261b0a1b8943ff014f3796d4d10d454',1,'ie_kernels_ze.cl']]],

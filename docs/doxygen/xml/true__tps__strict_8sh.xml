@@ -20,8 +20,8 @@
 <codeline><highlight class="normal">#</highlight></codeline>
 <codeline><highlight class="normal">#<sp/>Output:</highlight></codeline>
 <codeline><highlight class="normal">#<sp/><sp/><sp/>JSONL<sp/>to<sp/>stdout:</highlight></codeline>
-<codeline><highlight class="normal">#<sp/><sp/><sp/><sp/><sp/>-<sp/>RUNS<sp/>per-run<sp/>JSON<sp/>objects<sp/>(engine<sp/>JSON<sp/>+<sp/>injected<sp/>memory<sp/>metrics)</highlight></codeline>
-<codeline><highlight class="normal">#<sp/><sp/><sp/><sp/><sp/>-<sp/>1<sp/>final<sp/>summary<sp/>JSON<sp/>object<sp/>(detected<sp/>by<sp/>update_performance_md.py)</highlight></codeline>
+<codeline><highlight class="normal">#<sp/><sp/><sp/><sp/><sp/>-<sp/>RUNS<sp/>per-run<sp/>JSON<sp/>objects<sp/>(engine<sp/>JSON<sp/>+<sp/>injected<sp/>metrics)</highlight></codeline>
+<codeline><highlight class="normal">#<sp/><sp/><sp/><sp/><sp/>-<sp/>1<sp/>final<sp/>summary<sp/>JSON<sp/>object</highlight></codeline>
 <codeline></codeline>
 <codeline><highlight class="normal">:<sp/>&quot;${ENGINE_BIN:?set<sp/>ENGINE_BIN=/abs/path/to/engine}&quot;</highlight></codeline>
 <codeline><highlight class="normal">:<sp/>&quot;${DEVICE:?set<sp/>DEVICE=cpu|cuda}&quot;</highlight></codeline>
@@ -41,7 +41,6 @@
 <codeline><highlight class="normal">IE_STRIDE_BYTES=&quot;${IE_STRIDE_BYTES:-256}&quot;</highlight></codeline>
 <codeline><highlight class="normal">IE_VERIFY_TOUCH=&quot;${IE_VERIFY_TOUCH:-1}&quot;</highlight></codeline>
 <codeline></codeline>
-<codeline><highlight class="normal">#<sp/>Dedup<sp/>(optional;<sp/>default<sp/>disabled)</highlight></codeline>
 <codeline><highlight class="normal">IE_DEDUP=&quot;${IE_DEDUP:-0}&quot;</highlight></codeline>
 <codeline><highlight class="normal">IE_DEDUP_STRICT=&quot;${IE_DEDUP_STRICT:-0}&quot;</highlight></codeline>
 <codeline><highlight class="normal">IE_DEDUP_POLICY=&quot;${IE_DEDUP_POLICY:-lossless}&quot;</highlight></codeline>
@@ -50,7 +49,6 @@
 <codeline><highlight class="normal">RUNS=&quot;${RUNS:-3}&quot;</highlight></codeline>
 <codeline><highlight class="normal">ROUNDS=&quot;${ROUNDS:-1}&quot;</highlight></codeline>
 <codeline></codeline>
-<codeline><highlight class="normal">#<sp/>Precision<sp/>passthrough<sp/>(accepts<sp/>int4;<sp/>also<sp/>tolerate<sp/>int4w<sp/>alias)</highlight></codeline>
 <codeline><highlight class="normal">case<sp/>&quot;${PRECISION}&quot;<sp/>in</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/>fp32|bf16|int8|int4)<sp/>CLI_PREC=&quot;${PRECISION}&quot;<sp/>;;</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/>int4w)<sp/>CLI_PREC=&quot;int4&quot;<sp/>;;</highlight></codeline>
@@ -69,87 +67,12 @@
 <codeline></codeline>
 <codeline><highlight class="normal">page_size_bytes=&quot;$(getconf<sp/>PAGESIZE<sp/>2&gt;/dev/null<sp/>||<sp/>echo<sp/>4096)&quot;</highlight></codeline>
 <codeline></codeline>
-<codeline><highlight class="normal">read_memavailable_kb()<sp/>{</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/>awk<sp/>&apos;/MemAvailable:/<sp/>{print<sp/>$2;<sp/>exit}&apos;<sp/>/proc/meminfo<sp/>2&gt;/dev/null<sp/>||<sp/>echo<sp/>&quot;&quot;</highlight></codeline>
-<codeline><highlight class="normal">}</highlight></codeline>
-<codeline></codeline>
 <codeline><highlight class="normal">read_vmstat_swaps()<sp/>{</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/>#<sp/>returns:<sp/>&quot;pswpin<sp/>pswpout&quot;<sp/>(pages)</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/>awk<sp/>&apos;</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/><sp/><sp/>$1==&quot;pswpin&quot;<sp/><sp/>{in=$2}</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/><sp/><sp/>$1==&quot;pswpout&quot;<sp/>{out=$2}</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/><sp/><sp/>END<sp/>{<sp/>if(in==&quot;&quot;)<sp/>in=0;<sp/>if(out==&quot;&quot;)<sp/>out=0;<sp/>print<sp/>in,<sp/>out<sp/>}</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/>&apos;<sp/>/proc/vmstat<sp/>2&gt;/dev/null<sp/>||<sp/>echo<sp/>&quot;0<sp/>0&quot;</highlight></codeline>
-<codeline><highlight class="normal">}</highlight></codeline>
-<codeline></codeline>
-<codeline><highlight class="normal">read_psi_mem_some_avg10()<sp/>{</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/>awk<sp/>&apos;</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>$1==&quot;some&quot;<sp/>{</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>for(i=1;i&lt;=NF;i++){</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>if($i<sp/>~<sp/>/^avg10=/){</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>split($i,a,&quot;=&quot;);</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>print<sp/>a[2];</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>exit</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/>&apos;<sp/>/proc/pressure/memory<sp/>2&gt;/dev/null<sp/>||<sp/>echo<sp/>&quot;&quot;</highlight></codeline>
-<codeline><highlight class="normal">}</highlight></codeline>
-<codeline></codeline>
-<codeline><highlight class="normal">read_psi_mem_full_avg10()<sp/>{</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/>awk<sp/>&apos;</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>$1==&quot;full&quot;<sp/>{</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>for(i=1;i&lt;=NF;i++){</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>if($i<sp/>~<sp/>/^avg10=/){</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>split($i,a,&quot;=&quot;);</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>print<sp/>a[2];</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>exit</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/>&apos;<sp/>/proc/pressure/memory<sp/>2&gt;/dev/null<sp/>||<sp/>echo<sp/>&quot;&quot;</highlight></codeline>
-<codeline><highlight class="normal">}</highlight></codeline>
-<codeline></codeline>
-<codeline><highlight class="normal">read_proc_status_kb()<sp/>{</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/>#<sp/>$1<sp/>=<sp/>pid,<sp/>prints:<sp/>&quot;VmRSS_kb<sp/>VmSize_kb<sp/>VmSwap_kb&quot;<sp/>(0<sp/>if<sp/>missing)</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/>local<sp/>pid=&quot;$1&quot;</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/>awk<sp/>&apos;</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>$1==&quot;VmRSS:&quot;<sp/><sp/>{rss=$2}</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>$1==&quot;VmSize:&quot;<sp/>{vms=$2}</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>$1==&quot;VmSwap:&quot;<sp/>{swp=$2}</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>END<sp/>{</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>if(rss==&quot;&quot;)<sp/>rss=0;</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>if(vms==&quot;&quot;)<sp/>vms=0;</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>if(swp==&quot;&quot;)<sp/>swp=0;</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>print<sp/>rss,<sp/>vms,<sp/>swp</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/>&apos;<sp/>&quot;/proc/${pid}/status&quot;<sp/>2&gt;/dev/null<sp/>||<sp/>echo<sp/>&quot;0<sp/>0<sp/>0&quot;</highlight></codeline>
-<codeline><highlight class="normal">}</highlight></codeline>
-<codeline></codeline>
-<codeline><highlight class="normal">read_proc_pss_kb()<sp/>{</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/>local<sp/>pid=&quot;$1&quot;</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/>if<sp/>[[<sp/>-r<sp/>&quot;/proc/${pid}/smaps_rollup&quot;<sp/>]];<sp/>then</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>awk<sp/>&apos;$1==&quot;Pss:&quot;<sp/>{print<sp/>$2;<sp/>exit}&apos;<sp/>&quot;/proc/${pid}/smaps_rollup&quot;<sp/>2&gt;/dev/null<sp/>||<sp/>echo<sp/>&quot;0&quot;</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/>else</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>echo<sp/>&quot;0&quot;</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/>fi</highlight></codeline>
-<codeline><highlight class="normal">}</highlight></codeline>
-<codeline></codeline>
-<codeline><highlight class="normal">read_proc_faults()<sp/>{</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/>local<sp/>pid=&quot;$1&quot;</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/>python3<sp/>-<sp/>&quot;$pid&quot;<sp/>&lt;&lt;&apos;PY&apos;</highlight></codeline>
-<codeline><highlight class="normal">import<sp/>sys</highlight></codeline>
-<codeline><highlight class="normal">pid=sys.argv[1]</highlight></codeline>
-<codeline><highlight class="normal">try:</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>s=open(f&quot;/proc/{pid}/stat&quot;,&quot;r&quot;).read()</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>rparen=s.rfind(&quot;)&quot;)</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>tail=s[rparen+2:].split()</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>minflt=int(tail[7])</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>majflt=int(tail[9])</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>print(minflt,<sp/>majflt)</highlight></codeline>
-<codeline><highlight class="normal">except<sp/>Exception:</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>print(0,<sp/>0)</highlight></codeline>
-<codeline><highlight class="normal">PY</highlight></codeline>
 <codeline><highlight class="normal">}</highlight></codeline>
 <codeline></codeline>
 <codeline><highlight class="normal">stat_bytes_or_empty()<sp/>{</highlight></codeline>
@@ -161,9 +84,9 @@
 <codeline><highlight class="normal"><sp/><sp/>fi</highlight></codeline>
 <codeline><highlight class="normal">}</highlight></codeline>
 <codeline></codeline>
-<codeline><highlight class="normal">#<sp/>-----------------------------</highlight></codeline>
-<codeline><highlight class="normal">#<sp/>CUDA<sp/>guard<sp/>(prevents<sp/>fake<sp/>GPU<sp/>runs)</highlight></codeline>
-<codeline><highlight class="normal">#<sp/>-----------------------------</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>---------------------------------</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>CUDA<sp/>guard</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>---------------------------------</highlight></codeline>
 <codeline><highlight class="normal">CUDA_GUARD=&quot;${CUDA_GUARD:-1}&quot;</highlight></codeline>
 <codeline></codeline>
 <codeline><highlight class="normal">cuda_guard_preflight()<sp/>{</highlight></codeline>
@@ -176,23 +99,18 @@
 <codeline><highlight class="normal"><sp/><sp/>fi</highlight></codeline>
 <codeline></codeline>
 <codeline><highlight class="normal"><sp/><sp/>if<sp/>!<sp/>command<sp/>-v<sp/>nvidia-smi<sp/>&gt;/dev/null<sp/>2&gt;&amp;1;<sp/>then</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>echo<sp/>&quot;[strict]<sp/>ERROR:<sp/>DEVICE=cuda<sp/>but<sp/>nvidia-smi<sp/>is<sp/>not<sp/>available.<sp/>Refusing<sp/>to<sp/>generate<sp/>a<sp/>GPU<sp/>report.&quot;<sp/>&gt;&amp;2</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>echo<sp/>&quot;[strict]<sp/>ERROR:<sp/>DEVICE=cuda<sp/>but<sp/>nvidia-smi<sp/>is<sp/>not<sp/>available.&quot;<sp/>&gt;&amp;2</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/><sp/><sp/>exit<sp/>97</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/>fi</highlight></codeline>
 <codeline></codeline>
-<codeline><highlight class="normal"><sp/><sp/>#<sp/>Basic<sp/>sanity:<sp/>driver<sp/>visible</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/>if<sp/>!<sp/>nvidia-smi<sp/>-L<sp/>&gt;/dev/null<sp/>2&gt;&amp;1;<sp/>then</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>echo<sp/>&quot;[strict]<sp/>ERROR:<sp/>DEVICE=cuda<sp/>but<sp/>nvidia-smi<sp/>cannot<sp/>see<sp/>a<sp/>GPU/driver.<sp/>Refusing<sp/>to<sp/>generate<sp/>a<sp/>GPU<sp/>report.&quot;<sp/>&gt;&amp;2</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>echo<sp/>&quot;[strict]<sp/>ERROR:<sp/>DEVICE=cuda<sp/>but<sp/>nvidia-smi<sp/>cannot<sp/>see<sp/>a<sp/>GPU/driver.&quot;<sp/>&gt;&amp;2</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/><sp/><sp/>exit<sp/>98</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/>fi</highlight></codeline>
 <codeline></codeline>
-<codeline><highlight class="normal"><sp/><sp/>#<sp/>Prefer<sp/>strace-based<sp/>proof:<sp/>we<sp/>must<sp/>see<sp/>/dev/nvidia*<sp/>and/or<sp/>libcuda<sp/>usage.</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/>if<sp/>command<sp/>-v<sp/>strace<sp/>&gt;/dev/null<sp/>2&gt;&amp;1;<sp/>then</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/><sp/><sp/>local<sp/>trace=&quot;${_tmpdir}/cuda_preflight.trace&quot;</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/><sp/><sp/>local<sp/>out=&quot;${_tmpdir}/cuda_preflight.out&quot;</highlight></codeline>
-<codeline></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>#<sp/>Keep<sp/>preflight<sp/>short<sp/>but<sp/>enough<sp/>to<sp/>force<sp/>context<sp/>init<sp/>(if<sp/>code<sp/>is<sp/>correct).</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>#<sp/>If<sp/>the<sp/>engine<sp/>is<sp/>broken<sp/>and<sp/>doesn&apos;t<sp/>touch<sp/>the<sp/>driver,<sp/>we<sp/>catch<sp/>it<sp/>here.</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/><sp/><sp/>local<sp/>pf_max_new=8</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/><sp/><sp/>local<sp/>pf_rounds=1</highlight></codeline>
 <codeline></codeline>
@@ -213,154 +131,123 @@
 <codeline><highlight class="normal"><sp/><sp/><sp/><sp/>local<sp/>rc=$?</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/><sp/><sp/>set<sp/>-e</highlight></codeline>
 <codeline></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>#<sp/>Even<sp/>if<sp/>rc!=0,<sp/>we<sp/>can<sp/>still<sp/>inspect<sp/>whether<sp/>it<sp/>attempted<sp/>driver<sp/>init.</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/><sp/><sp/>if<sp/>grep<sp/>-Eq<sp/>&apos;(/dev/nvidia|nvidiactl|nvidia-uvm|libcuda\.so)&apos;<sp/>&quot;${trace}&quot;;<sp/>then</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>echo<sp/>&quot;[strict]<sp/>CUDA<sp/>guard:<sp/>NVIDIA<sp/>driver<sp/>activity<sp/>detected<sp/>(OK)&quot;<sp/>&gt;&amp;2</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>return<sp/>0</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/><sp/><sp/>fi</highlight></codeline>
 <codeline></codeline>
 <codeline><highlight class="normal"><sp/><sp/><sp/><sp/>echo<sp/>&quot;[strict]<sp/>ERROR:<sp/>DEVICE=cuda<sp/>but<sp/>preflight<sp/>shows<sp/>NO<sp/>NVIDIA<sp/>driver<sp/>activity.&quot;<sp/>&gt;&amp;2</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>echo<sp/>&quot;[strict]<sp/>ERROR:<sp/>This<sp/>would<sp/>produce<sp/>a<sp/>fake<sp/>GPU<sp/>report<sp/>(CPU<sp/>path<sp/>or<sp/>stub).&quot;<sp/>&gt;&amp;2</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/><sp/><sp/>echo<sp/>&quot;[strict]<sp/>DEBUG:<sp/>trace=${trace}<sp/>out=${out}<sp/>rc=${rc}&quot;<sp/>&gt;&amp;2</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/><sp/><sp/>exit<sp/>99</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/>fi</highlight></codeline>
 <codeline></codeline>
-<codeline><highlight class="normal"><sp/><sp/>#<sp/>Fallback:<sp/>try<sp/>to<sp/>catch<sp/>the<sp/>process<sp/>as<sp/>a<sp/>compute<sp/>app<sp/>during<sp/>a<sp/>longer<sp/>preflight.</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/>#<sp/>This<sp/>is<sp/>weaker<sp/>than<sp/>strace<sp/>(some<sp/>systems<sp/>may<sp/>hide<sp/>compute-apps),</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/>#<sp/>but<sp/>better<sp/>than<sp/>nothing<sp/>if<sp/>strace<sp/>isn&apos;t<sp/>installed.</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/>local<sp/>log=&quot;${_tmpdir}/cuda_compute_apps.log&quot;</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/>rm<sp/>-f<sp/>&quot;${log}&quot;</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/>set<sp/>+e</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/>nvidia-smi<sp/>--query-compute-apps=pid,process_name,used_gpu_memory<sp/>--format=csv,noheader<sp/>-lms<sp/>200<sp/>&gt;<sp/>&quot;${log}&quot;<sp/>&amp;</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/>local<sp/>wpid=$!</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/>&quot;${ENGINE_BIN}&quot;<sp/>\</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>--device<sp/>cuda<sp/>\</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>--model-dir<sp/>&quot;${MODEL_DIR}&quot;<sp/>\</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>--prompts-file<sp/>&quot;${PROMPTS}&quot;<sp/>\</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>--threads<sp/>1<sp/>\</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>--precision<sp/>&quot;${CLI_PREC}&quot;<sp/>\</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>--batch<sp/>1<sp/>\</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>--prefetch<sp/>&quot;${PREFETCH}&quot;<sp/>\</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>--pretranspose<sp/>&quot;${PRETRANSPOSE}&quot;<sp/>\</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>--affinity<sp/>&quot;${AFFINITY}&quot;<sp/>\</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>--max-new<sp/>256<sp/>\</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>--rounds<sp/>1<sp/>&gt;/dev/null<sp/>2&gt;&amp;1</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/>local<sp/>rc=$?</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/>kill<sp/>&quot;${wpid}&quot;<sp/>&gt;/dev/null<sp/>2&gt;&amp;1<sp/>||<sp/>true</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/>wait<sp/>&quot;${wpid}&quot;<sp/>&gt;/dev/null<sp/>2&gt;&amp;1<sp/>||<sp/>true</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/>set<sp/>-e</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>echo<sp/>&quot;[strict]<sp/>WARN:<sp/>strace<sp/>not<sp/>available;<sp/>skipping<sp/>strong<sp/>CUDA<sp/>guard&quot;<sp/>&gt;&amp;2</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>return<sp/>0</highlight></codeline>
+<codeline><highlight class="normal">}</highlight></codeline>
 <codeline></codeline>
-<codeline><highlight class="normal"><sp/><sp/>if<sp/>grep<sp/>-Eq<sp/>&apos;inference-engine\.cuda|inference-engine&apos;<sp/>&quot;${log}&quot;;<sp/>then</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>echo<sp/>&quot;[strict]<sp/>CUDA<sp/>guard:<sp/>compute<sp/>app<sp/>detected<sp/>(OK)&quot;<sp/>&gt;&amp;2</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>---------------------------------</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>CPU<sp/>guard<sp/>(portable):<sp/>verify<sp/>open(model.ie.bin)<sp/>+<sp/>mmap/read(fd)</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>---------------------------------</highlight></codeline>
+<codeline><highlight class="normal">STRICT_CPU_GUARD=&quot;${STRICT_CPU_GUARD:-1}&quot;</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">cpu_guard_preflight()<sp/>{</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>if<sp/>[[<sp/>&quot;${DEVICE}&quot;<sp/>!=<sp/>&quot;cpu&quot;<sp/>]];<sp/>then</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>return<sp/>0</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>fi</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>if<sp/>[[<sp/>&quot;${STRICT_CPU_GUARD}&quot;<sp/>==<sp/>&quot;0&quot;<sp/>]];<sp/>then</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>echo<sp/>&quot;[strict]<sp/>WARN:<sp/>STRICT_CPU_GUARD=0;<sp/>skipping<sp/>CPU<sp/>preflight&quot;<sp/>&gt;&amp;2</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>return<sp/>0</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>fi</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>if<sp/>!<sp/>command<sp/>-v<sp/>strace<sp/>&gt;/dev/null<sp/>2&gt;&amp;1;<sp/>then</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>echo<sp/>&quot;[strict]<sp/>WARN:<sp/>strace<sp/>not<sp/>available;<sp/>skipping<sp/>CPU<sp/>preflight&quot;<sp/>&gt;&amp;2</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/><sp/><sp/>return<sp/>0</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/>fi</highlight></codeline>
 <codeline></codeline>
-<codeline><highlight class="normal"><sp/><sp/>echo<sp/>&quot;[strict]<sp/>ERROR:<sp/>DEVICE=cuda<sp/>but<sp/>could<sp/>not<sp/>detect<sp/>any<sp/>CUDA<sp/>compute<sp/>app<sp/>activity<sp/>during<sp/>preflight.&quot;<sp/>&gt;&amp;2</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/>echo<sp/>&quot;[strict]<sp/>ERROR:<sp/>Install<sp/>strace<sp/>for<sp/>a<sp/>stronger<sp/>guard,<sp/>or<sp/>fix<sp/>the<sp/>CUDA<sp/>backend<sp/>initialization.&quot;<sp/>&gt;&amp;2</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/>echo<sp/>&quot;[strict]<sp/>DEBUG:<sp/>compute_apps_log=${log}<sp/>rc=${rc}&quot;<sp/>&gt;&amp;2</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/>exit<sp/>96</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>local<sp/>trace=&quot;${_tmpdir}/cpu_preflight.trace&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>local<sp/>out=&quot;${_tmpdir}/cpu_preflight.out&quot;</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal"><sp/><sp/>set<sp/>+e</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>strace<sp/>-f<sp/>-e<sp/>trace=openat,mmap,read<sp/>-o<sp/>&quot;${trace}&quot;<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&quot;${ENGINE_BIN}&quot;<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>--device<sp/>cpu<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>--model-dir<sp/>&quot;${MODEL_DIR}&quot;<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>--prompts-file<sp/>&quot;${PROMPTS}&quot;<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>--threads<sp/>1<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>--precision<sp/>&quot;${CLI_PREC}&quot;<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>--batch<sp/>1<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>--prefetch<sp/>&quot;${PREFETCH}&quot;<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>--pretranspose<sp/>&quot;${PRETRANSPOSE}&quot;<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>--affinity<sp/>&quot;${AFFINITY}&quot;<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>--max-new<sp/>1<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>--rounds<sp/>1<sp/>&gt;<sp/>&quot;${out}&quot;<sp/>2&gt;&amp;1</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>local<sp/>rc=$?</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>set<sp/>-e</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal"><sp/><sp/>#<sp/>Extract<sp/>FD(s)<sp/>from:<sp/>openat(...<sp/>&quot;model.ie.bin&quot;<sp/>...)<sp/>=<sp/>&lt;fd&gt;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>#<sp/>POSIX<sp/>awk<sp/>only<sp/>(no<sp/>match(...,<sp/>...,<sp/>arr)).</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>local<sp/>fds</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>fds=&quot;$(awk<sp/>&apos;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>/openat\(/<sp/>&amp;&amp;<sp/>/model\.ie\.bin&quot;/<sp/>{</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>n=split($0,<sp/>parts,<sp/>&quot;=&quot;)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>if<sp/>(n<sp/>&lt;<sp/>2)<sp/>next</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>fd=parts[n]</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>gsub(/^[[:space:]]+/,<sp/>&quot;&quot;,<sp/>fd)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>gsub(/[[:space:]]+$/,<sp/>&quot;&quot;,<sp/>fd)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>if<sp/>(fd<sp/>~<sp/>/^[0-9]+$/)<sp/>print<sp/>fd</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>&apos;<sp/>&quot;${trace}&quot;<sp/>|<sp/>sort<sp/>-n<sp/>|<sp/>uniq<sp/>|<sp/>tr<sp/>&apos;\n&apos;<sp/>&apos;<sp/>&apos;)&quot;</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal"><sp/><sp/>if<sp/>[[<sp/>-z<sp/>&quot;${fds//<sp/>}&quot;<sp/>]];<sp/>then</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>echo<sp/>&quot;[strict]<sp/>ERROR:<sp/>CPU<sp/>preflight<sp/>did<sp/>not<sp/>open<sp/>model.ie.bin<sp/>(trace=${trace},<sp/>out=${out},<sp/>rc=${rc})&quot;<sp/>&gt;&amp;2</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>exit<sp/>91</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>fi</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal"><sp/><sp/>local<sp/>ok=0</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>for<sp/>fd<sp/>in<sp/>${fds};<sp/>do</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>if<sp/>grep<sp/>-Eq<sp/>&quot;mmap\\(.*,[[:space:]]*${fd}[[:space:]]*,[[:space:]]*[0-9]+&quot;<sp/>&quot;${trace}&quot;<sp/>||<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/>grep<sp/>-Eq<sp/>&quot;read\\(${fd},&quot;<sp/>&quot;${trace}&quot;;<sp/>then</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>ok=1</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>break</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>fi</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>done</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal"><sp/><sp/>if<sp/>[[<sp/>&quot;${ok}&quot;<sp/>!=<sp/>&quot;1&quot;<sp/>]];<sp/>then</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>echo<sp/>&quot;[strict]<sp/>ERROR:<sp/>CPU<sp/>preflight<sp/>opened<sp/>model.ie.bin<sp/>but<sp/>did<sp/>not<sp/>mmap/read<sp/>it<sp/>(fds=${fds})&quot;<sp/>&gt;&amp;2</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>echo<sp/>&quot;[strict]<sp/>DEBUG:<sp/>trace=${trace}<sp/>out=${out}<sp/>rc=${rc}&quot;<sp/>&gt;&amp;2</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>exit<sp/>92</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>fi</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal"><sp/><sp/>echo<sp/>&quot;[strict]<sp/>CPU<sp/>preflight:<sp/>model.ie.bin<sp/>mmap/read<sp/>detected<sp/>(OK)&quot;<sp/>&gt;&amp;2</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>return<sp/>0</highlight></codeline>
 <codeline><highlight class="normal">}</highlight></codeline>
 <codeline></codeline>
-<codeline><highlight class="normal">#<sp/>Run<sp/>the<sp/>guard<sp/>once<sp/>up<sp/>front.</highlight></codeline>
 <codeline><highlight class="normal">cuda_guard_preflight</highlight></codeline>
+<codeline><highlight class="normal">cpu_guard_preflight</highlight></codeline>
 <codeline></codeline>
 <codeline><highlight class="normal">run_one()<sp/>{</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/>local<sp/>run_idx=&quot;$1&quot;</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/>local<sp/>out_raw=&quot;${_tmpdir}/run_${run_idx}.raw.txt&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>local<sp/>out_time=&quot;${_tmpdir}/run_${run_idx}.time.txt&quot;</highlight></codeline>
 <codeline></codeline>
 <codeline><highlight class="normal"><sp/><sp/>local<sp/>sw_in0<sp/>sw_out0</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/>read<sp/>-r<sp/>sw_in0<sp/>sw_out0<sp/>&lt;<sp/>&lt;(read_vmstat_swaps)</highlight></codeline>
 <codeline></codeline>
 <codeline><highlight class="normal"><sp/><sp/>(</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/><sp/><sp/>cd<sp/>&quot;${MODEL_DIR}&quot;</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>exec<sp/>&quot;${ENGINE_BIN}&quot;<sp/>\</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>--device<sp/>&quot;${DEVICE}&quot;<sp/>\</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>--model-dir<sp/>&quot;.&quot;<sp/>\</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>--prompts-file<sp/>&quot;${PROMPTS}&quot;<sp/>\</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>--threads<sp/>&quot;${THREADS}&quot;<sp/>\</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>--precision<sp/>&quot;${CLI_PREC}&quot;<sp/>\</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>--batch<sp/>&quot;${BATCH}&quot;<sp/>\</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>--prefetch<sp/>&quot;${PREFETCH}&quot;<sp/>\</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>--pretranspose<sp/>&quot;${PRETRANSPOSE}&quot;<sp/>\</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>--affinity<sp/>&quot;${AFFINITY}&quot;<sp/>\</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>--max-new<sp/>&quot;${MAX_NEW}&quot;<sp/>\</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>--rounds<sp/>&quot;${ROUNDS}&quot;</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/>)<sp/>&gt;<sp/>&quot;${out_raw}&quot;<sp/>2&gt;&amp;1<sp/>&amp;</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/>local<sp/>pid=&quot;$!&quot;</highlight></codeline>
-<codeline></codeline>
-<codeline><highlight class="normal"><sp/><sp/>local<sp/>rss_floor_kb=0</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/>local<sp/>rss_peak_kb=0</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/>local<sp/>vms_peak_kb=0</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/>local<sp/>pss_peak_kb=0</highlight></codeline>
-<codeline></codeline>
-<codeline><highlight class="normal"><sp/><sp/>local<sp/>memavail_sum_kb=0</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/>local<sp/>memavail_n=0</highlight></codeline>
-<codeline></codeline>
-<codeline><highlight class="normal"><sp/><sp/>local<sp/>psi_some_sum=0</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/>local<sp/>psi_some_n=0</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/>local<sp/>psi_full_sum=0</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/>local<sp/>psi_full_n=0</highlight></codeline>
-<codeline></codeline>
-<codeline><highlight class="normal"><sp/><sp/>local<sp/>minflt0<sp/>majflt0</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/>read<sp/>-r<sp/>minflt0<sp/>majflt0<sp/>&lt;<sp/>&lt;(read_proc_faults<sp/>&quot;${pid}&quot;)</highlight></codeline>
-<codeline></codeline>
-<codeline><highlight class="normal"><sp/><sp/>while<sp/>kill<sp/>-0<sp/>&quot;${pid}&quot;<sp/>2&gt;/dev/null;<sp/>do</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>local<sp/>rss_kb<sp/>vms_kb<sp/>swp_kb</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>read<sp/>-r<sp/>rss_kb<sp/>vms_kb<sp/>swp_kb<sp/>&lt;<sp/>&lt;(read_proc_status_kb<sp/>&quot;${pid}&quot;)</highlight></codeline>
-<codeline></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>if<sp/>[[<sp/>&quot;${rss_floor_kb}&quot;<sp/>-eq<sp/>0<sp/>&amp;&amp;<sp/>&quot;${rss_kb}&quot;<sp/>-gt<sp/>0<sp/>]];<sp/>then</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>rss_floor_kb=&quot;${rss_kb}&quot;</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>fi</highlight></codeline>
-<codeline></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>if<sp/>[[<sp/>&quot;${rss_kb}&quot;<sp/>-gt<sp/>&quot;${rss_peak_kb}&quot;<sp/>]];<sp/>then<sp/>rss_peak_kb=&quot;${rss_kb}&quot;;<sp/>fi</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>if<sp/>[[<sp/>&quot;${vms_kb}&quot;<sp/>-gt<sp/>&quot;${vms_peak_kb}&quot;<sp/>]];<sp/>then<sp/>vms_peak_kb=&quot;${vms_kb}&quot;;<sp/>fi</highlight></codeline>
-<codeline></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>local<sp/>pss_kb</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>pss_kb=&quot;$(read_proc_pss_kb<sp/>&quot;${pid}&quot;)&quot;</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>if<sp/>[[<sp/>&quot;${pss_kb}&quot;<sp/>-gt<sp/>&quot;${pss_peak_kb}&quot;<sp/>]];<sp/>then<sp/>pss_peak_kb=&quot;${pss_kb}&quot;;<sp/>fi</highlight></codeline>
-<codeline></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>local<sp/>memavail_kb</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>memavail_kb=&quot;$(read_memavailable_kb)&quot;</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>if<sp/>[[<sp/>-n<sp/>&quot;${memavail_kb}&quot;<sp/>]];<sp/>then</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>memavail_sum_kb=&quot;$((memavail_sum_kb<sp/>+<sp/>memavail_kb))&quot;</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>memavail_n=&quot;$((memavail_n<sp/>+<sp/>1))&quot;</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>fi</highlight></codeline>
-<codeline></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>local<sp/>psi_some<sp/>psi_full</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>psi_some=&quot;$(read_psi_mem_some_avg10)&quot;</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>psi_full=&quot;$(read_psi_mem_full_avg10)&quot;</highlight></codeline>
-<codeline></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>if<sp/>[[<sp/>-n<sp/>&quot;${psi_some}&quot;<sp/>]];<sp/>then</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>psi_some_sum=&quot;$(python3<sp/>-<sp/>&lt;&lt;PY</highlight></codeline>
-<codeline><highlight class="normal">s=${psi_some_sum}</highlight></codeline>
-<codeline><highlight class="normal">x=${psi_some}</highlight></codeline>
-<codeline><highlight class="normal">print(s<sp/>+<sp/>x)</highlight></codeline>
-<codeline><highlight class="normal">PY</highlight></codeline>
-<codeline><highlight class="normal">)&quot;</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>psi_some_n=&quot;$((psi_some_n<sp/>+<sp/>1))&quot;</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>fi</highlight></codeline>
-<codeline></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>if<sp/>[[<sp/>-n<sp/>&quot;${psi_full}&quot;<sp/>]];<sp/>then</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>psi_full_sum=&quot;$(python3<sp/>-<sp/>&lt;&lt;PY</highlight></codeline>
-<codeline><highlight class="normal">s=${psi_full_sum}</highlight></codeline>
-<codeline><highlight class="normal">x=${psi_full}</highlight></codeline>
-<codeline><highlight class="normal">print(s<sp/>+<sp/>x)</highlight></codeline>
-<codeline><highlight class="normal">PY</highlight></codeline>
-<codeline><highlight class="normal">)&quot;</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>psi_full_n=&quot;$((psi_full_n<sp/>+<sp/>1))&quot;</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>fi</highlight></codeline>
-<codeline></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>sleep<sp/>0.05</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/>done</highlight></codeline>
-<codeline></codeline>
-<codeline><highlight class="normal"><sp/><sp/>wait<sp/>&quot;${pid}&quot;<sp/>||<sp/>true</highlight></codeline>
-<codeline></codeline>
-<codeline><highlight class="normal"><sp/><sp/>local<sp/>minflt1<sp/>majflt1</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/>read<sp/>-r<sp/>minflt1<sp/>majflt1<sp/>&lt;<sp/>&lt;(read_proc_faults<sp/>&quot;${pid}&quot;)</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/>local<sp/>minflt_delta=&quot;$((minflt1<sp/>-<sp/>minflt0))&quot;</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/>local<sp/>majflt_delta=&quot;$((majflt1<sp/>-<sp/>majflt0))&quot;</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/>if<sp/>[[<sp/>&quot;${minflt_delta}&quot;<sp/>-lt<sp/>0<sp/>]];<sp/>then<sp/>minflt_delta=0;<sp/>fi</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/>if<sp/>[[<sp/>&quot;${majflt_delta}&quot;<sp/>-lt<sp/>0<sp/>]];<sp/>then<sp/>majflt_delta=0;<sp/>fi</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>/usr/bin/time<sp/>-v<sp/>-o<sp/>&quot;${out_time}&quot;<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>&quot;${ENGINE_BIN}&quot;<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>--device<sp/>&quot;${DEVICE}&quot;<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>--model-dir<sp/>&quot;.&quot;<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>--prompts-file<sp/>&quot;${PROMPTS}&quot;<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>--threads<sp/>&quot;${THREADS}&quot;<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>--precision<sp/>&quot;${CLI_PREC}&quot;<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>--batch<sp/>&quot;${BATCH}&quot;<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>--prefetch<sp/>&quot;${PREFETCH}&quot;<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>--pretranspose<sp/>&quot;${PRETRANSPOSE}&quot;<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>--affinity<sp/>&quot;${AFFINITY}&quot;<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>--max-new<sp/>&quot;${MAX_NEW}&quot;<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>--rounds<sp/>&quot;${ROUNDS}&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>)<sp/>&gt;<sp/>&quot;${out_raw}&quot;<sp/>2&gt;&amp;1</highlight></codeline>
 <codeline></codeline>
 <codeline><highlight class="normal"><sp/><sp/>local<sp/>sw_in1<sp/>sw_out1</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/>read<sp/>-r<sp/>sw_in1<sp/>sw_out1<sp/>&lt;<sp/>&lt;(read_vmstat_swaps)</highlight></codeline>
@@ -384,112 +271,44 @@
 <codeline><highlight class="normal">PY</highlight></codeline>
 <codeline><highlight class="normal">)&quot;</highlight></codeline>
 <codeline></codeline>
-<codeline><highlight class="normal"><sp/><sp/>local<sp/>memavail_mean_mb=&quot;null&quot;</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/>local<sp/>memavail_mean_pct=&quot;null&quot;</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/>if<sp/>[[<sp/>&quot;${memavail_n}&quot;<sp/>-gt<sp/>0<sp/>]];<sp/>then</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>local<sp/>memavail_mean_kb=&quot;$((memavail_sum_kb<sp/>/<sp/>memavail_n))&quot;</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>memavail_mean_mb=&quot;$(python3<sp/>-<sp/>&lt;&lt;PY</highlight></codeline>
-<codeline><highlight class="normal">kb=${memavail_mean_kb}</highlight></codeline>
-<codeline><highlight class="normal">print(kb/1024.0)</highlight></codeline>
-<codeline><highlight class="normal">PY</highlight></codeline>
-<codeline><highlight class="normal">)&quot;</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>local<sp/>memtotal_kb</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>memtotal_kb=&quot;$(awk<sp/>&apos;/MemTotal:/<sp/>{print<sp/>$2;<sp/>exit}&apos;<sp/>/proc/meminfo<sp/>2&gt;/dev/null<sp/>||<sp/>echo<sp/>0)&quot;</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>if<sp/>[[<sp/>&quot;${memtotal_kb}&quot;<sp/>-gt<sp/>0<sp/>]];<sp/>then</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>memavail_mean_pct=&quot;$(python3<sp/>-<sp/>&lt;&lt;PY</highlight></codeline>
-<codeline><highlight class="normal">a=${memavail_mean_kb}</highlight></codeline>
-<codeline><highlight class="normal">t=${memtotal_kb}</highlight></codeline>
-<codeline><highlight class="normal">print((a/t)*100.0)</highlight></codeline>
-<codeline><highlight class="normal">PY</highlight></codeline>
-<codeline><highlight class="normal">)&quot;</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>fi</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/>fi</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>local<sp/>maxrss_kb<sp/>minflt<sp/>majflt</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>maxrss_kb=&quot;$(awk<sp/>-F:<sp/>&apos;/Maximum<sp/>resident<sp/>set<sp/>size/<sp/>{gsub(/^[<sp/>\t]+/,&quot;&quot;,$2);<sp/>print<sp/>$2;<sp/>exit}&apos;<sp/>&quot;${out_time}&quot;<sp/>2&gt;/dev/null<sp/>||<sp/>echo<sp/>0)&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>minflt=&quot;$(awk<sp/>-F:<sp/>&apos;/Minor<sp/>\(reclaiming<sp/>a<sp/>frame\)<sp/>page<sp/>faults/<sp/>{gsub(/^[<sp/>\t]+/,&quot;&quot;,$2);<sp/>print<sp/>$2;<sp/>exit}&apos;<sp/>&quot;${out_time}&quot;<sp/>2&gt;/dev/null<sp/>||<sp/>echo<sp/>0)&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>majflt=&quot;$(awk<sp/>-F:<sp/>&apos;/Major<sp/>\(requiring<sp/>I\/O\)<sp/>page<sp/>faults/<sp/>{gsub(/^[<sp/>\t]+/,&quot;&quot;,$2);<sp/>print<sp/>$2;<sp/>exit}&apos;<sp/>&quot;${out_time}&quot;<sp/>2&gt;/dev/null<sp/>||<sp/>echo<sp/>0)&quot;</highlight></codeline>
 <codeline></codeline>
-<codeline><highlight class="normal"><sp/><sp/>local<sp/>psi_some_mean=&quot;null&quot;</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/>local<sp/>psi_full_mean=&quot;null&quot;</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/>if<sp/>[[<sp/>&quot;${psi_some_n}&quot;<sp/>-gt<sp/>0<sp/>]];<sp/>then</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>psi_some_mean=&quot;$(python3<sp/>-<sp/>&lt;&lt;PY</highlight></codeline>
-<codeline><highlight class="normal">s=${psi_some_sum}</highlight></codeline>
-<codeline><highlight class="normal">n=${psi_some_n}</highlight></codeline>
-<codeline><highlight class="normal">print(s/n)</highlight></codeline>
-<codeline><highlight class="normal">PY</highlight></codeline>
-<codeline><highlight class="normal">)&quot;</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/>fi</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/>if<sp/>[[<sp/>&quot;${psi_full_n}&quot;<sp/>-gt<sp/>0<sp/>]];<sp/>then</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>psi_full_mean=&quot;$(python3<sp/>-<sp/>&lt;&lt;PY</highlight></codeline>
-<codeline><highlight class="normal">s=${psi_full_sum}</highlight></codeline>
-<codeline><highlight class="normal">n=${psi_full_n}</highlight></codeline>
-<codeline><highlight class="normal">print(s/n)</highlight></codeline>
-<codeline><highlight class="normal">PY</highlight></codeline>
-<codeline><highlight class="normal">)&quot;</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/>fi</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>if<sp/>[[<sp/>-z<sp/>&quot;${maxrss_kb}&quot;<sp/>]];<sp/>then<sp/>maxrss_kb=0;<sp/>fi</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>if<sp/>[[<sp/>-z<sp/>&quot;${minflt}&quot;<sp/>]];<sp/>then<sp/>minflt=0;<sp/>fi</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>if<sp/>[[<sp/>-z<sp/>&quot;${majflt}&quot;<sp/>]];<sp/>then<sp/>majflt=0;<sp/>fi</highlight></codeline>
 <codeline></codeline>
-<codeline><highlight class="normal"><sp/><sp/>local<sp/>rss_floor_mb<sp/>rss_peak_mb<sp/>vms_peak_mb<sp/>pss_peak_mb<sp/>rss_delta_mb</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/>rss_floor_mb=&quot;$(python3<sp/>-<sp/>&lt;&lt;PY</highlight></codeline>
-<codeline><highlight class="normal">kb=${rss_floor_kb}</highlight></codeline>
-<codeline><highlight class="normal">print(kb/1024.0)</highlight></codeline>
-<codeline><highlight class="normal">PY</highlight></codeline>
-<codeline><highlight class="normal">)&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>local<sp/>rss_peak_mb</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/>rss_peak_mb=&quot;$(python3<sp/>-<sp/>&lt;&lt;PY</highlight></codeline>
-<codeline><highlight class="normal">kb=${rss_peak_kb}</highlight></codeline>
+<codeline><highlight class="normal">kb=${maxrss_kb}</highlight></codeline>
 <codeline><highlight class="normal">print(kb/1024.0)</highlight></codeline>
-<codeline><highlight class="normal">PY</highlight></codeline>
-<codeline><highlight class="normal">)&quot;</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/>vms_peak_mb=&quot;$(python3<sp/>-<sp/>&lt;&lt;PY</highlight></codeline>
-<codeline><highlight class="normal">kb=${vms_peak_kb}</highlight></codeline>
-<codeline><highlight class="normal">print(kb/1024.0)</highlight></codeline>
-<codeline><highlight class="normal">PY</highlight></codeline>
-<codeline><highlight class="normal">)&quot;</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/>pss_peak_mb=&quot;$(python3<sp/>-<sp/>&lt;&lt;PY</highlight></codeline>
-<codeline><highlight class="normal">kb=${pss_peak_kb}</highlight></codeline>
-<codeline><highlight class="normal">print(kb/1024.0)</highlight></codeline>
-<codeline><highlight class="normal">PY</highlight></codeline>
-<codeline><highlight class="normal">)&quot;</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/>rss_delta_mb=&quot;$(python3<sp/>-<sp/>&lt;&lt;PY</highlight></codeline>
-<codeline><highlight class="normal">a=${rss_peak_kb}</highlight></codeline>
-<codeline><highlight class="normal">b=${rss_floor_kb}</highlight></codeline>
-<codeline><highlight class="normal">print((a-b)/1024.0<sp/>if<sp/>a&gt;=b<sp/>else<sp/>0.0)</highlight></codeline>
 <codeline><highlight class="normal">PY</highlight></codeline>
 <codeline><highlight class="normal">)&quot;</highlight></codeline>
 <codeline></codeline>
 <codeline><highlight class="normal"><sp/><sp/>python3<sp/>-<sp/>&quot;${out_raw}&quot;<sp/>\</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&quot;${rss_floor_mb}&quot;<sp/>&quot;${rss_delta_mb}&quot;<sp/>&quot;${pss_peak_mb}&quot;<sp/>&quot;${vms_peak_mb}&quot;<sp/>\</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&quot;${minflt_delta}&quot;<sp/>&quot;${majflt_delta}&quot;<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&quot;${rss_peak_mb}&quot;<sp/>&quot;${minflt}&quot;<sp/>&quot;${majflt}&quot;<sp/>\</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&quot;${swap_in_mb}&quot;<sp/>&quot;${swap_out_mb}&quot;<sp/>\</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&quot;${psi_some_mean}&quot;<sp/>&quot;${psi_full_mean}&quot;<sp/>\</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&quot;${memavail_mean_mb}&quot;<sp/>&quot;${memavail_mean_pct}&quot;<sp/>\</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&quot;${MODEL_DIR}&quot;<sp/>&quot;${ENGINE_BIN}&quot;<sp/>&quot;${DEVICE}&quot;<sp/>\</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&quot;${IE_DEDUP}&quot;<sp/>&quot;${IE_DEDUP_STRICT}&quot;<sp/>&quot;${IE_DEDUP_POLICY}&quot;<sp/>&quot;${IE_DEDUP_CACHE_MB}&quot;<sp/>&lt;&lt;&apos;PY&apos;</highlight></codeline>
 <codeline><highlight class="normal">import<sp/>sys,<sp/>json</highlight></codeline>
 <codeline></codeline>
 <codeline><highlight class="normal">raw_path=sys.argv[1]</highlight></codeline>
-<codeline><highlight class="normal">rss_floor=float(sys.argv[2])</highlight></codeline>
-<codeline><highlight class="normal">rss_delta=float(sys.argv[3])</highlight></codeline>
-<codeline><highlight class="normal">pss_peak=float(sys.argv[4])</highlight></codeline>
-<codeline><highlight class="normal">vms_peak=float(sys.argv[5])</highlight></codeline>
-<codeline><highlight class="normal">minflt=int(float(sys.argv[6]))</highlight></codeline>
-<codeline><highlight class="normal">majflt=int(float(sys.argv[7]))</highlight></codeline>
-<codeline><highlight class="normal">swap_in=float(sys.argv[8])</highlight></codeline>
-<codeline><highlight class="normal">swap_out=float(sys.argv[9])</highlight></codeline>
+<codeline><highlight class="normal">rss_peak=float(sys.argv[2])</highlight></codeline>
+<codeline><highlight class="normal">minflt=int(float(sys.argv[3]))</highlight></codeline>
+<codeline><highlight class="normal">majflt=int(float(sys.argv[4]))</highlight></codeline>
+<codeline><highlight class="normal">swap_in=float(sys.argv[5])</highlight></codeline>
+<codeline><highlight class="normal">swap_out=float(sys.argv[6])</highlight></codeline>
 <codeline></codeline>
-<codeline><highlight class="normal">def<sp/>to_opt_float(s):</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>if<sp/>s<sp/>==<sp/>&quot;null&quot;:</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>return<sp/>None</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>return<sp/>float(s)</highlight></codeline>
+<codeline><highlight class="normal">model_dir=sys.argv[7]</highlight></codeline>
+<codeline><highlight class="normal">engine_bin=sys.argv[8]</highlight></codeline>
+<codeline><highlight class="normal">device=sys.argv[9]</highlight></codeline>
 <codeline></codeline>
-<codeline><highlight class="normal">psi_some=to_opt_float(sys.argv[10])</highlight></codeline>
-<codeline><highlight class="normal">psi_full=to_opt_float(sys.argv[11])</highlight></codeline>
-<codeline><highlight class="normal">mem_av_mb=to_opt_float(sys.argv[12])</highlight></codeline>
-<codeline><highlight class="normal">mem_av_pct=to_opt_float(sys.argv[13])</highlight></codeline>
-<codeline></codeline>
-<codeline><highlight class="normal">model_dir=sys.argv[14]</highlight></codeline>
-<codeline><highlight class="normal">engine_bin=sys.argv[15]</highlight></codeline>
-<codeline><highlight class="normal">device=sys.argv[16]</highlight></codeline>
-<codeline></codeline>
-<codeline><highlight class="normal">ie_dedup=int(float(sys.argv[17]))</highlight></codeline>
-<codeline><highlight class="normal">ie_dedup_strict=int(float(sys.argv[18]))</highlight></codeline>
-<codeline><highlight class="normal">ie_dedup_policy=sys.argv[19]</highlight></codeline>
-<codeline><highlight class="normal">ie_dedup_cache_mb=int(float(sys.argv[20]))</highlight></codeline>
+<codeline><highlight class="normal">ie_dedup=int(float(sys.argv[10]))</highlight></codeline>
+<codeline><highlight class="normal">ie_dedup_strict=int(float(sys.argv[11]))</highlight></codeline>
+<codeline><highlight class="normal">ie_dedup_policy=sys.argv[12]</highlight></codeline>
+<codeline><highlight class="normal">ie_dedup_cache_mb=int(float(sys.argv[13]))</highlight></codeline>
 <codeline></codeline>
 <codeline><highlight class="normal">last=None</highlight></codeline>
 <codeline><highlight class="normal">with<sp/>open(raw_path,&quot;r&quot;,encoding=&quot;utf-8&quot;,errors=&quot;ignore&quot;)<sp/>as<sp/>f:</highlight></codeline>
@@ -522,25 +341,17 @@
 <codeline><highlight class="normal"><sp/><sp/><sp/><sp/>sys.stderr.write(&quot;&quot;.join(tail))</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/><sp/><sp/>raise<sp/>SystemExit(1)</highlight></codeline>
 <codeline></codeline>
-<codeline><highlight class="normal">#<sp/>Inject<sp/>extended<sp/>memory<sp/>metrics</highlight></codeline>
-<codeline><highlight class="normal">last[&quot;pss_peak_mb&quot;]=pss_peak</highlight></codeline>
-<codeline><highlight class="normal">last[&quot;vms_peak_mb&quot;]=vms_peak</highlight></codeline>
-<codeline><highlight class="normal">last[&quot;rss_floor_mb&quot;]=rss_floor</highlight></codeline>
-<codeline><highlight class="normal">last[&quot;rss_delta_mb&quot;]=rss_delta</highlight></codeline>
+<codeline><highlight class="normal">last[&quot;rss_peak_mb&quot;]=rss_peak</highlight></codeline>
 <codeline><highlight class="normal">last[&quot;minflt&quot;]=minflt</highlight></codeline>
 <codeline><highlight class="normal">last[&quot;majflt&quot;]=majflt</highlight></codeline>
 <codeline><highlight class="normal">last[&quot;swap_in_mb&quot;]=swap_in</highlight></codeline>
 <codeline><highlight class="normal">last[&quot;swap_out_mb&quot;]=swap_out</highlight></codeline>
-<codeline><highlight class="normal">if<sp/>psi_some<sp/>is<sp/>not<sp/>None:</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>last[&quot;psi_mem_some_pct&quot;]=psi_some</highlight></codeline>
-<codeline><highlight class="normal">if<sp/>psi_full<sp/>is<sp/>not<sp/>None:</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>last[&quot;psi_mem_full_pct&quot;]=psi_full</highlight></codeline>
-<codeline><highlight class="normal">if<sp/>mem_av_mb<sp/>is<sp/>not<sp/>None:</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>last[&quot;mem_available_mb&quot;]=mem_av_mb</highlight></codeline>
-<codeline><highlight class="normal">if<sp/>mem_av_pct<sp/>is<sp/>not<sp/>None:</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>last[&quot;mem_available_pct&quot;]=mem_av_pct</highlight></codeline>
 <codeline></codeline>
-<codeline><highlight class="normal">#<sp/>Stamp<sp/>dedup<sp/>config<sp/>into<sp/>each<sp/>run<sp/>(helps<sp/>downstream<sp/>reports<sp/>and<sp/>comparisons)</highlight></codeline>
+<codeline><highlight class="normal">last.setdefault(&quot;pss_peak_mb&quot;,<sp/>0.0)</highlight></codeline>
+<codeline><highlight class="normal">last.setdefault(&quot;vms_peak_mb&quot;,<sp/>0.0)</highlight></codeline>
+<codeline><highlight class="normal">last.setdefault(&quot;rss_floor_mb&quot;,<sp/>0.0)</highlight></codeline>
+<codeline><highlight class="normal">last.setdefault(&quot;rss_delta_mb&quot;,<sp/>0.0)</highlight></codeline>
+<codeline></codeline>
 <codeline><highlight class="normal">last[&quot;ie_dedup&quot;]=ie_dedup</highlight></codeline>
 <codeline><highlight class="normal">last[&quot;ie_dedup_strict&quot;]=ie_dedup_strict</highlight></codeline>
 <codeline><highlight class="normal">last[&quot;ie_dedup_policy&quot;]=ie_dedup_policy</highlight></codeline>
@@ -554,7 +365,6 @@
 <codeline><highlight class="normal"><sp/><sp/>run_one<sp/>&quot;${i}&quot;</highlight></codeline>
 <codeline><highlight class="normal">done</highlight></codeline>
 <codeline></codeline>
-<codeline><highlight class="normal">#<sp/>Dedup<sp/>artifact<sp/>sizes<sp/>(real,<sp/>from<sp/>filesystem)</highlight></codeline>
 <codeline><highlight class="normal">model_ie_bin_bytes=&quot;$(stat_bytes_or_empty<sp/>&quot;${MODEL_DIR}/model.ie.bin&quot;)&quot;</highlight></codeline>
 <codeline><highlight class="normal">dedup_defaults_bytes=&quot;$(stat_bytes_or_empty<sp/>&quot;${MODEL_DIR}/model.defaults.bin&quot;)&quot;</highlight></codeline>
 <codeline><highlight class="normal">dedup_masks_bytes=&quot;$(stat_bytes_or_empty<sp/>&quot;${MODEL_DIR}/model.masks.bin&quot;)&quot;</highlight></codeline>
@@ -610,13 +420,11 @@
 <codeline><highlight class="normal"><sp/><sp/>&quot;ie_stride_bytes&quot;:<sp/>i(&quot;IE_STRIDE_BYTES&quot;,<sp/>&quot;0&quot;),</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/>&quot;ie_verify_touch&quot;:<sp/>i(&quot;IE_VERIFY_TOUCH&quot;,<sp/>&quot;0&quot;),</highlight></codeline>
 <codeline></codeline>
-<codeline><highlight class="normal"><sp/><sp/>#<sp/>Dedup<sp/>config</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/>&quot;ie_dedup&quot;:<sp/>i(&quot;IE_DEDUP&quot;,<sp/>&quot;0&quot;),</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/>&quot;ie_dedup_strict&quot;:<sp/>i(&quot;IE_DEDUP_STRICT&quot;,<sp/>&quot;0&quot;),</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/>&quot;ie_dedup_policy&quot;:<sp/>s(&quot;IE_DEDUP_POLICY&quot;,<sp/>&quot;lossless&quot;),</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/>&quot;ie_dedup_cache_mb&quot;:<sp/>i(&quot;IE_DEDUP_CACHE_MB&quot;,<sp/>&quot;0&quot;),</highlight></codeline>
 <codeline></codeline>
-<codeline><highlight class="normal"><sp/><sp/>#<sp/>Dedup<sp/>artifacts<sp/>(bytes)</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/>&quot;model_ie_bin_bytes&quot;:<sp/>opt_int_from_shell(&quot;${model_ie_bin_bytes}&quot;),</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/>&quot;dedup_defaults_bytes&quot;:<sp/>opt_int_from_shell(&quot;${dedup_defaults_bytes}&quot;),</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/>&quot;dedup_masks_bytes&quot;:<sp/>opt_int_from_shell(&quot;${dedup_masks_bytes}&quot;),</highlight></codeline>

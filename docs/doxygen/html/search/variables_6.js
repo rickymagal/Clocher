@@ -1,19 +1,18 @@
 var searchData=
 [
   ['f_0',['f',['../unionie__f32u32.html#a3a91d3ed439420a311bf96abf90d7cf1',1,'ie_f32u32']]],
-  ['fd_1',['fd',['../structie__mmap__file.html#a476c7681b5390e9a3c03038dffaa39be',1,'ie_mmap_file']]],
+  ['fd_1',['fd',['../structie__mmap__file.html#a476c7681b5390e9a3c03038dffaa39be',1,'ie_mmap_file::fd'],['../structmodel__mmap__touch.html#aa4b9a2f532f12c85f152012e47a34ff7',1,'model_mmap_touch::fd']]],
   ['file_2',['file',['../structie__iejson__tensor.html#a0cecfb256b6a2b5a9f12852992005349',1,'ie_iejson_tensor::file'],['../structblob__ref__s.html#ac63e2a28d1b9b7a4fca3519b3555128d',1,'blob_ref_s::file']]],
   ['file_5fdata_5foffset_3',['file_data_offset',['../structie__iejson__tensor.html#aaee47985eeec82cd0eb1da9ca62da82e',1,'ie_iejson_tensor']]],
   ['file_5fdefaults_4',['file_defaults',['../structie__tensor__ref.html#aa5ebbed0635fe1a9743edfa9add26ea7',1,'ie_tensor_ref']]],
   ['file_5fexceptions_5',['file_exceptions',['../structie__tensor__ref.html#aaf61692b95ac0b70957e9aef513ebd18',1,'ie_tensor_ref']]],
   ['file_5findex_6',['file_index',['../structie__dedup__blobref__t.html#ac5f65cf72197e61daf33a3c5ea145ad1',1,'ie_dedup_blobref_t']]],
   ['file_5fmask_7',['file_mask',['../structie__tensor__ref.html#ad0370cf50184921972edce378b41eefe',1,'ie_tensor_ref']]],
-  ['files_8',['files',['../structie__weights__dedup.html#a3b8e5ac97fb528fd739ee3ea8f9d8328',1,'ie_weights_dedup::files'],['../structie__dedup__spec__t.html#aef45cc138f890387120fb5685e1f7937',1,'ie_dedup_spec_t::files']]],
+  ['files_8',['files',['../structie__dedup__spec__t.html#aef45cc138f890387120fb5685e1f7937',1,'ie_dedup_spec_t::files'],['../structie__weights__dedup.html#a3b8e5ac97fb528fd739ee3ea8f9d8328',1,'ie_weights_dedup::files']]],
   ['files_5fcount_9',['files_count',['../structie__dedup__spec__t.html#a6efad090fff3666ad830a1c104719140',1,'ie_dedup_spec_t::files_count'],['../structie__weights__dedup.html#a46625e37da8d667351f7c7effd5ad5dd',1,'ie_weights_dedup::files_count']]],
   ['first_5fcpu_5fsocket_10',['first_cpu_socket',['../structie__topology.html#a16c1ace0930e7c431948afa27db1db06',1,'ie_topology']]],
   ['fma_11',['fma',['../structie__cpu__features__t.html#ab186c528f9355396127156bf6e6ab099',1,'ie_cpu_features_t']]],
   ['force_5fnt_5foff_12',['force_nt_off',['../structie__stream__policy.html#aa6d06cd60477c50a52f9f06ef1369cb6',1,'ie_stream_policy']]],
   ['force_5fnt_5fon_13',['force_nt_on',['../structie__stream__policy.html#a861e84e960aa92d5aaf192a79eec20b5',1,'ie_stream_policy']]],
-  ['force_5fntw_14',['force_ntw',['../structcli__extras.html#a126d87a714f973714750ac64a4229e9f',1,'cli_extras']]],
-  ['fp8_5fformat_15',['fp8_format',['../structie__kv__opts.html#ad52668c7f2e5bdc7adb8171947232077',1,'ie_kv_opts::fp8_format'],['../structie__kv__cache.html#a2ad6b6ab3ed09d13b0d519ed0068d1d3',1,'ie_kv_cache::fp8_format']]]
+  ['fp8_5fformat_14',['fp8_format',['../structie__kv__opts.html#ad52668c7f2e5bdc7adb8171947232077',1,'ie_kv_opts::fp8_format'],['../structie__kv__cache.html#a2ad6b6ab3ed09d13b0d519ed0068d1d3',1,'ie_kv_cache::fp8_format']]]
 ];

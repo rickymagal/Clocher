@@ -6,10 +6,9 @@ var searchData=
   ['cuda_5fimpl_5ft_3',['cuda_impl_t',['../ie__device__common_8c.html#a43cbe85c0b3804d5dddb4a8be4706076',1,'ie_device_common.c']]],
   ['cudadevicesynchronize_5ffn_5ft_4',['cudaDeviceSynchronize_fn_t',['../main__infer_8c.html#a84c3a6f8fc81d43ea3d5343bc866773c',1,'main_infer.c']]],
   ['cudafree_5ffn_5ft_5',['cudaFree_fn_t',['../main__infer_8c.html#ac0493a5218ac1cfe7720fd33073a26a4',1,'main_infer.c']]],
-  ['cudageterrorstring_5ffn_5ft_6',['cudaGetErrorString_fn_t',['../main__infer_8c.html#aaf1f0e69faa1ebc3b7c035858d546093',1,'main_infer.c']]],
-  ['cudamalloc_5ffn_5ft_7',['cudaMalloc_fn_t',['../main__infer_8c.html#a75d810977debadf83c51df3a9caf508e',1,'main_infer.c']]],
-  ['cudamemcpy_5ffn_5ft_8',['cudaMemcpy_fn_t',['../main__infer_8c.html#a012d3ce1c3e56c941279966779621a25',1,'main_infer.c']]],
-  ['cudamemset_5ffn_5ft_9',['cudaMemset_fn_t',['../main__infer_8c.html#a2ad4e178cd6cc2f9b58919ba9e4ca7b6',1,'main_infer.c']]],
-  ['cudart_5fapi_5ft_10',['cudart_api_t',['../main__infer_8c.html#a47a2371d08ac2298f34240909805e945',1,'main_infer.c']]],
-  ['cudart_5ferr_5ft_11',['cudart_err_t',['../main__infer_8c.html#a7056b1ed3833957f6045353293d33a10',1,'main_infer.c']]]
+  ['cudamalloc_5ffn_5ft_6',['cudaMalloc_fn_t',['../main__infer_8c.html#a75d810977debadf83c51df3a9caf508e',1,'main_infer.c']]],
+  ['cudamemcpy_5ffn_5ft_7',['cudaMemcpy_fn_t',['../main__infer_8c.html#a012d3ce1c3e56c941279966779621a25',1,'main_infer.c']]],
+  ['cudamemset_5ffn_5ft_8',['cudaMemset_fn_t',['../main__infer_8c.html#a2ad4e178cd6cc2f9b58919ba9e4ca7b6',1,'main_infer.c']]],
+  ['cudart_5fapi_5ft_9',['cudart_api_t',['../main__infer_8c.html#a47a2371d08ac2298f34240909805e945',1,'main_infer.c']]],
+  ['cudart_5ferr_5ft_10',['cudart_err_t',['../main__infer_8c.html#a7056b1ed3833957f6045353293d33a10',1,'main_infer.c']]]
 ];
