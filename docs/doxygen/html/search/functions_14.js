@@ -19,7 +19,7 @@ var searchData=
   ['test_5fharness_5fgenerates_5freports_16',['test_harness_generates_reports',['../classtest__harness_1_1HarnessTests.html#aa0434e356ad823b1374571844b39c87c',1,'test_harness::HarnessTests']]],
   ['test_5fint8_5fper_5fgroup_17',['test_int8_per_group',['../test__act__quant_8c.html#a21e36220792f5bceb2c110dc45605c5e',1,'test_act_quant.c']]],
   ['test_5fint8_5fper_5ftensor_18',['test_int8_per_tensor',['../test__act__quant_8c.html#a83ac16910c5fbcf8d045ba1a01bc2604',1,'test_act_quant.c']]],
-  ['test_5finvalid_5fflag_5fis_5frejected_19',['test_invalid_flag_is_rejected',['../classtest__cli__error__paths_1_1CLIErrorPathsTests.html#a21dde2210189576ca7a2939767bf9379',1,'test_cli_error_paths::CLIErrorPathsTests']]],
+  ['test_5finvalid_5fflag_5fis_5frejected_19',['test_invalid_flag_is_rejected',['../classtest__cli__error__paths_1_1CLIErrorPathsTests.html#ae90efc449385569e653e7c538a59ca23',1,'test_cli_error_paths::CLIErrorPathsTests']]],
   ['test_5fkind_5fparse_20',['test_kind_parse',['../test__device_8c.html#af2262a71f964197c86339e3797d0c9bb',1,'test_device.c']]],
   ['test_5fp50_5fp95_5fpresent_5fand_5fconsistent_21',['test_p50_p95_present_and_consistent',['../classtest__metrics__ring_1_1MetricsRingTests.html#a6f23d69900d1956191cbe6c2015a800b',1,'test_metrics_ring::MetricsRingTests']]],
   ['test_5fpartial_5fteardown_22',['test_partial_teardown',['../test__batcher_8c.html#acebcf748df4676af1488302913dcc33e',1,'test_batcher.c']]],
@@ -33,6 +33,6 @@ var searchData=
   ['test_5fthreads_5fflag_5faccepts_5fvalues_30',['test_threads_flag_accepts_values',['../classtest__cli__flags_1_1CLIFeatureFlagsTests.html#a043b116c611ae7089d995a5920cf23e8',1,'test_cli_flags::CLIFeatureFlagsTests']]],
   ['test_5ftokenize_5fcb_31',['test_tokenize_cb',['../test__batcher_8c.html#a4818ddbc1b516bbe63d2a991a2b1b4bd',1,'test_batcher.c']]],
   ['test_5fwrap_5fand_5fview_5flimits_32',['test_wrap_and_view_limits',['../test__batcher_8c.html#ae1015c7a7a149612ed323d43e7c93a0c',1,'test_batcher.c']]],
-  ['test_5fzero_5ftokens_5fgraceful_33',['test_zero_tokens_graceful',['../classtest__cli__error__paths_1_1CLIErrorPathsTests.html#a888bfbdccd9ff6501ab591a6cb48e19d',1,'test_cli_error_paths::CLIErrorPathsTests']]],
+  ['test_5fzero_5ftokens_5fgraceful_33',['test_zero_tokens_graceful',['../classtest__cli__error__paths_1_1CLIErrorPathsTests.html#ae7af253e493e5b77554cd7d0489e2e55',1,'test_cli_error_paths::CLIErrorPathsTests']]],
   ['touch_5ffile_5fsmall_34',['touch_file_small',['../weights_8c.html#ae3235e5160399c1e4465d1abf866571d',1,'weights.c']]]
 ];

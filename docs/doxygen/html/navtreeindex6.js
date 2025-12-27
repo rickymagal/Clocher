@@ -1,6 +1,5 @@
 var NAVTREEINDEX6 =
 {
-"ptq__calib_8py.html#a411585cffe038415fa4a50d31152a8fc":[22,0,0,2,0],
 "ptq__calib_8py.html#a6855dfc7d067ff09439e3ea0902bbd25":[22,0,0,2,7],
 "ptq__calib_8py.html#a8091bc9c066240fc12d193762c5c17f6":[22,0,0,2,5],
 "ptq__calib_8py.html#a8c5f80e88cff2f08011a13e1a7b9ea6e":[22,0,0,2,4],
@@ -249,5 +248,6 @@ var NAVTREEINDEX6 =
 "structdedup__spec__header__s.html#a44a4a9aa4001e0a3f2f413e2029c54cd":[21,0,22,1],
 "structdedup__spec__header__s.html#a7ce3fed470734334150b2a8bf6879dac":[21,0,22,10],
 "structdedup__spec__header__s.html#abb9710e9674f634bff5cb83f384271be":[21,0,22,3],
-"structdedup__spec__header__s.html#accf658655c069c0345651576558c4686":[21,0,22,6]
+"structdedup__spec__header__s.html#accf658655c069c0345651576558c4686":[21,0,22,6],
+"structdedup__spec__header__s.html#ad11d8268b50851fe861447d4ede8367b":[21,0,22,2]
 };

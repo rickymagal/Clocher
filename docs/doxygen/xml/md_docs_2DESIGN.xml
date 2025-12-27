@@ -6,9 +6,9 @@
     <briefdescription>
     </briefdescription>
     <detaileddescription>
-<para><anchor id="md_docs_2DESIGN_1autotoc_md22"/> This document describes the hot path, API boundaries, and precision modes. <linebreak/>
+<para><anchor id="md_docs_2DESIGN_1autotoc_md30"/> This document describes the hot path, API boundaries, and precision modes. <linebreak/>
  <bold>Last updated:</bold> 2025-10-24 21:00:48 UTC</para>
-<sect1 id="md_docs_2DESIGN_1autotoc_md30">
+<sect1 id="md_docs_2DESIGN_1autotoc_md31">
 <title>Process and boundaries</title>
 <para><itemizedlist>
 <listitem><para>Single binary <computeroutput>inference-engine</computeroutput>: create → generate → collect metrics → destroy.</para>
@@ -17,7 +17,7 @@
 </listitem></itemizedlist>
 </para>
 </sect1>
-<sect1 id="md_docs_2DESIGN_1autotoc_md31">
+<sect1 id="md_docs_2DESIGN_1autotoc_md32">
 <title>API surface (high level)</title>
 <para><itemizedlist>
 <listitem><para><computeroutput>ie_engine_create(cfg)</computeroutput> → initializes state (weights, buffers, thread‑pool).</para>
@@ -27,7 +27,7 @@
 </listitem></itemizedlist>
 </para>
 </sect1>
-<sect1 id="md_docs_2DESIGN_1autotoc_md32">
+<sect1 id="md_docs_2DESIGN_1autotoc_md33">
 <title>Hot path layout</title>
 <para><itemizedlist>
 <listitem><para>GEMV microkernel:<itemizedlist>
@@ -43,23 +43,23 @@
 </listitem></itemizedlist>
 </para>
 </sect1>
-<sect1 id="md_docs_2DESIGN_1autotoc_md33">
+<sect1 id="md_docs_2DESIGN_1autotoc_md34">
 <title>Precision modes</title>
-<sect2 id="md_docs_2DESIGN_1autotoc_md34">
+<sect2 id="md_docs_2DESIGN_1autotoc_md35">
 <title>Floating point</title>
 <para><itemizedlist>
 <listitem><para>FP32 baseline, optional BF16/FP16 round‑trip (accumulate FP32).</para>
 </listitem></itemizedlist>
 </para>
 </sect2>
-<sect2 id="md_docs_2DESIGN_1autotoc_md35">
+<sect2 id="md_docs_2DESIGN_1autotoc_md36">
 <title>INT8 PTQ (reference)</title>
 <para><itemizedlist>
 <listitem><para>Per‑tensor/per‑row scales (min‑max); (de)quant helpers; task gate in scripts.</para>
 </listitem></itemizedlist>
 </para>
 </sect2>
-<sect2 id="md_docs_2DESIGN_1autotoc_md36">
+<sect2 id="md_docs_2DESIGN_1autotoc_md37">
 <title>&lt;strong&gt;NEW — INT4 PTQ (weight‑only)&lt;/strong&gt;</title>
 <para><itemizedlist>
 <listitem><para><bold>Format</bold>: weights are <bold>nibble‑packed</bold> (2 values per byte). Each row (or group) carries a scale (and optional zero‑point if affine).</para>
@@ -71,7 +71,7 @@
 </para>
 </sect2>
 </sect1>
-<sect1 id="md_docs_2DESIGN_1autotoc_md37">
+<sect1 id="md_docs_2DESIGN_1autotoc_md38">
 <title>Threading model</title>
 <para><itemizedlist>
 <listitem><para>Fixed thread‑pool over <computeroutput>pthread</computeroutput>, contiguous sharding, grainsize control.</para>
@@ -84,7 +84,7 @@
 </listitem></itemizedlist>
 </para>
 </sect1>
-<sect1 id="md_docs_2DESIGN_1autotoc_md38">
+<sect1 id="md_docs_2DESIGN_1autotoc_md39">
 <title>Layout and caching</title>
 <para><itemizedlist>
 <listitem><para>Blocked‑K packing with optional on‑disk caching (content‑addressed by shape + block size).</para>
@@ -92,7 +92,7 @@
 </listitem></itemizedlist>
 </para>
 </sect1>
-<sect1 id="md_docs_2DESIGN_1autotoc_md39">
+<sect1 id="md_docs_2DESIGN_1autotoc_md40">
 <title>Metrics</title>
 <para><itemizedlist>
 <listitem><para>Per‑token latency ring (p50/p95).</para>
@@ -102,7 +102,7 @@
 </listitem></itemizedlist>
 </para>
 </sect1>
-<sect1 id="md_docs_2DESIGN_1autotoc_md40">
+<sect1 id="md_docs_2DESIGN_1autotoc_md41">
 <title>GPU integration (CUDA path)</title>
 <para><itemizedlist>
 <listitem><para>Device layer: <computeroutput><ref refid="ie__device__cuda_8cu" kindref="compound">engine/src/devices/ie_device_cuda.cu</ref></computeroutput>, kernels in <computeroutput><ref refid="ie__kernels__cuda_8cu" kindref="compound">engine/src/kernels/ie_kernels_cuda.cu</ref></computeroutput>.</para>
@@ -113,16 +113,16 @@
 <para><hruler/>
  </para>
 </sect1>
-<sect1 id="md_docs_2DESIGN_1autotoc_md42">
+<sect1 id="md_docs_2DESIGN_1autotoc_md43">
 <title>INT4 Weight-Only Path — Design Addendum (2025-10-24 21:04:23 UTC)</title>
-<sect2 id="md_docs_2DESIGN_1autotoc_md43">
+<sect2 id="md_docs_2DESIGN_1autotoc_md44">
 <title>Goals</title>
 <para><itemizedlist>
 <listitem><para>Introduce an <bold>optional</bold> path for <emphasis>weight-only</emphasis> INT4 (<computeroutput>int4w</computeroutput>) that: 1) Packs HF weights into IEBIN using a <bold>manifest-driven</bold> policy. 2) Leaves tokenization, shapes, and scheduling untouched. 3) Preserves benchmark comparability via <emphasis>work-touch</emphasis> instrumentation.</para>
 </listitem></itemizedlist>
 </para>
 </sect2>
-<sect2 id="md_docs_2DESIGN_1autotoc_md44">
+<sect2 id="md_docs_2DESIGN_1autotoc_md45">
 <title>Design Choices</title>
 <para><itemizedlist>
 <listitem><para><bold>Manifest-driven packing</bold>: <computeroutput>--q4-map</computeroutput> lets us target only GEMV-heavy matrices (attn/MLP projections) and keep sensitive tensors (embeddings, layernorms) in FP formats.</para>
@@ -135,11 +135,11 @@
 </listitem></itemizedlist>
 </para>
 </sect2>
-<sect2 id="md_docs_2DESIGN_1autotoc_md45">
+<sect2 id="md_docs_2DESIGN_1autotoc_md46">
 <title>Data Flow (INT4 path)</title>
 <para>HF shards → <computeroutput><ref refid="hf__to__iebin_8py" kindref="compound">hf_to_iebin.py</ref> --q4-map</computeroutput> → IEBIN (<computeroutput>model.ie.json</computeroutput> + <computeroutput>model.ie.bin</computeroutput> with INT4-packed tensors) → Runtime <computeroutput>IE_PRECISION=int4w</computeroutput> → GEMV kernels read packed weights (or dequant on load), semantics unchanged.</para>
 </sect2>
-<sect2 id="md_docs_2DESIGN_1autotoc_md46">
+<sect2 id="md_docs_2DESIGN_1autotoc_md47">
 <title>Metrics Integrity</title>
 <para><itemizedlist>
 <listitem><para>The timed window is <bold>only</bold>: <computeroutput>ie_engine_generate(...)</computeroutput> + optional <emphasis>work-touch</emphasis> loop.</para>
@@ -150,7 +150,7 @@
 </para>
 </sect2>
 </sect1>
-<sect1 id="md_docs_2DESIGN_1autotoc_md48">
+<sect1 id="md_docs_2DESIGN_1autotoc_md49">
 <title>Appendix — INT4 (Weight‑Only) Step (Summary)</title>
 <para><itemizedlist>
 <listitem><para>Convert HF shards → IEBIN with an INT4 manifest: <programlisting filename=".bash"><codeline><highlight class="normal">python3<sp/>scripts/hf_to_iebin.py<sp/><sp/><sp/><sp/><sp/>--hf-dir<sp/>models/gpt-oss-20b/hf<sp/><sp/><sp/><sp/><sp/>--out-dir<sp/>models/gpt-oss-20b<sp/><sp/><sp/><sp/><sp/>--q4-map<sp/>quant/q4_manifest.json</highlight></codeline>
@@ -163,9 +163,9 @@
 <para><hruler/>
  </para>
 </sect1>
-<sect1 id="md_docs_2DESIGN_1autotoc_md50">
+<sect1 id="md_docs_2DESIGN_1autotoc_md51">
 <title>Updates — 2025-11-10</title>
-<sect2 id="md_docs_2DESIGN_1autotoc_md51">
+<sect2 id="md_docs_2DESIGN_1autotoc_md52">
 <title>NUMA‑aware topology (&lt;tt&gt;ie_topology&lt;/tt&gt;)</title>
 <para><itemizedlist>
 <listitem><para>Discovers sockets and CPUs from Linux sysfs and exposes a compact API:<itemizedlist>
@@ -182,7 +182,7 @@
 </listitem></itemizedlist>
 </para>
 </sect2>
-<sect2 id="md_docs_2DESIGN_1autotoc_md52">
+<sect2 id="md_docs_2DESIGN_1autotoc_md53">
 <title>Hot weights replication</title>
 <para><itemizedlist>
 <listitem><para>For “hot” tensors (frequently touched), we can replicate pages <bold>per socket</bold> to reduce remote memory hits.</para>
@@ -195,7 +195,7 @@
 </listitem></itemizedlist>
 </para>
 </sect2>
-<sect2 id="md_docs_2DESIGN_1autotoc_md53">
+<sect2 id="md_docs_2DESIGN_1autotoc_md54">
 <title>Activation precision hint</title>
 <para><itemizedlist>
 <listitem><para>Runtime hint <computeroutput>IE_ACT_PREC=int8|fp8|fp16|bf16|fp32</computeroutput> allows experimenting with lower‑precision activations while <bold>keeping FP32 accumulators</bold>.</para>
@@ -203,7 +203,7 @@
 </listitem></itemizedlist>
 </para>
 </sect2>
-<sect2 id="md_docs_2DESIGN_1autotoc_md54">
+<sect2 id="md_docs_2DESIGN_1autotoc_md55">
 <title>Timing discipline (unchanged semantics)</title>
 <para><itemizedlist>
 <listitem><para>The benchmark <bold>measured window</bold> contains only <computeroutput>ie_engine_generate(...)</computeroutput> + optional work‑touch loop.</para>
@@ -211,7 +211,7 @@
 </listitem></itemizedlist>
 </para>
 </sect2>
-<sect2 id="md_docs_2DESIGN_1autotoc_md55">
+<sect2 id="md_docs_2DESIGN_1autotoc_md56">
 <title>Example configurations</title>
 <para><itemizedlist>
 <listitem><para>INT4 weights, FP8 activations, NUMA‑aware with hot replication (CPU): <programlisting filename=".bash"><codeline><highlight class="normal">export<sp/>IE_REQUIRE_MODEL=1<sp/>IE_PRECISION=int4w<sp/>IE_ACT_PREC=fp8</highlight></codeline>
@@ -224,13 +224,13 @@
 </para>
 </sect2>
 </sect1>
-<sect1 id="md_docs_2DESIGN_1autotoc_md56">
+<sect1 id="md_docs_2DESIGN_1autotoc_md57">
 <title>@icode{bash}</title>
 <para>PROMPTS=benchmarks/prompts_10..txt RUNS=3 make bench-cuda </para>
 </sect1>
-<sect1 id="md_docs_2DESIGN_1autotoc_md57">
+<sect1 id="md_docs_2DESIGN_1autotoc_md58">
 <title>Memory Phase Design Addendum (updated 2025-11-12 18:01:19 UTC)</title>
-<sect2 id="md_docs_2DESIGN_1autotoc_md58">
+<sect2 id="md_docs_2DESIGN_1autotoc_md59">
 <title>Goals</title>
 <para><orderedlist>
 <listitem><para>Reduce <bold>DRAM traffic</bold> on weight fetch via layout (<computeroutput>blocked‑K</computeroutput>), NUMA locality, and selective non‑temporal loads.</para>
@@ -239,7 +239,7 @@
 </listitem></orderedlist>
 </para>
 </sect2>
-<sect2 id="md_docs_2DESIGN_1autotoc_md59">
+<sect2 id="md_docs_2DESIGN_1autotoc_md60">
 <title>Components</title>
 <para><itemizedlist>
 <listitem><para>**Topology &amp; Binding (<computeroutput><ref refid="structie__topology" kindref="compound">ie_topology</ref></computeroutput>)**: discovers sockets/CPUs from Linux sysfs. Exposes helpers for pinning (compact/scatter).</para>
@@ -250,7 +250,7 @@
 </listitem></itemizedlist>
 </para>
 </sect2>
-<sect2 id="md_docs_2DESIGN_1autotoc_md60">
+<sect2 id="md_docs_2DESIGN_1autotoc_md61">
 <title>Measurement</title>
 <para>The benchmark window includes <bold>generation</bold> and the <bold>work‑touch</bold> loop (controlled by <computeroutput>IE_BYTES_PER_TOKEN</computeroutput>, <computeroutput>IE_STRIDE_BYTES</computeroutput>). After the window, the engine samples <bold>peak RSS (VmHWM)</bold>. The docs generator now derives:<itemizedlist>
 <listitem><para><bold>MB/token</bold> from <computeroutput>IE_BYTES_PER_TOKEN</computeroutput></para>
@@ -260,7 +260,7 @@
 </listitem></itemizedlist>
 </para>
 </sect2>
-<sect2 id="md_docs_2DESIGN_1autotoc_md61">
+<sect2 id="md_docs_2DESIGN_1autotoc_md62">
 <title>Backward Compatibility &amp; Fallbacks</title>
 <para><itemizedlist>
 <listitem><para>Single‑socket hosts: topology collapses to one socket; binding is a no‑op.</para>
@@ -269,7 +269,7 @@
 </listitem></itemizedlist>
 </para>
 </sect2>
-<sect2 id="md_docs_2DESIGN_1autotoc_md62">
+<sect2 id="md_docs_2DESIGN_1autotoc_md63">
 <title>Risks &amp; Mitigations</title>
 <para><itemizedlist>
 <listitem><para><bold>Over‑eager NT loads</bold> can hurt on small working sets → guard via <computeroutput>auto</computeroutput> heuristics and <computeroutput>IE_NT_RATIO</computeroutput> throttle.</para>
@@ -278,11 +278,11 @@
 </para>
 </sect2>
 </sect1>
-<sect1 id="md_docs_2DESIGN_1autotoc_md63">
+<sect1 id="md_docs_2DESIGN_1autotoc_md64">
 <title>Block‑sparse weights (Phase 2, CPU only)</title>
 <para>This chapter describes the <bold>block‑sparse weights prototype</bold> implemented in the second phase of the memory work. The goal is to make <emphasis>algorithmic sparsity</emphasis> concrete and measurable while keeping the dense engine and IEBIN format intact.</para>
 <para>At this stage the implementation is <bold>CPU‑only</bold>, FP32‑only, and is exercised through C unit tests and a dedicated microbenchmark. It is deliberately small and self‑contained so that we can iterate on formats and policies without destabilizing the main inference path.</para>
-<sect2 id="md_docs_2DESIGN_1autotoc_md64">
+<sect2 id="md_docs_2DESIGN_1autotoc_md65">
 <title>Goals</title>
 <para><itemizedlist>
 <listitem><para>Provide a <bold>well‑defined in‑memory descriptor</bold> for block‑sparse matrices (<computeroutput>ie_block_sparse_matrix_t</computeroutput>).</para>
@@ -301,7 +301,7 @@
 </listitem></itemizedlist>
 </para>
 </sect2>
-<sect2 id="md_docs_2DESIGN_1autotoc_md65">
+<sect2 id="md_docs_2DESIGN_1autotoc_md66">
 <title>In‑memory layout: &lt;tt&gt;ie_block_sparse_matrix_t&lt;/tt&gt;</title>
 <para>The new public descriptor lives in <computeroutput><ref refid="sparse__format_8h" kindref="compound">engine/include/sparse_format.h</ref></computeroutput>:</para>
 <para><itemizedlist>
@@ -336,7 +336,7 @@
 </listitem></itemizedlist>
 </para>
 </sect2>
-<sect2 id="md_docs_2DESIGN_1autotoc_md66">
+<sect2 id="md_docs_2DESIGN_1autotoc_md67">
 <title>On‑disk format and loader (&lt;tt&gt;engine/src/sparse_io.c&lt;/tt&gt;)</title>
 <para>To keep experiments reproducible without touching the IEBIN format, we use a separate, compact binary format for block‑sparse matrices:</para>
 <para><itemizedlist>
@@ -371,7 +371,7 @@
 </listitem></itemizedlist>
 </para>
 </sect2>
-<sect2 id="md_docs_2DESIGN_1autotoc_md67">
+<sect2 id="md_docs_2DESIGN_1autotoc_md68">
 <title>CPU kernel (&lt;tt&gt;engine/src/gemm_block_sparse.c&lt;/tt&gt;)</title>
 <para>The reference GEMV implementation:</para>
 <para><programlisting filename=".c"><codeline><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="sparse__format_8h_1ae9a2aad0ec5332237097030acf034961" kindref="member">ie_gemv_block_sparse_f32</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="structie__block__sparse__matrix" kindref="compound">ie_block_sparse_matrix_t</ref><sp/>*<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">m</ref>,</highlight></codeline>
@@ -402,7 +402,7 @@
 </para>
 <para>This function is small and easy to inspect, prioritizing correctness and debuggability over clever micro‑optimizations. Higher‑level code can decide whether and how to shard block rows across threads.</para>
 </sect2>
-<sect2 id="md_docs_2DESIGN_1autotoc_md68">
+<sect2 id="md_docs_2DESIGN_1autotoc_md69">
 <title>Device abstraction (&lt;tt&gt;engine/src/devices/ie_device_common.c&lt;/tt&gt;)</title>
 <para>The <computeroutput><ref refid="structie__device" kindref="compound">ie_device</ref></computeroutput> vtable gains a new entry:</para>
 <para><programlisting filename=".c"><codeline><highlight class="normal"><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">int</ref><sp/><sp/>(*gemv_block_sparse_f32)(</highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">self</ref>,</highlight></codeline>
@@ -428,9 +428,9 @@
 </para>
 <para>This layout keeps the public API stable while allowing future ADRs to add true GPU implementations under the same method.</para>
 </sect2>
-<sect2 id="md_docs_2DESIGN_1autotoc_md69">
+<sect2 id="md_docs_2DESIGN_1autotoc_md70">
 <title>Tools and tests</title>
-<sect3 id="md_docs_2DESIGN_1autotoc_md70">
+<sect3 id="md_docs_2DESIGN_1autotoc_md71">
 <title>Offline converter (&lt;tt&gt;tools/convert_to_block_sparse.c&lt;/tt&gt;)</title>
 <para>The converter takes a dense, row‑major FP32 matrix and produces the block‑sparse binary format:</para>
 <para><itemizedlist>
@@ -451,7 +451,7 @@
 </para>
 <para>This keeps sparsification an explicit, offline step: the engine never modifies weights at load time.</para>
 </sect3>
-<sect3 id="md_docs_2DESIGN_1autotoc_md71">
+<sect3 id="md_docs_2DESIGN_1autotoc_md72">
 <title>C unit tests (&lt;tt&gt;tests/c/test_block_sparse.c&lt;/tt&gt;)</title>
 <para>The tests validate both the loader and the GEMV kernel:</para>
 <para><itemizedlist>
@@ -462,7 +462,7 @@
 </para>
 <para>The test target is wired into <computeroutput>make test</computeroutput> alongside the existing C unit tests so regressions are caught early.</para>
 </sect3>
-<sect3 id="md_docs_2DESIGN_1autotoc_md72">
+<sect3 id="md_docs_2DESIGN_1autotoc_md73">
 <title>Microbenchmark (&lt;tt&gt;benchmarks/src/microbench_gemv_block_sparse.c&lt;/tt&gt;)</title>
 <para>A dedicated microbenchmark compares dense vs block‑sparse GEMV on CPU:</para>
 <para><itemizedlist>
@@ -478,7 +478,7 @@
 <para>This is a <bold>local</bold> measurement tool; it does not depend on real model weights or the CLI.</para>
 </sect3>
 </sect2>
-<sect2 id="md_docs_2DESIGN_1autotoc_md73">
+<sect2 id="md_docs_2DESIGN_1autotoc_md74">
 <title>Integration strategy and future work</title>
 <para>This phase intentionally stops short of wiring block‑sparse weights into <computeroutput>model.ie.bin</computeroutput> and the inference CLI:</para>
 <para><itemizedlist>
@@ -499,10 +499,10 @@
 <para><hruler/>
 </para>
 </sect2>
-<sect2 id="md_docs_2DESIGN_1autotoc_md75">
+<sect2 id="md_docs_2DESIGN_1autotoc_md76">
 <title>Lossless Deduplication (Schema2): defaults + masks + exceptions</title>
 <para>This project includes a <bold>lossless</bold> dedup path that reduces DRAM reads by reusing repeated weight content. The runtime reconstructs bytes exactly (bit-for-bit) by applying a sparse patch stream over shared defaults.</para>
-<sect3 id="md_docs_2DESIGN_1autotoc_md76">
+<sect3 id="md_docs_2DESIGN_1autotoc_md77">
 <title>Artifacts</title>
 <para>The runtime loader expects these files in the model directory (next to <computeroutput>model.ie.json</computeroutput> / <computeroutput>model.ie.bin</computeroutput>):</para>
 <para><itemizedlist>
@@ -513,7 +513,7 @@
 </para>
 <para>In the current workflow, these are typically generated into <computeroutput>models/&lt;MODEL&gt;/dedup_out/</computeroutput> and then symlinked.</para>
 </sect3>
-<sect3 id="md_docs_2DESIGN_1autotoc_md77">
+<sect3 id="md_docs_2DESIGN_1autotoc_md78">
 <title>Offline generation: extract defaults/masks/exceptions</title>
 <para>The extractor takes:<itemizedlist>
 <listitem><para><computeroutput>tensor_map.json</computeroutput> (maps tensor names to on-disk byte ranges / sources)</para>
@@ -534,7 +534,7 @@
 <codeline><highlight class="normal">cd<sp/>../..</highlight></codeline>
 </programlisting></para>
 </sect3>
-<sect3 id="md_docs_2DESIGN_1autotoc_md78">
+<sect3 id="md_docs_2DESIGN_1autotoc_md79">
 <title>Runtime controls</title>
 <para><itemizedlist>
 <listitem><para><computeroutput>IE_DEDUP=1</computeroutput> enables the dedup loader.</para>
@@ -553,7 +553,7 @@
 </listitem></itemizedlist>
 </para>
 </sect3>
-<sect3 id="md_docs_2DESIGN_1autotoc_md79">
+<sect3 id="md_docs_2DESIGN_1autotoc_md80">
 <title>Schema2 JSON compatibility notes (model.ie.json)</title>
 <para>The schema2 parser is strict about per-tensor metadata. When ingesting IEBIN metadata derived from HF shards, ensure the following are true for each tensor entry:</para>
 <para><itemizedlist>
@@ -594,7 +594,7 @@
 </programlisting></para>
 <para>You may see warnings like <computeroutput>unknown dtype=u8 ... (continuing)</computeroutput> for quantized auxiliary tensors (blocks/scales); these are expected as long as the loader is configured to ignore/skip unknown storage dtypes where safe.</para>
 </sect3>
-<sect3 id="md_docs_2DESIGN_1autotoc_md80">
+<sect3 id="md_docs_2DESIGN_1autotoc_md81">
 <title>Example strict run (CPU)</title>
 <para><programlisting filename=".bash"><codeline><highlight class="normal">env<sp/>-i<sp/>\</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/>IE_REQUIRE_MODEL=1<sp/>\</highlight></codeline>

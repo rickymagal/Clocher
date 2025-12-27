@@ -82,8 +82,8 @@ var NAVTREE =
     ] ],
     [ "Architectural Decision Records", "md_docs_2DECISIONS.html", [
       [ "<strong>ADR-0013 (2025-10-24): Adopt INT4 weight-only PTQ & manifest-guided packing</strong>", "md_docs_2DECISIONS.html#autotoc_md16", null ],
-      [ "Decision: Add INT4 (Weight-Only) Optional Pipeline (2025-10-24 21:04:23 UTC)", "md_docs_2DECISIONS.html#autotoc_md18", null ],
-      [ "Appendix — INT4 (Weight‑Only) Step (Summary)", "md_docs_2DECISIONS.html#autotoc_md20", null ],
+      [ "Decision: Add INT4 (Weight-Only) Optional Pipeline (2025-10-24 21:04:23 UTC)", "md_docs_2DECISIONS.html#autotoc_md19", null ],
+      [ "Appendix — INT4 (Weight‑Only) Step (Summary)", "md_docs_2DECISIONS.html#autotoc_md21", null ],
       [ "- <strong>Status:</strong> Accepted. Backward‑compatible; default remains FP32 if unset.", "md_docs_2DECISIONS.html#autotoc_md23", null ],
       [ "ADR‑0017 (Memory Streaming Heuristics): Prefetch & Non‑Temporal Loads — 2025-11-12 18:01:19 UTC", "md_docs_2DECISIONS.html#autotoc_md24", null ],
       [ "ADR‑0018 (Metrics & Reporting): Spatial Metrics in PERFORMANCE.md — 2025-11-12 18:01:19 UTC", "md_docs_2DECISIONS.html#autotoc_md26", null ],
@@ -91,58 +91,58 @@ var NAVTREE =
       [ "ADR-0020 (2025-12-22): Adopt lossless dedup artifacts and schema2 runtime loader", "md_docs_2DECISIONS.html#autotoc_md29", null ]
     ] ],
     [ "Design (CPU baseline + INT4 path)", "md_docs_2DESIGN.html", [
-      [ "Process and boundaries", "md_docs_2DESIGN.html#autotoc_md30", null ],
-      [ "API surface (high level)", "md_docs_2DESIGN.html#autotoc_md31", null ],
-      [ "Hot path layout", "md_docs_2DESIGN.html#autotoc_md32", null ],
-      [ "Precision modes", "md_docs_2DESIGN.html#autotoc_md33", [
-        [ "Floating point", "md_docs_2DESIGN.html#autotoc_md34", null ],
-        [ "INT8 PTQ (reference)", "md_docs_2DESIGN.html#autotoc_md35", null ],
-        [ "<strong>NEW — INT4 PTQ (weight‑only)</strong>", "md_docs_2DESIGN.html#autotoc_md36", null ]
+      [ "Process and boundaries", "md_docs_2DESIGN.html#autotoc_md31", null ],
+      [ "API surface (high level)", "md_docs_2DESIGN.html#autotoc_md32", null ],
+      [ "Hot path layout", "md_docs_2DESIGN.html#autotoc_md33", null ],
+      [ "Precision modes", "md_docs_2DESIGN.html#autotoc_md34", [
+        [ "Floating point", "md_docs_2DESIGN.html#autotoc_md35", null ],
+        [ "INT8 PTQ (reference)", "md_docs_2DESIGN.html#autotoc_md36", null ],
+        [ "<strong>NEW — INT4 PTQ (weight‑only)</strong>", "md_docs_2DESIGN.html#autotoc_md37", null ]
       ] ],
-      [ "Threading model", "md_docs_2DESIGN.html#autotoc_md37", null ],
-      [ "Layout and caching", "md_docs_2DESIGN.html#autotoc_md38", null ],
-      [ "Metrics", "md_docs_2DESIGN.html#autotoc_md39", null ],
-      [ "GPU integration (CUDA path)", "md_docs_2DESIGN.html#autotoc_md40", null ],
-      [ "INT4 Weight-Only Path — Design Addendum (2025-10-24 21:04:23 UTC)", "md_docs_2DESIGN.html#autotoc_md42", [
-        [ "Goals", "md_docs_2DESIGN.html#autotoc_md43", null ],
-        [ "Design Choices", "md_docs_2DESIGN.html#autotoc_md44", null ],
-        [ "Data Flow (INT4 path)", "md_docs_2DESIGN.html#autotoc_md45", null ],
-        [ "Metrics Integrity", "md_docs_2DESIGN.html#autotoc_md46", null ]
+      [ "Threading model", "md_docs_2DESIGN.html#autotoc_md38", null ],
+      [ "Layout and caching", "md_docs_2DESIGN.html#autotoc_md39", null ],
+      [ "Metrics", "md_docs_2DESIGN.html#autotoc_md40", null ],
+      [ "GPU integration (CUDA path)", "md_docs_2DESIGN.html#autotoc_md41", null ],
+      [ "INT4 Weight-Only Path — Design Addendum (2025-10-24 21:04:23 UTC)", "md_docs_2DESIGN.html#autotoc_md43", [
+        [ "Goals", "md_docs_2DESIGN.html#autotoc_md44", null ],
+        [ "Design Choices", "md_docs_2DESIGN.html#autotoc_md45", null ],
+        [ "Data Flow (INT4 path)", "md_docs_2DESIGN.html#autotoc_md46", null ],
+        [ "Metrics Integrity", "md_docs_2DESIGN.html#autotoc_md47", null ]
       ] ],
-      [ "Appendix — INT4 (Weight‑Only) Step (Summary)", "md_docs_2DESIGN.html#autotoc_md48", null ],
-      [ "Updates — 2025-11-10", "md_docs_2DESIGN.html#autotoc_md50", [
-        [ "NUMA‑aware topology (<tt>ie_topology</tt>)", "md_docs_2DESIGN.html#autotoc_md51", null ],
-        [ "Hot weights replication", "md_docs_2DESIGN.html#autotoc_md52", null ],
-        [ "Activation precision hint", "md_docs_2DESIGN.html#autotoc_md53", null ],
-        [ "Timing discipline (unchanged semantics)", "md_docs_2DESIGN.html#autotoc_md54", null ],
-        [ "Example configurations", "md_docs_2DESIGN.html#autotoc_md55", null ]
+      [ "Appendix — INT4 (Weight‑Only) Step (Summary)", "md_docs_2DESIGN.html#autotoc_md49", null ],
+      [ "Updates — 2025-11-10", "md_docs_2DESIGN.html#autotoc_md51", [
+        [ "NUMA‑aware topology (<tt>ie_topology</tt>)", "md_docs_2DESIGN.html#autotoc_md52", null ],
+        [ "Hot weights replication", "md_docs_2DESIGN.html#autotoc_md53", null ],
+        [ "Activation precision hint", "md_docs_2DESIGN.html#autotoc_md54", null ],
+        [ "Timing discipline (unchanged semantics)", "md_docs_2DESIGN.html#autotoc_md55", null ],
+        [ "Example configurations", "md_docs_2DESIGN.html#autotoc_md56", null ]
       ] ],
-      [ "@icode{bash}", "md_docs_2DESIGN.html#autotoc_md56", null ],
-      [ "Memory Phase Design Addendum (updated 2025-11-12 18:01:19 UTC)", "md_docs_2DESIGN.html#autotoc_md57", [
-        [ "Goals", "md_docs_2DESIGN.html#autotoc_md58", null ],
-        [ "Components", "md_docs_2DESIGN.html#autotoc_md59", null ],
-        [ "Measurement", "md_docs_2DESIGN.html#autotoc_md60", null ],
-        [ "Backward Compatibility & Fallbacks", "md_docs_2DESIGN.html#autotoc_md61", null ],
-        [ "Risks & Mitigations", "md_docs_2DESIGN.html#autotoc_md62", null ]
+      [ "@icode{bash}", "md_docs_2DESIGN.html#autotoc_md57", null ],
+      [ "Memory Phase Design Addendum (updated 2025-11-12 18:01:19 UTC)", "md_docs_2DESIGN.html#autotoc_md58", [
+        [ "Goals", "md_docs_2DESIGN.html#autotoc_md59", null ],
+        [ "Components", "md_docs_2DESIGN.html#autotoc_md60", null ],
+        [ "Measurement", "md_docs_2DESIGN.html#autotoc_md61", null ],
+        [ "Backward Compatibility & Fallbacks", "md_docs_2DESIGN.html#autotoc_md62", null ],
+        [ "Risks & Mitigations", "md_docs_2DESIGN.html#autotoc_md63", null ]
       ] ],
-      [ "Block‑sparse weights (Phase 2, CPU only)", "md_docs_2DESIGN.html#autotoc_md63", [
-        [ "Goals", "md_docs_2DESIGN.html#autotoc_md64", null ],
-        [ "In‑memory layout: <tt>ie_block_sparse_matrix_t</tt>", "md_docs_2DESIGN.html#autotoc_md65", null ],
-        [ "On‑disk format and loader (<tt>engine/src/sparse_io.c</tt>)", "md_docs_2DESIGN.html#autotoc_md66", null ],
-        [ "CPU kernel (<tt>engine/src/gemm_block_sparse.c</tt>)", "md_docs_2DESIGN.html#autotoc_md67", null ],
-        [ "Device abstraction (<tt>engine/src/devices/ie_device_common.c</tt>)", "md_docs_2DESIGN.html#autotoc_md68", null ],
-        [ "Tools and tests", "md_docs_2DESIGN.html#autotoc_md69", [
-          [ "Offline converter (<tt>tools/convert_to_block_sparse.c</tt>)", "md_docs_2DESIGN.html#autotoc_md70", null ],
-          [ "C unit tests (<tt>tests/c/test_block_sparse.c</tt>)", "md_docs_2DESIGN.html#autotoc_md71", null ],
-          [ "Microbenchmark (<tt>benchmarks/src/microbench_gemv_block_sparse.c</tt>)", "md_docs_2DESIGN.html#autotoc_md72", null ]
+      [ "Block‑sparse weights (Phase 2, CPU only)", "md_docs_2DESIGN.html#autotoc_md64", [
+        [ "Goals", "md_docs_2DESIGN.html#autotoc_md65", null ],
+        [ "In‑memory layout: <tt>ie_block_sparse_matrix_t</tt>", "md_docs_2DESIGN.html#autotoc_md66", null ],
+        [ "On‑disk format and loader (<tt>engine/src/sparse_io.c</tt>)", "md_docs_2DESIGN.html#autotoc_md67", null ],
+        [ "CPU kernel (<tt>engine/src/gemm_block_sparse.c</tt>)", "md_docs_2DESIGN.html#autotoc_md68", null ],
+        [ "Device abstraction (<tt>engine/src/devices/ie_device_common.c</tt>)", "md_docs_2DESIGN.html#autotoc_md69", null ],
+        [ "Tools and tests", "md_docs_2DESIGN.html#autotoc_md70", [
+          [ "Offline converter (<tt>tools/convert_to_block_sparse.c</tt>)", "md_docs_2DESIGN.html#autotoc_md71", null ],
+          [ "C unit tests (<tt>tests/c/test_block_sparse.c</tt>)", "md_docs_2DESIGN.html#autotoc_md72", null ],
+          [ "Microbenchmark (<tt>benchmarks/src/microbench_gemv_block_sparse.c</tt>)", "md_docs_2DESIGN.html#autotoc_md73", null ]
         ] ],
-        [ "Integration strategy and future work", "md_docs_2DESIGN.html#autotoc_md73", null ],
-        [ "Lossless Deduplication (Schema2): defaults + masks + exceptions", "md_docs_2DESIGN.html#autotoc_md75", [
-          [ "Artifacts", "md_docs_2DESIGN.html#autotoc_md76", null ],
-          [ "Offline generation: extract defaults/masks/exceptions", "md_docs_2DESIGN.html#autotoc_md77", null ],
-          [ "Runtime controls", "md_docs_2DESIGN.html#autotoc_md78", null ],
-          [ "Schema2 JSON compatibility notes (model.ie.json)", "md_docs_2DESIGN.html#autotoc_md79", null ],
-          [ "Example strict run (CPU)", "md_docs_2DESIGN.html#autotoc_md80", null ]
+        [ "Integration strategy and future work", "md_docs_2DESIGN.html#autotoc_md74", null ],
+        [ "Lossless Deduplication (Schema2): defaults + masks + exceptions", "md_docs_2DESIGN.html#autotoc_md76", [
+          [ "Artifacts", "md_docs_2DESIGN.html#autotoc_md77", null ],
+          [ "Offline generation: extract defaults/masks/exceptions", "md_docs_2DESIGN.html#autotoc_md78", null ],
+          [ "Runtime controls", "md_docs_2DESIGN.html#autotoc_md79", null ],
+          [ "Schema2 JSON compatibility notes (model.ie.json)", "md_docs_2DESIGN.html#autotoc_md80", null ],
+          [ "Example strict run (CPU)", "md_docs_2DESIGN.html#autotoc_md81", null ]
         ] ]
       ] ]
     ] ],
@@ -205,10 +205,10 @@ var NAVTREEINDEX =
 "ie__kernel__ze_8cpp.html#a20d704d2968105641314c50897df8bdb",
 "kv__cache_8c.html",
 "namespacededup__prepare__and__extract__all.html#a45246e5fd8e820172df1bd4e9253a791",
-"ptq__calib_8py.html#a411585cffe038415fa4a50d31152a8fc",
-"structdedup__spec__header__s.html#ad11d8268b50851fe861447d4ede8367b",
-"structie__tensor__ref.html#a8d3e19687415a9b972ae0852ff3078e7",
-"topology_8c.html#aec68f2b26b90f097bf018395a7cf1bde"
+"ptq__calib_8py.html#a6855dfc7d067ff09439e3ea0902bbd25",
+"structdedup__spec__header__s.html#af56c6fa359b16bbec5471f6c86d6b636",
+"structie__tensor__ref.html#a917611b928fd7d85fdc22108bd0c99e4",
+"topology_8c_source.html"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

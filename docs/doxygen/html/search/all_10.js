@@ -14,8 +14,8 @@ var searchData=
   ['js_5fskip_5fobject_11',['js_skip_object',['../weights__dedup_8c.html#ae1e5c9a54a8c0312241d17afd01c40a0',1,'weights_dedup.c']]],
   ['js_5fskip_5fvalue_12',['js_skip_value',['../weights__dedup_8c.html#aec6b7531542a45304d1f17d108a6d2ea',1,'weights_dedup.c']]],
   ['js_5fskip_5fws_13',['js_skip_ws',['../weights__dedup_8c.html#a21501177295cc06eaf7d981f7d437c0c',1,'weights_dedup.c']]],
-  ['json_14',['Schema2 JSON compatibility notes (model.ie.json)',['../md_docs_2DESIGN.html#autotoc_md79',1,'']]],
-  ['json_20compatibility_20notes_20model_20ie_20json_15',['Schema2 JSON compatibility notes (model.ie.json)',['../md_docs_2DESIGN.html#autotoc_md79',1,'']]],
+  ['json_14',['Schema2 JSON compatibility notes (model.ie.json)',['../md_docs_2DESIGN.html#autotoc_md80',1,'']]],
+  ['json_20compatibility_20notes_20model_20ie_20json_15',['Schema2 JSON compatibility notes (model.ie.json)',['../md_docs_2DESIGN.html#autotoc_md80',1,'']]],
   ['json_5ffind_5fstring_16',['json_find_string',['../dedup__extract_8c.html#a97baf0b47b71bc968743bcd64951e92a',1,'dedup_extract.c']]],
   ['json_5ffind_5fu64_17',['json_find_u64',['../dedup__extract_8c.html#a94accf41f931a3d64a21b9c56ca95c83',1,'dedup_extract.c']]],
   ['json_5fpath_18',['json_path',['../structie__weights__s.html#a6d4bef9e704edd817ee473eb2685cdd4',1,'ie_weights_s']]]

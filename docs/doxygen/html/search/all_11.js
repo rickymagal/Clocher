@@ -2,7 +2,7 @@ var searchData=
 [
   ['k_0',['K',['../structie__kv__cache.html#a9e6a8eae8f60ca5906d3009c7bda555a',1,'ie_kv_cache']]],
   ['kdefaultspvpath_1',['kDefaultSPVPath',['../ie__kernel__ze_8cpp.html#a1b4f5224f122671c62dd85d1b7e6eb20',1,'ie_kernel_ze.cpp']]],
-  ['kernel_20tt_20engine_20src_20gemm_5fblock_5fsparse_20c_20tt_2',['CPU kernel (&lt;tt&gt;engine/src/gemm_block_sparse.c&lt;/tt&gt;)',['../md_docs_2DESIGN.html#autotoc_md67',1,'']]],
+  ['kernel_20tt_20engine_20src_20gemm_5fblock_5fsparse_20c_20tt_2',['CPU kernel (&lt;tt&gt;engine/src/gemm_block_sparse.c&lt;/tt&gt;)',['../md_docs_2DESIGN.html#autotoc_md68',1,'']]],
   ['kernels_3',['CUDA/CPU kernels',['../index.html#autotoc_md141',1,'']]],
   ['kernels_20are_20provided_4',['How kernels are provided',['..//home/ricardomag/Desktop/Clocher/engine/src/kernels/ze/ie_kernel_ze.cpp#autotoc_md93',1,'']]],
   ['kernels_20launchers_5',['CUDA kernels &amp; launchers',['../group__IE__GPU.html',1,'']]],

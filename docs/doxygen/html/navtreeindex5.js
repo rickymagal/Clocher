@@ -122,8 +122,7 @@ var NAVTREEINDEX5 =
 "namespacetest__cli.html":[20,0,23],
 "namespacetest__cli.html#aac5e24a93f9d205872853c83cd5d0c1a":[20,0,23,1],
 "namespacetest__cli__error__paths.html":[20,0,24],
-"namespacetest__cli__error__paths.html#a9e965922d2fbb4003a0524232d17f8c6":[20,0,24,1],
-"namespacetest__cli__error__paths.html#aa1dd6e2cf5e546f1f2c57999edf1053a":[20,0,24,2],
+"namespacetest__cli__error__paths.html#a7385a03bdda76d781b36de6bddcc28db":[20,0,24,1],
 "namespacetest__cli__flags.html":[20,0,25],
 "namespacetest__cli__flags.html#a2181284b87916d7718a5609b9bca2a8d":[20,0,25,2],
 "namespacetest__cli__flags.html#a79fa2e0d5e94f1508875d643dcfa6430":[20,0,25,1],
@@ -249,5 +248,6 @@ var NAVTREEINDEX5 =
 "ptq__calib_8py.html":[22,0,0,2],
 "ptq__calib_8py.html#a0ff53d4b3af1bcce6cc9aa70c71ad741":[22,0,0,2,8],
 "ptq__calib_8py.html#a15c1ec510d143c4356e29ed8922e51bc":[22,0,0,2,6],
-"ptq__calib_8py.html#a3c61645c84bf45ea46988b90da7eacf2":[22,0,0,2,3]
+"ptq__calib_8py.html#a3c61645c84bf45ea46988b90da7eacf2":[22,0,0,2,3],
+"ptq__calib_8py.html#a411585cffe038415fa4a50d31152a8fc":[22,0,0,2,0]
 };

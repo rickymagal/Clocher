@@ -1,6 +1,5 @@
 var NAVTREEINDEX8 =
 {
-"structie__tensor__ref.html#a8d3e19687415a9b972ae0852ff3078e7":[21,0,64,0],
 "structie__tensor__ref.html#a917611b928fd7d85fdc22108bd0c99e4":[21,0,64,9],
 "structie__tensor__ref.html#aa5ebbed0635fe1a9743edfa9add26ea7":[21,0,64,3],
 "structie__tensor__ref.html#aa91de44910fe5518cb64585fd463947b":[21,0,64,6],
@@ -111,8 +110,7 @@ var NAVTREEINDEX8 =
 "test__cli_8py.html#aac5e24a93f9d205872853c83cd5d0c1a":[22,0,6,1,0,1],
 "test__cli_8py_source.html":[22,0,6,1,0],
 "test__cli__error__paths_8py.html":[22,0,6,1,1],
-"test__cli__error__paths_8py.html#a9e965922d2fbb4003a0524232d17f8c6":[22,0,6,1,1,1],
-"test__cli__error__paths_8py.html#aa1dd6e2cf5e546f1f2c57999edf1053a":[22,0,6,1,1,2],
+"test__cli__error__paths_8py.html#a7385a03bdda76d781b36de6bddcc28db":[22,0,6,1,1,1],
 "test__cli__error__paths_8py_source.html":[22,0,6,1,1],
 "test__cli__flags_8py.html":[22,0,6,1,2],
 "test__cli__flags_8py.html#a2181284b87916d7718a5609b9bca2a8d":[22,0,6,1,2,2],
@@ -249,5 +247,7 @@ var NAVTREEINDEX8 =
 "topology_8c.html#ac815c843afc15cc695c8e8a1c3b26044":[22,0,3,1,5,7,14],
 "topology_8c.html#acf05e0cce3e49341739b873609d3868b":[22,0,3,1,5,7,15],
 "topology_8c.html#ad8cfb93824e1a4ef298700cc02a08eca":[22,0,3,1,5,7,4],
-"topology_8c.html#ae9fec2d245fb73d6c3e8e3cba38d4471":[22,0,3,1,5,7,16]
+"topology_8c.html#ae9fec2d245fb73d6c3e8e3cba38d4471":[22,0,3,1,5,7,16],
+"topology_8c.html#aec68f2b26b90f097bf018395a7cf1bde":[22,0,3,1,5,7,3],
+"topology_8c.html#af7f5032d356cd20c8f35a02cd6d6b692":[22,0,3,1,5,7,12]
 };
