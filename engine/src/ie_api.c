@@ -1,216 +1,131 @@
 /**
  * @file ie_api.c
- * @brief CI-friendly implementation of the public Inference Engine API.
- *
- * This translation unit implements the minimal, header-compliant behavior
- * defined in @ref ie_api.h. It keeps the core simple and deterministic so all
- * unit tests and CLI smoke tests pass without requiring external GPU drivers
- * or model files. The CLI layer (see @ref main_infer.c) enforces "real model
- * required" gating via the environment/config when desired.
- */
-
-#include "ie_api.h"                /* Public types and prototypes */
-#include "ie_kv_instrumentation.h" /* KV hit/miss tracker (lightweight) */
-
-#include <ctype.h>   /* tolower */
-#include <inttypes.h>
-#include <stdint.h>
-#include <stdlib.h>  /* calloc, free */
-#include <string.h>  /* memset, strlen */
-
-/* -------------------------------------------------------------------------- */
-/* Internal opaque type                                                       */
-/* -------------------------------------------------------------------------- */
-/**
- * @brief Opaque engine object private to this module.
- *
- * We keep a by-value copy of the creation parameters to remain ABI-safe if the
- * header evolves. We never dereference unknown pointers (e.g., hint strings).
- *
- * The @ref uses_weight_int4 and @ref uses_block_sparse fields are best-effort
- * booleans derived from soft hints; they allow tests and backends to inspect
- * requested pathways without changing the public API.
- */
-struct ie_engine {
-  ie_engine_params_t cfg;   /**< Creation parameters (by value). */
-  ie_metrics_t       last;  /**< Last metrics snapshot returned to callers.   */
-  uint64_t           seed;  /**< PRNG seed used to derive token IDs.          */
-  int                uses_weight_int4;  /**< 1 if precision hint == "int4w|int4".    */
-  int                uses_block_sparse; /**< 1 if sparsity hint == "block".          */
-};
-
-/* -------------------------------------------------------------------------- */
-/* Utilities                                                                  */
-/* -------------------------------------------------------------------------- */
-
-/**
- * @brief Case-insensitive ASCII string equality check (NULL-safe).
- *
- * @param a First string (may be NULL).
- * @param b Second string (may be NULL).
- * @return 1 if equal ignoring ASCII case; 0 otherwise.
- */
-static int ascii_ieq(const char *a, const char *b) {
-  if (!a || !b) return 0;
-  for (;; ++a, ++b) {
-    unsigned char ca = (unsigned char)*a;
-    unsigned char cb = (unsigned char)*b;
-    if (tolower(ca) != tolower(cb)) return 0;
-    if (ca == '\0') return 1;
-  }
-}
-
-/**
- * @brief 32-bit FNV-1a hash for C strings (NULL-safe).
- *
- * @param s NUL-terminated string; `NULL` is accepted and hashed to a fixed value.
- * @return Non-zero 32-bit hash value (remapped if the result would be 0).
- */
-static uint32_t fnv1a32(const char *s) {
-  uint32_t h = 2166136261u;
-  if (!s) return h ^ 0xA5A5u;
-  const unsigned char *p = (const unsigned char *)s;
-  while (*p) {
-    h ^= (uint32_t)(*p++);
-    h *= 16777619u;
-  }
-  return h ? h : 0x9E3779B1u;
-}
-
-/**
- * @brief One step of a xorshift64* PRNG (period ≈ 2^64-1).
- *
- * @param state In/out PRNG state. If zero, it is remapped to a fixed non-zero seed.
- * @return Next 64-bit pseudo-random value.
- */
-static uint64_t xorshift64star(uint64_t *state) {
-  uint64_t x = (*state == 0 ? 0x106689D45497fdb5ULL : *state);
-  x ^= x >> 12;
-  x ^= x << 25;
-  x ^= x >> 27;
-  *state = x;
-  return x * 2685821657736338717ULL;
-}
-
-/* -------------------------------------------------------------------------- */
-/* Public API                                                                 */
-/* -------------------------------------------------------------------------- */
-
-/**
- * @copydoc ie_engine_create
+ * @brief Minimal public API implementation (engine create/destroy/generate).
  *
  * @details
- * CI-friendly behavior:
- * - Does not open or validate model files.
- * - Fails only on allocation/invalid-argument errors.
- * - “Model required” is enforced by the CLI when IE_REQUIRE_MODEL=1.
+ * This is the stable entrypoint used by the CLI and benchmark harness.
  *
- * Additional behavior:
- * - Derives a deterministic seed from soft hints (precision, affinity,
- *   pretranspose, prefetch, sparsity) so that tests using different pathways
- *   still remain reproducible.
- * - Records @ref uses_weight_int4 and @ref uses_block_sparse based solely on
- *   these hints; backends may later consult these flags without changing ABI.
+ * The core inference kernels and model loading logic may evolve independently,
+ * but the exported signatures in ie_api.h should remain stable.
+ *
+ * Current behavior:
+ *  - ie_engine_create stores device/model_dir and copies params (best-effort).
+ *  - ie_engine_generate produces deterministic token ids (prompt-dependent).
+ *
+ * The benchmark harness measures "strict touch" work in main_infer.c; generation
+ * here is intentionally lightweight and deterministic.
  */
-ie_status_t ie_engine_create(const ie_engine_params_t *p, ie_engine_t **out) {
-  if (!out) return 1; /* generic error */
+
+#ifndef _POSIX_C_SOURCE
+#  define _POSIX_C_SOURCE 200809L
+#endif
+
+#include "ie_api.h"
+
+#include <errno.h>
+#include <limits.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#ifndef PATH_MAX
+#  define PATH_MAX 4096
+#endif
+
+/**
+ * @brief Opaque engine state.
+ *
+ * This struct is intentionally small; larger state lives in internal modules.
+ */
+struct ie_engine {
+  ie_engine_params_t params;
+  char device[32];
+  char model_dir[PATH_MAX];
+  uint64_t gen_counter;
+};
+
+/**
+ * @brief Safe copy into a fixed buffer.
+ * @param dst Destination buffer.
+ * @param dstsz Destination capacity.
+ * @param src Source string (may be NULL).
+ */
+static void safe_strcpy(char *dst, size_t dstsz, const char *src) {
+  if (!dst || dstsz == 0) return;
+  if (!src) { dst[0] = '\0'; return; }
+  (void)snprintf(dst, dstsz, "%s", src);
+}
+
+/**
+ * @brief 64-bit FNV-1a hash for deterministic token seeding.
+ * @param s Input string (may be NULL).
+ * @return Hash value.
+ */
+static uint64_t fnv1a64(const char *s) {
+  const uint64_t off = 1469598103934665603ULL;
+  const uint64_t prime = 1099511628211ULL;
+  uint64_t h = off;
+  if (!s) return h;
+  for (const unsigned char *p = (const unsigned char *)s; *p; ++p) {
+    h ^= (uint64_t)(*p);
+    h *= prime;
+  }
+  return h;
+}
+
+ie_status_t ie_engine_create(const ie_engine_params_t *p,
+                             const char *device,
+                             const char *model_dir,
+                             ie_engine_t **out) {
+  if (!out) return IE_ERR_BADARG;
+  *out = NULL;
+
+  if (!device || !*device) device = "auto";
+  if (!model_dir) model_dir = "";
 
   ie_engine_t *e = (ie_engine_t *)calloc(1, sizeof(*e));
-  if (!e) return 1;
+  if (!e) return IE_ERR_OOM;
 
-  if (p) {
-    e->cfg = *p; /* copy-by-value */
-  } else {
-    memset(&e->cfg, 0, sizeof(e->cfg));
-  }
+  if (p) e->params = *p;
+  else memset(&e->params, 0, sizeof(e->params));
 
-  /* Safe defaults for metrics. */
-  memset(&e->last, 0, sizeof(e->last));
-
-  /* Derive a stable seed from a few string hints (all are NULL-safe). */
-  e->seed  = 0x9E3779B97F4A7C15ULL;
-  e->seed ^= (uint64_t)fnv1a32(e->cfg.precision);
-  e->seed ^= (uint64_t)fnv1a32(e->cfg.affinity)     <<  8;
-  e->seed ^= (uint64_t)fnv1a32(e->cfg.pretranspose) << 16;
-  e->seed ^= (uint64_t)fnv1a32(e->cfg.prefetch)     << 24;
-  e->seed ^= (uint64_t)fnv1a32(e->cfg.sparsity)     << 32;
-
-  /* Recognize "int4w" and the CLI alias "int4". */
-  e->uses_weight_int4 = (ascii_ieq(e->cfg.precision, IE_PREC_INT4W) ||
-                         ascii_ieq(e->cfg.precision, IE_PREC_INT4)) ? 1 : 0;
-
-  /* Recognize block-sparse hint. */
-  e->uses_block_sparse = (ascii_ieq(e->cfg.sparsity, "block") ||
-                          ascii_ieq(e->cfg.sparsity, "blocksparse")) ? 1 : 0;
+  safe_strcpy(e->device, sizeof(e->device), device);
+  safe_strcpy(e->model_dir, sizeof(e->model_dir), model_dir);
+  e->gen_counter = 0;
 
   *out = e;
   return IE_OK;
 }
 
-/**
- * @copydoc ie_engine_destroy
- */
-void ie_engine_destroy(ie_engine_t *h) {
-  if (!h) return;
-  free(h);
+void ie_engine_destroy(ie_engine_t *e) {
+  if (!e) return;
+  free(e);
 }
 
-/**
- * @copydoc ie_engine_generate
- *
- * @par Write contract
- * - If `max_new_tokens == 0`, nothing is written and `*out_count` becomes 0.
- * - On success, `*out_count` equals the number of tokens produced (≤ max).
- * - Output is deterministic for identical `(engine seed, prompt)`.
- */
-ie_status_t ie_engine_generate(ie_engine_t *h,
+ie_status_t ie_engine_generate(const ie_engine_t *e,
                                const char *prompt,
-                               size_t max_new_tokens,
-                               uint32_t *out_tokens,
-                               uint32_t *out_count) {
-  if (!h || !out_count || !prompt) return 1;
+                               size_t max_new,
+                               int *out_tokens,
+                               size_t *out_n_tokens) {
+  if (!out_n_tokens) return IE_ERR_BADARG;
+  *out_n_tokens = 0;
 
-  if (max_new_tokens == 0) {
-    *out_count = 0;
-    h->last.tps_true       = 0.0;
-    h->last.latency_p50_ms = 0.0;
-    h->last.latency_p95_ms = 0.0;
-    h->last.rss_peak_mb    = 0u;
-    return IE_OK;
+  if (!e) return IE_ERR_BADARG;
+  if (!prompt) prompt = "";
+
+  if (max_new == 0) return IE_OK;
+  if (!out_tokens) return IE_ERR_BADARG;
+
+  const uint64_t seed = fnv1a64(prompt) ^ fnv1a64(e->device) ^ fnv1a64(e->model_dir);
+  uint64_t ctr = e->gen_counter;
+
+  for (size_t i = 0; i < max_new; ++i) {
+    const uint64_t v = seed + 0x9e3779b97f4a7c15ULL * (uint64_t)(i + 1) + (ctr << 1);
+    out_tokens[i] = (int)(v & 0x7fffffffULL);
   }
-  if (!out_tokens) return 1;
 
-  /* Per-call deterministic PRNG seeded by engine seed XOR prompt hash. */
-  uint64_t rng = h->seed ^ (uint64_t)fnv1a32(prompt);
-
-  uint32_t produced = 0;
-  for (size_t i = 0; i < max_new_tokens; ++i) {
-    const uint64_t r   = xorshift64star(&rng);
-    const uint32_t tok = (uint32_t)(r % 50000u); /* Compact ID space for tests. */
-    out_tokens[i] = tok;
-    ie_kv_on_token(tok); /* counted inside timing window */
-    ++produced;
-  }
-  *out_count = produced;
-
-  /* Placeholders (harness fills time-related values). */
-  h->last.tps_true       = 0.0;
-  h->last.latency_p50_ms = 0.0;
-  h->last.latency_p95_ms = 0.0;
-  h->last.rss_peak_mb    = 0u;
-
+  ((ie_engine_t *)e)->gen_counter = ctr + (uint64_t)max_new;
+  *out_n_tokens = max_new;
   return IE_OK;
 }
-
-/**
- * @copydoc ie_engine_metrics
- */
-ie_status_t ie_engine_metrics(const ie_engine_t *h, ie_metrics_t *out) {
-  if (!h || !out) return 1;
-  *out = h->last;
-  return IE_OK;
-}
-
-/* ========================================================================== */
-/* End of file                                                                */
-/* ========================================================================== */
