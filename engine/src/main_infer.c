@@ -15,6 +15,12 @@
  *  - For CUDA, the strict work uses cudart (if present) to force driver activity
  *    inside the timed window without relying on custom kernels.
  *
+ * Text output:
+ *  - By default, the CLI prints tokens in JSON for benchmark tooling.
+ *  - If --print-text is provided (or IE_PRINT_TEXT=1), the CLI will also decode
+ *    the generated token IDs into UTF-8 text using tokenizer.json found under
+ *    the model directory (best-effort, dependency-free).
+ *
  * Notes:
  *  - This CLI validates model_dir accessibility, resolves default model paths,
  *    and supports prompts-file batching for harnesses.
@@ -606,6 +612,596 @@ static int cudart_touch_bytes(size_t bytes_per_token,
 }
 
 /* -------------------------------------------------------------------------- */
+/* Dependency-free tokenizer.json decoder (best-effort)                       */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * @brief Token entry: token string for a given id.
+ */
+typedef struct tok_entry_s {
+  uint32_t id;
+  char *text; /* NUL-terminated UTF-8 token piece */
+} tok_entry_t;
+
+/**
+ * @brief Token map loaded from tokenizer.json: id -> token piece.
+ */
+typedef struct tok_map_s {
+  uint32_t vocab_size;
+  char **id_to_text; /* array[vocab_size], owned strings */
+} tok_map_t;
+
+/**
+ * @brief Free a tok_map_t.
+ * @param m Map to free (safe on zeroed).
+ */
+static void tok_map_free(tok_map_t *m) {
+  if (!m) return;
+  if (m->id_to_text) {
+    for (uint32_t i = 0; i < m->vocab_size; ++i) free(m->id_to_text[i]);
+    free(m->id_to_text);
+  }
+  m->id_to_text = NULL;
+  m->vocab_size = 0;
+}
+
+/**
+ * @brief Read an entire file into memory.
+ * @param path File path.
+ * @param out_buf Output buffer pointer (malloc'd).
+ * @param out_len Output length in bytes (excluding any added NUL).
+ * @return 0 on success, nonzero on failure.
+ */
+static int read_entire_file(const char *path, char **out_buf, size_t *out_len) {
+  if (!path || !*path || !out_buf || !out_len) return 1;
+  *out_buf = NULL;
+  *out_len = 0;
+
+  FILE *f = fopen(path, "rb");
+  if (!f) return 2;
+
+  if (fseek(f, 0, SEEK_END) != 0) { fclose(f); return 3; }
+  long sz = ftell(f);
+  if (sz <= 0) { fclose(f); return 4; }
+  if (fseek(f, 0, SEEK_SET) != 0) { fclose(f); return 5; }
+
+  char *buf = (char *)malloc((size_t)sz + 1);
+  if (!buf) { fclose(f); return 6; }
+
+  size_t n = fread(buf, 1, (size_t)sz, f);
+  fclose(f);
+  if (n != (size_t)sz) { free(buf); return 7; }
+
+  buf[n] = '\0';
+  *out_buf = buf;
+  *out_len = n;
+  return 0;
+}
+
+/**
+ * @brief Convert a hex digit to value.
+ * @param c Character.
+ * @return 0..15 on success, -1 on failure.
+ */
+static int hex_val(int c) {
+  if (c >= '0' && c <= '9') return c - '0';
+  if (c >= 'a' && c <= 'f') return 10 + (c - 'a');
+  if (c >= 'A' && c <= 'F') return 10 + (c - 'A');
+  return -1;
+}
+
+/**
+ * @brief Append a UTF-8 codepoint to a dynamic buffer.
+ * @param dst Pointer to buffer pointer (may grow).
+ * @param cap Pointer to capacity.
+ * @param len Pointer to current length.
+ * @param cp Unicode codepoint.
+ * @return 0 on success, nonzero on OOM.
+ */
+static int buf_append_cp(char **dst, size_t *cap, size_t *len, uint32_t cp) {
+  unsigned char tmp[4];
+  size_t n = 0;
+
+  if (cp <= 0x7Fu) {
+    tmp[0] = (unsigned char)cp;
+    n = 1;
+  } else if (cp <= 0x7FFu) {
+    tmp[0] = (unsigned char)(0xC0u | (cp >> 6));
+    tmp[1] = (unsigned char)(0x80u | (cp & 0x3Fu));
+    n = 2;
+  } else if (cp <= 0xFFFFu) {
+    tmp[0] = (unsigned char)(0xE0u | (cp >> 12));
+    tmp[1] = (unsigned char)(0x80u | ((cp >> 6) & 0x3Fu));
+    tmp[2] = (unsigned char)(0x80u | (cp & 0x3Fu));
+    n = 3;
+  } else {
+    tmp[0] = (unsigned char)(0xF0u | (cp >> 18));
+    tmp[1] = (unsigned char)(0x80u | ((cp >> 12) & 0x3Fu));
+    tmp[2] = (unsigned char)(0x80u | ((cp >> 6) & 0x3Fu));
+    tmp[3] = (unsigned char)(0x80u | (cp & 0x3Fu));
+    n = 4;
+  }
+
+  if (!*dst || *cap == 0) {
+    *cap = 64;
+    *dst = (char *)malloc(*cap);
+    if (!*dst) return 1;
+    *len = 0;
+  }
+
+  if (*len + n + 1 > *cap) {
+    size_t ncap = *cap;
+    while (*len + n + 1 > ncap) ncap *= 2;
+    char *nb = (char *)realloc(*dst, ncap);
+    if (!nb) return 1;
+    *dst = nb;
+    *cap = ncap;
+  }
+
+  memcpy(*dst + *len, tmp, n);
+  *len += n;
+  (*dst)[*len] = '\0';
+  return 0;
+}
+
+/**
+ * @brief Parse a JSON string literal, returning an owned UTF-8 string.
+ *
+ * This is a minimal parser that understands:
+ *  - \" \\ \/ \b \f \n \r \t
+ *  - \uXXXX (BMP only; surrogate pairs are passed through as two codepoints)
+ *
+ * @param p Pointer to current position (expects *p == '"').
+ * @param out Allocated output string (caller frees).
+ * @return Pointer to char after closing quote on success, NULL on failure.
+ */
+static const char *json_parse_string(const char *p, char **out) {
+  if (!p || *p != '"' || !out) return NULL;
+  ++p;
+
+  char *buf = NULL;
+  size_t cap = 0, len = 0;
+
+  while (*p) {
+    if (*p == '"') {
+      ++p;
+      if (!buf) {
+        buf = (char *)malloc(1);
+        if (!buf) return NULL;
+        buf[0] = '\0';
+      }
+      *out = buf;
+      return p;
+    }
+    if (*p == '\\') {
+      ++p;
+      if (!*p) break;
+      if (*p == '"' || *p == '\\' || *p == '/') {
+        if (buf_append_cp(&buf, &cap, &len, (uint32_t)(unsigned char)*p) != 0) { free(buf); return NULL; }
+        ++p;
+      } else if (*p == 'b') {
+        if (buf_append_cp(&buf, &cap, &len, 0x08u) != 0) { free(buf); return NULL; }
+        ++p;
+      } else if (*p == 'f') {
+        if (buf_append_cp(&buf, &cap, &len, 0x0Cu) != 0) { free(buf); return NULL; }
+        ++p;
+      } else if (*p == 'n') {
+        if (buf_append_cp(&buf, &cap, &len, 0x0Au) != 0) { free(buf); return NULL; }
+        ++p;
+      } else if (*p == 'r') {
+        if (buf_append_cp(&buf, &cap, &len, 0x0Du) != 0) { free(buf); return NULL; }
+        ++p;
+      } else if (*p == 't') {
+        if (buf_append_cp(&buf, &cap, &len, 0x09u) != 0) { free(buf); return NULL; }
+        ++p;
+      } else if (*p == 'u') {
+        ++p;
+        int h1 = hex_val((unsigned char)p[0]);
+        int h2 = hex_val((unsigned char)p[1]);
+        int h3 = hex_val((unsigned char)p[2]);
+        int h4 = hex_val((unsigned char)p[3]);
+        if (h1 < 0 || h2 < 0 || h3 < 0 || h4 < 0) { free(buf); return NULL; }
+        uint32_t cp = (uint32_t)((h1 << 12) | (h2 << 8) | (h3 << 4) | h4);
+        if (buf_append_cp(&buf, &cap, &len, cp) != 0) { free(buf); return NULL; }
+        p += 4;
+      } else {
+        free(buf);
+        return NULL;
+      }
+      continue;
+    }
+
+    if ((unsigned char)*p < 0x20u) { free(buf); return NULL; }
+    if (buf_append_cp(&buf, &cap, &len, (uint32_t)(unsigned char)*p) != 0) { free(buf); return NULL; }
+    ++p;
+  }
+
+  free(buf);
+  return NULL;
+}
+
+/**
+ * @brief Skip whitespace in JSON.
+ * @param p Input pointer.
+ * @return Advanced pointer.
+ */
+static const char *json_skip_ws(const char *p) {
+  while (p && (*p == ' ' || *p == '\t' || *p == '\r' || *p == '\n')) ++p;
+  return p;
+}
+
+/**
+ * @brief Parse a non-negative integer.
+ * @param p Input pointer.
+ * @param out Output value.
+ * @return Pointer after number, or NULL on failure.
+ */
+static const char *json_parse_u32(const char *p, uint32_t *out) {
+  if (!p || !out) return NULL;
+  p = json_skip_ws(p);
+  if (!(*p >= '0' && *p <= '9')) return NULL;
+
+  uint64_t v = 0;
+  while (*p >= '0' && *p <= '9') {
+    v = v * 10u + (uint64_t)(*p - '0');
+    if (v > 0xFFFFFFFFu) return NULL;
+    ++p;
+  }
+  *out = (uint32_t)v;
+  return p;
+}
+
+/**
+ * @brief Find a JSON key name occurrence and return pointer to the value start.
+ *
+ * This is a best-effort scanner: it searches for the literal substring "\"key\"".
+ *
+ * @param json JSON buffer.
+ * @param key Key name.
+ * @return Pointer to value (after ':'), or NULL if not found.
+ */
+static const char *json_find_key_value(const char *json, const char *key) __attribute__((unused));
+static const char *json_find_key_value(const char *json, const char *key) {
+  if (!json || !key) return NULL;
+
+  char pat[128];
+  (void)snprintf(pat, sizeof(pat), "\"%s\"", key);
+
+  const char *hit = strstr(json, pat);
+  if (!hit) return NULL;
+
+  const char *p = hit + strlen(pat);
+  p = json_skip_ws(p);
+  if (*p != ':') return NULL;
+  ++p;
+  return json_skip_ws(p);
+}
+
+/**
+ * @brief Load id->token mapping from tokenizer.json.
+ *
+ * Expected shapes supported (best-effort):
+ *  - "model": { "vocab": { "<tok>": <id>, ... } }
+ *  - "added_tokens": [ { "id": <id>, "content": "<tok>", ... }, ... ]
+ *
+ * If "vocab" is missing or parsing fails, this function returns nonzero.
+ *
+ * @param tokenizer_json_path Path to tokenizer.json.
+ * @param out Output map.
+ * @return 0 on success, nonzero on failure.
+ */
+static int tok_map_load_from_tokenizer_json(const char *tokenizer_json_path, tok_map_t *out) {
+  if (!out) return 1;
+  memset(out, 0, sizeof(*out));
+  if (!tokenizer_json_path || !*tokenizer_json_path) return 2;
+
+  char *buf = NULL;
+  size_t blen = 0;
+  if (read_entire_file(tokenizer_json_path, &buf, &blen) != 0) return 3;
+
+  const char *vocab_p = strstr(buf, "\"vocab\"");
+  if (!vocab_p) { free(buf); return 4; }
+
+  vocab_p = strchr(vocab_p, '{');
+  if (!vocab_p) { free(buf); return 5; }
+  ++vocab_p;
+
+  uint32_t max_id = 0;
+  const char *p = vocab_p;
+
+  /* First pass: find max id in vocab object. */
+  while (*p) {
+    p = json_skip_ws(p);
+    if (*p == '}') { ++p; break; }
+    if (*p != '"') { ++p; continue; }
+
+    char *key = NULL;
+    const char *p2 = json_parse_string(p, &key);
+    if (!p2) { free(buf); return 6; }
+
+    p2 = json_skip_ws(p2);
+    if (*p2 != ':') { free(key); free(buf); return 7; }
+    ++p2;
+
+    uint32_t id = 0;
+    p2 = json_parse_u32(p2, &id);
+    if (!p2) { free(key); free(buf); return 8; }
+
+    if (id > max_id) max_id = id;
+    free(key);
+
+    p = p2;
+    while (*p && *p != ',' && *p != '}') ++p;
+    if (*p == ',') ++p;
+  }
+
+  if (max_id == 0) { free(buf); return 9; }
+
+  uint32_t vocab_size = max_id + 1;
+  char **id_to_text = (char **)calloc((size_t)vocab_size, sizeof(char *));
+  if (!id_to_text) { free(buf); return 10; }
+
+  /* Second pass: fill mapping. */
+  p = vocab_p;
+  while (*p) {
+    p = json_skip_ws(p);
+    if (*p == '}') { ++p; break; }
+    if (*p != '"') { ++p; continue; }
+
+    char *key = NULL;
+    const char *p2 = json_parse_string(p, &key);
+    if (!p2) { tok_map_free(&(tok_map_t){ .vocab_size = vocab_size, .id_to_text = id_to_text }); free(buf); return 11; }
+
+    p2 = json_skip_ws(p2);
+    if (*p2 != ':') { free(key); tok_map_free(&(tok_map_t){ .vocab_size = vocab_size, .id_to_text = id_to_text }); free(buf); return 12; }
+    ++p2;
+
+    uint32_t id = 0;
+    p2 = json_parse_u32(p2, &id);
+    if (!p2 || id >= vocab_size) { free(key); tok_map_free(&(tok_map_t){ .vocab_size = vocab_size, .id_to_text = id_to_text }); free(buf); return 13; }
+
+    if (!id_to_text[id]) {
+      id_to_text[id] = key;
+    } else {
+      free(key);
+    }
+
+    p = p2;
+    while (*p && *p != ',' && *p != '}') ++p;
+    if (*p == ',') ++p;
+  }
+
+  /* Apply added_tokens overrides when present. */
+  const char *added_p = strstr(buf, "\"added_tokens\"");
+  if (added_p) {
+    const char *arr = strchr(added_p, '[');
+    if (arr) {
+      ++arr;
+      const char *q = arr;
+      while (*q) {
+        q = json_skip_ws(q);
+        if (*q == ']') break;
+        if (*q != '{') { ++q; continue; }
+
+        const char *obj = q;
+        (void)obj;
+
+        /* Find "id" and "content" inside this object (best-effort scan). */
+        const char *idp = strstr(q, "\"id\"");
+        const char *cp = strstr(q, "\"content\"");
+        uint32_t id = 0;
+        char *content = NULL;
+
+        if (idp && idp < strstr(q, "}")) {
+          const char *iv = strchr(idp, ':');
+          if (iv) {
+            ++iv;
+            const char *iv2 = json_parse_u32(iv, &id);
+            if (!iv2) id = 0;
+          }
+        }
+
+        if (cp && cp < strstr(q, "}")) {
+          const char *cv = strchr(cp, ':');
+          if (cv) {
+            cv = json_skip_ws(cv + 1);
+            if (*cv == '"') {
+              const char *cv2 = json_parse_string(cv, &content);
+              if (!cv2) content = NULL;
+            }
+          }
+        }
+
+        if (id < vocab_size && content) {
+          free(id_to_text[id]);
+          id_to_text[id] = content;
+        } else {
+          free(content);
+        }
+
+        /* Move to end of object. */
+        while (*q && *q != '}') ++q;
+        if (*q == '}') ++q;
+        while (*q && *q != ',' && *q != ']') ++q;
+        if (*q == ',') ++q;
+      }
+    }
+  }
+
+  out->vocab_size = vocab_size;
+  out->id_to_text = id_to_text;
+
+  free(buf);
+  return 0;
+}
+
+/**
+ * @brief Apply common token-piece normalization for byte-level BPE variants.
+ *
+ * This handles common "space marker" glyphs used by various HF tokenizers:
+ *  - U+0120 'Ġ' => leading space
+ *  - U+2581 '▁' => leading space
+ *  - U+010A 'Ċ' => newline
+ *
+ * @param s Input token piece.
+ * @param out_dyn Output dynamic string (malloc/realloc).
+ * @param out_cap Capacity pointer.
+ * @param out_len Length pointer.
+ * @return 0 on success, nonzero on OOM.
+ */
+static int tok_piece_append_normalized(const char *s, char **out_dyn, size_t *out_cap, size_t *out_len) {
+  if (!s) return 0;
+
+  const unsigned char *p = (const unsigned char *)s;
+
+  /* Minimal UTF-8 handling for the specific marker codepoints. */
+  while (*p) {
+    /* U+0120 (Ġ): 0xC4 0xA0 */
+    if (p[0] == 0xC4u && p[1] == 0xA0u) {
+      if (buf_append_cp(out_dyn, out_cap, out_len, (uint32_t)' ') != 0) return 1;
+      p += 2;
+      continue;
+    }
+    /* U+2581 (▁): 0xE2 0x96 0x81 */
+    if (p[0] == 0xE2u && p[1] == 0x96u && p[2] == 0x81u) {
+      if (buf_append_cp(out_dyn, out_cap, out_len, (uint32_t)' ') != 0) return 1;
+      p += 3;
+      continue;
+    }
+    /* U+010A (Ċ): 0xC4 0x8A */
+    if (p[0] == 0xC4u && p[1] == 0x8Au) {
+      if (buf_append_cp(out_dyn, out_cap, out_len, (uint32_t)'\n') != 0) return 1;
+      p += 2;
+      continue;
+    }
+
+    if (buf_append_cp(out_dyn, out_cap, out_len, (uint32_t)*p) != 0) return 1;
+    ++p;
+  }
+
+  return 0;
+}
+
+/**
+ * @brief Decode token IDs into UTF-8 text using a tok_map_t.
+ *
+ * @param m Loaded token map.
+ * @param ids Token IDs (int tokens from engine).
+ * @param n Number of tokens.
+ * @param out_text Output allocated string (caller frees); set to NULL on failure.
+ * @return 0 on success, nonzero on failure.
+ */
+static int tok_decode_ids_to_text(const tok_map_t *m, const int *ids, size_t n, char **out_text) {
+  if (!out_text) return 1;
+  *out_text = NULL;
+  if (!m || !m->id_to_text || m->vocab_size == 0) return 2;
+  if (!ids || n == 0) {
+    char *z = (char *)malloc(1);
+    if (!z) return 3;
+    z[0] = '\0';
+    *out_text = z;
+    return 0;
+  }
+
+  char *dyn = NULL;
+  size_t cap = 0, len = 0;
+
+  for (size_t i = 0; i < n; ++i) {
+    int tid = ids[i];
+    if (tid < 0) continue;
+
+    uint32_t idu = (uint32_t)tid;
+    const char *piece = (idu < m->vocab_size) ? m->id_to_text[idu] : NULL;
+    if (!piece) {
+      /* Unknown id: emit a stable placeholder. */
+      char tmp[64];
+      (void)snprintf(tmp, sizeof(tmp), "<%u>", (unsigned)idu);
+      if (tok_piece_append_normalized(tmp, &dyn, &cap, &len) != 0) { free(dyn); return 4; }
+      continue;
+    }
+
+    if (tok_piece_append_normalized(piece, &dyn, &cap, &len) != 0) { free(dyn); return 5; }
+  }
+
+  if (!dyn) {
+    dyn = (char *)malloc(1);
+    if (!dyn) return 6;
+    dyn[0] = '\0';
+  }
+
+  *out_text = dyn;
+  return 0;
+}
+
+/**
+ * @brief JSON-escape and print a string value.
+ *
+ * @param s Input UTF-8 string (may be NULL).
+ */
+static void json_print_escaped_string(const char *s) {
+  fputc('"', stdout);
+  if (!s) {
+    fputc('"', stdout);
+    return;
+  }
+
+  const unsigned char *p = (const unsigned char *)s;
+  while (*p) {
+    unsigned char c = *p++;
+    if (c == '\\') fputs("\\\\", stdout);
+    else if (c == '"') fputs("\\\"", stdout);
+    else if (c == '\n') fputs("\\n", stdout);
+    else if (c == '\r') fputs("\\r", stdout);
+    else if (c == '\t') fputs("\\t", stdout);
+    else if (c < 0x20u) {
+      /* Control char: emit \u00XX. */
+      fprintf(stdout, "\\u%04x", (unsigned)c);
+    } else {
+      fputc((int)c, stdout);
+    }
+  }
+  fputc('"', stdout);
+}
+
+/**
+ * @brief Resolve a tokenizer.json path under a model directory.
+ *
+ * Search order:
+ *  1) explicit override (tokenizer_opt)
+ *  2) <model_dir>/tokenizer.json
+ *  3) <model_dir>/hf/original/tokenizer.json
+ *  4) <model_dir>/original/tokenizer.json
+ *
+ * @param model_dir Model directory.
+ * @param tokenizer_opt Optional explicit tokenizer path.
+ * @param out Output path.
+ * @param outsz Output capacity.
+ */
+static void resolve_tokenizer_path(const char *model_dir, const char *tokenizer_opt, char *out, size_t outsz) {
+  if (!out || outsz == 0) return;
+  out[0] = '\0';
+
+  if (tokenizer_opt && *tokenizer_opt) {
+    if (path_is_abs(tokenizer_opt) || !model_dir || !*model_dir) safe_strcpy(out, outsz, tokenizer_opt);
+    else join_path(out, outsz, model_dir, tokenizer_opt);
+    return;
+  }
+
+  if (!model_dir || !*model_dir) return;
+
+  char cand[PATH_MAX];
+
+  join_path(cand, sizeof(cand), model_dir, "tokenizer.json");
+  if (path_exists(cand)) { safe_strcpy(out, outsz, cand); return; }
+
+  join_path(cand, sizeof(cand), model_dir, "hf/original/tokenizer.json");
+  if (path_exists(cand)) { safe_strcpy(out, outsz, cand); return; }
+
+  join_path(cand, sizeof(cand), model_dir, "original/tokenizer.json");
+  if (path_exists(cand)) { safe_strcpy(out, outsz, cand); return; }
+}
+
+/* -------------------------------------------------------------------------- */
 /* CLI options                                                                */
 /* -------------------------------------------------------------------------- */
 
@@ -640,6 +1236,10 @@ typedef struct cli_extras {
 
   const char *sparsity;
   int sparsity_from_flag;
+
+  /* Text decode options */
+  int print_text;
+  const char *tokenizer_path;
 } cli_extras_t;
 
 /**
@@ -658,7 +1258,8 @@ static void usage(void) {
           "                        [--model-json PATH] [--model-bin PATH]\n"
           "                        [--prompts-file PATH] [--batch N]\n"
           "                        [--prefetch on|off|auto|N] [--warmup N]\n"
-          "                        [--rounds N] [--aggregate]\n");
+          "                        [--rounds N] [--aggregate]\n"
+          "                        [--print-text] [--tokenizer PATH]\n");
 }
 
 /**
@@ -689,6 +1290,9 @@ static void cli_extras_defaults(cli_extras_t *e) {
 
   e->sparsity = "none";
   e->sparsity_from_flag = 0;
+
+  e->print_text = 0;
+  e->tokenizer_path = NULL;
 }
 
 /**
@@ -829,6 +1433,13 @@ static int parse_flags(int argc, char **argv, cli_extras_t *out) {
     } else if (!strcmp(a, "--aggregate")) {
       out->aggregate = 1;
 
+    } else if (!strcmp(a, "--print-text")) {
+      out->print_text = 1;
+
+    } else if (!strcmp(a, "--tokenizer")) {
+      if (++i >= argc) { usage(); return -1; }
+      out->tokenizer_path = argv[i];
+
     } else if (a[0] == '-') {
       fprintf(stderr, "error: unknown flag '%s'\n", a);
       usage();
@@ -879,19 +1490,25 @@ static int read_first_nonempty_line(const char *path, char *buf, size_t bufsz) {
 
 /**
  * @brief Print the single JSON result object to stdout.
+ *
+ * This function prints exactly one JSON object, suitable for strict harness parsing.
+ * If @p text_decoded is non-NULL, it will be included under the "text" key.
+ *
  * @param n_tok Number of generated tokens.
  * @param tokens Token buffer (may be NULL).
  * @param wall_s_in Elapsed seconds.
  * @param kv_hits KV cache hits.
  * @param kv_misses KV cache misses.
  * @param rss_peak_mb RSS peak in MiB.
+ * @param text_decoded Optional decoded text (UTF-8).
  */
 static void print_json_result(size_t n_tok,
                               const int *tokens,
                               double wall_s_in,
                               uint64_t kv_hits,
                               uint64_t kv_misses,
-                              uint32_t rss_peak_mb) {
+                              uint32_t rss_peak_mb,
+                              const char *text_decoded) {
   double wall_s = (wall_s_in > 0.0) ? wall_s_in : 0.0;
   const double tps_true = (wall_s > 0.0) ? ((double)n_tok / wall_s) : 0.0;
 
@@ -910,6 +1527,12 @@ static void print_json_result(size_t n_tok,
     for (size_t i = 0; i < n_tok; ++i) fprintf(stdout, "%d%s", tokens[i], (i + 1 < n_tok) ? "," : "");
   }
   fputs("],", stdout);
+
+  if (text_decoded) {
+    fputs("\"text\":", stdout);
+    json_print_escaped_string(text_decoded);
+    fputs(",", stdout);
+  }
 
   fprintf(stdout,
           "\"wall_time_s\":%.6f,"
@@ -932,12 +1555,26 @@ static void print_json_result(size_t n_tok,
 /* main                                                                       */
 /* -------------------------------------------------------------------------- */
 
+/**
+ * @brief Check whether device string selects CUDA.
+ * @param dev Device label.
+ * @return 1 if CUDA, 0 otherwise.
+ */
 static int device_is_cuda(const char *dev) { return ascii_ieq(dev, "cuda") ? 1 : 0; }
+
+/**
+ * @brief Check whether device string selects CPU.
+ * @param dev Device label.
+ * @return 1 if CPU, 0 otherwise.
+ */
 static int device_is_cpu(const char *dev) { return ascii_ieq(dev, "cpu") ? 1 : 0; }
 
 int main(int argc, char **argv) {
   cli_extras_t opt;
   if (parse_flags(argc, argv, &opt) != 0) return 2;
+
+  /* Allow env override for print-text without breaking harness defaults. */
+  if (!opt.print_text) opt.print_text = (int)env_long("IE_PRINT_TEXT", 0);
 
   if (!opt.device || !*opt.device || ascii_ieq(opt.device, "auto")) {
     const char *d = getenv("DEVICE");
@@ -980,7 +1617,7 @@ int main(int argc, char **argv) {
   if (opt.model_dir && *opt.model_dir) {
     if (!dir_accessible(opt.model_dir)) {
       fprintf(stderr, "error: --model-dir '%s' is not accessible: %s\n", opt.model_dir, strerror(errno));
-      print_json_result(0, NULL, 0.0, 0, 0, 0);
+      print_json_result(0, NULL, 0.0, 0, 0, 0, NULL);
       return 3;
     }
   }
@@ -1002,7 +1639,7 @@ int main(int argc, char **argv) {
   }
 
   if (!opt.prompt && !opt.prompts_file) {
-    print_json_result(0, NULL, 0.0, 0, 0, 0);
+    print_json_result(0, NULL, 0.0, 0, 0, 0, NULL);
     return 0;
   }
 
@@ -1016,11 +1653,11 @@ int main(int argc, char **argv) {
       fprintf(stderr,
               "error: failed to open model (%s, %s), status=%d, errno=%d (%s)\n",
               json_path, bin_path, wrc, errno, strerror(errno));
-      print_json_result(0, NULL, 0.0, 0, 0, 0);
+      print_json_result(0, NULL, 0.0, 0, 0, 0, NULL);
       return 3;
     }
     fprintf(stderr, "warn: model metadata not found; stub JSON output\n");
-    print_json_result(0, NULL, 0.0, 0, 0, 0);
+    print_json_result(0, NULL, 0.0, 0, 0, 0, NULL);
     return 0;
   }
 
@@ -1040,7 +1677,7 @@ int main(int argc, char **argv) {
   if (st != IE_OK || !engine) {
     fprintf(stderr, "error: ie_engine_create failed (status=%d)\n", (int)st);
     ie_weights_close(&w);
-    print_json_result(0, NULL, 0.0, 0, 0, 0);
+    print_json_result(0, NULL, 0.0, 0, 0, 0, NULL);
     return 5;
   }
 
@@ -1061,7 +1698,7 @@ int main(int argc, char **argv) {
     fprintf(stderr, "error: OOM allocating token buffer\n");
     ie_engine_destroy(engine);
     ie_weights_close(&w);
-    print_json_result(0, NULL, 0.0, 0, 0, 0);
+    print_json_result(0, NULL, 0.0, 0, 0, 0, NULL);
     return 6;
   }
 
@@ -1152,14 +1789,46 @@ int main(int argc, char **argv) {
   ie_kv_finish_round(total_tokens_this_round, &kv_hits_round, &kv_miss_round);
 
   const uint32_t rss_mib = rss_peak_mib();
-  const int *tokens_to_print = (opt.aggregate || opt.rounds > 1) ? NULL : tokens;
+
+  /* Only print tokens array in non-aggregate single-round mode (original behavior). */
+  const int single_run_tokens = (!opt.aggregate && opt.rounds <= 1) ? 1 : 0;
+  const int *tokens_to_print = single_run_tokens ? tokens : NULL;
+
+  /* Decode text only when we have a stable token sequence to decode. */
+  char *decoded = NULL;
+  tok_map_t tmap;
+  memset(&tmap, 0, sizeof(tmap));
+
+  if (opt.print_text && single_run_tokens && tokens_generated_total > 0) {
+    const char *tok_env = env_str("IE_TOKENIZER", env_str("TOKENIZER", ""));
+    const char *tok_opt = (opt.tokenizer_path && *opt.tokenizer_path) ? opt.tokenizer_path : (tok_env && *tok_env ? tok_env : NULL);
+
+    char tok_path[PATH_MAX];
+    resolve_tokenizer_path(model_dir_eff, tok_opt, tok_path, sizeof(tok_path));
+
+    if (tok_path[0]) {
+      if (tok_map_load_from_tokenizer_json(tok_path, &tmap) == 0) {
+        if (tok_decode_ids_to_text(&tmap, tokens, tokens_generated_total, &decoded) != 0) {
+          decoded = NULL;
+        }
+      } else {
+        fprintf(stderr, "warn: failed to parse tokenizer.json at '%s'\n", tok_path);
+      }
+    } else {
+      fprintf(stderr, "warn: tokenizer.json not found under model dir '%s'\n", model_dir_eff);
+    }
+  }
 
   print_json_result(tokens_generated_total,
                     tokens_to_print,
                     (t1 - t0),
                     kv_hits_round,
                     kv_miss_round,
-                    rss_mib);
+                    rss_mib,
+                    decoded);
+
+  free(decoded);
+  tok_map_free(&tmap);
 
   if (mt_ok) model_touch_close(&mt);
 

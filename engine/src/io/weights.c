@@ -51,6 +51,12 @@
 /* Small helpers                                                              */
 /* -------------------------------------------------------------------------- */
 
+static const char *skip_ws(const char *p) {
+  if (!p) return NULL;
+  while (*p == ' ' || *p == '\t' || *p == '\r' || *p == '\n') ++p;
+  return p;
+}
+
 /**
  * @brief Copy a C-string into a bounded buffer and always NUL-terminate.
  *
@@ -205,10 +211,11 @@ static int scan_json_key_int(const char *json, const char *key, int *out_val) {
     ++p;
     if (strncmp(p, key, klen) == 0 && p[klen] == '"') {
       const char *c = p + klen + 1;
-      while (*c == ' ' || *c == '\t' || *c == '\r' || *c == '\n') ++c;
-      if (*c != ':') continue;
+      c = skip_ws(c);
+      if (!c || *c != ':') continue;
       ++c;
-      while (*c == ' ' || *c == '\t' || *c == '\r' || *c == '\n') ++c;
+      c = skip_ws(c);
+      if (!c) continue;
       char *end = NULL;
       long v = strtol(c, &end, 10);
       if (end && end != c) {
@@ -218,6 +225,45 @@ static int scan_json_key_int(const char *json, const char *key, int *out_val) {
     }
   }
   return 0;
+}
+
+/* Decode a JSON string value, best-effort, handling \" and \\ minimally. */
+static size_t json_unescape_into(char *dst, size_t dstsz, const char *src, size_t srclen) {
+  if (!dst || dstsz == 0) return 0;
+  size_t di = 0;
+  for (size_t si = 0; si < srclen && di + 1 < dstsz; ++si) {
+    char ch = src[si];
+    if (ch == '\\' && si + 1 < srclen) {
+      char n = src[si + 1];
+      if (n == '"' || n == '\\' || n == '/') {
+        dst[di++] = n;
+        ++si;
+        continue;
+      }
+      if (n == 'n') {
+        dst[di++] = '\n';
+        ++si;
+        continue;
+      }
+      if (n == 'r') {
+        dst[di++] = '\r';
+        ++si;
+        continue;
+      }
+      if (n == 't') {
+        dst[di++] = '\t';
+        ++si;
+        continue;
+      }
+      /* Unknown escape: drop backslash, keep char. */
+      dst[di++] = n;
+      ++si;
+      continue;
+    }
+    dst[di++] = ch;
+  }
+  dst[di] = '\0';
+  return di;
 }
 
 /**
@@ -238,18 +284,22 @@ static int scan_json_key_string(const char *json, const char *key, char *dst, si
     ++p;
     if (strncmp(p, key, klen) == 0 && p[klen] == '"') {
       const char *c = p + klen + 1;
-      while (*c == ' ' || *c == '\t' || *c == '\r' || *c == '\n') ++c;
-      if (*c != ':') continue;
+      c = skip_ws(c);
+      if (!c || *c != ':') continue;
       ++c;
-      while (*c == ' ' || *c == '\t' || *c == '\r' || *c == '\n') ++c;
-      if (*c != '"') continue;
+      c = skip_ws(c);
+      if (!c || *c != '"') continue;
       ++c;
+
       const char *start = c;
-      while (*c && *c != '"') ++c;
-      size_t n = (size_t)(c - start);
-      if (n >= dstsz) n = dstsz - 1;
-      memcpy(dst, start, n);
-      dst[n] = '\0';
+      while (*c) {
+        if (*c == '"' && (c == start || c[-1] != '\\')) break;
+        ++c;
+      }
+      if (*c != '"') return 0;
+
+      size_t raw_len = (size_t)(c - start);
+      (void)json_unescape_into(dst, dstsz, start, raw_len);
       return 1;
     }
   }
@@ -276,25 +326,43 @@ static int scan_json_object_range(const char *json, const char *key, const char 
     ++p;
     if (strncmp(p, key, klen) == 0 && p[klen] == '"') {
       const char *c = p + klen + 1;
-      while (*c == ' ' || *c == '\t' || *c == '\r' || *c == '\n') ++c;
-      if (*c != ':') continue;
+      c = skip_ws(c);
+      if (!c || *c != ':') continue;
       ++c;
-      while (*c == ' ' || *c == '\t' || *c == '\r' || *c == '\n') ++c;
-      if (*c != '{') return 0;
+      c = skip_ws(c);
+      if (!c || *c != '{') return 0;
+
       int depth = 0;
       const char *start = c + 1;
       const char *q = c;
-      do {
-        if (*q == '{')
-          ++depth;
-        else if (*q == '}')
+      int in_str = 0;
+      while (*q) {
+        char ch = *q;
+        if (in_str) {
+          if (ch == '\\' && q[1]) {
+            q += 2;
+            continue;
+          }
+          if (ch == '"') in_str = 0;
+          ++q;
+          continue;
+        }
+
+        if (ch == '"') {
+          in_str = 1;
+          ++q;
+          continue;
+        }
+        if (ch == '{') ++depth;
+        if (ch == '}') {
           --depth;
+          if (depth == 0) {
+            *out_begin = start;
+            *out_end = q;
+            return 1;
+          }
+        }
         ++q;
-      } while (*q && depth > 0);
-      if (depth == 0) {
-        *out_begin = start;
-        *out_end = q - 1;
-        return 1;
       }
       return 0;
     }
@@ -303,10 +371,10 @@ static int scan_json_object_range(const char *json, const char *key, const char 
 }
 
 /**
- * @brief Scan for a string key within a bounded [begin,end) range.
+ * @brief Scan for a string key within a bounded [begin,end] range.
  *
  * @param begin Range begin.
- * @param end Range end (>= begin).
+ * @param end Range end (inclusive, points to closing brace or last valid byte).
  * @param key Key name.
  * @param dst Output buffer.
  * @param dstsz Output capacity.
@@ -316,36 +384,77 @@ static int scan_json_key_string_in_range(const char *begin, const char *end, con
                                          char *dst, size_t dstsz) {
   if (!begin || !end || !key || !dst || dstsz == 0) return -1;
   dst[0] = '\0';
+  if (end < begin) return -1;
+
   const size_t klen = strlen(key);
   const char *p = begin;
-  while (p < end) {
-    const char *q = memchr(p, '"', (size_t)(end - p));
+  const char *limit = end + 1;
+
+  while (p < limit) {
+    const char *q = memchr(p, '"', (size_t)(limit - p));
     if (!q) break;
     ++q;
-    if ((size_t)(end - q) >= klen && memcmp(q, key, klen) == 0 && q[klen] == '"') {
+    if ((size_t)(limit - q) >= klen && memcmp(q, key, klen) == 0 && q[klen] == '"') {
       const char *c = q + klen + 1;
-      while (c < end && (*c == ' ' || *c == '\t' || *c == '\r' || *c == '\n')) ++c;
-      if (c >= end || *c != ':') {
+      c = skip_ws(c);
+      if (!c || c >= limit || *c != ':') {
         p = q + 1;
         continue;
       }
       ++c;
-      while (c < end && (*c == ' ' || *c == '\t' || *c == '\r' || *c == '\n')) ++c;
-      if (c >= end || *c != '"') {
+      c = skip_ws(c);
+      if (!c || c >= limit || *c != '"') {
         p = q + 1;
         continue;
       }
       ++c;
+
       const char *start = c;
-      while (c < end && *c != '"') ++c;
-      size_t n = (size_t)(c - start);
-      if (n >= dstsz) n = dstsz - 1;
-      memcpy(dst, start, n);
-      dst[n] = '\0';
+      while (c < limit) {
+        if (*c == '"' && (c == start || c[-1] != '\\')) break;
+        ++c;
+      }
+      if (c >= limit || *c != '"') return 0;
+
+      size_t raw_len = (size_t)(c - start);
+      (void)json_unescape_into(dst, dstsz, start, raw_len);
       return 1;
     }
     p = q + 1;
   }
+  return 0;
+}
+
+/* Try multiple schema variants to locate the weights bin path. */
+static int scan_json_best_effort_bin(const char *json, char *dst, size_t dstsz) {
+  if (!json || !dst || dstsz == 0) return -1;
+  dst[0] = '\0';
+
+  /* Common direct keys. */
+  if (scan_json_key_string(json, "bin", dst, dstsz) == 1 && dst[0]) return 1;
+  if (scan_json_key_string(json, "weights_bin", dst, dstsz) == 1 && dst[0]) return 1;
+  if (scan_json_key_string(json, "weightsBin", dst, dstsz) == 1 && dst[0]) return 1;
+  if (scan_json_key_string(json, "weights_path", dst, dstsz) == 1 && dst[0]) return 1;
+  if (scan_json_key_string(json, "weightsPath", dst, dstsz) == 1 && dst[0]) return 1;
+
+  /* Nested objects: "weights": { "bin": ... } or "iebin": { "bin": ... } */
+  {
+    const char *b = NULL;
+    const char *e = NULL;
+    if (scan_json_object_range(json, "weights", &b, &e) == 1 && b && e && b <= e) {
+      if (scan_json_key_string_in_range(b, e, "bin", dst, dstsz) == 1 && dst[0]) return 1;
+      if (scan_json_key_string_in_range(b, e, "weights_bin", dst, dstsz) == 1 && dst[0]) return 1;
+    }
+  }
+  {
+    const char *b = NULL;
+    const char *e = NULL;
+    if (scan_json_object_range(json, "iebin", &b, &e) == 1 && b && e && b <= e) {
+      if (scan_json_key_string_in_range(b, e, "bin", dst, dstsz) == 1 && dst[0]) return 1;
+      if (scan_json_key_string_in_range(b, e, "weights_bin", dst, dstsz) == 1 && dst[0]) return 1;
+    }
+  }
+
   return 0;
 }
 
@@ -489,25 +598,6 @@ static int touch_file_small(const char *path) {
 /* Public IEBIN v1 loader                                                     */
 /* -------------------------------------------------------------------------- */
 
-/**
- * @brief Open and parse IEBIN v1 metadata and resolve the weights path.
- *
- * @details
- * Populates the public descriptor with:
- *  - version (defaults to 1 if missing),
- *  - dtype (defaults to "float32"),
- *  - resolved weights_path,
- *  - bin_size_bytes,
- *  - loaded flag set on success.
- *
- * If dedup fields are present and IE_WEIGHTS_HAS_DEDUP_FIELDS==1, also tries
- * to open dedup artifacts and stores the opaque handle.
- *
- * @param json_path Path to model.ie.json.
- * @param bin_path Optional override to model.ie.bin.
- * @param out Output descriptor (non-NULL).
- * @return IE_IO_OK on success; IE_IO_ERR_* on failure.
- */
 int ie_weights_open(const char *json_path, const char *bin_path, ie_weights_t *out) {
   if (!out) return IE_IO_ERR_ARGS;
   memset(out, 0, sizeof(*out));
@@ -534,29 +624,41 @@ int ie_weights_open(const char *json_path, const char *bin_path, ie_weights_t *o
 
   char resolved_bin[512];
   resolved_bin[0] = '\0';
+
+  /* Priority order:
+   *  1) explicit bin_path parameter
+   *  2) IE_WEIGHTS_BIN env override
+   *  3) JSON keys (bin / weights_bin / nested weights{bin} / iebin{bin})
+   */
   if (bin_path && *bin_path) {
     cpyz(resolved_bin, sizeof(resolved_bin), bin_path);
   } else {
-    char bin_key[256];
-    bin_key[0] = '\0';
-    (void)scan_json_key_string(jbuf, "bin", bin_key, sizeof(bin_key));
-    if (bin_key[0] == '\0') {
-      free(jbuf);
-      return IE_IO_ERR_BIN_UNSPEC;
-    }
-
-    const char *slash = last_slash(json_path);
-    if (slash) {
-      char dir[512];
-      size_t dn = (size_t)(slash - json_path);
-      if (dn >= sizeof(dir)) dn = sizeof(dir) - 1;
-      memcpy(dir, json_path, dn);
-      dir[dn] = '\0';
-      join_path(resolved_bin, sizeof(resolved_bin), dir, bin_key);
+    const char *env_bin = getenv("IE_WEIGHTS_BIN");
+    if (env_bin && *env_bin) {
+      cpyz(resolved_bin, sizeof(resolved_bin), env_bin);
     } else {
-      cpyz(resolved_bin, sizeof(resolved_bin), bin_key);
+      char bin_key[256];
+      bin_key[0] = '\0';
+
+      if (scan_json_best_effort_bin(jbuf, bin_key, sizeof(bin_key)) != 1 || bin_key[0] == '\0') {
+        free(jbuf);
+        return IE_IO_ERR_BIN_UNSPEC;
+      }
+
+      const char *slash = last_slash(json_path);
+      if (slash) {
+        char dir[512];
+        size_t dn = (size_t)(slash - json_path);
+        if (dn >= sizeof(dir)) dn = sizeof(dir) - 1;
+        memcpy(dir, json_path, dn);
+        dir[dn] = '\0';
+        join_path(resolved_bin, sizeof(resolved_bin), dir, bin_key);
+      } else {
+        cpyz(resolved_bin, sizeof(resolved_bin), bin_key);
+      }
     }
   }
+
   cpyz(out->weights_path, sizeof(out->weights_path), resolved_bin);
 
   struct stat st;
@@ -623,18 +725,6 @@ int ie_weights_open(const char *json_path, const char *bin_path, ie_weights_t *o
   return IE_IO_OK;
 }
 
-/**
- * @brief Touch the weights binary to verify readability and optionally warm I/O.
- *
- * @details
- * Performs small positional reads near the start and end if the file is large.
- * If IE_DEDUP=1, also touches model.dedup.json and the default/exception/mask bins
- * in the same directory as model.ie.json. If IE_DEDUP_STRICT=1, missing artifacts
- * cause failure.
- *
- * @param w Opened weights descriptor.
- * @return IE_IO_OK on success, IE_IO_ERR_* on error.
- */
 int ie_weights_touch(const ie_weights_t *w) {
   if (!w || !w->weights_path[0]) return IE_IO_ERR_ARGS;
 
@@ -658,13 +748,15 @@ int ie_weights_touch(const ie_weights_t *w) {
     const int dedup_strict = env_flag_get("IE_DEDUP_STRICT", 0);
 
     if (dedup_enabled) {
-      const char *slash = last_slash(w->json_path[0] ? w->json_path : w->weights_path);
+      const char *base = (w->json_path[0] ? w->json_path : w->weights_path);
+      const char *slash = last_slash(base);
+
       char dir[512];
       dir[0] = '\0';
       if (slash) {
-        size_t dn = (size_t)(slash - (w->json_path[0] ? w->json_path : w->weights_path));
+        size_t dn = (size_t)(slash - base);
         if (dn >= sizeof(dir)) dn = sizeof(dir) - 1;
-        memcpy(dir, (w->json_path[0] ? w->json_path : w->weights_path), dn);
+        memcpy(dir, base, dn);
         dir[dn] = '\0';
       } else {
         cpyz(dir, sizeof(dir), ".");
@@ -693,11 +785,6 @@ int ie_weights_touch(const ie_weights_t *w) {
   return IE_IO_OK;
 }
 
-/**
- * @brief Close weights descriptor and release optional dedup handle.
- *
- * @param w Descriptor to close (may be NULL).
- */
 void ie_weights_close(ie_weights_t *w) {
   if (!w) return;
 
@@ -715,23 +802,6 @@ void ie_weights_close(ie_weights_t *w) {
 /* INT4 weight-only helpers (exploratory; not yet in public header)           */
 /* -------------------------------------------------------------------------- */
 
-/**
- * @struct ie_int4_quant_meta
- * @brief Minimal parsed view of INT4 quantization metadata.
- *
- * @var ie_int4_quant_meta::present
- * Non-zero if metadata was detected.
- * @var ie_int4_quant_meta::per_row
- * Non-zero for per-row scales.
- * @var ie_int4_quant_meta::scale_bin
- * Resolved path to scales binary (if present).
- * @var ie_int4_quant_meta::pack
- * Packing identifier string.
- * @var ie_int4_quant_meta::zero_point
- * Zero-point value (if provided).
- * @var ie_int4_quant_meta::symmetric
- * Non-zero if symmetric quantization was indicated.
- */
 struct ie_int4_quant_meta {
   int present;
   int per_row;
@@ -741,13 +811,6 @@ struct ie_int4_quant_meta {
   int symmetric;
 };
 
-/**
- * @brief Parse INT4-related metadata from model.ie.json (best-effort).
- *
- * @param json_path Path to model.ie.json.
- * @param out_meta Output struct (zeroed and filled on return).
- * @return IE_IO_OK on success or when metadata not present; IE_IO_ERR_* on error.
- */
 int ie_weights_read_int4_meta(const char *json_path, struct ie_int4_quant_meta *out_meta) {
   if (!json_path || !out_meta) return IE_IO_ERR_ARGS;
   memset(out_meta, 0, sizeof(*out_meta));
@@ -768,7 +831,7 @@ int ie_weights_read_int4_meta(const char *json_path, struct ie_int4_quant_meta *
   }
 
   const char *qb = NULL, *qe = NULL;
-  if (scan_json_object_range(jbuf, "quant", &qb, &qe) != 1 || !qb || !qe || qb >= qe) {
+  if (scan_json_object_range(jbuf, "quant", &qb, &qe) != 1 || !qb || !qe || qb > qe) {
     free(jbuf);
     out_meta->present = 0;
     return IE_IO_OK;
@@ -797,8 +860,7 @@ int ie_weights_read_int4_meta(const char *json_path, struct ie_int4_quant_meta *
   sym_str[0] = '\0';
   (void)scan_json_key_string_in_range(qb, qe, "symmetric", sym_str, sizeof(sym_str));
   if (sym_str[0]) {
-    out_meta->symmetric =
-        (ascii_ieq(sym_str, "true") || strcmp(sym_str, "1") == 0) ? 1 : 0;
+    out_meta->symmetric = (ascii_ieq(sym_str, "true") || strcmp(sym_str, "1") == 0) ? 1 : 0;
   }
 
   if (scale_bin_rel[0]) {
@@ -822,12 +884,6 @@ int ie_weights_read_int4_meta(const char *json_path, struct ie_int4_quant_meta *
   return IE_IO_OK;
 }
 
-/**
- * @brief Convert IEEE-754 half (fp16) bit-pattern to float (fp32).
- *
- * @param h 16-bit half bits.
- * @return Converted float value.
- */
 static float fp16_to_fp32(uint16_t h) {
   uint32_t sign = (uint32_t)(h & 0x8000u) << 16;
   uint32_t exp = (h & 0x7C00u) >> 10;
@@ -855,17 +911,6 @@ static float fp16_to_fp32(uint16_t h) {
   return out;
 }
 
-/**
- * @brief Decode packed INT4 weights + scales into float weights.
- *
- * @param packed_path Path to packed INT4 data.
- * @param scales_path Path to scales (fp16 or fp32).
- * @param rows Rows in the weight matrix.
- * @param cols Columns in the weight matrix.
- * @param per_row Non-zero for per-row scales; otherwise per-tensor.
- * @param dst Output buffer (rows*cols floats).
- * @return IE_IO_OK on success; IE_IO_ERR_* on failure.
- */
 int ie_weights_decode_int4(const char *packed_path, const char *scales_path, size_t rows, size_t cols,
                            int per_row, float *dst) {
   if (!packed_path || !scales_path || !dst || rows == 0 || cols == 0) return IE_IO_ERR_ARGS;

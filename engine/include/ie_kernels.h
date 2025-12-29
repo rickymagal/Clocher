@@ -10,6 +10,7 @@
  * - Runtime selection of ISA-specific implementations (e.g., AVX2/FMA).
  * - GEMV entry points for fp32 weights and quantized-activation variants.
  * - Small vector math helpers used by fused epilogues (e.g., tanh).
+ * - Reference CPU kernels for attention and MLP building blocks.
  *
  * Conventions:
  * - Callers own all buffers; kernels do not retain pointers after returning.
@@ -133,6 +134,44 @@ void ie_gemv_qfp8_f32(const float *W, const uint8_t *x_fp8, float *y,
                       ie_fp8_format fmt);
 
 /**
+ * @brief Causal self-attention (FP32 reference).
+ *
+ * @details
+ * Computes per-head softmax(QK^T * inv_sqrt_d) V over seq_len tokens.
+ *
+ * Layout:
+ * - Q and out are [heads, head_dim] flattened (head_dim fastest).
+ * - K and V are [seq_len, heads, head_dim] flattened (head_dim fastest).
+ *
+ * scratch must have length >= seq_len (floats) and is reused per head.
+ *
+ * @return 0 on success, non-zero on invalid args.
+ */
+int ie_attn_cpu_causal_f32(const float *Q, const float *K, const float *V,
+                           size_t seq_len, size_t heads, size_t head_dim,
+                           float inv_sqrt_d, float *out, float *scratch);
+
+/**
+ * @brief SwiGLU MLP forward (FP32 reference).
+ *
+ * @details
+ *   gate = W_gate * x + b_gate
+ *   up   = W_up   * x + b_up
+ *   act  = silu(gate) * up
+ *   out  = W_down * act + b_down
+ *
+ * W_* are row-major matrices.
+ *
+ * tmp_gate and tmp_up must have length >= hidden_dim.
+ *
+ * @return 0 on success, non-zero on invalid args.
+ */
+int ie_mlp_cpu_swiglu_f32(const float *W_gate, const float *W_up, const float *W_down,
+                          const float *x, size_t in_dim, size_t hidden_dim, size_t out_dim,
+                          const float *b_gate, const float *b_up, const float *b_down,
+                          float *out, float *tmp_gate, float *tmp_up);
+
+/**
  * @brief Vector tanh on fp32 data (in-place).
  *
  * @param v         Input/output vector.
@@ -154,4 +193,3 @@ float ie_fast_tanhf(float x);
 #endif
 
 #endif /* IE_KERNELS_H_ */
-
