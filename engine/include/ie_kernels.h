@@ -11,6 +11,7 @@
  * - GEMV entry points for fp32 weights and quantized-activation variants.
  * - Small vector math helpers used by fused epilogues (e.g., tanh).
  * - Reference CPU kernels for attention and MLP building blocks.
+ * - Core math building blocks needed by GPT-OSS orchestration (RMSNorm, RoPE).
  *
  * Conventions:
  * - Callers own all buffers; kernels do not retain pointers after returning.
@@ -170,6 +171,48 @@ int ie_mlp_cpu_swiglu_f32(const float *W_gate, const float *W_up, const float *W
                           const float *x, size_t in_dim, size_t hidden_dim, size_t out_dim,
                           const float *b_gate, const float *b_up, const float *b_down,
                           float *out, float *tmp_gate, float *tmp_up);
+
+/**
+ * @brief RMSNorm (FP32) for a single vector.
+ *
+ * @details
+ * Computes:
+ *   y[i] = x[i] * w[i] / sqrt(mean(x^2) + eps)
+ *
+ * This is the reference CPU implementation used by the GPT-OSS orchestration.
+ * Implementations may be swapped by the build in the future, but the signature
+ * is stable for the runtime.
+ *
+ * @param x   Input vector (length n).
+ * @param w   Weight vector (length n).
+ * @param n   Number of elements.
+ * @param eps Epsilon added to the mean square before sqrt.
+ * @param y   Output vector (length n). May alias x for in-place behavior.
+ * @return 0 on success, negative on invalid args.
+ */
+int ie_rmsnorm_cpu_f32(const float *x, const float *w, size_t n, float eps, float *y);
+
+/**
+ * @brief Apply Rotary Positional Embedding (RoPE) to Q and K for a single position.
+ *
+ * @details
+ * This function applies RoPE on the first head_dim elements, interpreted as
+ * interleaved pairs (even, odd):
+ *   (x0, x1) -> (x0*cos - x1*sin, x0*sin + x1*cos)
+ *
+ * The caller passes Q and K shaped as [heads, head_dim] flattened.
+ *
+ * @param q        Q buffer, [heads * head_dim].
+ * @param k        K buffer, [heads * head_dim].
+ * @param heads    Number of heads in q/k.
+ * @param head_dim Head dimension (must be even for paired rotation).
+ * @param pos      Sequence position (0-based).
+ * @param theta    RoPE base (commonly 10000.0f).
+ * @return 0 on success, negative on invalid args.
+ */
+int ie_rope_apply_f32(float *q, float *k,
+                      size_t heads, size_t head_dim,
+                      uint32_t pos, float theta);
 
 /**
  * @brief Vector tanh on fp32 data (in-place).

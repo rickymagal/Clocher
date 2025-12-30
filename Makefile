@@ -68,6 +68,8 @@ SRC_CORE_C_COMMON := \
   engine/src/dedup/patch_list.c \
   engine/src/io/tokenizer.c \
   engine/src/io/tokenizer_gptoss.c \
+  engine/src/io/tokenizer_hf.c \
+  engine/src/io/tensor_map.c \
   engine/src/io/ie_batcher.c \
   engine/src/io/loader_mmap.c \
   engine/src/io/mmap_tuning.c \
@@ -78,15 +80,24 @@ SRC_CORE_C_COMMON := \
   engine/src/opt/topology.c \
   engine/src/opt/replicate_hot.c \
   engine/src/opt/stream.c \
+  engine/src/opt/numa_policy.c \
   engine/src/kernels/gemv_generic.c \
   engine/src/kernels/gemv_avx2.c \
   engine/src/kernels/attn_cpu.c \
   engine/src/kernels/mlp_cpu.c \
+  engine/src/kernels/rmsnorm_cpu.c \
   engine/src/math/fast_tanh.c \
   engine/src/math/floatx.c \
+  engine/src/math/rope.c \
+  engine/src/runtime/kv_cache.c \
+  engine/src/runtime/gptoss_hparams.c \
+  engine/src/runtime/gptoss_weights_index.c \
   engine/src/ie_kv_instrumentation.c \
+  engine/src/ie_sampler.c \
   engine/src/quant/int4_ptq.c \
   engine/src/quant/int8_ptq.c \
+  engine/src/quant/act_fp8.c \
+  engine/src/quant/act_int8.c \
   engine/src/devices/ie_device_common.c \
   engine/src/sparse_io.c \
   engine/src/gemm_block_sparse.c

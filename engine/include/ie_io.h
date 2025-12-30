@@ -69,6 +69,7 @@ typedef enum ie_io_status_e {
   IE_IO_ERR_OPEN = -5,       /**< open(2) failure. */
   IE_IO_ERR_READ = -6,       /**< read(2) failure or short read. */
   IE_IO_ERR_ALLOC = -7,      /**< Memory allocation failure. */
+  IE_IO_ERR_OOM = IE_IO_ERR_ALLOC, /**< Alias for older/newer code expecting OOM name. */
   IE_IO_ERR_DECODE = -8      /**< Decode failure (corrupt or incompatible data). */
 } ie_io_status_t;
 

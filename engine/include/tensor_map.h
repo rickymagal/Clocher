@@ -15,12 +15,10 @@ extern "C" {
  * tensor_map.json describes how logical tensor names map to byte offsets,
  * shapes, and dtypes inside model.ie.bin.
  *
- * This module:
- *  - parses tensor_map.json (no third-party JSON lib)
- *  - stores a flat table of tensor descriptors
- *  - supports lookup by exact tensor name
- *
- * It is designed to be used by infer_gptoss.c to locate weights.
+ * Supported input shapes:
+ *  - Array style: { "tensors": [ { "name": "...", "offset": ..., ... }, ... ] }
+ *  - Direct array: [ { "name": "...", ... }, ... ]
+ *  - Map style: { "tensor.name": { "offset": ..., ... }, ... }
  */
 
 /* ------------------------------------------------------------------------- */
@@ -31,14 +29,27 @@ typedef enum tensor_dtype_e {
   TENSOR_DTYPE_F32 = 0,
   TENSOR_DTYPE_F16 = 1,
   TENSOR_DTYPE_INT4 = 2,
+  TENSOR_DTYPE_BF16 = 3,
+  TENSOR_DTYPE_U8 = 4,
   TENSOR_DTYPE_UNKNOWN = 255
 } tensor_dtype_t;
+
+static inline size_t tensor_dtype_size_bytes(tensor_dtype_t dt) {
+  switch (dt) {
+    case TENSOR_DTYPE_F32: return 4u;
+    case TENSOR_DTYPE_F16: return 2u;
+    case TENSOR_DTYPE_BF16: return 2u;
+    case TENSOR_DTYPE_U8:  return 1u;
+    case TENSOR_DTYPE_INT4: return 0u; /* packed, size is tensor-specific */
+    default: return 0u;
+  }
+}
 
 typedef struct tensor_desc_s {
   char           *name;        /* tensor name (owned, heap) */
   uint64_t        offset;      /* byte offset in model.ie.bin */
   uint64_t        size_bytes;  /* size in bytes */
-  tensor_dtype_t dtype;
+  tensor_dtype_t  dtype;
 
   uint32_t       *shape;       /* array of dims (owned, heap) */
   uint32_t        ndim;
