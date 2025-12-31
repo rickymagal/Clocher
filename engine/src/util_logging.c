@@ -1,49 +1,46 @@
 /**
  * @file util_logging.c
- * @brief Minimal logging helpers (baseline).
+ * @brief Minimal logging helpers (stderr) used across the engine.
  *
- * Provides leveled logging to stderr. Levels:
- *   0 = quiet, 1 = info, 2 = debug.
- *
- * This module is intentionally tiny and dependency-free.
+ * This project intentionally avoids third-party dependencies. This module
+ * provides a small, stable logging surface that other components can link
+ * against without pulling in any extra libraries.
  */
 
-#include <stdio.h>
+#include "util_logging.h"
+
 #include <stdarg.h>
+#include <stdio.h>
 
-/** @brief Global log level (0=quiet, 1=info, 2=debug). */
-static int g_log_level = 1;
+static void ie_vlog_(const char *tag, const char *fmt, va_list ap) {
+  if (!fmt) return;
 
-/**
- * @brief Set the global log verbosity level.
- * @param lvl 0=quiet, 1=info, 2=debug.
- */
-void ie_log_set_level(int lvl) { g_log_level = lvl; }
+  if (tag && tag[0]) {
+    fputs(tag, stderr);
+    fputs(": ", stderr);
+  }
 
-/**
- * @brief Emit an informational log line to stderr if level >= 1.
- * @param fmt printf-style format string.
- * @param ... Variadic arguments.
- */
-void ie_log_info(const char *fmt, ...) {
-  if (g_log_level < 1) return;
-  va_list ap; va_start(ap, fmt);
-  fprintf(stderr, "[info] ");
   vfprintf(stderr, fmt, ap);
-  fprintf(stderr, "\n");
+  fputc('\n', stderr);
+}
+
+void ie_log_info(const char *fmt, ...) {
+  va_list ap;
+  va_start(ap, fmt);
+  ie_vlog_("info", fmt, ap);
   va_end(ap);
 }
 
-/**
- * @brief Emit a debug log line to stderr if level >= 2.
- * @param fmt printf-style format string.
- * @param ... Variadic arguments.
- */
-void ie_log_debug(const char *fmt, ...) {
-  if (g_log_level < 2) return;
-  va_list ap; va_start(ap, fmt);
-  fprintf(stderr, "[debug] ");
-  vfprintf(stderr, fmt, ap);
-  fprintf(stderr, "\n");
+void ie_log_warn(const char *fmt, ...) {
+  va_list ap;
+  va_start(ap, fmt);
+  ie_vlog_("warn", fmt, ap);
+  va_end(ap);
+}
+
+void ie_log_error(const char *fmt, ...) {
+  va_list ap;
+  va_start(ap, fmt);
+  ie_vlog_("error", fmt, ap);
   va_end(ap);
 }

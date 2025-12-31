@@ -639,12 +639,353 @@ static int parse_vocab_object(const char *json, ie_tok_gptoss_t *tok) {
   return IE_TOK_GPTOSS_OK;
 }
 
+
+/**
+ * @brief Skip a JSON value starting at *pp.
+ *
+ * This is a small scanner used to ignore fields we do not care about while
+ * parsing tokenizer.json. It supports strings, numbers, objects, arrays, and
+ * true/false/null.
+ *
+ * @param[in,out] pp Pointer to the current scan position.
+ * @return 0 on success, non-zero on malformed input.
+ */
+static int skip_json_value(const char **pp) {
+  const char *p = skip_ws(*pp);
+  if (!p || *p == '\0') return -1;
+
+  if (*p == '"') {
+    char *tmp = NULL;
+    if (scan_json_string(&p, &tmp, NULL) != 0) return -1;
+    free(tmp);
+    *pp = p;
+    return 0;
+  }
+
+  if (*p == '{') {
+    int depth = 0;
+    int in_str = 0;
+    int esc = 0;
+    for (; *p; p++) {
+      const char c = *p;
+      if (in_str) {
+        if (esc) esc = 0;
+        else if (c == '\\') esc = 1;
+        else if (c == '"') in_str = 0;
+        continue;
+      }
+      if (c == '"') { in_str = 1; continue; }
+      if (c == '{') depth++;
+      else if (c == '}') {
+        depth--;
+        if (depth == 0) { p++; *pp = p; return 0; }
+      }
+    }
+    return -1;
+  }
+
+  if (*p == '[') {
+    int depth = 0;
+    int in_str = 0;
+    int esc = 0;
+    for (; *p; p++) {
+      const char c = *p;
+      if (in_str) {
+        if (esc) esc = 0;
+        else if (c == '\\') esc = 1;
+        else if (c == '"') in_str = 0;
+        continue;
+      }
+      if (c == '"') { in_str = 1; continue; }
+      if (c == '[') depth++;
+      else if (c == ']') {
+        depth--;
+        if (depth == 0) { p++; *pp = p; return 0; }
+      }
+    }
+    return -1;
+  }
+
+  // number
+  if (*p == '-' || (*p >= '0' && *p <= '9')) {
+    p++;
+    while (*p) {
+      const char c = *p;
+      if ((c >= '0' && c <= '9') || c == '.' || c == 'e' || c == 'E' || c == '+' || c == '-') {
+        p++;
+        continue;
+      }
+      break;
+    }
+    *pp = p;
+    return 0;
+  }
+
+  // literals
+  if (strncmp(p, "true", 4) == 0) { *pp = p + 4; return 0; }
+  if (strncmp(p, "false", 5) == 0) { *pp = p + 5; return 0; }
+  if (strncmp(p, "null", 4) == 0) { *pp = p + 4; return 0; }
+
+  return -1;
+}
+
+/**
+ * @brief Rebuild tok_to_id from id_to_tok after vocab expansion.
+ *
+ * @param[in,out] tok Tokenizer instance.
+ * @return 0 on success, non-zero on allocation failure.
+ */
+static int rebuild_tok_to_id(ie_tok_gptoss_t *tok) {
+  if (!tok) return -1;
+
+  free(tok->tok_to_id);
+  tok->tok_to_id = NULL;
+  tok->tok_to_id_cap = 0;
+
+  if (strid_map_init(&tok->tok_to_id, &tok->tok_to_id_cap, tok->vocab_size) != 0) return -1;
+
+  for (size_t i = 0; i < tok->vocab_size; i++) {
+    const char *s = tok->id_to_tok[i];
+    if (!s) continue;
+    if (strid_map_put(tok->tok_to_id, tok->tok_to_id_cap, s, (uint32_t)i) != 0) {
+      free(tok->tok_to_id);
+      tok->tok_to_id = NULL;
+      tok->tok_to_id_cap = 0;
+      return -1;
+    }
+  }
+
+  return 0;
+}
+
+
+/**
+ * @brief Parse optional top-level "added_tokens" entries into vocab.
+ *
+ * HuggingFace tokenizer.json may store special/added tokens outside the model
+ * vocab. If present, we merge them so that tok->vocab_size matches the maximum
+ * token id used by the model.
+ *
+ * @param[in]     json Full tokenizer.json buffer.
+ * @param[in,out] tok  Tokenizer instance (base vocab already parsed).
+ * @return IE_TOK_GPTOSS_OK on success, or an error code on malformed input.
+ */
+static int parse_added_tokens_array(const char *json, ie_tok_gptoss_t *tok) {
+  const char *p = find_key_in_object(json, "added_tokens");
+  if (!p) return IE_TOK_GPTOSS_OK; // optional
+
+  p = skip_ws(p);
+  if (!p || *p != '[') return IE_TOK_GPTOSS_ERR_JSON;
+  p++;
+
+  uint32_t max_id = (tok->vocab_size > 0) ? (uint32_t)(tok->vocab_size - 1) : 0;
+
+  // Pass 1: compute max id.
+  const char *q = p;
+  for (;;) {
+    q = skip_ws(q);
+    if (!q) return IE_TOK_GPTOSS_ERR_JSON;
+    if (*q == ']') break;
+    if (*q != '{') return IE_TOK_GPTOSS_ERR_JSON;
+    q++;
+
+    int got_id = 0;
+    uint32_t id = 0;
+
+    for (;;) {
+      q = skip_ws(q);
+      if (!q) return IE_TOK_GPTOSS_ERR_JSON;
+      if (*q == '}') { q++; break; }
+
+      char *kraw = NULL;
+      if (scan_json_string(&q, &kraw, NULL) != 0) return IE_TOK_GPTOSS_ERR_JSON;
+      if (json_unescape_inplace(kraw) != 0) { free(kraw); return IE_TOK_GPTOSS_ERR_JSON; }
+
+      q = skip_ws(q);
+      if (!q || *q != ':') { free(kraw); return IE_TOK_GPTOSS_ERR_JSON; }
+      q++;
+
+      if (strcmp(kraw, "id") == 0) {
+        int v = 0;
+        if (scan_json_int(&q, &v) != 0) { free(kraw); return IE_TOK_GPTOSS_ERR_JSON; }
+        if (v < 0) { free(kraw); return IE_TOK_GPTOSS_ERR_JSON; }
+        id = (uint32_t)v;
+        got_id = 1;
+      } else {
+        if (skip_json_value(&q) != 0) { free(kraw); return IE_TOK_GPTOSS_ERR_JSON; }
+      }
+
+      free(kraw);
+
+      q = skip_ws(q);
+      if (!q) return IE_TOK_GPTOSS_ERR_JSON;
+      if (*q == ',') { q++; continue; }
+      if (*q == '}') { q++; break; }
+    }
+
+    if (got_id && id > max_id) max_id = id;
+
+    q = skip_ws(q);
+    if (!q) return IE_TOK_GPTOSS_ERR_JSON;
+    if (*q == ',') { q++; continue; }
+    if (*q == ']') break;
+  }
+
+  // Expand vocab if needed.
+  const size_t need = (size_t)max_id + 1;
+  if (need > tok->vocab_size) {
+    const size_t old = tok->vocab_size;
+    char **nt = (char **)realloc(tok->id_to_tok, need * sizeof(char *));
+    if (!nt) return IE_TOK_GPTOSS_ERR_NOMEM;
+    tok->id_to_tok = nt;
+    for (size_t i = old; i < need; i++) tok->id_to_tok[i] = NULL;
+    tok->vocab_size = need;
+    if (rebuild_tok_to_id(tok) != 0) return IE_TOK_GPTOSS_ERR_NOMEM;
+  }
+
+  // Pass 2: insert tokens.
+  q = p;
+  for (;;) {
+    q = skip_ws(q);
+    if (!q) return IE_TOK_GPTOSS_ERR_JSON;
+    if (*q == ']') break;
+    if (*q != '{') return IE_TOK_GPTOSS_ERR_JSON;
+    q++;
+
+    int got_id = 0;
+    uint32_t id = 0;
+    char *content = NULL;
+
+    for (;;) {
+      q = skip_ws(q);
+      if (!q) { if (content) free(content); return IE_TOK_GPTOSS_ERR_JSON; }
+      if (*q == '}') { q++; break; }
+
+      char *kraw = NULL;
+      if (scan_json_string(&q, &kraw, NULL) != 0) { if (content) free(content); return IE_TOK_GPTOSS_ERR_JSON; }
+      if (json_unescape_inplace(kraw) != 0) { free(kraw); if (content) free(content); return IE_TOK_GPTOSS_ERR_JSON; }
+
+      q = skip_ws(q);
+      if (!q || *q != ':') { free(kraw); if (content) free(content); return IE_TOK_GPTOSS_ERR_JSON; }
+      q++;
+
+      if (strcmp(kraw, "id") == 0) {
+        int v = 0;
+        if (scan_json_int(&q, &v) != 0) { free(kraw); if (content) free(content); return IE_TOK_GPTOSS_ERR_JSON; }
+        if (v < 0) { free(kraw); if (content) free(content); return IE_TOK_GPTOSS_ERR_JSON; }
+        id = (uint32_t)v;
+        got_id = 1;
+      } else if (strcmp(kraw, "content") == 0) {
+        if (content) { free(content); content = NULL; }
+        if (scan_json_string(&q, &content, NULL) != 0) { free(kraw); return IE_TOK_GPTOSS_ERR_JSON; }
+        if (json_unescape_inplace(content) != 0) { free(kraw); free(content); return IE_TOK_GPTOSS_ERR_JSON; }
+      } else {
+        if (skip_json_value(&q) != 0) { free(kraw); if (content) free(content); return IE_TOK_GPTOSS_ERR_JSON; }
+      }
+
+      free(kraw);
+
+      q = skip_ws(q);
+      if (!q) { if (content) free(content); return IE_TOK_GPTOSS_ERR_JSON; }
+      if (*q == ',') { q++; continue; }
+      if (*q == '}') { q++; break; }
+    }
+
+    if (got_id && content) {
+      if (id >= tok->vocab_size) { free(content); return IE_TOK_GPTOSS_ERR_JSON; }
+      if (tok->id_to_tok[id] == NULL) {
+        tok->id_to_tok[id] = content;
+      } else {
+        free(content);
+      }
+      if (strid_map_put(tok->tok_to_id, tok->tok_to_id_cap, tok->id_to_tok[id], id) != 0) return IE_TOK_GPTOSS_ERR_NOMEM;
+    } else if (content) {
+      free(content);
+    }
+
+    q = skip_ws(q);
+    if (!q) return IE_TOK_GPTOSS_ERR_JSON;
+    if (*q == ',') { q++; continue; }
+    if (*q == ']') break;
+  }
+
+  return IE_TOK_GPTOSS_OK;
+}
+
+/**
+ * @brief Scan a merge entry which can be either a string ("A B") or a pair array ["A","B"].
+ *
+ * @param[in,out] pp Current scan pointer (points at the merge value).
+ * @param[out]    a  Allocated lhs token string (unescaped).
+ * @param[out]    b  Allocated rhs token string (unescaped).
+ * @return 0 on success, non-zero on malformed input.
+ */
+static int scan_merge_entry(const char **pp, char **a, char **b) {
+  const char *p = skip_ws(*pp);
+  if (!p || *p == '\0') return -1;
+
+  *a = NULL;
+  *b = NULL;
+
+  if (*p == '"') {
+    char *sraw = NULL;
+    if (scan_json_string(&p, &sraw, NULL) != 0) return -1;
+    if (json_unescape_inplace(sraw) != 0) { free(sraw); return -1; }
+
+    char *sp = strchr(sraw, ' ');
+    if (!sp) { free(sraw); return -1; }
+    *sp = '\0';
+
+    char *lhs = xstrdup_n(sraw, strlen(sraw));
+    char *rhs = xstrdup_n(sp + 1, strlen(sp + 1));
+    free(sraw);
+
+    if (!lhs || !rhs) { free(lhs); free(rhs); return -1; }
+
+    *a = lhs;
+    *b = rhs;
+    *pp = p;
+    return 0;
+  }
+
+  if (*p == '[') {
+    p++; // '['
+    p = skip_ws(p);
+
+    char *lhs = NULL;
+    char *rhs = NULL;
+
+    if (scan_json_string(&p, &lhs, NULL) != 0) return -1;
+    if (json_unescape_inplace(lhs) != 0) { free(lhs); return -1; }
+
+    p = skip_ws(p);
+    if (!p || *p != ',') { free(lhs); return -1; }
+    p++;
+    p = skip_ws(p);
+
+    if (scan_json_string(&p, &rhs, NULL) != 0) { free(lhs); return -1; }
+    if (json_unescape_inplace(rhs) != 0) { free(lhs); free(rhs); return -1; }
+
+    p = skip_ws(p);
+    if (!p || *p != ']') { free(lhs); free(rhs); return -1; }
+    p++; // ']'
+
+    *a = lhs;
+    *b = rhs;
+    *pp = p;
+    return 0;
+  }
+
+  return -1;
+}
+
+
 static int parse_merges_array(const char *json, ie_tok_gptoss_t *tok) {
   const char *p = find_key_in_object(json, "merges");
   if (!p) return IE_TOK_GPTOSS_ERR_JSON;
 
   p = skip_ws(p);
-  if (*p != '[') return IE_TOK_GPTOSS_ERR_JSON;
+  if (!p || *p != '[') return IE_TOK_GPTOSS_ERR_JSON;
   ++p;
 
   /* Count merges (approx). */
@@ -652,13 +993,18 @@ static int parse_merges_array(const char *json, ie_tok_gptoss_t *tok) {
   const char *q = p;
   while (*q) {
     q = skip_ws(q);
+    if (!q) return IE_TOK_GPTOSS_ERR_JSON;
     if (*q == ']') break;
-    if (*q != '"') return IE_TOK_GPTOSS_ERR_JSON;
-    char *sraw = NULL;
-    if (scan_json_string(&q, &sraw, NULL) != 0) return IE_TOK_GPTOSS_ERR_JSON;
-    free(sraw);
+
+    char *lhs = NULL;
+    char *rhs = NULL;
+    if (scan_merge_entry(&q, &lhs, &rhs) != 0) return IE_TOK_GPTOSS_ERR_JSON;
+    free(lhs);
+    free(rhs);
     merges++;
+
     q = skip_ws(q);
+    if (!q) return IE_TOK_GPTOSS_ERR_JSON;
     if (*q == ',') ++q;
   }
 
@@ -675,44 +1021,47 @@ static int parse_merges_array(const char *json, ie_tok_gptoss_t *tok) {
   uint32_t rank = 0;
   while (*q) {
     q = skip_ws(q);
+    if (!q) return IE_TOK_GPTOSS_ERR_JSON;
     if (*q == ']') break;
 
-    char *sraw = NULL;
-    if (scan_json_string(&q, &sraw, NULL) != 0) return IE_TOK_GPTOSS_ERR_JSON;
-    if (json_unescape_inplace(sraw) != 0) { free(sraw); return IE_TOK_GPTOSS_ERR_JSON; }
-
-    /* Merge line format: "A B" */
-    char *sp = strchr(sraw, ' ');
-    if (!sp) { free(sraw); return IE_TOK_GPTOSS_ERR_JSON; }
-    *sp = '\0';
-    const char *a = sraw;
-    const char *b = sp + 1;
+    char *lhs = NULL;
+    char *rhs = NULL;
+    if (scan_merge_entry(&q, &lhs, &rhs) != 0) return IE_TOK_GPTOSS_ERR_JSON;
 
     uint32_t ida = 0, idb = 0;
-    if (intern_get_or_add(&tok->intern, a, &ida) != 0 ||
-        intern_get_or_add(&tok->intern, b, &idb) != 0) {
-      free(sraw);
+    if (intern_get_or_add(&tok->intern, lhs, &ida) != 0 ||
+        intern_get_or_add(&tok->intern, rhs, &idb) != 0) {
+      free(lhs);
+      free(rhs);
       return IE_TOK_GPTOSS_ERR_NOMEM;
     }
 
     uint64_t key = ((uint64_t)ida << 32) | (uint64_t)idb;
     (void)pairrank_map_put(tok->pair_to_rank, tok->pair_to_rank_cap, key, rank++);
 
-    free(sraw);
+    free(lhs);
+    free(rhs);
 
     q = skip_ws(q);
+    if (!q) return IE_TOK_GPTOSS_ERR_JSON;
     if (*q == ',') ++q;
   }
 
   return IE_TOK_GPTOSS_OK;
 }
 
+
 static int parse_tokenizer_json(const char *json, ie_tok_gptoss_t *tok) {
   if (!json || !tok) return IE_TOK_GPTOSS_ERR_ARGS;
 
-  /* tokenizer.json has "model": { "type": "...", "vocab": {...}, "merges": [...] }.
-     We scan globally for "vocab" and "merges" keys to avoid deep object parsing. */
+  /* tokenizer.json typically has:
+     - "model": { "vocab": {...}, "merges": [...] }
+     - optional top-level "added_tokens": [ { "id": N, "content": "..." }, ... ]
+     We scan by keys to avoid depending on a full JSON parser. */
   int rc = parse_vocab_object(json, tok);
+  if (rc != IE_TOK_GPTOSS_OK) return rc;
+
+  rc = parse_added_tokens_array(json, tok);
   if (rc != IE_TOK_GPTOSS_OK) return rc;
 
   rc = parse_merges_array(json, tok);
