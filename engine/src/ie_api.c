@@ -7,30 +7,31 @@
  * @brief Stable public API implementation for creating, destroying, and running an engine instance.
  *
  * @details
- * This module implements the functions declared in ie_api.h. It intentionally keeps the
- * public surface small and stable while delegating model-specific work to internal modules:
- *  - Device creation and teardown (CPU/CUDA selection)
- *  - Tokenizer open/encode/decode (tokenizer.json under model_dir)
- *  - Weights open/close (model.ie.json + model.ie.bin under model_dir)
+ * This module implements the functions declared in @ref ie_api.h. It keeps the
+ * public surface small and stable while delegating model-specific logic to internal
+ * subsystems:
+ *  - Device creation/teardown (CPU/CUDA selection)
+ *  - Tokenizer open/encode/decode (currently GPT-OSS tokenizer via tokenizer.json)
+ *  - Weights open/close (model.ie.json + model.ie.bin)
  *  - Hyperparameter loading
  *  - GPT-OSS runtime creation and token-by-token inference
  *  - Sampling to select the next token
  *
  * Logging policy:
- *  - Emit stage-level INFO logs during create/generate to quickly locate failures.
- *  - Emit ERROR logs with rc/status codes and key parameters on failure paths.
- *  - Keep per-token logs opt-in via environment variables.
+ *  - Stage-level INFO logs during create/generate to quickly locate failures.
+ *  - ERROR logs with rc/status codes and key parameters on failure paths.
+ *  - Per-token logs are opt-in via environment variables.
  *
  * Environment variables (optional):
- *  - IE_API_LOG_TOKENS:        If set to 1, log prompt token ids (truncated).
- *  - IE_API_LOG_EVERY:         If set to N>0, log every N decode steps (token id).
- *  - IE_API_DEBUG_DECODE:      If set to 1, attempt to decode generated tokens to UTF-8 and log (best-effort).
- *  - IE_API_DEBUG_DECODE_EVERY If set to N>0, decode/log every N decode steps when IE_API_DEBUG_DECODE=1.
+ *  - IE_API_LOG_TOKENS:         If set to 1, log prompt token ids (truncated).
+ *  - IE_API_LOG_EVERY:          If set to N>0, log every N decode steps (token id).
+ *  - IE_API_DEBUG_DECODE:       If set to 1, attempt to decode generated tokens to UTF-8 and log (best-effort).
+ *  - IE_API_DEBUG_DECODE_EVERY: If set to N>0, decode/log every N decode steps when IE_API_DEBUG_DECODE=1.
  *
  * Error-handling policy:
- *  - Fail fast with a clear return code (ie_status_t).
- *  - On failure, release any partially acquired resources before returning.
- *  - Do not leave partially initialized engine objects visible to the caller.
+ *  - Fail fast with a clear return code (@ref ie_status_t).
+ *  - On failure, release partially acquired resources before returning.
+ *  - Do not expose partially initialized objects to the caller.
  *
  * Header layout constraint:
  *  - The include directory is flat. All includes must reference headers by filename only.
@@ -40,6 +41,7 @@
 
 #include <inttypes.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -52,31 +54,30 @@
 #include "ie_tokenizer_gptoss.h"
 #include "tensor_map.h"
 #include "util_logging.h"
-#include <stdio.h>
 
 /* ============================================================================
  * Internal engine object
  * ========================================================================== */
 
 /**
- * @brief Concrete engine implementation backing the opaque ie_engine_t handle.
+ * @brief Concrete engine implementation backing the opaque @ref ie_engine_t handle.
  *
  * @details
- * The public API exposes ie_engine_t as an opaque struct. This file defines the actual
- * layout, which collects all long-lived objects needed for generation:
+ * The public API exposes @ref ie_engine_t as an opaque struct. This file defines
+ * the concrete layout, collecting all long-lived objects needed for generation:
  *  - Device handle
  *  - Weights handle
  *  - Tokenizer handle
  *  - Model hyperparameters
  *  - Inference runtime handle
- *  - Scratch buffers (logits, sampler scratch)
+ *  - Scratch buffers (logits and sampler scratch)
  *  - Sampler configuration and RNG state
  */
 struct ie_engine {
   /** @brief Device instance (CPU/CUDA). */
   ie_device_t *dev;
 
-  /** @brief Weights handle (backed by mmap or file reads, depending on io implementation). */
+  /** @brief Weights handle (mmap/file-backed depending on io implementation). */
   ie_weights_t w;
 
   /** @brief GPT-OSS tokenizer handle. */
@@ -124,8 +125,8 @@ struct ie_engine {
  *  - Appends @p b.
  *  - Always NUL-terminates @p dst.
  *
- * @param dst Output buffer.
- * @param cap Output buffer capacity in bytes.
+ * @param dst Output buffer (must not be NULL).
+ * @param cap Output buffer capacity in bytes (must be > 0).
  * @param a   First path segment (may be NULL).
  * @param b   Second path segment (may be NULL).
  */
@@ -155,7 +156,7 @@ static void join_path_(char *dst, size_t cap, const char *a, const char *b) {
  * Accepts typical boolean spellings: 0/1, false/true, no/yes, off/on.
  * Unknown values are treated as "enabled" to avoid silent disabling.
  *
- * @param name Environment variable name.
+ * @param name Environment variable name (must not be NULL).
  * @param default_value Value returned when unset/empty.
  * @return 0 or 1.
  */
@@ -177,11 +178,11 @@ static int env_flag_(const char *name, int default_value) {
 /**
  * @brief Get an environment integer with a default and basic clamping.
  *
- * @param name Environment variable name.
+ * @param name Environment variable name (must not be NULL).
  * @param default_value Default value when unset/empty/invalid.
  * @param min_value Minimum allowed return value.
  * @param max_value Maximum allowed return value.
- * @return Parsed/clamped integer value.
+ * @return Parsed and clamped integer value.
  */
 static int env_int_(const char *name, int default_value, int min_value, int max_value) {
   const char *v = getenv(name);
@@ -216,7 +217,7 @@ static const char *status_str_(ie_status_t st) {
 /**
  * @brief Emit a one-line summary of loaded hyperparameters.
  *
- * @param hp Hyperparameter struct (required).
+ * @param hp Hyperparameter struct (may be NULL).
  */
 static void log_hparams_(const ie_gptoss_hparams_t *hp) {
   if (!hp) return;
@@ -236,18 +237,18 @@ static void log_hparams_(const ie_gptoss_hparams_t *hp) {
  * @brief Attempt to correct head_dim using the first-layer Q projection tensor shape.
  *
  * @details
- * Some model asset bundles may ship inconsistent or missing head_dim in config.
- * This routine consults tensor_map.json (if present) and inspects the shape of
- * "model.layers.0.self_attn.q_proj.weight". If it can infer a better head_dim,
- * it updates @p hp in-place and logs a warning.
+ * Some model bundles may ship inconsistent or missing head_dim in config metadata.
+ * This routine consults tensor_map.json (if present) and inspects the shape of:
+ *   "model.layers.0.self_attn.q_proj.weight"
  *
- * This is a best-effort heuristic:
- *  - If tensor_map.json is missing or cannot be parsed, it does nothing.
- *  - If the tensor is missing, it does nothing.
- *  - If the tensor does not suggest an unambiguous per-head dimension, it does nothing.
+ * If it can infer a better head_dim, it updates @p hp in-place and logs a warning.
  *
- * @param model_dir Model directory containing tensor_map.json.
- * @param hp        Hyperparameter struct to potentially modify.
+ * Best-effort behavior:
+ *  - If tensor_map.json is missing/unreadable, it does nothing.
+ *  - If the tensor is missing or ambiguous, it does nothing.
+ *
+ * @param model_dir Model directory containing tensor_map.json (must not be NULL).
+ * @param hp Hyperparameter struct to potentially modify (must not be NULL).
  */
 static void maybe_correct_head_dim_(const char *model_dir, ie_gptoss_hparams_t *hp) {
   if (!model_dir || !hp) return;
@@ -289,17 +290,17 @@ static void maybe_correct_head_dim_(const char *model_dir, ie_gptoss_hparams_t *
 }
 
 /**
- * @brief Convert internal return codes into stable ie_status_t values.
+ * @brief Convert internal return codes into stable @ref ie_status_t values.
  *
  * @details
- * Internal subsystems sometimes return negative errno-like codes. This helper maps a
- * small known subset to stable public statuses while defaulting to IE_ERR_INTERNAL.
+ * Internal subsystems sometimes return negative errno-like codes. This helper maps
+ * a small known subset to stable public statuses while defaulting to IE_ERR_INTERNAL.
  *
  * Current mapping:
  *  - 0    -> IE_OK
  *  - -12  -> IE_ERR_OOM
- *  - -5   -> IE_ERR_OOM (some subsystems use -5 for alloc failures)
- *  - other-> IE_ERR_INTERNAL
+ *  - -5   -> IE_ERR_OOM (some subsystems use -5 for allocation failures)
+ *  - else -> IE_ERR_INTERNAL
  *
  * @param rc Internal return code.
  * @return Public status code.
@@ -314,8 +315,7 @@ static ie_status_t status_from_rc_(int rc) {
  * @brief Log a short, safe prompt preview for diagnostics.
  *
  * @details
- * This avoids dumping arbitrarily large prompts in logs. It logs at most 96 bytes,
- * replacing embedded newlines with spaces for readability.
+ * Logs at most 96 bytes, replacing embedded newlines/tabs with spaces.
  *
  * @param prompt Prompt string (may be NULL).
  */
@@ -346,7 +346,7 @@ static void log_prompt_preview_(const char *prompt) {
  *
  * @details
  * The create path performs:
- *  - Device selection by @p device string
+ *  - Device selection via @p device string
  *  - Tokenizer open (tokenizer.json under model_dir)
  *  - Weights open (model.ie.json under model_dir)
  *  - Hyperparameter load
@@ -355,18 +355,10 @@ static void log_prompt_preview_(const char *prompt) {
  *  - Scratch buffer allocation (logits and sampler scratch)
  *  - Sampler config initialization and RNG seeding
  *
- * Logging highlights:
- *  - Logs each stage boundary and the resolved artifact paths.
- *  - Logs key hyperparameters and dtype/bin size from weights.
- *  - Warns on tokenizer vocab vs model vocab mismatches.
- *
- * The current implementation does not consume all fields of @p p; the parameter is
- * kept to preserve API stability as the engine evolves.
- *
- * @param p        Optional engine parameters (may be NULL).
- * @param device   Device selector string (e.g., "cpu", "cuda"); NULL defaults to "cpu".
- * @param model_dir Path to the model directory containing assets.
- * @param out      Output pointer receiving the created engine on success.
+ * @param p         Optional engine parameters (may be NULL).
+ * @param device    Device selector string ("cpu", "cuda"); NULL defaults to "cpu".
+ * @param model_dir Path to the model directory containing assets (must not be NULL).
+ * @param out       Output pointer receiving the created engine on success (must not be NULL).
  * @return IE_OK on success, otherwise a non-OK status.
  */
 ie_status_t ie_engine_create(const ie_engine_params_t *p,
@@ -548,8 +540,8 @@ ie_status_t ie_engine_create(const ie_engine_params_t *p,
  * @brief Destroy an engine instance and release all resources.
  *
  * @details
- * This function is idempotent for NULL pointers. For non-NULL engine objects,
- * it releases resources in a safe order:
+ * This function is safe to call with NULL. For non-NULL engine objects, it releases
+ * resources in a defensive order:
  *  - Scratch buffers
  *  - Runtime
  *  - Weights
@@ -597,26 +589,19 @@ void ie_engine_destroy(ie_engine_t *e) {
  *  - Encodes @p prompt into token ids using the GPT-OSS tokenizer.
  *  - Initializes a KV cache for all layers.
  *  - Runs a prefill pass over the prompt to populate KV and compute next-token logits.
- *  - Repeats:
+ *  - Repeats up to @p max_new times:
  *      - Sample next token from logits
  *      - Run one decode step with that token to update KV and logits
- *    until @p max_new tokens are produced or an internal error occurs.
  *
  * Output contract:
- *  - The function writes up to @p max_new integers into @p out_tokens.
- *  - The number of written tokens is returned via @p out_n_tokens.
+ *  - Writes up to @p max_new integers into @p out_tokens.
+ *  - Returns the number of written tokens via @p out_n_tokens.
  *
- * Logging highlights:
- *  - Logs prompt encoding size query results and actual prompt token count.
- *  - Logs KV cache sizing decisions (heads/head_dim/max_seq).
- *  - Logs prefill/step failures with rc and derived public status.
- *  - Optional per-token logs via IE_API_LOG_EVERY.
- *
- * @param e            Engine instance.
- * @param prompt       UTF-8 prompt text.
+ * @param e            Engine instance (must not be NULL).
+ * @param prompt       UTF-8 prompt text (must not be NULL).
  * @param max_new      Maximum number of new tokens to generate.
  * @param out_tokens   Output array of length at least max_new (required if max_new > 0).
- * @param out_n_tokens Output count of generated tokens (required).
+ * @param out_n_tokens Output count of generated tokens (must not be NULL).
  * @return IE_OK on success, otherwise a non-OK status.
  */
 ie_status_t ie_engine_generate(const ie_engine_t *e,
@@ -668,7 +653,6 @@ ie_status_t ie_engine_generate(const ie_engine_t *e,
   }
 
   if (need == 0) {
-    /* Fallback: force a single token if prompt encodes to empty. */
     prompt_ids[0] = 0;
     n_prompt = 1;
     ie_log_warn("ie_engine_generate: prompt encoded to empty; forcing token_id=0");
@@ -726,11 +710,6 @@ ie_status_t ie_engine_generate(const ie_engine_t *e,
   kv_opts.heads = (int32_t)e->hp.n_kv_heads;
   kv_opts.head_dim = (int32_t)e->hp.d_head;
 
-  /*
-   * Avoid allocating KV for the full theoretical context length from config.json
-   * (e.g. 131072). This reference implementation only needs KV up to
-   * prompt_len + max_new (+ a small guard).
-   */
   int32_t want_seq = (int32_t)n_prompt + (int32_t)max_new + 8;
   if (want_seq < 16) want_seq = 16;
 
@@ -817,7 +796,6 @@ ie_status_t ie_engine_generate(const ie_engine_t *e,
     }
 
     if (dbg_decode && dbg_decode_every > 0 && (produced % (size_t)dbg_decode_every) == 0) {
-      /* Best-effort decoding of generated tokens so far (not including prompt). */
       size_t need_bytes = 0;
       const uint32_t cnt = (uint32_t)(produced + 1);
       const int drc = ie_tok_gptoss_decode(e->tok, (const uint32_t *)out_tokens, cnt, NULL, &need_bytes);

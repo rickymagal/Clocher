@@ -1,313 +1,282 @@
 /**
  * @file dedup_cache.c
- * @brief Implementation of lossless reconstruction and an optional fixed-capacity cache.
+ * @brief Simple in-memory cache for reconstructed tensors (string-keyed).
+ *
+ * This module implements the public API declared in dedup_cache.h.
+ * It is intentionally generic: it does not parse specs and does not
+ * know how to reconstruct bytes. Callers materialize tensors elsewhere
+ * and use this cache to retain the resulting contiguous buffers.
  */
 
 #include "dedup_cache.h"
 
 #include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
 
-/**
- * @brief Align a size up to a power-of-two boundary.
- * @param x Input value.
- * @param a Alignment (power of two).
- * @return x rounded up to a multiple of a.
- */
-static size_t ie_align_up(size_t x, size_t a) {
-  return (x + (a - 1u)) & ~(a - 1u);
-}
+typedef struct ie_dedup_cache_entry {
+  char* key;
+  uint8_t* data;
+  size_t size;
+  uint64_t stamp;
+} ie_dedup_cache_entry_t;
 
-void* ie_dedup_arena_alloc(ie_dedup_spec_arena_t* a, size_t nbytes, size_t align) {
-  if (!a || !a->base || align == 0u) return NULL;
-  size_t p = ie_align_up(a->len, align);
-  if (p > a->cap) return NULL;
-  if (nbytes > (a->cap - p)) return NULL;
-  void* out = (uint8_t*)a->base + p;
-  a->len = p + nbytes;
-  return out;
-}
+struct ie_dedup_cache {
+  size_t bytes_limit;
+  size_t bytes_used;
+  int enable_safety_checks;
 
-int ie_dedup_spec_validate(const ie_dedup_spec_t* s) {
-  if (!s) return -1;
-  if (s->magic != IE_DEDUP_MAGIC) return -2;
-  if (s->version != IE_DEDUP_VERSION) return -3;
-  if (s->ngroups == 0 || !s->groups) return -4;
+  uint64_t stamp_now;
 
-  uint64_t seen_targets = 0;
-  for (uint32_t gi = 0; gi < s->ngroups; ++gi) {
-    const ie_dedup_group_t* g = &s->groups[gi];
-    if (g->default_nbytes == 0) return -5;
-    if (g->ntargets == 0 || !g->targets) return -6;
-    for (uint32_t ti = 0; ti < g->ntargets; ++ti) {
-      const ie_dedup_target_t* t = &g->targets[ti];
-      if (t->nbytes != g->default_nbytes) return -7;
-      if (t->mask_nbytes != ie_dedup_mask_nbytes(t->nbytes)) return -8;
-      seen_targets++;
-    }
-  }
-  if (s->targets_flat_count != (uint32_t)seen_targets) return -9;
-  return 0;
-}
+  ie_dedup_cache_entry_t* entries;
+  size_t entry_count;
+  size_t entry_cap;
+};
 
-/**
- * @brief Count set bits in a byte using a precomputed nibble table.
- * @param b Input byte.
- * @return Popcount of b.
- */
-static inline uint8_t ie_popcount_u8(uint8_t b) {
-  static const uint8_t pc4[16] = {
-    0,1,1,2,1,2,2,3,1,2,2,3,2,3,3,4
-  };
-  return (uint8_t)(pc4[b & 0x0Fu] + pc4[(b >> 4) & 0x0Fu]);
-}
-
-int ie_dedup_reconstruct_into(
-  uint8_t* dst,
-  const uint8_t* default_bytes,
-  const uint8_t* mask,
-  const uint8_t* exceptions,
-  uint64_t nbytes)
-{
-  if (!dst || !default_bytes || !mask || (!exceptions && nbytes != 0)) return -1;
-  if (nbytes == 0) return 0;
-
-  /* Copy default into dst. */
-  memcpy(dst, default_bytes, (size_t)nbytes);
-
-  const uint64_t mask_n = ie_dedup_mask_nbytes(nbytes);
-
-  /* Patch exceptions. */
-  uint64_t exc_i = 0;
-  uint64_t byte_i = 0;
-
-  for (uint64_t mi = 0; mi < mask_n; ++mi) {
-    const uint8_t m = mask[mi];
-    if (m == 0) {
-      byte_i += 8;
-      continue;
-    }
-
-    /* Process the 8 bits in this mask byte. */
-    for (uint32_t bit = 0; bit < 8; ++bit) {
-      const uint64_t idx = byte_i + (uint64_t)bit;
-      if (idx >= nbytes) break;
-      if ((m >> bit) & 1u) {
-        dst[idx] = exceptions[exc_i++];
-      }
-    }
-
-    byte_i += 8;
-  }
-
-  /* Optional: caller can compare exc_i with expected exc_nbytes separately. */
-  return 0;
-}
-
-/**
- * @brief Find the best eviction candidate (lowest stamp).
- * @param c Cache instance.
- * @return Entry index.
- */
-static uint32_t ie_cache_find_evict(const ie_dedup_cache_t* c) {
-  uint32_t best = 0;
-  uint64_t best_stamp = UINT64_MAX;
-  for (uint32_t i = 0; i < c->entry_cap; ++i) {
-    const ie_dedup_cache_entry_t* e = &c->entries[i];
-    if (!e->data) return i; /* empty slot */
-    if (e->stamp < best_stamp) {
-      best_stamp = e->stamp;
-      best = i;
-    }
-  }
-  return best;
-}
-
-/**
- * @brief Free a cache entry's owned buffer and reset it.
- * @param c Cache instance.
- * @param e Entry to clear.
- */
-static void ie_cache_entry_clear(ie_dedup_cache_t* c, ie_dedup_cache_entry_t* e) {
-  if (e->data) {
-    free(e->data);
-    if (c->bytes_cached >= e->nbytes) c->bytes_cached -= e->nbytes;
-  }
-  e->tensor_index = 0;
-  e->nbytes = 0;
+static void ie_entry_free(ie_dedup_cache_entry_t* e) {
+  if (!e) return;
+  free(e->key);
+  free(e->data);
+  e->key = NULL;
   e->data = NULL;
+  e->size = 0;
   e->stamp = 0;
 }
 
-int ie_dedup_cache_init(
-  ie_dedup_cache_t* c,
-  const ie_dedup_spec_t* spec,
-  const ie_dedup_files_t* files,
-  uint32_t max_tensor_index,
-  uint32_t entry_cap,
-  uint64_t bytes_limit)
-{
-  if (!c || !spec || !files) return -1;
-  memset(c, 0, sizeof(*c));
+static size_t ie_find_entry(const ie_dedup_cache_t* c, const char* key, int* out_found) {
+  if (out_found) *out_found = 0;
+  if (!c || !key) return 0;
 
-  c->spec = spec;
-  c->files = *files;
-
-  if (ie_dedup_spec_validate(spec) != 0) return -2;
-
-  /* Allocate target_by_index lookup. */
-  c->target_by_index_len = max_tensor_index + 1u;
-  c->target_by_index = (const ie_dedup_target_t**)calloc((size_t)c->target_by_index_len, sizeof(void*));
-  if (!c->target_by_index) return -3;
-
-  /* Build target lookup table. */
-  for (uint32_t gi = 0; gi < spec->ngroups; ++gi) {
-    const ie_dedup_group_t* g = &spec->groups[gi];
-    for (uint32_t ti = 0; ti < g->ntargets; ++ti) {
-      const ie_dedup_target_t* t = &g->targets[ti];
-      if (t->tensor_index <= max_tensor_index) {
-        c->target_by_index[t->tensor_index] = t;
-      }
+  for (size_t i = 0; i < c->entry_count; ++i) {
+    const ie_dedup_cache_entry_t* e = &c->entries[i];
+    if (e->key && strcmp(e->key, key) == 0) {
+      if (out_found) *out_found = 1;
+      return i;
     }
   }
-
-  /* Cache configuration. */
-  c->bytes_limit = bytes_limit;
-  c->entry_cap = (bytes_limit > 0 && entry_cap > 0) ? entry_cap : 0;
-
-  if (c->entry_cap > 0) {
-    c->entries = (ie_dedup_cache_entry_t*)calloc((size_t)c->entry_cap, sizeof(ie_dedup_cache_entry_t));
-    if (!c->entries) {
-      free(c->target_by_index);
-      memset(c, 0, sizeof(*c));
-      return -4;
-    }
-  }
-
   return 0;
+}
+
+static int ie_ensure_capacity(ie_dedup_cache_t* c, size_t want_cap) {
+  if (!c) return -1;
+  if (c->entry_cap >= want_cap) return 0;
+
+  size_t new_cap = (c->entry_cap == 0) ? 16u : c->entry_cap;
+  while (new_cap < want_cap) {
+    if (new_cap > (SIZE_MAX / 2u)) return -2;
+    new_cap *= 2u;
+  }
+
+  ie_dedup_cache_entry_t* p = (ie_dedup_cache_entry_t*)realloc(c->entries, new_cap * sizeof(*p));
+  if (!p) return -3;
+
+  for (size_t i = c->entry_cap; i < new_cap; ++i) {
+    p[i].key = NULL;
+    p[i].data = NULL;
+    p[i].size = 0;
+    p[i].stamp = 0;
+  }
+
+  c->entries = p;
+  c->entry_cap = new_cap;
+  return 0;
+}
+
+static size_t ie_find_lru_victim(const ie_dedup_cache_t* c) {
+  size_t best_i = 0;
+  uint64_t best_stamp = UINT64_MAX;
+
+  for (size_t i = 0; i < c->entry_count; ++i) {
+    const ie_dedup_cache_entry_t* e = &c->entries[i];
+    if (e->data == NULL) return i;
+    if (e->stamp < best_stamp) {
+      best_stamp = e->stamp;
+      best_i = i;
+    }
+  }
+  return best_i;
+}
+
+static void ie_evict_index(ie_dedup_cache_t* c, size_t idx) {
+  if (!c || idx >= c->entry_count) return;
+
+  ie_dedup_cache_entry_t* e = &c->entries[idx];
+  if (e->data) {
+    if (c->bytes_used >= e->size) c->bytes_used -= e->size;
+    else c->bytes_used = 0;
+  }
+
+  ie_entry_free(e);
+
+  if (idx + 1u < c->entry_count) {
+    c->entries[idx] = c->entries[c->entry_count - 1u];
+    c->entries[c->entry_count - 1u].key = NULL;
+    c->entries[c->entry_count - 1u].data = NULL;
+    c->entries[c->entry_count - 1u].size = 0;
+    c->entries[c->entry_count - 1u].stamp = 0;
+  }
+  c->entry_count--;
+}
+
+ie_dedup_cache_t* ie_dedup_cache_create(const ie_dedup_cache_opts_t* opts) {
+  ie_dedup_cache_t* c = (ie_dedup_cache_t*)calloc(1, sizeof(*c));
+  if (!c) return NULL;
+
+  c->bytes_limit = 0;
+  c->bytes_used = 0;
+  c->enable_safety_checks = 1;
+  c->stamp_now = 0;
+  c->entries = NULL;
+  c->entry_count = 0;
+  c->entry_cap = 0;
+
+  if (opts) {
+    c->bytes_limit = opts->bytes_limit;
+    c->enable_safety_checks = (opts->enable_safety_checks != 0);
+  }
+
+  return c;
 }
 
 void ie_dedup_cache_destroy(ie_dedup_cache_t* c) {
   if (!c) return;
-  if (c->entries) {
-    for (uint32_t i = 0; i < c->entry_cap; ++i) {
-      ie_cache_entry_clear(c, &c->entries[i]);
-    }
-    free(c->entries);
+
+  for (size_t i = 0; i < c->entry_count; ++i) {
+    ie_entry_free(&c->entries[i]);
   }
-  free(c->target_by_index);
-  memset(c, 0, sizeof(*c));
+  free(c->entries);
+
+  free(c);
 }
 
-const ie_dedup_target_t* ie_dedup_cache_find_target(const ie_dedup_cache_t* c, uint32_t tensor_index) {
-  if (!c || !c->target_by_index || tensor_index >= c->target_by_index_len) return NULL;
-  return c->target_by_index[tensor_index];
+size_t ie_dedup_cache_bytes_used(const ie_dedup_cache_t* c) {
+  return c ? c->bytes_used : 0;
 }
 
-const ie_dedup_group_t* ie_dedup_cache_find_group_for_target(const ie_dedup_cache_t* c, const ie_dedup_target_t* t) {
-  if (!c || !c->spec || !t) return NULL;
-  for (uint32_t gi = 0; gi < c->spec->ngroups; ++gi) {
-    const ie_dedup_group_t* g = &c->spec->groups[gi];
-    for (uint32_t ti = 0; ti < g->ntargets; ++ti) {
-      if (&g->targets[ti] == t) return g;
-    }
+size_t ie_dedup_cache_bytes_limit(const ie_dedup_cache_t* c) {
+  return c ? c->bytes_limit : 0;
+}
+
+void ie_dedup_cache_clear(ie_dedup_cache_t* c) {
+  if (!c) return;
+
+  for (size_t i = 0; i < c->entry_count; ++i) {
+    ie_entry_free(&c->entries[i]);
   }
-  return NULL;
+  c->entry_count = 0;
+  c->bytes_used = 0;
+  c->stamp_now = 0;
 }
 
-/**
- * @brief Compute the expected exception byte count from a mask.
- * @param mask Mask bytes.
- * @param mask_nbytes Mask size.
- * @return Popcount over all mask bytes.
- */
-static uint64_t ie_mask_popcount_bytes(const uint8_t* mask, uint64_t mask_nbytes) {
-  uint64_t pc = 0;
-  for (uint64_t i = 0; i < mask_nbytes; ++i) pc += (uint64_t)ie_popcount_u8(mask[i]);
-  return pc;
-}
-
-const uint8_t* ie_dedup_cache_get_bytes(
-  ie_dedup_cache_t* c,
-  uint32_t tensor_index,
-  uint8_t* scratch,
-  uint64_t scratch_cap,
-  uint64_t* out_nbytes)
+int ie_dedup_cache_get(const ie_dedup_cache_t* c,
+                       const char* key,
+                       const void** out_ptr,
+                       size_t* out_size)
 {
-  if (out_nbytes) *out_nbytes = 0;
-  if (!c || !c->spec) return NULL;
+  if (out_ptr) *out_ptr = NULL;
+  if (out_size) *out_size = 0;
 
-  const ie_dedup_target_t* t = ie_dedup_cache_find_target(c, tensor_index);
-  if (!t) return NULL;
+  if (!c || !key || !out_ptr || !out_size) return 0;
+  if (c->bytes_limit == 0) return 0;
 
-  const ie_dedup_group_t* g = ie_dedup_cache_find_group_for_target(c, t);
-  if (!g) return NULL;
+  int found = 0;
+  size_t idx = ie_find_entry(c, key, &found);
+  if (!found) return 0;
 
-  const uint64_t nbytes = t->nbytes;
+  const ie_dedup_cache_entry_t* e = &c->entries[idx];
+  if (!e->data) return 0;
 
-  /* Validate file slices are within bounds. */
-  if (g->default_off + nbytes > c->files.defaults_size) return NULL;
-  if (t->mask_off + t->mask_nbytes > c->files.masks_size) return NULL;
-  if (t->exc_off + t->exc_nbytes > c->files.exceptions_size) return NULL;
+  *out_ptr = e->data;
+  *out_size = e->size;
 
-  const uint8_t* defp = c->files.defaults + g->default_off;
-  const uint8_t* maskp = c->files.masks + t->mask_off;
-  const uint8_t* excp = c->files.exceptions + t->exc_off;
+  return 1;
+}
 
-  /* Sanity check: popcount(mask) must match exc_nbytes. */
-  {
-    const uint64_t expected = ie_mask_popcount_bytes(maskp, t->mask_nbytes);
-    if (expected != t->exc_nbytes) return NULL;
+int ie_dedup_cache_put(ie_dedup_cache_t* c,
+                       const char* key,
+                       const void* data,
+                       size_t size)
+{
+  if (!c || !key || (!data && size != 0)) return -1;
+
+  if (c->bytes_limit == 0) {
+    return 0;
   }
 
-  /* If caching disabled, reconstruct into scratch. */
-  if (c->bytes_limit == 0 || c->entry_cap == 0) {
-    if (!scratch || scratch_cap < nbytes) return NULL;
-    if (ie_dedup_reconstruct_into(scratch, defp, maskp, excp, nbytes) != 0) return NULL;
-    if (out_nbytes) *out_nbytes = nbytes;
-    return scratch;
+  if (c->enable_safety_checks) {
+    if (size > c->bytes_limit) return -2;
   }
 
-  /* Check cache hit. */
-  for (uint32_t i = 0; i < c->entry_cap; ++i) {
-    ie_dedup_cache_entry_t* e = &c->entries[i];
-    if (e->data && e->tensor_index == tensor_index && e->nbytes == nbytes) {
-      e->stamp = ++c->stamp_now;
-      if (out_nbytes) *out_nbytes = nbytes;
-      return e->data;
+  uint8_t* new_data = NULL;
+  if (size != 0) {
+    new_data = (uint8_t*)malloc(size);
+    if (!new_data) return -3;
+    memcpy(new_data, data, size);
+  }
+
+  int found = 0;
+  size_t idx = ie_find_entry(c, key, &found);
+
+  if (found) {
+    ie_dedup_cache_entry_t* e = &c->entries[idx];
+
+    while (c->enable_safety_checks && (c->bytes_used - e->size + size) > c->bytes_limit) {
+      size_t victim = ie_find_lru_victim(c);
+      if (victim == idx) break;
+      ie_evict_index(c, victim);
+      if (idx >= c->entry_count) {
+        idx = ie_find_entry(c, key, &found);
+        if (!found) break;
+      }
+      e = &c->entries[idx];
     }
+
+    if (c->enable_safety_checks && (c->bytes_used - e->size + size) > c->bytes_limit) {
+      free(new_data);
+      return -2;
+    }
+
+    if (c->bytes_used >= e->size) c->bytes_used -= e->size;
+    else c->bytes_used = 0;
+
+    free(e->data);
+    e->data = new_data;
+    e->size = size;
+    e->stamp = ++c->stamp_now;
+
+    c->bytes_used += size;
+    return 0;
   }
 
-  /* Cache miss: evict if needed, then allocate and reconstruct. */
-  uint32_t slot = ie_cache_find_evict(c);
-  ie_dedup_cache_entry_t* e = &c->entries[slot];
-
-  /* Free entry if occupied. */
-  if (e->data) ie_cache_entry_clear(c, e);
-
-  /* Enforce soft byte limit by evicting more if required. */
-  while (c->bytes_cached + nbytes > c->bytes_limit) {
-    uint32_t victim = ie_cache_find_evict(c);
-    if (!c->entries[victim].data) break;
-    ie_cache_entry_clear(c, &c->entries[victim]);
+  while (c->enable_safety_checks && (c->bytes_used + size) > c->bytes_limit) {
+    if (c->entry_count == 0) break;
+    size_t victim = ie_find_lru_victim(c);
+    ie_evict_index(c, victim);
   }
 
-  e->data = (uint8_t*)malloc((size_t)nbytes);
-  if (!e->data) {
-    ie_cache_entry_clear(c, e);
-    return NULL;
+  if (c->enable_safety_checks && (c->bytes_used + size) > c->bytes_limit) {
+    free(new_data);
+    return -2;
   }
 
-  if (ie_dedup_reconstruct_into(e->data, defp, maskp, excp, nbytes) != 0) {
-    ie_cache_entry_clear(c, e);
-    return NULL;
+  if (ie_ensure_capacity(c, c->entry_count + 1u) != 0) {
+    free(new_data);
+    return -3;
   }
 
-  e->tensor_index = tensor_index;
-  e->nbytes = nbytes;
+  char* key_copy = (char*)malloc(strlen(key) + 1u);
+  if (!key_copy) {
+    free(new_data);
+    return -3;
+  }
+  memcpy(key_copy, key, strlen(key) + 1u);
+
+  ie_dedup_cache_entry_t* e = &c->entries[c->entry_count++];
+  e->key = key_copy;
+  e->data = new_data;
+  e->size = size;
   e->stamp = ++c->stamp_now;
-  c->bytes_cached += nbytes;
 
-  if (out_nbytes) *out_nbytes = nbytes;
-  return e->data;
+  c->bytes_used += size;
+  return 0;
 }

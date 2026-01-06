@@ -20,14 +20,14 @@
  * where G = ceil(D / group_size).
  *
  * Layered KV specification:
- *   Transformer inference uses an array of caches, one per layer. To maximize
- *   throughput, this module can allocate one contiguous backing slab for all
- *   layers and slice it into per-layer cache views via ::ie_kv_init_layers().
+ *  - Transformer inference uses an array of caches, one per layer.
+ *  - This module can allocate a single contiguous backing slab for all layers
+ *    and slice it into per-layer cache views via ::ie_kv_init_layers().
  *
  * Instrumentation:
- *   This module can optionally report "KV hits" and "KV misses" via metrics
- *   hooks (IE_KV_HIT / IE_KV_MISS). Safe no-op fallbacks are provided so the
- *   file compiles regardless of whether the build exposes these macros.
+ *  - This module can optionally report "KV hits" and "KV misses" via metrics
+ *    hooks (IE_KV_HIT / IE_KV_MISS). Safe no-op fallbacks are provided so the
+ *    file compiles regardless of whether the build exposes these macros.
  */
 
 #include "ie_kv_cache.h"
@@ -45,6 +45,10 @@
 
 /**
  * @brief Report KV hit to metrics layer if enabled.
+ *
+ * @details
+ * If IE_KV_HIT is not defined, this is a safe no-op.
+ *
  * @param n Count to add.
  */
 static inline void ie_kv_hit_add_local(uint64_t n) {
@@ -57,6 +61,10 @@ static inline void ie_kv_hit_add_local(uint64_t n) {
 
 /**
  * @brief Report KV miss to metrics layer if enabled.
+ *
+ * @details
+ * If IE_KV_MISS is not defined, this is a safe no-op.
+ *
  * @param n Count to add.
  */
 static inline void ie_kv_miss_add_local(uint64_t n) {
@@ -71,6 +79,7 @@ static inline void ie_kv_miss_add_local(uint64_t n) {
 
 /**
  * @brief Align @p x up to @p a (power-of-two).
+ *
  * @param x Value.
  * @param a Alignment (power-of-two).
  * @return Aligned value.
@@ -81,6 +90,7 @@ static size_t align_up_sz(size_t x, size_t a) {
 
 /**
  * @brief Ceiling division for size_t.
+ *
  * @param a Numerator.
  * @param b Denominator (must be > 0).
  * @return ceil(a/b).
@@ -91,12 +101,13 @@ static inline size_t ceil_div_sz(size_t a, size_t b) {
 
 /**
  * @brief Compute parameter index for INT8 affine params.
- * @param t Token.
- * @param h Head.
+ *
+ * @param t Token index.
+ * @param h Head index.
  * @param g Group index.
- * @param H Heads.
- * @param G Group count.
- * @return Flat index.
+ * @param H Number of heads.
+ * @param G Number of groups per head.
+ * @return Flat index into parameter arrays.
  */
 static inline size_t param_index(size_t t, size_t h, size_t g, size_t H, size_t G) {
   return ((t * H) + h) * G + g;
@@ -104,8 +115,9 @@ static inline size_t param_index(size_t t, size_t h, size_t g, size_t H, size_t 
 
 /**
  * @brief Check for multiplication overflow (size_t).
- * @param a Operand.
- * @param b Operand.
+ *
+ * @param a   Operand.
+ * @param b   Operand.
  * @param out Output product.
  * @return 0 on success; non-zero on overflow or bad args.
  */
@@ -122,9 +134,10 @@ static int mul_overflow_sz(size_t a, size_t b, size_t *out) {
 
 /**
  * @brief Check for 3-way multiplication overflow (size_t).
- * @param a Operand.
- * @param b Operand.
- * @param c Operand.
+ *
+ * @param a   Operand.
+ * @param b   Operand.
+ * @param c   Operand.
  * @param out Output product.
  * @return 0 on success; non-zero on overflow or bad args.
  */
@@ -137,7 +150,15 @@ static int mul3_overflow_sz(size_t a, size_t b, size_t c, size_t *out) {
 /**
  * @brief Validate options and populate derived fields in @p kv (no allocation).
  *
- * @param kv Cache to populate.
+ * @details
+ * This populates:
+ *  - heads/head_dim/max_seq/storage/symmetric/fp8_format
+ *  - group_size/group_count (INT8 only)
+ *  - elem_count = heads * max_seq * head_dim
+ *
+ * Pointers are cleared and ownership fields are reset.
+ *
+ * @param kv   Cache to populate.
  * @param opts Initialization options.
  * @return 0 on success; non-zero on invalid options.
  */
@@ -193,7 +214,7 @@ static int kv_validate_and_derive(ie_kv_cache *kv, const ie_kv_opts *opts) {
  *  - INT8 params (scales_K, zeros_K, scales_V, zeros_V) if needed
  *  - scratch buffers (INT8 per-group scratch, FP8 scratch) if needed
  *
- * @param kv Derived cache fields (must have elem_count/group_count set).
+ * @param kv        Derived cache fields (must have elem_count/group_count set).
  * @param out_bytes Output size in bytes.
  * @return 0 on success; non-zero on error.
  */
@@ -255,10 +276,10 @@ static int kv_compute_slab_bytes(const ie_kv_cache *kv, size_t *out_bytes) {
 /**
  * @brief Slice a backing slab into pointers inside @p kv.
  *
- * @param kv Cache to populate.
- * @param slab Base pointer.
- * @param slab_bytes Slab size.
- * @return 0 on success; non-zero on error.
+ * @param kv         Cache to populate (must have derived fields set).
+ * @param slab       Base pointer.
+ * @param slab_bytes Slab size in bytes.
+ * @return 0 on success; non-zero on bounds/overflow error.
  */
 static int kv_assign_from_slab(ie_kv_cache *kv, uint8_t *slab, size_t slab_bytes) {
   if (!kv || !slab || slab_bytes == 0) return -1;
@@ -337,6 +358,12 @@ static int kv_assign_from_slab(ie_kv_cache *kv, uint8_t *slab, size_t slab_bytes
 
 /* --------------------------------- public API ----------------------------- */
 
+/**
+ * @brief Return the element size for a KV storage type.
+ *
+ * @param storage Storage type.
+ * @return Element size in bytes; 0 for unknown.
+ */
 size_t ie_kv_element_size(ie_kv_storage_type storage) {
   switch (storage) {
     case IE_KV_STORAGE_F32:  return sizeof(float);
@@ -346,6 +373,13 @@ size_t ie_kv_element_size(ie_kv_storage_type storage) {
   }
 }
 
+/**
+ * @brief Initialize a single KV cache and allocate its backing memory.
+ *
+ * @param kv   Cache to initialize.
+ * @param opts Options describing cache geometry and storage format.
+ * @return 0 on success; non-zero on failure.
+ */
 int ie_kv_init(ie_kv_cache *kv, const ie_kv_opts *opts) {
   if (!kv) return -1;
   if (kv_validate_and_derive(kv, opts) != 0) return -1;
@@ -367,6 +401,19 @@ int ie_kv_init(ie_kv_cache *kv, const ie_kv_opts *opts) {
   return 0;
 }
 
+/**
+ * @brief Initialize an array of KV cache layers backed by one contiguous slab.
+ *
+ * @details
+ * This allocates a single slab large enough for @p n_layers caches and then
+ * assigns each cache view to its slice. The first layer is marked as the owner
+ * of the slab and will free it when ::ie_kv_free_layers() is called.
+ *
+ * @param kv_layers Array of caches, length n_layers.
+ * @param n_layers  Number of layers (must be > 0).
+ * @param opts      Cache options applied to every layer.
+ * @return 0 on success; non-zero on failure.
+ */
 int ie_kv_init_layers(ie_kv_cache *kv_layers, int n_layers, const ie_kv_opts *opts) {
   if (!kv_layers || n_layers <= 0 || !opts) return -1;
 
@@ -391,7 +438,6 @@ int ie_kv_init_layers(ie_kv_cache *kv_layers, int n_layers, const ie_kv_opts *op
     ie_kv_cache *kv = &kv_layers[l];
     memset(kv, 0, sizeof(*kv));
     if (kv_validate_and_derive(kv, opts) != 0) {
-      /* Free the global slab and clean already-initialized views. */
       free(slab_all);
       for (int j = 0; j < l; ++j) memset(&kv_layers[j], 0, sizeof(kv_layers[j]));
       return -6;
@@ -412,28 +458,52 @@ int ie_kv_init_layers(ie_kv_cache *kv_layers, int n_layers, const ie_kv_opts *op
   return 0;
 }
 
+/**
+ * @brief Free a single KV cache.
+ *
+ * @details
+ * Only the cache marked as owner frees the shared slab. After freeing, the
+ * structure is zeroed to prevent accidental reuse.
+ *
+ * @param kv Cache instance.
+ */
 void ie_kv_free(ie_kv_cache *kv) {
   if (!kv) return;
 
-  /* Only the owner frees the shared slab. */
   if (kv->backing_owner && kv->backing) {
     free(kv->backing);
   }
 
-  /* Clear everything to prevent accidental reuse. */
   memset(kv, 0, sizeof(*kv));
 }
 
+/**
+ * @brief Free a layered KV cache allocation.
+ *
+ * @details
+ * Freeing the owner (layer 0) is sufficient; other layers are cleared.
+ *
+ * @param kv_layers Array of layer caches.
+ * @param n_layers  Number of layers.
+ */
 void ie_kv_free_layers(ie_kv_cache *kv_layers, int n_layers) {
   if (!kv_layers || n_layers <= 0) return;
 
-  /* Freeing the owner is sufficient; others are zeroed for safety. */
   ie_kv_free(&kv_layers[0]);
   for (int i = 1; i < n_layers; ++i) {
     memset(&kv_layers[i], 0, sizeof(kv_layers[i]));
   }
 }
 
+/**
+ * @brief Store one token's K/V into an F32 KV cache.
+ *
+ * @param kv    Cache.
+ * @param t     Token index.
+ * @param K_f32 K data (length heads*head_dim).
+ * @param V_f32 V data (length heads*head_dim).
+ * @return 0 on success; non-zero on failure.
+ */
 int ie_kv_store_token_f32(ie_kv_cache *kv, size_t t,
                           const float *K_f32, const float *V_f32) {
   if (!kv || !K_f32 || !V_f32) return -1;
@@ -452,6 +522,20 @@ int ie_kv_store_token_f32(ie_kv_cache *kv, size_t t,
   return 0;
 }
 
+/**
+ * @brief Store one token's K/V into an INT8 KV cache using per-tensor params per head.
+ *
+ * @details
+ * Computes a single affine scale/zero for each (token, head) using min/max
+ * over the whole head_dim, then quantizes all D values. The same parameters
+ * are replicated into every group slot to keep the load path consistent.
+ *
+ * @param kv    Cache.
+ * @param t     Token index.
+ * @param K_f32 K data (length heads*head_dim).
+ * @param V_f32 V data (length heads*head_dim).
+ * @return 0 on success; non-zero on failure.
+ */
 int ie_kv_store_token_int8_per_tensor(ie_kv_cache *kv, size_t t,
                                       const float *K_f32, const float *V_f32) {
   if (!kv || !K_f32 || !V_f32) return -1;
@@ -488,7 +572,6 @@ int ie_kv_store_token_int8_per_tensor(ie_kv_cache *kv, size_t t,
     ie_quantize_act_int8(Ksrc, Kdst + off, D, pK, kv->symmetric);
     ie_quantize_act_int8(Vsrc, Vdst + off, D, pV, kv->symmetric);
 
-    /* Populate every group slot to keep load() correct. */
     for (size_t g = 0; g < G; ++g) {
       const size_t pi = param_index(t, h, g, H, G);
       kv->scales_K[pi] = pK.scale;
@@ -501,6 +584,20 @@ int ie_kv_store_token_int8_per_tensor(ie_kv_cache *kv, size_t t,
   return 0;
 }
 
+/**
+ * @brief Store one token's K/V into an INT8 KV cache using per-group params.
+ *
+ * @details
+ * Computes affine scale/zero per group of size group_size along head_dim and
+ * stores those parameters into (token, head, group). Quantization is applied
+ * group-wise to the payload.
+ *
+ * @param kv    Cache.
+ * @param t     Token index.
+ * @param K_f32 K data (length heads*head_dim).
+ * @param V_f32 V data (length heads*head_dim).
+ * @return 0 on success; non-zero on failure.
+ */
 int ie_kv_store_token_int8_per_group(ie_kv_cache *kv, size_t t,
                                      const float *K_f32, const float *V_f32) {
   if (!kv || !K_f32 || !V_f32) return -1;
@@ -544,6 +641,19 @@ int ie_kv_store_token_int8_per_group(ie_kv_cache *kv, size_t t,
   return 0;
 }
 
+/**
+ * @brief Store one token's K/V into an FP8 KV cache.
+ *
+ * @details
+ * Quantizes activations to FP8 using the configured fp8_format and stores the
+ * packed bytes into the cache. Uses a per-head scratch buffer of length head_dim.
+ *
+ * @param kv    Cache.
+ * @param t     Token index.
+ * @param K_f32 K data (length heads*head_dim).
+ * @param V_f32 V data (length heads*head_dim).
+ * @return 0 on success; non-zero on failure.
+ */
 int ie_kv_store_token_fp8(ie_kv_cache *kv, size_t t,
                           const float *K_f32, const float *V_f32) {
   if (!kv || !K_f32 || !V_f32) return -1;
@@ -574,6 +684,19 @@ int ie_kv_store_token_fp8(ie_kv_cache *kv, size_t t,
   return 0;
 }
 
+/**
+ * @brief Load one token's K/V into float buffers.
+ *
+ * @details
+ * Performs dequantization for INT8/FP8 caches. On success, reports a KV hit.
+ * If t is out of range, reports a KV miss and returns an error.
+ *
+ * @param kv    Cache (const).
+ * @param t     Token index.
+ * @param K_out Output buffer for K (length heads*head_dim).
+ * @param V_out Output buffer for V (length heads*head_dim).
+ * @return 0 on success; non-zero on failure.
+ */
 int ie_kv_load_token_f32(const ie_kv_cache *kv, size_t t,
                          float *K_out, float *V_out) {
   if (!kv || !K_out || !V_out) return -1;
@@ -644,6 +767,19 @@ int ie_kv_load_token_f32(const ie_kv_cache *kv, size_t t,
   return -3;
 }
 
+/**
+ * @brief Return raw pointers to the K and V payload buffers.
+ *
+ * @details
+ * This is intended for debug/interop. The returned pointers reference internal
+ * cache storage and remain valid until the cache is freed.
+ *
+ * @param kv      Cache.
+ * @param out_K   Output pointer for K base address (optional).
+ * @param out_V   Output pointer for V base address (optional).
+ * @param out_lds Output leading dimension (head_dim) (optional).
+ * @return 0 on success; non-zero on failure.
+ */
 int ie_kv_raw_ptrs(ie_kv_cache *kv, void **out_K, void **out_V, size_t *out_lds) {
   if (!kv) return -1;
   if (out_K)   *out_K   = kv->K;
@@ -652,6 +788,22 @@ int ie_kv_raw_ptrs(ie_kv_cache *kv, void **out_K, void **out_V, size_t *out_lds)
   return 0;
 }
 
+/**
+ * @brief Return element strides for the cache layout.
+ *
+ * @details
+ * Strides are returned in units of elements of the underlying storage type
+ * (not bytes). The layout is:
+ *  - d stride = 1
+ *  - h stride = head_dim
+ *  - t stride = heads * head_dim
+ *
+ * @param kv       Cache (const).
+ * @param stride_t Output stride for token index (optional).
+ * @param stride_h Output stride for head index (optional).
+ * @param stride_d Output stride for dim index (optional).
+ * @return 0 on success; non-zero on failure.
+ */
 int ie_kv_raw_strides(const ie_kv_cache *kv, size_t *stride_t, size_t *stride_h, size_t *stride_d) {
   if (!kv) return -1;
   if (stride_d) *stride_d = 1u;

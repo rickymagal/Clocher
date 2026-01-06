@@ -1,35 +1,55 @@
-/* engine/src/runtime/sampling.c */
+/* ============================================================================
+ * File: engine/src/runtime/sampling.c
+ * ============================================================================
+ */
 /**
  * @file sampling.c
  * @brief Token sampling utilities for next-token selection from logits.
  *
- * Implementation details:
- *  - Greedy: argmax.
- *  - Top-k: select k best logits via simple O(V*K) insertion, softmax over K.
- *  - Top-p: softmax over all logits (temperature), sort by probability desc,
- *           take smallest prefix with cumprob >= p, renormalize and sample.
+ * @details
+ * This module provides a small, self-contained sampler used by the runtime to
+ * select the next token id from a vector of logits.
  *
- * This is correctness-first; optimize later if needed.
+ * Implemented sampling modes:
+ *  - Greedy (argmax): selects the maximum-logit token.
+ *  - Top-k: keeps the best k logits via an insertion-style selection, applies a
+ *           numerically-stable softmax over the selected subset, and samples.
+ *  - Top-p (nucleus): applies temperature softmax over the full vocabulary,
+ *           sorts by probability descending, takes the smallest prefix whose
+ *           cumulative probability is >= p, renormalizes, and samples.
  *
- * Logging / tracing:
+ * Correctness policy:
+ *  - This is correctness-first. Expensive operations (full sort in top-p) can be
+ *    optimized later if needed.
+ *
+ * Tracing:
  *  - Set IE_TRACE_SAMPLING=1 to trace sampling decisions.
  *  - Optional: IE_TRACE_SAMPLING_N limits logs to the first N calls (0 = unlimited).
  */
 
 #include "ie_sampling.h"
 
+#include <errno.h>
 #include <math.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <errno.h>
+#include <string.h>
 
 /* ============================================================================
  * Tracing helpers
  * ========================================================================== */
 
+/**
+ * @brief Check whether sampling tracing is enabled via environment variable.
+ *
+ * @details
+ * Tracing is enabled if IE_TRACE_SAMPLING is set and not equal to "0".
+ * The value is cached after the first call.
+ *
+ * @return 1 if tracing is enabled; 0 otherwise.
+ */
 static int sampling_trace_enabled(void) {
   static int inited = 0;
   static int enabled = 0;
@@ -41,6 +61,15 @@ static int sampling_trace_enabled(void) {
   return enabled;
 }
 
+/**
+ * @brief Return the trace call limit set by IE_TRACE_SAMPLING_N.
+ *
+ * @details
+ * If IE_TRACE_SAMPLING_N is unset or parses to 0, tracing is unlimited.
+ * The value is cached after the first call.
+ *
+ * @return Maximum number of trace events to emit; 0 means unlimited.
+ */
 static uint64_t sampling_trace_limit(void) {
   static int inited = 0;
   static uint64_t lim = 0;
@@ -57,6 +86,15 @@ static uint64_t sampling_trace_limit(void) {
   return lim;
 }
 
+/**
+ * @brief Decide whether the current call should emit trace output.
+ *
+ * @details
+ * This function enforces IE_TRACE_SAMPLING_N if present. Calls are counted
+ * from the first invocation of this function in the process.
+ *
+ * @return 1 if tracing should be emitted for this call; 0 otherwise.
+ */
 static int sampling_trace_allow(void) {
   if (!sampling_trace_enabled()) return 0;
   static uint64_t calls = 0;
@@ -66,6 +104,12 @@ static int sampling_trace_allow(void) {
   return calls <= lim;
 }
 
+/**
+ * @brief Convert sampler kind enum into a human-readable string.
+ *
+ * @param k Sampling kind.
+ * @return Static string for logging.
+ */
 static const char *kind_name(ie_sample_kind_t k) {
   switch (k) {
     case IE_SAMPLE_GREEDY: return "greedy";
@@ -79,11 +123,27 @@ static const char *kind_name(ie_sample_kind_t k) {
  * RNG (xorshift64*)
  * ========================================================================== */
 
+/**
+ * @brief Initialize RNG state.
+ *
+ * @details
+ * Uses xorshift64* for cheap non-cryptographic randomness.
+ * If seed is 0, a fixed non-zero seed is used to avoid the zero lock state.
+ *
+ * @param rng  RNG state (output).
+ * @param seed Seed value.
+ */
 void ie_rng_init(ie_rng_t *rng, uint64_t seed) {
   if (!rng) return;
   rng->s = (seed == 0) ? 0x9E3779B97F4A7C15ull : seed;
 }
 
+/**
+ * @brief xorshift64* core step.
+ *
+ * @param s Pointer to 64-bit RNG state.
+ * @return Next 64-bit random value.
+ */
 static uint64_t xorshift64star(uint64_t *s) {
   uint64_t x = *s;
   x ^= x >> 12;
@@ -93,11 +153,26 @@ static uint64_t xorshift64star(uint64_t *s) {
   return x * 2685821657736338717ull;
 }
 
+/**
+ * @brief Generate a 32-bit random integer.
+ *
+ * @param rng RNG state.
+ * @return Random 32-bit value (0 on NULL rng).
+ */
 uint32_t ie_rng_u32(ie_rng_t *rng) {
   if (!rng) return 0;
   return (uint32_t)(xorshift64star(&rng->s) >> 32);
 }
 
+/**
+ * @brief Generate a float in [0, 1).
+ *
+ * @details
+ * Produces 24 bits of mantissa using the high bits of a 32-bit random value.
+ *
+ * @param rng RNG state.
+ * @return Random float in [0,1). If rng is NULL, returns 0.
+ */
 float ie_rng_f32(ie_rng_t *rng) {
   uint32_t x = ie_rng_u32(rng);
   uint32_t m = x >> 8; /* 24 bits */
@@ -108,6 +183,17 @@ float ie_rng_f32(ie_rng_t *rng) {
  * Helpers
  * ========================================================================== */
 
+/**
+ * @brief Validate and sanitize a sampling configuration.
+ *
+ * @details
+ * Ensures temperature is positive, clamps top-p into (0,1], and normalizes
+ * top-k to at least 1.
+ *
+ * @param cfg Input config.
+ * @param out Output config.
+ * @return 0 on success; non-zero on invalid args.
+ */
 static int cfg_sanitize(const ie_sample_cfg_t *cfg, ie_sample_cfg_t *out) {
   if (!cfg || !out) return -1;
   *out = *cfg;
@@ -123,6 +209,14 @@ static int cfg_sanitize(const ie_sample_cfg_t *cfg, ie_sample_cfg_t *out) {
   return 0;
 }
 
+/**
+ * @brief Return the argmax index for a logits array.
+ *
+ * @param logits Logits array.
+ * @param n      Number of logits.
+ * @param disallow0 If non-zero, token id 0 is excluded from consideration.
+ * @return Index of the maximum logit (or 0 if no valid index exists).
+ */
 static uint32_t argmax_logits(const float *logits, size_t n, int disallow0) {
   uint32_t best_i = 0;
   float best_v = -INFINITY;
@@ -144,10 +238,25 @@ static uint32_t argmax_logits(const float *logits, size_t n, int disallow0) {
   return best_i;
 }
 
+/**
+ * @brief Wrapper around expf for clarity and potential later clamping.
+ *
+ * @param x Input.
+ * @return expf(x).
+ */
 static float safe_exp(float x) {
   return expf(x);
 }
 
+/**
+ * @brief Normalize an array of non-negative values in-place so they sum to 1.
+ *
+ * @details
+ * If the sum is non-positive, the distribution is replaced by uniform.
+ *
+ * @param p Array of weights/probabilities.
+ * @param n Length of array.
+ */
 static void softmax_inplace(float *p, size_t n) {
   float sum = 0.0f;
   for (size_t i = 0; i < n; ++i) sum += p[i];
@@ -160,6 +269,18 @@ static void softmax_inplace(float *p, size_t n) {
   for (size_t i = 0; i < n; ++i) p[i] *= inv;
 }
 
+/**
+ * @brief Sample an index from a probability distribution.
+ *
+ * @details
+ * Uses a linear scan over the CDF.
+ *
+ * @param p   Probability values (must sum to ~1).
+ * @param idx Optional index remap array. If non-NULL, returns idx[i].
+ * @param n   Number of probabilities.
+ * @param rng RNG state.
+ * @return Sampled id (or last element if numerical drift leaves r >= cdf).
+ */
 static uint32_t sample_from_probs(const float *p,
                                   const uint32_t *idx,
                                   size_t n,
@@ -173,6 +294,16 @@ static uint32_t sample_from_probs(const float *p,
   return idx ? idx[n - 1] : (uint32_t)(n - 1);
 }
 
+/**
+ * @brief Sort indices in descending order by probability.
+ *
+ * @details
+ * Stable insertion sort using prob[key] as the key.
+ *
+ * @param idx  Indices to sort in-place.
+ * @param prob Probability array indexed by token id.
+ * @param n    Number of indices.
+ */
 static void sort_desc_by_prob(uint32_t *idx, const float *prob, size_t n) {
   for (size_t i = 1; i < n; ++i) {
     uint32_t key = idx[i];
@@ -192,6 +323,28 @@ static void sort_desc_by_prob(uint32_t *idx, const float *prob, size_t n) {
  * Public API
  * ========================================================================== */
 
+/**
+ * @brief Sample the next token id from logits.
+ *
+ * @details
+ * The caller provides optional scratch buffers:
+ *  - idx_scratch: uint32_t[vocab_size]
+ *  - prob_scratch: float[vocab_size]
+ *
+ * For top-k, only the first k entries of prob_scratch are used as a compact
+ * buffer. For top-p, prob_scratch is used as a vocab-sized probability array,
+ * and idx_scratch is used as a vocab-sized index list.
+ *
+ * @param logits        Logits array (length vocab_size).
+ * @param vocab_size    Vocabulary size.
+ * @param cfg_in        Sampling configuration.
+ * @param rng           RNG state (required for non-greedy sampling).
+ * @param idx_scratch   Scratch indices buffer (required for top-k/top-p).
+ * @param prob_scratch  Scratch probabilities buffer (required for top-k/top-p).
+ * @param scratch_cap   Capacity of scratch buffers in elements (must be >= vocab_size).
+ * @param out_id        Output token id.
+ * @return 0 on success; non-zero on error.
+ */
 int ie_sample_next(const float *logits,
                    size_t vocab_size,
                    const ie_sample_cfg_t *cfg_in,
@@ -316,7 +469,9 @@ int ie_sample_next(const float *logits,
     if (sum <= 0.0f) {
       const uint32_t id = argmax_logits(logits, vocab_size, cfg.disallow_token0);
       *out_id = id;
-      if (sampling_trace_allow()) fprintf(stderr, "[sampling] topp -> degenerate sum, fallback greedy id=%u\n", (unsigned)id);
+      if (sampling_trace_allow()) {
+        fprintf(stderr, "[sampling] topp -> degenerate sum, fallback greedy id=%u\n", (unsigned)id);
+      }
       return 0;
     }
     float inv = 1.0f / sum;

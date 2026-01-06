@@ -26,6 +26,7 @@
 #endif
 
 #include "gptoss_weights_index.h"
+#include "ie_io.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -83,20 +84,10 @@ struct gptoss_weights_index_t {
  * Tracing helpers
  * ========================================================================== */
 
-/**
- * @brief Return non-zero if tracing is enabled for this index.
- * @param idx Index (may be NULL).
- * @return Non-zero if enabled, 0 otherwise.
- */
 static int widx_trace_enabled(const gptoss_weights_index_t *idx) {
   return (idx && idx->trace != 0);
 }
 
-/**
- * @brief Print a formatted trace line to stderr if tracing is enabled.
- * @param idx Index (may be NULL).
- * @param fmt printf-style format string.
- */
 static void widx_tracef(const gptoss_weights_index_t *idx, const char *fmt, ...) {
   if (!widx_trace_enabled(idx) || !fmt) return;
   va_list ap;
@@ -109,11 +100,6 @@ static void widx_tracef(const gptoss_weights_index_t *idx, const char *fmt, ...)
  * Small utilities
  * ========================================================================== */
 
-/**
- * @brief Duplicate a string using malloc().
- * @param s Source string (may be NULL).
- * @return Newly allocated copy, or NULL on failure/NULL input.
- */
 static char *widx_strdup(const char *s) {
   if (!s) return NULL;
   size_t n = strlen(s);
@@ -124,23 +110,18 @@ static char *widx_strdup(const char *s) {
   return p;
 }
 
-/**
- * @brief Join model_dir and a leaf filename into a fixed buffer.
- * @param dst Destination buffer.
- * @param dst_n Size of destination buffer.
- * @param model_dir Model directory.
- * @param leaf Leaf filename.
- * @return 0 on success, non-zero on overflow or invalid args.
- */
 static int widx_path_join(char *dst, size_t dst_n, const char *model_dir, const char *leaf) {
   if (!dst || dst_n == 0 || !model_dir || !leaf) return -1;
+
   size_t a = strlen(model_dir);
   size_t b = strlen(leaf);
-  size_t need = a + 1u + b + 1u;
+  const int need_slash = (a > 0 && model_dir[a - 1] != '/');
+
+  size_t need = a + (need_slash ? 1u : 0u) + b + 1u;
   if (need > dst_n) return -1;
 
   memcpy(dst, model_dir, a);
-  if (a > 0 && model_dir[a - 1] != '/') {
+  if (need_slash) {
     dst[a] = '/';
     memcpy(dst + a + 1u, leaf, b);
     dst[a + 1u + b] = '\0';
@@ -155,10 +136,6 @@ static int widx_path_join(char *dst, size_t dst_n, const char *model_dir, const 
  * File mapping
  * ========================================================================== */
 
-/**
- * @brief Close a mapped file and reset its fields.
- * @param mf Mapped file handle (may be NULL).
- */
 static void widx_mapped_close(gptoss_mapped_file_t *mf) {
   if (!mf) return;
 
@@ -181,13 +158,6 @@ static void widx_mapped_close(gptoss_mapped_file_t *mf) {
   mf->fd = -1;
 }
 
-/**
- * @brief Read a whole file into a malloc buffer.
- * @param path File path.
- * @param out_base Output pointer (malloc buffer).
- * @param out_size Output size.
- * @return IE_IO_OK on success, negative ::ie_io_status_t on failure.
- */
 static int widx_read_all(const char *path, void **out_base, size_t *out_size) {
   if (!path || !out_base || !out_size) return IE_IO_ERR_ARGS;
 
@@ -228,12 +198,6 @@ static int widx_read_all(const char *path, void **out_base, size_t *out_size) {
   return IE_IO_OK;
 }
 
-/**
- * @brief Open a file mapping (mmap preferred) for the weights binary.
- * @param mf Output mapped file handle (reset then populated on success).
- * @param path Path to the file.
- * @return IE_IO_OK on success, negative ::ie_io_status_t on failure.
- */
 static int widx_mapped_open(gptoss_mapped_file_t *mf, const char *path) {
   if (!mf || !path) return IE_IO_ERR_ARGS;
 
@@ -306,22 +270,11 @@ static int widx_mapped_open(gptoss_mapped_file_t *mf, const char *path) {
  * Tensor resolution
  * ========================================================================== */
 
-/**
- * @brief Reset a tensor handle to an empty state.
- * @param t Tensor handle.
- */
 static void widx_tensor_reset(gptoss_tensor_t *t) {
   if (!t) return;
   memset(t, 0, sizeof(*t));
 }
 
-/**
- * @brief Populate a tensor handle from a resolved descriptor and optional dedup view.
- * @param idx Weights index.
- * @param desc Tensor descriptor (must be non-NULL).
- * @param out Output tensor handle.
- * @return IE_IO_OK on success, negative ::ie_io_status_t on failure.
- */
 static int widx_tensor_from_desc(const gptoss_weights_index_t *idx,
                                  const tensor_desc_t *desc,
                                  gptoss_tensor_t *out) {
@@ -376,14 +329,6 @@ static int widx_tensor_from_desc(const gptoss_weights_index_t *idx,
   return IE_IO_OK;
 }
 
-/**
- * @brief Find the first matching tensor descriptor among several candidate names.
- * @param idx Index (for tracing).
- * @param map Tensor map.
- * @param names Candidate names.
- * @param n Number of candidate names.
- * @return Pointer to descriptor, or NULL.
- */
 static const tensor_desc_t *widx_find_any(const gptoss_weights_index_t *idx,
                                           const tensor_map_t *map,
                                           const char *const *names,
@@ -403,14 +348,6 @@ static const tensor_desc_t *widx_find_any(const gptoss_weights_index_t *idx,
   return NULL;
 }
 
-/**
- * @brief Format a tensor name into a buffer.
- * @param dst Destination buffer.
- * @param dst_n Capacity.
- * @param fmt printf-style format.
- * @param layer Layer index.
- * @return 0 on success, non-zero on failure.
- */
 static int widx_fmt_layer(char *dst, size_t dst_n, const char *fmt, uint32_t layer) {
   if (!dst || dst_n == 0 || !fmt) return -1;
   int n = snprintf(dst, dst_n, fmt, (unsigned)layer);
@@ -419,14 +356,6 @@ static int widx_fmt_layer(char *dst, size_t dst_n, const char *fmt, uint32_t lay
   return 0;
 }
 
-/**
- * @brief Resolve a required tensor by name candidates.
- * @param idx Index.
- * @param names Candidate names.
- * @param n Candidate count.
- * @param out Output tensor handle.
- * @return IE_IO_OK on success, negative ::ie_io_status_t on failure.
- */
 static int widx_resolve_required(const gptoss_weights_index_t *idx,
                                  const char *const *names,
                                  size_t n,
@@ -442,14 +371,6 @@ static int widx_resolve_required(const gptoss_weights_index_t *idx,
   return widx_tensor_from_desc(idx, d, out);
 }
 
-/**
- * @brief Resolve an optional tensor by name candidates.
- * @param idx Index.
- * @param names Candidate names.
- * @param n Candidate count.
- * @param out Output tensor handle (empty if not found).
- * @return IE_IO_OK on success, negative ::ie_io_status_t on failure.
- */
 static int widx_resolve_optional(const gptoss_weights_index_t *idx,
                                  const char *const *names,
                                  size_t n,
@@ -466,32 +387,15 @@ static int widx_resolve_optional(const gptoss_weights_index_t *idx,
  * Public API: tensor helpers
  * ========================================================================== */
 
-/**
- * @brief Return non-zero if a tensor handle is populated.
- * @param t Tensor handle.
- * @return Non-zero if populated, 0 otherwise.
- */
 int gptoss_tensor_is_valid(const gptoss_tensor_t *t) {
   return (t && t->desc != NULL);
 }
 
-/**
- * @brief Return a direct pointer to tensor bytes if available.
- * @param t Tensor handle.
- * @return Pointer to bytes, or NULL if materialization is required.
- */
 const uint8_t *gptoss_tensor_bytes(const gptoss_tensor_t *t) {
   if (!t) return NULL;
   return t->direct;
 }
 
-/**
- * @brief Materialize tensor bytes into a caller-provided buffer.
- * @param t Tensor handle.
- * @param dst Destination buffer.
- * @param dst_nbytes Capacity of destination buffer.
- * @return Number of bytes written (0 on failure).
- */
 size_t gptoss_tensor_materialize(const gptoss_tensor_t *t, void *dst, size_t dst_nbytes) {
   if (!t || !t->desc || !dst || dst_nbytes == 0) return 0;
   if (t->direct) {
@@ -510,13 +414,6 @@ size_t gptoss_tensor_materialize(const gptoss_tensor_t *t, void *dst, size_t dst
  * Public API: open/close
  * ========================================================================== */
 
-/**
- * @brief Open a weights index for a model directory.
- * @param out Output index.
- * @param model_dir Model directory.
- * @param weights Weights descriptor opened by ::ie_weights_open.
- * @return IE_IO_OK on success, negative ::ie_io_status_t on failure.
- */
 int gptoss_weights_index_open(gptoss_weights_index_t *out,
                              const char *model_dir,
                              const ie_weights_t *weights) {
@@ -592,10 +489,6 @@ int gptoss_weights_index_open(gptoss_weights_index_t *out,
   return IE_IO_OK;
 }
 
-/**
- * @brief Close an index and free all resources owned by it.
- * @param idx Index handle (may be NULL).
- */
 void gptoss_weights_index_close(gptoss_weights_index_t *idx) {
   if (!idx) return;
 
@@ -617,14 +510,6 @@ void gptoss_weights_index_close(gptoss_weights_index_t *idx) {
  * Name probing and build_model
  * ========================================================================== */
 
-/**
- * @brief Detect the model naming scheme and projection style for layer 0.
- * @param idx Index.
- * @param out_arch Output detected scheme.
- * @param out_fused_qkv Output non-zero if fused QKV is detected.
- * @param out_swiglu Output non-zero if SwiGLU MLP is detected.
- * @return IE_IO_OK on success, negative ::ie_io_status_t on failure.
- */
 static int widx_detect_arch(const gptoss_weights_index_t *idx,
                             gptoss_arch_kind_t *out_arch,
                             int *out_fused_qkv,
@@ -687,25 +572,6 @@ static int widx_detect_arch(const gptoss_weights_index_t *idx,
   return IE_IO_ERR_JSON;
 }
 
-/**
- * @brief Resolve a LLaMA-style layer weights set, with additional fallbacks
- *        for alternative export naming schemes.
- *
- * @details
- * Supports these common patterns:
- *  - Canonical: model.layers.N.self_attn.* + model.layers.N.mlp.*
- *  - Short:     model.layers.N.attn.* (your current export)
- *  - Norms:     model.layers.N.attn.norm.scale, model.layers.N.mlp.norm.scale
- *  - Out proj:  model.layers.N.attn.out.weight
- *  - MLP GeLU:  model.layers.N.mlp.mlp1.weight, model.layers.N.mlp.mlp2.weight
- *
- * @param idx Index.
- * @param layer Layer index.
- * @param fused_qkv Non-zero if fused QKV should be used.
- * @param swiglu Non-zero if SwiGLU should be used.
- * @param out Output layer weights.
- * @return IE_IO_OK on success, negative ::ie_io_status_t on failure.
- */
 static int widx_resolve_layer_llama(const gptoss_weights_index_t *idx,
                                    uint32_t layer,
                                    int fused_qkv,
@@ -716,7 +582,6 @@ static int widx_resolve_layer_llama(const gptoss_weights_index_t *idx,
 
   char name[256];
 
-  /* Attention norm (input layernorm) */
   {
     const tensor_desc_t *d = NULL;
 
@@ -737,7 +602,6 @@ static int widx_resolve_layer_llama(const gptoss_weights_index_t *idx,
     }
   }
 
-  /* MLP norm (post-attention layernorm) */
   {
     const tensor_desc_t *d = NULL;
 
@@ -758,7 +622,6 @@ static int widx_resolve_layer_llama(const gptoss_weights_index_t *idx,
     }
   }
 
-  /* Attention projections */
   if (fused_qkv) {
     const tensor_desc_t *d = NULL;
 
@@ -818,7 +681,6 @@ static int widx_resolve_layer_llama(const gptoss_weights_index_t *idx,
     widx_tensor_reset(&out->qkv_proj_w);
   }
 
-  /* Output projection */
   {
     const tensor_desc_t *d = NULL;
 
@@ -839,7 +701,6 @@ static int widx_resolve_layer_llama(const gptoss_weights_index_t *idx,
     }
   }
 
-  /* MLP projections */
   if (swiglu) {
     const char *gate_fmt[] = {
       "model.layers.%u.mlp.gate_proj.weight",
@@ -930,13 +791,6 @@ static int widx_resolve_layer_llama(const gptoss_weights_index_t *idx,
   return IE_IO_OK;
 }
 
-/**
- * @brief Resolve a GPT-NeoX-style layer weights set.
- * @param idx Index.
- * @param layer Layer index.
- * @param out Output layer weights.
- * @return IE_IO_OK on success, negative ::ie_io_status_t on failure.
- */
 static int widx_resolve_layer_neox(const gptoss_weights_index_t *idx,
                                   uint32_t layer,
                                   gptoss_layer_weights_t *out) {
@@ -1003,13 +857,6 @@ static int widx_resolve_layer_neox(const gptoss_weights_index_t *idx,
   return IE_IO_OK;
 }
 
-/**
- * @brief Resolve and validate all tensors required by the GPT-OSS forward pass.
- * @param idx Opened weights index.
- * @param hp Hyperparameters (layer count).
- * @param out Output model weights index.
- * @return IE_IO_OK on success, negative ::ie_io_status_t on failure.
- */
 int gptoss_weights_index_build_model(const gptoss_weights_index_t *idx,
                                     const ie_gptoss_hparams_t *hp,
                                     gptoss_model_weights_t *out) {
@@ -1031,7 +878,6 @@ int gptoss_weights_index_build_model(const gptoss_weights_index_t *idx,
   out->mlp_swiglu = swiglu;
   out->n_layers = hp->n_layers;
 
-  /* Core (embedding / final norm / lm head) */
   {
     const char *embed_names[] = {
       "model.embed_tokens.weight",
@@ -1105,10 +951,6 @@ int gptoss_weights_index_build_model(const gptoss_weights_index_t *idx,
   return IE_IO_OK;
 }
 
-/**
- * @brief Free the per-layer array allocated by ::gptoss_weights_index_build_model.
- * @param mw Model weights.
- */
 void gptoss_model_weights_free(gptoss_model_weights_t *mw) {
   if (!mw) return;
   free(mw->layers);

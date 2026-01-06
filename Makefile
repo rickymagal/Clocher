@@ -58,6 +58,7 @@ BIN_CUDA  := $(BUILD)/inference-engine.cuda
 SRC_CORE_C_COMMON := \
   engine/src/ie_api.c \
   engine/src/runtime/infer_gptoss.c \
+  engine/src/runtime/generate_gptoss.c \
   engine/src/runtime/sampling.c \
   engine/src/ie_tensor.c \
   engine/src/util_logging.c \
@@ -66,6 +67,7 @@ SRC_CORE_C_COMMON := \
   engine/src/io/weights_dedup.c \
   engine/src/dedup/spec.c \
   engine/src/dedup/patch_list.c \
+  engine/src/dedup/dedup_cache.c \
   engine/src/io/tokenizer.c \
   engine/src/io/tokenizer_gptoss.c \
   engine/src/io/tokenizer_hf.c \
@@ -243,11 +245,11 @@ test: $(BIN_CPU)
 > @echo "[test] block-sparse"
 > $(CC) $(CFLAGS) $(INC) tests/c/test_block_sparse.c engine/src/gemm_block_sparse.c engine/src/sparse_io.c engine/src/util_logging.c -o $(BUILD)/test_block_sparse $(LDFLAGS_CPU) && $(BUILD)/test_block_sparse
 > @echo "[test] dedup loader (sanity)"
-> $(CC) $(CFLAGS) $(INC) tests/c/test_dedup_loader.c engine/src/io/weights.c engine/src/io/weights_dedup.c engine/src/dedup/spec.c engine/src/dedup/patch_list.c engine/src/io/loader_mmap.c engine/src/io/mmap_tuning.c engine/src/util_logging.c engine/src/quant/int4_ptq.c engine/src/quant/int8_ptq.c -o $(BUILD)/test_dedup_loader $(LDFLAGS_CPU) && IE_DEDUP=$(IE_DEDUP) $(BUILD)/test_dedup_loader "$(MODEL_DIR_DEFAULT)"
+> $(CC) $(CFLAGS) $(INC) tests/c/test_dedup_loader.c engine/src/io/weights.c engine/src/io/weights_dedup.c engine/src/dedup/spec.c engine/src/dedup/patch_list.c engine/src/dedup/dedup_cache.c engine/src/io/loader_mmap.c engine/src/io/mmap_tuning.c engine/src/util_logging.c engine/src/quant/int4_ptq.c engine/src/quant/int8_ptq.c -o $(BUILD)/test_dedup_loader $(LDFLAGS_CPU) && IE_DEDUP=$(IE_DEDUP) $(BUILD)/test_dedup_loader "$(MODEL_DIR_DEFAULT)"
 > @if [ -z "$$IE_SKIP_WEIGHTS_TEST" ]; then \
         if [ -f $(MODEL_DIR_DEFAULT)/model.ie.json ] && [ -f $(MODEL_DIR_DEFAULT)/model.ie.bin ]; then \
           echo "[test] test_weights"; \
-          if $(CC) $(CFLAGS) $(INC) tests/c/test_weights.c engine/src/io/weights.c engine/src/io/weights_dedup.c engine/src/dedup/spec.c engine/src/dedup/patch_list.c engine/src/io/loader_mmap.c engine/src/io/mmap_tuning.c engine/src/util_logging.c engine/src/quant/int4_ptq.c engine/src/quant/int8_ptq.c -o $(BUILD)/test_weights $(LDFLAGS_CPU); then \
+          if $(CC) $(CFLAGS) $(INC) tests/c/test_weights.c engine/src/io/weights.c engine/src/io/weights_dedup.c engine/src/dedup/spec.c engine/src/dedup/patch_list.c engine/src/dedup/dedup_cache.c engine/src/io/loader_mmap.c engine/src/io/mmap_tuning.c engine/src/util_logging.c engine/src/quant/int4_ptq.c engine/src/quant/int8_ptq.c -o $(BUILD)/test_weights $(LDFLAGS_CPU); then \
             ( cd $(MODEL_DIR_DEFAULT) && IE_DEDUP=$(IE_DEDUP) ../../$(BUILD)/test_weights ); \
             STATUS=$$?; \
             if [ $$STATUS -ne 0 ]; then \
