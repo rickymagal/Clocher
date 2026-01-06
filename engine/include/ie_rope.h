@@ -4,75 +4,53 @@
  */
 /**
  * @file ie_rope.h
- * @brief Rotary Position Embedding (RoPE) helpers for fp32 Q/K vectors.
+ * @brief Rotary Position Embedding (RoPE) interfaces.
  *
  * @details
- * RoPE applies a position-dependent complex rotation to pairs of channels in the
- * query/key vectors. For each pair (x0, x1) at index i, the rotation angle is:
+ * RoPE rotates interleaved pairs (2*i, 2*i+1) in each head.
  *
- *   angle(i, pos) = pos * theta^(-2i / head_dim)
- *
- * and the rotated pair is:
- *
- *   y0 = x0 * cos(angle) - x1 * sin(angle)
- *   y1 = x0 * sin(angle) + x1 * cos(angle)
- *
- * This module provides a correctness-first implementation for CPU inference.
+ * This header matches the runtime usage in infer_gptoss.c where calls may pass
+ * only q or only k (the other pointer may be NULL), and the function returns
+ * an int status code.
  */
 
 #ifndef IE_ROPE_H
 #define IE_ROPE_H
 
-#ifndef _POSIX_C_SOURCE
-#define _POSIX_C_SOURCE 200809L
-#endif
+#include <stddef.h>
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include <stddef.h>
-#include <stdint.h>
+/**
+ * @brief Apply RoPE to a single head vector in-place.
+ *
+ * @param x        Pointer to head vector (length head_dim).
+ * @param head_dim Per-head dimension (must be even and >= 2).
+ * @param pos      Position index.
+ * @param theta    RoPE base theta (must be > 0).
+ * @return 0 on success, negative on error.
+ */
+int ie_rope_apply_one_f32(float *x, size_t head_dim, uint32_t pos, float theta);
 
 /**
- * @brief Apply RoPE rotation in-place to one Q vector and one K vector.
+ * @brief Apply RoPE to Q and/or K for multiple heads.
  *
  * @details
- * The function rotates the first `head_dim` elements of @p q and @p k in-place,
- * treating them as interleaved 2D components (0,1), (2,3), ...
+ * Either q or k may be NULL. If both are NULL, this is a no-op returning 0.
  *
- * If @p head_dim is odd, the last element is left unchanged.
- *
- * @param q        Query vector (length >= @p head_dim), modified in-place.
- * @param k        Key vector (length >= @p head_dim), modified in-place.
- * @param head_dim Per-head hidden dimension.
- * @param pos      Position index (0-based).
- * @param theta    RoPE base theta (typically 10000.0).
+ * @param q        Q buffer, layout [heads, head_dim], may be NULL.
+ * @param k        K buffer, layout [heads, head_dim], may be NULL.
+ * @param heads    Number of heads in q/k (must be > 0 if q or k is non-NULL).
+ * @param head_dim Per-head dimension (must be even and >= 2).
+ * @param pos      Position index.
+ * @param theta    RoPE base theta (must be > 0).
+ * @return 0 on success, negative on error.
  */
-void ie_rope_apply_f32(float *q,
-                       float *k,
-                       size_t head_dim,
-                       uint32_t pos,
-                       float theta);
-
-/**
- * @brief Apply RoPE rotation in-place to a single vector.
- *
- * @details
- * This is useful when Q and K are handled separately or when applying RoPE to
- * only one of them. Rotation uses the same definition as ::ie_rope_apply_f32.
- *
- * If @p head_dim is odd, the last element is left unchanged.
- *
- * @param x        Vector to rotate (length >= @p head_dim), modified in-place.
- * @param head_dim Per-head hidden dimension.
- * @param pos      Position index (0-based).
- * @param theta    RoPE base theta (typically 10000.0).
- */
-void ie_rope_apply_one_f32(float *x,
-                           size_t head_dim,
-                           uint32_t pos,
-                           float theta);
+int ie_rope_apply_f32(float *q, float *k, size_t heads, size_t head_dim, uint32_t pos,
+                      float theta);
 
 #ifdef __cplusplus
 } /* extern "C" */

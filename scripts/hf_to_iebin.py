@@ -1,109 +1,139 @@
-# tools/hf_to_iebin.py
-import json, os, sys
+#!/usr/bin/env python3
+import argparse
+import json
+import os
+import struct
 from pathlib import Path
 
-def sizeof_dtype(dtype: str) -> int:
-    # Map torch dtype string to element size in bytes.
-    return {
-        "torch.uint8": 1,
-        "torch.int8": 1,
-        "torch.bfloat16": 2,
-        "torch.float16": 2,
-        "torch.float32": 4,
-        "torch.int32": 4,
-        "torch.int64": 8,
-    }.get(dtype, None)
+ALIGN = 64
 
-def main() -> int:
-    model_dir = Path("models/gpt-oss-20b")
-    hf_dir = model_dir / "hf"
+def align_up(x: int, a: int = ALIGN) -> int:
+    return (x + (a - 1)) & ~(a - 1)
+
+def read_safetensors_header(fin):
+    hdr_len_bytes = fin.read(8)
+    if len(hdr_len_bytes) != 8:
+        raise RuntimeError("Failed to read safetensors header length")
+    (hdr_len,) = struct.unpack("<Q", hdr_len_bytes)
+    hdr_json = fin.read(hdr_len)
+    if len(hdr_json) != hdr_len:
+        raise RuntimeError("Failed to read safetensors header JSON")
+    header = json.loads(hdr_json.decode("utf-8"))
+    return header, 8 + hdr_len
+
+def infer_top_dtype(tensors):
+    dtypes = {t.get("dtype") for t in tensors if t.get("dtype")}
+    if len(dtypes) == 1:
+        dt = next(iter(dtypes))
+        if dt == "BF16":
+            return "bf16"
+        if dt == "F16":
+            return "f16"
+        if dt == "F32":
+            return "f32"
+        return dt.lower()
+    if "BF16" in dtypes:
+        return "bf16"
+    if "F16" in dtypes:
+        return "f16"
+    if "F32" in dtypes:
+        return "f32"
+    return "mixed"
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--hf-dir", required=True, help="Directory containing model.safetensors.index.json and shard .safetensors files")
+    ap.add_argument("--out-dir", required=True, help="Output directory for model.ie.json/bin")
+    args = ap.parse_args()
+
+    hf_dir = Path(args.hf_dir).resolve()
+    out_dir = Path(args.out_dir).resolve()
+    out_dir.mkdir(parents=True, exist_ok=True)
+
     idx_path = hf_dir / "model.safetensors.index.json"
-    if not idx_path.exists():
-        print(f"ERROR: missing {idx_path}", file=sys.stderr)
-        return 2
+    if not idx_path.is_file():
+        raise SystemExit(f"ERROR: missing {idx_path}")
 
-    # Lazy import to avoid forcing a dependency if not needed elsewhere.
-    try:
-        from safetensors.numpy import load_file as st_load_numpy
-    except Exception as e:
-        print("ERROR: please install safetensors:  pip install safetensors", file=sys.stderr)
-        raise
-
-    index = json.loads(idx_path.read_text())
-    weight_map = index.get("weight_map")
+    idx = json.loads(idx_path.read_text(encoding="utf-8"))
+    weight_map = idx.get("weight_map", {})
     if not isinstance(weight_map, dict) or not weight_map:
-        print("ERROR: index JSON missing non-empty weight_map", file=sys.stderr)
-        return 2
+        raise SystemExit("ERROR: index has empty weight_map")
 
-    # Collect tensors per shard.
-    shard_to_tensors = {}
+    shard_to_keys = {}
     for name, shard in weight_map.items():
-        shard_to_tensors.setdefault(shard, []).append(name)
+        shard_to_keys.setdefault(shard, []).append(name)
 
-    # Note: we read each shard once, write tensors contiguously in output bin.
-    out_bin_path = model_dir / "model.ie.bin"
-    out_json_path = model_dir / "model.ie.json"
-    tensors_meta = []
-    offset = 0
+    shards = sorted(shard_to_keys.keys())
+    for s in shards:
+        shard_to_keys[s].sort()
 
-    with out_bin_path.open("wb") as fout:
-        for shard_rel in sorted(shard_to_tensors):
-            shard_path = hf_dir / shard_rel
-            if not shard_path.exists():
-                print(f"ERROR: shard file missing: {shard_path}", file=sys.stderr)
-                return 2
+    out_bin = out_dir / "model.ie.bin"
+    out_json = out_dir / "model.ie.json"
 
-            arrs = st_load_numpy(str(shard_path))
-            # Iterate tensors present in this shard, keep stable order.
-            for name in sorted(shard_to_tensors[shard_rel]):
-                if name not in arrs:
-                    print(f"ERROR: tensor {name} not found in {shard_rel}", file=sys.stderr)
-                    return 2
-                arr = arrs[name]
-                # Normalize dtype string to torch-like tag
-                npdt = str(arr.dtype)
-                if npdt == "uint8":
-                    dtype = "torch.uint8"
-                elif npdt in ("bfloat16", "bf16"):
-                    dtype = "torch.bfloat16"
-                elif npdt in ("float16",):
-                    dtype = "torch.float16"
-                elif npdt in ("float32",):
-                    dtype = "torch.float32"
-                elif npdt in ("int32",):
-                    dtype = "torch.int32"
-                elif npdt in ("int64",):
-                    dtype = "torch.int64"
-                else:
-                    # Fall back: try itemsize
-                    dtype = f"torch.unknown({npdt})"
+    tensors = []
+    cur_off = 0
 
-                esize = arr.dtype.itemsize
-                need = sizeof_dtype(dtype)
-                if need is None:
-                    # Unknown dtype: still write raw bytes as produced by numpy
-                    need = esize
-                # Write raw bytes C-contiguous
-                buf = arr.tobytes(order="C")
-                nbytes = len(buf)
-                fout.write(buf)
+    with open(out_bin, "wb") as bout:
+        for shard_name in shards:
+            shard_path = hf_dir / shard_name
+            if not shard_path.is_file():
+                raise SystemExit(f"ERROR: missing shard {shard_path}")
 
-                tensors_meta.append({
-                    "name": name,
-                    "dtype": dtype,
-                    "shape": list(arr.shape),
-                    "offset": offset,
-                    "nbytes": nbytes,
-                })
-                offset += nbytes
+            with open(shard_path, "rb") as fin:
+                header, data_base = read_safetensors_header(fin)
 
-    out = {
+                for key in shard_to_keys[shard_name]:
+                    meta = header.get(key)
+                    if meta is None:
+                        raise SystemExit(f"ERROR: tensor '{key}' not found in header of {shard_name}")
+
+                    dtype = meta.get("dtype")
+                    shape = meta.get("shape")
+                    offs = meta.get("data_offsets")
+                    if dtype is None or shape is None or offs is None:
+                        raise SystemExit(f"ERROR: malformed meta for '{key}' in {shard_name}")
+
+                    start, end = int(offs[0]), int(offs[1])
+                    nbytes = end - start
+                    if nbytes <= 0:
+                        raise SystemExit(f"ERROR: bad data_offsets for '{key}' in {shard_name}: {offs}")
+
+                    aligned = align_up(cur_off, ALIGN)
+                    if aligned != cur_off:
+                        bout.write(b"\x00" * (aligned - cur_off))
+                        cur_off = aligned
+
+                    fin.seek(data_base + start, os.SEEK_SET)
+
+                    remaining = nbytes
+                    buf_sz = 8 * 1024 * 1024
+                    while remaining > 0:
+                        chunk = fin.read(min(buf_sz, remaining))
+                        if not chunk:
+                            raise SystemExit(f"ERROR: unexpected EOF while reading '{key}' from {shard_name}")
+                        bout.write(chunk)
+                        remaining -= len(chunk)
+
+                    tensors.append({
+                        "name": key,
+                        "dtype": dtype,
+                        "shape": shape,
+                        "nbytes": nbytes,
+                        "offset": cur_off,
+                    })
+                    cur_off += nbytes
+
+    manifest = {
+        "version": 1,
+        "dtype": infer_top_dtype(tensors),
         "weights_bin": "model.ie.bin",
-        "tensors": tensors_meta,
+        "format": "iebin_v1_raw_safetensors",
+        "hf_dir": str(hf_dir),
+        "tensors": tensors,
     }
-    out_json_path.write_text(json.dumps(out, indent=2))
-    print(f"[iebin] wrote: {out_json_path} (tensors={len(tensors_meta)})")
-    print(f"[iebin] wrote: {out_bin_path} (bytes={out_bin_path.stat().st_size})")
+
+    out_json.write_text(json.dumps(manifest, indent=2), encoding="utf-8")
+    print(f"OK: wrote {out_json} and {out_bin}")
     return 0
 
 if __name__ == "__main__":

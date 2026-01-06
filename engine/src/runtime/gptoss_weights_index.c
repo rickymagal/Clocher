@@ -4,17 +4,21 @@
  */
 /**
  * @file gptoss_weights_index.c
- * @brief Implementation of GPT-OSS weight indexing and name-resolution.
+ * @brief GPT-OSS weight indexing, name probing, and tensor resolution.
  *
  * @details
- * This module bridges the "weights IO world" (tensor_map.json + model.ie.bin +
- * optional dedup artifacts) with the runtime forward pass. It provides:
- *  - A stable way to resolve model tensors by trying common export conventions.
+ * This module bridges the IO layer (tensor_map.json + model.ie.bin + optional
+ * dedup artifacts) with the runtime forward pass. It provides:
+ *  - A stable way to resolve model tensors by probing multiple naming schemes.
  *  - A unified tensor handle that supports direct pointers and dedup views.
+ *  - Optional verbose tracing controlled by the IE_TRACE_LOOKUPS environment variable.
  *
- * The forward pass should treat this module as read-only metadata:
- * no allocations should occur per token, and no file IO should occur after
- * initialization.
+ * Tracing:
+ *  - Set IE_TRACE_LOOKUPS=1 to print candidate lookups and failures to stderr.
+ *
+ * Performance constraints:
+ *  - No per-token allocations.
+ *  - No file IO after initialization (open/build_model).
  */
 
 #ifndef _POSIX_C_SOURCE
@@ -26,6 +30,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdarg.h>
 
 #if defined(__unix__) || defined(__APPLE__)
   #include <fcntl.h>
@@ -44,9 +49,9 @@
  * @brief Minimal read-only file mapping abstraction.
  *
  * @details
- * On POSIX systems, this uses mmap() when possible, and falls back to reading the
- * whole file into a malloc() buffer if mapping fails. On non-POSIX builds, only
- * the malloc() path is used.
+ * On POSIX systems, this uses mmap() when possible, and falls back to reading
+ * the whole file into a malloc() buffer if mapping fails. On non-POSIX builds,
+ * only the malloc() path is used.
  */
 typedef struct gptoss_mapped_file_t {
   char   *path;     /**< Owned file path string. */
@@ -70,7 +75,35 @@ struct gptoss_weights_index_t {
   const ie_weights_t *weights;          /**< Borrowed pointer to weights descriptor. */
   const ie_weights_dedup_t *dedup;      /**< Borrowed or locally-owned (see dedup_owned). */
   ie_weights_dedup_t *dedup_owned;      /**< If non-NULL, we own this handle and must close. */
+
+  int trace;                            /**< Non-zero if IE_TRACE_LOOKUPS is enabled. */
 };
+
+/* ============================================================================
+ * Tracing helpers
+ * ========================================================================== */
+
+/**
+ * @brief Return non-zero if tracing is enabled for this index.
+ * @param idx Index (may be NULL).
+ * @return Non-zero if enabled, 0 otherwise.
+ */
+static int widx_trace_enabled(const gptoss_weights_index_t *idx) {
+  return (idx && idx->trace != 0);
+}
+
+/**
+ * @brief Print a formatted trace line to stderr if tracing is enabled.
+ * @param idx Index (may be NULL).
+ * @param fmt printf-style format string.
+ */
+static void widx_tracef(const gptoss_weights_index_t *idx, const char *fmt, ...) {
+  if (!widx_trace_enabled(idx) || !fmt) return;
+  va_list ap;
+  va_start(ap, fmt);
+  (void)vfprintf(stderr, fmt, ap);
+  va_end(ap);
+}
 
 /* ============================================================================
  * Small utilities
@@ -78,7 +111,6 @@ struct gptoss_weights_index_t {
 
 /**
  * @brief Duplicate a string using malloc().
- *
  * @param s Source string (may be NULL).
  * @return Newly allocated copy, or NULL on failure/NULL input.
  */
@@ -94,12 +126,11 @@ static char *widx_strdup(const char *s) {
 
 /**
  * @brief Join model_dir and a leaf filename into a fixed buffer.
- *
  * @param dst Destination buffer.
  * @param dst_n Size of destination buffer.
  * @param model_dir Model directory.
  * @param leaf Leaf filename.
- * @return 0 on success, non-zero on overflow.
+ * @return 0 on success, non-zero on overflow or invalid args.
  */
 static int widx_path_join(char *dst, size_t dst_n, const char *model_dir, const char *leaf) {
   if (!dst || dst_n == 0 || !model_dir || !leaf) return -1;
@@ -107,6 +138,7 @@ static int widx_path_join(char *dst, size_t dst_n, const char *model_dir, const 
   size_t b = strlen(leaf);
   size_t need = a + 1u + b + 1u;
   if (need > dst_n) return -1;
+
   memcpy(dst, model_dir, a);
   if (a > 0 && model_dir[a - 1] != '/') {
     dst[a] = '/';
@@ -125,8 +157,7 @@ static int widx_path_join(char *dst, size_t dst_n, const char *model_dir, const 
 
 /**
  * @brief Close a mapped file and reset its fields.
- *
- * @param mf Mapped file descriptor (may be NULL).
+ * @param mf Mapped file handle (may be NULL).
  */
 static void widx_mapped_close(gptoss_mapped_file_t *mf) {
   if (!mf) return;
@@ -152,7 +183,6 @@ static void widx_mapped_close(gptoss_mapped_file_t *mf) {
 
 /**
  * @brief Read a whole file into a malloc buffer.
- *
  * @param path File path.
  * @param out_base Output pointer (malloc buffer).
  * @param out_size Output size.
@@ -200,7 +230,6 @@ static int widx_read_all(const char *path, void **out_base, size_t *out_size) {
 
 /**
  * @brief Open a file mapping (mmap preferred) for the weights binary.
- *
  * @param mf Output mapped file handle (reset then populated on success).
  * @param path Path to the file.
  * @return IE_IO_OK on success, negative ::ie_io_status_t on failure.
@@ -236,7 +265,6 @@ static int widx_mapped_open(gptoss_mapped_file_t *mf, const char *path) {
 
   void *base = mmap(NULL, mf->size, PROT_READ, MAP_PRIVATE, mf->fd, 0);
   if (base == MAP_FAILED) {
-    /* mmap failed: fall back to buffered read. */
     mf->base = NULL;
     mf->size = 0;
     mf->is_mmap = 0;
@@ -280,7 +308,6 @@ static int widx_mapped_open(gptoss_mapped_file_t *mf, const char *path) {
 
 /**
  * @brief Reset a tensor handle to an empty state.
- *
  * @param t Tensor handle.
  */
 static void widx_tensor_reset(gptoss_tensor_t *t) {
@@ -290,15 +317,14 @@ static void widx_tensor_reset(gptoss_tensor_t *t) {
 
 /**
  * @brief Populate a tensor handle from a resolved descriptor and optional dedup view.
- *
  * @param idx Weights index.
  * @param desc Tensor descriptor (must be non-NULL).
  * @param out Output tensor handle.
  * @return IE_IO_OK on success, negative ::ie_io_status_t on failure.
  */
 static int widx_tensor_from_desc(const gptoss_weights_index_t *idx,
-                                const tensor_desc_t *desc,
-                                gptoss_tensor_t *out) {
+                                 const tensor_desc_t *desc,
+                                 gptoss_tensor_t *out) {
   if (!idx || !desc || !out) return IE_IO_ERR_ARGS;
 
   widx_tensor_reset(out);
@@ -310,6 +336,7 @@ static int widx_tensor_from_desc(const gptoss_weights_index_t *idx,
     memset(&view, 0, sizeof(view));
     ie_wdedup_status_t st = ie_weights_dedup_get_weight_view(idx->dedup, desc->name, &view);
     if (st != IE_WDEDUP_OK) {
+      widx_tracef(idx, "[widx] dedup view missing for '%s'\n", desc->name);
       return IE_IO_ERR_JSON;
     }
 
@@ -321,42 +348,56 @@ static int widx_tensor_from_desc(const gptoss_weights_index_t *idx,
       out->nbytes = view.nbytes;
     } else {
       out->direct = NULL;
-      /* Prefer tensor_map size; view.nbytes may be 0 for dedup. */
       if (out->nbytes == 0 && view.nbytes > 0) out->nbytes = view.nbytes;
     }
 
     return IE_IO_OK;
   }
 
-  /* Non-dedup: resolve direct pointer into mapped model.ie.bin. */
   if (!idx->bin.base || idx->bin.size == 0) return IE_IO_ERR_BIN_UNSPEC;
 
-  uint64_t off = desc->offset;
-  uint64_t end = off + desc->size_bytes;
-  if (end < off) return IE_IO_ERR_DECODE;
-  if (end > (uint64_t)idx->bin.size) return IE_IO_ERR_DECODE;
+  {
+    uint64_t off = desc->offset;
+    uint64_t end = off + desc->size_bytes;
+    if (end < off) return IE_IO_ERR_DECODE;
+    if (end > (uint64_t)idx->bin.size) {
+      widx_tracef(idx, "[widx] OOB tensor '%s': off=%llu size=%llu bin=%zu\n",
+                  desc->name,
+                  (unsigned long long)off,
+                  (unsigned long long)desc->size_bytes,
+                  idx->bin.size);
+      return IE_IO_ERR_DECODE;
+    }
 
-  out->direct = (const uint8_t*)idx->bin.base + (size_t)off;
+    out->direct = (const uint8_t*)idx->bin.base + (size_t)off;
+  }
+
   out->is_dedup = 0;
   return IE_IO_OK;
 }
 
 /**
  * @brief Find the first matching tensor descriptor among several candidate names.
- *
+ * @param idx Index (for tracing).
  * @param map Tensor map.
  * @param names Candidate names.
  * @param n Number of candidate names.
  * @return Pointer to descriptor, or NULL.
  */
-static const tensor_desc_t *widx_find_any(const tensor_map_t *map,
-                                         const char *const *names,
-                                         size_t n) {
+static const tensor_desc_t *widx_find_any(const gptoss_weights_index_t *idx,
+                                          const tensor_map_t *map,
+                                          const char *const *names,
+                                          size_t n) {
   if (!map || !names) return NULL;
+
   for (size_t i = 0; i < n; ++i) {
     const char *name = names[i];
     if (!name) continue;
+
     const tensor_desc_t *d = tensor_map_find(map, name);
+    if (widx_trace_enabled(idx)) {
+      widx_tracef(idx, "[widx] probe: '%s' -> %s\n", name, d ? "FOUND" : "MISS");
+    }
     if (d) return d;
   }
   return NULL;
@@ -364,7 +405,6 @@ static const tensor_desc_t *widx_find_any(const tensor_map_t *map,
 
 /**
  * @brief Format a tensor name into a buffer.
- *
  * @param dst Destination buffer.
  * @param dst_n Capacity.
  * @param fmt printf-style format.
@@ -381,7 +421,6 @@ static int widx_fmt_layer(char *dst, size_t dst_n, const char *fmt, uint32_t lay
 
 /**
  * @brief Resolve a required tensor by name candidates.
- *
  * @param idx Index.
  * @param names Candidate names.
  * @param n Candidate count.
@@ -389,17 +428,22 @@ static int widx_fmt_layer(char *dst, size_t dst_n, const char *fmt, uint32_t lay
  * @return IE_IO_OK on success, negative ::ie_io_status_t on failure.
  */
 static int widx_resolve_required(const gptoss_weights_index_t *idx,
-                                const char *const *names,
-                                size_t n,
-                                gptoss_tensor_t *out) {
-  const tensor_desc_t *d = widx_find_any(&idx->tmap, names, n);
-  if (!d) return IE_IO_ERR_JSON;
+                                 const char *const *names,
+                                 size_t n,
+                                 gptoss_tensor_t *out) {
+  const tensor_desc_t *d = widx_find_any(idx, &idx->tmap, names, n);
+  if (!d) {
+    widx_tracef(idx, "[widx] REQUIRED tensor missing. Candidates:\n");
+    for (size_t i = 0; i < n; ++i) {
+      if (names[i]) widx_tracef(idx, "  - %s\n", names[i]);
+    }
+    return IE_IO_ERR_JSON;
+  }
   return widx_tensor_from_desc(idx, d, out);
 }
 
 /**
  * @brief Resolve an optional tensor by name candidates.
- *
  * @param idx Index.
  * @param names Candidate names.
  * @param n Candidate count.
@@ -407,10 +451,10 @@ static int widx_resolve_required(const gptoss_weights_index_t *idx,
  * @return IE_IO_OK on success, negative ::ie_io_status_t on failure.
  */
 static int widx_resolve_optional(const gptoss_weights_index_t *idx,
-                                const char *const *names,
-                                size_t n,
-                                gptoss_tensor_t *out) {
-  const tensor_desc_t *d = widx_find_any(&idx->tmap, names, n);
+                                 const char *const *names,
+                                 size_t n,
+                                 gptoss_tensor_t *out) {
+  const tensor_desc_t *d = widx_find_any(idx, &idx->tmap, names, n);
   if (!d) {
     widx_tensor_reset(out);
     return IE_IO_OK;
@@ -424,7 +468,6 @@ static int widx_resolve_optional(const gptoss_weights_index_t *idx,
 
 /**
  * @brief Return non-zero if a tensor handle is populated.
- *
  * @param t Tensor handle.
  * @return Non-zero if populated, 0 otherwise.
  */
@@ -434,7 +477,6 @@ int gptoss_tensor_is_valid(const gptoss_tensor_t *t) {
 
 /**
  * @brief Return a direct pointer to tensor bytes if available.
- *
  * @param t Tensor handle.
  * @return Pointer to bytes, or NULL if materialization is required.
  */
@@ -445,7 +487,6 @@ const uint8_t *gptoss_tensor_bytes(const gptoss_tensor_t *t) {
 
 /**
  * @brief Materialize tensor bytes into a caller-provided buffer.
- *
  * @param t Tensor handle.
  * @param dst Destination buffer.
  * @param dst_nbytes Capacity of destination buffer.
@@ -471,7 +512,6 @@ size_t gptoss_tensor_materialize(const gptoss_tensor_t *t, void *dst, size_t dst
 
 /**
  * @brief Open a weights index for a model directory.
- *
  * @param out Output index.
  * @param model_dir Model directory.
  * @param weights Weights descriptor opened by ::ie_weights_open.
@@ -486,10 +526,14 @@ int gptoss_weights_index_open(gptoss_weights_index_t *out,
   out->bin.fd = -1;
   out->weights = weights;
 
+  {
+    const char *tr = getenv("IE_TRACE_LOOKUPS");
+    out->trace = (tr && tr[0] && strcmp(tr, "0") != 0);
+  }
+
   if (strlen(model_dir) >= sizeof(out->model_dir)) return IE_IO_ERR_ARGS;
   memcpy(out->model_dir, model_dir, strlen(model_dir) + 1u);
 
-  /* Load tensor_map.json (try the canonical root path first). */
   char tmap_path[1024];
   memset(tmap_path, 0, sizeof(tmap_path));
 
@@ -498,7 +542,6 @@ int gptoss_weights_index_open(gptoss_weights_index_t *out,
   }
 
   if (tensor_map_load(tmap_path, &out->tmap) != 0) {
-    /* Fallback: some trees keep it under hf/original. */
     if (widx_path_join(tmap_path, sizeof(tmap_path), model_dir, "hf/original/tensor_map.json") != 0) {
       return IE_IO_ERR_JSON;
     }
@@ -507,19 +550,23 @@ int gptoss_weights_index_open(gptoss_weights_index_t *out,
     }
   }
 
-  /* Map the weights binary. */
+  if (widx_trace_enabled(out)) {
+    widx_tracef(out, "[widx] tensor_map loaded from '%s'\n", tmap_path);
+  }
+
   if (!weights->weights_path[0]) {
     tensor_map_free(&out->tmap);
     return IE_IO_ERR_BIN_UNSPEC;
   }
 
-  int rc = widx_mapped_open(&out->bin, weights->weights_path);
-  if (rc != IE_IO_OK) {
-    tensor_map_free(&out->tmap);
-    return rc;
+  {
+    int rc = widx_mapped_open(&out->bin, weights->weights_path);
+    if (rc != IE_IO_OK) {
+      tensor_map_free(&out->tmap);
+      return rc;
+    }
   }
 
-  /* Dedup: reuse borrowed handle if available, else open one. */
   out->dedup = NULL;
   out->dedup_owned = NULL;
 
@@ -533,7 +580,6 @@ int gptoss_weights_index_open(gptoss_weights_index_t *out,
       opts.prefault_policy = 0;
       ie_wdedup_status_t st = ie_weights_dedup_open(&h, model_dir, &opts);
       if (st != IE_WDEDUP_OK) {
-        /* If dedup is enabled but we cannot open it, keep running in non-dedup mode. */
         out->dedup = NULL;
         out->dedup_owned = NULL;
       } else {
@@ -548,7 +594,6 @@ int gptoss_weights_index_open(gptoss_weights_index_t *out,
 
 /**
  * @brief Close an index and free all resources owned by it.
- *
  * @param idx Index handle (may be NULL).
  */
 void gptoss_weights_index_close(gptoss_weights_index_t *idx) {
@@ -573,8 +618,7 @@ void gptoss_weights_index_close(gptoss_weights_index_t *idx) {
  * ========================================================================== */
 
 /**
- * @brief Detect the model naming scheme and the projection style for layer 0.
- *
+ * @brief Detect the model naming scheme and projection style for layer 0.
  * @param idx Index.
  * @param out_arch Output detected scheme.
  * @param out_fused_qkv Output non-zero if fused QKV is detected.
@@ -591,53 +635,69 @@ static int widx_detect_arch(const gptoss_weights_index_t *idx,
   *out_fused_qkv = 0;
   *out_swiglu = 0;
 
-  /* Probe common LLaMA-style paths. */
-  const char *llama_q_names[] = {
-    "model.layers.0.self_attn.q_proj.weight",
-    "model.layers.0.attn.q_proj.weight"
-  };
-  const char *llama_fused_names[] = {
-    "model.layers.0.self_attn.qkv_proj.weight",
-    "model.layers.0.self_attn.qkv.weight",
-    "model.layers.0.attn.qkv_proj.weight",
-    "model.layers.0.attn.qkv.weight"
-  };
+  {
+    const char *llama_q_names[] = {
+      "model.layers.0.self_attn.q_proj.weight",
+      "model.layers.0.attn.q_proj.weight"
+    };
+    const char *llama_fused_names[] = {
+      "model.layers.0.self_attn.qkv_proj.weight",
+      "model.layers.0.self_attn.qkv.weight",
+      "model.layers.0.attn.qkv_proj.weight",
+      "model.layers.0.attn.qkv.weight"
+    };
 
-  if (widx_find_any(&idx->tmap, llama_q_names, sizeof(llama_q_names)/sizeof(llama_q_names[0])) ||
-      widx_find_any(&idx->tmap, llama_fused_names, sizeof(llama_fused_names)/sizeof(llama_fused_names[0]))) {
-    *out_arch = GPTOSS_ARCH_LLAMA;
-    if (widx_find_any(&idx->tmap, llama_fused_names, sizeof(llama_fused_names)/sizeof(llama_fused_names[0]))) {
-      *out_fused_qkv = 1;
+    if (widx_find_any(idx, &idx->tmap, llama_q_names, sizeof(llama_q_names)/sizeof(llama_q_names[0])) ||
+        widx_find_any(idx, &idx->tmap, llama_fused_names, sizeof(llama_fused_names)/sizeof(llama_fused_names[0]))) {
+      *out_arch = GPTOSS_ARCH_LLAMA;
+      if (widx_find_any(idx, &idx->tmap, llama_fused_names, sizeof(llama_fused_names)/sizeof(llama_fused_names[0]))) {
+        *out_fused_qkv = 1;
+      }
+
+      if (tensor_map_find(&idx->tmap, "model.layers.0.mlp.gate_proj.weight") ||
+          tensor_map_find(&idx->tmap, "model.layers.0.feed_forward.gate_proj.weight")) {
+        *out_swiglu = 1;
+      } else {
+        *out_swiglu = 0;
+      }
+
+      widx_tracef(idx, "[widx] arch=LLAMA fused_qkv=%d swiglu=%d\n", *out_fused_qkv, *out_swiglu);
+      return IE_IO_OK;
     }
-    /* SwiGLU probe: gate_proj is the tell. */
-    if (tensor_map_find(&idx->tmap, "model.layers.0.mlp.gate_proj.weight") ||
-        tensor_map_find(&idx->tmap, "model.layers.0.feed_forward.gate_proj.weight")) {
-      *out_swiglu = 1;
-    }
-    return IE_IO_OK;
   }
 
-  /* Probe GPT-NeoX style. */
-  const char *neox_fused_qkv[] = {
-    "gpt_neox.layers.0.attention.query_key_value.weight"
-  };
-  if (widx_find_any(&idx->tmap, neox_fused_qkv, sizeof(neox_fused_qkv)/sizeof(neox_fused_qkv[0])) ||
-      tensor_map_find(&idx->tmap, "gpt_neox.layers.0.attention.query.weight")) {
-    *out_arch = GPTOSS_ARCH_GPTNEOX;
-    /* NeoX typically uses fused QKV. */
-    if (widx_find_any(&idx->tmap, neox_fused_qkv, sizeof(neox_fused_qkv)/sizeof(neox_fused_qkv[0]))) {
-      *out_fused_qkv = 1;
+  {
+    const char *neox_fused_qkv[] = {
+      "gpt_neox.layers.0.attention.query_key_value.weight"
+    };
+    if (widx_find_any(idx, &idx->tmap, neox_fused_qkv, sizeof(neox_fused_qkv)/sizeof(neox_fused_qkv[0])) ||
+        tensor_map_find(&idx->tmap, "gpt_neox.layers.0.attention.query.weight")) {
+      *out_arch = GPTOSS_ARCH_GPTNEOX;
+      if (widx_find_any(idx, &idx->tmap, neox_fused_qkv, sizeof(neox_fused_qkv)/sizeof(neox_fused_qkv[0]))) {
+        *out_fused_qkv = 1;
+      }
+      *out_swiglu = 0;
+
+      widx_tracef(idx, "[widx] arch=GPTNEOX fused_qkv=%d swiglu=%d\n", *out_fused_qkv, *out_swiglu);
+      return IE_IO_OK;
     }
-    /* NeoX MLP is usually GeLU (dense_h_to_4h + dense_4h_to_h). */
-    *out_swiglu = 0;
-    return IE_IO_OK;
   }
 
+  widx_tracef(idx, "[widx] arch detection failed\n");
   return IE_IO_ERR_JSON;
 }
 
 /**
- * @brief Resolve a LLaMA-style layer weights set.
+ * @brief Resolve a LLaMA-style layer weights set, with additional fallbacks
+ *        for alternative export naming schemes.
+ *
+ * @details
+ * Supports these common patterns:
+ *  - Canonical: model.layers.N.self_attn.* + model.layers.N.mlp.*
+ *  - Short:     model.layers.N.attn.* (your current export)
+ *  - Norms:     model.layers.N.attn.norm.scale, model.layers.N.mlp.norm.scale
+ *  - Out proj:  model.layers.N.attn.out.weight
+ *  - MLP GeLU:  model.layers.N.mlp.mlp1.weight, model.layers.N.mlp.mlp2.weight
  *
  * @param idx Index.
  * @param layer Layer index.
@@ -656,35 +716,53 @@ static int widx_resolve_layer_llama(const gptoss_weights_index_t *idx,
 
   char name[256];
 
-  /* Norm weights */
-  if (widx_fmt_layer(name, sizeof(name), "model.layers.%u.input_layernorm.weight", layer) != 0) return IE_IO_ERR_ARGS;
+  /* Attention norm (input layernorm) */
   {
-    const tensor_desc_t *d = tensor_map_find(&idx->tmap, name);
-    if (!d) {
-      if (widx_fmt_layer(name, sizeof(name), "model.layers.%u.attn_norm.weight", layer) != 0) return IE_IO_ERR_ARGS;
+    const tensor_desc_t *d = NULL;
+
+    if (widx_fmt_layer(name, sizeof(name), "model.layers.%u.input_layernorm.weight", layer) == 0) {
       d = tensor_map_find(&idx->tmap, name);
     }
+    if (!d && widx_fmt_layer(name, sizeof(name), "model.layers.%u.attn_norm.weight", layer) == 0) {
+      d = tensor_map_find(&idx->tmap, name);
+    }
+    if (!d && widx_fmt_layer(name, sizeof(name), "model.layers.%u.attn.norm.scale", layer) == 0) {
+      d = tensor_map_find(&idx->tmap, name);
+    }
+
     if (!d) return IE_IO_ERR_JSON;
-    int rc = widx_tensor_from_desc(idx, d, &out->attn_norm_w);
-    if (rc != IE_IO_OK) return rc;
+    {
+      int rc = widx_tensor_from_desc(idx, d, &out->attn_norm_w);
+      if (rc != IE_IO_OK) return rc;
+    }
   }
 
-  if (widx_fmt_layer(name, sizeof(name), "model.layers.%u.post_attention_layernorm.weight", layer) != 0) return IE_IO_ERR_ARGS;
+  /* MLP norm (post-attention layernorm) */
   {
-    const tensor_desc_t *d = tensor_map_find(&idx->tmap, name);
-    if (!d) {
-      if (widx_fmt_layer(name, sizeof(name), "model.layers.%u.mlp_norm.weight", layer) != 0) return IE_IO_ERR_ARGS;
+    const tensor_desc_t *d = NULL;
+
+    if (widx_fmt_layer(name, sizeof(name), "model.layers.%u.post_attention_layernorm.weight", layer) == 0) {
       d = tensor_map_find(&idx->tmap, name);
     }
+    if (!d && widx_fmt_layer(name, sizeof(name), "model.layers.%u.mlp_norm.weight", layer) == 0) {
+      d = tensor_map_find(&idx->tmap, name);
+    }
+    if (!d && widx_fmt_layer(name, sizeof(name), "model.layers.%u.mlp.norm.scale", layer) == 0) {
+      d = tensor_map_find(&idx->tmap, name);
+    }
+
     if (!d) return IE_IO_ERR_JSON;
-    int rc = widx_tensor_from_desc(idx, d, &out->mlp_norm_w);
-    if (rc != IE_IO_OK) return rc;
+    {
+      int rc = widx_tensor_from_desc(idx, d, &out->mlp_norm_w);
+      if (rc != IE_IO_OK) return rc;
+    }
   }
 
   /* Attention projections */
   if (fused_qkv) {
     const tensor_desc_t *d = NULL;
-    if (widx_fmt_layer(name, sizeof(name), "model.layers.%u.self_attn.qkv_proj.weight", layer) == 0) {
+
+    if (!d && widx_fmt_layer(name, sizeof(name), "model.layers.%u.self_attn.qkv_proj.weight", layer) == 0) {
       d = tensor_map_find(&idx->tmap, name);
     }
     if (!d && widx_fmt_layer(name, sizeof(name), "model.layers.%u.self_attn.qkv.weight", layer) == 0) {
@@ -696,10 +774,13 @@ static int widx_resolve_layer_llama(const gptoss_weights_index_t *idx,
     if (!d && widx_fmt_layer(name, sizeof(name), "model.layers.%u.attn.qkv.weight", layer) == 0) {
       d = tensor_map_find(&idx->tmap, name);
     }
+
     if (!d) return IE_IO_ERR_JSON;
 
-    int rc = widx_tensor_from_desc(idx, d, &out->qkv_proj_w);
-    if (rc != IE_IO_OK) return rc;
+    {
+      int rc = widx_tensor_from_desc(idx, d, &out->qkv_proj_w);
+      if (rc != IE_IO_OK) return rc;
+    }
 
     widx_tensor_reset(&out->q_proj_w);
     widx_tensor_reset(&out->k_proj_w);
@@ -711,37 +792,51 @@ static int widx_resolve_layer_llama(const gptoss_weights_index_t *idx,
       "model.layers.%u.self_attn.k_proj.weight",
       "model.layers.%u.self_attn.v_proj.weight"
     };
+
     for (int i = 0; i < 3; ++i) {
       if (widx_fmt_layer(name, sizeof(name), fmts[i], layer) != 0) return IE_IO_ERR_ARGS;
+
       const tensor_desc_t *d = tensor_map_find(&idx->tmap, name);
       if (!d) {
-        /* Fallback shorter alias. */
         const char *fmt2 = NULL;
         if (i == 0) fmt2 = "model.layers.%u.attn.q_proj.weight";
         if (i == 1) fmt2 = "model.layers.%u.attn.k_proj.weight";
         if (i == 2) fmt2 = "model.layers.%u.attn.v_proj.weight";
+
         if (fmt2 && widx_fmt_layer(name, sizeof(name), fmt2, layer) != 0) return IE_IO_ERR_ARGS;
         d = fmt2 ? tensor_map_find(&idx->tmap, name) : NULL;
       }
+
       if (!d) return IE_IO_ERR_JSON;
-      int rc = widx_tensor_from_desc(idx, d, dsts[i]);
-      if (rc != IE_IO_OK) return rc;
+
+      {
+        int rc = widx_tensor_from_desc(idx, d, dsts[i]);
+        if (rc != IE_IO_OK) return rc;
+      }
     }
+
     widx_tensor_reset(&out->qkv_proj_w);
   }
 
   /* Output projection */
   {
     const tensor_desc_t *d = NULL;
-    if (widx_fmt_layer(name, sizeof(name), "model.layers.%u.self_attn.o_proj.weight", layer) == 0) {
+
+    if (!d && widx_fmt_layer(name, sizeof(name), "model.layers.%u.self_attn.o_proj.weight", layer) == 0) {
       d = tensor_map_find(&idx->tmap, name);
     }
     if (!d && widx_fmt_layer(name, sizeof(name), "model.layers.%u.attn.o_proj.weight", layer) == 0) {
       d = tensor_map_find(&idx->tmap, name);
     }
+    if (!d && widx_fmt_layer(name, sizeof(name), "model.layers.%u.attn.out.weight", layer) == 0) {
+      d = tensor_map_find(&idx->tmap, name);
+    }
+
     if (!d) return IE_IO_ERR_JSON;
-    int rc = widx_tensor_from_desc(idx, d, &out->o_proj_w);
-    if (rc != IE_IO_OK) return rc;
+    {
+      int rc = widx_tensor_from_desc(idx, d, &out->o_proj_w);
+      if (rc != IE_IO_OK) return rc;
+    }
   }
 
   /* MLP projections */
@@ -766,6 +861,7 @@ static int widx_resolve_layer_llama(const gptoss_weights_index_t *idx,
         if (d_gate) break;
       }
     }
+
     const tensor_desc_t *d_up = NULL;
     for (size_t k = 0; k < sizeof(up_fmt)/sizeof(up_fmt[0]); ++k) {
       if (widx_fmt_layer(name, sizeof(name), up_fmt[k], layer) == 0) {
@@ -773,6 +869,7 @@ static int widx_resolve_layer_llama(const gptoss_weights_index_t *idx,
         if (d_up) break;
       }
     }
+
     const tensor_desc_t *d_down = NULL;
     for (size_t k = 0; k < sizeof(down_fmt)/sizeof(down_fmt[0]); ++k) {
       if (widx_fmt_layer(name, sizeof(name), down_fmt[k], layer) == 0) {
@@ -783,39 +880,48 @@ static int widx_resolve_layer_llama(const gptoss_weights_index_t *idx,
 
     if (!d_gate || !d_up || !d_down) return IE_IO_ERR_JSON;
 
-    int rc = widx_tensor_from_desc(idx, d_gate, &out->gate_proj_w);
-    if (rc != IE_IO_OK) return rc;
-    rc = widx_tensor_from_desc(idx, d_up, &out->up_proj_w);
-    if (rc != IE_IO_OK) return rc;
-    rc = widx_tensor_from_desc(idx, d_down, &out->down_proj_w);
-    if (rc != IE_IO_OK) return rc;
+    {
+      int rc = widx_tensor_from_desc(idx, d_gate, &out->gate_proj_w);
+      if (rc != IE_IO_OK) return rc;
+      rc = widx_tensor_from_desc(idx, d_up, &out->up_proj_w);
+      if (rc != IE_IO_OK) return rc;
+      rc = widx_tensor_from_desc(idx, d_down, &out->down_proj_w);
+      if (rc != IE_IO_OK) return rc;
+    }
 
     widx_tensor_reset(&out->fc_in_w);
   } else {
-    /* GeLU-style (dense in + dense out) fallback. */
     const tensor_desc_t *d_in = NULL;
     const tensor_desc_t *d_out = NULL;
 
-    if (widx_fmt_layer(name, sizeof(name), "model.layers.%u.mlp.fc_in.weight", layer) == 0) {
+    if (!d_in && widx_fmt_layer(name, sizeof(name), "model.layers.%u.mlp.fc_in.weight", layer) == 0) {
       d_in = tensor_map_find(&idx->tmap, name);
     }
     if (!d_in && widx_fmt_layer(name, sizeof(name), "model.layers.%u.mlp.w1.weight", layer) == 0) {
       d_in = tensor_map_find(&idx->tmap, name);
     }
+    if (!d_in && widx_fmt_layer(name, sizeof(name), "model.layers.%u.mlp.mlp1.weight", layer) == 0) {
+      d_in = tensor_map_find(&idx->tmap, name);
+    }
 
-    if (widx_fmt_layer(name, sizeof(name), "model.layers.%u.mlp.fc_out.weight", layer) == 0) {
+    if (!d_out && widx_fmt_layer(name, sizeof(name), "model.layers.%u.mlp.fc_out.weight", layer) == 0) {
       d_out = tensor_map_find(&idx->tmap, name);
     }
     if (!d_out && widx_fmt_layer(name, sizeof(name), "model.layers.%u.mlp.w2.weight", layer) == 0) {
       d_out = tensor_map_find(&idx->tmap, name);
     }
+    if (!d_out && widx_fmt_layer(name, sizeof(name), "model.layers.%u.mlp.mlp2.weight", layer) == 0) {
+      d_out = tensor_map_find(&idx->tmap, name);
+    }
 
     if (!d_in || !d_out) return IE_IO_ERR_JSON;
 
-    int rc = widx_tensor_from_desc(idx, d_in, &out->fc_in_w);
-    if (rc != IE_IO_OK) return rc;
-    rc = widx_tensor_from_desc(idx, d_out, &out->down_proj_w);
-    if (rc != IE_IO_OK) return rc;
+    {
+      int rc = widx_tensor_from_desc(idx, d_in, &out->fc_in_w);
+      if (rc != IE_IO_OK) return rc;
+      rc = widx_tensor_from_desc(idx, d_out, &out->down_proj_w);
+      if (rc != IE_IO_OK) return rc;
+    }
 
     widx_tensor_reset(&out->gate_proj_w);
     widx_tensor_reset(&out->up_proj_w);
@@ -826,7 +932,6 @@ static int widx_resolve_layer_llama(const gptoss_weights_index_t *idx,
 
 /**
  * @brief Resolve a GPT-NeoX-style layer weights set.
- *
  * @param idx Index.
  * @param layer Layer index.
  * @param out Output layer weights.
@@ -840,7 +945,6 @@ static int widx_resolve_layer_neox(const gptoss_weights_index_t *idx,
 
   char name[256];
 
-  /* Norms */
   if (widx_fmt_layer(name, sizeof(name), "gpt_neox.layers.%u.input_layernorm.weight", layer) != 0) return IE_IO_ERR_ARGS;
   {
     const tensor_desc_t *d = tensor_map_find(&idx->tmap, name);
@@ -857,7 +961,6 @@ static int widx_resolve_layer_neox(const gptoss_weights_index_t *idx,
     if (rc != IE_IO_OK) return rc;
   }
 
-  /* Attention projections (prefer fused QKV). */
   if (widx_fmt_layer(name, sizeof(name), "gpt_neox.layers.%u.attention.query_key_value.weight", layer) != 0) return IE_IO_ERR_ARGS;
   {
     const tensor_desc_t *d = tensor_map_find(&idx->tmap, name);
@@ -878,7 +981,6 @@ static int widx_resolve_layer_neox(const gptoss_weights_index_t *idx,
     if (rc != IE_IO_OK) return rc;
   }
 
-  /* MLP (GeLU-style) */
   if (widx_fmt_layer(name, sizeof(name), "gpt_neox.layers.%u.mlp.dense_h_to_4h.weight", layer) != 0) return IE_IO_ERR_ARGS;
   {
     const tensor_desc_t *d = tensor_map_find(&idx->tmap, name);
@@ -903,7 +1005,6 @@ static int widx_resolve_layer_neox(const gptoss_weights_index_t *idx,
 
 /**
  * @brief Resolve and validate all tensors required by the GPT-OSS forward pass.
- *
  * @param idx Opened weights index.
  * @param hp Hyperparameters (layer count).
  * @param out Output model weights index.
@@ -920,8 +1021,10 @@ int gptoss_weights_index_build_model(const gptoss_weights_index_t *idx,
   int fused_qkv = 0;
   int swiglu = 0;
 
-  int rc = widx_detect_arch(idx, &arch, &fused_qkv, &swiglu);
-  if (rc != IE_IO_OK) return rc;
+  {
+    int rc = widx_detect_arch(idx, &arch, &fused_qkv, &swiglu);
+    if (rc != IE_IO_OK) return rc;
+  }
 
   out->arch = arch;
   out->attn_fused_qkv = fused_qkv;
@@ -937,7 +1040,7 @@ int gptoss_weights_index_build_model(const gptoss_weights_index_t *idx,
       "transformer.wte.weight",
       "gpt_neox.embed_in.weight"
     };
-    rc = widx_resolve_required(idx, embed_names, sizeof(embed_names)/sizeof(embed_names[0]), &out->tok_embed_w);
+    int rc = widx_resolve_required(idx, embed_names, sizeof(embed_names)/sizeof(embed_names[0]), &out->tok_embed_w);
     if (rc != IE_IO_OK) return rc;
   }
 
@@ -947,7 +1050,7 @@ int gptoss_weights_index_build_model(const gptoss_weights_index_t *idx,
       "transformer.wpe.weight",
       "gpt_neox.embed_positions.weight"
     };
-    rc = widx_resolve_optional(idx, pos_names, sizeof(pos_names)/sizeof(pos_names[0]), &out->pos_embed_w);
+    int rc = widx_resolve_optional(idx, pos_names, sizeof(pos_names)/sizeof(pos_names[0]), &out->pos_embed_w);
     if (rc != IE_IO_OK) return rc;
   }
 
@@ -958,7 +1061,7 @@ int gptoss_weights_index_build_model(const gptoss_weights_index_t *idx,
       "gpt_neox.final_layer_norm.weight",
       "final_layer_norm.weight"
     };
-    rc = widx_resolve_required(idx, norm_names, sizeof(norm_names)/sizeof(norm_names[0]), &out->final_norm_w);
+    int rc = widx_resolve_required(idx, norm_names, sizeof(norm_names)/sizeof(norm_names[0]), &out->final_norm_w);
     if (rc != IE_IO_OK) return rc;
   }
 
@@ -970,22 +1073,21 @@ int gptoss_weights_index_build_model(const gptoss_weights_index_t *idx,
       "embed_out.weight",
       "gpt_neox.embed_out.weight"
     };
-    rc = widx_resolve_optional(idx, lm_head_names, sizeof(lm_head_names)/sizeof(lm_head_names[0]), &out->lm_head_w);
+    int rc = widx_resolve_optional(idx, lm_head_names, sizeof(lm_head_names)/sizeof(lm_head_names[0]), &out->lm_head_w);
     if (rc != IE_IO_OK) return rc;
 
-    /* If lm_head is absent, assume tied embeddings. */
     if (!out->lm_head_w.desc) {
       out->lm_head_w = out->tok_embed_w;
     }
   }
 
-  /* Layers */
   if (hp->n_layers == 0) return IE_IO_ERR_ARGS;
 
   out->layers = (gptoss_layer_weights_t*)calloc((size_t)hp->n_layers, sizeof(gptoss_layer_weights_t));
   if (!out->layers) return IE_IO_ERR_OOM;
 
   for (uint32_t l = 0; l < hp->n_layers; ++l) {
+    int rc;
     if (arch == GPTOSS_ARCH_LLAMA) {
       rc = widx_resolve_layer_llama(idx, l, fused_qkv, swiglu, &out->layers[l]);
     } else if (arch == GPTOSS_ARCH_GPTNEOX) {
@@ -1005,7 +1107,6 @@ int gptoss_weights_index_build_model(const gptoss_weights_index_t *idx,
 
 /**
  * @brief Free the per-layer array allocated by ::gptoss_weights_index_build_model.
- *
  * @param mw Model weights.
  */
 void gptoss_model_weights_free(gptoss_model_weights_t *mw) {

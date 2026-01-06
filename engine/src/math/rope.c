@@ -41,15 +41,20 @@
  * @return Inverse frequency for the given pair index.
  */
 static float ie_rope_inv_freq(float theta, size_t i, size_t head_dim) {
-  if (theta <= 0.0f || head_dim == 0) return 0.0f;
-  const double di = (double)i;
-  const double dh = (double)head_dim;
-  const double exponent = -(2.0 * di) / dh;
-  return (float)exp(exponent * log((double)theta));
+  if (!(theta > 0.0f) || head_dim == 0u) return 0.0f;
+
+  const float di = (float)i;
+  const float dh = (float)head_dim;
+  const float exponent = (-2.0f * di) / dh;
+
+  return expf(exponent * logf(theta));
 }
 
-void ie_rope_apply_one_f32(float *x, size_t head_dim, uint32_t pos, float theta) {
-  if (!x || head_dim < 2) return;
+int ie_rope_apply_one_f32(float *x, size_t head_dim, uint32_t pos, float theta) {
+  if (!x) return -1;
+  if (head_dim < 2u) return -2;
+  if ((head_dim & 1u) != 0u) return -3;
+  if (!(theta > 0.0f)) return -4;
 
   const size_t pairs = head_dim / 2u;
   const float p = (float)pos;
@@ -69,10 +74,29 @@ void ie_rope_apply_one_f32(float *x, size_t head_dim, uint32_t pos, float theta)
     x[j + 0u] = x0 * c - x1 * s;
     x[j + 1u] = x0 * s + x1 * c;
   }
+
+  return 0;
 }
 
-void ie_rope_apply_f32(float *q, float *k, size_t head_dim, uint32_t pos, float theta) {
-  if (!q || !k) return;
-  ie_rope_apply_one_f32(q, head_dim, pos, theta);
-  ie_rope_apply_one_f32(k, head_dim, pos, theta);
+int ie_rope_apply_f32(float *q, float *k, size_t heads, size_t head_dim, uint32_t pos,
+                      float theta) {
+  if (!q && !k) return 0;
+  if (heads == 0u) return -1;
+
+  if ((head_dim & 1u) != 0u) return -2;
+  if (head_dim < 2u) return -3;
+  if (!(theta > 0.0f)) return -4;
+
+  for (size_t h = 0; h < heads; ++h) {
+    if (q) {
+      int rc = ie_rope_apply_one_f32(q + h * head_dim, head_dim, pos, theta);
+      if (rc != 0) return rc;
+    }
+    if (k) {
+      int rc = ie_rope_apply_one_f32(k + h * head_dim, head_dim, pos, theta);
+      if (rc != 0) return rc;
+    }
+  }
+
+  return 0;
 }

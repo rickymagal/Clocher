@@ -6,6 +6,11 @@
  * It prints exactly one JSON object to stdout (even on errors) so that scripts can
  * reliably parse results.
  *
+ * Logging:
+ *  - All logs go to stderr only (stdout is reserved for the single JSON object).
+ *  - Verbosity can be controlled via IE_LOG_LEVEL:
+ *      0=errors, 1=warnings, 2=info, 3=debug.
+ *
  * Strict-run goals (CPU/CUDA):
  *  - When IE_REQUIRE_MODEL=1, model files must open successfully.
  *  - When IE_VERIFY_TOUCH=1 and IE_BYTES_PER_TOKEN>0, the timed window includes
@@ -31,11 +36,16 @@
 #  define _POSIX_C_SOURCE 200809L
 #endif
 
+#ifndef _XOPEN_SOURCE
+#  define _XOPEN_SOURCE 700
+#endif
+
 #include <dlfcn.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <inttypes.h>
 #include <limits.h>
+#include <stdarg.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -79,19 +89,104 @@
 #endif
 
 /* -------------------------------------------------------------------------- */
+/* Logging                                                                    */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * @brief Log level enum for stderr logs.
+ */
+typedef enum ie_log_level {
+  IE_LOG_ERROR = 0,
+  IE_LOG_WARN  = 1,
+  IE_LOG_INFO  = 2,
+  IE_LOG_DEBUG = 3
+} ie_log_level_t;
+
+/**
+ * @brief Global log level for this CLI (stderr only).
+ */
+static ie_log_level_t g_log_level = IE_LOG_INFO;
+
+/**
+ * @brief Parse IE_LOG_LEVEL from the environment.
+ *
+ * Accepted values:
+ *  - "0","1","2","3"
+ *  - "error","warn","info","debug" (case-insensitive ASCII)
+ *
+ * @return Parsed level, or IE_LOG_INFO by default.
+ */
+static ie_log_level_t cli_log_level_from_env(void);
+
+/**
+ * @brief Print a formatted log line to stderr if enabled by log level.
+ *
+ * @param lvl Log level of this message.
+ * @param tag Short tag ("error","warn","info","debug").
+ * @param fmt printf-style format.
+ */
+static void cli_logf(ie_log_level_t lvl, const char *tag, const char *fmt, ...);
+
+/**
+ * @brief Case-insensitive ASCII equality.
+ *
+ * @param a String A.
+ * @param b String B.
+ * @return 1 when equal (ASCII case-insensitive), 0 otherwise.
+ */
+static int ascii_ieq(const char *a, const char *b);
+
+static ie_log_level_t cli_log_level_from_env(void) {
+  const char *s = getenv("IE_LOG_LEVEL");
+  if (!s || !*s) return IE_LOG_INFO;
+
+  if (ascii_ieq(s, "error")) return IE_LOG_ERROR;
+  if (ascii_ieq(s, "warn")  || ascii_ieq(s, "warning")) return IE_LOG_WARN;
+  if (ascii_ieq(s, "info")) return IE_LOG_INFO;
+  if (ascii_ieq(s, "debug")) return IE_LOG_DEBUG;
+
+  char *end = NULL;
+  long v = strtol(s, &end, 10);
+  if (end && *end == '\0') {
+    if (v <= 0) return IE_LOG_ERROR;
+    if (v == 1) return IE_LOG_WARN;
+    if (v == 2) return IE_LOG_INFO;
+    return IE_LOG_DEBUG;
+  }
+
+  return IE_LOG_INFO;
+}
+
+static void cli_logf(ie_log_level_t lvl, const char *tag, const char *fmt, ...) {
+  if ((int)lvl > (int)g_log_level) return;
+
+  va_list ap;
+  va_start(ap, fmt);
+
+  if (!tag) tag = "log";
+  fprintf(stderr, "[main_infer][%s] ", tag);
+  vfprintf(stderr, fmt, ap);
+  fputc('\n', stderr);
+
+  va_end(ap);
+}
+
+/* -------------------------------------------------------------------------- */
 /* Local helpers                                                              */
 /* -------------------------------------------------------------------------- */
 
 /**
  * @brief Return the smaller of two size_t values.
+ *
  * @param a First value.
  * @param b Second value.
- * @return min(a,b).
+ * @return min(a, b).
  */
 static size_t min_size(size_t a, size_t b) { return (a < b) ? a : b; }
 
 /**
  * @brief Read a long integer from an environment variable with a default.
+ *
  * @param name Environment variable name.
  * @param defv Default value when unset or invalid.
  * @return Parsed value or defv.
@@ -106,6 +201,7 @@ static long env_long(const char *name, long defv) {
 
 /**
  * @brief Read a string from an environment variable with a default.
+ *
  * @param name Environment variable name.
  * @param defv Default string when unset or empty.
  * @return Environment value or defv.
@@ -115,12 +211,6 @@ static const char *env_str(const char *name, const char *defv) {
   return (s && *s) ? s : defv;
 }
 
-/**
- * @brief Case-insensitive ASCII equality.
- * @param a String A.
- * @param b String B.
- * @return 1 when equal (ASCII case-insensitive), 0 otherwise.
- */
 static int ascii_ieq(const char *a, const char *b) {
   if (!a || !b) return 0;
   while (*a && *b) {
@@ -135,6 +225,7 @@ static int ascii_ieq(const char *a, const char *b) {
 
 /**
  * @brief Check whether a string begins with a given prefix (case-sensitive).
+ *
  * @param s Input string.
  * @param prefix Prefix string.
  * @return 1 when s starts with prefix, 0 otherwise.
@@ -149,6 +240,7 @@ static int starts_with(const char *s, const char *prefix) {
 
 /**
  * @brief Return monotonic time in seconds.
+ *
  * @return Seconds since an unspecified epoch (monotonic).
  */
 static double now_sec(void) {
@@ -159,6 +251,7 @@ static double now_sec(void) {
 
 /**
  * @brief Determine whether a filesystem path exists (stat succeeds).
+ *
  * @param p Path to test.
  * @return 1 when exists, 0 otherwise.
  */
@@ -170,6 +263,7 @@ static int path_exists(const char *p) {
 
 /**
  * @brief Determine whether a directory exists and is accessible (R_OK|X_OK).
+ *
  * @param p Directory path.
  * @return 1 when accessible directory, 0 otherwise.
  */
@@ -183,6 +277,7 @@ static int dir_accessible(const char *p) {
 
 /**
  * @brief Check if a path is absolute (POSIX).
+ *
  * @param p Path.
  * @return 1 when absolute, 0 otherwise.
  */
@@ -190,6 +285,7 @@ static int path_is_abs(const char *p) { return (p && p[0] == '/'); }
 
 /**
  * @brief Safe string copy using snprintf.
+ *
  * @param dst Destination buffer.
  * @param dstsz Destination capacity.
  * @param src Source string (may be NULL).
@@ -205,6 +301,7 @@ static void safe_strcpy(char *dst, size_t dstsz, const char *src) {
 
 /**
  * @brief Join directory and filename into a single path.
+ *
  * @param out Output buffer.
  * @param outsz Output capacity.
  * @param dir Directory component (may be NULL/empty).
@@ -231,6 +328,7 @@ static void join_path(char *out, size_t outsz, const char *dir, const char *leaf
 
 /**
  * @brief Canonicalize a directory path with realpath when possible.
+ *
  * @param out Output buffer.
  * @param outsz Output capacity.
  * @param dir Input directory path.
@@ -253,6 +351,7 @@ static int canon_dir(char *out, size_t outsz, const char *dir) {
 
 /**
  * @brief Determine if precision string requests int4 family.
+ *
  * @param p Precision label.
  * @return 1 if "int4*" else 0.
  */
@@ -327,6 +426,7 @@ static void resolve_model_paths(const char *model_dir,
 
 /**
  * @brief Read ru_maxrss and convert to MiB (Linux: ru_maxrss is KiB).
+ *
  * @return RSS peak in MiB (rounded down), or 0 on failure.
  */
 static uint32_t rss_peak_mib(void) {
@@ -334,6 +434,27 @@ static uint32_t rss_peak_mib(void) {
   if (getrusage(RUSAGE_SELF, &ru) != 0) return 0;
   if (ru.ru_maxrss <= 0) return 0;
   return (uint32_t)((uint64_t)ru.ru_maxrss / 1024ULL);
+}
+
+/**
+ * @brief Print a short stat line about a path (exists/type/size).
+ *
+ * @param label Label to print.
+ * @param path Path to inspect.
+ */
+static void log_path_stat(const char *label, const char *path) {
+  if (!label) label = "path";
+  if (!path || !*path) {
+    cli_logf(IE_LOG_DEBUG, "debug", "%s: (empty)", label);
+    return;
+  }
+  struct stat st;
+  if (stat(path, &st) != 0) {
+    cli_logf(IE_LOG_DEBUG, "debug", "%s: '%s' stat failed: errno=%d (%s)", label, path, errno, strerror(errno));
+    return;
+  }
+  const char *kind = S_ISREG(st.st_mode) ? "file" : (S_ISDIR(st.st_mode) ? "dir" : "other");
+  cli_logf(IE_LOG_DEBUG, "debug", "%s: '%s' kind=%s size=%lld", label, path, kind, (long long)st.st_size);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -344,14 +465,15 @@ static uint32_t rss_peak_mib(void) {
  * @brief A file-backed mmap context for deterministic "touch" work.
  */
 typedef struct model_mmap_touch {
-  int fd;
-  void *base;
-  size_t size;
-  size_t cursor;
+  int fd;          /**< Open file descriptor, or -1. */
+  void *base;      /**< Mapped base pointer. */
+  size_t size;     /**< Mapped size in bytes. */
+  size_t cursor;   /**< Rolling cursor for wrap-around reads. */
 } model_mmap_touch_t;
 
 /**
  * @brief Initialize a file-backed read-only mmap for the given path.
+ *
  * @param ctx Context to initialize.
  * @param path File path to map.
  * @return 0 on success, nonzero on failure.
@@ -392,6 +514,7 @@ static int model_touch_open(model_mmap_touch_t *ctx, const char *path) {
 
 /**
  * @brief Close and unmap a model touch context.
+ *
  * @param ctx Context to close (safe to call repeatedly).
  */
 static void model_touch_close(model_mmap_touch_t *ctx) {
@@ -402,6 +525,19 @@ static void model_touch_close(model_mmap_touch_t *ctx) {
   if (ctx->fd >= 0) (void)close(ctx->fd);
   ctx->fd = -1;
   ctx->cursor = 0;
+}
+
+/**
+ * @brief Multiply with overflow clamp for size_t.
+ *
+ * @param a First operand.
+ * @param b Second operand.
+ * @return a*b, or SIZE_MAX if overflow would occur.
+ */
+static size_t mul_size_clamp(size_t a, size_t b) {
+  if (a == 0 || b == 0) return 0;
+  if (a > (SIZE_MAX / b)) return SIZE_MAX;
+  return a * b;
 }
 
 /**
@@ -481,8 +617,14 @@ static int model_touch_bytes(model_mmap_touch_t *ctx,
 /* Minimal cudart dynamic loader (CUDA strict touch)                          */
 /* -------------------------------------------------------------------------- */
 
+/**
+ * @brief CUDA runtime error code type (opaque int for dynamic loading).
+ */
 typedef int cudart_err_t;
 
+/**
+ * @brief cudart function typedefs.
+ */
 typedef cudart_err_t (*cudaFree_fn_t)(void *);
 typedef cudart_err_t (*cudaMalloc_fn_t)(void **, size_t);
 typedef cudart_err_t (*cudaMemcpy_fn_t)(void *, const void *, size_t, int);
@@ -495,18 +637,22 @@ enum {
   CUDA_MEMCPY_DEVICE_TO_DEVICE = 3
 };
 
+/**
+ * @brief cudart dynamic API table.
+ */
 typedef struct cudart_api {
-  void *handle;
-  int ok;
-  cudaFree_fn_t cudaFree;
-  cudaMalloc_fn_t cudaMalloc;
-  cudaMemcpy_fn_t cudaMemcpy;
-  cudaMemset_fn_t cudaMemset;
-  cudaDeviceSynchronize_fn_t cudaDeviceSynchronize;
+  void *handle;                          /**< dlopen handle. */
+  int ok;                                /**< 1 if all symbols are loaded. */
+  cudaFree_fn_t cudaFree;                /**< cudaFree symbol. */
+  cudaMalloc_fn_t cudaMalloc;            /**< cudaMalloc symbol. */
+  cudaMemcpy_fn_t cudaMemcpy;            /**< cudaMemcpy symbol. */
+  cudaMemset_fn_t cudaMemset;            /**< cudaMemset symbol. */
+  cudaDeviceSynchronize_fn_t cudaDeviceSynchronize; /**< cudaDeviceSynchronize symbol. */
 } cudart_api_t;
 
 /**
  * @brief Load cudart symbols via dlopen/dlsym (lazy singleton).
+ *
  * @return Pointer to API table on success, NULL otherwise.
  */
 static cudart_api_t *cudart_get_api(void) {
@@ -555,6 +701,7 @@ static void cudart_smoke_free0(void) {
 
 /**
  * @brief Strict CUDA touch: cudaMalloc + repeated cudaMemset + optional D2H copy.
+ *
  * @param bytes_per_token Bytes per token (0 disables).
  * @param tokens Number of generated tokens.
  * @param stride_bytes Unused (kept for symmetry with CPU touch).
@@ -616,23 +763,16 @@ static int cudart_touch_bytes(size_t bytes_per_token,
 /* -------------------------------------------------------------------------- */
 
 /**
- * @brief Token entry: token string for a given id.
- */
-typedef struct tok_entry_s {
-  uint32_t id;
-  char *text; /* NUL-terminated UTF-8 token piece */
-} tok_entry_t;
-
-/**
  * @brief Token map loaded from tokenizer.json: id -> token piece.
  */
 typedef struct tok_map_s {
-  uint32_t vocab_size;
-  char **id_to_text; /* array[vocab_size], owned strings */
+  uint32_t vocab_size;   /**< Maximum token id + 1. */
+  char **id_to_text;     /**< Array[vocab_size], owned strings. */
 } tok_map_t;
 
 /**
  * @brief Free a tok_map_t.
+ *
  * @param m Map to free (safe on zeroed).
  */
 static void tok_map_free(tok_map_t *m) {
@@ -647,6 +787,7 @@ static void tok_map_free(tok_map_t *m) {
 
 /**
  * @brief Read an entire file into memory.
+ *
  * @param path File path.
  * @param out_buf Output buffer pointer (malloc'd).
  * @param out_len Output length in bytes (excluding any added NUL).
@@ -680,6 +821,7 @@ static int read_entire_file(const char *path, char **out_buf, size_t *out_len) {
 
 /**
  * @brief Convert a hex digit to value.
+ *
  * @param c Character.
  * @return 0..15 on success, -1 on failure.
  */
@@ -692,6 +834,7 @@ static int hex_val(int c) {
 
 /**
  * @brief Append a UTF-8 codepoint to a dynamic buffer.
+ *
  * @param dst Pointer to buffer pointer (may grow).
  * @param cap Pointer to capacity.
  * @param len Pointer to current length.
@@ -822,6 +965,7 @@ static const char *json_parse_string(const char *p, char **out) {
 
 /**
  * @brief Skip whitespace in JSON.
+ *
  * @param p Input pointer.
  * @return Advanced pointer.
  */
@@ -832,6 +976,7 @@ static const char *json_skip_ws(const char *p) {
 
 /**
  * @brief Parse a non-negative integer.
+ *
  * @param p Input pointer.
  * @param out Output value.
  * @return Pointer after number, or NULL on failure.
@@ -849,32 +994,6 @@ static const char *json_parse_u32(const char *p, uint32_t *out) {
   }
   *out = (uint32_t)v;
   return p;
-}
-
-/**
- * @brief Find a JSON key name occurrence and return pointer to the value start.
- *
- * This is a best-effort scanner: it searches for the literal substring "\"key\"".
- *
- * @param json JSON buffer.
- * @param key Key name.
- * @return Pointer to value (after ':'), or NULL if not found.
- */
-static const char *json_find_key_value(const char *json, const char *key) __attribute__((unused));
-static const char *json_find_key_value(const char *json, const char *key) {
-  if (!json || !key) return NULL;
-
-  char pat[128];
-  (void)snprintf(pat, sizeof(pat), "\"%s\"", key);
-
-  const char *hit = strstr(json, pat);
-  if (!hit) return NULL;
-
-  const char *p = hit + strlen(pat);
-  p = json_skip_ws(p);
-  if (*p != ':') return NULL;
-  ++p;
-  return json_skip_ws(p);
 }
 
 /**
@@ -950,15 +1069,32 @@ static int tok_map_load_from_tokenizer_json(const char *tokenizer_json_path, tok
 
     char *key = NULL;
     const char *p2 = json_parse_string(p, &key);
-    if (!p2) { tok_map_free(&(tok_map_t){ .vocab_size = vocab_size, .id_to_text = id_to_text }); free(buf); return 11; }
+    if (!p2) {
+      tok_map_t tmp = { .vocab_size = vocab_size, .id_to_text = id_to_text };
+      tok_map_free(&tmp);
+      free(buf);
+      return 11;
+    }
 
     p2 = json_skip_ws(p2);
-    if (*p2 != ':') { free(key); tok_map_free(&(tok_map_t){ .vocab_size = vocab_size, .id_to_text = id_to_text }); free(buf); return 12; }
+    if (*p2 != ':') {
+      free(key);
+      tok_map_t tmp = { .vocab_size = vocab_size, .id_to_text = id_to_text };
+      tok_map_free(&tmp);
+      free(buf);
+      return 12;
+    }
     ++p2;
 
     uint32_t id = 0;
     p2 = json_parse_u32(p2, &id);
-    if (!p2 || id >= vocab_size) { free(key); tok_map_free(&(tok_map_t){ .vocab_size = vocab_size, .id_to_text = id_to_text }); free(buf); return 13; }
+    if (!p2 || id >= vocab_size) {
+      free(key);
+      tok_map_t tmp = { .vocab_size = vocab_size, .id_to_text = id_to_text };
+      tok_map_free(&tmp);
+      free(buf);
+      return 13;
+    }
 
     if (!id_to_text[id]) {
       id_to_text[id] = key;
@@ -983,16 +1119,14 @@ static int tok_map_load_from_tokenizer_json(const char *tokenizer_json_path, tok
         if (*q == ']') break;
         if (*q != '{') { ++q; continue; }
 
-        const char *obj = q;
-        (void)obj;
-
         /* Find "id" and "content" inside this object (best-effort scan). */
+        const char *obj_end = strstr(q, "}");
         const char *idp = strstr(q, "\"id\"");
         const char *cp = strstr(q, "\"content\"");
         uint32_t id = 0;
         char *content = NULL;
 
-        if (idp && idp < strstr(q, "}")) {
+        if (obj_end && idp && idp < obj_end) {
           const char *iv = strchr(idp, ':');
           if (iv) {
             ++iv;
@@ -1001,7 +1135,7 @@ static int tok_map_load_from_tokenizer_json(const char *tokenizer_json_path, tok
           }
         }
 
-        if (cp && cp < strstr(q, "}")) {
+        if (obj_end && cp && cp < obj_end) {
           const char *cv = strchr(cp, ':');
           if (cv) {
             cv = json_skip_ws(cv + 1);
@@ -1113,7 +1247,6 @@ static int tok_decode_ids_to_text(const tok_map_t *m, const int *ids, size_t n, 
     uint32_t idu = (uint32_t)tid;
     const char *piece = (idu < m->vocab_size) ? m->id_to_text[idu] : NULL;
     if (!piece) {
-      /* Unknown id: emit a stable placeholder. */
       char tmp[64];
       (void)snprintf(tmp, sizeof(tmp), "<%u>", (unsigned)idu);
       if (tok_piece_append_normalized(tmp, &dyn, &cap, &len) != 0) { free(dyn); return 4; }
@@ -1134,7 +1267,7 @@ static int tok_decode_ids_to_text(const tok_map_t *m, const int *ids, size_t n, 
 }
 
 /**
- * @brief JSON-escape and print a string value.
+ * @brief JSON-escape and print a string value to stdout.
  *
  * @param s Input UTF-8 string (may be NULL).
  */
@@ -1154,7 +1287,6 @@ static void json_print_escaped_string(const char *s) {
     else if (c == '\r') fputs("\\r", stdout);
     else if (c == '\t') fputs("\\t", stdout);
     else if (c < 0x20u) {
-      /* Control char: emit \u00XX. */
       fprintf(stdout, "\\u%04x", (unsigned)c);
     } else {
       fputc((int)c, stdout);
@@ -1205,41 +1337,46 @@ static void resolve_tokenizer_path(const char *model_dir, const char *tokenizer_
 /* CLI options                                                                */
 /* -------------------------------------------------------------------------- */
 
+/**
+ * @brief Pretranspose selection.
+ */
 typedef enum {
-  CLI_PRETX_NONE = 0,
-  CLI_PRETX_WOH  = 1,
-  CLI_PRETX_WXH  = 2,
-  CLI_PRETX_ALL  = 3
+  CLI_PRETX_NONE = 0, /**< No pretranspose. */
+  CLI_PRETX_WOH  = 1, /**< Pretranspose W/O/H. */
+  CLI_PRETX_WXH  = 2, /**< Pretranspose W x H. */
+  CLI_PRETX_ALL  = 3  /**< Pretranspose all supported. */
 } cli_pretranspose_t;
 
+/**
+ * @brief Parsed CLI options (plus env-backed behavior).
+ */
 typedef struct cli_extras {
-  const char *prompt;
-  size_t max_new;
-  int threads;
-  const char *affinity;
-  cli_pretranspose_t pretx;
-  const char *device;
+  const char *prompt;           /**< Prompt string for single prompt mode. */
+  size_t max_new;               /**< Maximum new tokens to generate per call. */
+  int threads;                  /**< Thread count override (0 = engine default). */
+  const char *affinity;         /**< Affinity policy label. */
+  cli_pretranspose_t pretx;     /**< Pretranspose selection. */
+  const char *device;           /**< Device selection label. */
 
-  const char *prompts_file;
-  int batch;
-  const char *prefetch;
-  int warmup_tokens;
-  int aggregate;
-  int rounds;
+  const char *prompts_file;     /**< Path to prompts file (batch/aggregate). */
+  int batch;                    /**< Batch size (currently not used by this CLI). */
+  const char *prefetch;         /**< Prefetch policy label. */
+  int warmup_tokens;            /**< Warmup tokens count before timed region. */
+  int aggregate;                /**< Aggregate mode (loop over prompts-file). */
+  int rounds;                   /**< Number of rounds (repeat generation). */
 
-  const char *model_dir;
-  const char *model_json;
-  const char *model_bin;
+  const char *model_dir;        /**< Model directory. */
+  const char *model_json;       /**< Optional model.ie.json override. */
+  const char *model_bin;        /**< Optional model.ie.bin override. */
 
-  const char *precision_label;
-  int precision_from_flag;
+  const char *precision_label;  /**< Precision label. */
+  int precision_from_flag;      /**< Whether --precision was explicitly set. */
 
-  const char *sparsity;
-  int sparsity_from_flag;
+  const char *sparsity;         /**< Sparsity policy label. */
+  int sparsity_from_flag;       /**< Whether --sparsity was explicitly set. */
 
-  /* Text decode options */
-  int print_text;
-  const char *tokenizer_path;
+  int print_text;               /**< Whether to decode tokens to text. */
+  const char *tokenizer_path;   /**< Optional tokenizer.json path override. */
 } cli_extras_t;
 
 /**
@@ -1264,6 +1401,7 @@ static void usage(void) {
 
 /**
  * @brief Initialize CLI defaults.
+ *
  * @param e Options struct to fill.
  */
 static void cli_extras_defaults(cli_extras_t *e) {
@@ -1297,6 +1435,7 @@ static void cli_extras_defaults(cli_extras_t *e) {
 
 /**
  * @brief Parse a decimal integer safely (fatal on invalid input).
+ *
  * @param s Input string.
  * @return Parsed value.
  */
@@ -1316,6 +1455,7 @@ static long safe_atoi(const char *s) {
 
 /**
  * @brief Parse CLI flags into cli_extras_t.
+ *
  * @param argc argc.
  * @param argv argv.
  * @param out Output options.
@@ -1459,6 +1599,7 @@ static int parse_flags(int argc, char **argv, cli_extras_t *out) {
 
 /**
  * @brief Read the first non-empty line from a text file.
+ *
  * @param path File path.
  * @param buf Output buffer.
  * @param bufsz Output capacity.
@@ -1557,31 +1698,39 @@ static void print_json_result(size_t n_tok,
 
 /**
  * @brief Check whether device string selects CUDA.
+ *
  * @param dev Device label.
  * @return 1 if CUDA, 0 otherwise.
  */
-static int device_is_cuda(const char *dev) { return ascii_ieq(dev, "cuda") ? 1 : 0; }
+static int device_is_cuda(const char *dev) { return (dev && ascii_ieq(dev, "cuda")) ? 1 : 0; }
 
 /**
  * @brief Check whether device string selects CPU.
+ *
  * @param dev Device label.
  * @return 1 if CPU, 0 otherwise.
  */
-static int device_is_cpu(const char *dev) { return ascii_ieq(dev, "cpu") ? 1 : 0; }
+static int device_is_cpu(const char *dev) { return (dev && ascii_ieq(dev, "cpu")) ? 1 : 0; }
 
 int main(int argc, char **argv) {
+  /* Initialize CLI log level early. */
+  g_log_level = cli_log_level_from_env();
+  cli_logf(IE_LOG_DEBUG, "debug", "IE_LOG_LEVEL=%d", (int)g_log_level);
+
   cli_extras_t opt;
   if (parse_flags(argc, argv, &opt) != 0) return 2;
 
   /* Allow env override for print-text without breaking harness defaults. */
   if (!opt.print_text) opt.print_text = (int)env_long("IE_PRINT_TEXT", 0);
 
+  /* Resolve device from env if --device is auto/unset. */
   if (!opt.device || !*opt.device || ascii_ieq(opt.device, "auto")) {
     const char *d = getenv("DEVICE");
     if (!d || !*d) d = getenv("IE_DEVICE");
     if (d && *d) opt.device = d;
   }
 
+  /* Resolve precision from env if not explicitly set. */
   if (!opt.precision_from_flag) {
     const char *envp = env_str("IE_PRECISION", env_str("PRECISION", IE_PREC_FP32));
     if (ascii_ieq(envp, IE_PREC_INT4W)) opt.precision_label = IE_PREC_INT4W;
@@ -1592,6 +1741,7 @@ int main(int argc, char **argv) {
     else opt.precision_label = IE_PREC_FP32;
   }
 
+  /* Resolve sparsity from env if not explicitly set. */
   if (!opt.sparsity_from_flag) {
     const char *envs = env_str("IE_SPARSITY", env_str("SPARSITY", "none"));
     if (ascii_ieq(envs, "block") || ascii_ieq(envs, "blocksparse")) opt.sparsity = "block";
@@ -1599,6 +1749,7 @@ int main(int argc, char **argv) {
     else opt.sparsity = "none";
   }
 
+  /* Resolve model_dir. */
   const char *model_dir_eff = opt.model_dir;
   if (!model_dir_eff || !*model_dir_eff) model_dir_eff = getenv("MODEL_DIR");
   if (!model_dir_eff || !*model_dir_eff) model_dir_eff = getenv("IE_MODEL_DIR");
@@ -1614,14 +1765,17 @@ int main(int argc, char **argv) {
     }
   }
 
+  /* Validate --model-dir if explicitly provided. */
   if (opt.model_dir && *opt.model_dir) {
     if (!dir_accessible(opt.model_dir)) {
-      fprintf(stderr, "error: --model-dir '%s' is not accessible: %s\n", opt.model_dir, strerror(errno));
+      cli_logf(IE_LOG_ERROR, "error", "--model-dir '%s' is not accessible: errno=%d (%s)",
+               opt.model_dir, errno, strerror(errno));
       print_json_result(0, NULL, 0.0, 0, 0, 0, NULL);
       return 3;
     }
   }
 
+  /* Resolve model JSON/BIN paths. */
   char json_path[PATH_MAX];
   char bin_path[PATH_MAX];
   resolve_model_paths(model_dir_eff,
@@ -1631,6 +1785,7 @@ int main(int argc, char **argv) {
                       json_path, sizeof(json_path),
                       bin_path, sizeof(bin_path));
 
+  /* If prompt is missing and prompts-file is provided (non-aggregate), pick first line. */
   char prompt_buf[8192];
   if (!opt.prompt && opt.prompts_file && !opt.aggregate) {
     int r = read_first_nonempty_line(opt.prompts_file, prompt_buf, sizeof(prompt_buf));
@@ -1638,29 +1793,62 @@ int main(int argc, char **argv) {
     else opt.prompt = "bench";
   }
 
+  /* If nothing to do, emit empty JSON and exit successfully. */
   if (!opt.prompt && !opt.prompts_file) {
+    cli_logf(IE_LOG_INFO, "info", "No prompt provided; emitting empty JSON result.");
     print_json_result(0, NULL, 0.0, 0, 0, 0, NULL);
     return 0;
   }
 
+  /* Snapshot strict settings. */
   const int require_model = (int)env_long("IE_REQUIRE_MODEL", 0);
+  const size_t bytes_per_token = (size_t)env_long("IE_BYTES_PER_TOKEN", 0);
+  const size_t stride_bytes = (size_t)env_long("IE_STRIDE_BYTES", 256);
+  const int verify_touch = (int)env_long("IE_VERIFY_TOUCH", 0);
 
+  cli_logf(IE_LOG_INFO, "info",
+           "CLI config: device='%s' precision='%s' sparsity='%s' threads=%d affinity='%s' pretx=%d max_new=%zu rounds=%d aggregate=%d",
+           (opt.device ? opt.device : "(null)"),
+           (opt.precision_label ? opt.precision_label : "(null)"),
+           (opt.sparsity ? opt.sparsity : "(null)"),
+           opt.threads,
+           (opt.affinity ? opt.affinity : "(null)"),
+           (int)opt.pretx,
+           opt.max_new,
+           opt.rounds,
+           opt.aggregate);
+
+  cli_logf(IE_LOG_INFO, "info",
+           "Model paths: model_dir='%s' json='%s' bin='%s' require_model=%d",
+           model_dir_eff, json_path, bin_path, require_model);
+
+  cli_logf(IE_LOG_INFO, "info",
+           "Strict settings: IE_VERIFY_TOUCH=%d IE_BYTES_PER_TOKEN=%zu IE_STRIDE_BYTES=%zu",
+           verify_touch, bytes_per_token, stride_bytes);
+
+  log_path_stat("model_dir", model_dir_eff);
+  log_path_stat("model_json", json_path);
+  log_path_stat("model_bin", bin_path);
+
+  /* Load weights metadata (open model files). */
   ie_weights_t w;
   memset(&w, 0, sizeof(w));
   int wrc = ie_weights_open(json_path, bin_path, &w);
   if (wrc != IE_IO_OK) {
     if (require_model) {
-      fprintf(stderr,
-              "error: failed to open model (%s, %s), status=%d, errno=%d (%s)\n",
-              json_path, bin_path, wrc, errno, strerror(errno));
+      cli_logf(IE_LOG_ERROR, "error",
+               "Failed to open model (json='%s', bin='%s'), status=%d, errno=%d (%s)",
+               json_path, bin_path, wrc, errno, strerror(errno));
       print_json_result(0, NULL, 0.0, 0, 0, 0, NULL);
       return 3;
     }
-    fprintf(stderr, "warn: model metadata not found; stub JSON output\n");
+    cli_logf(IE_LOG_WARN, "warn",
+             "Model metadata not found (status=%d). Emitting stub JSON output.", wrc);
     print_json_result(0, NULL, 0.0, 0, 0, 0, NULL);
     return 0;
   }
 
+  /* Create engine. */
   ie_engine_params_t params;
   memset(&params, 0, sizeof(params));
   params.precision = opt.precision_label;
@@ -1672,15 +1860,26 @@ int main(int argc, char **argv) {
   params.threads = opt.threads;
   params.sparsity = opt.sparsity;
 
+  cli_logf(IE_LOG_INFO, "info",
+           "Engine params: precision='%s' device='%s' threads=%d affinity='%s' pretranspose='%s' prefetch='%s' sparsity='%s'",
+           (params.precision ? params.precision : "(null)"),
+           (opt.device ? opt.device : "(null)"),
+           params.threads,
+           (params.affinity ? params.affinity : "(null)"),
+           (params.pretranspose ? params.pretranspose : "(null)"),
+           (params.prefetch ? params.prefetch : "(null)"),
+           (params.sparsity ? params.sparsity : "(null)"));
+
   ie_engine_t *engine = NULL;
   ie_status_t st = ie_engine_create(&params, opt.device, model_dir_eff, &engine);
   if (st != IE_OK || !engine) {
-    fprintf(stderr, "error: ie_engine_create failed (status=%d)\n", (int)st);
+    cli_logf(IE_LOG_ERROR, "error", "ie_engine_create failed (status=%d)", (int)st);
     ie_weights_close(&w);
     print_json_result(0, NULL, 0.0, 0, 0, 0, NULL);
     return 5;
   }
 
+  /* Warmup generation (outside timed region). */
   if (opt.warmup_tokens > 0) {
     const char *wprompt = "warmup";
     int wtoks[128];
@@ -1688,60 +1887,95 @@ int main(int argc, char **argv) {
     size_t wmax = (opt.warmup_tokens <= (int)(sizeof(wtoks) / sizeof(wtoks[0])))
                       ? (size_t)opt.warmup_tokens
                       : (sizeof(wtoks) / sizeof(wtoks[0]));
-    (void)ie_engine_generate(engine, wprompt, wmax, wtoks, &wcount);
+
+    cli_logf(IE_LOG_INFO, "info", "Warmup: prompt='%s' max_new=%zu", wprompt, wmax);
+    ie_status_t wst = ie_engine_generate(engine, wprompt, wmax, wtoks, &wcount);
+    cli_logf(IE_LOG_INFO, "info", "Warmup done: status=%d tokens=%zu", (int)wst, wcount);
   }
 
+  /* Allocate token buffer (per-call capacity). */
   const size_t cap = (opt.max_new > 0 ? opt.max_new : 0);
   const size_t cap_alloc = (cap > 0 ? cap : 1);
   int *tokens = (int *)malloc(sizeof(int) * cap_alloc);
   if (!tokens) {
-    fprintf(stderr, "error: OOM allocating token buffer\n");
+    cli_logf(IE_LOG_ERROR, "error", "OOM allocating token buffer (cap=%zu)", cap_alloc);
     ie_engine_destroy(engine);
     ie_weights_close(&w);
     print_json_result(0, NULL, 0.0, 0, 0, 0, NULL);
     return 6;
   }
+  memset(tokens, 0, sizeof(int) * cap_alloc);
 
-  const size_t bytes_per_token = (size_t)env_long("IE_BYTES_PER_TOKEN", 0);
-  const size_t stride_bytes = (size_t)env_long("IE_STRIDE_BYTES", 256);
-  const int verify_touch = (int)env_long("IE_VERIFY_TOUCH", 0);
   const int want_cuda = device_is_cuda(opt.device) ? 1 : 0;
   const int want_cpu = device_is_cpu(opt.device) ? 1 : 0;
 
+  if (!want_cpu && !want_cuda) {
+    cli_logf(IE_LOG_WARN, "warn",
+             "Device '%s' is neither explicit 'cpu' nor 'cuda'. Strict-touch behavior may be disabled.",
+             (opt.device ? opt.device : "(null)"));
+  }
+
+  /* Strict CPU file-backed mmap touch setup (optional). */
   model_mmap_touch_t mt;
   int mt_ok = 0;
   if (want_cpu && verify_touch && bytes_per_token > 0) {
-    if (model_touch_open(&mt, bin_path) == 0) mt_ok = 1;
-    else {
-      fprintf(stderr, "warn: strict CPU model mmap failed (will proceed without file-backed touch)\n");
+    int trc = model_touch_open(&mt, bin_path);
+    if (trc == 0) {
+      mt_ok = 1;
+      cli_logf(IE_LOG_INFO, "info",
+               "Strict CPU touch enabled: mmap ok (bin='%s' size=%zu)", bin_path, mt.size);
+    } else {
+      cli_logf(IE_LOG_WARN, "warn",
+               "Strict CPU model mmap failed (rc=%d). Proceeding without file-backed touch.", trc);
       mt_ok = 0;
     }
+  } else {
+    cli_logf(IE_LOG_DEBUG, "debug",
+             "Strict CPU touch not enabled (want_cpu=%d verify=%d bytes_per_token=%zu)",
+             want_cpu, verify_touch, bytes_per_token);
   }
 
+  /* Timed region begins here. */
   (void)ie_kv_begin_round();
   uint64_t total_tokens_this_round = 0;
 
   const double t0 = now_sec();
-  if (want_cuda) cudart_smoke_free0();
+  if (want_cuda) {
+    cli_logf(IE_LOG_DEBUG, "debug", "CUDA smoke preflight inside timed window.");
+    cudart_smoke_free0();
+  }
 
   size_t tokens_generated_total = 0;
 
   for (int rr = 0; rr < (opt.rounds > 0 ? opt.rounds : 1); ++rr) {
+    cli_logf(IE_LOG_INFO, "info", "Round %d/%d begin.", rr + 1, (opt.rounds > 0 ? opt.rounds : 1));
+
     if (opt.aggregate && opt.prompts_file) {
       FILE *pf = fopen(opt.prompts_file, "r");
       if (pf) {
         char line[8192];
+        uint64_t prompts_seen = 0;
+
         while (fgets(line, sizeof(line), pf)) {
           size_t n = strlen(line);
           while (n && (line[n - 1] == '\n' || line[n - 1] == '\r')) line[--n] = '\0';
           if (!n) continue;
 
+          ++prompts_seen;
+
           size_t n_here = 0;
-          st = ie_engine_generate(engine, line, cap, tokens, &n_here);
-          if (st != IE_OK) {
-            fprintf(stderr, "error: ie_engine_generate (status=%d)\n", (int)st);
+          ie_status_t gst = ie_engine_generate(engine, line, cap, tokens, &n_here);
+          if (gst != IE_OK) {
+            cli_logf(IE_LOG_ERROR, "error",
+                     "ie_engine_generate failed in aggregate mode (status=%d) on prompt#%" PRIu64,
+                     (int)gst, prompts_seen);
+            st = gst;
             break;
           }
+
+          cli_logf(IE_LOG_DEBUG, "debug",
+                   "Aggregate prompt#%" PRIu64 " len=%zu tokens=%zu",
+                   prompts_seen, n, n_here);
 
           tokens_generated_total += n_here;
           total_tokens_this_round += (uint64_t)n_here;
@@ -1749,46 +1983,80 @@ int main(int argc, char **argv) {
           if (want_cuda && verify_touch && bytes_per_token && n_here > 0) {
             int rc = cudart_touch_bytes(bytes_per_token, (uint64_t)n_here, stride_bytes, verify_touch);
             if (rc != 0) {
-              fprintf(stderr, "error: CUDA strict touch failed (rc=%d)\n", rc);
+              cli_logf(IE_LOG_ERROR, "error", "CUDA strict touch failed (rc=%d) on prompt#%" PRIu64, rc, prompts_seen);
               break;
             }
           }
 
           if (want_cpu && verify_touch && bytes_per_token && n_here > 0 && mt_ok) {
-            (void)model_touch_bytes(&mt, bytes_per_token * n_here, stride_bytes, verify_touch);
+            size_t touch_bytes = mul_size_clamp(bytes_per_token, n_here);
+            int trc = model_touch_bytes(&mt, touch_bytes, stride_bytes, verify_touch);
+            if (trc != 0) {
+              cli_logf(IE_LOG_WARN, "warn",
+                       "CPU strict touch failed (rc=%d) on prompt#%" PRIu64 " (continuing)",
+                       trc, prompts_seen);
+            }
           }
         }
+
+        cli_logf(IE_LOG_INFO, "info", "Aggregate prompts processed in round: %" PRIu64, prompts_seen);
         (void)fclose(pf);
       } else {
-        fprintf(stderr, "warn: cannot open prompts-file '%s'\n", opt.prompts_file);
+        cli_logf(IE_LOG_WARN, "warn", "Cannot open prompts-file '%s': %s", opt.prompts_file, strerror(errno));
       }
+
     } else {
       const char *p = (opt.prompt ? opt.prompt : "bench");
       size_t n_here = 0;
 
-      st = ie_engine_generate(engine, p, cap, tokens, &n_here);
-      if (st != IE_OK) fprintf(stderr, "error: ie_engine_generate failed (status=%d)\n", (int)st);
+      cli_logf(IE_LOG_DEBUG, "debug", "Generate: prompt_len=%zu max_new=%zu", strlen(p), cap);
+
+      ie_status_t gst = ie_engine_generate(engine, p, cap, tokens, &n_here);
+      if (gst != IE_OK) {
+        cli_logf(IE_LOG_ERROR, "error", "ie_engine_generate failed (status=%d)", (int)gst);
+        st = gst;
+        n_here = 0;
+      } else {
+        cli_logf(IE_LOG_INFO, "info", "Generate ok: tokens=%zu", n_here);
+      }
 
       tokens_generated_total += n_here;
       total_tokens_this_round += (uint64_t)n_here;
 
       if (want_cuda && verify_touch && bytes_per_token && n_here > 0) {
         int rc = cudart_touch_bytes(bytes_per_token, (uint64_t)n_here, stride_bytes, verify_touch);
-        if (rc != 0) fprintf(stderr, "error: CUDA strict touch failed (rc=%d)\n", rc);
+        if (rc != 0) cli_logf(IE_LOG_ERROR, "error", "CUDA strict touch failed (rc=%d)", rc);
       }
 
       if (want_cpu && verify_touch && bytes_per_token && n_here > 0 && mt_ok) {
-        (void)model_touch_bytes(&mt, bytes_per_token * n_here, stride_bytes, verify_touch);
+        size_t touch_bytes = mul_size_clamp(bytes_per_token, n_here);
+        int trc = model_touch_bytes(&mt, touch_bytes, stride_bytes, verify_touch);
+        if (trc != 0) {
+          cli_logf(IE_LOG_WARN, "warn", "CPU strict touch failed (rc=%d) (continuing)", trc);
+        }
       }
     }
+
+    cli_logf(IE_LOG_INFO, "info", "Round %d/%d end (tokens_total_so_far=%zu).",
+             rr + 1, (opt.rounds > 0 ? opt.rounds : 1), tokens_generated_total);
   }
 
   const double t1 = now_sec();
 
+  /* KV instrumentation for the timed window. */
   uint64_t kv_hits_round = 0, kv_miss_round = 0;
   ie_kv_finish_round(total_tokens_this_round, &kv_hits_round, &kv_miss_round);
 
   const uint32_t rss_mib = rss_peak_mib();
+
+  cli_logf(IE_LOG_INFO, "info",
+           "Timed window complete: wall=%.6fs tokens=%zu tps=%.3f kv_hits=%" PRIu64 " kv_misses=%" PRIu64 " rss_peak_mb=%u",
+           (t1 - t0),
+           tokens_generated_total,
+           ((t1 - t0) > 0.0 ? (double)tokens_generated_total / (t1 - t0) : 0.0),
+           kv_hits_round,
+           kv_miss_round,
+           (unsigned)rss_mib);
 
   /* Only print tokens array in non-aggregate single-round mode (original behavior). */
   const int single_run_tokens = (!opt.aggregate && opt.rounds <= 1) ? 1 : 0;
@@ -1801,24 +2069,31 @@ int main(int argc, char **argv) {
 
   if (opt.print_text && single_run_tokens && tokens_generated_total > 0) {
     const char *tok_env = env_str("IE_TOKENIZER", env_str("TOKENIZER", ""));
-    const char *tok_opt = (opt.tokenizer_path && *opt.tokenizer_path) ? opt.tokenizer_path : (tok_env && *tok_env ? tok_env : NULL);
+    const char *tok_opt = (opt.tokenizer_path && *opt.tokenizer_path)
+                              ? opt.tokenizer_path
+                              : ((tok_env && *tok_env) ? tok_env : NULL);
 
     char tok_path[PATH_MAX];
     resolve_tokenizer_path(model_dir_eff, tok_opt, tok_path, sizeof(tok_path));
 
     if (tok_path[0]) {
+      cli_logf(IE_LOG_INFO, "info", "Tokenizer decode enabled: tokenizer_path='%s'", tok_path);
       if (tok_map_load_from_tokenizer_json(tok_path, &tmap) == 0) {
         if (tok_decode_ids_to_text(&tmap, tokens, tokens_generated_total, &decoded) != 0) {
+          cli_logf(IE_LOG_WARN, "warn", "Token decode failed; emitting tokens only.");
           decoded = NULL;
+        } else {
+          cli_logf(IE_LOG_DEBUG, "debug", "Token decode ok (text_len=%zu).", (decoded ? strlen(decoded) : 0u));
         }
       } else {
-        fprintf(stderr, "warn: failed to parse tokenizer.json at '%s'\n", tok_path);
+        cli_logf(IE_LOG_WARN, "warn", "Failed to parse tokenizer.json at '%s'", tok_path);
       }
     } else {
-      fprintf(stderr, "warn: tokenizer.json not found under model dir '%s'\n", model_dir_eff);
+      cli_logf(IE_LOG_WARN, "warn", "tokenizer.json not found under model_dir '%s'", model_dir_eff);
     }
   }
 
+  /* Emit the single stdout JSON object. */
   print_json_result(tokens_generated_total,
                     tokens_to_print,
                     (t1 - t0),
@@ -1827,6 +2102,7 @@ int main(int argc, char **argv) {
                     rss_mib,
                     decoded);
 
+  /* Cleanup. */
   free(decoded);
   tok_map_free(&tmap);
 

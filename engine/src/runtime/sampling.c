@@ -10,6 +10,10 @@
  *           take smallest prefix with cumprob >= p, renormalize and sample.
  *
  * This is correctness-first; optimize later if needed.
+ *
+ * Logging / tracing:
+ *  - Set IE_TRACE_SAMPLING=1 to trace sampling decisions.
+ *  - Optional: IE_TRACE_SAMPLING_N limits logs to the first N calls (0 = unlimited).
  */
 
 #include "ie_sampling.h"
@@ -18,28 +22,68 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <errno.h>
+
+/* ============================================================================
+ * Tracing helpers
+ * ========================================================================== */
+
+static int sampling_trace_enabled(void) {
+  static int inited = 0;
+  static int enabled = 0;
+  if (!inited) {
+    const char *s = getenv("IE_TRACE_SAMPLING");
+    enabled = (s && s[0] && strcmp(s, "0") != 0) ? 1 : 0;
+    inited = 1;
+  }
+  return enabled;
+}
+
+static uint64_t sampling_trace_limit(void) {
+  static int inited = 0;
+  static uint64_t lim = 0;
+  if (!inited) {
+    const char *s = getenv("IE_TRACE_SAMPLING_N");
+    if (s && s[0]) {
+      errno = 0;
+      char *end = NULL;
+      unsigned long long v = strtoull(s, &end, 10);
+      if (end != s && errno == 0) lim = (uint64_t)v;
+    }
+    inited = 1;
+  }
+  return lim;
+}
+
+static int sampling_trace_allow(void) {
+  if (!sampling_trace_enabled()) return 0;
+  static uint64_t calls = 0;
+  calls++;
+  const uint64_t lim = sampling_trace_limit();
+  if (lim == 0) return 1;
+  return calls <= lim;
+}
+
+static const char *kind_name(ie_sample_kind_t k) {
+  switch (k) {
+    case IE_SAMPLE_GREEDY: return "greedy";
+    case IE_SAMPLE_TOPK:   return "topk";
+    case IE_SAMPLE_TOPP:   return "topp";
+    default: return "unknown";
+  }
+}
 
 /* ============================================================================
  * RNG (xorshift64*)
  * ========================================================================== */
 
-/**
- * @brief Initialize RNG with a seed (0 is remapped to a fixed non-zero value).
- *
- * @param rng  RNG state.
- * @param seed Seed value.
- */
 void ie_rng_init(ie_rng_t *rng, uint64_t seed) {
   if (!rng) return;
   rng->s = (seed == 0) ? 0x9E3779B97F4A7C15ull : seed;
 }
 
-/**
- * @brief xorshift64* core step.
- *
- * @param s RNG state pointer.
- * @return Next 64-bit value.
- */
 static uint64_t xorshift64star(uint64_t *s) {
   uint64_t x = *s;
   x ^= x >> 12;
@@ -49,23 +93,11 @@ static uint64_t xorshift64star(uint64_t *s) {
   return x * 2685821657736338717ull;
 }
 
-/**
- * @brief Return a random uint32.
- *
- * @param rng RNG state.
- * @return Random number.
- */
 uint32_t ie_rng_u32(ie_rng_t *rng) {
   if (!rng) return 0;
   return (uint32_t)(xorshift64star(&rng->s) >> 32);
 }
 
-/**
- * @brief Return a random float in [0, 1).
- *
- * @param rng RNG state.
- * @return Random float.
- */
 float ie_rng_f32(ie_rng_t *rng) {
   uint32_t x = ie_rng_u32(rng);
   uint32_t m = x >> 8; /* 24 bits */
@@ -76,13 +108,6 @@ float ie_rng_f32(ie_rng_t *rng) {
  * Helpers
  * ========================================================================== */
 
-/**
- * @brief Sanitize user-provided sampling config into a safe internal config.
- *
- * @param cfg Input config.
- * @param out Output sanitized config.
- * @return 0 on success, negative on error.
- */
 static int cfg_sanitize(const ie_sample_cfg_t *cfg, ie_sample_cfg_t *out) {
   if (!cfg || !out) return -1;
   *out = *cfg;
@@ -98,14 +123,6 @@ static int cfg_sanitize(const ie_sample_cfg_t *cfg, ie_sample_cfg_t *out) {
   return 0;
 }
 
-/**
- * @brief Return argmax index of logits.
- *
- * @param logits     Logits vector.
- * @param n          Length.
- * @param disallow0  If nonzero, skip token 0.
- * @return Index of maximum logit.
- */
 static uint32_t argmax_logits(const float *logits, size_t n, int disallow0) {
   uint32_t best_i = 0;
   float best_v = -INFINITY;
@@ -127,22 +144,10 @@ static uint32_t argmax_logits(const float *logits, size_t n, int disallow0) {
   return best_i;
 }
 
-/**
- * @brief Numerically safe exp wrapper.
- *
- * @param x Input value.
- * @return expf(x).
- */
 static float safe_exp(float x) {
   return expf(x);
 }
 
-/**
- * @brief Normalize an array of positive values to sum to 1 (in-place).
- *
- * @param p Array of unnormalized probabilities.
- * @param n Length.
- */
 static void softmax_inplace(float *p, size_t n) {
   float sum = 0.0f;
   for (size_t i = 0; i < n; ++i) sum += p[i];
@@ -155,15 +160,6 @@ static void softmax_inplace(float *p, size_t n) {
   for (size_t i = 0; i < n; ++i) p[i] *= inv;
 }
 
-/**
- * @brief Sample an index from a probability vector.
- *
- * @param p   Probability array (sum approximately 1).
- * @param idx Optional index mapping (if non-NULL, returned id is idx[i]).
- * @param n   Length.
- * @param rng RNG state.
- * @return Sampled token id (mapped or direct index).
- */
 static uint32_t sample_from_probs(const float *p,
                                   const uint32_t *idx,
                                   size_t n,
@@ -177,13 +173,6 @@ static uint32_t sample_from_probs(const float *p,
   return idx ? idx[n - 1] : (uint32_t)(n - 1);
 }
 
-/**
- * @brief Sort an index array by descending probability (prob[idx[i]]).
- *
- * @param idx  Index array to sort.
- * @param prob Probability array (full vocab).
- * @param n    Length of idx.
- */
 static void sort_desc_by_prob(uint32_t *idx, const float *prob, size_t n) {
   for (size_t i = 1; i < n; ++i) {
     uint32_t key = idx[i];
@@ -203,19 +192,6 @@ static void sort_desc_by_prob(uint32_t *idx, const float *prob, size_t n) {
  * Public API
  * ========================================================================== */
 
-/**
- * @brief Choose next token id from logits given a sampling configuration.
- *
- * @param logits       Logits array.
- * @param vocab_size   Vocabulary size.
- * @param cfg_in       Sampling config.
- * @param rng          RNG state (required for stochastic sampling).
- * @param idx_scratch  Scratch indices (cap >= vocab_size for non-greedy).
- * @param prob_scratch Scratch probabilities (cap >= vocab_size for non-greedy).
- * @param scratch_cap  Scratch capacity (shared).
- * @param out_id       Output token id.
- * @return 0 on success, negative on error.
- */
 int ie_sample_next(const float *logits,
                    size_t vocab_size,
                    const ie_sample_cfg_t *cfg_in,
@@ -229,8 +205,23 @@ int ie_sample_next(const float *logits,
   ie_sample_cfg_t cfg;
   if (cfg_sanitize(cfg_in, &cfg) != 0) return -1;
 
+  if (sampling_trace_allow()) {
+    fprintf(stderr,
+            "[sampling] kind=%s temp=%.6g top_k=%u top_p=%.6g disallow0=%d vocab=%zu\n",
+            kind_name(cfg.kind),
+            (double)cfg.temperature,
+            (unsigned)cfg.top_k,
+            (double)cfg.top_p,
+            (int)cfg.disallow_token0,
+            vocab_size);
+  }
+
   if (cfg.kind == IE_SAMPLE_GREEDY) {
-    *out_id = argmax_logits(logits, vocab_size, cfg.disallow_token0);
+    const uint32_t id = argmax_logits(logits, vocab_size, cfg.disallow_token0);
+    *out_id = id;
+    if (sampling_trace_allow()) {
+      fprintf(stderr, "[sampling] greedy -> id=%u logit=%.6g\n", (unsigned)id, (double)logits[id]);
+    }
     return 0;
   }
 
@@ -248,9 +239,11 @@ int ie_sample_next(const float *logits,
     }
     if (sel_n == 0) {
       *out_id = 0;
+      if (sampling_trace_allow()) fprintf(stderr, "[sampling] topk -> empty selection, id=0\n");
       return 0;
     }
 
+    /* Keep selection sorted ascending by logit so idx_scratch[0] is the current worst. */
     for (uint32_t i = 1; i < sel_n; ++i) {
       uint32_t key = idx_scratch[i];
       float v = logits[key];
@@ -290,7 +283,14 @@ int ie_sample_next(const float *logits,
       prob_scratch[i] = safe_exp(v);
     }
     softmax_inplace(prob_scratch, sel_n);
-    *out_id = sample_from_probs(prob_scratch, idx_scratch, sel_n, rng);
+
+    const uint32_t id = sample_from_probs(prob_scratch, idx_scratch, sel_n, rng);
+    *out_id = id;
+
+    if (sampling_trace_allow()) {
+      fprintf(stderr, "[sampling] topk(k=%u sel=%u) -> id=%u logit=%.6g\n",
+              (unsigned)k, (unsigned)sel_n, (unsigned)id, (double)logits[id]);
+    }
     return 0;
   }
 
@@ -314,7 +314,9 @@ int ie_sample_next(const float *logits,
       sum += e;
     }
     if (sum <= 0.0f) {
-      *out_id = argmax_logits(logits, vocab_size, cfg.disallow_token0);
+      const uint32_t id = argmax_logits(logits, vocab_size, cfg.disallow_token0);
+      *out_id = id;
+      if (sampling_trace_allow()) fprintf(stderr, "[sampling] topp -> degenerate sum, fallback greedy id=%u\n", (unsigned)id);
       return 0;
     }
     float inv = 1.0f / sum;
@@ -343,6 +345,7 @@ int ie_sample_next(const float *logits,
     for (size_t i = 0; i < cut; ++i) local_sum += prob_scratch[idx_scratch[i]];
     if (local_sum <= 0.0f) {
       *out_id = idx_scratch[0];
+      if (sampling_trace_allow()) fprintf(stderr, "[sampling] topp -> degenerate local_sum, id=%u\n", (unsigned)*out_id);
       return 0;
     }
     float linv = 1.0f / local_sum;
@@ -350,7 +353,13 @@ int ie_sample_next(const float *logits,
       prob_scratch[i] = prob_scratch[idx_scratch[i]] * linv;
     }
 
-    *out_id = sample_from_probs(prob_scratch, idx_scratch, cut, rng);
+    const uint32_t id = sample_from_probs(prob_scratch, idx_scratch, cut, rng);
+    *out_id = id;
+
+    if (sampling_trace_allow()) {
+      fprintf(stderr, "[sampling] topp(p=%.6g cut=%zu cum=%.6g) -> id=%u logit=%.6g\n",
+              (double)cfg.top_p, cut, (double)cum, (unsigned)id, (double)logits[id]);
+    }
     return 0;
   }
 
