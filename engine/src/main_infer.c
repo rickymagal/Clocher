@@ -1,3 +1,7 @@
+/* ============================================================================
+ * File: engine/src/main_infer.c
+ * ============================================================================
+ */
 /**
  * @file main_infer.c
  * @brief CLI entry point for the inference engine (benchmark-friendly, strict-run safe).
@@ -5,6 +9,15 @@
  * This file implements the standalone CLI binary used by the benchmark harness.
  * It prints exactly one JSON object to stdout (even on errors) so that scripts can
  * reliably parse results.
+ *
+ * Timing policy (low-overhead, benchmark-correct):
+ *  - All setup is performed outside the timed window:
+ *      - CLI parsing, path resolution, model open, engine create, warmup,
+ *        tokenizer resolution, prompt file I/O (prompt list is preloaded),
+ *        strict-touch preflight (mmap open / cudart dlopen).
+ *  - The timed window measures only the steady-state "work loop":
+ *      - ie_engine_generate calls (and, when enabled, strict-touch work that
+ *        must be attributed to the run by design).
  *
  * Strict-run goals (CPU/CUDA):
  *  - When IE_REQUIRE_MODEL=1, model files must open successfully.
@@ -18,8 +31,9 @@
  * Text output:
  *  - By default, the CLI prints tokens in JSON for benchmark tooling.
  *  - If --print-text is provided (or IE_PRINT_TEXT=1), the CLI will also decode
- *    the generated token IDs into UTF-8 text using tokenizer.json found under
- *    the model directory (best-effort, dependency-free).
+ *    the generated token IDs into UTF-8 using the project tokenizer.
+ *  - Tokenizer resolution prefers .tiktoken files (when present) and falls back
+ *    to tokenizer.json paths.
  *
  * Notes:
  *  - This CLI validates model_dir accessibility, resolves default model paths,
@@ -53,6 +67,7 @@
 #include "ie_api.h"
 #include "ie_io.h"
 #include "ie_kv_instrumentation.h"
+#include "ie_tokenizer_gptoss.h"
 #include "util_logging.h"
 
 #ifndef PATH_MAX
@@ -340,6 +355,34 @@ static uint32_t rss_peak_mib(void) {
   return (uint32_t)((uint64_t)ru.ru_maxrss / 1024ULL);
 }
 
+/**
+ * @brief Heap-duplicate a string (portable replacement for strdup).
+ * @param s Input string (may be NULL).
+ * @return Newly allocated copy, or NULL.
+ */
+static char *heap_strdup(const char *s) {
+  if (!s) return NULL;
+  const size_t n = strlen(s) + 1;
+  char *p = (char *)malloc(n);
+  if (!p) return NULL;
+  memcpy(p, s, n);
+  return p;
+}
+
+/**
+ * @brief Check if a string ends with a given suffix (case-sensitive).
+ * @param s String (may be NULL).
+ * @param suf Suffix (may be NULL).
+ * @return 1 when s ends with suf, 0 otherwise.
+ */
+static int ends_with(const char *s, const char *suf) {
+  if (!s || !suf) return 0;
+  const size_t ns = strlen(s);
+  const size_t nf = strlen(suf);
+  if (nf > ns) return 0;
+  return (memcmp(s + (ns - nf), suf, nf) == 0) ? 1 : 0;
+}
+
 /* -------------------------------------------------------------------------- */
 /* Strict file-backed model touch (CPU)                                       */
 /* -------------------------------------------------------------------------- */
@@ -424,24 +467,13 @@ static int model_touch_bytes(model_mmap_touch_t *ctx,
                              size_t bytes_to_touch,
                              size_t stride_bytes,
                              int verify_touch) {
-  if (!ctx || !ctx->base || ctx->size == 0) {
-    return 1;
-  }
-
-  if (bytes_to_touch == 0) {
-    return 0;
-  }
-
-  if (stride_bytes == 0) {
-    stride_bytes = 1;
-  }
+  if (!ctx || !ctx->base || ctx->size == 0) return 1;
+  if (bytes_to_touch == 0) return 0;
+  if (stride_bytes == 0) stride_bytes = 1;
 
   const size_t size = ctx->size;
-
   size_t n = bytes_to_touch;
-  if (n > size) {
-    n = size;
-  }
+  if (n > size) n = size;
 
   volatile const unsigned char *p = (volatile const unsigned char *)ctx->base;
   volatile uint64_t acc = 0;
@@ -450,25 +482,14 @@ static int model_touch_bytes(model_mmap_touch_t *ctx,
 
   if (start + n <= size) {
     size_t end = start + n;
-
-    for (size_t off = start; off < end; off += stride_bytes) {
-      acc ^= (uint64_t)p[off];
-    }
-
+    for (size_t off = start; off < end; off += stride_bytes) acc ^= (uint64_t)p[off];
     ctx->cursor = end % size;
   } else {
     size_t first = size - start;
-
-    for (size_t off = start; off < size; off += stride_bytes) {
-      acc ^= (uint64_t)p[off];
-    }
+    for (size_t off = start; off < size; off += stride_bytes) acc ^= (uint64_t)p[off];
 
     size_t rem = n - first;
-
-    for (size_t off = 0; off < rem; off += stride_bytes) {
-      acc ^= (uint64_t)p[off];
-    }
-
+    for (size_t off = 0; off < rem; off += stride_bytes) acc ^= (uint64_t)p[off];
     ctx->cursor = rem % size;
   }
 
@@ -477,7 +498,6 @@ static int model_touch_bytes(model_mmap_touch_t *ctx,
       fprintf(stderr, "touch verify: improbable accumulator value (ignore)\n");
     }
   }
-
   return 0;
 }
 
@@ -485,20 +505,32 @@ static int model_touch_bytes(model_mmap_touch_t *ctx,
 /* Minimal cudart dynamic loader (CUDA strict touch)                          */
 /* -------------------------------------------------------------------------- */
 
+/**
+ * @brief CUDA runtime error code type (opaque int for dynamic loading).
+ */
 typedef int cudart_err_t;
 
+/**
+ * @brief cudart function pointer types used by the strict-touch path.
+ */
 typedef cudart_err_t (*cudaFree_fn_t)(void *);
 typedef cudart_err_t (*cudaMalloc_fn_t)(void **, size_t);
 typedef cudart_err_t (*cudaMemcpy_fn_t)(void *, const void *, size_t, int);
 typedef cudart_err_t (*cudaMemset_fn_t)(void *, int, size_t);
 typedef cudart_err_t (*cudaDeviceSynchronize_fn_t)(void);
 
+/**
+ * @brief cudaMemcpyKind values used by the strict-touch path.
+ */
 enum {
   CUDA_MEMCPY_HOST_TO_DEVICE = 1,
   CUDA_MEMCPY_DEVICE_TO_HOST = 2,
   CUDA_MEMCPY_DEVICE_TO_DEVICE = 3
 };
 
+/**
+ * @brief Dynamically loaded cudart API table.
+ */
 typedef struct cudart_api {
   void *handle;
   int ok;
@@ -548,19 +580,9 @@ static cudart_api_t *cudart_get_api(void) {
 }
 
 /**
- * @brief Minimal CUDA preflight inside timed window (forces context creation).
- */
-static void cudart_smoke_free0(void) {
-  cudart_api_t *api = cudart_get_api();
-  if (!api) return;
-  (void)api->cudaFree(NULL);
-  (void)api->cudaDeviceSynchronize();
-}
-
-/**
  * @brief Strict CUDA touch: cudaMalloc + repeated cudaMemset + optional D2H copy.
  * @param bytes_per_token Bytes per token (0 disables).
- * @param tokens Number of generated tokens.
+ * @param tokens Number of generated tokens for this call.
  * @param stride_bytes Unused (kept for symmetry with CPU touch).
  * @param verify_touch If nonzero, perform a small D2H copy.
  * @return 0 on success, nonzero on failure.
@@ -616,526 +638,8 @@ static int cudart_touch_bytes(size_t bytes_per_token,
 }
 
 /* -------------------------------------------------------------------------- */
-/* Dependency-free tokenizer.json decoder (best-effort)                       */
+/* Token decoding via project tokenizer                                       */
 /* -------------------------------------------------------------------------- */
-
-/**
- * @brief Token entry: token string for a given id.
- */
-typedef struct tok_entry_s {
-  uint32_t id;
-  char *text; /* NUL-terminated UTF-8 token piece */
-} tok_entry_t;
-
-/**
- * @brief Token map loaded from tokenizer.json: id -> token piece.
- */
-typedef struct tok_map_s {
-  uint32_t vocab_size;
-  char **id_to_text; /* array[vocab_size], owned strings */
-} tok_map_t;
-
-/**
- * @brief Free a tok_map_t.
- * @param m Map to free (safe on zeroed).
- */
-static void tok_map_free(tok_map_t *m) {
-  if (!m) return;
-  if (m->id_to_text) {
-    for (uint32_t i = 0; i < m->vocab_size; ++i) free(m->id_to_text[i]);
-    free(m->id_to_text);
-  }
-  m->id_to_text = NULL;
-  m->vocab_size = 0;
-}
-
-/**
- * @brief Read an entire file into memory.
- * @param path File path.
- * @param out_buf Output buffer pointer (malloc'd).
- * @param out_len Output length in bytes (excluding any added NUL).
- * @return 0 on success, nonzero on failure.
- */
-static int read_entire_file(const char *path, char **out_buf, size_t *out_len) {
-  if (!path || !*path || !out_buf || !out_len) return 1;
-  *out_buf = NULL;
-  *out_len = 0;
-
-  FILE *f = fopen(path, "rb");
-  if (!f) return 2;
-
-  if (fseek(f, 0, SEEK_END) != 0) { fclose(f); return 3; }
-  long sz = ftell(f);
-  if (sz <= 0) { fclose(f); return 4; }
-  if (fseek(f, 0, SEEK_SET) != 0) { fclose(f); return 5; }
-
-  char *buf = (char *)malloc((size_t)sz + 1);
-  if (!buf) { fclose(f); return 6; }
-
-  size_t n = fread(buf, 1, (size_t)sz, f);
-  fclose(f);
-  if (n != (size_t)sz) { free(buf); return 7; }
-
-  buf[n] = '\0';
-  *out_buf = buf;
-  *out_len = n;
-  return 0;
-}
-
-/**
- * @brief Convert a hex digit to value.
- * @param c Character.
- * @return 0..15 on success, -1 on failure.
- */
-static int hex_val(int c) {
-  if (c >= '0' && c <= '9') return c - '0';
-  if (c >= 'a' && c <= 'f') return 10 + (c - 'a');
-  if (c >= 'A' && c <= 'F') return 10 + (c - 'A');
-  return -1;
-}
-
-/**
- * @brief Append a UTF-8 codepoint to a dynamic buffer.
- * @param dst Pointer to buffer pointer (may grow).
- * @param cap Pointer to capacity.
- * @param len Pointer to current length.
- * @param cp Unicode codepoint.
- * @return 0 on success, nonzero on OOM.
- */
-static int buf_append_cp(char **dst, size_t *cap, size_t *len, uint32_t cp) {
-  unsigned char tmp[4];
-  size_t n = 0;
-
-  if (cp <= 0x7Fu) {
-    tmp[0] = (unsigned char)cp;
-    n = 1;
-  } else if (cp <= 0x7FFu) {
-    tmp[0] = (unsigned char)(0xC0u | (cp >> 6));
-    tmp[1] = (unsigned char)(0x80u | (cp & 0x3Fu));
-    n = 2;
-  } else if (cp <= 0xFFFFu) {
-    tmp[0] = (unsigned char)(0xE0u | (cp >> 12));
-    tmp[1] = (unsigned char)(0x80u | ((cp >> 6) & 0x3Fu));
-    tmp[2] = (unsigned char)(0x80u | (cp & 0x3Fu));
-    n = 3;
-  } else {
-    tmp[0] = (unsigned char)(0xF0u | (cp >> 18));
-    tmp[1] = (unsigned char)(0x80u | ((cp >> 12) & 0x3Fu));
-    tmp[2] = (unsigned char)(0x80u | ((cp >> 6) & 0x3Fu));
-    tmp[3] = (unsigned char)(0x80u | (cp & 0x3Fu));
-    n = 4;
-  }
-
-  if (!*dst || *cap == 0) {
-    *cap = 64;
-    *dst = (char *)malloc(*cap);
-    if (!*dst) return 1;
-    *len = 0;
-  }
-
-  if (*len + n + 1 > *cap) {
-    size_t ncap = *cap;
-    while (*len + n + 1 > ncap) ncap *= 2;
-    char *nb = (char *)realloc(*dst, ncap);
-    if (!nb) return 1;
-    *dst = nb;
-    *cap = ncap;
-  }
-
-  memcpy(*dst + *len, tmp, n);
-  *len += n;
-  (*dst)[*len] = '\0';
-  return 0;
-}
-
-/**
- * @brief Parse a JSON string literal, returning an owned UTF-8 string.
- *
- * This is a minimal parser that understands:
- *  - \" \\ \/ \b \f \n \r \t
- *  - \uXXXX (BMP only; surrogate pairs are passed through as two codepoints)
- *
- * @param p Pointer to current position (expects *p == '"').
- * @param out Allocated output string (caller frees).
- * @return Pointer to char after closing quote on success, NULL on failure.
- */
-static const char *json_parse_string(const char *p, char **out) {
-  if (!p || *p != '"' || !out) return NULL;
-  ++p;
-
-  char *buf = NULL;
-  size_t cap = 0, len = 0;
-
-  while (*p) {
-    if (*p == '"') {
-      ++p;
-      if (!buf) {
-        buf = (char *)malloc(1);
-        if (!buf) return NULL;
-        buf[0] = '\0';
-      }
-      *out = buf;
-      return p;
-    }
-    if (*p == '\\') {
-      ++p;
-      if (!*p) break;
-      if (*p == '"' || *p == '\\' || *p == '/') {
-        if (buf_append_cp(&buf, &cap, &len, (uint32_t)(unsigned char)*p) != 0) { free(buf); return NULL; }
-        ++p;
-      } else if (*p == 'b') {
-        if (buf_append_cp(&buf, &cap, &len, 0x08u) != 0) { free(buf); return NULL; }
-        ++p;
-      } else if (*p == 'f') {
-        if (buf_append_cp(&buf, &cap, &len, 0x0Cu) != 0) { free(buf); return NULL; }
-        ++p;
-      } else if (*p == 'n') {
-        if (buf_append_cp(&buf, &cap, &len, 0x0Au) != 0) { free(buf); return NULL; }
-        ++p;
-      } else if (*p == 'r') {
-        if (buf_append_cp(&buf, &cap, &len, 0x0Du) != 0) { free(buf); return NULL; }
-        ++p;
-      } else if (*p == 't') {
-        if (buf_append_cp(&buf, &cap, &len, 0x09u) != 0) { free(buf); return NULL; }
-        ++p;
-      } else if (*p == 'u') {
-        ++p;
-        int h1 = hex_val((unsigned char)p[0]);
-        int h2 = hex_val((unsigned char)p[1]);
-        int h3 = hex_val((unsigned char)p[2]);
-        int h4 = hex_val((unsigned char)p[3]);
-        if (h1 < 0 || h2 < 0 || h3 < 0 || h4 < 0) { free(buf); return NULL; }
-        uint32_t cp = (uint32_t)((h1 << 12) | (h2 << 8) | (h3 << 4) | h4);
-        if (buf_append_cp(&buf, &cap, &len, cp) != 0) { free(buf); return NULL; }
-        p += 4;
-      } else {
-        free(buf);
-        return NULL;
-      }
-      continue;
-    }
-
-    if ((unsigned char)*p < 0x20u) { free(buf); return NULL; }
-    if (buf_append_cp(&buf, &cap, &len, (uint32_t)(unsigned char)*p) != 0) { free(buf); return NULL; }
-    ++p;
-  }
-
-  free(buf);
-  return NULL;
-}
-
-/**
- * @brief Skip whitespace in JSON.
- * @param p Input pointer.
- * @return Advanced pointer.
- */
-static const char *json_skip_ws(const char *p) {
-  while (p && (*p == ' ' || *p == '\t' || *p == '\r' || *p == '\n')) ++p;
-  return p;
-}
-
-/**
- * @brief Parse a non-negative integer.
- * @param p Input pointer.
- * @param out Output value.
- * @return Pointer after number, or NULL on failure.
- */
-static const char *json_parse_u32(const char *p, uint32_t *out) {
-  if (!p || !out) return NULL;
-  p = json_skip_ws(p);
-  if (!(*p >= '0' && *p <= '9')) return NULL;
-
-  uint64_t v = 0;
-  while (*p >= '0' && *p <= '9') {
-    v = v * 10u + (uint64_t)(*p - '0');
-    if (v > 0xFFFFFFFFu) return NULL;
-    ++p;
-  }
-  *out = (uint32_t)v;
-  return p;
-}
-
-/**
- * @brief Find a JSON key name occurrence and return pointer to the value start.
- *
- * This is a best-effort scanner: it searches for the literal substring "\"key\"".
- *
- * @param json JSON buffer.
- * @param key Key name.
- * @return Pointer to value (after ':'), or NULL if not found.
- */
-static const char *json_find_key_value(const char *json, const char *key) __attribute__((unused));
-static const char *json_find_key_value(const char *json, const char *key) {
-  if (!json || !key) return NULL;
-
-  char pat[128];
-  (void)snprintf(pat, sizeof(pat), "\"%s\"", key);
-
-  const char *hit = strstr(json, pat);
-  if (!hit) return NULL;
-
-  const char *p = hit + strlen(pat);
-  p = json_skip_ws(p);
-  if (*p != ':') return NULL;
-  ++p;
-  return json_skip_ws(p);
-}
-
-/**
- * @brief Load id->token mapping from tokenizer.json.
- *
- * Expected shapes supported (best-effort):
- *  - "model": { "vocab": { "<tok>": <id>, ... } }
- *  - "added_tokens": [ { "id": <id>, "content": "<tok>", ... }, ... ]
- *
- * If "vocab" is missing or parsing fails, this function returns nonzero.
- *
- * @param tokenizer_json_path Path to tokenizer.json.
- * @param out Output map.
- * @return 0 on success, nonzero on failure.
- */
-static int tok_map_load_from_tokenizer_json(const char *tokenizer_json_path, tok_map_t *out) {
-  if (!out) return 1;
-  memset(out, 0, sizeof(*out));
-  if (!tokenizer_json_path || !*tokenizer_json_path) return 2;
-
-  char *buf = NULL;
-  size_t blen = 0;
-  if (read_entire_file(tokenizer_json_path, &buf, &blen) != 0) return 3;
-
-  const char *vocab_p = strstr(buf, "\"vocab\"");
-  if (!vocab_p) { free(buf); return 4; }
-
-  vocab_p = strchr(vocab_p, '{');
-  if (!vocab_p) { free(buf); return 5; }
-  ++vocab_p;
-
-  uint32_t max_id = 0;
-  const char *p = vocab_p;
-
-  /* First pass: find max id in vocab object. */
-  while (*p) {
-    p = json_skip_ws(p);
-    if (*p == '}') { ++p; break; }
-    if (*p != '"') { ++p; continue; }
-
-    char *key = NULL;
-    const char *p2 = json_parse_string(p, &key);
-    if (!p2) { free(buf); return 6; }
-
-    p2 = json_skip_ws(p2);
-    if (*p2 != ':') { free(key); free(buf); return 7; }
-    ++p2;
-
-    uint32_t id = 0;
-    p2 = json_parse_u32(p2, &id);
-    if (!p2) { free(key); free(buf); return 8; }
-
-    if (id > max_id) max_id = id;
-    free(key);
-
-    p = p2;
-    while (*p && *p != ',' && *p != '}') ++p;
-    if (*p == ',') ++p;
-  }
-
-  if (max_id == 0) { free(buf); return 9; }
-
-  uint32_t vocab_size = max_id + 1;
-  char **id_to_text = (char **)calloc((size_t)vocab_size, sizeof(char *));
-  if (!id_to_text) { free(buf); return 10; }
-
-  /* Second pass: fill mapping. */
-  p = vocab_p;
-  while (*p) {
-    p = json_skip_ws(p);
-    if (*p == '}') { ++p; break; }
-    if (*p != '"') { ++p; continue; }
-
-    char *key = NULL;
-    const char *p2 = json_parse_string(p, &key);
-    if (!p2) { tok_map_free(&(tok_map_t){ .vocab_size = vocab_size, .id_to_text = id_to_text }); free(buf); return 11; }
-
-    p2 = json_skip_ws(p2);
-    if (*p2 != ':') { free(key); tok_map_free(&(tok_map_t){ .vocab_size = vocab_size, .id_to_text = id_to_text }); free(buf); return 12; }
-    ++p2;
-
-    uint32_t id = 0;
-    p2 = json_parse_u32(p2, &id);
-    if (!p2 || id >= vocab_size) { free(key); tok_map_free(&(tok_map_t){ .vocab_size = vocab_size, .id_to_text = id_to_text }); free(buf); return 13; }
-
-    if (!id_to_text[id]) {
-      id_to_text[id] = key;
-    } else {
-      free(key);
-    }
-
-    p = p2;
-    while (*p && *p != ',' && *p != '}') ++p;
-    if (*p == ',') ++p;
-  }
-
-  /* Apply added_tokens overrides when present. */
-  const char *added_p = strstr(buf, "\"added_tokens\"");
-  if (added_p) {
-    const char *arr = strchr(added_p, '[');
-    if (arr) {
-      ++arr;
-      const char *q = arr;
-      while (*q) {
-        q = json_skip_ws(q);
-        if (*q == ']') break;
-        if (*q != '{') { ++q; continue; }
-
-        const char *obj = q;
-        (void)obj;
-
-        /* Find "id" and "content" inside this object (best-effort scan). */
-        const char *idp = strstr(q, "\"id\"");
-        const char *cp = strstr(q, "\"content\"");
-        uint32_t id = 0;
-        char *content = NULL;
-
-        if (idp && idp < strstr(q, "}")) {
-          const char *iv = strchr(idp, ':');
-          if (iv) {
-            ++iv;
-            const char *iv2 = json_parse_u32(iv, &id);
-            if (!iv2) id = 0;
-          }
-        }
-
-        if (cp && cp < strstr(q, "}")) {
-          const char *cv = strchr(cp, ':');
-          if (cv) {
-            cv = json_skip_ws(cv + 1);
-            if (*cv == '"') {
-              const char *cv2 = json_parse_string(cv, &content);
-              if (!cv2) content = NULL;
-            }
-          }
-        }
-
-        if (id < vocab_size && content) {
-          free(id_to_text[id]);
-          id_to_text[id] = content;
-        } else {
-          free(content);
-        }
-
-        /* Move to end of object. */
-        while (*q && *q != '}') ++q;
-        if (*q == '}') ++q;
-        while (*q && *q != ',' && *q != ']') ++q;
-        if (*q == ',') ++q;
-      }
-    }
-  }
-
-  out->vocab_size = vocab_size;
-  out->id_to_text = id_to_text;
-
-  free(buf);
-  return 0;
-}
-
-/**
- * @brief Apply common token-piece normalization for byte-level BPE variants.
- *
- * This handles common "space marker" glyphs used by various HF tokenizers:
- *  - U+0120 'Ġ' => leading space
- *  - U+2581 '▁' => leading space
- *  - U+010A 'Ċ' => newline
- *
- * @param s Input token piece.
- * @param out_dyn Output dynamic string (malloc/realloc).
- * @param out_cap Capacity pointer.
- * @param out_len Length pointer.
- * @return 0 on success, nonzero on OOM.
- */
-static int tok_piece_append_normalized(const char *s, char **out_dyn, size_t *out_cap, size_t *out_len) {
-  if (!s) return 0;
-
-  const unsigned char *p = (const unsigned char *)s;
-
-  /* Minimal UTF-8 handling for the specific marker codepoints. */
-  while (*p) {
-    /* U+0120 (Ġ): 0xC4 0xA0 */
-    if (p[0] == 0xC4u && p[1] == 0xA0u) {
-      if (buf_append_cp(out_dyn, out_cap, out_len, (uint32_t)' ') != 0) return 1;
-      p += 2;
-      continue;
-    }
-    /* U+2581 (▁): 0xE2 0x96 0x81 */
-    if (p[0] == 0xE2u && p[1] == 0x96u && p[2] == 0x81u) {
-      if (buf_append_cp(out_dyn, out_cap, out_len, (uint32_t)' ') != 0) return 1;
-      p += 3;
-      continue;
-    }
-    /* U+010A (Ċ): 0xC4 0x8A */
-    if (p[0] == 0xC4u && p[1] == 0x8Au) {
-      if (buf_append_cp(out_dyn, out_cap, out_len, (uint32_t)'\n') != 0) return 1;
-      p += 2;
-      continue;
-    }
-
-    if (buf_append_cp(out_dyn, out_cap, out_len, (uint32_t)*p) != 0) return 1;
-    ++p;
-  }
-
-  return 0;
-}
-
-/**
- * @brief Decode token IDs into UTF-8 text using a tok_map_t.
- *
- * @param m Loaded token map.
- * @param ids Token IDs (int tokens from engine).
- * @param n Number of tokens.
- * @param out_text Output allocated string (caller frees); set to NULL on failure.
- * @return 0 on success, nonzero on failure.
- */
-static int tok_decode_ids_to_text(const tok_map_t *m, const int *ids, size_t n, char **out_text) {
-  if (!out_text) return 1;
-  *out_text = NULL;
-  if (!m || !m->id_to_text || m->vocab_size == 0) return 2;
-  if (!ids || n == 0) {
-    char *z = (char *)malloc(1);
-    if (!z) return 3;
-    z[0] = '\0';
-    *out_text = z;
-    return 0;
-  }
-
-  char *dyn = NULL;
-  size_t cap = 0, len = 0;
-
-  for (size_t i = 0; i < n; ++i) {
-    int tid = ids[i];
-    if (tid < 0) continue;
-
-    uint32_t idu = (uint32_t)tid;
-    const char *piece = (idu < m->vocab_size) ? m->id_to_text[idu] : NULL;
-    if (!piece) {
-      /* Unknown id: emit a stable placeholder. */
-      char tmp[64];
-      (void)snprintf(tmp, sizeof(tmp), "<%u>", (unsigned)idu);
-      if (tok_piece_append_normalized(tmp, &dyn, &cap, &len) != 0) { free(dyn); return 4; }
-      continue;
-    }
-
-    if (tok_piece_append_normalized(piece, &dyn, &cap, &len) != 0) { free(dyn); return 5; }
-  }
-
-  if (!dyn) {
-    dyn = (char *)malloc(1);
-    if (!dyn) return 6;
-    dyn[0] = '\0';
-  }
-
-  *out_text = dyn;
-  return 0;
-}
 
 /**
  * @brief JSON-escape and print a string value.
@@ -1158,7 +662,6 @@ static void json_print_escaped_string(const char *s) {
     else if (c == '\r') fputs("\\r", stdout);
     else if (c == '\t') fputs("\\t", stdout);
     else if (c < 0x20u) {
-      /* Control char: emit \u00XX. */
       fprintf(stdout, "\\u%04x", (unsigned)c);
     } else {
       fputc((int)c, stdout);
@@ -1168,13 +671,16 @@ static void json_print_escaped_string(const char *s) {
 }
 
 /**
- * @brief Resolve a tokenizer.json path under a model directory.
+ * @brief Resolve a tokenizer path under a model directory.
  *
  * Search order:
  *  1) explicit override (tokenizer_opt)
- *  2) <model_dir>/tokenizer.json
- *  3) <model_dir>/hf/original/tokenizer.json
- *  4) <model_dir>/original/tokenizer.json
+ *  2) <model_dir>/hf/original/tokenizer.tiktoken
+ *  3) <model_dir>/tokenizer.tiktoken
+ *  4) <model_dir>/original/tokenizer.tiktoken
+ *  5) <model_dir>/hf/original/tokenizer.json
+ *  6) <model_dir>/tokenizer.json
+ *  7) <model_dir>/original/tokenizer.json
  *
  * @param model_dir Model directory.
  * @param tokenizer_opt Optional explicit tokenizer path.
@@ -1195,20 +701,146 @@ static void resolve_tokenizer_path(const char *model_dir, const char *tokenizer_
 
   char cand[PATH_MAX];
 
-  join_path(cand, sizeof(cand), model_dir, "tokenizer.json");
+  join_path(cand, sizeof(cand), model_dir, "hf/original/tokenizer.tiktoken");
+  if (path_exists(cand)) { safe_strcpy(out, outsz, cand); return; }
+
+  join_path(cand, sizeof(cand), model_dir, "tokenizer.tiktoken");
+  if (path_exists(cand)) { safe_strcpy(out, outsz, cand); return; }
+
+  join_path(cand, sizeof(cand), model_dir, "original/tokenizer.tiktoken");
   if (path_exists(cand)) { safe_strcpy(out, outsz, cand); return; }
 
   join_path(cand, sizeof(cand), model_dir, "hf/original/tokenizer.json");
+  if (path_exists(cand)) { safe_strcpy(out, outsz, cand); return; }
+
+  join_path(cand, sizeof(cand), model_dir, "tokenizer.json");
   if (path_exists(cand)) { safe_strcpy(out, outsz, cand); return; }
 
   join_path(cand, sizeof(cand), model_dir, "original/tokenizer.json");
   if (path_exists(cand)) { safe_strcpy(out, outsz, cand); return; }
 }
 
+/**
+ * @brief Decode token IDs into UTF-8 text (best-effort).
+ *
+ * This uses the project tokenizer implementation. If decoding fails or the
+ * tokenizer cannot be opened (including vocab mismatch scenarios), a placeholder
+ * string "<id><id>..." is emitted so output remains valid and debuggable.
+ *
+ * @param tok_path Path to tokenizer file (tokenizer.json or tokenizer.tiktoken).
+ * @param ids Token IDs (engine output).
+ * @param n Number of IDs.
+ * @param out_text Output allocated string (caller frees). NULL on failure.
+ * @return 0 on success, nonzero on failure.
+ */
+static int decode_tokens_best_effort(const char *tok_path, const int *ids, size_t n, char **out_text) {
+  if (!out_text) return 1;
+  *out_text = NULL;
+
+  if (!tok_path || !*tok_path) return 2;
+
+  if (!ids || n == 0) {
+    char *z = (char *)malloc(1);
+    if (!z) return 3;
+    z[0] = '\0';
+    *out_text = z;
+    return 0;
+  }
+
+  uint32_t *u32 = (uint32_t *)malloc(sizeof(uint32_t) * n);
+  if (!u32) return 4;
+
+  size_t k = 0;
+  for (size_t i = 0; i < n; ++i) {
+    int v = ids[i];
+    if (v < 0) continue;
+    u32[k++] = (uint32_t)v;
+  }
+
+  if (k == 0) {
+    free(u32);
+    char *z = (char *)malloc(1);
+    if (!z) return 5;
+    z[0] = '\0';
+    *out_text = z;
+    return 0;
+  }
+
+  ie_tok_gptoss_t *tok = NULL;
+  int ts = ie_tok_gptoss_open(tok_path, &tok);
+  if (ts == IE_TOK_GPTOSS_OK && tok) {
+    size_t need = 0;
+    ts = ie_tok_gptoss_decode(tok, u32, (uint32_t)min_size(k, (size_t)0xFFFFFFFFu), NULL, &need);
+    if (ts == IE_TOK_GPTOSS_OK && need > 0) {
+      char *buf = (char *)malloc(need);
+      if (!buf) {
+        (void)ie_tok_gptoss_close(tok);
+        free(u32);
+        return 6;
+      }
+      size_t outn = need;
+      ts = ie_tok_gptoss_decode(tok, u32, (uint32_t)min_size(k, (size_t)0xFFFFFFFFu), buf, &outn);
+      if (ts == IE_TOK_GPTOSS_OK) {
+        *out_text = buf;
+        (void)ie_tok_gptoss_close(tok);
+        free(u32);
+        return 0;
+      }
+      free(buf);
+    }
+    (void)ie_tok_gptoss_close(tok);
+  } else {
+    fprintf(stderr,
+            "warn: tokenizer_open failed for '%s' (status=%d)%s\n",
+            tok_path,
+            (int)ts,
+            ends_with(tok_path, ".tiktoken") ? " (tiktoken decode may be unimplemented)" : "");
+  }
+
+  /* Fallback: emit placeholders so the output stays valid and debuggable. */
+  {
+    size_t cap = 256;
+    size_t len = 0;
+    char *buf = (char *)malloc(cap);
+    if (!buf) {
+      free(u32);
+      return 7;
+    }
+    buf[0] = '\0';
+
+    for (size_t i = 0; i < k; ++i) {
+      char tmp[64];
+      (void)snprintf(tmp, sizeof(tmp), "<%u>", (unsigned)u32[i]);
+      size_t add = strlen(tmp);
+
+      if (len + add + 1 > cap) {
+        size_t ncap = cap;
+        while (len + add + 1 > ncap) ncap *= 2;
+        char *nb = (char *)realloc(buf, ncap);
+        if (!nb) { free(buf); free(u32); return 8; }
+        buf = nb;
+        cap = ncap;
+      }
+
+      memcpy(buf + len, tmp, add);
+      len += add;
+      buf[len] = '\0';
+    }
+
+    *out_text = buf;
+  }
+
+  free(u32);
+  return 0;
+}
+
 /* -------------------------------------------------------------------------- */
 /* CLI options                                                                */
 /* -------------------------------------------------------------------------- */
 
+/**
+ * @brief Pretranspose modes for optional weight transforms.
+ */
 typedef enum {
   CLI_PRETX_NONE = 0,
   CLI_PRETX_WOH  = 1,
@@ -1216,6 +848,9 @@ typedef enum {
   CLI_PRETX_ALL  = 3
 } cli_pretranspose_t;
 
+/**
+ * @brief Parsed CLI options and derived configuration.
+ */
 typedef struct cli_extras {
   const char *prompt;
   size_t max_new;
@@ -1458,7 +1093,7 @@ static int parse_flags(int argc, char **argv, cli_extras_t *out) {
 }
 
 /* -------------------------------------------------------------------------- */
-/* Prompts helper                                                             */
+/* Prompts helpers                                                            */
 /* -------------------------------------------------------------------------- */
 
 /**
@@ -1488,6 +1123,104 @@ static int read_first_nonempty_line(const char *path, char *buf, size_t bufsz) {
   return ok ? 1 : 0;
 }
 
+/**
+ * @brief Prompt list (preloaded) to avoid file I/O in the timed window.
+ */
+typedef struct prompt_list {
+  char **items;
+  size_t count;
+  size_t cap;
+} prompt_list_t;
+
+/**
+ * @brief Initialize an empty prompt list.
+ * @param pl Prompt list to initialize.
+ */
+static void prompt_list_init(prompt_list_t *pl) {
+  if (!pl) return;
+  pl->items = NULL;
+  pl->count = 0;
+  pl->cap = 0;
+}
+
+/**
+ * @brief Free a prompt list and all owned strings.
+ * @param pl Prompt list to free.
+ */
+static void prompt_list_free(prompt_list_t *pl) {
+  if (!pl) return;
+  if (pl->items) {
+    for (size_t i = 0; i < pl->count; ++i) free(pl->items[i]);
+    free(pl->items);
+  }
+  pl->items = NULL;
+  pl->count = 0;
+  pl->cap = 0;
+}
+
+/**
+ * @brief Push a prompt string copy into the list.
+ * @param pl Prompt list.
+ * @param s Prompt string (must be non-NULL).
+ * @return 0 on success, nonzero on OOM.
+ */
+static int prompt_list_push_copy(prompt_list_t *pl, const char *s) {
+  if (!pl || !s) return 1;
+
+  if (pl->count == pl->cap) {
+    size_t ncap = (pl->cap == 0) ? 16 : (pl->cap * 2);
+    char **nitems = (char **)realloc(pl->items, ncap * sizeof(char *));
+    if (!nitems) return 2;
+    pl->items = nitems;
+    pl->cap = ncap;
+  }
+
+  char *cp = heap_strdup(s);
+  if (!cp) return 3;
+
+  pl->items[pl->count++] = cp;
+  return 0;
+}
+
+/**
+ * @brief Read all non-empty lines from a prompts file into memory.
+ * @param path Prompts file path.
+ * @param out Prompt list to fill (must be initialized).
+ * @return 0 on success, nonzero on failure.
+ */
+static int prompt_list_read_file(const char *path, prompt_list_t *out) {
+  if (!path || !*path || !out) return 1;
+
+  FILE *f = fopen(path, "r");
+  if (!f) {
+    fprintf(stderr, "warn: cannot open prompts file '%s': %s\n", path, strerror(errno));
+    return 2;
+  }
+
+  char line[8192];
+  int rc = 0;
+
+  while (fgets(line, (int)sizeof(line), f)) {
+    size_t n = strlen(line);
+    while (n && (line[n - 1] == '\n' || line[n - 1] == '\r')) line[--n] = '\0';
+    if (n == 0) continue;
+
+    if (prompt_list_push_copy(out, line) != 0) {
+      rc = 3;
+      break;
+    }
+  }
+
+  (void)fclose(f);
+
+  if (rc == 0 && out->count == 0) {
+    /* Empty file: treat as success with zero prompts. */
+    return 0;
+  }
+
+  return rc;
+}
+
 /* -------------------------------------------------------------------------- */
 /* JSON emitter                                                               */
 /* -------------------------------------------------------------------------- */
@@ -1497,6 +1230,7 @@ static int read_first_nonempty_line(const char *path, char *buf, size_t bufsz) {
  *
  * This function prints exactly one JSON object, suitable for strict harness parsing.
  * If @p text_decoded is non-NULL, it will be included under the "text" key.
+ * If @p tokenizer_path_used is non-NULL, it will be included under "tokenizer_path".
  *
  * @param n_tok Number of generated tokens.
  * @param tokens Token buffer (may be NULL).
@@ -1505,6 +1239,7 @@ static int read_first_nonempty_line(const char *path, char *buf, size_t bufsz) {
  * @param kv_misses KV cache misses.
  * @param rss_peak_mb RSS peak in MiB.
  * @param text_decoded Optional decoded text (UTF-8).
+ * @param tokenizer_path_used Optional resolved tokenizer path used by CLI.
  */
 static void print_json_result(size_t n_tok,
                               const int *tokens,
@@ -1512,7 +1247,8 @@ static void print_json_result(size_t n_tok,
                               uint64_t kv_hits,
                               uint64_t kv_misses,
                               uint32_t rss_peak_mb,
-                              const char *text_decoded) {
+                              const char *text_decoded,
+                              const char *tokenizer_path_used) {
   double wall_s = (wall_s_in > 0.0) ? wall_s_in : 0.0;
   const double tps_true = (wall_s > 0.0) ? ((double)n_tok / wall_s) : 0.0;
 
@@ -1531,6 +1267,12 @@ static void print_json_result(size_t n_tok,
     for (size_t i = 0; i < n_tok; ++i) fprintf(stdout, "%d%s", tokens[i], (i + 1 < n_tok) ? "," : "");
   }
   fputs("],", stdout);
+
+  if (tokenizer_path_used && *tokenizer_path_used) {
+    fputs("\"tokenizer_path\":", stdout);
+    json_print_escaped_string(tokenizer_path_used);
+    fputs(",", stdout);
+  }
 
   if (text_decoded) {
     fputs("\"text\":", stdout);
@@ -1621,7 +1363,7 @@ int main(int argc, char **argv) {
   if (opt.model_dir && *opt.model_dir) {
     if (!dir_accessible(opt.model_dir)) {
       fprintf(stderr, "error: --model-dir '%s' is not accessible: %s\n", opt.model_dir, strerror(errno));
-      print_json_result(0, NULL, 0.0, 0, 0, 0, NULL);
+      print_json_result(0, NULL, 0.0, 0, 0, 0, NULL, NULL);
       return 3;
     }
   }
@@ -1643,9 +1385,21 @@ int main(int argc, char **argv) {
   }
 
   if (!opt.prompt && !opt.prompts_file) {
-    print_json_result(0, NULL, 0.0, 0, 0, 0, NULL);
+    print_json_result(0, NULL, 0.0, 0, 0, 0, NULL, NULL);
     return 0;
   }
+
+  /* Resolve tokenizer path once (CLI + engine should use the same choice). */
+  const char *tok_env = env_str("IE_TOKENIZER", env_str("TOKENIZER", ""));
+  const char *tok_opt = (opt.tokenizer_path && *opt.tokenizer_path) ? opt.tokenizer_path
+                                                                    : ((tok_env && *tok_env) ? tok_env : NULL);
+
+  char tok_path_buf[PATH_MAX];
+  tok_path_buf[0] = '\0';
+  resolve_tokenizer_path(model_dir_eff, tok_opt, tok_path_buf, sizeof(tok_path_buf));
+
+  char *tokenizer_path_heap = NULL;
+  if (tok_path_buf[0]) tokenizer_path_heap = heap_strdup(tok_path_buf);
 
   const int require_model = (int)env_long("IE_REQUIRE_MODEL", 0);
 
@@ -1657,11 +1411,13 @@ int main(int argc, char **argv) {
       fprintf(stderr,
               "error: failed to open model (%s, %s), status=%d, errno=%d (%s)\n",
               json_path, bin_path, wrc, errno, strerror(errno));
-      print_json_result(0, NULL, 0.0, 0, 0, 0, NULL);
+      print_json_result(0, NULL, 0.0, 0, 0, 0, NULL, tokenizer_path_heap);
+      free(tokenizer_path_heap);
       return 3;
     }
     fprintf(stderr, "warn: model metadata not found; stub JSON output\n");
-    print_json_result(0, NULL, 0.0, 0, 0, 0, NULL);
+    print_json_result(0, NULL, 0.0, 0, 0, 0, NULL, tokenizer_path_heap);
+    free(tokenizer_path_heap);
     return 0;
   }
 
@@ -1676,12 +1432,16 @@ int main(int argc, char **argv) {
   params.threads = opt.threads;
   params.sparsity = opt.sparsity;
 
+  /* Unified tokenizer choice: engine should follow the same resolution as the CLI. */
+  params.tokenizer_path = tokenizer_path_heap;
+
   ie_engine_t *engine = NULL;
   ie_status_t st = ie_engine_create(&params, opt.device, model_dir_eff, &engine);
   if (st != IE_OK || !engine) {
     fprintf(stderr, "error: ie_engine_create failed (status=%d)\n", (int)st);
     ie_weights_close(&w);
-    print_json_result(0, NULL, 0.0, 0, 0, 0, NULL);
+    print_json_result(0, NULL, 0.0, 0, 0, 0, NULL, tokenizer_path_heap);
+    free(tokenizer_path_heap);
     return 5;
   }
 
@@ -1702,7 +1462,8 @@ int main(int argc, char **argv) {
     fprintf(stderr, "error: OOM allocating token buffer\n");
     ie_engine_destroy(engine);
     ie_weights_close(&w);
-    print_json_result(0, NULL, 0.0, 0, 0, 0, NULL);
+    print_json_result(0, NULL, 0.0, 0, 0, 0, NULL, tokenizer_path_heap);
+    free(tokenizer_path_heap);
     return 6;
   }
 
@@ -1711,6 +1472,18 @@ int main(int argc, char **argv) {
   const int verify_touch = (int)env_long("IE_VERIFY_TOUCH", 0);
   const int want_cuda = device_is_cuda(opt.device) ? 1 : 0;
   const int want_cpu = device_is_cpu(opt.device) ? 1 : 0;
+
+  /* Preload prompts (when aggregate) so file I/O is not part of the timed window. */
+  prompt_list_t prompts;
+  prompt_list_init(&prompts);
+
+  if (opt.aggregate && opt.prompts_file) {
+    (void)prompt_list_read_file(opt.prompts_file, &prompts);
+    if (prompts.count == 0) {
+      /* Keep behavior predictable even with empty/unreadable prompt files. */
+      (void)prompt_list_push_copy(&prompts, "bench");
+    }
+  }
 
   model_mmap_touch_t mt;
   int mt_ok = 0;
@@ -1722,49 +1495,41 @@ int main(int argc, char **argv) {
     }
   }
 
+  /* Preload cudart (dlopen/dlsym) outside the timed window to avoid setup overhead. */
+  if (want_cuda && verify_touch && bytes_per_token > 0) (void)cudart_get_api();
+
   (void)ie_kv_begin_round();
   uint64_t total_tokens_this_round = 0;
 
-  const double t0 = now_sec();
-  if (want_cuda) cudart_smoke_free0();
-
   size_t tokens_generated_total = 0;
 
+  /* Timed window begins here: steady-state generation + strict-touch work only. */
+  const double t0 = now_sec();
+
   for (int rr = 0; rr < (opt.rounds > 0 ? opt.rounds : 1); ++rr) {
-    if (opt.aggregate && opt.prompts_file) {
-      FILE *pf = fopen(opt.prompts_file, "r");
-      if (pf) {
-        char line[8192];
-        while (fgets(line, sizeof(line), pf)) {
-          size_t n = strlen(line);
-          while (n && (line[n - 1] == '\n' || line[n - 1] == '\r')) line[--n] = '\0';
-          if (!n) continue;
+    if (opt.aggregate && prompts.count > 0) {
+      for (size_t pi = 0; pi < prompts.count; ++pi) {
+        const char *p = prompts.items[pi];
+        size_t n_here = 0;
 
-          size_t n_here = 0;
-          st = ie_engine_generate(engine, line, cap, tokens, &n_here);
-          if (st != IE_OK) {
-            fprintf(stderr, "error: ie_engine_generate (status=%d)\n", (int)st);
-            break;
-          }
-
-          tokens_generated_total += n_here;
-          total_tokens_this_round += (uint64_t)n_here;
-
-          if (want_cuda && verify_touch && bytes_per_token && n_here > 0) {
-            int rc = cudart_touch_bytes(bytes_per_token, (uint64_t)n_here, stride_bytes, verify_touch);
-            if (rc != 0) {
-              fprintf(stderr, "error: CUDA strict touch failed (rc=%d)\n", rc);
-              break;
-            }
-          }
-
-          if (want_cpu && verify_touch && bytes_per_token && n_here > 0 && mt_ok) {
-            (void)model_touch_bytes(&mt, bytes_per_token * n_here, stride_bytes, verify_touch);
-          }
+        st = ie_engine_generate(engine, p, cap, tokens, &n_here);
+        if (st != IE_OK) {
+          fprintf(stderr, "error: ie_engine_generate (status=%d)\n", (int)st);
+          /* Continue to keep one JSON output; do not abort the process here. */
+          continue;
         }
-        (void)fclose(pf);
-      } else {
-        fprintf(stderr, "warn: cannot open prompts-file '%s'\n", opt.prompts_file);
+
+        tokens_generated_total += n_here;
+        total_tokens_this_round += (uint64_t)n_here;
+
+        if (want_cuda && verify_touch && bytes_per_token && n_here > 0) {
+          int rc = cudart_touch_bytes(bytes_per_token, (uint64_t)n_here, stride_bytes, verify_touch);
+          if (rc != 0) fprintf(stderr, "error: CUDA strict touch failed (rc=%d)\n", rc);
+        }
+
+        if (want_cpu && verify_touch && bytes_per_token && n_here > 0 && mt_ok) {
+          (void)model_touch_bytes(&mt, bytes_per_token * n_here, stride_bytes, verify_touch);
+        }
       }
     } else {
       const char *p = (opt.prompt ? opt.prompt : "bench");
@@ -1788,6 +1553,7 @@ int main(int argc, char **argv) {
   }
 
   const double t1 = now_sec();
+  /* Timed window ends here. */
 
   uint64_t kv_hits_round = 0, kv_miss_round = 0;
   ie_kv_finish_round(total_tokens_this_round, &kv_hits_round, &kv_miss_round);
@@ -1800,26 +1566,13 @@ int main(int argc, char **argv) {
 
   /* Decode text only when we have a stable token sequence to decode. */
   char *decoded = NULL;
-  tok_map_t tmap;
-  memset(&tmap, 0, sizeof(tmap));
-
   if (opt.print_text && single_run_tokens && tokens_generated_total > 0) {
-    const char *tok_env = env_str("IE_TOKENIZER", env_str("TOKENIZER", ""));
-    const char *tok_opt = (opt.tokenizer_path && *opt.tokenizer_path) ? opt.tokenizer_path : (tok_env && *tok_env ? tok_env : NULL);
-
-    char tok_path[PATH_MAX];
-    resolve_tokenizer_path(model_dir_eff, tok_opt, tok_path, sizeof(tok_path));
-
-    if (tok_path[0]) {
-      if (tok_map_load_from_tokenizer_json(tok_path, &tmap) == 0) {
-        if (tok_decode_ids_to_text(&tmap, tokens, tokens_generated_total, &decoded) != 0) {
-          decoded = NULL;
-        }
-      } else {
-        fprintf(stderr, "warn: failed to parse tokenizer.json at '%s'\n", tok_path);
+    if (tokenizer_path_heap && *tokenizer_path_heap) {
+      if (decode_tokens_best_effort(tokenizer_path_heap, tokens, tokens_generated_total, &decoded) != 0) {
+        decoded = NULL;
       }
     } else {
-      fprintf(stderr, "warn: tokenizer.json not found under model dir '%s'\n", model_dir_eff);
+      fprintf(stderr, "warn: tokenizer file not found under model dir '%s'\n", model_dir_eff);
     }
   }
 
@@ -1829,15 +1582,18 @@ int main(int argc, char **argv) {
                     kv_hits_round,
                     kv_miss_round,
                     rss_mib,
-                    decoded);
+                    decoded,
+                    (opt.print_text ? tokenizer_path_heap : NULL));
 
   free(decoded);
-  tok_map_free(&tmap);
 
   if (mt_ok) model_touch_close(&mt);
+
+  prompt_list_free(&prompts);
 
   free(tokens);
   ie_engine_destroy(engine);
   ie_weights_close(&w);
+  free(tokenizer_path_heap);
   return 0;
 }

@@ -60,6 +60,27 @@ typedef struct ie_engine_params {
 
   /** @brief Thread count (0 means "auto"). */
   int threads;
+
+  /**
+   * @brief Optional tokenizer file override.
+   *
+   * When NULL, the engine resolves a tokenizer under model_dir.
+   */
+  const char *tokenizer_path;
+
+  /**
+   * @brief Optional weights JSON path override.
+   *
+   * When NULL, the engine uses the default JSON file under model_dir.
+   */
+  const char *weights_json_path;
+
+  /**
+   * @brief Optional weights BIN path override.
+   *
+   * When NULL, the engine uses the default BIN file under model_dir.
+   */
+  const char *weights_bin_path;
 } ie_engine_params_t;
 
 /** @brief Opaque engine type. */

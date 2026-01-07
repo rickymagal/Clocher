@@ -4,23 +4,16 @@
  */
 /**
  * @file tokenizer_gptoss.c
- * @brief GPT-OSS (GPT-2 style) byte-level BPE tokenizer.
- *
- * This implementation supports two on-disk formats:
- *  - HuggingFace `tokenizer.json` (slow to load, JSON scanned with a minimal parser)
- *  - Packed tokenizer produced by `scripts/pack_tokenizer.py` (recommended)
- *
- * Features:
- *  - Load vocab (id <-> token string)
- *  - Load merges (pair ranks)
- *  - GPT-2 `bytes_to_unicode` mapping
- *  - Encode: UTF-8 text -> token ids
- *  - Decode: token ids -> UTF-8 text
+ * @brief GPT-OSS tokenizer supporting:
+ *  - HuggingFace `tokenizer.json` (GPT-2 byte-level BPE)
+ *  - Packed `IETOK1` (recommended)
+ *  - OpenAI-style `.tiktoken` ranks (base64 token bytes + rank)
  *
  * Notes:
  *  - Correctness is prioritized over speed.
- *  - Pretokenization is a lightweight approximation of the GPT-2 regex.
- *    It attaches a single leading space to a token when present.
+ *  - `.tiktoken` tokens are binary-safe and stored as raw bytes.
+ *  - `.tiktoken` encode uses byte-level BPE per conservative segments:
+ *    runs of whitespace and runs of non-whitespace.
  */
 
 #include "ie_tokenizer_gptoss.h"
@@ -37,13 +30,6 @@
  * Small utilities
  * ========================================================================== */
 
-/**
- * @brief FNV-1a 64-bit hash.
- *
- * @param[in] data Pointer to bytes.
- * @param[in] n    Number of bytes.
- * @return 64-bit hash.
- */
 static uint64_t fnv1a64(const void *data, size_t n) {
   const unsigned char *p = (const unsigned char *)data;
   uint64_t h = 1469598103934665603ull;
@@ -54,13 +40,21 @@ static uint64_t fnv1a64(const void *data, size_t n) {
   return h;
 }
 
-/**
- * @brief FNV-1a 32-bit hash.
- *
- * @param[in] data Pointer to bytes.
- * @param[in] n    Number of bytes.
- * @return 32-bit hash.
- */
+static uint64_t fnv1a64_two(const void *a, size_t an, const void *b, size_t bn) {
+  const unsigned char *p = (const unsigned char *)a;
+  uint64_t h = 1469598103934665603ull;
+  for (size_t i = 0; i < an; ++i) {
+    h ^= (uint64_t)p[i];
+    h *= 1099511628211ull;
+  }
+  p = (const unsigned char *)b;
+  for (size_t i = 0; i < bn; ++i) {
+    h ^= (uint64_t)p[i];
+    h *= 1099511628211ull;
+  }
+  return h;
+}
+
 static uint32_t fnv1a32(const void *data, size_t n) {
   const unsigned char *p = (const unsigned char *)data;
   uint32_t h = 2166136261u;
@@ -71,30 +65,17 @@ static uint32_t fnv1a32(const void *data, size_t n) {
   return h;
 }
 
-/**
- * @brief calloc wrapper with overflow guard.
- */
 static void *xcalloc(size_t n, size_t sz) {
   if (n == 0 || sz == 0) return NULL;
   if (n > (SIZE_MAX / sz)) return NULL;
   return calloc(n, sz);
 }
 
-/**
- * @brief realloc wrapper.
- */
 static void *xrealloc(void *p, size_t n) {
   if (n == 0) return NULL;
   return realloc(p, n);
 }
 
-/**
- * @brief Duplicate a byte slice as a NUL-terminated string.
- *
- * @param[in] s Input pointer.
- * @param[in] n Number of bytes.
- * @return Newly allocated string or NULL.
- */
 static char *xstrdup_n(const char *s, size_t n) {
   char *p = (char *)malloc(n + 1);
   if (!p) return NULL;
@@ -103,11 +84,6 @@ static char *xstrdup_n(const char *s, size_t n) {
   return p;
 }
 
-/**
- * @brief Read the entire file into memory.
- *
- * The returned buffer is NUL-terminated for convenience.
- */
 static int read_all_bytes(const char *path, char **out_buf, size_t *out_len) {
   if (!path || !out_buf || !out_len) return -1;
   *out_buf = NULL;
@@ -115,61 +91,43 @@ static int read_all_bytes(const char *path, char **out_buf, size_t *out_len) {
 
   FILE *f = fopen(path, "rb");
   if (!f) return -1;
-  if (fseek(f, 0, SEEK_END) != 0) {
-    fclose(f);
-    return -1;
-  }
+  if (fseek(f, 0, SEEK_END) != 0) { fclose(f); return -1; }
   long sz = ftell(f);
-  if (sz < 0) {
-    fclose(f);
-    return -1;
-  }
-  if (fseek(f, 0, SEEK_SET) != 0) {
-    fclose(f);
-    return -1;
-  }
+  if (sz < 0) { fclose(f); return -1; }
+  if (fseek(f, 0, SEEK_SET) != 0) { fclose(f); return -1; }
 
   char *buf = (char *)malloc((size_t)sz + 1);
-  if (!buf) {
-    fclose(f);
-    return -1;
-  }
+  if (!buf) { fclose(f); return -1; }
+
   size_t rd = fread(buf, 1, (size_t)sz, f);
   fclose(f);
-  if (rd != (size_t)sz) {
-    free(buf);
-    return -1;
-  }
+  if (rd != (size_t)sz) { free(buf); return -1; }
+
   buf[sz] = '\0';
   *out_buf = buf;
   *out_len = (size_t)sz;
   return 0;
 }
 
+static int path_ends_with(const char *path, const char *suf) {
+  if (!path || !suf) return 0;
+  size_t a = strlen(path);
+  size_t b = strlen(suf);
+  if (b > a) return 0;
+  return memcmp(path + (a - b), suf, b) == 0;
+}
+
 /* ============================================================================
- * Minimal UTF-8 decode/encode (codepoint-based)
+ * Minimal UTF-8 decode/encode
  * ========================================================================== */
 
-/**
- * @brief Decode the next UTF-8 codepoint.
- *
- * @param[in]     s      UTF-8 bytes.
- * @param[in]     n      Buffer length.
- * @param[in,out] io_i   Cursor (byte index) advanced on success.
- * @param[out]    out_cp Codepoint.
- * @return 0 on success, 1 on end-of-buffer, -1 on malformed UTF-8.
- */
 static int utf8_next_cp(const char *s, size_t n, size_t *io_i, uint32_t *out_cp) {
   if (!s || !io_i || !out_cp) return -1;
   size_t i = *io_i;
   if (i >= n) return 1;
 
   unsigned char c0 = (unsigned char)s[i++];
-  if (c0 < 0x80) {
-    *out_cp = (uint32_t)c0;
-    *io_i = i;
-    return 0;
-  }
+  if (c0 < 0x80) { *out_cp = (uint32_t)c0; *io_i = i; return 0; }
 
   int need = 0;
   uint32_t cp = 0;
@@ -190,14 +148,6 @@ static int utf8_next_cp(const char *s, size_t n, size_t *io_i, uint32_t *out_cp)
   return 0;
 }
 
-/**
- * @brief Encode a single codepoint as UTF-8.
- *
- * @param[out] dst Output buffer.
- * @param[in]  cap Capacity in bytes.
- * @param[in]  cp  Codepoint.
- * @return Number of bytes written (1..4), or 0 on insufficient capacity.
- */
 static size_t utf8_put_cp(char *dst, size_t cap, uint32_t cp) {
   if (!dst || cap == 0) return 0;
   if (cp < 0x80) {
@@ -229,19 +179,11 @@ static size_t utf8_put_cp(char *dst, size_t cap, uint32_t cp) {
  * JSON scanner tailored for tokenizer.json
  * ========================================================================== */
 
-/**
- * @brief Skip ASCII whitespace.
- */
 static const char *skip_ws(const char *p) {
   while (*p && (unsigned char)*p <= 0x20) ++p;
   return p;
 }
 
-/**
- * @brief Scan a JSON string (raw, with escapes preserved).
- *
- * The returned string must be freed by the caller.
- */
 static int scan_json_string(const char **pp, char **out_s, size_t *out_n) {
   const char *p = skip_ws(*pp);
   if (*p != '"') return -1;
@@ -249,12 +191,7 @@ static int scan_json_string(const char **pp, char **out_s, size_t *out_n) {
 
   const char *start = p;
   while (*p) {
-    if (*p == '\\') {
-      ++p;
-      if (!*p) return -1;
-      ++p;
-      continue;
-    }
+    if (*p == '\\') { ++p; if (!*p) return -1; ++p; continue; }
     if (*p == '"') break;
     ++p;
   }
@@ -272,19 +209,11 @@ static int scan_json_string(const char **pp, char **out_s, size_t *out_n) {
   return 0;
 }
 
-/**
- * @brief Unescape a JSON string in-place.
- *
- * Supports common escapes plus minimal BMP-only \uXXXX decoding.
- */
 static int json_unescape_inplace(char *s) {
   if (!s) return -1;
   char *w = s;
   for (char *r = s; *r; ++r) {
-    if (*r != '\\') {
-      *w++ = *r;
-      continue;
-    }
+    if (*r != '\\') { *w++ = *r; continue; }
     ++r;
     if (!*r) return -1;
     switch (*r) {
@@ -321,9 +250,6 @@ static int json_unescape_inplace(char *s) {
   return 0;
 }
 
-/**
- * @brief Scan a JSON integer.
- */
 static int scan_json_int(const char **pp, int *out_val) {
   const char *p = skip_ws(*pp);
   int neg = 0;
@@ -340,11 +266,6 @@ static int scan_json_int(const char **pp, int *out_val) {
   return 0;
 }
 
-/**
- * @brief Find a JSON key ("key": ...) anywhere in a document.
- *
- * This is a pragmatic scanner: it does not build a full JSON AST.
- */
 static const char *find_key_in_object(const char *json, const char *key) {
   if (!json || !key) return NULL;
   size_t klen = strlen(key);
@@ -362,11 +283,6 @@ static const char *find_key_in_object(const char *json, const char *key) {
   return NULL;
 }
 
-/**
- * @brief Skip a JSON value starting at *pp.
- *
- * This supports strings, numbers, objects, arrays, and true/false/null.
- */
 static int skip_json_value(const char **pp) {
   const char *p = skip_ws(*pp);
   if (!p || *p == '\0') return -1;
@@ -380,11 +296,9 @@ static int skip_json_value(const char **pp) {
   }
 
   if (*p == '{') {
-    int depth = 0;
-    int in_str = 0;
-    int esc = 0;
+    int depth = 0, in_str = 0, esc = 0;
     for (; *p; p++) {
-      const char c = *p;
+      char c = *p;
       if (in_str) {
         if (esc) esc = 0;
         else if (c == '\\') esc = 1;
@@ -393,20 +307,15 @@ static int skip_json_value(const char **pp) {
       }
       if (c == '"') { in_str = 1; continue; }
       if (c == '{') depth++;
-      else if (c == '}') {
-        depth--;
-        if (depth == 0) { p++; *pp = p; return 0; }
-      }
+      else if (c == '}') { depth--; if (depth == 0) { p++; *pp = p; return 0; } }
     }
     return -1;
   }
 
   if (*p == '[') {
-    int depth = 0;
-    int in_str = 0;
-    int esc = 0;
+    int depth = 0, in_str = 0, esc = 0;
     for (; *p; p++) {
-      const char c = *p;
+      char c = *p;
       if (in_str) {
         if (esc) esc = 0;
         else if (c == '\\') esc = 1;
@@ -415,10 +324,7 @@ static int skip_json_value(const char **pp) {
       }
       if (c == '"') { in_str = 1; continue; }
       if (c == '[') depth++;
-      else if (c == ']') {
-        depth--;
-        if (depth == 0) { p++; *pp = p; return 0; }
-      }
+      else if (c == ']') { depth--; if (depth == 0) { p++; *pp = p; return 0; } }
     }
     return -1;
   }
@@ -426,11 +332,8 @@ static int skip_json_value(const char **pp) {
   if (*p == '-' || (*p >= '0' && *p <= '9')) {
     p++;
     while (*p) {
-      const char c = *p;
-      if ((c >= '0' && c <= '9') || c == '.' || c == 'e' || c == 'E' || c == '+' || c == '-') {
-        p++;
-        continue;
-      }
+      char c = *p;
+      if ((c >= '0' && c <= '9') || c == '.' || c == 'e' || c == 'E' || c == '+' || c == '-') { p++; continue; }
       break;
     }
     *pp = p;
@@ -445,12 +348,9 @@ static int skip_json_value(const char **pp) {
 }
 
 /* ============================================================================
- * Hash maps: string->id and pair->rank
+ * Hash maps: string->id and pair->rank (GPT-2 JSON backend)
  * ========================================================================== */
 
-/**
- * @brief Entry for token string -> id map.
- */
 typedef struct strid_ent_s {
   uint64_t h;
   const char *k;
@@ -458,27 +358,18 @@ typedef struct strid_ent_s {
   int used;
 } strid_ent_t;
 
-/**
- * @brief Entry for merge pair -> rank map.
- */
 typedef struct pairrank_ent_s {
   uint64_t key;
   uint32_t rank;
   int used;
 } pairrank_ent_t;
 
-/**
- * @brief Compute next power-of-two >= x.
- */
 static size_t next_pow2(size_t x) {
   size_t p = 1;
   while (p < x) p <<= 1;
   return p;
 }
 
-/**
- * @brief Initialize token->id hash map.
- */
 static int strid_map_init(strid_ent_t **out, size_t *out_cap, size_t want) {
   size_t cap = next_pow2(want * 2 + 64);
   strid_ent_t *m = (strid_ent_t *)xcalloc(cap, sizeof(*m));
@@ -488,9 +379,6 @@ static int strid_map_init(strid_ent_t **out, size_t *out_cap, size_t want) {
   return 0;
 }
 
-/**
- * @brief Insert into token->id map.
- */
 static int strid_map_put(strid_ent_t *m, size_t cap, const char *k, uint32_t v) {
   if (!m || cap == 0 || !k) return -1;
   uint64_t h = fnv1a64(k, strlen(k));
@@ -504,18 +392,12 @@ static int strid_map_put(strid_ent_t *m, size_t cap, const char *k, uint32_t v) 
       m[i].v = v;
       return 0;
     }
-    if (m[i].h == h && strcmp(m[i].k, k) == 0) {
-      m[i].v = v;
-      return 0;
-    }
+    if (m[i].h == h && strcmp(m[i].k, k) == 0) { m[i].v = v; return 0; }
     i = (i + 1) & mask;
   }
   return -1;
 }
 
-/**
- * @brief Lookup in token->id map.
- */
 static int strid_map_get(const strid_ent_t *m, size_t cap, const char *k, uint32_t *out_v) {
   if (!m || cap == 0 || !k || !out_v) return -1;
   uint64_t h = fnv1a64(k, strlen(k));
@@ -523,18 +405,12 @@ static int strid_map_get(const strid_ent_t *m, size_t cap, const char *k, uint32
   size_t i = (size_t)h & mask;
   for (size_t step = 0; step < cap; ++step) {
     if (!m[i].used) return -1;
-    if (m[i].h == h && strcmp(m[i].k, k) == 0) {
-      *out_v = m[i].v;
-      return 0;
-    }
+    if (m[i].h == h && strcmp(m[i].k, k) == 0) { *out_v = m[i].v; return 0; }
     i = (i + 1) & mask;
   }
   return -1;
 }
 
-/**
- * @brief Initialize pair->rank map.
- */
 static int pairrank_map_init(pairrank_ent_t **out, size_t *out_cap, size_t want) {
   size_t cap = next_pow2(want * 2 + 64);
   pairrank_ent_t *m = (pairrank_ent_t *)xcalloc(cap, sizeof(*m));
@@ -544,22 +420,68 @@ static int pairrank_map_init(pairrank_ent_t **out, size_t *out_cap, size_t want)
   return 0;
 }
 
-/**
- * @brief Insert into pair->rank map.
- */
 static int pairrank_map_put(pairrank_ent_t *m, size_t cap, uint64_t key, uint32_t rank) {
   if (!m || cap == 0) return -1;
   size_t mask = cap - 1;
   size_t i = (size_t)key & mask;
   for (size_t step = 0; step < cap; ++step) {
+    if (!m[i].used) { m[i].used = 1; m[i].key = key; m[i].rank = rank; return 0; }
+    if (m[i].key == key) { m[i].rank = rank; return 0; }
+    i = (i + 1) & mask;
+  }
+  return -1;
+}
+
+static int pairrank_map_get(const pairrank_ent_t *m, size_t cap, uint64_t key, uint32_t *out_rank) {
+  if (!m || cap == 0 || !out_rank) return -1;
+  size_t mask = cap - 1;
+  size_t i = (size_t)key & mask;
+  for (size_t step = 0; step < cap; ++step) {
+    if (!m[i].used) return -1;
+    if (m[i].key == key) { *out_rank = m[i].rank; return 0; }
+    i = (i + 1) & mask;
+  }
+  return -1;
+}
+
+/* ============================================================================
+ * Binary hash map: (bytes,len)->id for .tiktoken backend
+ * ========================================================================== */
+
+typedef struct bytesid_ent_s {
+  uint64_t h;
+  const uint8_t *p;
+  uint32_t n;
+  uint32_t v;
+  int used;
+} bytesid_ent_t;
+
+static int bytesid_map_init(bytesid_ent_t **out, size_t *out_cap, size_t want) {
+  size_t cap = next_pow2(want * 2 + 64);
+  bytesid_ent_t *m = (bytesid_ent_t *)xcalloc(cap, sizeof(*m));
+  if (!m) return -1;
+  *out = m;
+  *out_cap = cap;
+  return 0;
+}
+
+static int bytesid_map_put(bytesid_ent_t *m, size_t cap, const uint8_t *p, uint32_t n, uint32_t v) {
+  if (!m || cap == 0 || (!p && n)) return -1;
+  uint64_t h = fnv1a64(p, (size_t)n);
+  size_t mask = cap - 1;
+  size_t i = (size_t)h & mask;
+  for (size_t step = 0; step < cap; ++step) {
     if (!m[i].used) {
       m[i].used = 1;
-      m[i].key = key;
-      m[i].rank = rank;
+      m[i].h = h;
+      m[i].p = p;
+      m[i].n = n;
+      m[i].v = v;
       return 0;
     }
-    if (m[i].key == key) {
-      m[i].rank = rank;
+    if (m[i].h == h && m[i].n == n && (n == 0 || memcmp(m[i].p, p, n) == 0)) {
+      m[i].p = p;
+      m[i].v = v;
       return 0;
     }
     i = (i + 1) & mask;
@@ -567,18 +489,39 @@ static int pairrank_map_put(pairrank_ent_t *m, size_t cap, uint64_t key, uint32_
   return -1;
 }
 
-/**
- * @brief Lookup in pair->rank map.
- */
-static int pairrank_map_get(const pairrank_ent_t *m, size_t cap, uint64_t key, uint32_t *out_rank) {
-  if (!m || cap == 0 || !out_rank) return -1;
+static int bytesid_map_get(const bytesid_ent_t *m, size_t cap, const uint8_t *p, uint32_t n, uint32_t *out_v) {
+  if (!m || cap == 0 || (!p && n) || !out_v) return -1;
+  uint64_t h = fnv1a64(p, (size_t)n);
   size_t mask = cap - 1;
-  size_t i = (size_t)key & mask;
+  size_t i = (size_t)h & mask;
   for (size_t step = 0; step < cap; ++step) {
     if (!m[i].used) return -1;
-    if (m[i].key == key) {
-      *out_rank = m[i].rank;
-      return 0;
+    if (m[i].h == h && m[i].n == n && (n == 0 || memcmp(m[i].p, p, n) == 0)) { *out_v = m[i].v; return 0; }
+    i = (i + 1) & mask;
+  }
+  return -1;
+}
+
+static int bytesid_map_get_concat(const bytesid_ent_t *m, size_t cap,
+                                  const uint8_t *a, uint32_t an,
+                                  const uint8_t *b, uint32_t bn,
+                                  uint32_t *out_v) {
+  if (!m || cap == 0 || (!a && an) || (!b && bn) || !out_v) return -1;
+  uint32_t n = an + bn;
+  uint64_t h = fnv1a64_two(a, (size_t)an, b, (size_t)bn);
+  size_t mask = cap - 1;
+  size_t i = (size_t)h & mask;
+  for (size_t step = 0; step < cap; ++step) {
+    if (!m[i].used) return -1;
+    if (m[i].h == h && m[i].n == n) {
+      if (n == 0) { *out_v = m[i].v; return 0; }
+      if (an == 0) {
+        if (memcmp(m[i].p, b, bn) == 0) { *out_v = m[i].v; return 0; }
+      } else if (bn == 0) {
+        if (memcmp(m[i].p, a, an) == 0) { *out_v = m[i].v; return 0; }
+      } else {
+        if (memcmp(m[i].p, a, an) == 0 && memcmp(m[i].p + an, b, bn) == 0) { *out_v = m[i].v; return 0; }
+      }
     }
     i = (i + 1) & mask;
   }
@@ -586,12 +529,9 @@ static int pairrank_map_get(const pairrank_ent_t *m, size_t cap, uint64_t key, u
 }
 
 /* ============================================================================
- * String interning for BPE symbols
+ * String interning for GPT-2 merges
  * ========================================================================== */
 
-/**
- * @brief Intern table entry.
- */
 typedef struct intern_ent_s {
   uint32_t h;
   const char *s;
@@ -599,9 +539,6 @@ typedef struct intern_ent_s {
   int used;
 } intern_ent_t;
 
-/**
- * @brief Intern table with an arena backing store.
- */
 typedef struct intern_s {
   intern_ent_t *m;
   size_t cap;
@@ -611,9 +548,6 @@ typedef struct intern_s {
   uint32_t next_id;
 } intern_t;
 
-/**
- * @brief Initialize intern table.
- */
 static int intern_init(intern_t *in, size_t want_syms, size_t arena_hint) {
   if (!in) return -1;
   memset(in, 0, sizeof(*in));
@@ -622,19 +556,12 @@ static int intern_init(intern_t *in, size_t want_syms, size_t arena_hint) {
   if (!in->m) return -1;
   in->arena_sz = (arena_hint ? arena_hint : (1u << 20));
   in->arena = (char *)malloc(in->arena_sz);
-  if (!in->arena) {
-    free(in->m);
-    memset(in, 0, sizeof(*in));
-    return -1;
-  }
+  if (!in->arena) { free(in->m); memset(in, 0, sizeof(*in)); return -1; }
   in->arena_used = 0;
   in->next_id = 1;
   return 0;
 }
 
-/**
- * @brief Free intern table.
- */
 static void intern_free(intern_t *in) {
   if (!in) return;
   free(in->m);
@@ -642,13 +569,10 @@ static void intern_free(intern_t *in) {
   memset(in, 0, sizeof(*in));
 }
 
-/**
- * @brief Store a string into the intern arena.
- */
 static const char *intern_store(intern_t *in, const char *s, size_t n) {
   if (!in || !s) return NULL;
   if (n + 1 > in->arena_sz - in->arena_used) {
-    size_t new_sz = in->arena_sz * 2;
+    size_t new_sz = in->arena_sz ? in->arena_sz * 2 : (1u << 20);
     while (new_sz < in->arena_used + n + 1) new_sz *= 2;
     char *na = (char *)realloc(in->arena, new_sz);
     if (!na) return NULL;
@@ -662,9 +586,19 @@ static const char *intern_store(intern_t *in, const char *s, size_t n) {
   return dst;
 }
 
-/**
- * @brief Get or add an interned string ID.
- */
+static int intern_get(const intern_t *in, const char *s, uint32_t *out_id) {
+  if (!in || !s || !out_id || in->cap == 0) return -1;
+  uint32_t h = fnv1a32(s, strlen(s));
+  size_t mask = in->cap - 1;
+  size_t i = (size_t)h & mask;
+  for (size_t step = 0; step < in->cap; ++step) {
+    if (!in->m[i].used) return -1;
+    if (in->m[i].h == h && strcmp(in->m[i].s, s) == 0) { *out_id = in->m[i].id; return 0; }
+    i = (i + 1) & mask;
+  }
+  return -1;
+}
+
 static int intern_get_or_add(intern_t *in, const char *s, uint32_t *out_id) {
   if (!in || !s || !out_id) return -1;
   uint32_t h = fnv1a32(s, strlen(s));
@@ -682,10 +616,7 @@ static int intern_get_or_add(intern_t *in, const char *s, uint32_t *out_id) {
       *out_id = id;
       return 0;
     }
-    if (in->m[i].h == h && strcmp(in->m[i].s, s) == 0) {
-      *out_id = in->m[i].id;
-      return 0;
-    }
+    if (in->m[i].h == h && strcmp(in->m[i].s, s) == 0) { *out_id = in->m[i].id; return 0; }
     i = (i + 1) & mask;
   }
   return -1;
@@ -695,18 +626,12 @@ static int intern_get_or_add(intern_t *in, const char *s, uint32_t *out_id) {
  * GPT-2 bytes_to_unicode mapping (byte-level BPE)
  * ========================================================================== */
 
-/**
- * @brief Byte-to-unicode mapping state.
- */
 typedef struct byteunicode_s {
   uint32_t byte_to_cp[256];
   int32_t cp_to_byte[2048];
   uint32_t cp_to_byte_cap;
 } byteunicode_t;
 
-/**
- * @brief Initialize GPT-2 bytes_to_unicode mapping.
- */
 static void byteunicode_init(byteunicode_t *m) {
   memset(m, 0, sizeof(*m));
   for (size_t i = 0; i < 2048; ++i) m->cp_to_byte[i] = -1;
@@ -715,71 +640,183 @@ static void byteunicode_init(byteunicode_t *m) {
   int used[256];
   for (int i = 0; i < 256; ++i) used[i] = 0;
 
-  /* Map selected bytes to themselves. */
   for (int b = 33; b <= 126; ++b) { m->byte_to_cp[b] = (uint32_t)b; used[b] = 1; }
   for (int b = 161; b <= 172; ++b) { m->byte_to_cp[b] = (uint32_t)b; used[b] = 1; }
   for (int b = 174; b <= 255; ++b) { m->byte_to_cp[b] = (uint32_t)b; used[b] = 1; }
 
-  /* Assign remaining bytes to codepoints starting at 256. */
   int extra = 0;
   for (int b = 0; b < 256; ++b) {
-    if (!used[b]) {
-      m->byte_to_cp[b] = (uint32_t)(256 + extra);
-      extra++;
-    }
+    if (!used[b]) { m->byte_to_cp[b] = (uint32_t)(256 + extra); extra++; }
   }
 
-  /* Invert mapping for decoding. */
   for (int b = 0; b < 256; ++b) {
     uint32_t cp = m->byte_to_cp[b];
     if (cp < m->cp_to_byte_cap) m->cp_to_byte[cp] = b;
   }
 }
 
-/**
- * @brief Convert a unicode codepoint from bytes_to_unicode back to a byte.
- */
 static int byteunicode_cp_to_byte(const byteunicode_t *m, uint32_t cp, uint8_t *out_b) {
   if (!m || !out_b) return -1;
-  if (cp < m->cp_to_byte_cap && m->cp_to_byte[cp] >= 0) {
-    *out_b = (uint8_t)m->cp_to_byte[cp];
-    return 0;
-  }
+  if (cp < m->cp_to_byte_cap && m->cp_to_byte[cp] >= 0) { *out_b = (uint8_t)m->cp_to_byte[cp]; return 0; }
   return -1;
+}
+
+/* ============================================================================
+ * Buffers
+ * ========================================================================== */
+
+typedef struct u32buf_s {
+  uint32_t *v;
+  size_t n;
+  size_t cap;
+} u32buf_t;
+
+static int u32buf_push(u32buf_t *b, uint32_t x) {
+  if (!b) return -1;
+  if (b->n == b->cap) {
+    size_t nc = (b->cap ? b->cap * 2 : 64);
+    uint32_t *nv = (uint32_t *)xrealloc(b->v, nc * sizeof(uint32_t));
+    if (!nv) return -1;
+    b->v = nv;
+    b->cap = nc;
+  }
+  b->v[b->n++] = x;
+  return 0;
+}
+
+typedef struct strbuf_s {
+  char *v;
+  size_t n;
+  size_t cap;
+} strbuf_t;
+
+static int strbuf_reserve(strbuf_t *b, size_t add) {
+  if (!b) return -1;
+  if (b->n + add <= b->cap) return 0;
+  size_t nc = (b->cap ? b->cap * 2 : 256);
+  while (nc < b->n + add) nc *= 2;
+  char *nv = (char *)xrealloc(b->v, nc);
+  if (!nv) return -1;
+  b->v = nv;
+  b->cap = nc;
+  return 0;
+}
+
+static int strbuf_append_bytes(strbuf_t *b, const char *s, size_t n) {
+  if (!b || (!s && n)) return -1;
+  if (strbuf_reserve(b, n) != 0) return -1;
+  memcpy(b->v + b->n, s, n);
+  b->n += n;
+  return 0;
+}
+
+static void strbuf_free(strbuf_t *b) {
+  if (!b) return;
+  free(b->v);
+  memset(b, 0, sizeof(*b));
+}
+
+/* ============================================================================
+ * Byte arenas (stable pointers)
+ * ========================================================================== */
+
+typedef struct bytearena_s {
+  uint8_t **blocks;
+  size_t *sizes;
+  size_t nblocks;
+  size_t cap;
+  uint8_t *cur;
+  size_t cur_sz;
+  size_t cur_used;
+} bytearena_t;
+
+static void bytearena_free(bytearena_t *a) {
+  if (!a) return;
+  if (a->blocks) {
+    for (size_t i = 0; i < a->nblocks; ++i) free(a->blocks[i]);
+  }
+  free(a->blocks);
+  free(a->sizes);
+  memset(a, 0, sizeof(*a));
+}
+
+static int bytearena_new_block(bytearena_t *a, size_t need) {
+  size_t blk = (a->cur_sz ? a->cur_sz * 2 : (1u << 20));
+  if (blk < need) blk = need;
+  uint8_t *mem = (uint8_t *)malloc(blk);
+  if (!mem) return -1;
+
+  if (a->nblocks == a->cap) {
+    size_t nc = a->cap ? a->cap * 2 : 8;
+    uint8_t **nb = (uint8_t **)realloc(a->blocks, nc * sizeof(*nb));
+    size_t *ns = (size_t *)realloc(a->sizes, nc * sizeof(*ns));
+    if (!nb || !ns) { free(mem); free(nb); free(ns); return -1; }
+    a->blocks = nb;
+    a->sizes = ns;
+    a->cap = nc;
+  }
+
+  a->blocks[a->nblocks] = mem;
+  a->sizes[a->nblocks] = blk;
+  a->nblocks++;
+
+  a->cur = mem;
+  a->cur_sz = blk;
+  a->cur_used = 0;
+  return 0;
+}
+
+static uint8_t *bytearena_alloc(bytearena_t *a, size_t n) {
+  if (!a) return NULL;
+  if (n == 0) return (uint8_t *)"";
+  if (!a->cur || a->cur_used + n > a->cur_sz) {
+    if (bytearena_new_block(a, n) != 0) return NULL;
+  }
+  uint8_t *p = a->cur + a->cur_used;
+  a->cur_used += n;
+  return p;
 }
 
 /* ============================================================================
  * Tokenizer state
  * ========================================================================== */
 
+typedef enum ie_tok_mode_e {
+  IE_TOK_MODE_GPT2 = 0,
+  IE_TOK_MODE_TIKTOKEN = 1
+} ie_tok_mode_t;
+
+typedef struct bytes_view_s {
+  const uint8_t *p;
+  uint32_t n;
+} bytes_view_t;
+
 struct ie_tok_gptoss_s {
+  ie_tok_mode_t mode;
   uint32_t vocab_size;
 
-  /* id -> token string (UTF-8). */
+  /* GPT-2 JSON / packed backend */
   char **id_to_tok;
-
-  /* token string -> id (string pointers are owned by id_to_tok). */
   strid_ent_t *tok_to_id;
   size_t tok_to_id_cap;
-
-  /* BPE merges: pair(sym_id_a, sym_id_b) -> rank (smaller rank = earlier merge). */
   pairrank_ent_t *pair_to_rank;
   size_t pair_to_rank_cap;
-
-  /* Intern table for BPE symbol strings. */
   intern_t intern;
-
-  /* Byte-level mapping. */
   byteunicode_t bu;
+
+  /* .tiktoken backend */
+  bytes_view_t *id_to_bytes;
+  bytesid_ent_t *bytes_to_id;
+  size_t bytes_to_id_cap;
+  bytearena_t tt_arena;
+  uint32_t tt_byte_id[256];
+  int tt_have_byte_id;
 };
 
 /* ============================================================================
- * tokenizer.json parsing
+ * tokenizer.json parsing (GPT-2 backend)
  * ========================================================================== */
 
-/**
- * @brief Parse the vocab object (token -> id) from tokenizer.json.
- */
 static int parse_vocab_object(const char *json, ie_tok_gptoss_t *tok) {
   const char *p = find_key_in_object(json, "vocab");
   if (!p) return IE_TOK_GPTOSS_ERR_JSON;
@@ -788,7 +825,6 @@ static int parse_vocab_object(const char *json, ie_tok_gptoss_t *tok) {
   if (*p != '{') return IE_TOK_GPTOSS_ERR_JSON;
   ++p;
 
-  /* First pass: discover max id to size the arrays. */
   uint32_t max_id = 0;
   const char *q = p;
   while (*q) {
@@ -812,11 +848,8 @@ static int parse_vocab_object(const char *json, ie_tok_gptoss_t *tok) {
   tok->id_to_tok = (char **)xcalloc(tok->vocab_size, sizeof(char *));
   if (!tok->id_to_tok) return IE_TOK_GPTOSS_ERR_NOMEM;
 
-  if (strid_map_init(&tok->tok_to_id, &tok->tok_to_id_cap, tok->vocab_size) != 0) {
-    return IE_TOK_GPTOSS_ERR_NOMEM;
-  }
+  if (strid_map_init(&tok->tok_to_id, &tok->tok_to_id_cap, tok->vocab_size) != 0) return IE_TOK_GPTOSS_ERR_NOMEM;
 
-  /* Second pass: fill. */
   q = p;
   while (*q) {
     q = skip_ws(q);
@@ -828,10 +861,7 @@ static int parse_vocab_object(const char *json, ie_tok_gptoss_t *tok) {
     if (*q != ':') { free(kraw); return IE_TOK_GPTOSS_ERR_JSON; }
     ++q;
     int id = 0;
-    if (scan_json_int(&q, &id) != 0 || id < 0 || (uint32_t)id >= tok->vocab_size) {
-      free(kraw);
-      return IE_TOK_GPTOSS_ERR_JSON;
-    }
+    if (scan_json_int(&q, &id) != 0 || id < 0 || (uint32_t)id >= tok->vocab_size) { free(kraw); return IE_TOK_GPTOSS_ERR_JSON; }
 
     tok->id_to_tok[id] = kraw;
     (void)strid_map_put(tok->tok_to_id, tok->tok_to_id_cap, tok->id_to_tok[id], (uint32_t)id);
@@ -843,9 +873,6 @@ static int parse_vocab_object(const char *json, ie_tok_gptoss_t *tok) {
   return IE_TOK_GPTOSS_OK;
 }
 
-/**
- * @brief Rebuild tok_to_id from id_to_tok after vocab expansion.
- */
 static int rebuild_tok_to_id(ie_tok_gptoss_t *tok) {
   if (!tok) return -1;
 
@@ -858,20 +885,11 @@ static int rebuild_tok_to_id(ie_tok_gptoss_t *tok) {
   for (size_t i = 0; i < tok->vocab_size; i++) {
     const char *s = tok->id_to_tok[i];
     if (!s) continue;
-    if (strid_map_put(tok->tok_to_id, tok->tok_to_id_cap, s, (uint32_t)i) != 0) {
-      free(tok->tok_to_id);
-      tok->tok_to_id = NULL;
-      tok->tok_to_id_cap = 0;
-      return -1;
-    }
+    if (strid_map_put(tok->tok_to_id, tok->tok_to_id_cap, s, (uint32_t)i) != 0) return -1;
   }
-
   return 0;
 }
 
-/**
- * @brief Parse optional top-level "added_tokens" entries into vocab.
- */
 static int parse_added_tokens_array(const char *json, ie_tok_gptoss_t *tok) {
   const char *p = find_key_in_object(json, "added_tokens");
   if (!p) return IE_TOK_GPTOSS_OK;
@@ -882,7 +900,6 @@ static int parse_added_tokens_array(const char *json, ie_tok_gptoss_t *tok) {
 
   uint32_t max_id = (tok->vocab_size > 0) ? (uint32_t)(tok->vocab_size - 1) : 0;
 
-  /* Pass 1: compute max id. */
   const char *q = p;
   for (;;) {
     q = skip_ws(q);
@@ -933,10 +950,9 @@ static int parse_added_tokens_array(const char *json, ie_tok_gptoss_t *tok) {
     if (*q == ']') break;
   }
 
-  /* Expand vocab if needed. */
-  const size_t need = (size_t)max_id + 1;
+  size_t need = (size_t)max_id + 1;
   if (need > tok->vocab_size) {
-    const size_t old = tok->vocab_size;
+    size_t old = tok->vocab_size;
     char **nt = (char **)realloc(tok->id_to_tok, need * sizeof(char *));
     if (!nt) return IE_TOK_GPTOSS_ERR_NOMEM;
     tok->id_to_tok = nt;
@@ -945,7 +961,6 @@ static int parse_added_tokens_array(const char *json, ie_tok_gptoss_t *tok) {
     if (rebuild_tok_to_id(tok) != 0) return IE_TOK_GPTOSS_ERR_NOMEM;
   }
 
-  /* Pass 2: insert tokens. */
   q = p;
   for (;;) {
     q = skip_ws(q);
@@ -995,11 +1010,8 @@ static int parse_added_tokens_array(const char *json, ie_tok_gptoss_t *tok) {
 
     if (got_id && content) {
       if (id >= tok->vocab_size) { free(content); return IE_TOK_GPTOSS_ERR_JSON; }
-      if (tok->id_to_tok[id] == NULL) {
-        tok->id_to_tok[id] = content;
-      } else {
-        free(content);
-      }
+      if (tok->id_to_tok[id] == NULL) tok->id_to_tok[id] = content;
+      else free(content);
       if (strid_map_put(tok->tok_to_id, tok->tok_to_id_cap, tok->id_to_tok[id], id) != 0) return IE_TOK_GPTOSS_ERR_NOMEM;
     } else if (content) {
       free(content);
@@ -1014,9 +1026,6 @@ static int parse_added_tokens_array(const char *json, ie_tok_gptoss_t *tok) {
   return IE_TOK_GPTOSS_OK;
 }
 
-/**
- * @brief Scan a merge entry which can be either a string ("A B") or a pair array ["A","B"].
- */
 static int scan_merge_entry(const char **pp, char **a, char **b) {
   const char *p = skip_ws(*pp);
   if (!p || *p == '\0') return -1;
@@ -1076,9 +1085,6 @@ static int scan_merge_entry(const char **pp, char **a, char **b) {
   return -1;
 }
 
-/**
- * @brief Parse the merges array (pair ranks) from tokenizer.json.
- */
 static int parse_merges_array(const char *json, ie_tok_gptoss_t *tok) {
   const char *p = find_key_in_object(json, "merges");
   if (!p) return IE_TOK_GPTOSS_ERR_JSON;
@@ -1106,13 +1112,8 @@ static int parse_merges_array(const char *json, ie_tok_gptoss_t *tok) {
     if (*q == ',') ++q;
   }
 
-  if (intern_init(&tok->intern, merges * 4 + 1024, (size_t)(1u << 20)) != 0) {
-    return IE_TOK_GPTOSS_ERR_NOMEM;
-  }
-
-  if (pairrank_map_init(&tok->pair_to_rank, &tok->pair_to_rank_cap, merges) != 0) {
-    return IE_TOK_GPTOSS_ERR_NOMEM;
-  }
+  if (intern_init(&tok->intern, merges * 4 + 1024, (size_t)(1u << 20)) != 0) return IE_TOK_GPTOSS_ERR_NOMEM;
+  if (pairrank_map_init(&tok->pair_to_rank, &tok->pair_to_rank_cap, merges) != 0) return IE_TOK_GPTOSS_ERR_NOMEM;
 
   q = p;
   uint32_t rank = 0;
@@ -1126,10 +1127,8 @@ static int parse_merges_array(const char *json, ie_tok_gptoss_t *tok) {
     if (scan_merge_entry(&q, &lhs, &rhs) != 0) return IE_TOK_GPTOSS_ERR_JSON;
 
     uint32_t ida = 0, idb = 0;
-    if (intern_get_or_add(&tok->intern, lhs, &ida) != 0 ||
-        intern_get_or_add(&tok->intern, rhs, &idb) != 0) {
-      free(lhs);
-      free(rhs);
+    if (intern_get_or_add(&tok->intern, lhs, &ida) != 0 || intern_get_or_add(&tok->intern, rhs, &idb) != 0) {
+      free(lhs); free(rhs);
       return IE_TOK_GPTOSS_ERR_NOMEM;
     }
 
@@ -1147,9 +1146,6 @@ static int parse_merges_array(const char *json, ie_tok_gptoss_t *tok) {
   return IE_TOK_GPTOSS_OK;
 }
 
-/**
- * @brief Parse tokenizer.json into tokenizer state.
- */
 static int parse_tokenizer_json(const char *json, ie_tok_gptoss_t *tok) {
   if (!json || !tok) return IE_TOK_GPTOSS_ERR_ARGS;
 
@@ -1162,6 +1158,7 @@ static int parse_tokenizer_json(const char *json, ie_tok_gptoss_t *tok) {
   rc = parse_merges_array(json, tok);
   if (rc != IE_TOK_GPTOSS_OK) return rc;
 
+  tok->mode = IE_TOK_MODE_GPT2;
   return IE_TOK_GPTOSS_OK;
 }
 
@@ -1169,9 +1166,6 @@ static int parse_tokenizer_json(const char *json, ie_tok_gptoss_t *tok) {
  * Packed tokenizer format (IETOK1)
  * ========================================================================== */
 
-/**
- * @brief Read a little-endian u32 from a byte buffer.
- */
 static int rd_u32le(const unsigned char *buf, size_t n, size_t *io_off, uint32_t *out) {
   if (!buf || !io_off || !out) return -1;
   size_t off = *io_off;
@@ -1186,9 +1180,6 @@ static int rd_u32le(const unsigned char *buf, size_t n, size_t *io_off, uint32_t
   return 0;
 }
 
-/**
- * @brief Read a little-endian u16 from a byte buffer.
- */
 static int rd_u16le(const unsigned char *buf, size_t n, size_t *io_off, uint16_t *out) {
   if (!buf || !io_off || !out) return -1;
   size_t off = *io_off;
@@ -1201,9 +1192,6 @@ static int rd_u16le(const unsigned char *buf, size_t n, size_t *io_off, uint16_t
   return 0;
 }
 
-/**
- * @brief Read a length-prefixed string from a packed tokenizer buffer.
- */
 static int rd_lp_string(const unsigned char *buf, size_t n, size_t *io_off, char **out_s) {
   if (!buf || !io_off || !out_s) return -1;
   uint32_t len = 0;
@@ -1219,22 +1207,9 @@ static int rd_lp_string(const unsigned char *buf, size_t n, size_t *io_off, char
   return 0;
 }
 
-/**
- * @brief Parse packed tokenizer file produced by scripts/pack_tokenizer.py.
- */
 static int parse_tokenizer_packed(const unsigned char *buf, size_t n, ie_tok_gptoss_t *tok) {
   if (!buf || n < 32 || !tok) return IE_TOK_GPTOSS_ERR_ARGS;
 
-  /* Header layout matches scripts/pack_tokenizer.py:
-     magic[6] = "IETOK1"
-     u16 version
-     u32 vocab_size
-     u32 merges_count
-     u32 off_vocab
-     u32 off_merges
-     u32 off_special
-     u32 reserved
-   */
   size_t off = 0;
   if (n < 6) return IE_TOK_GPTOSS_ERR_JSON;
   if (memcmp(buf, "IETOK1", 6) != 0) return IE_TOK_GPTOSS_ERR_JSON;
@@ -1244,13 +1219,7 @@ static int parse_tokenizer_packed(const unsigned char *buf, size_t n, ie_tok_gpt
   if (rd_u16le(buf, n, &off, &version) != 0) return IE_TOK_GPTOSS_ERR_JSON;
   if (version != 1u) return IE_TOK_GPTOSS_ERR_JSON;
 
-  uint32_t vocab_size = 0;
-  uint32_t merges_count = 0;
-  uint32_t off_vocab = 0;
-  uint32_t off_merges = 0;
-  uint32_t off_special = 0;
-  uint32_t reserved = 0;
-
+  uint32_t vocab_size = 0, merges_count = 0, off_vocab = 0, off_merges = 0, off_special = 0, reserved = 0;
   if (rd_u32le(buf, n, &off, &vocab_size) != 0) return IE_TOK_GPTOSS_ERR_JSON;
   if (rd_u32le(buf, n, &off, &merges_count) != 0) return IE_TOK_GPTOSS_ERR_JSON;
   if (rd_u32le(buf, n, &off, &off_vocab) != 0) return IE_TOK_GPTOSS_ERR_JSON;
@@ -1267,11 +1236,8 @@ static int parse_tokenizer_packed(const unsigned char *buf, size_t n, ie_tok_gpt
   tok->id_to_tok = (char **)xcalloc(tok->vocab_size, sizeof(char *));
   if (!tok->id_to_tok) return IE_TOK_GPTOSS_ERR_NOMEM;
 
-  if (strid_map_init(&tok->tok_to_id, &tok->tok_to_id_cap, tok->vocab_size) != 0) {
-    return IE_TOK_GPTOSS_ERR_NOMEM;
-  }
+  if (strid_map_init(&tok->tok_to_id, &tok->tok_to_id_cap, tok->vocab_size) != 0) return IE_TOK_GPTOSS_ERR_NOMEM;
 
-  /* Vocab section. */
   off = (size_t)off_vocab;
   for (uint32_t i = 0; i < tok->vocab_size; ++i) {
     char *s = NULL;
@@ -1280,13 +1246,8 @@ static int parse_tokenizer_packed(const unsigned char *buf, size_t n, ie_tok_gpt
     (void)strid_map_put(tok->tok_to_id, tok->tok_to_id_cap, tok->id_to_tok[i], i);
   }
 
-  /* Merges section. */
-  if (intern_init(&tok->intern, (size_t)merges_count * 4 + 1024, (size_t)(1u << 20)) != 0) {
-    return IE_TOK_GPTOSS_ERR_NOMEM;
-  }
-  if (pairrank_map_init(&tok->pair_to_rank, &tok->pair_to_rank_cap, (size_t)merges_count) != 0) {
-    return IE_TOK_GPTOSS_ERR_NOMEM;
-  }
+  if (intern_init(&tok->intern, (size_t)merges_count * 4 + 1024, (size_t)(1u << 20)) != 0) return IE_TOK_GPTOSS_ERR_NOMEM;
+  if (pairrank_map_init(&tok->pair_to_rank, &tok->pair_to_rank_cap, (size_t)merges_count) != 0) return IE_TOK_GPTOSS_ERR_NOMEM;
 
   off = (size_t)off_merges;
   for (uint32_t r = 0; r < merges_count; ++r) {
@@ -1296,10 +1257,8 @@ static int parse_tokenizer_packed(const unsigned char *buf, size_t n, ie_tok_gpt
     if (rd_lp_string(buf, n, &off, &b) != 0) { free(a); return IE_TOK_GPTOSS_ERR_JSON; }
 
     uint32_t ida = 0, idb = 0;
-    if (intern_get_or_add(&tok->intern, a, &ida) != 0 ||
-        intern_get_or_add(&tok->intern, b, &idb) != 0) {
-      free(a);
-      free(b);
+    if (intern_get_or_add(&tok->intern, a, &ida) != 0 || intern_get_or_add(&tok->intern, b, &idb) != 0) {
+      free(a); free(b);
       return IE_TOK_GPTOSS_ERR_NOMEM;
     }
 
@@ -1310,100 +1269,199 @@ static int parse_tokenizer_packed(const unsigned char *buf, size_t n, ie_tok_gpt
     free(b);
   }
 
+  tok->mode = IE_TOK_MODE_GPT2;
   return IE_TOK_GPTOSS_OK;
 }
 
-/**
- * @brief Detect whether a buffer is a packed tokenizer.
- */
 static int is_packed_tokenizer(const unsigned char *buf, size_t n) {
   if (!buf || n < 6) return 0;
   return memcmp(buf, "IETOK1", 6) == 0;
 }
 
 /* ============================================================================
- * BPE encode
+ * .tiktoken parsing
  * ========================================================================== */
 
-/**
- * @brief Simple growable u32 array.
- */
-typedef struct u32buf_s {
-  uint32_t *v;
-  size_t n;
-  size_t cap;
-} u32buf_t;
+static int b64_val(int c) {
+  if (c >= 'A' && c <= 'Z') return c - 'A';
+  if (c >= 'a' && c <= 'z') return 26 + (c - 'a');
+  if (c >= '0' && c <= '9') return 52 + (c - '0');
+  if (c == '+') return 62;
+  if (c == '/') return 63;
+  if (c == '-') return 62;
+  if (c == '_') return 63;
+  return -1;
+}
 
-/**
- * @brief Push into u32 buffer.
- */
-static int u32buf_push(u32buf_t *b, uint32_t x) {
-  if (!b) return -1;
-  if (b->n == b->cap) {
-    size_t nc = (b->cap ? b->cap * 2 : 64);
-    uint32_t *nv = (uint32_t *)xrealloc(b->v, nc * sizeof(uint32_t));
-    if (!nv) return -1;
-    b->v = nv;
-    b->cap = nc;
+static int b64_decode(const char *s, size_t n, uint8_t **out, size_t *out_n) {
+  if (!s || !out || !out_n) return -1;
+  *out = NULL;
+  *out_n = 0;
+
+  size_t max_out = (n / 4 + 1) * 3;
+  uint8_t *buf = (uint8_t *)malloc(max_out ? max_out : 1);
+  if (!buf) return -1;
+
+  size_t wi = 0;
+  int quad[4];
+  int qn = 0;
+
+  for (size_t i = 0; i < n; ++i) {
+    unsigned char c = (unsigned char)s[i];
+    if (c == '=') {
+      quad[qn++] = -2;
+    } else {
+      int v = b64_val((int)c);
+      if (v < 0) { free(buf); return -1; }
+      quad[qn++] = v;
+    }
+
+    if (qn == 4) {
+      if (quad[0] < 0 || quad[1] < 0) { free(buf); return -1; }
+
+      uint32_t x = ((uint32_t)quad[0] << 18) | ((uint32_t)quad[1] << 12);
+      uint32_t b2 = (quad[2] >= 0) ? (uint32_t)quad[2] : 0;
+      uint32_t b3 = (quad[3] >= 0) ? (uint32_t)quad[3] : 0;
+      x |= (b2 << 6) | b3;
+
+      buf[wi++] = (uint8_t)((x >> 16) & 0xFF);
+      if (quad[2] != -2) buf[wi++] = (uint8_t)((x >> 8) & 0xFF);
+      if (quad[3] != -2) buf[wi++] = (uint8_t)(x & 0xFF);
+
+      qn = 0;
+    }
   }
-  b->v[b->n++] = x;
+
+  if (qn != 0) { free(buf); return -1; }
+
+  *out = buf;
+  *out_n = wi;
   return 0;
 }
 
-/**
- * @brief Simple growable byte buffer.
- */
-typedef struct strbuf_s {
-  char *v;
-  size_t n;
-  size_t cap;
-} strbuf_t;
-
-/**
- * @brief Ensure capacity for additional bytes.
- */
-static int strbuf_reserve(strbuf_t *b, size_t add) {
-  if (!b) return -1;
-  if (b->n + add <= b->cap) return 0;
-  size_t nc = (b->cap ? b->cap * 2 : 256);
-  while (nc < b->n + add) nc *= 2;
-  char *nv = (char *)xrealloc(b->v, nc);
-  if (!nv) return -1;
-  b->v = nv;
-  b->cap = nc;
+static int parse_uint32_str(const char *s, const char *e, uint32_t *out) {
+  if (!s || !e || !out) return -1;
+  while (s < e && (*s == ' ' || *s == '\t' || *s == '\r')) s++;
+  if (s >= e) return -1;
+  uint64_t v = 0;
+  for (const char *p = s; p < e; ++p) {
+    if (*p < '0' || *p > '9') return -1;
+    v = v * 10 + (uint64_t)(*p - '0');
+    if (v > 0xFFFFFFFFu) return -1;
+  }
+  *out = (uint32_t)v;
   return 0;
 }
 
-/**
- * @brief Append raw bytes.
- */
-static int strbuf_append_bytes(strbuf_t *b, const char *s, size_t n) {
-  if (!b || (!s && n)) return -1;
-  if (strbuf_reserve(b, n) != 0) return -1;
-  memcpy(b->v + b->n, s, n);
-  b->n += n;
+static int ensure_id_to_bytes(ie_tok_gptoss_t *tok, uint32_t need) {
+  if (!tok) return -1;
+  if (need <= tok->vocab_size && tok->id_to_bytes) return 0;
+
+  uint32_t old = tok->vocab_size;
+  uint32_t nv = (old ? old : 1024);
+  while (nv < need) nv *= 2;
+
+  bytes_view_t *nb = (bytes_view_t *)realloc(tok->id_to_bytes, (size_t)nv * sizeof(*nb));
+  if (!nb) return -1;
+  tok->id_to_bytes = nb;
+  for (uint32_t i = old; i < nv; ++i) {
+    tok->id_to_bytes[i].p = NULL;
+    tok->id_to_bytes[i].n = 0;
+  }
+  tok->vocab_size = nv;
   return 0;
 }
 
-/**
- * @brief Append a C string.
- */
-static int strbuf_append_cstr(strbuf_t *b, const char *s) {
-  return strbuf_append_bytes(b, s, strlen(s));
+static int finalize_tt_vocab_size(ie_tok_gptoss_t *tok, uint32_t max_id_plus1) {
+  if (!tok) return -1;
+  if (max_id_plus1 == 0) return -1;
+  bytes_view_t *nb = (bytes_view_t *)realloc(tok->id_to_bytes, (size_t)max_id_plus1 * sizeof(*nb));
+  if (!nb) return -1;
+  tok->id_to_bytes = nb;
+  tok->vocab_size = max_id_plus1;
+  return 0;
 }
 
-/**
- * @brief Free a strbuf.
- */
-static void strbuf_free(strbuf_t *b) {
-  if (!b) return;
-  free(b->v);
-  memset(b, 0, sizeof(*b));
+static int parse_tokenizer_tiktoken(const char *text, size_t len, ie_tok_gptoss_t *tok) {
+  if (!text || !tok) return IE_TOK_GPTOSS_ERR_ARGS;
+
+  size_t lines = 0;
+  for (size_t i = 0; i < len; ++i) if (text[i] == '\n') lines++;
+  if (lines < 128) lines = 128;
+
+  if (bytesid_map_init(&tok->bytes_to_id, &tok->bytes_to_id_cap, lines) != 0) return IE_TOK_GPTOSS_ERR_NOMEM;
+
+  tok->id_to_bytes = NULL;
+  tok->vocab_size = 0;
+
+  uint32_t max_id = 0;
+  size_t pos = 0;
+
+  while (pos < len) {
+    size_t line_start = pos;
+    while (pos < len && text[pos] != '\n') pos++;
+    size_t line_end = pos;
+    if (pos < len && text[pos] == '\n') pos++;
+
+    while (line_start < line_end && (text[line_start] == ' ' || text[line_start] == '\t' || text[line_start] == '\r')) line_start++;
+    while (line_end > line_start && (text[line_end - 1] == ' ' || text[line_end - 1] == '\t' || text[line_end - 1] == '\r')) line_end--;
+
+    if (line_end <= line_start) continue;
+    if (text[line_start] == '#') continue;
+
+    size_t sp = line_start;
+    while (sp < line_end && text[sp] != ' ' && text[sp] != '\t') sp++;
+    if (sp == line_start || sp >= line_end) return IE_TOK_GPTOSS_ERR_JSON;
+
+    size_t b64_start = line_start;
+    size_t b64_end = sp;
+    while (sp < line_end && (text[sp] == ' ' || text[sp] == '\t')) sp++;
+    if (sp >= line_end) return IE_TOK_GPTOSS_ERR_JSON;
+
+    uint32_t id = 0;
+    if (parse_uint32_str(text + sp, text + line_end, &id) != 0) return IE_TOK_GPTOSS_ERR_JSON;
+
+    if (ensure_id_to_bytes(tok, id + 1) != 0) return IE_TOK_GPTOSS_ERR_NOMEM;
+    if (id > max_id) max_id = id;
+
+    uint8_t *decoded = NULL;
+    size_t decoded_n = 0;
+    if (b64_decode(text + b64_start, b64_end - b64_start, &decoded, &decoded_n) != 0) return IE_TOK_GPTOSS_ERR_JSON;
+
+    uint8_t *dst = bytearena_alloc(&tok->tt_arena, decoded_n ? decoded_n : 1);
+    if (!dst) { free(decoded); return IE_TOK_GPTOSS_ERR_NOMEM; }
+    if (decoded_n) memcpy(dst, decoded, decoded_n);
+    free(decoded);
+
+    tok->id_to_bytes[id].p = dst;
+    tok->id_to_bytes[id].n = (uint32_t)decoded_n;
+
+    if (bytesid_map_put(tok->bytes_to_id, tok->bytes_to_id_cap, dst, (uint32_t)decoded_n, id) != 0) return IE_TOK_GPTOSS_ERR_NOMEM;
+  }
+
+  if (finalize_tt_vocab_size(tok, max_id + 1) != 0) return IE_TOK_GPTOSS_ERR_NOMEM;
+
+  for (uint32_t i = 0; i < tok->vocab_size; ++i) {
+    if (!tok->id_to_bytes[i].p && tok->id_to_bytes[i].n == 0) return IE_TOK_GPTOSS_ERR_JSON;
+  }
+
+  tok->tt_have_byte_id = 1;
+  for (int b = 0; b < 256; ++b) {
+    uint8_t bb = (uint8_t)b;
+    uint32_t id = 0;
+    if (bytesid_map_get(tok->bytes_to_id, tok->bytes_to_id_cap, &bb, 1, &id) != 0) { tok->tt_have_byte_id = 0; break; }
+    tok->tt_byte_id[b] = id;
+  }
+  if (!tok->tt_have_byte_id) return IE_TOK_GPTOSS_ERR_JSON;
+
+  tok->mode = IE_TOK_MODE_TIKTOKEN;
+  return IE_TOK_GPTOSS_OK;
 }
 
-/**
- * @brief Convert raw bytes to byte-level unicode string (GPT-2 bytes_to_unicode).
- */
+/* ============================================================================
+ * BPE encode helpers
+ * ========================================================================== */
+
 static int to_bytelevel_unicode(const byteunicode_t *bu, const char *s, size_t n, strbuf_t *out) {
   if (!bu || (!s && n) || !out) return -1;
   for (size_t i = 0; i < n; ++i) {
@@ -1417,12 +1475,82 @@ static int to_bytelevel_unicode(const byteunicode_t *bu, const char *s, size_t n
   return 0;
 }
 
-/**
- * @brief Encode one BPE token (byte-level unicode) into token ids.
- *
- * This performs the GPT-2 BPE merges and emits ids for each final symbol.
- */
-static int bpe_encode_to_ids(const ie_tok_gptoss_t *tok, const char *in, u32buf_t *out_ids) {
+static int pretokenize_basic(const char *text, char ***out_parts, size_t *out_n) {
+  if (!text || !out_parts || !out_n) return -1;
+  *out_parts = NULL;
+  *out_n = 0;
+
+  size_t cap = 0, n = 0;
+  char **parts = NULL;
+  const char *p = text;
+
+  while (*p) {
+    if (isspace((unsigned char)*p)) {
+      const char *s = p;
+      while (*p && isspace((unsigned char)*p)) ++p;
+      size_t len = (size_t)(p - s);
+      char *seg = xstrdup_n(s, len);
+      if (!seg) goto fail;
+      if (n == cap) {
+        size_t nc = cap ? cap * 2 : 64;
+        char **np = (char **)realloc(parts, nc * sizeof(*np));
+        if (!np) { free(seg); goto fail; }
+        parts = np; cap = nc;
+      }
+      parts[n++] = seg;
+      continue;
+    }
+
+    const char *s = p;
+    while (*p && !isspace((unsigned char)*p)) ++p;
+    size_t len = (size_t)(p - s);
+
+    int have_lead_space = 0;
+    if (n > 0 && parts[n - 1] && parts[n - 1][0] != '\0') {
+      char *w = parts[n - 1];
+      size_t wl = strlen(w);
+      if (wl > 0 && w[wl - 1] == ' ') { w[wl - 1] = '\0'; have_lead_space = 1; }
+    }
+
+    strbuf_t sb = {0};
+    if (have_lead_space) {
+      char sp = ' ';
+      if (strbuf_append_bytes(&sb, &sp, 1) != 0) { strbuf_free(&sb); goto fail; }
+    }
+    if (strbuf_append_bytes(&sb, s, len) != 0) { strbuf_free(&sb); goto fail; }
+    if (strbuf_reserve(&sb, 1) != 0) { strbuf_free(&sb); goto fail; }
+    sb.v[sb.n] = '\0';
+
+    if (n == cap) {
+      size_t nc = cap ? cap * 2 : 64;
+      char **np = (char **)realloc(parts, nc * sizeof(*np));
+      if (!np) { strbuf_free(&sb); goto fail; }
+      parts = np; cap = nc;
+    }
+    parts[n++] = sb.v;
+  }
+
+  size_t w = 0;
+  for (size_t i = 0; i < n; ++i) {
+    if (parts[i] && parts[i][0] == '\0') { free(parts[i]); parts[i] = NULL; continue; }
+    parts[w++] = parts[i];
+  }
+  n = w;
+
+  *out_parts = parts;
+  *out_n = n;
+  return 0;
+
+fail:
+  if (parts) {
+    for (size_t i = 0; i < n; ++i) free(parts[i]);
+    free(parts);
+  }
+  return -1;
+}
+
+/* GPT-2: BPE over interned unicode symbols (existing behavior) */
+static int bpe_encode_to_ids_gpt2(const ie_tok_gptoss_t *tok, const char *in, u32buf_t *out_ids) {
   if (!tok || !in || !out_ids) return -1;
 
   typedef struct sym_s { const char *s; uint32_t id; } sym_t;
@@ -1431,12 +1559,9 @@ static int bpe_encode_to_ids(const ie_tok_gptoss_t *tok, const char *in, u32buf_
   size_t i = 0;
 
   sym_t *syms = NULL;
-  size_t nsyms = 0;
-  size_t cap = 0;
-
+  size_t nsyms = 0, cap = 0;
   strbuf_t scratch = {0};
 
-  /* Split input into initial symbols (one UTF-8 codepoint each). */
   while (i < in_len) {
     uint32_t cp = 0;
     size_t old = i;
@@ -1460,35 +1585,24 @@ static int bpe_encode_to_ids(const ie_tok_gptoss_t *tok, const char *in, u32buf_
     }
 
     uint32_t sid = 0;
-    if (intern_get_or_add((intern_t *)&tok->intern, dst, &sid) != 0) {
-      strbuf_free(&scratch);
-      free(syms);
-      return -1;
-    }
+    if (intern_get(&tok->intern, dst, &sid) != 0) sid = 0;
     syms[nsyms].s = dst;
     syms[nsyms].id = sid;
     nsyms++;
   }
 
-  if (nsyms == 0) {
-    strbuf_free(&scratch);
-    free(syms);
-    return 0;
-  }
+  if (nsyms == 0) { strbuf_free(&scratch); free(syms); return 0; }
 
-  /* Repeatedly merge the best-ranked adjacent pair. */
   for (;;) {
     uint32_t best_rank = UINT32_MAX;
     size_t best_i = (size_t)-1;
 
     for (size_t k = 0; k + 1 < nsyms; ++k) {
+      if (syms[k].id == 0 || syms[k + 1].id == 0) continue;
       uint64_t key = ((uint64_t)syms[k].id << 32) | (uint64_t)syms[k + 1].id;
       uint32_t r = 0;
       if (pairrank_map_get(tok->pair_to_rank, tok->pair_to_rank_cap, key, &r) == 0) {
-        if (r < best_rank) {
-          best_rank = r;
-          best_i = k;
-        }
+        if (r < best_rank) { best_rank = r; best_i = k; }
       }
     }
 
@@ -1497,32 +1611,16 @@ static int bpe_encode_to_ids(const ie_tok_gptoss_t *tok, const char *in, u32buf_
     const char *a = syms[best_i].s;
     const char *b = syms[best_i + 1].s;
 
-    strbuf_t merged = {0};
-    if (strbuf_append_cstr(&merged, a) != 0 || strbuf_append_cstr(&merged, b) != 0) {
-      strbuf_free(&merged);
-      strbuf_free(&scratch);
-      free(syms);
-      return -1;
-    }
-
-    if (strbuf_reserve(&scratch, merged.n + 1) != 0) {
-      strbuf_free(&merged);
-      strbuf_free(&scratch);
-      free(syms);
-      return -1;
-    }
+    size_t al = strlen(a), bl = strlen(b);
+    if (strbuf_reserve(&scratch, al + bl + 1) != 0) { strbuf_free(&scratch); free(syms); return -1; }
     char *dst = scratch.v + scratch.n;
-    memcpy(dst, merged.v, merged.n);
-    dst[merged.n] = '\0';
-    scratch.n += merged.n + 1;
-    strbuf_free(&merged);
+    memcpy(dst, a, al);
+    memcpy(dst + al, b, bl);
+    dst[al + bl] = '\0';
+    scratch.n += al + bl + 1;
 
     uint32_t sid = 0;
-    if (intern_get_or_add((intern_t *)&tok->intern, dst, &sid) != 0) {
-      strbuf_free(&scratch);
-      free(syms);
-      return -1;
-    }
+    if (intern_get(&tok->intern, dst, &sid) != 0) sid = 0;
 
     syms[best_i].s = dst;
     syms[best_i].id = sid;
@@ -1531,7 +1629,6 @@ static int bpe_encode_to_ids(const ie_tok_gptoss_t *tok, const char *in, u32buf_
     nsyms--;
   }
 
-  /* Emit ids for each final symbol. */
   for (size_t k = 0; k < nsyms; ++k) {
     const char *sym = syms[k].s;
     uint32_t id = 0;
@@ -1540,8 +1637,6 @@ static int bpe_encode_to_ids(const ie_tok_gptoss_t *tok, const char *in, u32buf_
       continue;
     }
 
-    /* Fallback: split symbol into codepoints and lookup each.
-       This should be rare if vocab and merges are consistent. */
     const size_t slen = strlen(sym);
     size_t pos = 0;
     while (pos < slen) {
@@ -1564,98 +1659,99 @@ static int bpe_encode_to_ids(const ie_tok_gptoss_t *tok, const char *in, u32buf_
   return 0;
 }
 
-/**
- * @brief Pretokenize text into segments.
- *
- * This is a lightweight approximation of the GPT-2 pretokenizer:
- *  - Whitespace runs are preserved.
- *  - For a non-whitespace token that follows whitespace, one leading space is
- *    attached to the token when possible.
- */
-static int pretokenize_basic(const char *text, char ***out_parts, size_t *out_n) {
-  if (!text || !out_parts || !out_n) return -1;
-  *out_parts = NULL;
-  *out_n = 0;
+/* .tiktoken: byte-level BPE over raw bytes */
+typedef struct ttpiece_s {
+  const uint8_t *p;
+  uint32_t n;
+  uint32_t id;
+} ttpiece_t;
 
-  size_t cap = 0;
-  size_t n = 0;
-  char **parts = NULL;
+static int tt_bpe_encode_segment(const ie_tok_gptoss_t *tok,
+                                 const uint8_t *seg, uint32_t seg_n,
+                                 u32buf_t *out_ids) {
+  if (!tok || !out_ids) return -1;
+  if (seg_n == 0) return 0;
+  if (!seg) return -1;
 
-  const char *p = text;
+  ttpiece_t *pieces = (ttpiece_t *)malloc((size_t)seg_n * sizeof(*pieces));
+  if (!pieces) return -1;
 
-  while (*p) {
-    if (isspace((unsigned char)*p)) {
-      const char *s = p;
-      while (*p && isspace((unsigned char)*p)) ++p;
-      size_t len = (size_t)(p - s);
+  for (uint32_t i = 0; i < seg_n; ++i) {
+    pieces[i].p = seg + i;
+    pieces[i].n = 1;
+    pieces[i].id = tok->tt_byte_id[seg[i]];
+  }
 
-      char *seg = xstrdup_n(s, len);
-      if (!seg) goto fail;
+  uint32_t np = seg_n;
+  bytearena_t tmp = {0};
 
-      if (n == cap) {
-        size_t nc = cap ? cap * 2 : 64;
-        char **np = (char **)realloc(parts, nc * sizeof(*np));
-        if (!np) { free(seg); goto fail; }
-        parts = np;
-        cap = nc;
-      }
-      parts[n++] = seg;
-      continue;
-    }
+  while (np >= 2) {
+    uint32_t best_rank = UINT32_MAX;
+    uint32_t best_id = 0;
+    uint32_t best_i = UINT32_MAX;
 
-    /* Non-whitespace run. */
-    const char *s = p;
-    while (*p && !isspace((unsigned char)*p)) ++p;
-    size_t len = (size_t)(p - s);
-
-    /* Attach a single leading space from the previous whitespace segment, if any. */
-    int have_lead_space = 0;
-    if (n > 0 && parts[n - 1] && parts[n - 1][0] != '\0') {
-      char *w = parts[n - 1];
-      size_t wl = strlen(w);
-      if (wl > 0 && w[wl - 1] == ' ') {
-        w[wl - 1] = '\0';
-        have_lead_space = 1;
+    for (uint32_t i = 0; i + 1 < np; ++i) {
+      uint32_t cand_id = 0;
+      if (bytesid_map_get_concat(tok->bytes_to_id, tok->bytes_to_id_cap,
+                                 pieces[i].p, pieces[i].n,
+                                 pieces[i + 1].p, pieces[i + 1].n,
+                                 &cand_id) == 0) {
+        uint32_t cand_rank = cand_id;
+        if (cand_rank < best_rank) {
+          best_rank = cand_rank;
+          best_id = cand_id;
+          best_i = i;
+        }
       }
     }
 
-    strbuf_t sb = {0};
-    if (have_lead_space) {
-      const char sp = ' ';
-      if (strbuf_append_bytes(&sb, &sp, 1) != 0) { strbuf_free(&sb); goto fail; }
-    }
-    if (strbuf_append_bytes(&sb, s, len) != 0) { strbuf_free(&sb); goto fail; }
-    if (strbuf_reserve(&sb, 1) != 0) { strbuf_free(&sb); goto fail; }
-    sb.v[sb.n] = '\0';
+    if (best_i == UINT32_MAX) break;
 
-    if (n == cap) {
-      size_t nc = cap ? cap * 2 : 64;
-      char **np = (char **)realloc(parts, nc * sizeof(*np));
-      if (!np) { strbuf_free(&sb); goto fail; }
-      parts = np;
-      cap = nc;
-    }
-    parts[n++] = sb.v;
+    uint32_t an = pieces[best_i].n;
+    uint32_t bn = pieces[best_i + 1].n;
+    uint32_t mn = an + bn;
+
+    uint8_t *dst = bytearena_alloc(&tmp, (size_t)mn);
+    if (!dst) { bytearena_free(&tmp); free(pieces); return -1; }
+    memcpy(dst, pieces[best_i].p, an);
+    memcpy(dst + an, pieces[best_i + 1].p, bn);
+
+    pieces[best_i].p = dst;
+    pieces[best_i].n = mn;
+    pieces[best_i].id = best_id;
+
+    for (uint32_t j = best_i + 1; j + 1 < np; ++j) pieces[j] = pieces[j + 1];
+    np--;
   }
 
-  /* Drop any empty whitespace segments created by space stealing. */
-  size_t w = 0;
-  for (size_t i = 0; i < n; ++i) {
-    if (parts[i] && parts[i][0] == '\0') { free(parts[i]); parts[i] = NULL; continue; }
-    parts[w++] = parts[i];
+  for (uint32_t i = 0; i < np; ++i) {
+    if (u32buf_push(out_ids, pieces[i].id) != 0) { bytearena_free(&tmp); free(pieces); return -1; }
   }
-  n = w;
 
-  *out_parts = parts;
-  *out_n = n;
+  bytearena_free(&tmp);
+  free(pieces);
   return 0;
+}
 
-fail:
-  if (parts) {
-    for (size_t i = 0; i < n; ++i) free(parts[i]);
-    free(parts);
+static int tt_encode_text(const ie_tok_gptoss_t *tok, const char *text, u32buf_t *out_ids) {
+  if (!tok || !text || !out_ids) return -1;
+  const uint8_t *p = (const uint8_t *)text;
+  size_t n = strlen(text);
+
+  size_t i = 0;
+  while (i < n) {
+    size_t j = i;
+    int ws = isspace((unsigned char)p[i]) ? 1 : 0;
+    while (j < n) {
+      int ws2 = isspace((unsigned char)p[j]) ? 1 : 0;
+      if (ws2 != ws) break;
+      j++;
+    }
+    uint32_t seg_n = (uint32_t)(j - i);
+    if (tt_bpe_encode_segment(tok, p + i, seg_n, out_ids) != 0) return -1;
+    i = j;
   }
-  return -1;
+  return 0;
 }
 
 /* ============================================================================
@@ -1676,8 +1772,11 @@ int ie_tok_gptoss_open(const char *tokenizer_path, ie_tok_gptoss_t **out_tok) {
   byteunicode_init(&tok->bu);
 
   int rc = IE_TOK_GPTOSS_ERR_JSON;
+
   if (is_packed_tokenizer((const unsigned char *)buf, len)) {
     rc = parse_tokenizer_packed((const unsigned char *)buf, len, tok);
+  } else if (path_ends_with(tokenizer_path, ".tiktoken")) {
+    rc = parse_tokenizer_tiktoken(buf, len, tok);
   } else {
     rc = parse_tokenizer_json(buf, tok);
   }
@@ -1695,6 +1794,7 @@ int ie_tok_gptoss_open(const char *tokenizer_path, ie_tok_gptoss_t **out_tok) {
 
 void ie_tok_gptoss_close(ie_tok_gptoss_t *tok) {
   if (!tok) return;
+
   if (tok->id_to_tok) {
     for (uint32_t i = 0; i < tok->vocab_size; ++i) free(tok->id_to_tok[i]);
     free(tok->id_to_tok);
@@ -1702,6 +1802,11 @@ void ie_tok_gptoss_close(ie_tok_gptoss_t *tok) {
   free(tok->tok_to_id);
   free(tok->pair_to_rank);
   intern_free(&tok->intern);
+
+  free(tok->id_to_bytes);
+  free(tok->bytes_to_id);
+  bytearena_free(&tok->tt_arena);
+
   free(tok);
 }
 
@@ -1719,9 +1824,34 @@ int ie_tok_gptoss_decode(const ie_tok_gptoss_t *tok,
 
   strbuf_t bytes = {0};
 
+  if (tok->mode == IE_TOK_MODE_TIKTOKEN) {
+    for (uint32_t i = 0; i < count; ++i) {
+      uint32_t id = ids[i];
+      if (id >= tok->vocab_size) { strbuf_free(&bytes); return IE_TOK_GPTOSS_ERR_RANGE; }
+      const uint8_t *p = tok->id_to_bytes[id].p;
+      uint32_t n = tok->id_to_bytes[id].n;
+      if (n && (!p)) { strbuf_free(&bytes); return IE_TOK_GPTOSS_ERR_INTERNAL; }
+      if (n) {
+        if (strbuf_append_bytes(&bytes, (const char *)p, (size_t)n) != 0) { strbuf_free(&bytes); return IE_TOK_GPTOSS_ERR_NOMEM; }
+      }
+    }
+
+    if (strbuf_reserve(&bytes, 1) != 0) { strbuf_free(&bytes); return IE_TOK_GPTOSS_ERR_NOMEM; }
+    bytes.v[bytes.n] = '\0';
+
+    size_t need = bytes.n + 1;
+    if (!out || *inout_bytes == 0) { *inout_bytes = need; strbuf_free(&bytes); return IE_TOK_GPTOSS_OK; }
+    if (*inout_bytes < need) { *inout_bytes = need; strbuf_free(&bytes); return IE_TOK_GPTOSS_ERR_RANGE; }
+
+    memcpy(out, bytes.v, need);
+    *inout_bytes = need;
+    strbuf_free(&bytes);
+    return IE_TOK_GPTOSS_OK;
+  }
+
   for (uint32_t i = 0; i < count; ++i) {
     uint32_t id = ids[i];
-    if (id >= tok->vocab_size) return IE_TOK_GPTOSS_ERR_RANGE;
+    if (id >= tok->vocab_size) { strbuf_free(&bytes); return IE_TOK_GPTOSS_ERR_RANGE; }
     const char *t = tok->id_to_tok[id];
     if (!t) t = "";
 
@@ -1730,17 +1860,17 @@ int ie_tok_gptoss_decode(const ie_tok_gptoss_t *tok,
     while (pos < tlen) {
       uint32_t cp = 0;
       int st = utf8_next_cp(t, tlen, &pos, &cp);
-      if (st != 0) return IE_TOK_GPTOSS_ERR_INTERNAL;
+      if (st != 0) { strbuf_free(&bytes); return IE_TOK_GPTOSS_ERR_INTERNAL; }
 
       uint8_t b = 0;
       if (byteunicode_cp_to_byte(&tok->bu, cp, &b) == 0) {
         char c = (char)b;
-        if (strbuf_append_bytes(&bytes, &c, 1) != 0) return IE_TOK_GPTOSS_ERR_NOMEM;
+        if (strbuf_append_bytes(&bytes, &c, 1) != 0) { strbuf_free(&bytes); return IE_TOK_GPTOSS_ERR_NOMEM; }
       } else {
         char tmp[4];
         size_t wn = utf8_put_cp(tmp, sizeof(tmp), cp);
-        if (wn == 0) return IE_TOK_GPTOSS_ERR_INTERNAL;
-        if (strbuf_append_bytes(&bytes, tmp, wn) != 0) return IE_TOK_GPTOSS_ERR_NOMEM;
+        if (wn == 0) { strbuf_free(&bytes); return IE_TOK_GPTOSS_ERR_INTERNAL; }
+        if (strbuf_append_bytes(&bytes, tmp, wn) != 0) { strbuf_free(&bytes); return IE_TOK_GPTOSS_ERR_NOMEM; }
       }
     }
   }
@@ -1749,17 +1879,8 @@ int ie_tok_gptoss_decode(const ie_tok_gptoss_t *tok,
   bytes.v[bytes.n] = '\0';
 
   size_t need = bytes.n + 1;
-  if (!out || *inout_bytes == 0) {
-    *inout_bytes = need;
-    strbuf_free(&bytes);
-    return IE_TOK_GPTOSS_OK;
-  }
-
-  if (*inout_bytes < need) {
-    *inout_bytes = need;
-    strbuf_free(&bytes);
-    return IE_TOK_GPTOSS_ERR_RANGE;
-  }
+  if (!out || *inout_bytes == 0) { *inout_bytes = need; strbuf_free(&bytes); return IE_TOK_GPTOSS_OK; }
+  if (*inout_bytes < need) { *inout_bytes = need; strbuf_free(&bytes); return IE_TOK_GPTOSS_ERR_RANGE; }
 
   memcpy(out, bytes.v, need);
   *inout_bytes = need;
@@ -1773,30 +1894,33 @@ int ie_tok_gptoss_encode(const ie_tok_gptoss_t *tok,
                          uint32_t *inout_count) {
   if (!tok || !text || !inout_count) return IE_TOK_GPTOSS_ERR_ARGS;
 
-  char **parts = NULL;
-  size_t nparts = 0;
-  if (pretokenize_basic(text, &parts, &nparts) != 0) return IE_TOK_GPTOSS_ERR_INTERNAL;
-
   u32buf_t out_ids = {0};
 
-  for (size_t i = 0; i < nparts; ++i) {
-    const char *seg = parts[i];
-    if (!seg || !*seg) { free(parts[i]); continue; }
+  if (tok->mode == IE_TOK_MODE_TIKTOKEN) {
+    if (tt_encode_text(tok, text, &out_ids) != 0) { free(out_ids.v); return IE_TOK_GPTOSS_ERR_INTERNAL; }
+  } else {
+    char **parts = NULL;
+    size_t nparts = 0;
+    if (pretokenize_basic(text, &parts, &nparts) != 0) { free(out_ids.v); return IE_TOK_GPTOSS_ERR_INTERNAL; }
 
-    /* Convert segment bytes to byte-level unicode. */
-    strbuf_t bl = {0};
-    if (to_bytelevel_unicode(&tok->bu, seg, strlen(seg), &bl) != 0) { strbuf_free(&bl); goto fail; }
-    if (strbuf_reserve(&bl, 1) != 0) { strbuf_free(&bl); goto fail; }
-    bl.v[bl.n] = '\0';
+    for (size_t i = 0; i < nparts; ++i) {
+      const char *seg = parts[i];
+      if (!seg || !*seg) { free(parts[i]); continue; }
 
-    /* Apply BPE and emit ids. */
-    if (bpe_encode_to_ids(tok, bl.v, &out_ids) != 0) { strbuf_free(&bl); goto fail; }
-    strbuf_free(&bl);
+      strbuf_t bl = {0};
+      if (to_bytelevel_unicode(&tok->bu, seg, strlen(seg), &bl) != 0) { strbuf_free(&bl); goto fail_gpt2; }
+      if (strbuf_reserve(&bl, 1) != 0) { strbuf_free(&bl); goto fail_gpt2; }
+      bl.v[bl.n] = '\0';
 
-    free(parts[i]);
+      if (bpe_encode_to_ids_gpt2(tok, bl.v, &out_ids) != 0) { strbuf_free(&bl); goto fail_gpt2; }
+      strbuf_free(&bl);
+      free(parts[i]);
+    }
+
+    free(parts);
+    parts = NULL;
+    nparts = 0;
   }
-
-  free(parts);
 
   uint32_t need = (uint32_t)out_ids.n;
   if (!ids || *inout_count == 0) {
@@ -1811,14 +1935,12 @@ int ie_tok_gptoss_encode(const ie_tok_gptoss_t *tok,
     return IE_TOK_GPTOSS_ERR_RANGE;
   }
 
-  memcpy(ids, out_ids.v, need * sizeof(uint32_t));
+  memcpy(ids, out_ids.v, (size_t)need * sizeof(uint32_t));
   *inout_count = need;
   free(out_ids.v);
   return IE_TOK_GPTOSS_OK;
 
-fail:
-  for (size_t i = 0; i < nparts; ++i) free(parts[i]);
-  free(parts);
+fail_gpt2:
   free(out_ids.v);
   return IE_TOK_GPTOSS_ERR_INTERNAL;
 }

@@ -37,10 +37,19 @@
  *  - The include directory is flat. All includes must reference headers by filename only.
  */
 
+#ifndef _POSIX_C_SOURCE
+#  define _POSIX_C_SOURCE 200809L
+#endif
+
+#ifndef _XOPEN_SOURCE
+#  define _XOPEN_SOURCE 700
+#endif
+
 #include "ie_api.h"
 
 #include <inttypes.h>
 #include <stdint.h>
+#include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -401,8 +410,14 @@ ie_status_t ie_engine_create(const ie_engine_params_t *p,
   }
 
   /* ---- tokenizer ---- */
-  char tok_path[4096];
-  join_path_(tok_path, sizeof(tok_path), model_dir, "tokenizer.json");
+  const char *tok_path = NULL;
+  char tok_path_buf[4096];
+  if (p && p->tokenizer_path && p->tokenizer_path[0] != '\0') {
+    tok_path = p->tokenizer_path;
+  } else {
+    join_path_(tok_path_buf, sizeof(tok_path_buf), model_dir, "tokenizer.json");
+    tok_path = tok_path_buf;
+  }
   ie_log_info("ie_engine_create: tokenizer_open (path=%s)", tok_path);
 
   const int tok_rc = ie_tok_gptoss_open(tok_path, &e->tok);
@@ -417,11 +432,23 @@ ie_status_t ie_engine_create(const ie_engine_params_t *p,
   ie_log_info("ie_engine_create: tokenizer_open ok (vocab=%" PRIu32 ")", tok_vocab);
 
   /* ---- weights ---- */
-  char weights_json[4096];
-  join_path_(weights_json, sizeof(weights_json), model_dir, "model.ie.json");
-  ie_log_info("ie_engine_create: weights_open (json=%s)", weights_json);
+  const char *weights_json = NULL;
+  char weights_json_buf[4096];
+  const char *bin_override = NULL;
+  if (p && p->weights_json_path && p->weights_json_path[0] != '\0') {
+    weights_json = p->weights_json_path;
+  } else {
+    join_path_(weights_json_buf, sizeof(weights_json_buf), model_dir, "model.ie.json");
+    weights_json = weights_json_buf;
+  }
+  if (p && p->weights_bin_path && p->weights_bin_path[0] != '\0') {
+    bin_override = p->weights_bin_path;
+  }
+  ie_log_info("ie_engine_create: weights_open (json=%s bin_override=%s)",
+              weights_json,
+              bin_override ? bin_override : "(null)");
 
-  const int w_rc = ie_weights_open(weights_json, NULL, &e->w);
+  const int w_rc = ie_weights_open(weights_json, bin_override, &e->w);
   if (w_rc != 0) {
     ie_log_error("ie_engine_create: weights_open failed (rc=%d json=%s)", w_rc, weights_json);
     ie_tok_gptoss_close(e->tok);

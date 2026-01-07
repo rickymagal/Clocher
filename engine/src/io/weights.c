@@ -38,9 +38,8 @@
 #define _POSIX_C_SOURCE 200809L
 #endif
 
-#include "ie_io.h"         /* ie_weights_t, IE_IO_* status codes */
-#include "ie_quant_int4.h" /* INT4 quant packing/dequant helpers */
-#include "util_logging.h"  /* ie_log_info/warn/error (stderr) */
+#include "ie_io.h"        /* ie_weights_t, IE_IO_* status codes */
+#include "util_logging.h" /* ie_log_info/warn/error (stderr) */
 #include "weights_dedup.h" /* NOTE: include path has NO subfolders */
 
 #include <ctype.h> /* tolower */
@@ -58,6 +57,30 @@
 /* Force-enable the optional dedup fields unless the build explicitly disables them. */
 #ifndef IE_WEIGHTS_HAS_DEDUP_FIELDS
 #define IE_WEIGHTS_HAS_DEDUP_FIELDS 1
+#endif
+
+/*
+ * INT4 diagnostic helpers are optional and disabled by default.
+ *
+ * Rationale:
+ * - Keeping these helpers in this translation unit is convenient for debugging,
+ *   but exporting new public symbols without header prototypes will trip
+ *   -Wmissing-prototypes under -Wall/-Wextra/-Werror.
+ * - Therefore, we only compile these helpers when explicitly enabled, and we
+ *   provide local prototypes to satisfy strict builds.
+ */
+#ifndef IE_WEIGHTS_ENABLE_INT4_DIAGNOSTICS
+#define IE_WEIGHTS_ENABLE_INT4_DIAGNOSTICS 0
+#endif
+
+#if (IE_WEIGHTS_ENABLE_INT4_DIAGNOSTICS == 1)
+#include "ie_quant_int4.h" /* INT4 quant packing/dequant helpers */
+
+/* Forward declarations (required for -Wmissing-prototypes in strict builds). */
+struct ie_int4_quant_meta;
+int ie_weights_read_int4_meta(const char *json_path, struct ie_int4_quant_meta *out_meta);
+int ie_weights_decode_int4(const char *packed_path, const char *scales_path, size_t rows, size_t cols,
+                           int per_row, float *dst);
 #endif
 
 /* -------------------------------------------------------------------------- */
@@ -755,51 +778,145 @@ static int file_exists_readable(const char *path) {
 }
 
 /**
- * @brief Create a best-effort symlink model.dedup.json -> dedup_manifest.json.
+ * @brief Create a best-effort model.dedup.json manifest for runtime dedup.
  *
  * @details
- * Some toolchains may produce dedup artifacts under a different canonical name.
- * This helper attempts to create a symlink for compatibility. Failures are not
- * fatal unless the caller is operating under strict mode.
+ * The runtime dedup loader expects a file named "model.dedup.json" in the
+ * model directory. Some pipelines emit the same JSON under different names.
+ *
+ * This helper attempts to:
+ *  - locate an existing manifest under a set of common alternative filenames
+ *    (or a user-provided IE_DEDUP_MANIFEST override), then
+ *  - create "model.dedup.json" as a symlink pointing at that file, and
+ *  - fall back to copying the file if symlinks are unavailable.
+ *
+ * Failures are not fatal unless the caller is operating under strict mode.
  *
  * @param dir Directory containing the artifacts.
  * @return 1 if model.dedup.json ends up readable, else 0.
  */
+static int write_all_bytes_(const char *path, const void *data, size_t len) {
+  if (!path || !*path || (!data && len != 0)) return 0;
+  FILE *f = fopen(path, "wb");
+  if (!f) {
+    wlog_errno_("fopen", path);
+    return 0;
+  }
+  size_t w = fwrite(data, 1, len, f);
+  if (fclose(f) != 0) {
+    wlog_errno_("fclose", path);
+  }
+  return (w == len) ? 1 : 0;
+}
+
+static int find_dedup_manifest_source_(const char *dir,
+                                      char *out_rel,
+                                      size_t out_rel_n,
+                                      char *out_abs,
+                                      size_t out_abs_n) {
+  if (!dir || !*dir || !out_rel || !out_abs || out_rel_n == 0 || out_abs_n == 0) return 0;
+  out_rel[0] = '\0';
+  out_abs[0] = '\0';
+
+  /* 1) Explicit override: IE_DEDUP_MANIFEST may be absolute or relative. */
+  const char *env = getenv("IE_DEDUP_MANIFEST");
+  if (env && *env) {
+    if (env[0] == '/') {
+      if (file_exists_readable(env)) {
+        cpyz(out_rel, out_rel_n, env);
+        cpyz(out_abs, out_abs_n, env);
+        return 1;
+      }
+    } else {
+      char cand[512];
+      cand[0] = '\0';
+      join_path(cand, sizeof(cand), dir, env);
+      if (file_exists_readable(cand)) {
+        cpyz(out_rel, out_rel_n, env);
+        cpyz(out_abs, out_abs_n, cand);
+        return 1;
+      }
+    }
+  }
+
+  /* 2) Common alternative names produced by different toolchains. */
+  const char *cands[] = {
+      "dedup_manifest.json",
+      "manifest.dedup.json",
+      "manifest_dedup.json",
+      "model.dedup.manifest.json",
+      "dedup/model.dedup.json",
+      "dedup/manifest.json",
+      "dedup/manifest.dedup.json",
+  };
+
+  for (size_t i = 0; i < (sizeof(cands) / sizeof(cands[0])); ++i) {
+    char abs[512];
+    abs[0] = '\0';
+    join_path(abs, sizeof(abs), dir, cands[i]);
+    if (file_exists_readable(abs)) {
+      cpyz(out_rel, out_rel_n, cands[i]);
+      cpyz(out_abs, out_abs_n, abs);
+      return 1;
+    }
+  }
+
+  return 0;
+}
+
 static int ensure_dedup_manifest_link(const char *dir) {
   if (!dir || !*dir) return 0;
 
-  char target[512];
   char linkpath[512];
-  char manifest[512];
-
-  target[0] = linkpath[0] = manifest[0] = '\0';
-
+  linkpath[0] = '\0';
   join_path(linkpath, sizeof(linkpath), dir, "model.dedup.json");
   if (file_exists_readable(linkpath)) {
     WLOGD("ensure_dedup_manifest_link: already exists path='%s'", linkpath);
     return 1;
   }
 
-  join_path(manifest, sizeof(manifest), dir, "dedup_manifest.json");
-  if (!file_exists_readable(manifest)) {
-    WLOGD("ensure_dedup_manifest_link: missing manifest path='%s'", manifest);
+  char src_rel[512];
+  char src_abs[512];
+  src_rel[0] = src_abs[0] = '\0';
+
+  if (!find_dedup_manifest_source_(dir, src_rel, sizeof(src_rel), src_abs, sizeof(src_abs))) {
+    WLOGD("ensure_dedup_manifest_link: no manifest candidates found in dir='%s'", dir);
     return 0;
   }
 
-  cpyz(target, sizeof(target), "dedup_manifest.json");
-  WLOGI("ensure_dedup_manifest_link: creating symlink '%s' -> '%s'", linkpath, target);
+  WLOGI("ensure_dedup_manifest_link: creating model.dedup.json from source rel='%s' abs='%s'", src_rel,
+        src_abs);
 
-  int rc = symlink(target, linkpath);
-  if (rc != 0) {
-    if (errno != EEXIST) {
-      wlog_errno_("symlink", linkpath);
-    }
+  int linked = 0;
+  errno = 0;
+  if (symlink(src_rel, linkpath) == 0 || errno == EEXIST) {
+    linked = 1;
+  } else {
+    wlog_errno_("symlink", linkpath);
   }
 
   if (!file_exists_readable(linkpath)) {
-    WLOGW("ensure_dedup_manifest_link: symlink not readable path='%s'", linkpath);
+    /* Fall back to a direct copy (some environments disallow symlink). */
+    char *buf = NULL;
+    size_t len = 0;
+    if (read_all_text(src_abs, &buf, &len) == 0 && buf && len > 0) {
+      if (write_all_bytes_(linkpath, buf, len)) {
+        linked = 1;
+      } else {
+        WLOGW("ensure_dedup_manifest_link: copy failed dst='%s'", linkpath);
+      }
+    } else {
+      WLOGW("ensure_dedup_manifest_link: failed to read source '%s'", src_abs);
+    }
+    free(buf);
+  }
+
+  if (!file_exists_readable(linkpath)) {
+    WLOGW("ensure_dedup_manifest_link: model.dedup.json still not readable path='%s'", linkpath);
     return 0;
   }
+
+  WLOGD("ensure_dedup_manifest_link: ok path='%s' (via %s)", linkpath, linked ? "link/copy" : "unknown");
   return 1;
 }
 
@@ -1113,23 +1230,108 @@ int ie_weights_touch(const ie_weights_t *w) {
         cpyz(dir, sizeof(dir), ".");
       }
 
-      char p_dedup[512], p_def[512], p_exc[512], p_msk[512];
-      p_dedup[0] = p_def[0] = p_exc[0] = p_msk[0] = '\0';
+      /*
+       * Touch dedup artifacts.
+       *
+       * Instead of hardcoding filenames, prefer reading relpaths from
+       * model.dedup.json (it contains a files[] table).
+       */
+      char dedup_manifest[512];
+      dedup_manifest[0] = '\0';
+      join_path(dedup_manifest, sizeof(dedup_manifest), dir, "model.dedup.json");
 
-      join_path(p_dedup, sizeof(p_dedup), dir, "model.dedup.json");
-      join_path(p_def, sizeof(p_def), dir, "model.defaults.bin");
-      join_path(p_exc, sizeof(p_exc), dir, "model.exceptions.bin");
-      join_path(p_msk, sizeof(p_msk), dir, "model.masks.bin");
+      if (!file_exists_readable(dedup_manifest)) {
+        WLOGI("ie_weights_touch: dedup enabled but model.dedup.json missing; attempting link");
+        (void)ensure_dedup_manifest_link(dir);
+      }
 
-      int ok_dedup = touch_file_small(p_dedup);
-      int ok_def = touch_file_small(p_def);
-      int ok_exc = touch_file_small(p_exc);
-      int ok_msk = touch_file_small(p_msk);
+      int ok_manifest = touch_file_small(dedup_manifest);
+      int ok_all = ok_manifest;
 
-      WLOGI("ie_weights_touch: dedup touch results dedup=%d defaults=%d exceptions=%d masks=%d",
-            ok_dedup, ok_def, ok_exc, ok_msk);
+      char *mjson = NULL;
+      size_t mlen = 0;
+      if (ok_manifest && read_all_text(dedup_manifest, &mjson, &mlen) == 0 && mjson && mlen > 0) {
+        /* Scan for \"relpath\" entries and touch each referenced file. */
+        size_t touched = 0;
+        const char *p = mjson;
+        while ((p = strstr(p, "\"relpath\"")) != NULL) {
+          p += strlen("\"relpath\"");
+          while (*p && (*p == ' ' || *p == '\t' || *p == '\r' || *p == '\n')) ++p;
+          if (*p != ':') continue;
+          ++p;
+          while (*p && (*p == ' ' || *p == '\t' || *p == '\r' || *p == '\n')) ++p;
+          if (*p != '"') continue;
+          ++p;
 
-      if (dedup_strict && (!(ok_dedup && ok_def && ok_exc && ok_msk))) {
+          char rel[512];
+          size_t rn = 0;
+          int esc = 0;
+          for (; *p && rn + 1 < sizeof(rel); ++p) {
+            char ch = *p;
+            if (esc) {
+              /* Minimal unescape (we only expect simple paths). */
+              if (ch == '"' || ch == '\\' || ch == '/') {
+                rel[rn++] = ch;
+              } else if (ch == 'n') {
+                rel[rn++] = '\n';
+              } else if (ch == 'r') {
+                rel[rn++] = '\r';
+              } else if (ch == 't') {
+                rel[rn++] = '\t';
+              } else {
+                rel[rn++] = ch;
+              }
+              esc = 0;
+              continue;
+            }
+            if (ch == '\\') {
+              esc = 1;
+              continue;
+            }
+            if (ch == '"') {
+              break;
+            }
+            rel[rn++] = ch;
+          }
+          rel[rn] = '\0';
+
+          if (rel[0] != '\0') {
+            char abs[512];
+            abs[0] = '\0';
+            join_path(abs, sizeof(abs), dir, rel);
+            int ok = touch_file_small(abs);
+            ok_all = ok_all && ok;
+            ++touched;
+          }
+
+          if (*p == '"') ++p;
+          if (touched > 128) break; /* sanity bound */
+        }
+
+        WLOGI("ie_weights_touch: dedup touch results manifest=%d ok_all=%d", ok_manifest, ok_all);
+
+        if (touched == 0) {
+          /* Fallback to canonical filenames used by the reference pipeline. */
+          char p_def[512], p_exc[512], p_msk[512];
+          p_def[0] = p_exc[0] = p_msk[0] = '\0';
+          join_path(p_def, sizeof(p_def), dir, "model.defaults.bin");
+          join_path(p_exc, sizeof(p_exc), dir, "model.exceptions.bin");
+          join_path(p_msk, sizeof(p_msk), dir, "model.masks.bin");
+          int ok_def = touch_file_small(p_def);
+          int ok_exc = touch_file_small(p_exc);
+          int ok_msk = touch_file_small(p_msk);
+          ok_all = ok_all && ok_def && ok_exc && ok_msk;
+          WLOGI("ie_weights_touch: dedup fallback touch defaults=%d exceptions=%d masks=%d", ok_def, ok_exc,
+                ok_msk);
+        }
+      } else {
+        WLOGW("ie_weights_touch: could not read dedup manifest '%s'", dedup_manifest);
+        ok_all = 0;
+      }
+
+      free(mjson);
+
+      if (dedup_strict && !ok_all) {
         WLOGE("ie_weights_touch: dedup strict mode: missing or unreadable artifact(s)");
         return IE_IO_ERR_JSON;
       }
@@ -1167,8 +1369,10 @@ void ie_weights_close(ie_weights_t *w) {
 #endif
 }
 
+#if (IE_WEIGHTS_ENABLE_INT4_DIAGNOSTICS == 1)
+
 /* -------------------------------------------------------------------------- */
-/* INT4 weight-only helpers (exploratory; not yet in public header)           */
+/* INT4 weight-only helpers (diagnostics; gated by IE_WEIGHTS_ENABLE_INT4_DIAGNOSTICS) */
 /* -------------------------------------------------------------------------- */
 
 /**
@@ -1180,12 +1384,12 @@ void ie_weights_close(ie_weights_t *w) {
  * It is not part of the stable public API and may change without notice.
  */
 struct ie_int4_quant_meta {
-  int present;        /**< Non-zero if INT4 metadata is present and supported. */
-  int per_row;        /**< Non-zero if scales are per-row. */
-  char scale_bin[512];/**< Resolved path to the scales binary. */
-  char pack[32];      /**< Packing scheme identifier (best-effort string). */
-  int zero_point;     /**< Zero-point value when applicable. */
-  int symmetric;      /**< Non-zero if symmetric quantization is indicated. */
+  int present;         /**< Non-zero if INT4 metadata is present and supported. */
+  int per_row;         /**< Non-zero if scales are per-row. */
+  char scale_bin[512]; /**< Resolved path to the scales binary. */
+  char pack[32];       /**< Packing scheme identifier (best-effort string). */
+  int zero_point;      /**< Zero-point value when applicable. */
+  int symmetric;       /**< Non-zero if symmetric quantization is indicated. */
 };
 
 /**
@@ -1229,7 +1433,8 @@ int ie_weights_read_int4_meta(const char *json_path, struct ie_int4_quant_meta *
     return IE_IO_OK;
   }
 
-  const char *qb = NULL, *qe = NULL;
+  const char *qb = NULL;
+  const char *qe = NULL;
   if (scan_json_object_range(jbuf, "quant", &qb, &qe) != 1 || !qb || !qe || qb > qe) {
     free(jbuf);
     out_meta->present = 0;
@@ -1459,7 +1664,7 @@ int ie_weights_decode_int4(const char *packed_path, const char *scales_path, siz
     WLOGD("ie_weights_decode_int4: loaded scales as FP16->FP32 (count=%zu)", nsc);
   }
 
-  int qst = 0;
+  int qst;
   if (per_row) {
     qst = ie_int4_dequantize_per_row(buf_packed, rows, cols, buf_scales, dst);
   } else {
@@ -1477,6 +1682,8 @@ int ie_weights_decode_int4(const char *packed_path, const char *scales_path, siz
   WLOGI("ie_weights_decode_int4: success");
   return IE_IO_OK;
 }
+
+#endif /* IE_WEIGHTS_ENABLE_INT4_DIAGNOSTICS */
 
 /* ========================================================================== */
 /* End of file                                                                */
