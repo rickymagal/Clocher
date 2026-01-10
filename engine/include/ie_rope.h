@@ -9,9 +9,14 @@
  * @details
  * RoPE rotates interleaved pairs (2*i, 2*i+1) in each head.
  *
- * This header matches the runtime usage in infer_gptoss.c where calls may pass
- * only q or only k (the other pointer may be NULL), and the function returns
- * an int status code.
+ * This header matches the runtime usage where calls may pass only q or only k
+ * (the other pointer may be NULL), and the function returns an int status code.
+ *
+ * RoPE scaling:
+ * - Scaling is implemented inside the RoPE helper (see engine/src/math/rope.c).
+ * - Environment variables supported by the implementation:
+ *     - IE_ROPE_LINEAR_SCALE: positive float factor f, effective pos = pos / f
+ *     - IE_ROPE_POS_SCALE:    positive float multiplier m, effective pos = pos * m
  */
 
 #ifndef IE_ROPE_H
@@ -27,6 +32,10 @@ extern "C" {
 /**
  * @brief Apply RoPE to a single head vector in-place.
  *
+ * @details
+ * The head vector is treated as interleaved pairs:
+ *   (x[0], x[1]), (x[2], x[3]), ...
+ *
  * @param x        Pointer to head vector (length head_dim).
  * @param head_dim Per-head dimension (must be even and >= 2).
  * @param pos      Position index.
@@ -39,7 +48,11 @@ int ie_rope_apply_one_f32(float *x, size_t head_dim, uint32_t pos, float theta);
  * @brief Apply RoPE to Q and/or K for multiple heads.
  *
  * @details
- * Either q or k may be NULL. If both are NULL, this is a no-op returning 0.
+ * Either @p q or @p k may be NULL. If both are NULL, this is a no-op returning 0.
+ *
+ * Buffers are expected in row-major layout:
+ *   q layout: [heads, head_dim]
+ *   k layout: [heads, head_dim]
  *
  * @param q        Q buffer, layout [heads, head_dim], may be NULL.
  * @param k        K buffer, layout [heads, head_dim], may be NULL.

@@ -879,6 +879,30 @@ typedef struct cli_extras {
   /* Text decode options */
   int print_text;
   const char *tokenizer_path;
+
+  /* Deterministic/debug convenience flags (wired to env vars) */
+  int log_tokens;
+  int log_every;
+
+  int debug_decode;
+  int debug_decode_every;
+
+  int debug_topk;
+  int debug_topk_every;
+
+  int greedy;
+
+  int seed_set;
+  uint64_t seed;
+
+  int temperature_set;
+  double temperature;
+
+  int top_p_set;
+  double top_p;
+
+  int top_k_set;
+  int top_k;
 } cli_extras_t;
 
 /**
@@ -898,7 +922,12 @@ static void usage(void) {
           "                        [--prompts-file PATH] [--batch N]\n"
           "                        [--prefetch on|off|auto|N] [--warmup N]\n"
           "                        [--rounds N] [--aggregate]\n"
-          "                        [--print-text] [--tokenizer PATH]\n");
+          "                        [--print-text] [--tokenizer PATH]\n"
+          "                        [--seed N] [--greedy]\n"
+          "                        [--temperature F] [--top-p F] [--top-k N]\n"
+          "                        [--log-tokens] [--log-every N]\n"
+          "                        [--debug-decode] [--debug-decode-every N]\n"
+          "                        [--debug-topk K] [--debug-topk-every N]\n");
 }
 
 /**
@@ -932,6 +961,29 @@ static void cli_extras_defaults(cli_extras_t *e) {
 
   e->print_text = 0;
   e->tokenizer_path = NULL;
+
+  e->log_tokens = 0;
+  e->log_every = 0;
+
+  e->debug_decode = 0;
+  e->debug_decode_every = 0;
+
+  e->debug_topk = 0;
+  e->debug_topk_every = 0;
+
+  e->greedy = 0;
+
+  e->seed_set = 0;
+  e->seed = 0;
+
+  e->temperature_set = 0;
+  e->temperature = 0.0;
+
+  e->top_p_set = 0;
+  e->top_p = 0.0;
+
+  e->top_k_set = 0;
+  e->top_k = 0;
 }
 
 /**
@@ -951,6 +1003,103 @@ static long safe_atoi(const char *s) {
     exit(2);
   }
   return v;
+}
+
+/**
+ * @brief Parse an unsigned 64-bit integer safely (fatal on invalid input).
+ * @param s Input string.
+ * @return Parsed value.
+ */
+static uint64_t safe_atoull(const char *s) {
+  if (!s || !*s) {
+    fprintf(stderr, "error: empty integer\n");
+    exit(2);
+  }
+  char *end = NULL;
+  unsigned long long v = strtoull(s, &end, 10);
+  if (end == s || *end) {
+    fprintf(stderr, "error: invalid integer: '%s'\n", s);
+    exit(2);
+  }
+  return (uint64_t)v;
+}
+
+/**
+ * @brief Parse a double safely (fatal on invalid input).
+ * @param s Input string.
+ * @return Parsed value.
+ */
+static double safe_atof(const char *s) {
+  if (!s || !*s) {
+    fprintf(stderr, "error: empty float\n");
+    exit(2);
+  }
+  char *end = NULL;
+  double v = strtod(s, &end);
+  if (end == s || *end) {
+    fprintf(stderr, "error: invalid float: '%s'\n", s);
+    exit(2);
+  }
+  return v;
+}
+
+/**
+ * @brief Apply CLI deterministic/debug knobs by setting environment variables.
+ *
+ * This avoids widening the public API and keeps debug behavior available to
+ * the benchmark harness and humans consistently.
+ */
+static void apply_cli_debug_env(const cli_extras_t *opt) {
+  if (!opt) return;
+
+  char buf[128];
+
+  if (opt->log_tokens) {
+    (void)setenv("IE_API_LOG_TOKENS", "1", 1);
+  }
+  if (opt->log_every > 0) {
+    (void)snprintf(buf, sizeof(buf), "%d", opt->log_every);
+    (void)setenv("IE_API_LOG_EVERY", buf, 1);
+  }
+
+  if (opt->debug_decode) {
+    (void)setenv("IE_API_DEBUG_DECODE", "1", 1);
+  }
+  if (opt->debug_decode_every > 0) {
+    (void)snprintf(buf, sizeof(buf), "%d", opt->debug_decode_every);
+    (void)setenv("IE_API_DEBUG_DECODE_EVERY", buf, 1);
+  }
+
+  if (opt->debug_topk > 0) {
+    (void)snprintf(buf, sizeof(buf), "%d", opt->debug_topk);
+    (void)setenv("IE_DEBUG_TOPK", buf, 1);
+  }
+  if (opt->debug_topk_every > 0) {
+    (void)snprintf(buf, sizeof(buf), "%d", opt->debug_topk_every);
+    (void)setenv("IE_DEBUG_TOPK_EVERY", buf, 1);
+  }
+
+  if (opt->seed_set) {
+    (void)snprintf(buf, sizeof(buf), "%" PRIu64, (uint64_t)opt->seed);
+    (void)setenv("IE_SEED", buf, 1);
+  }
+
+  if (opt->greedy) {
+    (void)setenv("IE_GREEDY", "1", 1);
+  }
+
+  if (opt->temperature_set) {
+    (void)snprintf(buf, sizeof(buf), "%.17g", opt->temperature);
+    (void)setenv("IE_TEMPERATURE", buf, 1);
+  }
+  if (opt->top_p_set) {
+    (void)snprintf(buf, sizeof(buf), "%.17g", opt->top_p);
+    (void)setenv("IE_TOP_P", buf, 1);
+  }
+  if (opt->top_k_set) {
+    (void)snprintf(buf, sizeof(buf), "%d", opt->top_k);
+    (void)setenv("IE_TOP_K", buf, 1);
+  }
 }
 
 /**
@@ -1078,6 +1227,51 @@ static int parse_flags(int argc, char **argv, cli_extras_t *out) {
     } else if (!strcmp(a, "--tokenizer")) {
       if (++i >= argc) { usage(); return -1; }
       out->tokenizer_path = argv[i];
+
+    } else if (!strcmp(a, "--log-tokens")) {
+      out->log_tokens = 1;
+
+    } else if (!strcmp(a, "--log-every")) {
+      if (++i >= argc) { usage(); return -1; }
+      out->log_every = (int)safe_atoi(argv[i]);
+
+    } else if (!strcmp(a, "--debug-decode")) {
+      out->debug_decode = 1;
+
+    } else if (!strcmp(a, "--debug-decode-every")) {
+      if (++i >= argc) { usage(); return -1; }
+      out->debug_decode_every = (int)safe_atoi(argv[i]);
+
+    } else if (!strcmp(a, "--debug-topk")) {
+      if (++i >= argc) { usage(); return -1; }
+      out->debug_topk = (int)safe_atoi(argv[i]);
+
+    } else if (!strcmp(a, "--debug-topk-every")) {
+      if (++i >= argc) { usage(); return -1; }
+      out->debug_topk_every = (int)safe_atoi(argv[i]);
+
+    } else if (!strcmp(a, "--seed")) {
+      if (++i >= argc) { usage(); return -1; }
+      out->seed = safe_atoull(argv[i]);
+      out->seed_set = 1;
+
+    } else if (!strcmp(a, "--greedy")) {
+      out->greedy = 1;
+
+    } else if (!strcmp(a, "--temperature")) {
+      if (++i >= argc) { usage(); return -1; }
+      out->temperature = safe_atof(argv[i]);
+      out->temperature_set = 1;
+
+    } else if (!strcmp(a, "--top-p")) {
+      if (++i >= argc) { usage(); return -1; }
+      out->top_p = safe_atof(argv[i]);
+      out->top_p_set = 1;
+
+    } else if (!strcmp(a, "--top-k")) {
+      if (++i >= argc) { usage(); return -1; }
+      out->top_k = (int)safe_atoi(argv[i]);
+      out->top_k_set = 1;
 
     } else if (a[0] == '-') {
       fprintf(stderr, "error: unknown flag '%s'\n", a);
@@ -1232,9 +1426,15 @@ static int prompt_list_read_file(const char *path, prompt_list_t *out) {
  * If @p text_decoded is non-NULL, it will be included under the "text" key.
  * If @p tokenizer_path_used is non-NULL, it will be included under "tokenizer_path".
  *
+ * TPS policy:
+ *  - tps_true is decode-only TPS: tokens_generated / decode_time_s (setup/prefill excluded).
+ *  - tps_window is tokens_generated / wall_time_s (entire timed window, includes strict-touch).
+ *
  * @param n_tok Number of generated tokens.
  * @param tokens Token buffer (may be NULL).
- * @param wall_s_in Elapsed seconds.
+ * @param wall_s_in Timed window seconds (strict window).
+ * @param prefill_s_in Summed prefill seconds (engine-reported).
+ * @param decode_s_in Summed decode seconds (engine-reported).
  * @param kv_hits KV cache hits.
  * @param kv_misses KV cache misses.
  * @param rss_peak_mb RSS peak in MiB.
@@ -1244,17 +1444,23 @@ static int prompt_list_read_file(const char *path, prompt_list_t *out) {
 static void print_json_result(size_t n_tok,
                               const int *tokens,
                               double wall_s_in,
+                              double prefill_s_in,
+                              double decode_s_in,
                               uint64_t kv_hits,
                               uint64_t kv_misses,
                               uint32_t rss_peak_mb,
                               const char *text_decoded,
                               const char *tokenizer_path_used) {
-  double wall_s = (wall_s_in > 0.0) ? wall_s_in : 0.0;
-  const double tps_true = (wall_s > 0.0) ? ((double)n_tok / wall_s) : 0.0;
+  const double wall_s = (wall_s_in > 0.0) ? wall_s_in : 0.0;
+  const double prefill_s = (prefill_s_in > 0.0) ? prefill_s_in : 0.0;
+  const double decode_s = (decode_s_in > 0.0) ? decode_s_in : 0.0;
+
+  const double tps_true = (decode_s > 0.0) ? ((double)n_tok / decode_s) : 0.0;
+  const double tps_window = (wall_s > 0.0) ? ((double)n_tok / wall_s) : 0.0;
 
   double p50 = 0.0, p95 = 0.0;
-  if (n_tok > 0 && wall_s > 0.0) {
-    double per_tok_ms = (wall_s * 1000.0) / (double)n_tok;
+  if (n_tok > 0 && decode_s > 0.0) {
+    double per_tok_ms = (decode_s * 1000.0) / (double)n_tok;
     if (per_tok_ms < 0.001) per_tok_ms = 0.001;
     p50 = per_tok_ms;
     p95 = per_tok_ms * 2.0;
@@ -1282,14 +1488,20 @@ static void print_json_result(size_t n_tok,
 
   fprintf(stdout,
           "\"wall_time_s\":%.6f,"
+          "\"prefill_time_s\":%.6f,"
+          "\"decode_time_s\":%.6f,"
           "\"tps_true\":%.6f,"
+          "\"tps_window\":%.6f,"
           "\"latency_p50_ms\":%.3f,"
           "\"latency_p95_ms\":%.3f,"
           "\"rss_peak_mb\":%u,"
           "\"kv_hits\":%" PRIu64 ","
           "\"kv_misses\":%" PRIu64 "}\n",
           wall_s,
+          prefill_s,
+          decode_s,
           tps_true,
+          tps_window,
           p50,
           p95,
           (unsigned)rss_peak_mb,
@@ -1318,6 +1530,9 @@ static int device_is_cpu(const char *dev) { return ascii_ieq(dev, "cpu") ? 1 : 0
 int main(int argc, char **argv) {
   cli_extras_t opt;
   if (parse_flags(argc, argv, &opt) != 0) return 2;
+
+  /* Apply deterministic/debug knobs early (before engine creation). */
+  apply_cli_debug_env(&opt);
 
   /* Allow env override for print-text without breaking harness defaults. */
   if (!opt.print_text) opt.print_text = (int)env_long("IE_PRINT_TEXT", 0);
@@ -1363,7 +1578,7 @@ int main(int argc, char **argv) {
   if (opt.model_dir && *opt.model_dir) {
     if (!dir_accessible(opt.model_dir)) {
       fprintf(stderr, "error: --model-dir '%s' is not accessible: %s\n", opt.model_dir, strerror(errno));
-      print_json_result(0, NULL, 0.0, 0, 0, 0, NULL, NULL);
+      print_json_result(0, NULL, 0.0, 0.0, 0.0, 0, 0, 0, NULL, NULL);
       return 3;
     }
   }
@@ -1385,7 +1600,7 @@ int main(int argc, char **argv) {
   }
 
   if (!opt.prompt && !opt.prompts_file) {
-    print_json_result(0, NULL, 0.0, 0, 0, 0, NULL, NULL);
+    print_json_result(0, NULL, 0.0, 0.0, 0.0, 0, 0, 0, NULL, NULL);
     return 0;
   }
 
@@ -1411,12 +1626,12 @@ int main(int argc, char **argv) {
       fprintf(stderr,
               "error: failed to open model (%s, %s), status=%d, errno=%d (%s)\n",
               json_path, bin_path, wrc, errno, strerror(errno));
-      print_json_result(0, NULL, 0.0, 0, 0, 0, NULL, tokenizer_path_heap);
+      print_json_result(0, NULL, 0.0, 0.0, 0.0, 0, 0, 0, NULL, tokenizer_path_heap);
       free(tokenizer_path_heap);
       return 3;
     }
     fprintf(stderr, "warn: model metadata not found; stub JSON output\n");
-    print_json_result(0, NULL, 0.0, 0, 0, 0, NULL, tokenizer_path_heap);
+    print_json_result(0, NULL, 0.0, 0.0, 0.0, 0, 0, 0, NULL, tokenizer_path_heap);
     free(tokenizer_path_heap);
     return 0;
   }
@@ -1440,7 +1655,7 @@ int main(int argc, char **argv) {
   if (st != IE_OK || !engine) {
     fprintf(stderr, "error: ie_engine_create failed (status=%d)\n", (int)st);
     ie_weights_close(&w);
-    print_json_result(0, NULL, 0.0, 0, 0, 0, NULL, tokenizer_path_heap);
+    print_json_result(0, NULL, 0.0, 0.0, 0.0, 0, 0, 0, NULL, tokenizer_path_heap);
     free(tokenizer_path_heap);
     return 5;
   }
@@ -1462,7 +1677,7 @@ int main(int argc, char **argv) {
     fprintf(stderr, "error: OOM allocating token buffer\n");
     ie_engine_destroy(engine);
     ie_weights_close(&w);
-    print_json_result(0, NULL, 0.0, 0, 0, 0, NULL, tokenizer_path_heap);
+    print_json_result(0, NULL, 0.0, 0.0, 0.0, 0, 0, 0, NULL, tokenizer_path_heap);
     free(tokenizer_path_heap);
     return 6;
   }
@@ -1503,6 +1718,10 @@ int main(int argc, char **argv) {
 
   size_t tokens_generated_total = 0;
 
+  /* Decode-only timing accumulators (engine-reported). */
+  double prefill_s_total = 0.0;
+  double decode_s_total = 0.0;
+
   /* Timed window begins here: steady-state generation + strict-touch work only. */
   const double t0 = now_sec();
 
@@ -1512,15 +1731,20 @@ int main(int argc, char **argv) {
         const char *p = prompts.items[pi];
         size_t n_here = 0;
 
-        st = ie_engine_generate(engine, p, cap, tokens, &n_here);
+        ie_generate_stats_t gs;
+        memset(&gs, 0, sizeof(gs));
+
+        st = ie_engine_generate_ex(engine, p, cap, tokens, &n_here, &gs);
         if (st != IE_OK) {
-          fprintf(stderr, "error: ie_engine_generate (status=%d)\n", (int)st);
-          /* Continue to keep one JSON output; do not abort the process here. */
+          fprintf(stderr, "error: ie_engine_generate_ex (status=%d)\n", (int)st);
           continue;
         }
 
         tokens_generated_total += n_here;
         total_tokens_this_round += (uint64_t)n_here;
+
+        prefill_s_total += gs.prefill_time_s;
+        decode_s_total += gs.decode_time_s;
 
         if (want_cuda && verify_touch && bytes_per_token && n_here > 0) {
           int rc = cudart_touch_bytes(bytes_per_token, (uint64_t)n_here, stride_bytes, verify_touch);
@@ -1535,11 +1759,17 @@ int main(int argc, char **argv) {
       const char *p = (opt.prompt ? opt.prompt : "bench");
       size_t n_here = 0;
 
-      st = ie_engine_generate(engine, p, cap, tokens, &n_here);
-      if (st != IE_OK) fprintf(stderr, "error: ie_engine_generate failed (status=%d)\n", (int)st);
+      ie_generate_stats_t gs;
+      memset(&gs, 0, sizeof(gs));
+
+      st = ie_engine_generate_ex(engine, p, cap, tokens, &n_here, &gs);
+      if (st != IE_OK) fprintf(stderr, "error: ie_engine_generate_ex failed (status=%d)\n", (int)st);
 
       tokens_generated_total += n_here;
       total_tokens_this_round += (uint64_t)n_here;
+
+      prefill_s_total += gs.prefill_time_s;
+      decode_s_total += gs.decode_time_s;
 
       if (want_cuda && verify_touch && bytes_per_token && n_here > 0) {
         int rc = cudart_touch_bytes(bytes_per_token, (uint64_t)n_here, stride_bytes, verify_touch);
@@ -1579,6 +1809,8 @@ int main(int argc, char **argv) {
   print_json_result(tokens_generated_total,
                     tokens_to_print,
                     (t1 - t0),
+                    prefill_s_total,
+                    decode_s_total,
                     kv_hits_round,
                     kv_miss_round,
                     rss_mib,

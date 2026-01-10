@@ -9,16 +9,41 @@
  *  - For large vocabularies, this is not optimal; once the model forward pass is
  *    wired, you may prefer partial selection without full softmax.
  *  - The goal here is correctness and debuggability to unblock coherent text generation.
+ *
+ * Debugging:
+ *  - IE_DEBUG_TOPK:          If set to K>0, dump the top-K logits (and decoded pieces if available).
+ *  - IE_DEBUG_TOPK_EVERY:    If set to N>0, dump every N calls to ie_sampler_sample (default: 1).
+ *  - IE_DEBUG_TOPK_LIMIT:    If set to M>0, stop dumping after M dumps (default: unlimited).
+ *
+ * Decoding:
+ *  - If the engine provides a token decoder as a weak symbol:
+ *      int ie_debug_decode_token(uint32_t id, char *dst, size_t cap);
+ *    then the dump will include a best-effort decoded preview string.
+ *  - If not provided, the dump prints "<no_decoder>".
  */
 
 #include "ie_sampler.h"
 
+#include <errno.h>
 #include <float.h>
+#include <inttypes.h>
 #include <math.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+/**
+ * @brief Optional external decoder hook (weak).
+ *
+ * @details
+ * If linked, it should write a NUL-terminated UTF-8 (or best-effort) token piece
+ * preview into dst. Return nonzero on success.
+ */
+#if defined(__GNUC__) || defined(__clang__)
+__attribute__((weak)) int ie_debug_decode_token(uint32_t id, char *dst, size_t cap);
+#endif
 
 /**
  * @brief Work item used for sorting probabilities.
@@ -36,6 +61,164 @@ struct ie_sampler {
   float *probs;            /* length vocab_size */
   ie_prob_item_t *items;   /* length vocab_size */
 };
+
+/* ============================================================================
+ * Debug helpers
+ * ========================================================================== */
+
+static int env_int_(const char *name, int def, int minv, int maxv) {
+  const char *v = getenv(name);
+  if (!v || !*v) return def;
+
+  errno = 0;
+  char *end = NULL;
+  long x = strtol(v, &end, 10);
+  if (errno != 0 || !end || end == v) return def;
+
+  if (x < (long)minv) x = (long)minv;
+  if (x > (long)maxv) x = (long)maxv;
+  return (int)x;
+}
+
+static int debug_topk_k_(void) {
+  static int inited = 0;
+  static int k = 0;
+  if (!inited) {
+    k = env_int_("IE_DEBUG_TOPK", 0, 0, 128);
+    inited = 1;
+  }
+  return k;
+}
+
+static int debug_topk_every_(void) {
+  static int inited = 0;
+  static int every = 1;
+  if (!inited) {
+    every = env_int_("IE_DEBUG_TOPK_EVERY", 1, 1, 1000000000);
+    inited = 1;
+  }
+  return every;
+}
+
+static uint64_t debug_topk_limit_(void) {
+  static int inited = 0;
+  static uint64_t lim = 0;
+  if (!inited) {
+    const char *v = getenv("IE_DEBUG_TOPK_LIMIT");
+    if (v && *v) {
+      errno = 0;
+      char *end = NULL;
+      unsigned long long x = strtoull(v, &end, 10);
+      if (errno == 0 && end && end != v) lim = (uint64_t)x;
+    }
+    inited = 1;
+  }
+  return lim;
+}
+
+static int debug_topk_should_dump_(uint64_t call_idx) {
+  const int k = debug_topk_k_();
+  if (k <= 0) return 0;
+
+  const int every = debug_topk_every_();
+  if (every <= 0) return 0;
+  if ((call_idx % (uint64_t)every) != 0) return 0;
+
+  const uint64_t lim = debug_topk_limit_();
+  if (lim == 0) return 1;
+
+  /* call_idx is 1-based; approximate dump-count as call_idx/every rounded up. */
+  const uint64_t dump_no = (call_idx + (uint64_t)every - 1) / (uint64_t)every;
+  return dump_no <= lim;
+}
+
+static void decode_preview_(uint32_t id, char *dst, size_t cap) {
+  if (!dst || cap == 0) return;
+  dst[0] = '\0';
+
+#if defined(__GNUC__) || defined(__clang__)
+  if (ie_debug_decode_token) {
+    if (ie_debug_decode_token(id, dst, cap)) {
+      dst[cap - 1] = '\0';
+      for (size_t i = 0; dst[i]; ++i) {
+        unsigned char c = (unsigned char)dst[i];
+        if (c < 0x20 || c == 0x7f) dst[i] = ' ';
+      }
+      return;
+    }
+  }
+#endif
+
+  (void)snprintf(dst, cap, "<no_decoder>");
+  dst[cap - 1] = '\0';
+}
+
+static void debug_dump_topk_logits_(const float *logits,
+                                   const float *probs,
+                                   size_t n,
+                                   float temperature,
+                                   int allow_nan,
+                                   int k,
+                                   uint64_t call_idx) {
+  if (!logits || n == 0 || k <= 0) return;
+  if (k > 64) k = 64;
+  if ((size_t)k > n) k = (int)n;
+
+  uint32_t top_id[64];
+  float top_l[64];
+
+  for (int i = 0; i < k; ++i) {
+    top_id[i] = 0;
+    top_l[i] = -INFINITY;
+  }
+
+  for (size_t i = 0; i < n; ++i) {
+    float v = logits[i];
+    if (isnan(v)) {
+      if (!allow_nan) continue;
+      v = -INFINITY;
+    }
+    if (v <= top_l[k - 1]) continue;
+
+    int pos = k - 1;
+    while (pos > 0 && v > top_l[pos - 1]) {
+      top_l[pos] = top_l[pos - 1];
+      top_id[pos] = top_id[pos - 1];
+      --pos;
+    }
+    top_l[pos] = v;
+    top_id[pos] = (uint32_t)i;
+  }
+
+  fprintf(stderr,
+          "[sampler][topk_logits] call=%" PRIu64 " k=%d temp=%.6g\n",
+          (uint64_t)call_idx,
+          k,
+          (double)temperature);
+
+  for (int r = 0; r < k; ++r) {
+    const uint32_t id = top_id[r];
+    const float logit_raw = top_l[r];
+    const float logit_scaled = (temperature > 0.0f) ? (logit_raw / temperature) : logit_raw;
+    const float p = (probs ? probs[id] : -1.0f);
+
+    char piece[160];
+    decode_preview_(id, piece, sizeof(piece));
+
+    fprintf(stderr,
+            "[sampler][topk_logits] rank=%d id=%" PRIu32 " logit=%.9g scaled=%.9g prob=%.9g piece=\"%s\"\n",
+            r,
+            id,
+            (double)logit_raw,
+            (double)logit_scaled,
+            (double)p,
+            piece);
+  }
+}
+
+/* ============================================================================
+ * RNG (xorshift64*)
+ * ========================================================================== */
 
 /**
  * @brief Xorshift64* PRNG step.
@@ -226,6 +409,9 @@ ie_sampler_status_t ie_sampler_sample(ie_sampler_t *s,
   if (!s || !logits || !out_id) return IE_SAMPLER_EINVAL;
   if (logits_len != s->vocab_size) return IE_SAMPLER_EINVAL;
 
+  static uint64_t g_call_idx = 0;
+  g_call_idx++;
+
   const float temperature = s->cfg.temperature;
   const uint32_t top_k = s->cfg.top_k;
   const float top_p = s->cfg.top_p;
@@ -236,6 +422,13 @@ ie_sampler_status_t ie_sampler_sample(ie_sampler_t *s,
     if (!argmax_logits(logits, logits_len, allow_nan, &id)) return IE_SAMPLER_EINVAL;
     *out_id = id;
     if (out_prob) *out_prob = 1.0f;
+
+    if (debug_topk_should_dump_(g_call_idx)) {
+      const int k = debug_topk_k_();
+      debug_dump_topk_logits_(logits, NULL, logits_len, temperature, allow_nan, k, g_call_idx);
+      fprintf(stderr, "[sampler][chosen] call=%" PRIu64 " id=%" PRIu32 " prob=1\n",
+              (uint64_t)g_call_idx, id);
+    }
     return IE_SAMPLER_OK;
   }
 
@@ -244,7 +437,19 @@ ie_sampler_status_t ie_sampler_sample(ie_sampler_t *s,
     if (!argmax_logits(logits, logits_len, allow_nan, &id)) return IE_SAMPLER_EINVAL;
     *out_id = id;
     if (out_prob) *out_prob = 1.0f;
+
+    if (debug_topk_should_dump_(g_call_idx)) {
+      const int k = debug_topk_k_();
+      debug_dump_topk_logits_(logits, NULL, logits_len, temperature, allow_nan, k, g_call_idx);
+      fprintf(stderr, "[sampler][chosen] call=%" PRIu64 " id=%" PRIu32 " prob=1 (softmax_failed)\n",
+              (uint64_t)g_call_idx, id);
+    }
     return IE_SAMPLER_OK;
+  }
+
+  if (debug_topk_should_dump_(g_call_idx)) {
+    const int k = debug_topk_k_();
+    debug_dump_topk_logits_(logits, s->probs, logits_len, temperature, allow_nan, k, g_call_idx);
   }
 
   for (size_t i = 0; i < logits_len; ++i) {
@@ -277,6 +482,11 @@ ie_sampler_status_t ie_sampler_sample(ie_sampler_t *s,
     uint32_t id = s->items[0].id;
     *out_id = id;
     if (out_prob) *out_prob = 1.0f;
+
+    if (debug_topk_should_dump_(g_call_idx)) {
+      fprintf(stderr, "[sampler][chosen] call=%" PRIu64 " id=%" PRIu32 " prob=1 (degenerate_sum)\n",
+              (uint64_t)g_call_idx, id);
+    }
     return IE_SAMPLER_OK;
   }
 
@@ -297,6 +507,18 @@ ie_sampler_status_t ie_sampler_sample(ie_sampler_t *s,
 
   *out_id = chosen;
   if (out_prob) *out_prob = chosen_p;
+
+  if (debug_topk_should_dump_(g_call_idx)) {
+    char piece[160];
+    decode_preview_(chosen, piece, sizeof(piece));
+    fprintf(stderr,
+            "[sampler][chosen] call=%" PRIu64 " id=%" PRIu32 " prob=%.9g piece=\"%s\"\n",
+            (uint64_t)g_call_idx,
+            chosen,
+            (double)chosen_p,
+            piece);
+  }
+
   return IE_SAMPLER_OK;
 }
 

@@ -7,13 +7,12 @@
  * @brief Stable public API implementation for creating, destroying, and running an engine instance.
  *
  * @details
- * This module implements the functions declared in @ref ie_api.h. It keeps the
- * public surface small and stable while delegating model-specific logic to internal
- * subsystems:
+ * This module implements the functions declared in ie_api.h. It keeps the public
+ * surface small and stable while delegating model-specific logic to internal subsystems:
  *  - Device creation/teardown (CPU/CUDA selection)
- *  - Tokenizer open/encode/decode (currently GPT-OSS tokenizer via tokenizer.json)
+ *  - Tokenizer open/encode/decode (GPT-OSS tokenizer JSON)
  *  - Weights open/close (model.ie.json + model.ie.bin)
- *  - Hyperparameter loading
+ *  - Hyperparameter loading (base + extended HF config)
  *  - GPT-OSS runtime creation and token-by-token inference
  *  - Sampling to select the next token
  *
@@ -27,11 +26,8 @@
  *  - IE_API_LOG_EVERY:          If set to N>0, log every N decode steps (token id).
  *  - IE_API_DEBUG_DECODE:       If set to 1, attempt to decode generated tokens to UTF-8 and log (best-effort).
  *  - IE_API_DEBUG_DECODE_EVERY: If set to N>0, decode/log every N decode steps when IE_API_DEBUG_DECODE=1.
- *
- * Error-handling policy:
- *  - Fail fast with a clear return code (@ref ie_status_t).
- *  - On failure, release partially acquired resources before returning.
- *  - Do not expose partially initialized objects to the caller.
+ *  - IE_DEBUG_TOPK:             If set to K>0, dump top-K logits decoded (prefill and optionally during decode).
+ *  - IE_DEBUG_TOPK_EVERY:       If set to N>0, dump top-K logits every N decode steps (requires IE_DEBUG_TOPK>0).
  *
  * Header layout constraint:
  *  - The include directory is flat. All includes must reference headers by filename only.
@@ -47,12 +43,14 @@
 
 #include "ie_api.h"
 
+#include <ctype.h>
 #include <inttypes.h>
+#include <math.h>
 #include <stdint.h>
-#include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #include "gptoss_hparams.h"
 #include "ie_device.h"
@@ -68,77 +66,47 @@
  * Internal engine object
  * ========================================================================== */
 
-/**
- * @brief Concrete engine implementation backing the opaque @ref ie_engine_t handle.
- *
- * @details
- * The public API exposes @ref ie_engine_t as an opaque struct. This file defines
- * the concrete layout, collecting all long-lived objects needed for generation:
- *  - Device handle
- *  - Weights handle
- *  - Tokenizer handle
- *  - Model hyperparameters
- *  - Inference runtime handle
- *  - Scratch buffers (logits and sampler scratch)
- *  - Sampler configuration and RNG state
- */
 struct ie_engine {
-  /** @brief Device instance (CPU/CUDA). */
   ie_device_t *dev;
-
-  /** @brief Weights handle (mmap/file-backed depending on io implementation). */
   ie_weights_t w;
-
-  /** @brief GPT-OSS tokenizer handle. */
   ie_tok_gptoss_t *tok;
 
-  /** @brief Model hyperparameters. */
+  /* Base hparams (shapes/sizes) + extended config (eps/theta/rope scaling). */
   ie_gptoss_hparams_t hp;
+  gptoss_hparams_ex_t hpx;
 
-  /** @brief GPT-OSS inference runtime instance. */
   ie_gptoss_infer_t *infer;
 
-  /** @brief Logits buffer of length vocab_size. */
   float *logits;
-
-  /** @brief Number of logits entries (vocab size). */
   size_t logits_len;
 
-  /** @brief Sampler scratch: permutation indices. */
   uint32_t *scratch_idx;
-
-  /** @brief Sampler scratch: probabilities. */
   float *scratch_prob;
-
-  /** @brief Capacity of sampler scratch buffers (in entries). */
   size_t scratch_cap;
 
-  /** @brief Sampling configuration. */
   ie_sample_cfg_t sample_cfg;
-
-  /** @brief RNG state for sampling. */
   ie_rng_t rng;
 };
+
+/* ============================================================================
+ * Time helpers
+ * ========================================================================== */
+
+static double now_s_(void) {
+  struct timespec ts;
+#if defined(CLOCK_MONOTONIC)
+  const clockid_t clk = CLOCK_MONOTONIC;
+#else
+  const clockid_t clk = CLOCK_REALTIME;
+#endif
+  if (clock_gettime(clk, &ts) != 0) return 0.0;
+  return (double)ts.tv_sec + 1e-9 * (double)ts.tv_nsec;
+}
 
 /* ============================================================================
  * Small helpers
  * ========================================================================== */
 
-/**
- * @brief Join two path segments using a single slash when needed.
- *
- * @details
- * This helper is intentionally minimal and ASCII-only:
- *  - Copies @p a into @p dst.
- *  - Adds a slash if @p a is non-empty and does not already end with one.
- *  - Appends @p b.
- *  - Always NUL-terminates @p dst.
- *
- * @param dst Output buffer (must not be NULL).
- * @param cap Output buffer capacity in bytes (must be > 0).
- * @param a   First path segment (may be NULL).
- * @param b   Second path segment (may be NULL).
- */
 static void join_path_(char *dst, size_t cap, const char *a, const char *b) {
   if (!dst || cap == 0) return;
 
@@ -158,17 +126,6 @@ static void join_path_(char *dst, size_t cap, const char *a, const char *b) {
   dst[i < cap ? i : (cap - 1)] = '\0';
 }
 
-/**
- * @brief Get an environment flag as 0/1 with a default.
- *
- * @details
- * Accepts typical boolean spellings: 0/1, false/true, no/yes, off/on.
- * Unknown values are treated as "enabled" to avoid silent disabling.
- *
- * @param name Environment variable name (must not be NULL).
- * @param default_value Value returned when unset/empty.
- * @return 0 or 1.
- */
 static int env_flag_(const char *name, int default_value) {
   const char *v = getenv(name);
   if (!v || !*v) return default_value;
@@ -184,15 +141,6 @@ static int env_flag_(const char *name, int default_value) {
   return 1;
 }
 
-/**
- * @brief Get an environment integer with a default and basic clamping.
- *
- * @param name Environment variable name (must not be NULL).
- * @param default_value Default value when unset/empty/invalid.
- * @param min_value Minimum allowed return value.
- * @param max_value Maximum allowed return value.
- * @return Parsed and clamped integer value.
- */
 static int env_int_(const char *name, int default_value, int min_value, int max_value) {
   const char *v = getenv(name);
   if (!v || !*v) return default_value;
@@ -205,12 +153,6 @@ static int env_int_(const char *name, int default_value, int min_value, int max_
   return (int)x;
 }
 
-/**
- * @brief Convert public status codes to stable strings for logs.
- *
- * @param st Status code.
- * @return A constant string.
- */
 static const char *status_str_(ie_status_t st) {
   switch (st) {
     case IE_OK: return "IE_OK";
@@ -223,11 +165,6 @@ static const char *status_str_(ie_status_t st) {
   }
 }
 
-/**
- * @brief Emit a one-line summary of loaded hyperparameters.
- *
- * @param hp Hyperparameter struct (may be NULL).
- */
 static void log_hparams_(const ie_gptoss_hparams_t *hp) {
   if (!hp) return;
   ie_log_info(
@@ -242,23 +179,17 @@ static void log_hparams_(const ie_gptoss_hparams_t *hp) {
       hp->max_seq);
 }
 
-/**
- * @brief Attempt to correct head_dim using the first-layer Q projection tensor shape.
- *
- * @details
- * Some model bundles may ship inconsistent or missing head_dim in config metadata.
- * This routine consults tensor_map.json (if present) and inspects the shape of:
- *   "model.layers.0.self_attn.q_proj.weight"
- *
- * If it can infer a better head_dim, it updates @p hp in-place and logs a warning.
- *
- * Best-effort behavior:
- *  - If tensor_map.json is missing/unreadable, it does nothing.
- *  - If the tensor is missing or ambiguous, it does nothing.
- *
- * @param model_dir Model directory containing tensor_map.json (must not be NULL).
- * @param hp Hyperparameter struct to potentially modify (must not be NULL).
- */
+static void log_hparams_ex_(const gptoss_hparams_ex_t *hpx) {
+  if (!hpx) return;
+
+  /* This struct intentionally avoids assuming a "present" boolean; treat empty type as "absent". */
+  ie_log_info("hparams_ex: rms_norm_eps=%.10g rope_theta=%.10g rope_scaling_type=%s rope_scaling_factor=%.10g",
+              (double)hpx->rms_norm_eps,
+              (double)hpx->rope_theta,
+              hpx->rope_scaling_type,
+              (double)hpx->rope_scaling_factor);
+}
+
 static void maybe_correct_head_dim_(const char *model_dir, ie_gptoss_hparams_t *hp) {
   if (!model_dir || !hp) return;
   if (hp->n_heads == 0) return;
@@ -277,7 +208,6 @@ static void maybe_correct_head_dim_(const char *model_dir, ie_gptoss_hparams_t *
 
     uint32_t new_d_head = hp->d_head;
 
-    /* Prefer the dimension that cleanly divides by n_heads and is not equal to d_model. */
     if (q0 != 0 && (q0 % n_heads) == 0 && q0 != hp->d_model) {
       new_d_head = q0 / n_heads;
     } else if (q1 != 0 && (q1 % n_heads) == 0 && q1 != hp->d_model) {
@@ -298,36 +228,12 @@ static void maybe_correct_head_dim_(const char *model_dir, ie_gptoss_hparams_t *
   tensor_map_free(&map);
 }
 
-/**
- * @brief Convert internal return codes into stable @ref ie_status_t values.
- *
- * @details
- * Internal subsystems sometimes return negative errno-like codes. This helper maps
- * a small known subset to stable public statuses while defaulting to IE_ERR_INTERNAL.
- *
- * Current mapping:
- *  - 0    -> IE_OK
- *  - -12  -> IE_ERR_OOM
- *  - -5   -> IE_ERR_OOM (some subsystems use -5 for allocation failures)
- *  - else -> IE_ERR_INTERNAL
- *
- * @param rc Internal return code.
- * @return Public status code.
- */
 static ie_status_t status_from_rc_(int rc) {
   if (rc == 0) return IE_OK;
   if (rc == -12 || rc == -5) return IE_ERR_OOM;
   return IE_ERR_INTERNAL;
 }
 
-/**
- * @brief Log a short, safe prompt preview for diagnostics.
- *
- * @details
- * Logs at most 96 bytes, replacing embedded newlines/tabs with spaces.
- *
- * @param prompt Prompt string (may be NULL).
- */
 static void log_prompt_preview_(const char *prompt) {
   if (!prompt) {
     ie_log_info("prompt: (null)");
@@ -347,29 +253,91 @@ static void log_prompt_preview_(const char *prompt) {
 }
 
 /* ============================================================================
+ * Top-k decoded logits debug ("truth serum")
+ * ========================================================================== */
+
+static void decode_piece_preview_(const ie_tok_gptoss_t *tok, uint32_t token_id, char *dst, size_t cap) {
+  if (!dst || cap == 0) return;
+  dst[0] = '\0';
+  if (!tok) return;
+
+  size_t need = 0;
+  const int rc0 = ie_tok_gptoss_decode(tok, &token_id, 1u, NULL, &need);
+  if (rc0 != 0 || need == 0 || need > (1u << 16)) {
+    (void)snprintf(dst, cap, "<decode_err>");
+    return;
+  }
+
+  char *tmp = (char *)malloc(need);
+  if (!tmp) {
+    (void)snprintf(dst, cap, "<oom>");
+    return;
+  }
+
+  size_t inout = need;
+  const int rc1 = ie_tok_gptoss_decode(tok, &token_id, 1u, tmp, &inout);
+  if (rc1 != 0) {
+    free(tmp);
+    (void)snprintf(dst, cap, "<decode_err>");
+    return;
+  }
+
+  tmp[need - 1] = '\0';
+
+  size_t j = 0;
+  for (size_t i = 0; tmp[i] && j + 1 < cap; ++i) {
+    unsigned char c = (unsigned char)tmp[i];
+    if (c < 0x20 || c == 0x7f) c = ' ';
+    dst[j++] = (char)c;
+  }
+  dst[j] = '\0';
+
+  free(tmp);
+}
+
+static void debug_dump_topk_(const ie_tok_gptoss_t *tok,
+                             const float *logits,
+                             size_t logits_len,
+                             int k,
+                             const char *tag) {
+  if (!tok || !logits || logits_len == 0 || k <= 0 || !tag) return;
+  if (k > 64) k = 64;
+  if ((size_t)k > logits_len) k = (int)logits_len;
+
+  uint32_t top_id[64];
+  float top_val[64];
+  for (int i = 0; i < k; ++i) {
+    top_id[i] = 0;
+    top_val[i] = -INFINITY;
+  }
+
+  for (size_t i = 0; i < logits_len; ++i) {
+    const float v = logits[i];
+    if (v <= top_val[k - 1]) continue;
+
+    int pos = k - 1;
+    while (pos > 0 && v > top_val[pos - 1]) {
+      top_val[pos] = top_val[pos - 1];
+      top_id[pos] = top_id[pos - 1];
+      --pos;
+    }
+    top_val[pos] = v;
+    top_id[pos] = (uint32_t)i;
+  }
+
+  ie_log_info("debug_topk(%s): k=%d", tag, k);
+  for (int i = 0; i < k; ++i) {
+    char piece[160];
+    decode_piece_preview_(tok, top_id[i], piece, sizeof(piece));
+    ie_log_info("debug_topk(%s): rank=%d id=%" PRIu32 " logit=%.9g piece=\"%s\"",
+                tag, i, top_id[i], (double)top_val[i], piece);
+  }
+}
+
+/* ============================================================================
  * Public API
  * ========================================================================== */
 
-/**
- * @brief Create an inference engine instance.
- *
- * @details
- * The create path performs:
- *  - Device selection via @p device string
- *  - Tokenizer open (tokenizer.json under model_dir)
- *  - Weights open (model.ie.json under model_dir)
- *  - Hyperparameter load
- *  - Head dimension correction heuristic (best-effort)
- *  - GPT-OSS runtime creation
- *  - Scratch buffer allocation (logits and sampler scratch)
- *  - Sampler config initialization and RNG seeding
- *
- * @param p         Optional engine parameters (may be NULL).
- * @param device    Device selector string ("cpu", "cuda"); NULL defaults to "cpu".
- * @param model_dir Path to the model directory containing assets (must not be NULL).
- * @param out       Output pointer receiving the created engine on success (must not be NULL).
- * @return IE_OK on success, otherwise a non-OK status.
- */
 ie_status_t ie_engine_create(const ie_engine_params_t *p,
                              const char *device,
                              const char *model_dir,
@@ -399,7 +367,6 @@ ie_status_t ie_engine_create(const ie_engine_params_t *p,
     return IE_ERR_OOM;
   }
 
-  /* ---- device ---- */
   ie_log_info("ie_engine_create: device_create (device=%s)", dev_str);
   const ie_device_kind_t kind = ie_device_kind_from_str(dev_str);
   const int dev_rc = ie_device_create(kind, &e->dev);
@@ -409,7 +376,6 @@ ie_status_t ie_engine_create(const ie_engine_params_t *p,
     return IE_ERR_UNSUPPORTED;
   }
 
-  /* ---- tokenizer ---- */
   const char *tok_path = NULL;
   char tok_path_buf[4096];
   if (p && p->tokenizer_path && p->tokenizer_path[0] != '\0') {
@@ -431,7 +397,6 @@ ie_status_t ie_engine_create(const ie_engine_params_t *p,
   const uint32_t tok_vocab = ie_tok_gptoss_vocab_size(e->tok);
   ie_log_info("ie_engine_create: tokenizer_open ok (vocab=%" PRIu32 ")", tok_vocab);
 
-  /* ---- weights ---- */
   const char *weights_json = NULL;
   char weights_json_buf[4096];
   const char *bin_override = NULL;
@@ -444,6 +409,7 @@ ie_status_t ie_engine_create(const ie_engine_params_t *p,
   if (p && p->weights_bin_path && p->weights_bin_path[0] != '\0') {
     bin_override = p->weights_bin_path;
   }
+
   ie_log_info("ie_engine_create: weights_open (json=%s bin_override=%s)",
               weights_json,
               bin_override ? bin_override : "(null)");
@@ -463,7 +429,7 @@ ie_status_t ie_engine_create(const ie_engine_params_t *p,
               e->w.bin_size_bytes,
               e->w.is_dedup ? 1 : 0);
 
-  /* ---- hparams ---- */
+  /* Load base hparams first (shapes/sizes). */
   ie_log_info("ie_engine_create: hparams_load (dir=%s)", model_dir);
   const int hp_rc = gptoss_hparams_load(model_dir, &e->hp);
   if (hp_rc != 0) {
@@ -475,7 +441,16 @@ ie_status_t ie_engine_create(const ie_engine_params_t *p,
     return IE_ERR_MODEL;
   }
 
+  /* Load extended config (eps/theta/rope scaling). */
+  ie_log_info("ie_engine_create: hparams_load_ex (dir=%s)", model_dir);
+  const int ex_rc = gptoss_hparams_load_ex(model_dir, &e->hpx);
+  if (ex_rc != 0) {
+    ie_log_warn("ie_engine_create: hparams_load_ex failed (rc=%d dir=%s). Continuing with base hparams only.", ex_rc, model_dir);
+    memset(&e->hpx, 0, sizeof(e->hpx));
+  }
+
   log_hparams_(&e->hp);
+  if (ex_rc == 0) log_hparams_ex_(&e->hpx);
 
   if (tok_vocab != 0 && e->hp.vocab_size != 0 && tok_vocab != e->hp.vocab_size) {
     ie_log_warn("ie_engine_create: tokenizer vocab (%" PRIu32 ") != hparams vocab (%" PRIu32 ")",
@@ -483,10 +458,8 @@ ie_status_t ie_engine_create(const ie_engine_params_t *p,
                 e->hp.vocab_size);
   }
 
-  /* Best-effort correction if asset metadata is inconsistent. */
   maybe_correct_head_dim_(model_dir, &e->hp);
 
-  /* ---- runtime ---- */
   ie_log_info("ie_engine_create: infer_create");
   const int inf_rc = ie_gptoss_infer_create(e->dev, &e->w, &e->hp, &e->infer);
   if (inf_rc != 0 || !e->infer) {
@@ -498,7 +471,6 @@ ie_status_t ie_engine_create(const ie_engine_params_t *p,
     return IE_ERR_INTERNAL;
   }
 
-  /* ---- scratch ---- */
   e->logits_len = (size_t)e->hp.vocab_size;
   if (e->logits_len == 0) {
     ie_log_error("ie_engine_create: invalid vocab_size=0; cannot allocate logits");
@@ -540,7 +512,6 @@ ie_status_t ie_engine_create(const ie_engine_params_t *p,
     return IE_ERR_OOM;
   }
 
-  /* ---- default sampling config ---- */
   e->sample_cfg.kind = IE_SAMPLE_TOPP;
   e->sample_cfg.temperature = 0.8f;
   e->sample_cfg.top_p = 0.95f;
@@ -554,7 +525,6 @@ ie_status_t ie_engine_create(const ie_engine_params_t *p,
               (int)e->sample_cfg.top_k,
               (int)e->sample_cfg.disallow_token0);
 
-  /* ---- RNG ---- */
   ie_rng_init(&e->rng, 1u);
   ie_log_info("ie_engine_create: RNG seeded (seed=%u)", 1u);
 
@@ -563,21 +533,6 @@ ie_status_t ie_engine_create(const ie_engine_params_t *p,
   return IE_OK;
 }
 
-/**
- * @brief Destroy an engine instance and release all resources.
- *
- * @details
- * This function is safe to call with NULL. For non-NULL engine objects, it releases
- * resources in a defensive order:
- *  - Scratch buffers
- *  - Runtime
- *  - Weights
- *  - Tokenizer
- *  - Device
- *  - Engine struct memory
- *
- * @param e Engine instance to destroy (may be NULL).
- */
 void ie_engine_destroy(ie_engine_t *e) {
   if (!e) return;
 
@@ -608,53 +563,46 @@ void ie_engine_destroy(ie_engine_t *e) {
   ie_log_info("ie_engine_destroy: done");
 }
 
-/**
- * @brief Generate tokens from a prompt using GPT-OSS inference and sampling.
- *
- * @details
- * This function:
- *  - Encodes @p prompt into token ids using the GPT-OSS tokenizer.
- *  - Initializes a KV cache for all layers.
- *  - Runs a prefill pass over the prompt to populate KV and compute next-token logits.
- *  - Repeats up to @p max_new times:
- *      - Sample next token from logits
- *      - Run one decode step with that token to update KV and logits
- *
- * Output contract:
- *  - Writes up to @p max_new integers into @p out_tokens.
- *  - Returns the number of written tokens via @p out_n_tokens.
- *
- * @param e            Engine instance (must not be NULL).
- * @param prompt       UTF-8 prompt text (must not be NULL).
- * @param max_new      Maximum number of new tokens to generate.
- * @param out_tokens   Output array of length at least max_new (required if max_new > 0).
- * @param out_n_tokens Output count of generated tokens (must not be NULL).
- * @return IE_OK on success, otherwise a non-OK status.
- */
 ie_status_t ie_engine_generate(const ie_engine_t *e,
                                const char *prompt,
                                size_t max_new,
                                int *out_tokens,
                                size_t *out_n_tokens) {
+  return ie_engine_generate_ex(e, prompt, max_new, out_tokens, out_n_tokens, NULL);
+}
+
+ie_status_t ie_engine_generate_ex(const ie_engine_t *e,
+                                  const char *prompt,
+                                  size_t max_new,
+                                  int *out_tokens,
+                                  size_t *out_n_tokens,
+                                  ie_generate_stats_t *out_stats) {
   if (!e || !prompt || !out_n_tokens) {
-    ie_log_error("ie_engine_generate: bad args (e=%p prompt=%p out_n_tokens=%p)",
+    ie_log_error("ie_engine_generate_ex: bad args (e=%p prompt=%p out_n_tokens=%p)",
                  (const void *)e,
                  (const void *)prompt,
                  (void *)out_n_tokens);
     return IE_ERR_BADARG;
   }
   if (max_new > 0 && !out_tokens) {
-    ie_log_error("ie_engine_generate: bad args (max_new=%zu out_tokens=NULL)", max_new);
+    ie_log_error("ie_engine_generate_ex: bad args (max_new=%zu out_tokens=NULL)", max_new);
     return IE_ERR_BADARG;
   }
 
   *out_n_tokens = 0;
+
+  if (out_stats) {
+    memset(out_stats, 0, sizeof(*out_stats));
+  }
+
   if (max_new == 0) {
-    ie_log_info("ie_engine_generate: max_new=0; nothing to do");
+    ie_log_info("ie_engine_generate_ex: max_new=0; nothing to do");
     return IE_OK;
   }
 
-  ie_log_info("ie_engine_generate: begin (engine=%p max_new=%zu)", (const void *)e, max_new);
+  const double t_total0 = now_s_();
+
+  ie_log_info("ie_engine_generate_ex: begin (engine=%p max_new=%zu)", (const void *)e, max_new);
   log_prompt_preview_(prompt);
 
   const int log_tokens = env_flag_("IE_API_LOG_TOKENS", 0);
@@ -662,32 +610,34 @@ ie_status_t ie_engine_generate(const ie_engine_t *e,
   const int dbg_decode = env_flag_("IE_API_DEBUG_DECODE", 0);
   const int dbg_decode_every = env_int_("IE_API_DEBUG_DECODE_EVERY", 0, 0, 1000000);
 
-  /* ---- encode prompt (size query) ---- */
+  const int dbg_topk = env_int_("IE_DEBUG_TOPK", 0, 0, 64);
+  const int dbg_topk_every = env_int_("IE_DEBUG_TOPK_EVERY", 0, 0, 1000000);
+
   uint32_t need = 0;
   int rc = ie_tok_gptoss_encode(e->tok, prompt, NULL, &need);
   if (rc != 0) {
-    ie_log_error("ie_engine_generate: tokenizer encode size-query failed (rc=%d)", rc);
+    ie_log_error("ie_engine_generate_ex: tokenizer encode size-query failed (rc=%d)", rc);
     return IE_ERR_MODEL;
   }
 
-  ie_log_info("ie_engine_generate: tokenizer size-query ok (need_tokens=%" PRIu32 ")", need);
+  ie_log_info("ie_engine_generate_ex: tokenizer size-query ok (need_tokens=%" PRIu32 ")", need);
 
   uint32_t n_prompt = (need == 0) ? 1u : need;
   uint32_t *prompt_ids = (uint32_t *)malloc((size_t)n_prompt * sizeof(uint32_t));
   if (!prompt_ids) {
-    ie_log_error("ie_engine_generate: OOM allocating prompt_ids (n_prompt=%" PRIu32 ")", n_prompt);
+    ie_log_error("ie_engine_generate_ex: OOM allocating prompt_ids (n_prompt=%" PRIu32 ")", n_prompt);
     return IE_ERR_OOM;
   }
 
   if (need == 0) {
     prompt_ids[0] = 0;
     n_prompt = 1;
-    ie_log_warn("ie_engine_generate: prompt encoded to empty; forcing token_id=0");
+    ie_log_warn("ie_engine_generate_ex: prompt encoded to empty; forcing token_id=0");
   } else {
     uint32_t inout = n_prompt;
     rc = ie_tok_gptoss_encode(e->tok, prompt, prompt_ids, &inout);
     if (rc != 0) {
-      ie_log_error("ie_engine_generate: tokenizer encode failed (rc=%d capacity=%" PRIu32 ")", rc, n_prompt);
+      ie_log_error("ie_engine_generate_ex: tokenizer encode failed (rc=%d capacity=%" PRIu32 ")", rc, n_prompt);
       free(prompt_ids);
       return IE_ERR_MODEL;
     }
@@ -695,11 +645,11 @@ ie_status_t ie_engine_generate(const ie_engine_t *e,
     if (n_prompt == 0) {
       prompt_ids[0] = 0;
       n_prompt = 1;
-      ie_log_warn("ie_engine_generate: encode returned 0 tokens; forcing token_id=0");
+      ie_log_warn("ie_engine_generate_ex: encode returned 0 tokens; forcing token_id=0");
     }
   }
 
-  ie_log_info("ie_engine_generate: encoded prompt tokens=%" PRIu32, n_prompt);
+  ie_log_info("ie_engine_generate_ex: encoded prompt tokens=%" PRIu32, n_prompt);
 
   if (log_tokens) {
     const uint32_t cap = (n_prompt < 32u) ? n_prompt : 32u;
@@ -717,16 +667,15 @@ ie_status_t ie_engine_generate(const ie_engine_t *e,
   }
 
   if (e->hp.n_layers == 0) {
-    ie_log_error("ie_engine_generate: invalid hparams (n_layers=0)");
+    ie_log_error("ie_engine_generate_ex: invalid hparams (n_layers=0)");
     free(prompt_ids);
     return IE_ERR_MODEL;
   }
 
-  /* ---- KV cache ---- */
   const size_t n_layers = (size_t)e->hp.n_layers;
   ie_kv_cache *kv_layers = (ie_kv_cache *)calloc(n_layers, sizeof(*kv_layers));
   if (!kv_layers) {
-    ie_log_error("ie_engine_generate: OOM allocating kv_layers (n_layers=%zu)", n_layers);
+    ie_log_error("ie_engine_generate_ex: OOM allocating kv_layers (n_layers=%zu)", n_layers);
     free(prompt_ids);
     return IE_ERR_OOM;
   }
@@ -745,7 +694,7 @@ ie_status_t ie_engine_generate(const ie_engine_t *e,
 
   kv_opts.max_seq = (want_seq < hp_seq) ? want_seq : hp_seq;
 
-  ie_log_info("ie_engine_generate: kv_opts heads=%" PRIi32 " head_dim=%" PRIi32 " want_seq=%" PRIi32 " hp_seq=%" PRIi32 " max_seq=%" PRIi32,
+  ie_log_info("ie_engine_generate_ex: kv_opts heads=%" PRIi32 " head_dim=%" PRIi32 " want_seq=%" PRIi32 " hp_seq=%" PRIi32 " max_seq=%" PRIi32,
               kv_opts.heads,
               kv_opts.head_dim,
               want_seq,
@@ -753,7 +702,7 @@ ie_status_t ie_engine_generate(const ie_engine_t *e,
               kv_opts.max_seq);
 
   if (kv_opts.heads <= 0 || kv_opts.head_dim <= 0 || kv_opts.max_seq <= 0) {
-    ie_log_error("ie_engine_generate: invalid kv_opts (heads=%" PRIi32 " head_dim=%" PRIi32 " max_seq=%" PRIi32 ")",
+    ie_log_error("ie_engine_generate_ex: invalid kv_opts (heads=%" PRIi32 " head_dim=%" PRIi32 " max_seq=%" PRIi32 ")",
                  kv_opts.heads,
                  kv_opts.head_dim,
                  kv_opts.max_seq);
@@ -763,29 +712,37 @@ ie_status_t ie_engine_generate(const ie_engine_t *e,
   }
 
   if (ie_kv_init_layers(kv_layers, (int)e->hp.n_layers, &kv_opts) != 0) {
-    ie_log_error("ie_engine_generate: kv_init_layers failed (n_layers=%" PRIu32 ")", e->hp.n_layers);
+    ie_log_error("ie_engine_generate_ex: kv_init_layers failed (n_layers=%" PRIu32 ")", e->hp.n_layers);
     free(kv_layers);
     free(prompt_ids);
     return IE_ERR_OOM;
   }
 
-  /* ---- prefill ---- */
-  ie_log_info("ie_engine_generate: prefill begin (n_prompt=%" PRIu32 " logits_len=%zu)", n_prompt, e->logits_len);
+  const double t_prefill0 = now_s_();
+  ie_log_info("ie_engine_generate_ex: prefill begin (n_prompt=%" PRIu32 " logits_len=%zu)", n_prompt, e->logits_len);
 
   rc = ie_gptoss_infer_prefill(e->infer, kv_layers, prompt_ids, n_prompt, e->logits);
+  const double t_prefill1 = now_s_();
   if (rc != 0) {
     const ie_status_t st = status_from_rc_(rc);
-    ie_log_error("ie_engine_generate: prefill failed (rc=%d -> %s)", rc, status_str_(st));
+    ie_log_error("ie_engine_generate_ex: prefill failed (rc=%d -> %s)", rc, status_str_(st));
     ie_kv_free_layers(kv_layers, (int)e->hp.n_layers);
     free(kv_layers);
     free(prompt_ids);
     return st;
   }
 
-  ie_log_info("ie_engine_generate: prefill ok");
+  ie_log_info("ie_engine_generate_ex: prefill ok (time=%.6fs)", (t_prefill1 > t_prefill0) ? (t_prefill1 - t_prefill0) : 0.0);
 
-  /* ---- decode loop ---- */
+  if (dbg_topk > 0) {
+    debug_dump_topk_(e->tok, e->logits, e->logits_len, dbg_topk, "prefill");
+  }
+
+  const double t_decode0 = now_s_();
+
   size_t produced = 0;
+  double ttft_s = 0.0;
+
   for (; produced < max_new; ++produced) {
     uint32_t next = 0;
 
@@ -798,20 +755,20 @@ ie_status_t ie_engine_generate(const ie_engine_t *e,
                         e->scratch_cap,
                         &next);
     if (rc != 0) {
-      ie_log_error("ie_engine_generate: sample_next failed at step=%zu (rc=%d). Stopping early.", produced, rc);
+      ie_log_error("ie_engine_generate_ex: sample_next failed at step=%zu (rc=%d). Stopping early.", produced, rc);
       break;
     }
 
     out_tokens[produced] = (int)next;
 
     if (log_every > 0 && (produced % (size_t)log_every) == 0) {
-      ie_log_info("ie_engine_generate: step=%zu next_token=%" PRIu32, produced, next);
+      ie_log_info("ie_engine_generate_ex: step=%zu next_token=%" PRIu32, produced, next);
     }
 
     rc = ie_gptoss_infer_step(e->infer, kv_layers, next, e->logits);
     if (rc != 0) {
       const ie_status_t st = status_from_rc_(rc);
-      ie_log_error("ie_engine_generate: infer_step failed at step=%zu token=%" PRIu32 " (rc=%d -> %s)",
+      ie_log_error("ie_engine_generate_ex: infer_step failed at step=%zu token=%" PRIu32 " (rc=%d -> %s)",
                    produced,
                    next,
                    rc,
@@ -820,6 +777,17 @@ ie_status_t ie_engine_generate(const ie_engine_t *e,
       free(kv_layers);
       free(prompt_ids);
       return st;
+    }
+
+    if (produced == 0) {
+      const double t_now = now_s_();
+      ttft_s = (t_now > t_total0) ? (t_now - t_total0) : 0.0;
+    }
+
+    if (dbg_topk > 0 && dbg_topk_every > 0 && (produced % (size_t)dbg_topk_every) == 0) {
+      char tag[64];
+      (void)snprintf(tag, sizeof(tag), "step_%zu", produced);
+      debug_dump_topk_(e->tok, e->logits, e->logits_len, dbg_topk, tag);
     }
 
     if (dbg_decode && dbg_decode_every > 0 && (produced % (size_t)dbg_decode_every) == 0) {
@@ -832,18 +800,19 @@ ie_status_t ie_engine_generate(const ie_engine_t *e,
           size_t inout = need_bytes;
           const int drc2 = ie_tok_gptoss_decode(e->tok, (const uint32_t *)out_tokens, cnt, txt, &inout);
           if (drc2 == 0) {
-            ie_log_info("ie_engine_generate: decoded[%u] bytes=%zu preview=\"%s%s\"",
+            txt[need_bytes - 1] = '\0';
+            ie_log_info("ie_engine_generate_ex: decoded[%u] bytes=%zu preview=\"%s%s\"",
                         cnt,
                         inout,
                         txt,
                         (inout > 120 ? "..." : ""));
           } else {
-            ie_log_warn("ie_engine_generate: decode failed (rc=%d) at step=%zu", drc2, produced);
+            ie_log_warn("ie_engine_generate_ex: decode failed (rc=%d) at step=%zu", drc2, produced);
           }
           free(txt);
         }
       } else {
-        ie_log_warn("ie_engine_generate: decode size-query failed (rc=%d need_bytes=%zu) at step=%zu",
+        ie_log_warn("ie_engine_generate_ex: decode size-query failed (rc=%d need_bytes=%zu) at step=%zu",
                     drc,
                     need_bytes,
                     produced);
@@ -851,14 +820,27 @@ ie_status_t ie_engine_generate(const ie_engine_t *e,
     }
   }
 
+  const double t_decode1 = now_s_();
+
   *out_n_tokens = produced;
 
-  ie_log_info("ie_engine_generate: done (produced=%zu requested=%zu)", produced, max_new);
+  ie_log_info("ie_engine_generate_ex: done (produced=%zu requested=%zu)", produced, max_new);
 
-  /* ---- cleanup ---- */
   ie_kv_free_layers(kv_layers, (int)e->hp.n_layers);
   free(kv_layers);
   free(prompt_ids);
+
+  const double t_total1 = now_s_();
+
+  if (out_stats) {
+    out_stats->wall_time_s = (t_total1 > t_total0) ? (t_total1 - t_total0) : 0.0;
+    out_stats->prefill_time_s = (t_prefill1 > t_prefill0) ? (t_prefill1 - t_prefill0) : 0.0;
+    out_stats->decode_time_s = (t_decode1 > t_decode0) ? (t_decode1 - t_decode0) : 0.0;
+    out_stats->ttft_s = ttft_s;
+
+    out_stats->tps_decode = (out_stats->decode_time_s > 0.0) ? ((double)produced / out_stats->decode_time_s) : 0.0;
+    out_stats->tps_total = (out_stats->wall_time_s > 0.0) ? ((double)produced / out_stats->wall_time_s) : 0.0;
+  }
 
   return IE_OK;
 }

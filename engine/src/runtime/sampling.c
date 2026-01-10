@@ -323,28 +323,6 @@ static void sort_desc_by_prob(uint32_t *idx, const float *prob, size_t n) {
  * Public API
  * ========================================================================== */
 
-/**
- * @brief Sample the next token id from logits.
- *
- * @details
- * The caller provides optional scratch buffers:
- *  - idx_scratch: uint32_t[vocab_size]
- *  - prob_scratch: float[vocab_size]
- *
- * For top-k, only the first k entries of prob_scratch are used as a compact
- * buffer. For top-p, prob_scratch is used as a vocab-sized probability array,
- * and idx_scratch is used as a vocab-sized index list.
- *
- * @param logits        Logits array (length vocab_size).
- * @param vocab_size    Vocabulary size.
- * @param cfg_in        Sampling configuration.
- * @param rng           RNG state (required for non-greedy sampling).
- * @param idx_scratch   Scratch indices buffer (required for top-k/top-p).
- * @param prob_scratch  Scratch probabilities buffer (required for top-k/top-p).
- * @param scratch_cap   Capacity of scratch buffers in elements (must be >= vocab_size).
- * @param out_id        Output token id.
- * @return 0 on success; non-zero on error.
- */
 int ie_sample_next(const float *logits,
                    size_t vocab_size,
                    const ie_sample_cfg_t *cfg_in,

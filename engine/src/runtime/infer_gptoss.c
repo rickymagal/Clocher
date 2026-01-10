@@ -59,6 +59,8 @@
 #define IE_GPTOSS_RMS_EPS_DEFAULT (1e-5f)
 /** @brief Default RoPE theta (matches common HF defaults). */
 #define IE_GPTOSS_ROPE_THETA_DEFAULT (10000.0f)
+/** @brief Default MoE routing top-k (most MoE LLMs use 4). */
+#define IE_GPTOSS_MOE_TOPK_DEFAULT (4u)
 
 /* ------------------------------------------------------------------------- */
 /* Logging                                                                    */
@@ -128,10 +130,15 @@ static void ie_logf(int lvl, const char *file, int line, const char *fmt, ...) {
   fputc('\n', stderr);
 }
 
+/** @brief Emit an ERROR-level log line. */
 #define IE_LOGE(...) ie_logf(IE_LL_ERROR, __FILE__, __LINE__, __VA_ARGS__)
+/** @brief Emit a WARN-level log line. */
 #define IE_LOGW(...) ie_logf(IE_LL_WARN,  __FILE__, __LINE__, __VA_ARGS__)
+/** @brief Emit an INFO-level log line. */
 #define IE_LOGI(...) ie_logf(IE_LL_INFO,  __FILE__, __LINE__, __VA_ARGS__)
+/** @brief Emit a DEBUG-level log line. */
 #define IE_LOGD(...) ie_logf(IE_LL_DEBUG, __FILE__, __LINE__, __VA_ARGS__)
+/** @brief Emit a TRACE-level log line. */
 #define IE_LOGT(...) ie_logf(IE_LL_TRACE, __FILE__, __LINE__, __VA_ARGS__)
 
 /* ------------------------------------------------------------------------- */
@@ -352,19 +359,57 @@ struct ie_gptoss_infer_impl {
   /** @brief RMSNorm epsilon. */
   float rms_eps;
 
-  /** @brief RoPE theta. */
+  /** @brief RoPE theta (base). */
   float rope_theta;
+
+  /**
+   * @brief RoPE scaling multiplier applied to rope_theta at runtime.
+   *
+   * If your HF config uses rope_scaling, load the factor into this field.
+   * When no scaling is present, this stays at 1.0.
+   */
+  float rope_scale;
 
   /** @brief Maximum experts across all layers (for scratch allocation). */
   uint32_t max_experts;
+
+  /**
+   * @brief MoE top-k routing selection (clamped to [1..n_experts]).
+   *
+   * Default is 4 (IE_GPTOSS_MOE_TOPK_DEFAULT).
+   */
+  uint32_t moe_topk;
 };
 
 /* ------------------------------------------------------------------------- */
 /* Small helpers                                                              */
 /* ------------------------------------------------------------------------- */
 
+/**
+ * @brief Return the minimum of two size_t values.
+ * @param a First value.
+ * @param b Second value.
+ * @return min(a, b).
+ */
 static size_t ie_min_size(size_t a, size_t b) { return (a < b) ? a : b; }
 
+/**
+ * @brief Return the minimum of two uint32_t values.
+ * @param a First value.
+ * @param b Second value.
+ * @return min(a, b).
+ */
+static uint32_t ie_u32_min(uint32_t a, uint32_t b) { return (a < b) ? a : b; }
+
+/**
+ * @brief Allocate and return the directory portion of a path.
+ *
+ * If no slash is present, returns ".". If the path is rooted and the only slash
+ * is the first character, returns "/".
+ *
+ * @param path Input path.
+ * @return Newly allocated directory string (caller frees), or NULL on OOM.
+ */
 static char *ie_dirname_alloc(const char *path) {
   if (!path) return NULL;
 
@@ -393,6 +438,12 @@ static char *ie_dirname_alloc(const char *path) {
   return out;
 }
 
+/**
+ * @brief Join two path components with exactly one slash.
+ * @param a Left component.
+ * @param b Right component.
+ * @return Newly allocated joined path (caller frees), or NULL on OOM.
+ */
 static char *ie_path_join_alloc(const char *a, const char *b) {
   if (!a || !b) return NULL;
   const size_t la = strlen(a);
@@ -410,6 +461,13 @@ static char *ie_path_join_alloc(const char *a, const char *b) {
   return out;
 }
 
+/**
+ * @brief Memory-map a file read-only.
+ * @param path File path.
+ * @param out_base Receives mapped base address.
+ * @param out_size Receives mapped size in bytes.
+ * @return 0 on success, negative error code on failure.
+ */
 static int ie_mmap_ro(const char *path, uint8_t **out_base, size_t *out_size) {
   if (!path || !out_base || !out_size) return -1;
   *out_base = NULL;
@@ -437,15 +495,67 @@ static int ie_mmap_ro(const char *path, uint8_t **out_base, size_t *out_size) {
   return 0;
 }
 
+/**
+ * @brief Unmap a previously mapped read-only file.
+ * @param base Mapped base address.
+ * @param size Mapped size in bytes.
+ */
 static void ie_munmap_ro(uint8_t *base, size_t size) {
   if (!base || size == 0) return;
   (void)munmap((void *)base, size);
+}
+
+/**
+ * @brief Parse an environment variable as uint32, with bounds and default.
+ * @param name Environment variable name.
+ * @param def Default if unset or invalid.
+ * @param lo Inclusive lower bound.
+ * @param hi Inclusive upper bound.
+ * @return Parsed and clamped value.
+ */
+static uint32_t ie_env_u32_clamped(const char *name, uint32_t def, uint32_t lo, uint32_t hi) {
+  const char *s = getenv(name);
+  if (!s || !*s) return def;
+
+  char *end = NULL;
+  unsigned long v = strtoul(s, &end, 10);
+  if (end == s) return def;
+
+  if (v < (unsigned long)lo) v = (unsigned long)lo;
+  if (v > (unsigned long)hi) v = (unsigned long)hi;
+  return (uint32_t)v;
+}
+
+/**
+ * @brief Parse an environment variable as float, with bounds and default.
+ * @param name Environment variable name.
+ * @param def Default if unset or invalid.
+ * @param lo Inclusive lower bound.
+ * @param hi Inclusive upper bound.
+ * @return Parsed and clamped value.
+ */
+static float ie_env_f32_clamped(const char *name, float def, float lo, float hi) {
+  const char *s = getenv(name);
+  if (!s || !*s) return def;
+
+  char *end = NULL;
+  float v = strtof(s, &end);
+  if (end == s) return def;
+
+  if (v < lo) v = lo;
+  if (v > hi) v = hi;
+  return v;
 }
 
 /* ------------------------------------------------------------------------- */
 /* BF16 helpers                                                               */
 /* ------------------------------------------------------------------------- */
 
+/**
+ * @brief Convert a BF16 value to float32.
+ * @param v BF16 bits.
+ * @return float32 value.
+ */
 static inline float ie_bf16_to_f32(uint16_t v) {
   union {
     uint32_t u;
@@ -455,18 +565,35 @@ static inline float ie_bf16_to_f32(uint16_t v) {
   return t.f;
 }
 
+/**
+ * @brief SiLU activation function.
+ * @param x Input.
+ * @return SiLU(x).
+ */
 static inline float ie_silu_f32(float x) { return x / (1.0f + expf(-x)); }
 
 /* ------------------------------------------------------------------------- */
 /* Math primitives                                                            */
 /* ------------------------------------------------------------------------- */
 
+/**
+ * @brief Dot product of two float32 vectors.
+ * @param a Vector A.
+ * @param b Vector B.
+ * @param n Number of elements.
+ * @return Sum_i a[i] * b[i].
+ */
 static float ie_dot_f32(const float *a, const float *b, size_t n) {
   float s = 0.0f;
   for (size_t i = 0; i < n; ++i) s += a[i] * b[i];
   return s;
 }
 
+/**
+ * @brief In-place softmax over an array of float32 values.
+ * @param x Array (modified in-place).
+ * @param n Number of elements.
+ */
 static void ie_softmax_inplace_f32(float *x, size_t n) {
   if (!x || n == 0u) return;
 
@@ -488,16 +615,34 @@ static void ie_softmax_inplace_f32(float *x, size_t n) {
 /* Generic weight view                                                        */
 /* ------------------------------------------------------------------------- */
 
+/**
+ * @brief A resolved tensor pointer plus its descriptor.
+ */
 typedef struct ie_tensor_view {
+  /** @brief Pointer into the mapped weights file. */
   const void *ptr;
+  /** @brief Tensor descriptor entry. */
   const tensor_desc_t *desc;
 } ie_tensor_view_t;
 
+/**
+ * @brief Find a tensor descriptor by name in a tensor map.
+ * @param tmap Tensor map.
+ * @param name Tensor name.
+ * @return Descriptor pointer or NULL if not found.
+ */
 static const tensor_desc_t *ie_w_find(const tensor_map_t *tmap, const char *name) {
   if (!tmap || !name) return NULL;
   return tensor_map_find(tmap, name);
 }
 
+/**
+ * @brief Resolve a tensor pointer by name.
+ * @param impl Inference implementation.
+ * @param name Tensor name.
+ * @param out Output view.
+ * @return 0 on success, negative code on failure.
+ */
 static int ie_w_get_view(const struct ie_gptoss_infer_impl *impl, const char *name,
                          ie_tensor_view_t *out) {
   if (!impl || !name || !out) return -1;
@@ -516,6 +661,14 @@ static int ie_w_get_view(const struct ie_gptoss_infer_impl *impl, const char *na
   return 0;
 }
 
+/**
+ * @brief Resolve the first tensor found among a list of candidate names.
+ * @param impl Inference implementation.
+ * @param names Candidate name array.
+ * @param count Candidate count.
+ * @param out Output view.
+ * @return 0 on success, negative code on failure.
+ */
 static int ie_w_get_first_view(const struct ie_gptoss_infer_impl *impl, const char *const *names,
                                size_t count, ie_tensor_view_t *out) {
   if (!impl || !names || !out) return -1;
@@ -536,6 +689,16 @@ static int ie_w_get_first_view(const struct ie_gptoss_infer_impl *impl, const ch
   return -2;
 }
 
+/**
+ * @brief Resolve a layer tensor using a list of snprintf formats.
+ * @param impl Inference implementation.
+ * @param layer Layer index.
+ * @param fmts Candidate snprintf formats (must include %u for layer).
+ * @param count Candidate format count.
+ * @param out Output view.
+ * @param required If nonzero, missing tensor is an error; otherwise returns success with NULL view.
+ * @return 0 on success, negative code on failure.
+ */
 static int ie_w_get_layer_fmt_view(const struct ie_gptoss_infer_impl *impl, uint32_t layer,
                                    const char *const *fmts, size_t count, ie_tensor_view_t *out,
                                    int required) {
@@ -571,6 +734,12 @@ static int ie_w_get_layer_fmt_view(const struct ie_gptoss_infer_impl *impl, uint
   return -2;
 }
 
+/**
+ * @brief Require exact byte size for a tensor.
+ * @param td Tensor descriptor.
+ * @param want_bytes Required byte size.
+ * @return 0 if sizes match, negative code otherwise.
+ */
 static int ie_require_size_eq(const tensor_desc_t *td, uint64_t want_bytes) {
   if (!td) return -1;
   if (td->size_bytes == want_bytes) return 0;
@@ -1065,6 +1234,8 @@ static int ie_forward_one_token(struct ie_gptoss_infer_impl *impl, ie_kv_cache *
   const size_t kv_dim = (size_t)n_kv_heads * (size_t)d_head;
   const size_t d_ff = (size_t)hp->d_ff;
 
+  const float rope_theta_eff = impl->rope_theta * impl->rope_scale;
+
   for (uint32_t l = 0; l < n_layers; ++l) {
     const ie_gptoss_layer_w_t *W = &impl->layers[l];
     ie_kv_cache *kv = &kv_layers[l];
@@ -1110,8 +1281,8 @@ static int ie_forward_one_token(struct ie_gptoss_infer_impl *impl, ie_kv_cache *
     if (ie_gemv_bf16_f32(W->k_w, impl->x1, impl->k, kv_dim, (size_t)d_model, W->k_b) != 0) return -13;
     if (ie_gemv_bf16_f32(W->v_w, impl->x1, impl->v, kv_dim, (size_t)d_model, W->v_b) != 0) return -14;
 
-    if (ie_rope_apply_f32(impl->q, NULL, (size_t)n_heads, (size_t)d_head, pos, impl->rope_theta) != 0) return -15;
-    if (ie_rope_apply_f32(NULL, impl->k, (size_t)n_kv_heads, (size_t)d_head, pos, impl->rope_theta) != 0) return -16;
+    if (ie_rope_apply_f32(impl->q, NULL, (size_t)n_heads, (size_t)d_head, pos, rope_theta_eff) != 0) return -15;
+    if (ie_rope_apply_f32(NULL, impl->k, (size_t)n_kv_heads, (size_t)d_head, pos, rope_theta_eff) != 0) return -16;
 
     if (ie_kv_store_token_f32(kv, (size_t)pos, impl->k, impl->v) != 0) {
       IE_LOGE("kv store failed: layer=%u pos=%u", (unsigned)l, (unsigned)pos);
@@ -1155,33 +1326,34 @@ static int ie_forward_one_token(struct ie_gptoss_infer_impl *impl, ie_kv_cache *
         return -22;
       }
 
-      uint32_t e0 = 0, e1 = 0;
-      float s0 = impl->router_logits[0];
-      float s1 = -INFINITY;
+      const uint32_t topk = ie_u32_min(impl->moe_topk, n_exp);
+      if (topk == 0u) return -23;
 
-      for (uint32_t e = 1; e < n_exp; ++e) {
+      uint32_t idx[IE_GPTOSS_MOE_TOPK_DEFAULT] = {0, 0, 0, 0};
+      float val[IE_GPTOSS_MOE_TOPK_DEFAULT] = {-INFINITY, -INFINITY, -INFINITY, -INFINITY};
+
+      for (uint32_t e = 0; e < n_exp; ++e) {
         const float v = impl->router_logits[e];
-        if (v > s0) {
-          s1 = s0;
-          e1 = e0;
-          s0 = v;
-          e0 = e;
-        } else if (v > s1) {
-          s1 = v;
-          e1 = e;
+        for (uint32_t k = 0; k < topk; ++k) {
+          if (v > val[k]) {
+            for (uint32_t j = topk - 1u; j > k; --j) {
+              val[j] = val[j - 1u];
+              idx[j] = idx[j - 1u];
+            }
+            val[k] = v;
+            idx[k] = e;
+            break;
+          }
         }
       }
 
-      float wts[2];
-      wts[0] = s0;
-      wts[1] = s1;
-      ie_softmax_inplace_f32(wts, 2);
+      ie_softmax_inplace_f32(val, (size_t)topk);
 
       for (uint32_t i = 0; i < d_model; ++i) impl->x2[i] = 0.0f;
 
-      for (uint32_t sel = 0; sel < 2; ++sel) {
-        const uint32_t ex = (sel == 0) ? e0 : e1;
-        const float p = wts[sel];
+      for (uint32_t sel = 0; sel < topk; ++sel) {
+        const uint32_t ex = idx[sel];
+        const float p = val[sel];
         if (!(p > 0.0f)) continue;
 
         const uint8_t *gu_b = M->gate_up_blocks + ex * M->gate_up_blocks_stride;
@@ -1230,6 +1402,23 @@ static int ie_forward_one_token(struct ie_gptoss_infer_impl *impl, ie_kv_cache *
   if (ie_gemv_bf16_f32(impl->w_lm_bf16, impl->x1, out_logits, (size_t)vocab, (size_t)d_model, NULL) != 0)
     return -27;
 
+  if (getenv("IE_DEBUG_TOPK")) {
+    uint32_t K = ie_env_u32_clamped("IE_DEBUG_TOPK", 10u, 1u, 100u);
+    for (uint32_t i = 0; i < K; ++i) {
+      float maxv = -INFINITY;
+      int maxi = -1;
+      for (uint32_t j = 0; j < vocab; ++j) {
+        if (out_logits[j] > maxv) {
+          maxv = out_logits[j];
+          maxi = (int)j;
+        }
+      }
+      if (maxi < 0) break;
+      fprintf(stderr, "[DBG] top%u id=%d val=%g\n", (unsigned)i, maxi, (double)maxv);
+      out_logits[(uint32_t)maxi] = -INFINITY;
+    }
+  }
+
   return 0;
 }
 
@@ -1262,8 +1451,18 @@ int ie_gptoss_infer_create(const ie_device_t *dev_const, const ie_weights_t *w,
   impl->weights = w;
   impl->hp = hp;
   impl->pos = 0;
-  impl->rms_eps = IE_GPTOSS_RMS_EPS_DEFAULT;
-  impl->rope_theta = IE_GPTOSS_ROPE_THETA_DEFAULT;
+
+  /*
+   * NOTE: ie_gptoss_hparams_t does not carry RoPE/RMS fields in this codebase.
+   * Keep runtime parameters internal and configurable via environment variables.
+   */
+  impl->rms_eps = ie_env_f32_clamped("IE_RMS_EPS", IE_GPTOSS_RMS_EPS_DEFAULT, 1.0e-8f, 1.0e-2f);
+  impl->rope_theta = ie_env_f32_clamped("IE_ROPE_THETA", IE_GPTOSS_ROPE_THETA_DEFAULT, 1.0f, 1.0e8f);
+  impl->rope_scale = ie_env_f32_clamped("IE_ROPE_SCALE", 1.0f, 0.125f, 128.0f);
+
+  /* Step B: match model routing behavior (top-4 experts). Do not allow overrides here. */
+  impl->moe_topk = IE_GPTOSS_MOE_TOPK_DEFAULT;
+
   impl->max_experts = 0;
 
   char *model_dir = ie_dirname_alloc(w->json_path);
@@ -1345,6 +1544,10 @@ int ie_gptoss_infer_create(const ie_device_t *dev_const, const ie_weights_t *w,
   IE_LOGI("create: hp n_layers=%u d_model=%u d_head=%u n_heads=%u n_kv_heads=%u d_ff=%u vocab=%u max_seq=%u",
           (unsigned)n_layers, (unsigned)d_model, (unsigned)d_head, (unsigned)n_heads,
           (unsigned)n_kv_heads, (unsigned)d_ff, (unsigned)vocab, (unsigned)hp->max_seq);
+
+  IE_LOGI("create: rms_eps=%g rope_theta=%g rope_scale=%g moe_topk=%u",
+          (double)impl->rms_eps, (double)impl->rope_theta, (double)impl->rope_scale,
+          (unsigned)impl->moe_topk);
 
   {
     ie_tensor_view_t v;

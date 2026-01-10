@@ -26,6 +26,13 @@
  *  - config.json max_position_embeddings may be huge (e.g. 131072). Allocating KV for that
  *    will often fail on a dev machine. We clamp max_seq by default.
  *    Override with IE_MAX_SEQ environment variable.
+ *
+ * RoPE scaling integration:
+ *  - We parse rope_scaling.{type,factor,original_max_position_embeddings} into gptoss_hparams_ex_t.
+ *  - If the model config uses "linear" RoPE scaling AND the user did not set
+ *    IE_ROPE_LINEAR_SCALE / IE_ROPE_POS_SCALE, we export the scale to the RoPE helper
+ *    by calling setenv("IE_ROPE_LINEAR_SCALE", "<factor>", 0).
+ *  - This keeps scaling "inside the RoPE helper" without changing inference call sites.
  */
 
 #ifndef _POSIX_C_SOURCE
@@ -305,7 +312,6 @@ static int gptoss_scan_object_region(const char *json,
 static const char *iejson_find_tensor_region(const char *json, const char *tensor_name) {
   if (!json || !tensor_name || !*tensor_name) return NULL;
 
-  /* Try common patterns: "name":"X" and "name": "X" */
   const size_t nlen = strlen(tensor_name);
 
   size_t need1 = strlen("\"name\":\"\"") + nlen;
@@ -376,7 +382,6 @@ static int gptoss_iejson_get_shape(const char *iejson,
   const char *reg = iejson_find_tensor_region(iejson, tensor_name);
   if (!reg) return 0;
 
-  /* Parse shape near this region. */
   return iejson_parse_shape_dims(reg, dims, max_dims, out_ndims);
 }
 
@@ -390,6 +395,7 @@ static void gptoss_hparams_ex_defaults(gptoss_hparams_ex_t *out_ex) {
   out_ex->rope_theta = 10000.0f;
   out_ex->rope_scaling_type[0] = '\0';
   out_ex->rope_scaling_factor = 1.0f;
+  out_ex->rope_scaling_original_max_position_embeddings = 0u;
   out_ex->tie_word_embeddings = 0;
 }
 
@@ -402,6 +408,29 @@ static uint32_t gptoss_env_u32(const char *name, uint32_t defval) {
   if (end == s || errno != 0) return defval;
   if (v == 0ul || v > 0xFFFFFFFFul) return defval;
   return (uint32_t)v;
+}
+
+static void gptoss_apply_rope_scaling_env_if_absent(const gptoss_hparams_ex_t *ex) {
+  if (!ex) return;
+
+  /* User override wins. */
+  if (getenv("IE_ROPE_LINEAR_SCALE") || getenv("IE_ROPE_POS_SCALE")) return;
+
+  if (ex->rope_scaling_type[0] == '\0') return;
+  if (!(ex->rope_scaling_factor > 0.0f)) return;
+
+  /* Only "linear" is a constant position rescale. */
+  if (strcmp(ex->rope_scaling_type, "linear") != 0) return;
+
+  char tmp[64];
+  const int n = snprintf(tmp, sizeof(tmp), "%.9g", (double)ex->rope_scaling_factor);
+  if (n <= 0 || (size_t)n >= sizeof(tmp)) return;
+
+  if (setenv("IE_ROPE_LINEAR_SCALE", tmp, 0) == 0) {
+    fprintf(stderr,
+            "[gptoss_hparams] Note: exported RoPE linear scaling factor=%s to IE_ROPE_LINEAR_SCALE.\n",
+            tmp);
+  }
 }
 
 static int gptoss_parse_config_json(const char *json, gptoss_hparams_ex_t *out_ex) {
@@ -459,10 +488,27 @@ static int gptoss_parse_config_json(const char *json, gptoss_hparams_ex_t *out_e
     const char *obj = NULL;
     size_t obj_len = 0;
     if (gptoss_scan_object_region(json, "rope_scaling", &obj, &obj_len) == 1 && obj && obj_len > 2) {
-      (void)gptoss_scan_string(obj, "type", out_ex->rope_scaling_type, sizeof(out_ex->rope_scaling_type));
+      int got_type = gptoss_scan_string(obj, "type", out_ex->rope_scaling_type,
+                                        sizeof(out_ex->rope_scaling_type));
+      if (got_type != 1) {
+        (void)gptoss_scan_string(obj, "rope_type", out_ex->rope_scaling_type,
+                                 sizeof(out_ex->rope_scaling_type));
+      }
+
       {
         float factor = 0.0f;
-        if (gptoss_scan_f32(obj, "factor", &factor) == 1) out_ex->rope_scaling_factor = factor;
+        int got_factor = gptoss_scan_f32(obj, "factor", &factor);
+        if (got_factor != 1) {
+          got_factor = gptoss_scan_f32(obj, "scaling_factor", &factor);
+        }
+        if (got_factor == 1 && factor > 0.0f) out_ex->rope_scaling_factor = factor;
+      }
+
+      {
+        uint32_t orig = 0;
+        if (gptoss_scan_u32(obj, "original_max_position_embeddings", &orig) == 1) {
+          out_ex->rope_scaling_original_max_position_embeddings = orig;
+        }
       }
     }
   }
@@ -542,7 +588,6 @@ static int gptoss_apply_iejson_inference(const char *model_dir, gptoss_hparams_e
     const uint32_t kv_dim_v = v_dims[0];
 
     if (q_dim > 0 && d_model_ie > 0 && kv_dim_k > 0 && kv_dim_k == kv_dim_v) {
-      /* Prefer IEJSON d_model if it disagrees with config (should be 2880 here). */
       if (io_ex->core.d_model != d_model_ie) {
         fprintf(stderr,
                 "[gptoss_hparams] Note: config hidden_size=%u but model.ie.json q_proj in_dim=%u; using %u.\n",
@@ -552,7 +597,6 @@ static int gptoss_apply_iejson_inference(const char *model_dir, gptoss_hparams_e
         io_ex->core.d_model = d_model_ie;
       }
 
-      /* d_head is derived from q_dim / n_heads, not d_model / n_heads. */
       if (io_ex->core.n_heads == 0) {
         free(buf);
         return IE_IO_ERR_JSON;
@@ -570,7 +614,6 @@ static int gptoss_apply_iejson_inference(const char *model_dir, gptoss_hparams_e
         return IE_IO_ERR_DECODE;
       }
 
-      /* Validate or infer n_kv_heads against kv_dim. */
       uint32_t n_kv = io_ex->core.n_kv_heads;
       if (n_kv == 0 || (kv_dim_k != (n_kv * d_head))) {
         if ((kv_dim_k % d_head) != 0) {
@@ -630,10 +673,8 @@ static int gptoss_finalize_and_validate(const char *model_dir, gptoss_hparams_ex
     uint32_t max_use = max_cfg;
 
     if (max_env > 0u) {
-      /* Never exceed model capacity, but allow smaller. */
       max_use = (max_env < max_cfg) ? max_env : max_cfg;
     } else {
-      /* Safe default clamp when config is huge. */
       const uint32_t clamp_default = 4096u;
       if (max_use > clamp_default) {
         fprintf(stderr,
@@ -659,6 +700,9 @@ static int gptoss_finalize_and_validate(const char *model_dir, gptoss_hparams_ex
     const int rc = gptoss_apply_iejson_inference(model_dir, io_ex);
     if (rc != IE_IO_OK) return rc;
   }
+
+  /* Export linear RoPE scaling to the RoPE helper, if present and not overridden. */
+  gptoss_apply_rope_scaling_env_if_absent(io_ex);
 
   /* Validate after IEJSON overrides. */
   if (io_ex->core.d_head == 0 || io_ex->core.d_model == 0) return IE_IO_ERR_DECODE;
@@ -689,6 +733,19 @@ static int gptoss_finalize_and_validate(const char *model_dir, gptoss_hparams_ex
           (unsigned)io_ex->core.d_ff,
           (unsigned)io_ex->core.vocab_size,
           (unsigned)io_ex->core.max_seq);
+
+  if (io_ex->rope_scaling_type[0] != '\0') {
+    fprintf(stderr,
+            "[gptoss_hparams] RoPE: theta=%.9g scaling_type='%s' scaling_factor=%.9g original_max_pos=%u\n",
+            (double)io_ex->rope_theta,
+            io_ex->rope_scaling_type,
+            (double)io_ex->rope_scaling_factor,
+            (unsigned)io_ex->rope_scaling_original_max_position_embeddings);
+  } else {
+    fprintf(stderr,
+            "[gptoss_hparams] RoPE: theta=%.9g scaling=none\n",
+            (double)io_ex->rope_theta);
+  }
 
   return IE_IO_OK;
 }

@@ -71,13 +71,19 @@ typedef struct gptoss_hparams_ex_t {
   float rope_theta;
 
   /**
-   * RoPE scaling type (e.g., "linear", "dynamic").
+   * RoPE scaling type (e.g., "linear", "dynamic", "yarn").
    * Empty string means "no scaling".
    */
   char rope_scaling_type[32];
 
   /** RoPE scaling factor. Defaults to 1.0 when scaling is absent. */
   float rope_scaling_factor;
+
+  /**
+   * Original max position embeddings sometimes provided by rope_scaling
+   * (common for YARN-style configs). 0 means "absent".
+   */
+  uint32_t rope_scaling_original_max_position_embeddings;
 
   /**
    * Non-zero if output embeddings are tied to token embeddings.
@@ -130,6 +136,7 @@ int gptoss_hparams_load(const char *model_dir, ie_gptoss_hparams_t *out_hp);
  *  - `rms_norm_eps = 1e-5f`
  *  - `rope_theta = 10000.0f`
  *  - `rope_scaling_type = ""`, `rope_scaling_factor = 1.0f`
+ *  - `rope_scaling_original_max_position_embeddings = 0`
  *  - `tie_word_embeddings = 0`
  *
  * @param model_dir Model directory containing HuggingFace artifacts.
