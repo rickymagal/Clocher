@@ -57,6 +57,7 @@
 #include "ie_infer.h"
 #include "ie_io.h"
 #include "ie_kv_cache.h"
+#include "ie_kv_instrumentation.h"
 #include "ie_sampling.h"
 #include "ie_tokenizer_gptoss.h"
 #include "tensor_map.h"
@@ -778,6 +779,7 @@ ie_status_t ie_engine_generate_ex(const ie_engine_t *e,
       free(prompt_ids);
       return st;
     }
+
 
     if (produced == 0) {
       const double t_now = now_s_();

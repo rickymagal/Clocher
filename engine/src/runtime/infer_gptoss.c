@@ -49,6 +49,7 @@
 #include "ie_infer.h"
 #include "ie_kernels.h"
 #include "ie_kv_cache.h"
+#include "ie_kv_instrumentation.h"
 #include "tensor_map.h"
 
 /* ------------------------------------------------------------------------- */
@@ -1290,6 +1291,10 @@ static int ie_forward_one_token(struct ie_gptoss_infer_impl *impl, ie_kv_cache *
     }
 
     {
+      /* KV reuse instrumentation: per layer, this token attends over (pos) cached tokens. */
+      ie_kv_add_hits((uint64_t)pos);
+      ie_kv_add_misses(1u);
+
       const float *Kbase = (const float *)kv->K;
       const float *Vbase = (const float *)kv->V;
 
@@ -1879,4 +1884,48 @@ int ie_gptoss_infer_step(ie_gptoss_infer_t *ctx, ie_kv_cache *kv, uint32_t token
 
   impl->pos = pos + 1u;
   return 0;
+}
+
+/* ------------------------------------------------------------------------- */
+/* Cursor control                                                             */
+/* ------------------------------------------------------------------------- */
+
+void ie_gptoss_infer_reset(ie_gptoss_infer_t *ctx) {
+  if (!ctx) return;
+  struct ie_gptoss_infer_impl *impl = (struct ie_gptoss_infer_impl *)ctx;
+  impl->pos = 0;
+}
+
+int ie_gptoss_infer_seek(ie_gptoss_infer_t *ctx, uint32_t pos) {
+  if (!ctx) return -1;
+  struct ie_gptoss_infer_impl *impl = (struct ie_gptoss_infer_impl *)ctx;
+  if (!impl->hp) return -2;
+
+  if (pos > impl->hp->max_seq) {
+    IE_LOGE("seek: invalid pos=%u (max_seq=%u)", (unsigned)pos, (unsigned)impl->hp->max_seq);
+    return -3;
+  }
+  if (pos == impl->hp->max_seq) {
+    IE_LOGW("seek: pos==max_seq (%u); next step/prefill will fail if it writes at this position",
+            (unsigned)pos);
+  }
+
+  impl->pos = pos;
+  return 0;
+}
+
+uint32_t ie_gptoss_infer_pos(const ie_gptoss_infer_t *ctx) {
+  if (!ctx) return 0u;
+  const struct ie_gptoss_infer_impl *impl = (const struct ie_gptoss_infer_impl *)ctx;
+  return impl->pos;
+}
+
+/* Backward-compatible aliases (if older call-sites exist). */
+
+uint32_t ie_gptoss_infer_get_pos(const ie_gptoss_infer_t *ctx) {
+  return ie_gptoss_infer_pos(ctx);
+}
+
+void ie_gptoss_infer_set_pos(ie_gptoss_infer_t *ctx, uint32_t pos) {
+  (void)ie_gptoss_infer_seek(ctx, pos);
 }

@@ -25,12 +25,14 @@
  *    and slice it into per-layer cache views via ::ie_kv_init_layers().
  *
  * Instrumentation:
- *  - This module can optionally report "KV hits" and "KV misses" via metrics
- *    hooks (IE_KV_HIT / IE_KV_MISS). Safe no-op fallbacks are provided so the
- *    file compiles regardless of whether the build exposes these macros.
+ *  - This module can optionally report "KV hits" and "KV misses".
+ *  - If the metrics layer exposes IE_KV_HIT / IE_KV_MISS macros, they are invoked.
+ *  - In all builds, we also update the lightweight counters in
+ *    @ref ie_kv_instrumentation.h.
  */
 
 #include "ie_kv_cache.h"
+#include "ie_kv_instrumentation.h"
 #include "ie_quant_act.h"
 
 /* Optional: metrics hooks (safe fallbacks). */
@@ -44,35 +46,27 @@
 /* ----------------------------- instrumentation ---------------------------- */
 
 /**
- * @brief Report KV hit to metrics layer if enabled.
- *
- * @details
- * If IE_KV_HIT is not defined, this is a safe no-op.
+ * @brief Report KV hit to instrumentation layers.
  *
  * @param n Count to add.
  */
 static inline void ie_kv_hit_add_local(uint64_t n) {
 #if defined(IE_KV_HIT)
   IE_KV_HIT(n);
-#else
-  (void)n;
 #endif
+  ie_kv_add_hits(n);
 }
 
 /**
- * @brief Report KV miss to metrics layer if enabled.
- *
- * @details
- * If IE_KV_MISS is not defined, this is a safe no-op.
+ * @brief Report KV miss to instrumentation layers.
  *
  * @param n Count to add.
  */
 static inline void ie_kv_miss_add_local(uint64_t n) {
 #if defined(IE_KV_MISS)
   IE_KV_MISS(n);
-#else
-  (void)n;
 #endif
+  ie_kv_add_misses(n);
 }
 
 /* --------------------------------- helpers -------------------------------- */
@@ -811,3 +805,8 @@ int ie_kv_raw_strides(const ie_kv_cache *kv, size_t *stride_t, size_t *stride_h,
   if (stride_t) *stride_t = (size_t)kv->heads * (size_t)kv->head_dim;
   return 0;
 }
+
+/* ============================================================================
+ * End of file
+ * ============================================================================
+ */
