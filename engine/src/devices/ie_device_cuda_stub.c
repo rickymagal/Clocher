@@ -1,48 +1,73 @@
 // File: engine/src/devices/ie_device_cuda_stub.c
+#include "ie_device_cuda.h"
+
 #include <stddef.h>
+#include <stdint.h>
 
 int ie_cuda_is_available(void) {
   return 0;
 }
 
-int ie_cuda_init(int gpu_id) {
-  (void)gpu_id;
+int ie_cuda_init(int device_ordinal,
+                 char *out_name, size_t name_cap,
+                 char *out_driver, size_t driver_cap) {
+  (void)device_ordinal;
+  if (out_name && name_cap) out_name[0] = '\0';
+  if (out_driver && driver_cap) out_driver[0] = '\0';
   return -1;
 }
 
-int ie_cuda_malloc(void **out, size_t bytes) {
-  (void)bytes;
-  if (out) *out = NULL;
-  return -1;
+void *ie_cuda_malloc(size_t nbytes) {
+  (void)nbytes;
+  return NULL;
 }
 
-int ie_cuda_free(void *ptr) {
-  (void)ptr;
-  return 0;
+void ie_cuda_free(void *p) {
+  (void)p;
 }
 
-int ie_cuda_memcpy(void *dst, const void *src, size_t bytes, int kind) {
+int ie_cuda_memcpy(void *dst, const void *src, size_t nbytes, ie_cuda_copy_kind_t kind) {
   (void)dst;
   (void)src;
-  (void)bytes;
+  (void)nbytes;
   (void)kind;
   return -1;
 }
 
-int ie_cuda_device_synchronize(void) {
-  return -1;
-}
-
-const char *ie_cuda_get_error_string(int err) {
-  (void)err;
-  return "CUDA unavailable (stub)";
-}
-
-int ie_cuda_gemv_f32(void *out, const void *w, const void *x, int rows, int cols) {
-  (void)out;
-  (void)w;
-  (void)x;
+int ie_cuda_gemv_f32(const float *dW,
+                     const float *dx,
+                     float *dy,
+                     size_t rows,
+                     size_t cols,
+                     const float *dbias) {
+  (void)dW;
+  (void)dx;
+  (void)dy;
   (void)rows;
   (void)cols;
+  (void)dbias;
   return -1;
+}
+
+int ie_cuda_gemv_q4_0_f32(const uint8_t *dW_q4,
+                          const uint8_t *dW_scales,
+                          size_t scale_bytes,
+                          const float *dx,
+                          float *dy,
+                          size_t rows,
+                          size_t cols,
+                          const uint16_t *dbias_bf16) {
+  (void)dW_q4;
+  (void)dW_scales;
+  (void)scale_bytes;
+  (void)dx;
+  (void)dy;
+  (void)rows;
+  (void)cols;
+  (void)dbias_bf16;
+  return -1;
+}
+
+const char *ie_cuda_last_error_string(void) {
+  return "CUDA unavailable (stub)";
 }

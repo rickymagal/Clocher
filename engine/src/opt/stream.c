@@ -1,5 +1,8 @@
-/* File: engine/src/opt/stream.c
- * -----------------------------------------------------------------------------
+/* ============================================================================
+ * File: engine/src/opt/stream.c
+ * ============================================================================
+ */
+/**
  * @file stream.c
  * @brief Prefetch and non-temporal (streaming) heuristics and helpers.
  *
@@ -13,6 +16,13 @@
  *  - Optional non-temporal copy/memset helpers for float arrays, using AVX-512F
  *    or AVX2 when available, with safe scalar fallback.
  *
+ * Runtime dispatch:
+ *  - Feature detection is performed once via ie_cpu_features_detect() and cached
+ *    with pthread_once().
+ *  - AVX-512F / AVX2 implementations are compiled using function-targeting
+ *    (__attribute__((target(...)))) so the translation unit can be built with
+ *    baseline flags while still containing optimized helpers.
+ *
  * Environment variables (interpreted here):
  *  - IE_STREAM_PREFETCH        Override prefetch lead distance (bytes).
  *  - IE_STREAM_NT_THRESHOLD    Override non-temporal threshold (bytes).
@@ -22,8 +32,10 @@
 #define _POSIX_C_SOURCE 200809L
 
 #include "ie_stream.h"
+#include "ie_cpu.h"
 
 #include <errno.h>
+#include <pthread.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -35,6 +47,16 @@
   #define IE_X86 1
 #else
   #define IE_X86 0
+#endif
+
+#if IE_X86
+  #if defined(__GNUC__) || defined(__clang__)
+    #define IE_TARGET_AVX2    __attribute__((target("avx2,fma,sse3")))
+    #define IE_TARGET_AVX512F __attribute__((target("avx512f")))
+  #else
+    #define IE_TARGET_AVX2
+    #define IE_TARGET_AVX512F
+  #endif
 #endif
 
 /* --------------------------------- helpers -------------------------------- */
@@ -133,6 +155,22 @@ static double ie_clamp01(double x) {
   if (x > 1.0) return 1.0;
   return x;
 }
+
+/* -------------------------- cached CPU feature flags ----------------------- */
+
+#if IE_X86
+static pthread_once_t g_ie_stream_cpu_once = PTHREAD_ONCE_INIT;
+static struct ie_cpu_features g_ie_stream_cpu = {0};
+
+static void ie_stream_detect_cpu_once(void) {
+  ie_cpu_features_detect(&g_ie_stream_cpu);
+}
+
+static const struct ie_cpu_features *ie_stream_cpu_features(void) {
+  (void)pthread_once(&g_ie_stream_cpu_once, ie_stream_detect_cpu_once);
+  return &g_ie_stream_cpu;
+}
+#endif
 
 /* ------------------------------- policy init ------------------------------ */
 
@@ -367,19 +405,17 @@ static inline void ie_scalar_set_f32(float *dst, float v, size_t n) {
   for (size_t i = 0; i < n; ++i) dst[i] = v;
 }
 
+#if IE_X86
+
 /**
- * @brief Streaming store copy using AVX-512F (compile-time gated).
- *
- * @details
- * Uses _mm512_stream_ps for aligned streaming stores when available.
- * Falls back to scalar behavior when AVX-512F is not enabled.
+ * @brief Streaming store copy using AVX-512F (function-targeted).
  *
  * @param dst Destination float array.
  * @param src Source float array.
  * @param n Number of float elements.
  */
-static void ie_nt_copy_f32_avx512(float *dst, const float *src, size_t n) {
-#if IE_X86 && defined(__AVX512F__)
+static IE_TARGET_AVX512F void ie_nt_copy_f32_avx512(float *dst, const float *src,
+                                                    size_t n) {
   size_t i = 0;
 
   /* Prologue until destination aligns to 64B (best for 512-bit streams). */
@@ -399,26 +435,18 @@ static void ie_nt_copy_f32_avx512(float *dst, const float *src, size_t n) {
     _mm512_stream_ps(dst + i, v);
   }
   ie_scalar_copy_f32(dst + i, src + i, n - i);
-#else
-  (void)dst;
-  (void)src;
-  (void)n;
-#endif
+  _mm_sfence();
 }
 
 /**
- * @brief Streaming store copy using AVX2 (compile-time gated).
- *
- * @details
- * Uses _mm256_stream_ps for aligned streaming stores when available.
- * Falls back to scalar behavior when AVX2 is not enabled.
+ * @brief Streaming store copy using AVX2 (function-targeted).
  *
  * @param dst Destination float array.
  * @param src Source float array.
  * @param n Number of float elements.
  */
-static void ie_nt_copy_f32_avx2(float *dst, const float *src, size_t n) {
-#if IE_X86 && defined(__AVX2__)
+static IE_TARGET_AVX2 void ie_nt_copy_f32_avx2(float *dst, const float *src,
+                                               size_t n) {
   size_t i = 0;
 
   /* Align to 32B for 256-bit streams. */
@@ -438,26 +466,18 @@ static void ie_nt_copy_f32_avx2(float *dst, const float *src, size_t n) {
     _mm256_stream_ps(dst + i, v);
   }
   ie_scalar_copy_f32(dst + i, src + i, n - i);
-#else
-  (void)dst;
-  (void)src;
-  (void)n;
-#endif
+  _mm_sfence();
 }
 
 /**
- * @brief Streaming store set using AVX-512F (compile-time gated).
- *
- * @details
- * Uses _mm512_stream_ps for aligned streaming stores when available.
- * Falls back to scalar behavior when AVX-512F is not enabled.
+ * @brief Streaming store set using AVX-512F (function-targeted).
  *
  * @param dst Destination float array.
  * @param value Value to write.
  * @param n Number of float elements.
  */
-static void ie_nt_set_f32_avx512(float *dst, float value, size_t n) {
-#if IE_X86 && defined(__AVX512F__)
+static IE_TARGET_AVX512F void ie_nt_set_f32_avx512(float *dst, float value,
+                                                   size_t n) {
   size_t i = 0;
 
   uintptr_t addr = (uintptr_t)dst;
@@ -473,26 +493,17 @@ static void ie_nt_set_f32_avx512(float *dst, float value, size_t n) {
   __m512 v = _mm512_set1_ps(value);
   for (; i + 16 <= n; i += 16) _mm512_stream_ps(dst + i, v);
   ie_scalar_set_f32(dst + i, value, n - i);
-#else
-  (void)dst;
-  (void)value;
-  (void)n;
-#endif
+  _mm_sfence();
 }
 
 /**
- * @brief Streaming store set using AVX2 (compile-time gated).
- *
- * @details
- * Uses _mm256_stream_ps for aligned streaming stores when available.
- * Falls back to scalar behavior when AVX2 is not enabled.
+ * @brief Streaming store set using AVX2 (function-targeted).
  *
  * @param dst Destination float array.
  * @param value Value to write.
  * @param n Number of float elements.
  */
-static void ie_nt_set_f32_avx2(float *dst, float value, size_t n) {
-#if IE_X86 && defined(__AVX2__)
+static IE_TARGET_AVX2 void ie_nt_set_f32_avx2(float *dst, float value, size_t n) {
   size_t i = 0;
 
   uintptr_t addr = (uintptr_t)dst;
@@ -508,12 +519,10 @@ static void ie_nt_set_f32_avx2(float *dst, float value, size_t n) {
   __m256 v = _mm256_set1_ps(value);
   for (; i + 8 <= n; i += 8) _mm256_stream_ps(dst + i, v);
   ie_scalar_set_f32(dst + i, value, n - i);
-#else
-  (void)dst;
-  (void)value;
-  (void)n;
-#endif
+  _mm_sfence();
 }
+
+#endif /* IE_X86 */
 
 /* ----------------------------- public kernels ----------------------------- */
 
@@ -544,13 +553,21 @@ void ie_stream_copy_f32(float *dst, const float *src, size_t n,
     return;
   }
 
-#if IE_X86 && defined(__AVX512F__)
-  ie_nt_copy_f32_avx512(dst, src, n);
-#elif IE_X86 && defined(__AVX2__)
-  ie_nt_copy_f32_avx2(dst, src, n);
-#else
-  ie_scalar_copy_f32(dst, src, n);
+#if IE_X86
+  const struct ie_cpu_features *f = ie_stream_cpu_features();
+
+  /* Field names are expected to match ie_cpu_features_detect() output. */
+  if (f && f->avx512f) {
+    ie_nt_copy_f32_avx512(dst, src, n);
+    return;
+  }
+  if (f && f->avx2) {
+    ie_nt_copy_f32_avx2(dst, src, n);
+    return;
+  }
 #endif
+
+  ie_scalar_copy_f32(dst, src, n);
 }
 
 /**
@@ -580,11 +597,19 @@ void ie_stream_memset_f32(float *dst, float value, size_t n,
     return;
   }
 
-#if IE_X86 && defined(__AVX512F__)
-  ie_nt_set_f32_avx512(dst, value, n);
-#elif IE_X86 && defined(__AVX2__)
-  ie_nt_set_f32_avx2(dst, value, n);
-#else
-  ie_scalar_set_f32(dst, value, n);
+#if IE_X86
+  const struct ie_cpu_features *f = ie_stream_cpu_features();
+
+  /* Field names are expected to match ie_cpu_features_detect() output. */
+  if (f && f->avx512f) {
+    ie_nt_set_f32_avx512(dst, value, n);
+    return;
+  }
+  if (f && f->avx2) {
+    ie_nt_set_f32_avx2(dst, value, n);
+    return;
+  }
 #endif
+
+  ie_scalar_set_f32(dst, value, n);
 }

@@ -263,8 +263,8 @@ const uint8_t *gptoss_tensor_bytes(const gptoss_tensor_t *t);
  * - For IE_WVIEW_DIRECT, this copies from `view.data`.
  * - For IE_WVIEW_DEDUP, this reconstructs bytes via ::ie_weights_dedup_materialize.
  *
- * @param t         Tensor handle.
- * @param dst       Destination buffer.
+ * @param t          Tensor handle.
+ * @param dst        Destination buffer.
  * @param dst_nbytes Capacity of destination buffer.
  * @return Number of bytes written (0 on failure).
  */

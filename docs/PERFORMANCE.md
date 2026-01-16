@@ -122,6 +122,18 @@ _Last updated: **2025-12-27 16:14:16 UTC**_
 - Model file: **/home/ricardomag/Desktop/Clocher/models/gpt-oss-20b/model.ie.bin**
 - Model size: **13.761 GB**
 
+## Report Verification
+- The bench report uses `benchmarks/prompts_10.txt` and `benchmarks/expected_tokens.txt` by default.
+- `make bench REPORT=1` auto-generates `benchmarks/expected_tokens.txt` via `tools/generate_expected_tokens.py` when missing.
+- Each prompt is hashed to a `prompt_id` using FNV-1a over the prompt bytes.
+- During the run, the engine compares generated token IDs against the expected list for that `prompt_id`.
+- The per-prompt report records `expected_present` and `expected_ok` plus the generated token IDs.
+- `make bench REPORT=1 VERIFY=1` runs the report and `tools/verify_report_tokens.py --require-expected` to fail if any prompt is missing expected tokens or mismatches.
+
+Expected tokens file format:
+- One prompt per line: `<prompt_id><space><token0,token1,token2,...>`
+- `prompt_id` can be decimal or 0x-prefixed hex (FNV-1a 64-bit).
+
 ## Comparative Runs
 
 | Device | Run | Tokens | Wall (s) | TPS | p50 (ms) | p95 (ms) | RSS peak (MB) | PSS peak (MB) | VMS peak (MB) | minflt | majflt |

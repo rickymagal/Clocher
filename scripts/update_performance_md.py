@@ -5,11 +5,16 @@
 Generate docs/PERFORMANCE.md from strict benchmark JSON logs.
 
 Key points:
-- Uses only the last 3 runs for each device.
+- Uses only the last 3 runs for each device (for aggregate sections).
 - Aggregations use Σ tokens / Σ time.
 - Includes Memory Details when present in per-run logs.
 - Includes a Deduplication section that reports *real* artifact sizes
   by following symlinks (reports target sizes, not link lengths).
+- Adds a Per-Prompt CPU vs GPU section when per-prompt metrics are available
+  in the latest run object (supports several common field names).
+- Prints per-prompt token-ID verification status when present:
+  - token_id_check_ok (or variants)
+  - first mismatch step + differing IDs (best-effort extraction)
 """
 
 from __future__ import annotations
@@ -22,11 +27,11 @@ import os
 import platform
 import re
 import subprocess
-from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 Run = Dict[str, Any]
 Agg = Dict[str, Any]
+PromptRec = Dict[str, Any]
 
 
 def _now_utc_str() -> str:
@@ -51,7 +56,7 @@ def _partition_runs_and_summary(objs: List[Dict[str, Any]]) -> Tuple[List[Run], 
     runs: List[Run] = []
     summary: Optional[Dict[str, Any]] = None
     for o in objs:
-        is_summary = any(k in o for k in ("threads", "precision", "model_dir", "prompts", "runs"))
+        is_summary = any(k in o for k in ("threads", "precision", "model_dir", "prompts", "runs", "rounds", "device"))
         is_run = all(k in o for k in ("tokens_generated", "wall_time_s", "tps_true"))
         if is_summary:
             summary = o
@@ -134,7 +139,8 @@ def _discover_os() -> Optional[str]:
         with open("/etc/os-release", "r", encoding="utf-8") as f:
             kv = dict(
                 (line.split("=", 1)[0], line.split("=", 1)[1].strip().strip('"'))
-                for line in f if "=" in line
+                for line in f
+                if "=" in line
             )
         return kv.get("PRETTY_NAME") or platform.platform()
     except Exception:
@@ -152,7 +158,9 @@ def _discover_kernel() -> Optional[str]:
 def _discover_git() -> Optional[str]:
     try:
         sha = subprocess.check_output(["git", "rev-parse", "--short", "HEAD"], stderr=subprocess.DEVNULL).decode().strip()
-        dirty = subprocess.call(["git", "diff", "--quiet", "--ignore-submodules"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        dirty = subprocess.call(
+            ["git", "diff", "--quiet", "--ignore-submodules"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
+        )
         return f"{sha} {'DIRTY' if dirty != 0 else ''}".strip()
     except Exception:
         return None
@@ -197,8 +205,16 @@ def _agg_sum(runs: List[Run], key: str) -> Optional[float]:
 def _agg(runs: List[Run]) -> Agg:
     tokens = [int(r.get("tokens_generated", 0)) for r in runs]
     wall = [float(r.get("wall_time_s", 0.0)) for r in runs]
-    p50 = [float(r.get("latency_p50_ms", r.get("p50_ms", 0.0))) for r in runs if ("latency_p50_ms" in r or "p50_ms" in r)]
-    p95 = [float(r.get("latency_p95_ms", r.get("p95_ms", 0.0))) for r in runs if ("latency_p95_ms" in r or "p95_ms" in r)]
+    p50 = [
+        float(r.get("latency_p50_ms", r.get("p50_ms", 0.0)))
+        for r in runs
+        if ("latency_p50_ms" in r or "p50_ms" in r)
+    ]
+    p95 = [
+        float(r.get("latency_p95_ms", r.get("p95_ms", 0.0)))
+        for r in runs
+        if ("latency_p95_ms" in r or "p95_ms" in r)
+    ]
 
     tokens_sum = _sum_i(tokens)
     wall_sum = _sum_f(wall)
@@ -235,10 +251,8 @@ def _agg(runs: List[Run]) -> Agg:
         "tps_true": tps_true,
         "p50_mean": _mean(p50),
         "p95_mean": _mean(p95),
-
         "rss_mean": rss_mean,
         "rss_max": rss_max,
-
         "pss_mean": pss_mean,
         "pss_max": pss_max,
         "vms_mean": vms_mean,
@@ -259,7 +273,6 @@ def _agg(runs: List[Run]) -> Agg:
         "numa_locality_max": numa_loc_max,
         "mem_available_mb_mean": mem_avail_mb_mean,
         "mem_available_pct_mean": mem_avail_pct_mean,
-
         "kv_hits": _sum_i(kvh),
         "kv_misses": _sum_i(kvm),
     }
@@ -288,27 +301,45 @@ def _render_memory_details(agg: Agg) -> str:
     lines.append("### Memory Details")
 
     if agg.get("pss_mean") is not None or agg.get("pss_max") is not None:
-        lines.append(f"- PSS peak (mean / max): **{_fmt_float(agg.get('pss_mean'), 3, 'MB')} / {_fmt_float(agg.get('pss_max'), 3, 'MB')}**")
+        lines.append(
+            f"- PSS peak (mean / max): **{_fmt_float(agg.get('pss_mean'), 3, 'MB')} / {_fmt_float(agg.get('pss_max'), 3, 'MB')}**"
+        )
     if agg.get("vms_mean") is not None or agg.get("vms_max") is not None:
-        lines.append(f"- VMS peak (mean / max): **{_fmt_float(agg.get('vms_mean'), 3, 'MB')} / {_fmt_float(agg.get('vms_max'), 3, 'MB')}**")
+        lines.append(
+            f"- VMS peak (mean / max): **{_fmt_float(agg.get('vms_mean'), 3, 'MB')} / {_fmt_float(agg.get('vms_max'), 3, 'MB')}**"
+        )
     if agg.get("rss_floor_mean") is not None or agg.get("rss_floor_max") is not None:
-        lines.append(f"- RSS floor (mean / max): **{_fmt_float(agg.get('rss_floor_mean'), 3, 'MB')} / {_fmt_float(agg.get('rss_floor_max'), 3, 'MB')}**")
+        lines.append(
+            f"- RSS floor (mean / max): **{_fmt_float(agg.get('rss_floor_mean'), 3, 'MB')} / {_fmt_float(agg.get('rss_floor_max'), 3, 'MB')}**"
+        )
     if agg.get("rss_delta_mean") is not None or agg.get("rss_delta_max") is not None:
-        lines.append(f"- RSS delta vs baseline (mean / max): **{_fmt_float(agg.get('rss_delta_mean'), 3, 'MB')} / {_fmt_float(agg.get('rss_delta_max'), 3, 'MB')}**")
+        lines.append(
+            f"- RSS delta vs baseline (mean / max): **{_fmt_float(agg.get('rss_delta_mean'), 3, 'MB')} / {_fmt_float(agg.get('rss_delta_max'), 3, 'MB')}**"
+        )
 
     if agg.get("minflt_sum") is not None or agg.get("majflt_sum") is not None:
-        lines.append(f"- Page faults (minor Σ / major Σ): **{_fmt_float(agg.get('minflt_sum'), 0)} / {_fmt_float(agg.get('majflt_sum'), 0)}**")
+        lines.append(
+            f"- Page faults (minor Σ / major Σ): **{_fmt_float(agg.get('minflt_sum'), 0)} / {_fmt_float(agg.get('majflt_sum'), 0)}**"
+        )
 
     if agg.get("swap_in_sum_mb") is not None or agg.get("swap_out_sum_mb") is not None:
-        lines.append(f"- Swap I/O (in Σ / out Σ): **{_fmt_float(agg.get('swap_in_sum_mb'), 1, 'MB')} / {_fmt_float(agg.get('swap_out_sum_mb'), 1, 'MB')}**")
+        lines.append(
+            f"- Swap I/O (in Σ / out Σ): **{_fmt_float(agg.get('swap_in_sum_mb'), 1, 'MB')} / {_fmt_float(agg.get('swap_out_sum_mb'), 1, 'MB')}**"
+        )
 
     if agg.get("psi_some_mean") is not None or agg.get("psi_some_max") is not None:
-        lines.append(f"- PSI memory 'some' (mean / max): **{_fmt_float(agg.get('psi_some_mean'), 2, '%')} / {_fmt_float(agg.get('psi_some_max'), 2, '%')}**")
+        lines.append(
+            f"- PSI memory 'some' (mean / max): **{_fmt_float(agg.get('psi_some_mean'), 2, '%')} / {_fmt_float(agg.get('psi_some_max'), 2, '%')}**"
+        )
     if agg.get("psi_full_mean") is not None or agg.get("psi_full_max") is not None:
-        lines.append(f"- PSI memory 'full' (mean / max): **{_fmt_float(agg.get('psi_full_mean'), 2, '%')} / {_fmt_float(agg.get('psi_full_max'), 2, '%')}**")
+        lines.append(
+            f"- PSI memory 'full' (mean / max): **{_fmt_float(agg.get('psi_full_mean'), 2, '%')} / {_fmt_float(agg.get('psi_full_max'), 2, '%')}**"
+        )
 
     if agg.get("numa_locality_mean") is not None or agg.get("numa_locality_max") is not None:
-        lines.append(f"- NUMA locality ratio (mean / max): **{_fmt_float(agg.get('numa_locality_mean'), 1, '%')} / {_fmt_float(agg.get('numa_locality_max'), 1, '%')}**")
+        lines.append(
+            f"- NUMA locality ratio (mean / max): **{_fmt_float(agg.get('numa_locality_mean'), 1, '%')} / {_fmt_float(agg.get('numa_locality_max'), 1, '%')}**"
+        )
 
     if agg.get("mem_available_mb_mean") is not None or agg.get("mem_available_pct_mean") is not None:
         lines.append(
@@ -547,10 +578,24 @@ def _merge_shared(cli: Dict[str, Any], cpu_sum: Optional[Dict[str, Any]], gpu_su
         return None
 
     keys = [
-        "engine_bin", "prompts", "threads", "precision", "batch", "prefetch", "pretranspose",
-        "affinity", "max_new", "ie_require_model", "ie_bytes_per_token", "ie_stride_bytes",
-        "ie_verify_touch", "model_dir",
-        "ie_dedup", "ie_dedup_strict", "ie_dedup_policy", "ie_dedup_cache_mb",
+        "engine_bin",
+        "prompts",
+        "threads",
+        "precision",
+        "batch",
+        "prefetch",
+        "pretranspose",
+        "affinity",
+        "max_new",
+        "ie_require_model",
+        "ie_bytes_per_token",
+        "ie_stride_bytes",
+        "ie_verify_touch",
+        "model_dir",
+        "ie_dedup",
+        "ie_dedup_strict",
+        "ie_dedup_policy",
+        "ie_dedup_cache_mb",
     ]
     return {k: g(k) for k in keys}
 
@@ -586,6 +631,336 @@ def _parse() -> argparse.Namespace:
 
     p.add_argument("--model-dir", dest="model_dir", default=None)
     return p.parse_args()
+
+
+def _extract_per_prompt_from_run(run: Optional[Run]) -> Optional[List[PromptRec]]:
+    if not run or not isinstance(run, dict):
+        return None
+
+    candidates = [
+        "per_prompt",
+        "per_prompt_stats",
+        "per_prompt_metrics",
+        "prompt_stats",
+        "prompt_metrics",
+        "prompt_runs",
+        "prompt_results",
+        "samples",
+        "results",
+    ]
+    for k in candidates:
+        v = run.get(k)
+        if isinstance(v, list) and v and all(isinstance(x, dict) for x in v):
+            return list(v)
+
+    for k in ("report", "details", "metrics", "bench"):
+        v = run.get(k)
+        if isinstance(v, dict):
+            for kk in candidates:
+                vv = v.get(kk)
+                if isinstance(vv, list) and vv and all(isinstance(x, dict) for x in vv):
+                    return list(vv)
+
+    return None
+
+
+def _prompt_key(rec: PromptRec, fallback_index_1based: int) -> str:
+    for k in ("prompt_idx", "prompt_index", "idx", "index", "prompt_id", "id"):
+        if k in rec:
+            try:
+                return str(int(rec[k]))
+            except Exception:
+                return str(rec[k])
+    return str(fallback_index_1based)
+
+
+def _short_prompt_text(rec: PromptRec, key: str, limit: int = 64) -> str:
+    s = rec.get(key)
+    if not isinstance(s, str) or not s:
+        return ""
+    s = s.replace("\n", "\\n").replace("\r", "\\r").replace("\t", "\\t")
+    s = s.replace("|", "\\|")
+    if len(s) <= limit:
+        return s
+    return s[:limit] + "…"
+
+
+def _per_prompt_map(pp: List[PromptRec]) -> Dict[str, PromptRec]:
+    out: Dict[str, PromptRec] = {}
+    for i, rec in enumerate(pp, 1):
+        out[_prompt_key(rec, i)] = rec
+    return out
+
+
+def _f(rec: Optional[PromptRec], k: str) -> Optional[float]:
+    if not rec:
+        return None
+    v = rec.get(k)
+    if v is None:
+        return None
+    try:
+        return float(v)
+    except Exception:
+        return None
+
+
+def _i(rec: Optional[PromptRec], k: str) -> Optional[int]:
+    if not rec:
+        return None
+    v = rec.get(k)
+    if v is None:
+        return None
+    try:
+        return int(v)
+    except Exception:
+        try:
+            return int(float(v))
+        except Exception:
+            return None
+
+
+def _b(rec: Optional[PromptRec], k: str) -> Optional[bool]:
+    if not rec:
+        return None
+    if k not in rec:
+        return None
+    v = rec.get(k)
+    if isinstance(v, bool):
+        return v
+    if isinstance(v, int):
+        return bool(v)
+    if isinstance(v, str):
+        s = v.strip().lower()
+        if s in ("1", "true", "t", "yes", "y", "ok", "pass"):
+            return True
+        if s in ("0", "false", "f", "no", "n", "fail"):
+            return False
+    return None
+
+
+def _extract_token_check(rec: Optional[PromptRec]) -> Tuple[Optional[bool], Optional[int], Optional[int], Optional[int]]:
+    """
+    Returns (ok, step, engine_id, hf_id) best-effort.
+
+    Supported schemas:
+    - Flat:
+      - token_id_check_ok / token_ids_ok / ids_ok
+      - token_id_check_first_mismatch_step / first_mismatch_step / mismatch_step
+      - token_id_check_engine_id / engine_id / engine_next_id
+      - token_id_check_hf_id / hf_id / hf_next_id
+    - Nested:
+      - token_id_check: { ok: bool, first_mismatch: { step, engine_id, hf_id } }
+      - token_check / hf_check / id_check (similar shape)
+    """
+    if not rec or not isinstance(rec, dict):
+        return None, None, None, None
+
+    ok_keys = ("token_id_check_ok", "token_ids_ok", "ids_ok", "id_check_ok", "token_check_ok")
+    step_keys = ("token_id_check_first_mismatch_step", "first_mismatch_step", "mismatch_step", "diverge_step")
+    eng_keys = ("token_id_check_engine_id", "engine_id", "engine_next_id", "engine_token_id", "engine_next_token_id")
+    hf_keys = ("token_id_check_hf_id", "hf_id", "hf_next_id", "hf_token_id", "hf_next_token_id")
+
+    ok = None
+    for k in ok_keys:
+        ok = _b(rec, k)
+        if ok is not None:
+            break
+
+    step = None
+    for k in step_keys:
+        step = _i(rec, k)
+        if step is not None:
+            break
+
+    eng = None
+    for k in eng_keys:
+        eng = _i(rec, k)
+        if eng is not None:
+            break
+
+    hf = None
+    for k in hf_keys:
+        hf = _i(rec, k)
+        if hf is not None:
+            break
+
+    if ok is not None or step is not None or eng is not None or hf is not None:
+        return ok, step, eng, hf
+
+    for container_key in ("token_id_check", "token_check", "hf_check", "id_check", "verify_ids", "verify_hf_ids"):
+        v = rec.get(container_key)
+        if isinstance(v, dict):
+            ok2 = None
+            if "ok" in v:
+                vv = v.get("ok")
+                ok2 = vv if isinstance(vv, bool) else _b({"x": vv}, "x")
+            if ok2 is None:
+                for k in ok_keys:
+                    if k in v:
+                        vv = v.get(k)
+                        ok2 = vv if isinstance(vv, bool) else _b({"x": vv}, "x")
+                        if ok2 is not None:
+                            break
+
+            fm = v.get("first_mismatch")
+            if not isinstance(fm, dict):
+                fm = v.get("mismatch")
+            if not isinstance(fm, dict):
+                fm = v.get("first_failure")
+            if not isinstance(fm, dict):
+                fm = None
+
+            step2 = None
+            eng2 = None
+            hf2 = None
+            if fm:
+                for k in ("step", "t", "index"):
+                    step2 = _i(fm, k)
+                    if step2 is not None:
+                        break
+                for k in ("engine_id", "engine_next_id", "engine", "engine_token"):
+                    eng2 = _i(fm, k)
+                    if eng2 is not None:
+                        break
+                for k in ("hf_id", "hf_next_id", "hf", "hf_token"):
+                    hf2 = _i(fm, k)
+                    if hf2 is not None:
+                        break
+
+            return ok2, step2, eng2, hf2
+
+    return None, None, None, None
+
+
+def _ok_str(ok: Optional[bool]) -> str:
+    if ok is True:
+        return "OK"
+    if ok is False:
+        return "FAIL"
+    return "n/a"
+
+
+def _mismatch_str(ok: Optional[bool], step: Optional[int], eng: Optional[int], hf: Optional[int]) -> str:
+    if ok is True:
+        return "-"
+    if ok is False:
+        parts: List[str] = []
+        if step is not None:
+            parts.append(f"step={step}")
+        if eng is not None:
+            parts.append(f"eng={eng}")
+        if hf is not None:
+            parts.append(f"hf={hf}")
+        return " ".join(parts) if parts else "mismatch"
+    if step is None and eng is None and hf is None:
+        return "n/a"
+    parts = []
+    if step is not None:
+        parts.append(f"step={step}")
+    if eng is not None:
+        parts.append(f"eng={eng}")
+    if hf is not None:
+        parts.append(f"hf={hf}")
+    return " ".join(parts) if parts else "n/a"
+
+
+def _render_per_prompt_side_by_side(cpu_run: Optional[Run], gpu_run: Optional[Run]) -> str:
+    cpu_pp = _extract_per_prompt_from_run(cpu_run)
+    gpu_pp = _extract_per_prompt_from_run(gpu_run)
+
+    if not cpu_pp and not gpu_pp:
+        return ""
+
+    cpu_map = _per_prompt_map(cpu_pp or [])
+    gpu_map = _per_prompt_map(gpu_pp or [])
+
+    keys: List[str] = []
+    seen = set()
+    for rec in (cpu_pp or []):
+        k = _prompt_key(rec, len(keys) + 1)
+        if k not in seen:
+            keys.append(k)
+            seen.add(k)
+    for rec in (gpu_pp or []):
+        k = _prompt_key(rec, len(keys) + 1)
+        if k not in seen:
+            keys.append(k)
+            seen.add(k)
+
+    def _prompt_label(k: str, c: Optional[PromptRec], g: Optional[PromptRec]) -> str:
+        txt = _short_prompt_text(c or {}, "prompt", 56) or _short_prompt_text(g or {}, "prompt", 56)
+        if txt:
+            return f"{k}: {txt}"
+        return k
+
+    lines: List[str] = []
+    lines.append("## Per-Prompt CPU vs GPU (latest run)\n")
+    lines.append(
+        "| Prompt | CPU TPS | GPU TPS | Speedup | CPU wall (s) | GPU wall (s) | CPU tokens | GPU tokens | CPU KV hits | GPU KV hits | CPU ID check | GPU ID check | CPU mismatch | GPU mismatch |"
+    )
+    lines.append(
+        "|:------|--------:|--------:|--------:|-------------:|-------------:|----------:|----------:|-----------:|-----------:|:-----------:|:-----------:|:------------|:------------|"
+    )
+
+    for k in keys:
+        c = cpu_map.get(k)
+        g = gpu_map.get(k)
+
+        cpu_tps = _f(c, "tps_true")
+        gpu_tps = _f(g, "tps_true")
+        speed = None
+        if cpu_tps and cpu_tps > 0 and gpu_tps is not None:
+            speed = gpu_tps / cpu_tps
+
+        cpu_wall = _f(c, "wall_time_s")
+        gpu_wall = _f(g, "wall_time_s")
+
+        cpu_tok = _i(c, "tokens_generated")
+        gpu_tok = _i(g, "tokens_generated")
+
+        cpu_kv = _i(c, "kv_hits")
+        gpu_kv = _i(g, "kv_hits")
+
+        c_ok, c_step, c_eng, c_hf = _extract_token_check(c)
+        g_ok, g_step, g_eng, g_hf = _extract_token_check(g)
+
+        lines.append(
+            "| "
+            + _prompt_label(k, c, g)
+            + " | "
+            + _fmt_float(cpu_tps, 3)
+            + " | "
+            + _fmt_float(gpu_tps, 3)
+            + " | "
+            + _fmt_float(speed, 3)
+            + " | "
+            + _fmt_float(cpu_wall, 3)
+            + " | "
+            + _fmt_float(gpu_wall, 3)
+            + " | "
+            + (str(cpu_tok) if cpu_tok is not None else "n/a")
+            + " | "
+            + (str(gpu_tok) if gpu_tok is not None else "n/a")
+            + " | "
+            + (str(cpu_kv) if cpu_kv is not None else "n/a")
+            + " | "
+            + (str(gpu_kv) if gpu_kv is not None else "n/a")
+            + " | "
+            + _ok_str(c_ok)
+            + " | "
+            + _ok_str(g_ok)
+            + " | "
+            + _mismatch_str(c_ok, c_step, c_eng, c_hf)
+            + " | "
+            + _mismatch_str(g_ok, g_step, g_eng, g_hf)
+            + " |"
+        )
+
+    lines.append("")
+    lines.append(
+        "_Note: The ID-check columns render only if per-prompt records include token verification fields (e.g., `token_id_check_ok` or a nested `token_id_check` object). The mismatch column reports the first divergent step and IDs when available._\n"
+    )
+    return "\n".join(lines)
 
 
 def main() -> int:
@@ -663,10 +1038,17 @@ def main() -> int:
     elif gpu_agg:
         best_label, best_tps = "GPU", gpu_agg["tps_true"]
 
+    latest_cpu_run = cpu_runs[-1] if cpu_runs else None
+    latest_gpu_run = gpu_runs[-1] if gpu_runs else None
+
     out_lines: List[str] = []
     out_lines.append("# Performance Notes\n")
     out_lines.append(f"_Last updated: **{_now_utc_str()}**_\n")
     out_lines.append(f"\n**Best true TPS:** **{best_label} — {_fmt_float(best_tps, 3)}**.\n")
+
+    per_prompt_section = _render_per_prompt_side_by_side(latest_cpu_run, latest_gpu_run)
+    if per_prompt_section:
+        out_lines.append(per_prompt_section)
 
     if cpu_agg:
         out_lines.append(_render_device("CPU", cpu_agg, bpt, model_bin_size))

@@ -1,421 +1,261 @@
-/* File: engine/src/kernels/gemv_generic.c
- * -----------------------------------------------------------------------------
- * @file gemv_generic.c
- * @brief Portable GEMV kernels and the public GEMV API/dispatcher.
- *
- * @details
- * Owns the public entry points:
- * - ::ie_kernels_install
- * - ::ie_gemv_f32
- * - ::ie_gemv_qi8_f32
- * - ::ie_gemv_qi8pg_f32
- * - ::ie_gemv_qfp8_f32
- *
- * Optional ISA-specific implementations (e.g., AVX2) may be linked from other
- * translation units. Dispatch is decided at runtime via CPU feature checks.
+/* ============================================================================
+ * File: engine/src/kernels/gemv_generic.c
+ * ============================================================================
  */
-
-#include "ie_kernels.h"
-#include "ie_quant_act.h"
-
-#include <math.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <stdlib.h>
 #include <string.h>
 
-/* -------------------------------------------------------------------------- */
-/* Optional arch-specific implementations (resolved at link time if present). */
-/* -------------------------------------------------------------------------- */
+#include "ie_cpu.h"
+#include "ie_kernels.h"
+#include "ie_threadpool.h"
+#include "util_logging.h"
 
-/**
- * @brief AVX2/FMA GEMV (fp32), provided by gemv_avx2.c.
- *
- * @param W     Weights (row-major or blocked-K contiguous per row).
- * @param x     Input vector (length cols).
- * @param y     Output vector (length rows).
- * @param rows  Number of rows.
- * @param cols  Number of columns.
- * @param bias  Optional bias (length rows) or NULL.
- * @param blk_k Column block size; 0 disables blocking.
- */
-void ie_gemv_f32_avx2_impl(const float *W, const float *x, float *y,
-                           size_t rows, size_t cols, const float *bias,
-                           size_t blk_k);
+typedef void (*ie_gemv_f32_impl_fn)(const float *W, const float *x, float *y,
+                                   size_t rows, size_t cols,
+                                   const float *bias, size_t bias_stride);
 
-/**
- * @brief AVX2/FMA GEMV with per-tensor INT8 activations, provided by gemv_avx2.c.
- *
- * @param W         Weights (float).
- * @param x_q       INT8 activations (length cols).
- * @param y         Output (float, length rows).
- * @param rows      Number of rows.
- * @param cols      Number of columns.
- * @param bias      Optional bias or NULL.
- * @param blk_k     Column block size; 0 disables blocking.
- * @param params    Per-tensor INT8 parameters.
- * @param symmetric Informational flag.
- */
-void ie_gemv_qi8_f32_avx2_impl(const float *W, const int8_t *x_q, float *y,
-                               size_t rows, size_t cols, const float *bias,
-                               size_t blk_k, ie_act_i8_params params,
-                               int symmetric);
+typedef int (*ie_gemv_bf16_impl_fn)(const uint16_t *W_bf16, const float *x, float *y,
+                                    size_t rows, size_t cols,
+                                    const uint16_t *bias_bf16);
 
-/* -------------------------------------------------------------------------- */
-/* Internal installed function pointer (fp32 path).                            */
-/* -------------------------------------------------------------------------- */
+typedef void (*ie_vec_bf16_to_f32_impl_fn)(const uint16_t *in, float *out, size_t n);
 
-/**
- * @brief Installed fp32 GEMV implementation.
- *
- * @details
- * Set by ::ie_kernels_install. ::ie_gemv_f32 will call install lazily if needed.
- */
-static void (*s_gemv_f32)(const float *, const float *, float *, size_t, size_t,
-                          const float *, size_t) = NULL;
+typedef void (*ie_gemv_qi8_impl_fn)(const int8_t *W_qi8, const float *W_scales,
+                                   const float *x, float *y,
+                                   size_t rows, size_t cols,
+                                   size_t block_cols,
+                                   const float *bias, size_t bias_stride);
 
-/* ========================================================================== */
-/*                               Generic C kernels                             */
-/* ========================================================================== */
+static ie_gemv_f32_impl_fn g_gemv_f32 = NULL;
+static ie_gemv_bf16_impl_fn g_gemv_bf16 = NULL;
+static ie_vec_bf16_to_f32_impl_fn g_vec_bf16_to_f32 = NULL;
+static ie_gemv_qi8_impl_fn g_gemv_qi8 = NULL;
 
-/**
- * @brief Generic C GEMV: y = W * x (+bias), optional blocked-K traversal.
- *
- * @details
- * Baseline portable implementation. W is treated as row-major with rows*cols
- * elements. When blk_k > 0, the inner loop traverses columns in blocks of BK.
- *
- * @param W     Weights (row-major).
- * @param x     Input vector (length cols).
- * @param y     Output vector (length rows).
- * @param rows  Rows.
- * @param cols  Cols.
- * @param bias  Optional bias (length rows) or NULL.
- * @param blk_k Column block size; 0 disables blocking.
- */
-static void gemv_generic_impl(const float *W, const float *x, float *y,
-                              size_t rows, size_t cols, const float *bias,
-                              size_t blk_k) {
-  const size_t BK = (blk_k > 0 ? blk_k : cols);
+static int g_logged_once = 0;
+static ie_threadpool_t *g_bf16_tp = NULL;
+static unsigned g_bf16_threads = 1;
 
-  for (size_t r = 0; r < rows; ++r) {
-    const float *wrow = W + r * cols;
-    float acc = 0.0f;
+static void ie_log_kernel_once(const char *which_f32,
+                              const char *which_bf16,
+                              const char *which_vec_bf16,
+                              const char *which_qi8) {
+  if (g_logged_once) return;
+  g_logged_once = 1;
 
-    size_t kofs = 0;
-    for (size_t k0 = 0; k0 < cols; k0 += BK) {
-      const size_t klen = (k0 + BK <= cols) ? BK : (cols - k0);
-      const float *wblk = wrow + kofs;
-      const float *xblk = x + k0;
+  const char *env = getenv("IE_LOG_KERNELS");
+  if (!env || env[0] != '1') return;
 
-      for (size_t k = 0; k < klen; ++k) acc += wblk[k] * xblk[k];
-      kofs += klen;
+  ie_log_info("[kernels] gemv_f32=%s gemv_bf16=%s vec_bf16_to_f32=%s gemv_qi8=%s\n",
+              which_f32 ? which_f32 : "unknown",
+              which_bf16 ? which_bf16 : "unknown",
+              which_vec_bf16 ? which_vec_bf16 : "unknown",
+              which_qi8 ? which_qi8 : "unknown");
+}
+
+static void ie_gemv_f32_generic_impl(const float *W, const float *x, float *y,
+                                    size_t rows, size_t cols,
+                                    const float *bias, size_t bias_stride) {
+  for (size_t r = 0; r < rows; r++) {
+    const float *row = W + r * cols;
+    float sum = 0.0f;
+
+    for (size_t c = 0; c < cols; c++) {
+      sum += row[c] * x[c];
     }
 
-    if (bias) acc += bias[r];
-    y[r] = acc;
-  }
-}
-
-/**
- * @brief GEMV with per-tensor INT8 activations (fused dequantization), C path.
- *
- * @details
- * Interprets INT8 activations with:
- *   real = params.scale * (q - params.zero_point)
- * and multiplies float weights by decoded values without materializing x.
- *
- * @param W         Weights (float, row-major).
- * @param x_q       INT8 activations (length cols).
- * @param y         Output (float, length rows).
- * @param rows      Rows.
- * @param cols      Cols.
- * @param bias      Optional bias or NULL.
- * @param blk_k     Column block size; 0 disables blocking.
- * @param params    Per-tensor INT8 parameters.
- * @param symmetric Informational flag (unused).
- */
-static void gemv_qi8_f32_fused_c_impl(const float *W, const int8_t *x_q,
-                                      float *y, size_t rows, size_t cols,
-                                      const float *bias, size_t blk_k,
-                                      ie_act_i8_params params, int symmetric) {
-  (void)symmetric;
-  const size_t BK = (blk_k > 0 ? blk_k : cols);
-  const float s = params.scale;
-  const int z = (int)params.zero_point;
-
-  for (size_t r = 0; r < rows; ++r) {
-    const float *wrow = W + r * cols;
-    float acc = 0.0f;
-
-    size_t kofs = 0;
-    for (size_t k0 = 0; k0 < cols; k0 += BK) {
-      const size_t klen = (k0 + BK <= cols) ? BK : (cols - k0);
-      const float *wblk = wrow + kofs;
-      const int8_t *xblk = x_q + k0;
-
-      for (size_t k = 0; k < klen; ++k) {
-        const float xv = s * ((int)xblk[k] - z);
-        acc += wblk[k] * xv;
-      }
-      kofs += klen;
+    if (bias) {
+      sum += bias[r * bias_stride];
     }
 
-    if (bias) acc += bias[r];
-    y[r] = acc;
+    y[r] = sum;
   }
 }
 
-/**
- * @brief GEMV with per-group INT8 activations (fused dequantization), C path.
- *
- * @details
- * Each element uses group parameters:
- *   g = index / group_size
- *   real = scales[g] * (q - zeros[g])
- *
- * @param W           Weights (float, row-major).
- * @param x_q         INT8 activations.
- * @param y           Output.
- * @param rows        Rows.
- * @param cols        Cols.
- * @param bias        Optional bias or NULL.
- * @param blk_k       Column block size; 0 disables blocking.
- * @param group_size  Group size (>= 1).
- * @param scales      Group scales.
- * @param zeros       Group zero points.
- * @param symmetric   Informational flag (unused).
- */
-static void gemv_qi8pg_f32_fused_c_impl(const float *W, const int8_t *x_q,
-                                        float *y, size_t rows, size_t cols,
-                                        const float *bias, size_t blk_k,
-                                        size_t group_size, const float *scales,
-                                        const int8_t *zeros, int symmetric) {
-  (void)symmetric;
-  const size_t BK = (blk_k > 0 ? blk_k : cols);
+static inline float ie_bf16_bits_to_f32(uint16_t v) {
+  union {
+    uint32_t u;
+    float f;
+  } x;
+  x.u = ((uint32_t)v) << 16;
+  return x.f;
+}
+
+static void ie_vec_bf16_to_f32_generic_impl(const uint16_t *in, float *out, size_t n) {
+  if (!in || !out || n == 0u) return;
+  for (size_t i = 0; i < n; ++i) {
+    out[i] = ie_bf16_bits_to_f32(in[i]);
+  }
+}
+
+static int ie_gemv_bf16_generic_impl(const uint16_t *W_bf16, const float *x, float *y,
+                                     size_t rows, size_t cols,
+                                     const uint16_t *bias_bf16) {
+  if (!W_bf16 || !x || !y || rows == 0u || cols == 0u) return -1;
 
   for (size_t r = 0; r < rows; ++r) {
-    const float *wrow = W + r * cols;
     float acc = 0.0f;
-
-    size_t kofs = 0;
-    for (size_t k0 = 0; k0 < cols; k0 += BK) {
-      const size_t klen = (k0 + BK <= cols) ? BK : (cols - k0);
-      const float *wblk = wrow + kofs;
-      const int8_t *xblk = x_q + k0;
-
-      for (size_t k = 0; k < klen; ++k) {
-        const size_t g = (k0 + k) / group_size;
-        const float s = scales[g];
-        const int z = (int)zeros[g];
-        const float xv = s * ((int)xblk[k] - z);
-        acc += wblk[k] * xv;
-      }
-      kofs += klen;
+    const size_t base = r * cols;
+    for (size_t c = 0; c < cols; ++c) {
+      const float w = ie_bf16_bits_to_f32(W_bf16[base + c]);
+      acc += w * x[c];
     }
-
-    if (bias) acc += bias[r];
+    if (bias_bf16) acc += ie_bf16_bits_to_f32(bias_bf16[r]);
     y[r] = acc;
   }
+
+  return 0;
 }
 
-/**
- * @brief Decode FP8 E4M3 byte to float.
- *
- * @details
- * Software decode with flush-to-zero for exp==0. Uses exponent bias 7.
- *
- * @param v FP8 byte.
- * @return Decoded float value.
- */
-static inline float ie_decode_fp8_e4m3(uint8_t v) {
-  if (v == 0u) return 0.0f;
-  const uint8_t sign = (v >> 7) & 0x1;
-  const uint8_t exp = (v >> 3) & 0xF;
-  const uint8_t man = (v & 0x7);
-
-  if (exp == 0) return sign ? -0.0f : 0.0f;
-
-  const int bias = 7;
-  const int e = (int)exp - bias;
-  const float frac = (float)man / 8.0f;
-  const float val = ldexpf(1.0f + frac, e);
-  return sign ? -val : val;
+static unsigned ie_bf16_threads_env(void) {
+  const char *s = getenv("IE_BF16_THREADS");
+  if (!s || !*s) s = getenv("IE_THREADS");
+  if (!s || !*s) return 1;
+  long v = strtol(s, NULL, 10);
+  if (v < 1) v = 1;
+  if (v > 128) v = 128;
+  return (unsigned)v;
 }
 
-/**
- * @brief Decode FP8 E5M2 byte to float.
- *
- * @details
- * - exp==0: returns signed zero (flush-to-zero policy).
- * - exp==all ones: returns Inf for man==0, quiet NaN otherwise.
- * - exponent bias is 15.
- *
- * @param v FP8 byte.
- * @return Decoded float value.
- */
-static inline float ie_decode_fp8_e5m2(uint8_t v) {
-  const uint8_t sign = (v >> 7) & 0x1;
-  const uint8_t exp = (v >> 2) & 0x1F;
-  const uint8_t man = (v & 0x3);
-
-  if (exp == 0) return sign ? -0.0f : 0.0f;
-
-  if (exp == 0x1F) {
-    if (man == 0) return sign ? -(__builtin_inff()) : (__builtin_inff());
-    volatile float qnan = __builtin_nanf("0x1");
-    return qnan;
+static void ie_bf16_tp_init(void) {
+  if (g_bf16_tp) return;
+  g_bf16_threads = ie_bf16_threads_env();
+  if (g_bf16_threads > 1u) {
+    g_bf16_tp = ie_tp_create(g_bf16_threads, "auto");
+    if (!g_bf16_tp) g_bf16_threads = 1u;
   }
-
-  const int bias = 15;
-  const int e = (int)exp - bias;
-  const float frac = (float)man / 4.0f;
-  const float val = ldexpf(1.0f + frac, e);
-  return sign ? -val : val;
 }
 
-/* ========================================================================== */
-/*                                Public API                                   */
-/* ========================================================================== */
+typedef struct {
+  const uint16_t *W_bf16;
+  const float *x;
+  float *y;
+  size_t rows;
+  size_t cols;
+  const uint16_t *bias_bf16;
+  ie_gemv_bf16_impl_fn impl;
+} ie_gemv_bf16_job_t;
 
-/**
- * @brief Install the best available fp32 GEMV kernel.
- *
- * @details
- * On x86 (GCC/Clang), installs the AVX2/FMA implementation when allowed and
- * supported by the CPU. Otherwise, installs the generic C fallback.
- *
- * @param use_avx2 Non-zero to allow selecting AVX2/FMA implementation.
- */
+static void ie_gemv_bf16_job_run(void *ctx, unsigned start, unsigned end) {
+  ie_gemv_bf16_job_t *job = (ie_gemv_bf16_job_t *)ctx;
+  if (!job || start >= end) return;
+  const size_t s = (size_t)start;
+  const size_t n = (size_t)(end - start);
+  const uint16_t *w = job->W_bf16 + s * job->cols;
+  float *y = job->y + s;
+  const uint16_t *b = job->bias_bf16 ? (job->bias_bf16 + s) : NULL;
+  (void)job->impl(w, job->x, y, n, job->cols, b);
+}
+
+static void ie_gemv_qi8_stub_impl(const int8_t *W_qi8, const float *W_scales,
+                                 const float *x, float *y,
+                                 size_t rows, size_t cols,
+                                 size_t block_cols,
+                                 const float *bias, size_t bias_stride) {
+  (void)W_qi8;
+  (void)W_scales;
+  (void)x;
+  (void)y;
+  (void)rows;
+  (void)cols;
+  (void)block_cols;
+  (void)bias;
+  (void)bias_stride;
+  ie_log_error("ie_gemv_qi8: no implementation installed\n");
+}
+
 void ie_kernels_install(int use_avx2) {
-  int use_avx2_runtime = 0;
+  g_gemv_f32 = &ie_gemv_f32_generic_impl;
+  g_gemv_bf16 = &ie_gemv_bf16_generic_impl;
+  g_vec_bf16_to_f32 = &ie_vec_bf16_to_f32_generic_impl;
+  g_gemv_qi8 = &ie_gemv_qi8_stub_impl;
 
-#if defined(__x86_64__) || defined(_M_X64) || defined(__i386__)
-#if defined(__GNUC__) || defined(__clang__)
+  const char *sel_f32 = "generic";
+  const char *sel_bf16 = "generic";
+  const char *sel_vec_bf16 = "generic";
+  const char *sel_qi8 = "stub";
+
   if (use_avx2) {
-    if (__builtin_cpu_supports("avx2") && __builtin_cpu_supports("fma")) {
-      use_avx2_runtime = 1;
+    ie_cpu_features_t f;
+    ie_cpu_features_detect(&f);
+
+    if (f.avx2 && f.fma) {
+      extern void ie_gemv_f32_avx2_impl(const float *W, const float *x, float *y,
+                                       size_t rows, size_t cols,
+                                       const float *bias, size_t bias_stride);
+
+      extern int ie_gemv_bf16_f32_avx2_impl(const uint16_t *W_bf16, const float *x, float *y,
+                                            size_t rows, size_t cols,
+                                            const uint16_t *bias_bf16);
+
+      extern void ie_vec_bf16_to_f32_avx2_impl(const uint16_t *in, float *out, size_t n);
+
+      extern void ie_gemv_qi8_avx2_impl(const int8_t *W_qi8, const float *W_scales,
+                                       const float *x, float *y,
+                                       size_t rows, size_t cols,
+                                       size_t block_cols,
+                                       const float *bias, size_t bias_stride);
+
+      g_gemv_f32 = &ie_gemv_f32_avx2_impl;
+      g_gemv_bf16 = &ie_gemv_bf16_f32_avx2_impl;
+      g_vec_bf16_to_f32 = &ie_vec_bf16_to_f32_avx2_impl;
+      g_gemv_qi8 = &ie_gemv_qi8_avx2_impl;
+
+      sel_f32 = "avx2";
+      sel_bf16 = "avx2";
+      sel_vec_bf16 = "avx2";
+      sel_qi8 = "avx2";
     }
   }
-#endif
-#endif
 
-  if (use_avx2_runtime) {
-    s_gemv_f32 = ie_gemv_f32_avx2_impl;
-  } else {
-    s_gemv_f32 = gemv_generic_impl;
+  ie_log_kernel_once(sel_f32, sel_bf16, sel_vec_bf16, sel_qi8);
+}
+
+static void ie_kernels_lazy_init(void) {
+  if (g_gemv_f32 && g_gemv_bf16 && g_vec_bf16_to_f32 && g_gemv_qi8) return;
+  ie_kernels_install(1);
+}
+
+void ie_vec_bf16_to_f32(const uint16_t *in, float *out, size_t n) {
+  ie_kernels_lazy_init();
+  g_vec_bf16_to_f32(in, out, n);
+}
+
+int ie_gemv_bf16_f32(const uint16_t *W_bf16, const float *x, float *y,
+                      size_t rows, size_t cols,
+                      const uint16_t *bias_bf16) {
+  ie_kernels_lazy_init();
+  ie_bf16_tp_init();
+  if (g_bf16_tp && g_bf16_threads > 1u && rows >= g_bf16_threads * 2u) {
+    ie_gemv_bf16_job_t job = {
+      .W_bf16 = W_bf16,
+      .x = x,
+      .y = y,
+      .rows = rows,
+      .cols = cols,
+      .bias_bf16 = bias_bf16,
+      .impl = g_gemv_bf16,
+    };
+    unsigned grainsize = (unsigned)((rows + g_bf16_threads - 1u) / g_bf16_threads);
+    ie_tp_parallel_for(g_bf16_tp, (unsigned)rows, grainsize, ie_gemv_bf16_job_run, &job);
+    return 0;
   }
+  return g_gemv_bf16(W_bf16, x, y, rows, cols, bias_bf16);
 }
 
-/**
- * @brief Dispatch fp32 GEMV to the installed implementation.
- *
- * @details
- * If kernels were not installed yet, calls ::ie_kernels_install with AVX2 enabled.
- *
- * @param W     Weights.
- * @param x     Input vector.
- * @param y     Output vector.
- * @param rows  Rows.
- * @param cols  Cols.
- * @param bias  Optional bias.
- * @param blk_k Column block size; 0 disables blocking.
- */
-void ie_gemv_f32(const float *W, const float *x, float *y, size_t rows,
-                 size_t cols, const float *bias, size_t blk_k) {
-  if (!s_gemv_f32) ie_kernels_install(/*use_avx2=*/1);
-  s_gemv_f32(W, x, y, rows, cols, bias, blk_k);
+void ie_gemv_f32(const float *W, const float *x, float *y,
+                 size_t rows, size_t cols,
+                 const float *bias, size_t bias_stride) {
+  ie_kernels_lazy_init();
+  g_gemv_f32(W, x, y, rows, cols, bias, bias_stride);
 }
 
-/**
- * @brief GEMV with per-tensor INT8 activations (auto-dispatch).
- *
- * @details
- * Uses AVX2/FMA implementation when available; otherwise uses the C fused path.
- *
- * @param W         Weights.
- * @param x_q       INT8 activations.
- * @param y         Output.
- * @param rows      Rows.
- * @param cols      Cols.
- * @param bias      Optional bias.
- * @param blk_k     Column block size; 0 disables blocking.
- * @param params    INT8 params.
- * @param symmetric Informational flag.
- */
-void ie_gemv_qi8_f32(const float *W, const int8_t *x_q, float *y, size_t rows,
-                     size_t cols, const float *bias, size_t blk_k,
-                     ie_act_i8_params params, int symmetric) {
-#if defined(__GNUC__) || defined(__clang__)
-  if (__builtin_cpu_supports("avx2") && __builtin_cpu_supports("fma")) {
-    ie_gemv_qi8_f32_avx2_impl(W, x_q, y, rows, cols, bias, blk_k, params,
-                              symmetric);
-    return;
-  }
-#endif
-  gemv_qi8_f32_fused_c_impl(W, x_q, y, rows, cols, bias, blk_k, params,
-                            symmetric);
-}
-
-/**
- * @brief GEMV with per-group INT8 activations (portable C implementation).
- *
- * @param W           Weights.
- * @param x_q         INT8 activations.
- * @param y           Output.
- * @param rows        Rows.
- * @param cols        Cols.
- * @param bias        Optional bias.
- * @param blk_k       Column block size; 0 disables blocking.
- * @param group_size  Group size.
- * @param scales      Group scales.
- * @param zeros       Group zero points.
- * @param symmetric   Informational flag.
- */
-void ie_gemv_qi8pg_f32(const float *W, const int8_t *x_q, float *y,
-                       size_t rows, size_t cols, const float *bias,
-                       size_t blk_k, size_t group_size, const float *scales,
-                       const int8_t *zeros, int symmetric) {
-  gemv_qi8pg_f32_fused_c_impl(W, x_q, y, rows, cols, bias, blk_k, group_size,
-                              scales, zeros, symmetric);
-}
-
-/**
- * @brief GEMV with FP8 activations (portable software decode).
- *
- * @param W      Weights.
- * @param x_fp8  FP8 activations (bytes).
- * @param y      Output.
- * @param rows   Rows.
- * @param cols   Cols.
- * @param bias   Optional bias.
- * @param blk_k  Column block size; 0 disables blocking.
- * @param fmt    FP8 format.
- */
-void ie_gemv_qfp8_f32(const float *W, const uint8_t *x_fp8, float *y,
-                      size_t rows, size_t cols, const float *bias,
-                      size_t blk_k, ie_fp8_format fmt) {
-  const size_t BK = (blk_k > 0 ? blk_k : cols);
-  const int use_e4m3 = (fmt == IE_FP8_E4M3);
-
-  for (size_t r = 0; r < rows; ++r) {
-    const float *wrow = W + r * cols;
-    float acc = 0.0f;
-
-    size_t kofs = 0;
-    for (size_t k0 = 0; k0 < cols; k0 += BK) {
-      const size_t klen = (k0 + BK <= cols) ? BK : (cols - k0);
-      const float *wblk = wrow + kofs;
-      const uint8_t *xblk = x_fp8 + k0;
-
-      for (size_t k = 0; k < klen; ++k) {
-        const uint8_t b = xblk[k];
-        const float xv = use_e4m3 ? ie_decode_fp8_e4m3(b) : ie_decode_fp8_e5m2(b);
-        acc += wblk[k] * xv;
-      }
-      kofs += klen;
-    }
-
-    if (bias) acc += bias[r];
-    y[r] = acc;
-  }
+void ie_gemv_qi8(const int8_t *W_qi8, const float *W_scales,
+                 const float *x, float *y,
+                 size_t rows, size_t cols,
+                 size_t block_cols,
+                 const float *bias, size_t bias_stride) {
+  ie_kernels_lazy_init();
+  g_gemv_qi8(W_qi8, W_scales, x, y, rows, cols, block_cols, bias, bias_stride);
 }

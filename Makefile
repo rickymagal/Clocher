@@ -20,6 +20,32 @@ export IE_DEDUP IE_DEDUP_POLICY IE_DEDUP_CACHE_MB IE_DEDUP_HOT_BYTES IE_DEDUP_HO
 IE_DEDUP ?= 1
 
 # =============================================================================
+# Harness / reporting / verification defaults
+# =============================================================================
+PYTHON ?= python3
+
+# When REPORT=1, bench targets will generate a per-prompt report artifact.
+REPORT ?= 1
+
+# When VERIFY=1, bench targets will verify the per-prompt report artifact.
+VERIFY ?= 1
+
+# Directory where per-prompt reports are stored (bench creates per-run subdirs).
+REPORT_ROOT ?= build/reports
+
+# Script that generates per-prompt reports (must exist if REPORT=1).
+# Expected to write a single report file to the path passed via --out.
+REPORT_SCRIPT ?= scripts/run_harness_report.py
+EXPECTED_TOKENS_SCRIPT ?= tools/generate_expected_tokens.py
+EXPECTED_TOKENS_GENERATE ?= 1
+EXPECTED_TOKENS_DEVICE ?= cpu
+REPORT_ARGS ?=
+
+# Script that verifies per-prompt reports (must exist if VERIFY=1).
+VERIFY_SCRIPT ?= tools/verify_report_tokens.py
+VERIFY_ARGS ?= --require-expected
+
+# =============================================================================
 # Toolchains
 # =============================================================================
 CC        ?= gcc
@@ -85,6 +111,8 @@ SRC_CORE_C_COMMON := \
   engine/src/opt/numa_policy.c \
   engine/src/kernels/gemv_generic.c \
   engine/src/kernels/gemv_avx2.c \
+  engine/src/kernels/gemv_q4_generic.c \
+  engine/src/kernels/gemv_q4_avx2.c \
   engine/src/kernels/attn_cpu.c \
   engine/src/kernels/mlp_cpu.c \
   engine/src/kernels/rmsnorm_cpu.c \
@@ -137,7 +165,8 @@ CONVERT_BIN := $(BUILD)/tools/convert_to_block_sparse
 # Phonies
 # =============================================================================
 .PHONY: build build-release build-cuda build-all cuda \
-	test bench bench-direct bench-cuda cuda-bench \
+	test bench bench-direct bench-cuda cuda-bench bench-all \
+	bench-report bench-report-cuda bench-verify bench-verify-cuda \
 	chat chat-file chat-cuda chat-file-cuda \
 	profile perf-report baseline-report \
 	fmt lint docs docs-doxygen clean microbench microbench-stream microbench-block-sparse \
@@ -148,6 +177,7 @@ CONVERT_BIN := $(BUILD)/tools/convert_to_block_sparse
 
 cuda: build-cuda
 cuda-bench: bench-cuda
+bench-all: bench bench-cuda
 
 # =============================================================================
 # Utils / patterns
@@ -272,9 +302,182 @@ test: $(BIN_CPU)
       if [ -n "$$files" ]; then python3 -m unittest -v $$files; else echo "[warn] no python tests found"; fi
 
 # =============================================================================
-# Benchmarks
+# Benchmarks (strict TPS + per-prompt report + verification)
 # =============================================================================
-bench:
+
+# bench-report: CPU-only per-prompt report generation (no strict TPS)
+bench-report: $(BIN_CPU)
+> @set -e; set -o pipefail; \
+      if [ "$${REPORT:-$(REPORT)}" != "1" ]; then echo "[bench-report] REPORT=0; nothing to do."; exit 0; fi; \
+      if [ ! -f "$(REPORT_SCRIPT)" ]; then echo "ERROR: REPORT=1 but missing $(REPORT_SCRIPT)"; exit 2; fi; \
+      if [ ! -f "$(EXPECTED_TOKENS_SCRIPT)" ]; then echo "ERROR: missing $(EXPECTED_TOKENS_SCRIPT)"; exit 2; fi; \
+      if [ -z "$$PROMPTS" ]; then PROMPTS="benchmarks/prompts_10.txt"; fi; \
+      if [ ! -f "$$PROMPTS" ]; then echo "ERROR: PROMPTS '$$PROMPTS' not found"; exit 2; fi; \
+      MDIR="$${MODEL:-$${MODEL_DIR:-}}"; \
+      if [ -z "$$MDIR" ] || [ "$$MDIR" = "." ]; then MDIR="$(MODEL_DIR_DEFAULT)"; fi; \
+      ABS_MDIR="$$(realpath -m "$$MDIR")"; \
+      ABS_BIN="$$(realpath -m $(BIN_CPU))"; ABS_PROMPTS="$$(realpath -m "$$PROMPTS")"; \
+      THREADS_VAL="$${THREADS:-$$(nproc)}"; PRECISION_VAL="$${PRECISION:-fp32}"; \
+      BATCH_VAL="$${BATCH:-1}"; PREFETCH_VAL="$${PREFETCH:-auto}"; \
+      PRETRANS_VAL="$${PRETRANSPOSE:-all}"; AFFINITY_VAL="$${AFFINITY:-auto}"; \
+      MAX_NEW_VAL="$${MAX_NEW:-128}"; \
+      RUNS_VAL="$${RUNS:-1}"; \
+      ROUNDS_VAL="$${ROUNDS:-1}"; \
+      EXPECTED_TOKENS_VAL="$${EXPECTED_TOKENS:-$$(dirname "$$ABS_PROMPTS")/expected_tokens.txt}"; \
+      DEDUP_VAL="1"; \
+      GEN_BIN="$${EXPECTED_TOKENS_BIN:-$(BIN_CPU)}"; \
+      ABS_GEN_BIN="$$(realpath -m "$$GEN_BIN")"; \
+      if [ "$${EXPECTED_TOKENS_GENERATE:-$(EXPECTED_TOKENS_GENERATE)}" = "1" ] || [ ! -f "$$EXPECTED_TOKENS_VAL" ]; then \
+        echo "[bench-report] generating $$EXPECTED_TOKENS_VAL"; \
+        env -i PATH="$$PATH" SHELL="$$SHELL" HOME="$$HOME" \
+          ENGINE_BIN="$$ABS_GEN_BIN" DEVICE="$${EXPECTED_TOKENS_DEVICE:-$(EXPECTED_TOKENS_DEVICE)}" MODEL_DIR="$$ABS_MDIR" PROMPTS="$$ABS_PROMPTS" \
+          THREADS="$$THREADS_VAL" PRECISION="$$PRECISION_VAL" BATCH="$$BATCH_VAL" \
+          PREFETCH="$$PREFETCH_VAL" PRETRANSPOSE="$$PRETRANS_VAL" AFFINITY="$$AFFINITY_VAL" \
+          MAX_NEW="$$MAX_NEW_VAL" RUNS="1" ROUNDS="1" \
+          IE_DEDUP="$$DEDUP_VAL" IE_DEDUP_POLICY="$$IE_DEDUP_POLICY" IE_DEDUP_CACHE_MB="$$IE_DEDUP_CACHE_MB" \
+          $(PYTHON) "$(EXPECTED_TOKENS_SCRIPT)" --engine-bin "$$ABS_GEN_BIN" --model-dir "$$ABS_MDIR" --prompts "$$ABS_PROMPTS" --out "$$EXPECTED_TOKENS_VAL" --device "$${EXPECTED_TOKENS_DEVICE:-$(EXPECTED_TOKENS_DEVICE)}" --threads "$$THREADS_VAL" --precision "$$PRECISION_VAL" --batch "$$BATCH_VAL" --prefetch "$$PREFETCH_VAL" --pretranspose "$$PRETRANS_VAL" --affinity "$$AFFINITY_VAL" --max-new "$$MAX_NEW_VAL" --rounds 1; \
+      fi; \
+      RUN_ID="$${RUN_ID:-$$(date -u +%Y%m%dT%H%M%SZ)}"; \
+      REPORT_ROOT_VAL="$${REPORT_ROOT:-$(REPORT_ROOT)}"; \
+      if [ -z "$$REPORT_ROOT_VAL" ]; then REPORT_ROOT_VAL="$(REPORT_ROOT)"; fi; \
+      OUT_DIR="$$(realpath -m "$$REPORT_ROOT_VAL/$$RUN_ID/cpu")"; \
+      OUT_FILE="$$OUT_DIR/report.jsonl"; \
+      mkdir -p "$$OUT_DIR"; \
+      echo "[bench-report] writing $$OUT_FILE"; \
+      env -i PATH="$$PATH" SHELL="$$SHELL" HOME="$$HOME" \
+        ENGINE_BIN="$$ABS_BIN" DEVICE="cpu" MODEL_DIR="$$ABS_MDIR" PROMPTS="$$ABS_PROMPTS" \
+        THREADS="$$THREADS_VAL" PRECISION="$$PRECISION_VAL" BATCH="$$BATCH_VAL" \
+        PREFETCH="$$PREFETCH_VAL" PRETRANSPOSE="$$PRETRANS_VAL" AFFINITY="$$AFFINITY_VAL" \
+        MAX_NEW="$$MAX_NEW_VAL" RUNS="$$RUNS_VAL" ROUNDS="$$ROUNDS_VAL" \
+        IE_BYTES_PER_TOKEN="$${IE_BYTES_PER_TOKEN:-67108864}" IE_STRIDE_BYTES="$${IE_STRIDE_BYTES:-256}" IE_VERIFY_TOUCH="$${IE_VERIFY_TOUCH:-1}" \
+        IE_ACTIVATIONS="$$IE_ACTIVATIONS" IE_FP8_FORMAT="$$IE_FP8_FORMAT" IE_HOT_REPLICATE="$$IE_HOT_REPLICATE" \
+        IE_DEDUP="$$DEDUP_VAL" IE_DEDUP_POLICY="$$IE_DEDUP_POLICY" IE_DEDUP_CACHE_MB="$$IE_DEDUP_CACHE_MB" IE_DEDUP_HOT_BYTES="$$IE_DEDUP_HOT_BYTES" IE_DEDUP_HOT_LIST="$$IE_DEDUP_HOT_LIST" \
+        IE_PREFETCH_DISTANCE="$$IE_PREFETCH_DISTANCE" IE_NT_LOADS="$$IE_NT_LOADS" IE_L3_BYTES="$$IE_L3_BYTES" IE_NT_THRESHOLD_RATIO="$$IE_NT_THRESHOLD_RATIO" IE_STREAM_BLOCK_BYTES="$$IE_STREAM_BLOCK_BYTES" IE_REUSE_GUARD_WINDOWS="$$IE_REUSE_GUARD_WINDOWS" \
+        EXPECTED_TOKENS="$$EXPECTED_TOKENS_VAL" REPORT_TOKENS_MAX="$$REPORT_TOKENS_MAX" \
+        $(PYTHON) "$(REPORT_SCRIPT)" \
+          --engine-bin "$$ABS_BIN" \
+          --model-dir "$$ABS_MDIR" \
+          --prompts "$$ABS_PROMPTS" \
+          --device cpu \
+          --out "$$OUT_FILE" \
+          --threads "$$THREADS_VAL" \
+          --precision "$$PRECISION_VAL" \
+          --batch "$$BATCH_VAL" \
+          --prefetch "$$PREFETCH_VAL" \
+          --pretranspose "$$PRETRANS_VAL" \
+          --affinity "$$AFFINITY_VAL" \
+          --max-new "$$MAX_NEW_VAL" \
+          --runs "$$RUNS_VAL" \
+          --rounds "$$ROUNDS_VAL" \
+          $(REPORT_ARGS); \
+      echo "$$OUT_FILE" > "$$OUT_DIR/LATEST_REPORT_PATH.txt"; \
+      echo "[bench-report] done"
+
+# bench-report-cuda: CUDA per-prompt report generation (no strict TPS)
+bench-report-cuda: $(BIN_CUDA)
+> @set -e; set -o pipefail; \
+      if [ "$${REPORT:-$(REPORT)}" != "1" ]; then echo "[bench-report-cuda] REPORT=0; nothing to do."; exit 0; fi; \
+      if [ ! -f "$(REPORT_SCRIPT)" ]; then echo "ERROR: REPORT=1 but missing $(REPORT_SCRIPT)"; exit 2; fi; \
+      if [ ! -f "$(EXPECTED_TOKENS_SCRIPT)" ]; then echo "ERROR: missing $(EXPECTED_TOKENS_SCRIPT)"; exit 2; fi; \
+      if [ -z "$$PROMPTS" ]; then PROMPTS="benchmarks/prompts_10.txt"; fi; \
+      if [ ! -f "$$PROMPTS" ]; then echo "ERROR: PROMPTS '$$PROMPTS' not found"; exit 2; fi; \
+      MDIR="$${MODEL:-$${MODEL_DIR:-}}"; \
+      if [ -z "$$MDIR" ] || [ "$$MDIR" = "." ]; then MDIR="$(MODEL_DIR_DEFAULT)"; fi; \
+      ABS_MDIR="$$(realpath -m "$$MDIR")"; \
+      ABS_BIN="$$(realpath -m $(BIN_CUDA))"; ABS_PROMPTS="$$(realpath -m "$$PROMPTS")"; \
+      THREADS_VAL="$${THREADS:-$$(nproc)}"; PRECISION_VAL="$${PRECISION:-fp32}"; \
+      BATCH_VAL="$${BATCH:-1}"; PREFETCH_VAL="$${PREFETCH:-auto}"; \
+      PRETRANS_VAL="$${PRETRANSPOSE:-all}"; AFFINITY_VAL="$${AFFINITY:-auto}"; \
+      MAX_NEW_VAL="$${MAX_NEW:-128}"; \
+      RUNS_VAL="$${RUNS:-1}"; \
+      ROUNDS_VAL="$${ROUNDS:-1}"; \
+      EXPECTED_TOKENS_VAL="$${EXPECTED_TOKENS:-$$(dirname "$$ABS_PROMPTS")/expected_tokens.txt}"; \
+      DEDUP_VAL="1"; \
+      GEN_BIN="$${EXPECTED_TOKENS_BIN:-$(BIN_CPU)}"; \
+      ABS_GEN_BIN="$$(realpath -m "$$GEN_BIN")"; \
+      if [ "$${EXPECTED_TOKENS_GENERATE:-$(EXPECTED_TOKENS_GENERATE)}" = "1" ] || [ ! -f "$$EXPECTED_TOKENS_VAL" ]; then \
+        echo "[bench-report-cuda] generating $$EXPECTED_TOKENS_VAL"; \
+        env -i PATH="$$PATH" SHELL="$$SHELL" HOME="$$HOME" \
+          ENGINE_BIN="$$ABS_GEN_BIN" DEVICE="$${EXPECTED_TOKENS_DEVICE:-$(EXPECTED_TOKENS_DEVICE)}" MODEL_DIR="$$ABS_MDIR" PROMPTS="$$ABS_PROMPTS" \
+          THREADS="$$THREADS_VAL" PRECISION="$$PRECISION_VAL" BATCH="$$BATCH_VAL" \
+          PREFETCH="$$PREFETCH_VAL" PRETRANSPOSE="$$PRETRANS_VAL" AFFINITY="$$AFFINITY_VAL" \
+          MAX_NEW="$$MAX_NEW_VAL" RUNS="1" ROUNDS="1" \
+          IE_DEDUP="$$DEDUP_VAL" IE_DEDUP_POLICY="$$IE_DEDUP_POLICY" IE_DEDUP_CACHE_MB="$$IE_DEDUP_CACHE_MB" \
+          $(PYTHON) "$(EXPECTED_TOKENS_SCRIPT)" --engine-bin "$$ABS_GEN_BIN" --model-dir "$$ABS_MDIR" --prompts "$$ABS_PROMPTS" --out "$$EXPECTED_TOKENS_VAL" --device "$${EXPECTED_TOKENS_DEVICE:-$(EXPECTED_TOKENS_DEVICE)}" --threads "$$THREADS_VAL" --precision "$$PRECISION_VAL" --batch "$$BATCH_VAL" --prefetch "$$PREFETCH_VAL" --pretranspose "$$PRETRANS_VAL" --affinity "$$AFFINITY_VAL" --max-new "$$MAX_NEW_VAL" --rounds 1; \
+      fi; \
+      RUN_ID="$${RUN_ID:-$$(date -u +%Y%m%dT%H%M%SZ)}"; \
+      REPORT_ROOT_VAL="$${REPORT_ROOT:-$(REPORT_ROOT)}"; \
+      if [ -z "$$REPORT_ROOT_VAL" ]; then REPORT_ROOT_VAL="$(REPORT_ROOT)"; fi; \
+      OUT_DIR="$$(realpath -m "$$REPORT_ROOT_VAL/$$RUN_ID/cuda")"; \
+      OUT_FILE="$$OUT_DIR/report.jsonl"; \
+      mkdir -p "$$OUT_DIR"; \
+      echo "[bench-report-cuda] writing $$OUT_FILE"; \
+      env -i PATH="$$PATH" SHELL="$$SHELL" HOME="$$HOME" \
+        ENGINE_BIN="$$ABS_BIN" DEVICE="cuda" MODEL_DIR="$$ABS_MDIR" PROMPTS="$$ABS_PROMPTS" \
+        THREADS="$$THREADS_VAL" PRECISION="$$PRECISION_VAL" BATCH="$$BATCH_VAL" \
+        PREFETCH="$$PREFETCH_VAL" PRETRANSPOSE="$$PRETRANS_VAL" AFFINITY="$$AFFINITY_VAL" \
+        MAX_NEW="$$MAX_NEW_VAL" RUNS="$$RUNS_VAL" ROUNDS="$$ROUNDS_VAL" \
+        IE_BYTES_PER_TOKEN="$${IE_BYTES_PER_TOKEN:-67108864}" IE_STRIDE_BYTES="$${IE_STRIDE_BYTES:-256}" IE_VERIFY_TOUCH="$${IE_VERIFY_TOUCH:-1}" \
+        IE_ACTIVATIONS="$$IE_ACTIVATIONS" IE_FP8_FORMAT="$$IE_FP8_FORMAT" IE_HOT_REPLICATE="$$IE_HOT_REPLICATE" \
+        IE_DEDUP="$$DEDUP_VAL" IE_DEDUP_POLICY="$$IE_DEDUP_POLICY" IE_DEDUP_CACHE_MB="$$IE_DEDUP_CACHE_MB" IE_DEDUP_HOT_BYTES="$$IE_DEDUP_HOT_BYTES" IE_DEDUP_HOT_LIST="$$IE_DEDUP_HOT_LIST" \
+        IE_PREFETCH_DISTANCE="$$IE_PREFETCH_DISTANCE" IE_NT_LOADS="$$IE_NT_LOADS" IE_L3_BYTES="$$IE_L3_BYTES" IE_NT_THRESHOLD_RATIO="$$IE_NT_THRESHOLD_RATIO" IE_STREAM_BLOCK_BYTES="$$IE_STREAM_BLOCK_BYTES" IE_REUSE_GUARD_WINDOWS="$$IE_REUSE_GUARD_WINDOWS" \
+        EXPECTED_TOKENS="$$EXPECTED_TOKENS_VAL" REPORT_TOKENS_MAX="$$REPORT_TOKENS_MAX" \
+        $(PYTHON) "$(REPORT_SCRIPT)" \
+          --engine-bin "$$ABS_BIN" \
+          --model-dir "$$ABS_MDIR" \
+          --prompts "$$ABS_PROMPTS" \
+          --device cuda \
+          --out "$$OUT_FILE" \
+          --threads "$$THREADS_VAL" \
+          --precision "$$PRECISION_VAL" \
+          --batch "$$BATCH_VAL" \
+          --prefetch "$$PREFETCH_VAL" \
+          --pretranspose "$$PRETRANS_VAL" \
+          --affinity "$$AFFINITY_VAL" \
+          --max-new "$$MAX_NEW_VAL" \
+          --runs "$$RUNS_VAL" \
+          --rounds "$$ROUNDS_VAL" \
+          $(REPORT_ARGS); \
+      echo "$$OUT_FILE" > "$$OUT_DIR/LATEST_REPORT_PATH.txt"; \
+      echo "[bench-report-cuda] done"
+
+# bench-verify: verify the most recent CPU report (or REPORT_PATH=/path/to/report.jsonl)
+bench-verify:
+> @set -e; set -o pipefail; \
+      if [ "$${VERIFY:-$(VERIFY)}" != "1" ]; then echo "[bench-verify] VERIFY=0; nothing to do."; exit 0; fi; \
+      if [ ! -f "$(VERIFY_SCRIPT)" ]; then echo "ERROR: VERIFY=1 but missing $(VERIFY_SCRIPT)"; exit 2; fi; \
+      RP="$${REPORT_PATH:-}"; \
+      if [ -z "$$RP" ]; then \
+        REPORT_ROOT_VAL="$${REPORT_ROOT:-$(REPORT_ROOT)}"; \
+        if [ -z "$$REPORT_ROOT_VAL" ]; then REPORT_ROOT_VAL="$(REPORT_ROOT)"; fi; \
+        latest="$$(ls -1 "$$REPORT_ROOT_VAL" 2>/dev/null | tail -n 1 || true)"; \
+        if [ -z "$$latest" ]; then echo "ERROR: no reports under $(REPORT_ROOT)"; exit 2; fi; \
+        RP="$$REPORT_ROOT_VAL/$$latest/cpu/report.jsonl"; \
+      fi; \
+      if [ ! -f "$$RP" ]; then echo "ERROR: report file '$$RP' not found"; exit 2; fi; \
+      echo "[bench-verify] verifying $$RP"; \
+      $(PYTHON) "$(VERIFY_SCRIPT)" $(VERIFY_ARGS) "$$RP"; \
+      echo "[bench-verify] OK"
+
+# bench-verify-cuda: verify the most recent CUDA report (or REPORT_PATH=/path/to/report.jsonl)
+bench-verify-cuda:
+> @set -e; set -o pipefail; \
+      if [ "$${VERIFY:-$(VERIFY)}" != "1" ]; then echo "[bench-verify-cuda] VERIFY=0; nothing to do."; exit 0; fi; \
+      if [ ! -f "$(VERIFY_SCRIPT)" ]; then echo "ERROR: VERIFY=1 but missing $(VERIFY_SCRIPT)"; exit 2; fi; \
+      RP="$${REPORT_PATH:-}"; \
+      if [ -z "$$RP" ]; then \
+        REPORT_ROOT_VAL="$${REPORT_ROOT:-$(REPORT_ROOT)}"; \
+        if [ -z "$$REPORT_ROOT_VAL" ]; then REPORT_ROOT_VAL="$(REPORT_ROOT)"; fi; \
+        latest="$$(ls -1 "$$REPORT_ROOT_VAL" 2>/dev/null | tail -n 1 || true)"; \
+        if [ -z "$$latest" ]; then echo "ERROR: no reports under $(REPORT_ROOT)"; exit 2; fi; \
+        RP="$$REPORT_ROOT_VAL/$$latest/cuda/report.jsonl"; \
+      fi; \
+      if [ ! -f "$$RP" ]; then echo "ERROR: report file '$$RP' not found"; exit 2; fi; \
+      echo "[bench-verify-cuda] verifying $$RP"; \
+      $(PYTHON) "$(VERIFY_SCRIPT)" $(VERIFY_ARGS) "$$RP"; \
+      echo "[bench-verify-cuda] OK"
+
+bench: $(BIN_CPU)
 > @set -e; set -o pipefail; \
       if [ -z "$$PROMPTS" ]; then PROMPTS="benchmarks/prompts_10.txt"; fi; \
       if [ ! -f "$$PROMPTS" ]; then echo "ERROR: PROMPTS '$$PROMPTS' not found"; exit 2; fi; \
@@ -287,7 +490,7 @@ bench:
         test -f "$$ABS_MDIR/model.ie.json" && test -f "$$ABS_MDIR/model.ie.bin" || { \
           echo "ERROR: IEBIN missing under '$$ABS_MDIR' (model.ie.json/bin). Set IE_REQUIRE_MODEL=0 to bypass."; exit 2; }; \
       fi; \
-      DEDUP_VAL="$${IE_DEDUP:-$(IE_DEDUP)}"; \
+      DEDUP_VAL="1"; \
       if [ "$$DEDUP_VAL" = "1" ]; then \
         test -f "$$ABS_MDIR/dedup_manifest.json" -o -f "$$ABS_MDIR/model.dedup.json" || { \
           echo "ERROR: IE_DEDUP=1 but no dedup manifest found under '$$ABS_MDIR'."; \
@@ -313,6 +516,10 @@ bench:
       IE_DEDUP="$$DEDUP_VAL" IE_DEDUP_POLICY="$$IE_DEDUP_POLICY" IE_DEDUP_CACHE_MB="$$IE_DEDUP_CACHE_MB" IE_DEDUP_HOT_BYTES="$$IE_DEDUP_HOT_BYTES" IE_DEDUP_HOT_LIST="$$IE_DEDUP_HOT_LIST" \
       IE_PREFETCH_DISTANCE="$$IE_PREFETCH_DISTANCE" IE_NT_LOADS="$$IE_NT_LOADS" IE_L3_BYTES="$$IE_L3_BYTES" IE_NT_THRESHOLD_RATIO="$$IE_NT_THRESHOLD_RATIO" IE_STREAM_BLOCK_BYTES="$$IE_STREAM_BLOCK_BYTES" IE_REUSE_GUARD_WINDOWS="$$IE_REUSE_GUARD_WINDOWS" \
       bash scripts/true_tps_strict.sh | tee $(BUILD)/strict_cpu.json; \
+      if [ "$${REPORT:-$(REPORT)}" = "1" ]; then \
+        $(MAKE) bench-report PROMPTS="$$ABS_PROMPTS" MODEL_DIR="$$ABS_MDIR" THREADS="$$THREADS_VAL" PRECISION="$$PRECISION_VAL" BATCH="$$BATCH_VAL" PREFETCH="$$PREFETCH_VAL" PRETRANSPOSE="$$PRETRANS_VAL" AFFINITY="$$AFFINITY_VAL" MAX_NEW="$$MAX_NEW_VAL" RUNS="$$RUNS_VAL" ROUNDS="$$ROUNDS_VAL"; \
+        if [ "$${VERIFY:-$(VERIFY)}" = "1" ]; then $(MAKE) bench-verify; fi; \
+      fi; \
       echo "[bench] updating docs/PERFORMANCE.md (CPU)…"; \
       if [ -f $(BUILD)/strict_gpu.json ]; then \
         GPU_ARG="--gpu-json $(BUILD)/strict_gpu.json --gpu-engine-bin $$(realpath -m $(BIN_CUDA))"; \
@@ -336,7 +543,7 @@ bench:
         --ie-verify-touch "$${IE_VERIFY_TOUCH:-1}" \
         --model-dir "$$ABS_MDIR"
 
-bench-cuda:
+bench-cuda: $(BIN_CUDA)
 > @set -e; set -o pipefail; \
       if [ -z "$$PROMPTS" ]; then PROMPTS="benchmarks/prompts_10.txt"; fi; \
       if [ ! -f "$$PROMPTS" ]; then echo "ERROR: PROMPTS '$$PROMPTS' not found"; exit 2; fi; \
@@ -349,7 +556,7 @@ bench-cuda:
         test -f "$$ABS_MDIR/model.ie.json" && test -f "$$ABS_MDIR/model.ie.bin" || { \
           echo "ERROR: IEBIN missing under '$$ABS_MDIR' (model.ie.json/bin). Set IE_REQUIRE_MODEL=0 to bypass."; exit 2; }; \
       fi; \
-      DEDUP_VAL="$${IE_DEDUP:-$(IE_DEDUP)}"; \
+      DEDUP_VAL="1"; \
       if [ "$$DEDUP_VAL" = "1" ]; then \
         test -f "$$ABS_MDIR/dedup_manifest.json" -o -f "$$ABS_MDIR/model.dedup.json" || { \
           echo "ERROR: IE_DEDUP=1 but no dedup manifest found under '$$ABS_MDIR'."; \
@@ -376,6 +583,10 @@ bench-cuda:
       IE_PREFETCH_DISTANCE="$$IE_PREFETCH_DISTANCE" IE_NT_LOADS="$$IE_NT_LOADS" IE_L3_BYTES="$$IE_L3_BYTES" IE_NT_THRESHOLD_RATIO="$$IE_NT_THRESHOLD_RATIO" IE_STREAM_BLOCK_BYTES="$$IE_STREAM_BLOCK_BYTES" IE_REUSE_GUARD_WINDOWS="$$IE_REUSE_GUARD_WINDOWS" \
       IE_METRICS_MEM="1" IE_METRICS_MEM_TOML="monitoring/metrics_memory.toml" \
       bash scripts/true_tps_strict.sh | tee $(BUILD)/strict_gpu.json; \
+      if [ "$${REPORT:-$(REPORT)}" = "1" ]; then \
+        $(MAKE) bench-report-cuda PROMPTS="$$ABS_PROMPTS" MODEL_DIR="$$ABS_MDIR" THREADS="$$THREADS_VAL" PRECISION="$$PRECISION_VAL" BATCH="$$BATCH_VAL" PREFETCH="$$PREFETCH_VAL" PRETRANSPOSE="$$PRETRANS_VAL" AFFINITY="$$AFFINITY_VAL" MAX_NEW="$$MAX_NEW_VAL" RUNS="$$RUNS_VAL" ROUNDS="$$ROUNDS_VAL"; \
+        if [ "$${VERIFY:-$(VERIFY)}" = "1" ]; then $(MAKE) bench-verify-cuda; fi; \
+      fi; \
       echo "[bench-cuda] updating docs/PERFORMANCE.md (GPU)…"; \
       if [ -f $(BUILD)/strict_cpu.json ]; then \
         CPU_ARG="--cpu-json $(BUILD)/strict_cpu.json --cpu-engine-bin $$(realpath -m $(BIN_CPU))"; \

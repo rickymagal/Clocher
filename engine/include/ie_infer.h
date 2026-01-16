@@ -17,6 +17,11 @@
  * @brief Inference interface for the GPT-OSS runtime.
  *
  * @details
+ *
+ * Performance notes:
+ * - INT4 runs use Q4_0 weight GEMV kernels (runtime-dispatched to AVX2/FMA when available).
+ * - Per-32-column scales may be stored as BF16 (2 bytes) or FP8(E4M3) (1 byte) depending on artifacts.
+
  * This header defines the stable ABI used by the public API layer (ie_api.c)
  * and by the CLI harness (main_infer.c) to run inference.
  *
@@ -105,6 +110,11 @@ int ie_gptoss_infer_step(ie_gptoss_infer_t *ctx,
  * @brief Get the current position (number of tokens already consumed).
  *
  * @details
+ *
+ * Performance notes:
+ * - INT4 runs use Q4_0 weight GEMV kernels (runtime-dispatched to AVX2/FMA when available).
+ * - Per-32-column scales may be stored as BF16 (2 bytes) or FP8(E4M3) (1 byte) depending on artifacts.
+
  * The runtime maintains a position counter internally. This is used to index
  * into the KV cache (time dimension) and to drive rotary embeddings.
  */
@@ -114,6 +124,11 @@ uint32_t ie_gptoss_infer_get_pos(const ie_gptoss_infer_t *ctx);
  * @brief Set the current position.
  *
  * @details
+ *
+ * Performance notes:
+ * - INT4 runs use Q4_0 weight GEMV kernels (runtime-dispatched to AVX2/FMA when available).
+ * - Per-32-column scales may be stored as BF16 (2 bytes) or FP8(E4M3) (1 byte) depending on artifacts.
+
  * This exists to enable persistent prompt-prefix reuse: if the KV cache already
  * contains valid K/V entries for positions [0, pos-1], the caller can rewind the
  * runtime position to @p pos and continue generation without recomputing the

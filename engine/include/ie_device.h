@@ -75,6 +75,14 @@ void ie_device_destroy(ie_device_t *dev);
 int ie_device_caps(const ie_device_t *dev, ie_device_caps_t *out_caps);
 
 /**
+ * @brief Return the logical kind of a device handle.
+ *
+ * @param dev Device handle.
+ * @return Device kind (CPU, CUDA, ZE).
+ */
+ie_device_kind_t ie_device_kind(const ie_device_t *dev);
+
+/**
  * @brief Device-side GEMV (FP32): y = W * x (+ optional bias).
  *
  * Dimensions: W is (rows x cols), x is (cols), y is (rows). Backends may copy
@@ -94,6 +102,32 @@ int ie_device_gemv_f32(ie_device_t *dev,
                        const float *W, const float *x, float *y,
                        size_t rows, size_t cols,
                        const float *bias, size_t blk_k);
+
+/**
+ * @brief Device-side GEMV (Q4_0 weights, FP32 activations).
+ *
+ * The Q4_0 layout matches ie_gemv_q4_0_f32() (see ie_kernels.h).
+ *
+ * @param dev Device handle.
+ * @param w_q4 Packed Q4_0 weights.
+ * @param w_scales Per-block scales (BF16 or log2_u8_q3).
+ * @param scale_bytes Bytes per scale (1 or 2).
+ * @param x FP32 input vector.
+ * @param y FP32 output vector.
+ * @param rows Rows.
+ * @param cols Cols (multiple of 32).
+ * @param bias_bf16 Optional BF16 bias vector (rows) or NULL.
+ * @return 0 on success; non-zero on error.
+ */
+int ie_device_gemv_q4_0_f32(ie_device_t *dev,
+                            const uint8_t *w_q4,
+                            const uint8_t *w_scales,
+                            size_t scale_bytes,
+                            const float *x,
+                            float *y,
+                            size_t rows,
+                            size_t cols,
+                            const uint16_t *bias_bf16);
 
 /**
  * @brief Block-sparse GEMV (FP32): y = W * x (+ optional bias).

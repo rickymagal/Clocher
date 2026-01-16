@@ -12,6 +12,7 @@ extern "C" {
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
+
 /**
  * @file tensor_map.h
  * @brief Loader and lookup API for tensor_map.json.
@@ -237,6 +238,25 @@ void tensor_map_free(tensor_map_t *map);
  * @return Pointer to descriptor, or NULL if not found.
  */
 const tensor_desc_t *tensor_map_find(const tensor_map_t *map, const char *name);
+
+/**
+ * @brief Validate a loaded tensor map against a mapped weights binary.
+ *
+ * @details
+ * This is a hard consistency check intended to catch stale/mismatched tensor_map.json
+ * versus model.ie.bin before any inference occurs. It validates:
+ *  - name is present
+ *  - size_bytes is non-zero
+ *  - offset + size_bytes fits within bin_size
+ *  - no overlaps (after sorting by offset)
+ *
+ * @param map Loaded tensor map.
+ * @param bin_size Size in bytes of the mapped weights file.
+ * @param err Optional error buffer for a human-readable error message.
+ * @param errsz Size of err buffer.
+ * @return 0 if valid, non-zero if invalid.
+ */
+int tensor_map_validate_against_bin(const tensor_map_t *map, size_t bin_size, char *err, size_t errsz);
 
 #ifdef __cplusplus
 }

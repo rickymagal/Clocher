@@ -35,6 +35,15 @@ typedef struct ie_device_vtbl {
   int  (*caps)(const void *self, ie_device_caps_t *out);
   int  (*gemv_f32)(void *self, const float *W, const float *x, float *y,
                    size_t rows, size_t cols, const float *bias, size_t blk_k);
+  int  (*gemv_q4_0_f32)(void *self,
+                       const uint8_t *w_q4,
+                       const uint8_t *w_scales,
+                       size_t scale_bytes,
+                       const float *x,
+                       float *y,
+                       size_t rows,
+                       size_t cols,
+                       const uint16_t *bias_bf16);
   int  (*memcpy)(void *self, void *dst, const void *src, size_t nbytes);
   int  (*gemv_block_sparse_f32)(void *self,
                                 const ie_block_sparse_matrix_t *m,
@@ -105,6 +114,22 @@ static int cpu_gemv_f32(void *self,
 }
 
 /**
+ * @brief Execute Q4_0 GEMV on CPU using existing kernels.
+ */
+static int cpu_gemv_q4_0_f32(void *self,
+                             const uint8_t *w_q4,
+                             const uint8_t *w_scales,
+                             size_t scale_bytes,
+                             const float *x,
+                             float *y,
+                             size_t rows,
+                             size_t cols,
+                             const uint16_t *bias_bf16) {
+  (void)self;
+  return ie_gemv_q4_0_f32(w_q4, w_scales, scale_bytes, x, y, rows, cols, bias_bf16);
+}
+
+/**
  * @brief CPU memcpy implementation.
  */
 static int cpu_memcpy(void *self, void *dst, const void *src, size_t nbytes) {
@@ -163,6 +188,9 @@ typedef struct cuda_impl {
 
   void  *dbias;
   size_t dbias_cap;
+
+  void  *dW_scales;
+  size_t dW_scales_cap;
 } cuda_impl_t;
 
 /**
@@ -275,6 +303,65 @@ static int cuda_gemv_f32_thunk(void *self,
 }
 
 /**
+ * @brief CUDA GEMV Q4_0 implementation.
+ *
+ * This copies packed weights/scales/x/bias to device buffers, launches a CUDA kernel,
+ * then copies y back.
+ */
+static int cuda_gemv_q4_0_f32_thunk(void *self,
+                                   const uint8_t *w_q4,
+                                   const uint8_t *w_scales,
+                                   size_t scale_bytes,
+                                   const float *x,
+                                   float *y,
+                                   size_t rows,
+                                   size_t cols,
+                                   const uint16_t *bias_bf16) {
+  cuda_impl_t *ci = (cuda_impl_t*)self;
+  if (!ci || !w_q4 || !w_scales || !x || !y || rows == 0 || cols == 0) return -1;
+  if (scale_bytes != 1u && scale_bytes != 2u) return -2;
+
+  const size_t blocks_per_row = (cols + 31u) / 32u;
+  const size_t row_w_bytes = blocks_per_row * 16u;
+  const size_t row_s_bytes = blocks_per_row * (size_t)scale_bytes;
+
+  const size_t W_bytes = rows * row_w_bytes;
+  const size_t S_bytes = rows * row_s_bytes;
+  const size_t x_bytes = cols * sizeof(float);
+  const size_t y_bytes = rows * sizeof(float);
+  const size_t b_bytes = bias_bf16 ? (rows * sizeof(uint16_t)) : 0;
+
+  if (cuda_ensure_capacity(&ci->dW, &ci->dW_cap, W_bytes) != 0) return -3;
+  if (cuda_ensure_capacity(&ci->dW_scales, &ci->dW_scales_cap, S_bytes) != 0) return -4;
+  if (cuda_ensure_capacity(&ci->dx, &ci->dx_cap, x_bytes) != 0) return -5;
+  if (cuda_ensure_capacity(&ci->dy, &ci->dy_cap, y_bytes) != 0) return -6;
+  if (bias_bf16) {
+    if (cuda_ensure_capacity(&ci->dbias, &ci->dbias_cap, b_bytes) != 0) return -7;
+  }
+
+  if (ie_cuda_memcpy(ci->dW, w_q4, W_bytes, IE_CUDA_COPY_H2D) != 0) return -8;
+  if (ie_cuda_memcpy(ci->dW_scales, w_scales, S_bytes, IE_CUDA_COPY_H2D) != 0) return -9;
+  if (ie_cuda_memcpy(ci->dx, x, x_bytes, IE_CUDA_COPY_H2D) != 0) return -10;
+  if (bias_bf16) {
+    if (ie_cuda_memcpy(ci->dbias, bias_bf16, b_bytes, IE_CUDA_COPY_H2D) != 0) return -11;
+  }
+
+  if (ie_cuda_gemv_q4_0_f32((const uint8_t*)ci->dW,
+                            (const uint8_t*)ci->dW_scales,
+                            scale_bytes,
+                            (const float*)ci->dx,
+                            (float*)ci->dy,
+                            rows,
+                            cols,
+                            bias_bf16 ? (const uint16_t*)ci->dbias : NULL) != 0) {
+    return -12;
+  }
+
+  if (ie_cuda_memcpy(y, ci->dy, y_bytes, IE_CUDA_COPY_D2H) != 0) return -13;
+  return 0;
+}
+
+/**
  * @brief CUDA block-sparse GEMV implementation.
  *
  * Not implemented yet. We return an error to avoid silently producing CPU results
@@ -301,6 +388,7 @@ static void cuda_destroy_thunk(void *self) {
   if (!ci) return;
 
   if (ci->dW)    ie_cuda_free(ci->dW);
+  if (ci->dW_scales) ie_cuda_free(ci->dW_scales);
   if (ci->dx)    ie_cuda_free(ci->dx);
   if (ci->dy)    ie_cuda_free(ci->dy);
   if (ci->dbias) ie_cuda_free(ci->dbias);
@@ -338,6 +426,7 @@ static int cuda_try_create(void **out_impl, ie_device_vtbl_t *out_vt) {
 
   out_vt->caps                   = cuda_caps_thunk;
   out_vt->gemv_f32               = cuda_gemv_f32_thunk;
+  out_vt->gemv_q4_0_f32           = cuda_gemv_q4_0_f32_thunk;
   out_vt->memcpy                 = cuda_memcpy_thunk;
   out_vt->gemv_block_sparse_f32  = cuda_gemv_block_sparse_f32_unimpl;
   out_vt->destroy                = cuda_destroy_thunk;
@@ -386,6 +475,23 @@ static int ze_gemv_f32_stub(void *self,
 }
 
 /**
+ * @brief Level Zero GEMV Q4_0 stub (unimplemented).
+ */
+static int ze_gemv_q4_0_f32_stub(void *self,
+                                const uint8_t *w_q4,
+                                const uint8_t *w_scales,
+                                size_t scale_bytes,
+                                const float *x,
+                                float *y,
+                                size_t rows,
+                                size_t cols,
+                                const uint16_t *bias_bf16) {
+  (void)self; (void)w_q4; (void)w_scales; (void)scale_bytes;
+  (void)x; (void)y; (void)rows; (void)cols; (void)bias_bf16;
+  return -2;
+}
+
+/**
  * @brief Level Zero memcpy stub (unimplemented).
  */
 static int ze_memcpy_stub(void *self, void *dst, const void *src, size_t nbytes) {
@@ -426,6 +532,7 @@ static int ze_try_create(void **out_impl, ie_device_vtbl_t *out_vt) {
 
   out_vt->caps                  = ze_caps_thunk;
   out_vt->gemv_f32              = ze_gemv_f32_stub;
+  out_vt->gemv_q4_0_f32          = ze_gemv_q4_0_f32_stub;
   out_vt->memcpy                = ze_memcpy_stub;
   out_vt->gemv_block_sparse_f32 = ze_gemv_block_sparse_f32_stub;
   out_vt->destroy               = ze_destroy_thunk;
@@ -459,6 +566,7 @@ int ie_device_create(ie_device_kind_t kind, ie_device_t **out_dev) {
     d->impl                     = ci;
     d->vt.caps                  = cpu_caps;
     d->vt.gemv_f32              = cpu_gemv_f32;
+    d->vt.gemv_q4_0_f32          = cpu_gemv_q4_0_f32;
     d->vt.memcpy                = cpu_memcpy;
     d->vt.gemv_block_sparse_f32 = cpu_gemv_block_sparse_f32;
     d->vt.destroy               = cpu_destroy;
@@ -521,6 +629,23 @@ int ie_device_gemv_f32(ie_device_t *dev,
 }
 
 /**
+ * @brief Execute GEMV Q4_0 through backend.
+ */
+int ie_device_gemv_q4_0_f32(ie_device_t *dev,
+                            const uint8_t *w_q4,
+                            const uint8_t *w_scales,
+                            size_t scale_bytes,
+                            const float *x,
+                            float *y,
+                            size_t rows,
+                            size_t cols,
+                            const uint16_t *bias_bf16) {
+  if (!dev || !dev->vt.gemv_q4_0_f32) return -1;
+  return dev->vt.gemv_q4_0_f32(dev->impl, w_q4, w_scales, scale_bytes,
+                              x, y, rows, cols, bias_bf16);
+}
+
+/**
  * @brief Execute block-sparse GEMV FP32 through backend.
  */
 int ie_device_gemv_block_sparse_f32(ie_device_t *dev,
@@ -538,6 +663,14 @@ int ie_device_gemv_block_sparse_f32(ie_device_t *dev,
 int ie_device_memcpy(ie_device_t *dev, void *dst, const void *src, size_t nbytes) {
   if (!dev || !dev->vt.memcpy) return -1;
   return dev->vt.memcpy(dev->impl, dst, src, nbytes);
+}
+
+/**
+ * @brief Return the device kind.
+ */
+ie_device_kind_t ie_device_kind(const ie_device_t *dev) {
+  if (!dev) return IE_DEV_CPU;
+  return dev->kind;
 }
 
 /**

@@ -573,6 +573,28 @@ static inline float ie_bf16_to_f32(uint16_t v) {
  */
 static inline float ie_silu_f32(float x) { return x / (1.0f + expf(-x)); }
 
+static int ie_debug_nan_enabled_(void) {
+  static int cached = -1;
+  if (cached < 0) {
+    const char *s = getenv("IE_DEBUG_NAN");
+    cached = (s && s[0] && strcmp(s, "0") != 0) ? 1 : 0;
+  }
+  return cached;
+}
+
+static int ie_check_finite_f32_(const float *v, size_t n, const char *tag,
+                                uint32_t layer, uint32_t pos) {
+  if (!v || !tag || n == 0) return 0;
+  for (size_t i = 0; i < n; ++i) {
+    if (!isfinite(v[i])) {
+      IE_LOGE("nan: %s layer=%u pos=%u idx=%zu val=%g",
+              tag, (unsigned)layer, (unsigned)pos, i, (double)v[i]);
+      return -1;
+    }
+  }
+  return 0;
+}
+
 /* ------------------------------------------------------------------------- */
 /* Math primitives                                                            */
 /* ------------------------------------------------------------------------- */
@@ -825,110 +847,6 @@ IE_WEAK int ie_rope_apply_f32(float *q, float *k, size_t heads, size_t head_dim,
         vk[i1] = x0 * s + x1 * c;
       }
     }
-  }
-
-  return 0;
-}
-
-/* ------------------------------------------------------------------------- */
-/* GEMV: BF16 matrix x FP32 vector -> FP32 output                             */
-/* ------------------------------------------------------------------------- */
-
-static int ie_gemv_bf16_f32(const uint16_t *W_bf16, const float *x, float *y, size_t rows,
-                            size_t cols, const uint16_t *bias_bf16) {
-  if (!W_bf16 || !x || !y || rows == 0u || cols == 0u) return -1;
-
-  for (size_t r = 0; r < rows; ++r) {
-    float acc = 0.0f;
-    const size_t base = r * cols;
-    for (size_t c = 0; c < cols; ++c) {
-      const float w = ie_bf16_to_f32(W_bf16[base + c]);
-      acc += w * x[c];
-    }
-    if (bias_bf16) acc += ie_bf16_to_f32(bias_bf16[r]);
-    y[r] = acc;
-  }
-
-  return 0;
-}
-
-/* ------------------------------------------------------------------------- */
-/* FP8 scale decode (E4M3, finite-only)                                       */
-/* ------------------------------------------------------------------------- */
-
-static inline float ie_fp8_e4m3_to_f32(uint8_t v) {
-  if (v == 0u) return 0.0f;
-  const uint8_t sign = (v >> 7) & 0x1u;
-  const uint8_t exp  = (v >> 3) & 0xFu;
-  const uint8_t man  = (v & 0x7u);
-
-  if (exp == 0u) {
-    return sign ? -0.0f : 0.0f;
-  }
-
-  const int bias = 7;
-  const int e = (int)exp - bias;
-
-  const float frac = (float)man / 8.0f;
-  const float val  = (1.0f + frac) * ldexpf(1.0f, e);
-  return sign ? -val : val;
-}
-
-/* ------------------------------------------------------------------------- */
-/* Q4_0-like blocks: row dot                                                  */
-/* ------------------------------------------------------------------------- */
-
-static float ie_q4_0_row_dot_f32(const uint8_t *row_blocks, const uint8_t *row_scales,
-                                uint8_t scale_bytes, const float *x, size_t cols) {
-  const size_t qk = 32u;
-  const size_t qs_bytes = qk / 2u;
-  const size_t nb = cols / qk;
-
-  float acc = 0.0f;
-  for (size_t b = 0; b < nb; ++b) {
-    float d;
-    if (scale_bytes == 2u) {
-      const uint16_t *s16 = (const uint16_t *)(const void *)row_scales;
-      d = ie_bf16_to_f32(s16[b]);
-    } else {
-      d = ie_fp8_e4m3_to_f32(row_scales[b]);
-    }
-    const uint8_t *qs = row_blocks + b * qs_bytes;
-
-    const size_t x0 = b * qk;
-    for (size_t i = 0; i < qs_bytes; ++i) {
-      const uint8_t packed = qs[i];
-      const int v0 = (int)(packed & 0x0F) - 8;
-      const int v1 = (int)(packed >> 4) - 8;
-
-      acc += ((float)v0 * d) * x[x0 + 2u * i + 0u];
-      acc += ((float)v1 * d) * x[x0 + 2u * i + 1u];
-    }
-  }
-
-  return acc;
-}
-
-static int ie_gemv_q4_0_f32(const uint8_t *W_blocks, const uint8_t *W_scales,
-                           uint8_t scale_bytes, const float *x,
-                           float *y, size_t rows, size_t cols, const uint16_t *bias_bf16) {
-  if (!W_blocks || !W_scales || !x || !y || rows == 0u || cols == 0u) return -1;
-  if (!(scale_bytes == 1u || scale_bytes == 2u)) return -3;
-  if ((cols % 32u) != 0u) return -2;
-
-  const size_t qk = 32u;
-  const size_t qs_bytes = qk / 2u;
-  const size_t nb = cols / qk;
-
-  const size_t blocks_per_row_bytes = nb * qs_bytes;
-  const size_t scales_per_row = nb;
-
-  for (size_t r = 0; r < rows; ++r) {
-    const uint8_t *rb = W_blocks + r * blocks_per_row_bytes;
-    const uint8_t *rs = W_scales + (size_t)r * scales_per_row * (size_t)scale_bytes;
-    float acc = ie_q4_0_row_dot_f32(rb, rs, scale_bytes, x, cols);
-    if (bias_bf16) acc += ie_bf16_to_f32(bias_bf16[r]);
-    y[r] = acc;
   }
 
   return 0;
@@ -1277,6 +1195,10 @@ static int ie_forward_one_token(struct ie_gptoss_infer_impl *impl, ie_kv_cache *
       IE_LOGE("rmsnorm1 failed: layer=%u pos=%u", (unsigned)l, (unsigned)pos);
       return -11;
     }
+    if (ie_debug_nan_enabled_() &&
+        ie_check_finite_f32_(impl->x1, (size_t)d_model, "rmsnorm1", l, pos) != 0) {
+      return -90;
+    }
 
     if (ie_gemv_bf16_f32(W->q_w, impl->x1, impl->q, q_dim, (size_t)d_model, W->q_b) != 0) return -12;
     if (ie_gemv_bf16_f32(W->k_w, impl->x1, impl->k, kv_dim, (size_t)d_model, W->k_b) != 0) return -13;
@@ -1330,6 +1252,10 @@ static int ie_forward_one_token(struct ie_gptoss_infer_impl *impl, ie_kv_cache *
                 (unsigned)l, (unsigned)pos, (unsigned)n_exp);
         return -22;
       }
+      if (ie_debug_nan_enabled_() &&
+          ie_check_finite_f32_(impl->router_logits, (size_t)n_exp, "router_logits", l, pos) != 0) {
+        return -90;
+      }
 
       const uint32_t topk = ie_u32_min(impl->moe_topk, n_exp);
       if (topk == 0u) return -23;
@@ -1379,11 +1305,19 @@ static int ie_forward_one_token(struct ie_gptoss_infer_impl *impl, ie_kv_cache *
                   (unsigned)l, (unsigned)pos, (unsigned)ex);
           return -24;
         }
+        if (ie_debug_nan_enabled_() &&
+            ie_check_finite_f32_(impl->mlp_up, 2u * d_ff, "mlp_up", l, pos) != 0) {
+          return -90;
+        }
 
         for (size_t i = 0; i < d_ff; ++i) {
           const float g = ie_silu_f32(impl->mlp_up[i]);
           const float u = impl->mlp_up[d_ff + i];
           impl->mlp_gate[i] = g * u;
+        }
+        if (ie_debug_nan_enabled_() &&
+            ie_check_finite_f32_(impl->mlp_gate, d_ff, "mlp_gate", l, pos) != 0) {
+          return -90;
         }
 
         if (ie_gemv_q4_0_f32(dn_b, dn_s, M->down_scale_bytes,
@@ -1392,6 +1326,10 @@ static int ie_forward_one_token(struct ie_gptoss_infer_impl *impl, ie_kv_cache *
           IE_LOGE("moe down gemv failed: layer=%u pos=%u ex=%u",
                   (unsigned)l, (unsigned)pos, (unsigned)ex);
           return -25;
+        }
+        if (ie_debug_nan_enabled_() &&
+            ie_check_finite_f32_(impl->attn_out, (size_t)d_model, "mlp_down", l, pos) != 0) {
+          return -90;
         }
 
         for (uint32_t i = 0; i < d_model; ++i) impl->x2[i] += p * impl->attn_out[i];
@@ -1478,6 +1416,7 @@ int ie_gptoss_infer_create(const ie_device_t *dev_const, const ie_weights_t *w,
   IE_LOGD("create: inferred model_dir=%s", model_dir);
 
   const char *const tmap_rel[] = {
+      "model.ie.compat.json",
       "tensor_map.json",
       "dedup_out/tensor_map.json",
       "hf/original/tensor_map.json",

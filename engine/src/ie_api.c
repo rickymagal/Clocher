@@ -45,12 +45,14 @@
 
 #include <ctype.h>
 #include <inttypes.h>
+#include <limits.h>
 #include <math.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <sys/stat.h>
 
 #include "gptoss_hparams.h"
 #include "ie_device.h"
@@ -62,7 +64,26 @@
 #include "ie_tokenizer_gptoss.h"
 #include "tensor_map.h"
 #include "util_logging.h"
+#include "ie_cpu.h"
 
+/**
+ * @brief Get the selected Q4 GEMV kernel name for logging.
+ *
+ * @details
+ * The Q4_0 GEMV implementation is runtime-dispatched. This helper is used to
+ * print a deterministic "expected" backend name based on CPU feature flags.
+ *
+ * @return A short backend name string.
+ */
+static const char *ie_q4_kernel_selected_name(void) {
+    ie_cpu_features_t feat;
+    ie_cpu_features_detect(&feat);
+
+    if (feat.avx2 && feat.fma) {
+        return "q4_avx2_fma";
+    }
+    return "q4_generic";
+}
 /* ============================================================================
  * Internal engine object
  * ========================================================================== */
@@ -154,6 +175,34 @@ static int env_int_(const char *name, int default_value, int min_value, int max_
   return (int)x;
 }
 
+static unsigned long long env_u64_(const char *name, unsigned long long default_value,
+                                  unsigned long long min_value, unsigned long long max_value)
+{
+    const char *v = getenv(name);
+    if (v == NULL || v[0] == 0) {
+        return default_value;
+    }
+    char *end = NULL;
+    unsigned long long x = strtoull(v, &end, 10);
+    if (end == v) {
+        return default_value;
+    }
+    if (x < min_value) {
+        return min_value;
+    }
+    if (x > max_value) {
+        return max_value;
+    }
+    return x;
+}
+
+static int path_exists_(const char *path)
+{
+  struct stat st;
+  if (path == NULL || path[0] == 0) return 0;
+  return (stat(path, &st) == 0);
+}
+
 static const char *status_str_(ie_status_t st) {
   switch (st) {
     case IE_OK: return "IE_OK";
@@ -164,6 +213,37 @@ static const char *status_str_(ie_status_t st) {
     case IE_ERR_INTERNAL: return "IE_ERR_INTERNAL";
     default: return "IE_STATUS_UNKNOWN";
   }
+}
+
+static const char *sample_kind_str_(ie_sample_kind_t k)
+{
+    switch (k) {
+        case IE_SAMPLE_GREEDY: return "greedy";
+        case IE_SAMPLE_TOPK:   return "topk";
+        case IE_SAMPLE_TOPP:   return "topp";
+        default:               return "unknown";
+    }
+}
+
+
+static int streq_icase_(const char *a, const char *b)
+{
+    /* ASCII case-insensitive string equality. */
+    if (a == NULL || b == NULL) {
+        return 0;
+    }
+    for (;;) {
+        unsigned char ca = (unsigned char)*a++;
+        unsigned char cb = (unsigned char)*b++;
+        ca = (unsigned char)tolower((int)ca);
+        cb = (unsigned char)tolower((int)cb);
+        if (ca != cb) {
+            return 0;
+        }
+        if (ca == 0) {
+            return 1;
+        }
+    }
 }
 
 static void log_hparams_(const ie_gptoss_hparams_t *hp) {
@@ -251,6 +331,16 @@ static void log_prompt_preview_(const char *prompt) {
   tmp[n] = '\0';
 
   ie_log_info("prompt: bytes=%zu preview=\"%s%s\"", strlen(prompt), tmp, (prompt[n] ? "..." : ""));
+}
+
+
+static int is_precision_int4_(const ie_engine_params_t *p) {
+  if (!p || !p->precision) return 0;
+  /* CLI uses "int4". Keep a few aliases to avoid brittle call sites. */
+  return (strcmp(p->precision, "int4") == 0) ||
+         (strcmp(p->precision, "q4") == 0) ||
+         (strcmp(p->precision, "q4_0") == 0) ||
+         (strcmp(p->precision, "q4_0_f32") == 0);
 }
 
 /* ============================================================================
@@ -360,6 +450,9 @@ ie_status_t ie_engine_create(const ie_engine_params_t *p,
                 (p->pretranspose ? p->pretranspose : "(null)"),
                 (p->prefetch ? p->prefetch : "(null)"),
                 p->threads);
+  if (is_precision_int4_(p)) {
+    ie_log_info("ie_engine_create: q4 kernel=%s (runtime-dispatched)", ie_q4_kernel_selected_name());
+  }
   }
 
   ie_engine_t *e = (ie_engine_t *)calloc(1, sizeof(*e));
@@ -399,22 +492,39 @@ ie_status_t ie_engine_create(const ie_engine_params_t *p,
   ie_log_info("ie_engine_create: tokenizer_open ok (vocab=%" PRIu32 ")", tok_vocab);
 
   const char *weights_json = NULL;
-  char weights_json_buf[4096];
-  const char *bin_override = NULL;
+  const char *bin_override = "";
+
+  char weights_json_buf[PATH_MAX];
+  char compat_json_buf[PATH_MAX];
+  char q4_bin_buf[PATH_MAX];
+
+  const int want_int4 = (p && is_precision_int4_(p));
+
   if (p && p->weights_json_path && p->weights_json_path[0] != '\0') {
     weights_json = p->weights_json_path;
-  } else {
+  } else if (want_int4) {
+    join_path_(compat_json_buf, sizeof(compat_json_buf), model_dir, "model.ie.compat.json");
+    if (path_exists_(compat_json_buf)) {
+      weights_json = compat_json_buf;
+    }
+  }
+
+  if (weights_json == NULL) {
     join_path_(weights_json_buf, sizeof(weights_json_buf), model_dir, "model.ie.json");
     weights_json = weights_json_buf;
   }
+
   if (p && p->weights_bin_path && p->weights_bin_path[0] != '\0') {
     bin_override = p->weights_bin_path;
+  } else if (want_int4) {
+    join_path_(q4_bin_buf, sizeof(q4_bin_buf), model_dir, "model.q4.bin");
+    if (path_exists_(q4_bin_buf)) {
+      bin_override = q4_bin_buf;
+    }
   }
 
-  ie_log_info("ie_engine_create: weights_open (json=%s bin_override=%s)",
-              weights_json,
-              bin_override ? bin_override : "(null)");
-
+  ie_log_info("ie_engine_create: weights_open (json=%s bin_override=%s)", weights_json,
+              (bin_override[0] != '\0' ? bin_override : "(null)"));
   const int w_rc = ie_weights_open(weights_json, bin_override, &e->w);
   if (w_rc != 0) {
     ie_log_error("ie_engine_create: weights_open failed (rc=%d json=%s)", w_rc, weights_json);
@@ -513,21 +623,59 @@ ie_status_t ie_engine_create(const ie_engine_params_t *p,
     return IE_ERR_OOM;
   }
 
-  e->sample_cfg.kind = IE_SAMPLE_TOPP;
-  e->sample_cfg.temperature = 0.8f;
-  e->sample_cfg.top_p = 0.95f;
-  e->sample_cfg.top_k = 0;
-  e->sample_cfg.disallow_token0 = 1;
+  /*
+   * Sampling configuration
+   *
+   * The benchmarking harness measures token-id generation. For deterministic
+   * verification runs, the CLI can set IE_GREEDY=1 (via --greedy) or you can
+   * set IE_SAMPLE_KIND=greedy to force greedy decoding.
+   */
 
-  ie_log_info("ie_engine_create: sampling defaults (kind=%d temp=%.4f top_p=%.4f top_k=%d disallow_token0=%d)",
-              (int)e->sample_cfg.kind,
-              (double)e->sample_cfg.temperature,
-              (double)e->sample_cfg.top_p,
-              (int)e->sample_cfg.top_k,
-              (int)e->sample_cfg.disallow_token0);
+  ie_sample_cfg_t sample_cfg;
+  sample_cfg.kind = IE_SAMPLE_TOPP;
+  sample_cfg.temperature = 0.8000f;
+  sample_cfg.top_p = 0.9500f;
+  sample_cfg.top_k = 0u;
+  sample_cfg.disallow_token0 = 1u;
 
-  ie_rng_init(&e->rng, 1u);
-  ie_log_info("ie_engine_create: RNG seeded (seed=%u)", 1u);
+  const char *kind_env = getenv("IE_SAMPLE_KIND");
+  if (kind_env && kind_env[0]) {
+    if (streq_icase_(kind_env, "greedy")) {
+      sample_cfg.kind = IE_SAMPLE_GREEDY;
+    } else if (streq_icase_(kind_env, "topk")) {
+      sample_cfg.kind = IE_SAMPLE_TOPK;
+    } else if (streq_icase_(kind_env, "topp")) {
+      sample_cfg.kind = IE_SAMPLE_TOPP;
+    } else {
+      ie_log_warn("ie_engine_create: unrecognized IE_SAMPLE_KIND=\"%s\"; using defaults", kind_env);
+    }
+  }
+
+  if (env_flag_("IE_GREEDY", 0)) {
+    sample_cfg.kind = IE_SAMPLE_GREEDY;
+  }
+
+  if (sample_cfg.kind == IE_SAMPLE_GREEDY) {
+    /* Greedy ignores temperature/top-p/top-k; keep them in a neutral state. */
+    sample_cfg.temperature = 1.0000f;
+    sample_cfg.top_p = 1.0000f;
+    sample_cfg.top_k = 0u;
+  }
+
+  ie_log_info("ie_engine_create: sampling config (kind=%d/%s temp=%.4f top_p=%.4f top_k=%u disallow_token0=%u)",
+              (int)sample_cfg.kind,
+              sample_kind_str_(sample_cfg.kind),
+              (double)sample_cfg.temperature,
+              (double)sample_cfg.top_p,
+              (unsigned)sample_cfg.top_k,
+              (unsigned)sample_cfg.disallow_token0);
+
+  e->sample_cfg = sample_cfg;
+
+  unsigned long long seed = env_u64_("IE_SEED", 1ull, 0ull, ~0ull);
+  if (seed == 0ull) seed = 1ull;
+  ie_rng_init(&e->rng, (uint64_t)seed);
+  ie_log_info("ie_engine_create: RNG seeded (seed=%llu)", seed);
 
   *out = e;
   ie_log_info("ie_engine_create: success (engine=%p)", (void *)e);

@@ -1,214 +1,207 @@
-/* File: engine/src/kernels/gemv_avx2.c
- * -----------------------------------------------------------------------------
- * @file gemv_avx2.c
- * @brief AVX2/FMA-accelerated GEMV kernels (fp32 and INT8 activations).
- *
- * @details
- * Exposes only AVX2 implementation symbols:
- * - ::ie_gemv_f32_avx2_impl
- * - ::ie_gemv_qi8_f32_avx2_impl
- *
- * Public API and runtime dispatch live in gemv_generic.c.
+/* ============================================================================
+ * File: engine/src/kernels/gemv_avx2.c
+ * ============================================================================
  */
-
-#include "ie_kernels.h"
-#include "ie_quant_act.h"
-
 #include <immintrin.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <stdlib.h>
 #include <string.h>
 
-/* -------------------------------------------------------------------------- */
-/* Internal helpers                                                           */
-/* -------------------------------------------------------------------------- */
-
-/**
- * @brief Round n up to a multiple of a (a must be power of two).
- *
- * @param n Value to round up.
- * @param a Alignment (power of two).
- * @return Rounded-up value.
- */
-static size_t ie_round_up_pow2(size_t n, size_t a) {
-  return (n + (a - 1u)) & ~(a - 1u);
-}
-
-/**
- * @brief Allocate a 64-byte aligned buffer with C11 aligned_alloc rules.
- *
- * @details
- * aligned_alloc requires size to be a multiple of alignment; this helper rounds
- * up accordingly on non-MSVC toolchains.
- *
- * @param bytes Requested bytes.
- * @return Pointer to aligned allocation, or NULL on failure.
- */
-static void *ie_aligned_malloc_64(size_t bytes) {
-#if defined(_MSC_VER)
-  return _aligned_malloc(bytes, 64);
-#else
-  const size_t need = ie_round_up_pow2(bytes, 64);
-  return aligned_alloc(64, need);
-#endif
-}
-
-/**
- * @brief Free a buffer allocated by ::ie_aligned_malloc_64.
- *
- * @param p Pointer to free (may be NULL).
- */
-static void ie_aligned_free_64(void *p) {
-#if defined(_MSC_VER)
-  _aligned_free(p);
-#else
-  free(p);
-#endif
-}
-
-/* -------------------------------------------------------------------------- */
-/* AVX2 kernels                                                               */
-/* -------------------------------------------------------------------------- */
-
-/**
- * @brief AVX2/FMA GEMV (fp32), blocked-K aware, optional bias epilogue.
- *
- * @details
- * Streams each row of W linearly and performs a dot product with x using AVX2
- * FMAs. Supports optional blocked-K traversal via blk_k.
- *
- * @param W     Weights (float).
- * @param x     Input vector (float).
- * @param y     Output vector (float).
- * @param rows  Rows.
- * @param cols  Cols.
- * @param bias  Optional bias or NULL.
- * @param blk_k Column block size; 0 disables blocking.
- */
-__attribute__((target("avx2,fma"), used)) void
-ie_gemv_f32_avx2_impl(const float *W, const float *x, float *y, size_t rows,
-                      size_t cols, const float *bias, size_t blk_k) {
-  if (!W || !x || !y || rows == 0 || cols == 0) return;
-
-  const size_t BK = (blk_k > 0 ? blk_k : cols);
+#include "ie_kernels.h"
 
 #if defined(__GNUC__) || defined(__clang__)
-  W = (const float *)__builtin_assume_aligned(W, 32);
-  x = (const float *)__builtin_assume_aligned(x, 32);
-  y = (float *)__builtin_assume_aligned(y, 32);
+#define IE_TARGET_AVX2 __attribute__((target("avx2,fma,sse3")))
+#else
+#define IE_TARGET_AVX2
 #endif
 
+/* ------------------------------------------------------------------------- */
+/* Helpers                                                                    */
+/* ------------------------------------------------------------------------- */
+
+/**
+ * @brief Horizontal sum of an AVX2 register.
+ *
+ * @param v Input vector.
+ * @return Sum of all 8 lanes.
+ */
+static IE_TARGET_AVX2 inline float ie_hsum256_ps(__m256 v) {
+  __m128 lo = _mm256_castps256_ps128(v);
+  __m128 hi = _mm256_extractf128_ps(v, 1);
+  __m128 sum = _mm_add_ps(lo, hi);
+
+  __m128 shuf = _mm_movehdup_ps(sum);
+  sum = _mm_add_ps(sum, shuf);
+  shuf = _mm_movehl_ps(shuf, sum);
+  sum = _mm_add_ss(sum, shuf);
+
+  return _mm_cvtss_f32(sum);
+}
+
+/**
+ * @brief Convert 8 BF16 values to FP32.
+ *
+ * @details
+ * BF16 is represented as the high 16 bits of an IEEE-754 FP32 value.
+ * Conversion is performed by zero-extending to 32 bits and shifting left by 16.
+ */
+static IE_TARGET_AVX2 inline __m256 ie_bf16x8_to_f32(__m128i v_bf16) {
+  __m256i v_u32 = _mm256_cvtepu16_epi32(v_bf16);
+  v_u32 = _mm256_slli_epi32(v_u32, 16);
+  return _mm256_castsi256_ps(v_u32);
+}
+
+/* ------------------------------------------------------------------------- */
+/* Public AVX2 entry points                                                   */
+/* ------------------------------------------------------------------------- */
+
+IE_TARGET_AVX2
+void ie_vec_bf16_to_f32_avx2_impl(const uint16_t *in, float *out, size_t n) {
+  if (!in || !out || n == 0u) return;
+
+  size_t i = 0;
+  for (; i + 8u <= n; i += 8u) {
+    __m128i v16 = _mm_loadu_si128((const __m128i *)(const void *)(in + i));
+    __m256 vf = ie_bf16x8_to_f32(v16);
+    _mm256_storeu_ps(out + i, vf);
+  }
+
+  for (; i < n; ++i) {
+    union { uint32_t u; float f; } v;
+    v.u = ((uint32_t)in[i]) << 16;
+    out[i] = v.f;
+  }
+}
+
+IE_TARGET_AVX2
+int ie_gemv_bf16_f32_avx2_impl(const uint16_t *W_bf16, const float *x, float *y,
+                              size_t rows, size_t cols,
+                              const uint16_t *bias_bf16) {
+  if (!W_bf16 || !x || !y || rows == 0u || cols == 0u) return -1;
+
+  const size_t blk_k = 256u;
+
   for (size_t r = 0; r < rows; ++r) {
-    const float *wrow = W + r * cols;
-    float acc_scalar = 0.0f;
+    const uint16_t *row = W_bf16 + r * cols;
 
-    __m256 vacc0 = _mm256_setzero_ps();
-    __m256 vacc1 = _mm256_setzero_ps();
-    __m256 vacc2 = _mm256_setzero_ps();
-    __m256 vacc3 = _mm256_setzero_ps();
+    __m256 acc = _mm256_setzero_ps();
+    float tail_sum = 0.0f;
 
-    for (size_t k0 = 0; k0 < cols; k0 += BK) {
-      const size_t klen = (k0 + BK <= cols) ? BK : (cols - k0);
-      const float *wblk = wrow + k0;
-      const float *xblk = x + k0;
+    for (size_t k0 = 0; k0 < cols; k0 += blk_k) {
+      const size_t kend = (k0 + blk_k <= cols) ? (k0 + blk_k) : cols;
+      size_t c = k0;
 
-      if (k0 + 2 * BK < cols) {
-        _mm_prefetch((const char *)(wblk + BK), _MM_HINT_T0);
-        _mm_prefetch((const char *)(xblk + BK), _MM_HINT_T0);
+      for (; c + 16u <= kend; c += 16u) {
+        _mm_prefetch((const char *)(row + c + 64u), _MM_HINT_T0);
+        _mm_prefetch((const char *)(x + c + 64u), _MM_HINT_T0);
+
+        __m128i w16_0 = _mm_loadu_si128((const __m128i *)(const void *)(row + c));
+        __m128i w16_1 = _mm_loadu_si128((const __m128i *)(const void *)(row + c + 8u));
+        __m256 w0 = ie_bf16x8_to_f32(w16_0);
+        __m256 w1 = ie_bf16x8_to_f32(w16_1);
+        __m256 x0 = _mm256_loadu_ps(x + c);
+        __m256 x1 = _mm256_loadu_ps(x + c + 8u);
+        acc = _mm256_fmadd_ps(w0, x0, acc);
+        acc = _mm256_fmadd_ps(w1, x1, acc);
       }
 
-      size_t k = 0;
-      for (; k + 32 <= klen; k += 32) {
-        __m256 w0 = _mm256_loadu_ps(wblk + k + 0);
-        __m256 x0 = _mm256_loadu_ps(xblk + k + 0);
-        vacc0 = _mm256_fmadd_ps(w0, x0, vacc0);
-
-        __m256 w1 = _mm256_loadu_ps(wblk + k + 8);
-        __m256 x1 = _mm256_loadu_ps(xblk + k + 8);
-        vacc1 = _mm256_fmadd_ps(w1, x1, vacc1);
-
-        __m256 w2 = _mm256_loadu_ps(wblk + k + 16);
-        __m256 x2 = _mm256_loadu_ps(xblk + k + 16);
-        vacc2 = _mm256_fmadd_ps(w2, x2, vacc2);
-
-        __m256 w3 = _mm256_loadu_ps(wblk + k + 24);
-        __m256 x3 = _mm256_loadu_ps(xblk + k + 24);
-        vacc3 = _mm256_fmadd_ps(w3, x3, vacc3);
+      for (; c + 8u <= kend; c += 8u) {
+        _mm_prefetch((const char *)(row + c + 64u), _MM_HINT_T0);
+        _mm_prefetch((const char *)(x + c + 64u), _MM_HINT_T0);
+        __m128i w16 = _mm_loadu_si128((const __m128i *)(const void *)(row + c));
+        __m256 w = ie_bf16x8_to_f32(w16);
+        __m256 xv = _mm256_loadu_ps(x + c);
+        acc = _mm256_fmadd_ps(w, xv, acc);
       }
 
-      for (; k + 8 <= klen; k += 8) {
-        __m256 wv = _mm256_loadu_ps(wblk + k);
-        __m256 xv = _mm256_loadu_ps(xblk + k);
-        vacc0 = _mm256_fmadd_ps(wv, xv, vacc0);
-      }
-
-      for (; k < klen; ++k) {
-        acc_scalar += wblk[k] * xblk[k];
+      for (; c < kend; ++c) {
+        union { uint32_t u; float f; } v;
+        v.u = ((uint32_t)row[c]) << 16;
+        tail_sum += v.f * x[c];
       }
     }
 
-    __m256 t01 = _mm256_add_ps(vacc0, vacc1);
-    __m256 t23 = _mm256_add_ps(vacc2, vacc3);
-    __m256 t = _mm256_add_ps(t01, t23);
-    __m128 low = _mm256_castps256_ps128(t);
-    __m128 high = _mm256_extractf128_ps(t, 1);
-    __m128 sum = _mm_add_ps(low, high);
-    __m128 shf = _mm_movehdup_ps(sum);
-    sum = _mm_add_ps(sum, shf);
-    shf = _mm_movehl_ps(shf, sum);
-    sum = _mm_add_ss(sum, shf);
+    float sum = ie_hsum256_ps(acc) + tail_sum;
 
-    float acc = _mm_cvtss_f32(sum) + acc_scalar;
-    if (bias) acc += bias[r];
-    y[r] = acc;
+    if (bias_bf16) {
+      union { uint32_t u; float f; } b;
+      b.u = ((uint32_t)bias_bf16[r]) << 16;
+      sum += b.f;
+    }
+
+    y[r] = sum;
+  }
+
+  return 0;
+}
+
+IE_TARGET_AVX2
+void ie_gemv_f32_avx2_impl(const float *W, const float *x, float *y,
+                          size_t rows, size_t cols,
+                          const float *bias, size_t bias_stride) {
+  for (size_t r = 0; r < rows; r++) {
+    const float *row = W + r * cols;
+
+    __m256 acc = _mm256_setzero_ps();
+
+    size_t c = 0;
+    for (; c + 8 <= cols; c += 8) {
+      __m256 wv = _mm256_loadu_ps(row + c);
+      __m256 xv = _mm256_loadu_ps(x + c);
+      acc = _mm256_fmadd_ps(wv, xv, acc);
+    }
+
+    float sum = ie_hsum256_ps(acc);
+
+    for (; c < cols; c++) {
+      sum += row[c] * x[c];
+    }
+
+    if (bias) {
+      sum += bias[r * bias_stride];
+    }
+
+    y[r] = sum;
   }
 }
 
-/**
- * @brief AVX2/FMA GEMV with per-tensor INT8 activations (dequant + fp32 GEMV).
- *
- * @details
- * Dequantizes x_q into a temporary 64-byte aligned float buffer, then calls
- * ::ie_gemv_f32_avx2_impl. The temp buffer is freed before returning.
- *
- * @param W         Weights.
- * @param x_q       INT8 activations.
- * @param y         Output.
- * @param rows      Rows.
- * @param cols      Cols.
- * @param bias      Optional bias or NULL.
- * @param blk_k     Column block size; 0 disables blocking.
- * @param params    INT8 params.
- * @param symmetric Informational flag (unused).
- */
-__attribute__((target("avx2,fma"), used)) void
-ie_gemv_qi8_f32_avx2_impl(const float *W, const int8_t *x_q, float *y,
-                          size_t rows, size_t cols, const float *bias,
-                          size_t blk_k, ie_act_i8_params params,
-                          int symmetric) {
-  (void)symmetric;
-  if (!W || !x_q || !y || rows == 0 || cols == 0) return;
+IE_TARGET_AVX2
+void ie_gemv_qi8_avx2_impl(const int8_t *W_qi8, const float *W_scales,
+                          const float *x, float *y,
+                          size_t rows, size_t cols,
+                          size_t block_cols,
+                          const float *bias, size_t bias_stride) {
+  (void)block_cols;
 
-  float *x = (float *)ie_aligned_malloc_64(cols * sizeof(float));
-  if (!x) return;
+  for (size_t r = 0; r < rows; r++) {
+    const int8_t *row = W_qi8 + r * cols;
 
-  const float s = params.scale;
-  const int z = (int)params.zero_point;
+    __m256 acc_ps = _mm256_setzero_ps();
 
-  size_t i = 0;
-  for (; i + 8 <= cols; i += 8) {
-    __m128i q = _mm_loadl_epi64((const __m128i *)(x_q + i));
-    __m256i qi = _mm256_cvtepi8_epi32(q);
-    __m256 qf = _mm256_cvtepi32_ps(qi);
-    __m256 zf = _mm256_set1_ps((float)z);
-    __m256 sf = _mm256_set1_ps(s);
-    __m256 xf = _mm256_mul_ps(sf, _mm256_sub_ps(qf, zf));
-    _mm256_storeu_ps(x + i, xf);
+    size_t c = 0;
+    for (; c + 8 <= cols; c += 8) {
+      __m128i v8 = _mm_loadl_epi64((const __m128i *)(const void *)(row + c));
+      __m256i v32 = _mm256_cvtepi8_epi32(v8);
+
+      __m256 w = _mm256_cvtepi32_ps(v32);
+      __m256 xv = _mm256_loadu_ps(x + c);
+
+      acc_ps = _mm256_fmadd_ps(w, xv, acc_ps);
+    }
+
+    float sum = ie_hsum256_ps(acc_ps);
+
+    for (; c < cols; c++) {
+      sum += (float)row[c] * x[c];
+    }
+
+    float s = W_scales ? W_scales[r] : 1.0f;
+    sum *= s;
+
+    if (bias) {
+      sum += bias[r * bias_stride];
+    }
+
+    y[r] = sum;
   }
-  for (; i < cols; ++i) x[i] = s * ((int)x_q[i] - z);
-
-  ie_gemv_f32_avx2_impl(W, x, y, rows, cols, bias, blk_k);
-
-  ie_aligned_free_64(x);
 }

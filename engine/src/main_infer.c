@@ -35,6 +35,13 @@
  *  - Tokenizer resolution prefers .tiktoken files (when present) and falls back
  *    to tokenizer.json paths.
  *
+ * Prompts file behavior (Goal A):
+ *  - If --prompts-file is provided and --prompt is NOT provided, the CLI runs
+ *    all non-empty lines from the prompts file (newline-delimited) in order.
+ *  - This mode is internally treated as "aggregate" mode and still prints
+ *    exactly one JSON object (aggregated over all prompts and rounds).
+ *  - Empty/whitespace-only lines are ignored.
+ *
  * Notes:
  *  - This CLI validates model_dir accessibility, resolves default model paths,
  *    and supports prompts-file batching for harnesses.
@@ -115,6 +122,14 @@ static size_t min_size(size_t a, size_t b) { return (a < b) ? a : b; }
  * @param defv Default value when unset or invalid.
  * @return Parsed value or defv.
  */
+/**
+ * @brief env_long.
+ *
+ * @param name See implementation for details.
+ * @param defv See implementation for details.
+ *
+ * @return See implementation for details.
+ */
 static long env_long(const char *name, long defv) {
   const char *s = getenv(name);
   if (!s || !*s) return defv;
@@ -140,6 +155,14 @@ static const char *env_str(const char *name, const char *defv) {
  * @param b String B.
  * @return 1 when equal (ASCII case-insensitive), 0 otherwise.
  */
+/**
+ * @brief ascii_ieq.
+ *
+ * @param a See implementation for details.
+ * @param b See implementation for details.
+ *
+ * @return See implementation for details.
+ */
 static int ascii_ieq(const char *a, const char *b) {
   if (!a || !b) return 0;
   while (*a && *b) {
@@ -158,6 +181,14 @@ static int ascii_ieq(const char *a, const char *b) {
  * @param prefix Prefix string.
  * @return 1 when s starts with prefix, 0 otherwise.
  */
+/**
+ * @brief starts_with.
+ *
+ * @param s See implementation for details.
+ * @param prefix See implementation for details.
+ *
+ * @return See implementation for details.
+ */
 static int starts_with(const char *s, const char *prefix) {
   if (!s || !prefix) return 0;
   while (*prefix) {
@@ -170,6 +201,11 @@ static int starts_with(const char *s, const char *prefix) {
  * @brief Return monotonic time in seconds.
  * @return Seconds since an unspecified epoch (monotonic).
  */
+/**
+ * @brief now_sec.
+ *
+ * @return See implementation for details.
+ */
 static double now_sec(void) {
   struct timespec ts;
   (void)clock_gettime(CLOCK_MONOTONIC, &ts);
@@ -181,6 +217,13 @@ static double now_sec(void) {
  * @param p Path to test.
  * @return 1 when exists, 0 otherwise.
  */
+/**
+ * @brief path_exists.
+ *
+ * @param p See implementation for details.
+ *
+ * @return See implementation for details.
+ */
 static int path_exists(const char *p) {
   if (!p || !*p) return 0;
   struct stat st;
@@ -191,6 +234,13 @@ static int path_exists(const char *p) {
  * @brief Determine whether a directory exists and is accessible (R_OK|X_OK).
  * @param p Directory path.
  * @return 1 when accessible directory, 0 otherwise.
+ */
+/**
+ * @brief dir_accessible.
+ *
+ * @param p See implementation for details.
+ *
+ * @return See implementation for details.
  */
 static int dir_accessible(const char *p) {
   if (!p || !*p) return 0;
@@ -213,6 +263,13 @@ static int path_is_abs(const char *p) { return (p && p[0] == '/'); }
  * @param dstsz Destination capacity.
  * @param src Source string (may be NULL).
  */
+/**
+ * @brief safe_strcpy.
+ *
+ * @param dst See implementation for details.
+ * @param dstsz See implementation for details.
+ * @param src See implementation for details.
+ */
 static void safe_strcpy(char *dst, size_t dstsz, const char *src) {
   if (!dst || dstsz == 0) return;
   if (!src) {
@@ -228,6 +285,14 @@ static void safe_strcpy(char *dst, size_t dstsz, const char *src) {
  * @param outsz Output capacity.
  * @param dir Directory component (may be NULL/empty).
  * @param leaf Leaf component (must be non-NULL).
+ */
+/**
+ * @brief join_path.
+ *
+ * @param out See implementation for details.
+ * @param outsz See implementation for details.
+ * @param dir See implementation for details.
+ * @param leaf See implementation for details.
  */
 static void join_path(char *out, size_t outsz, const char *dir, const char *leaf) {
   if (!out || outsz == 0) return;
@@ -255,6 +320,15 @@ static void join_path(char *out, size_t outsz, const char *dir, const char *leaf
  * @param dir Input directory path.
  * @return 1 when realpath succeeded, 0 otherwise (out still set to dir).
  */
+/**
+ * @brief canon_dir.
+ *
+ * @param out See implementation for details.
+ * @param outsz See implementation for details.
+ * @param dir See implementation for details.
+ *
+ * @return See implementation for details.
+ */
 static int canon_dir(char *out, size_t outsz, const char *dir) {
   if (!out || outsz == 0) return 0;
   out[0] = '\0';
@@ -274,6 +348,13 @@ static int canon_dir(char *out, size_t outsz, const char *dir) {
  * @brief Determine if precision string requests int4 family.
  * @param p Precision label.
  * @return 1 if "int4*" else 0.
+ */
+/**
+ * @brief is_int4_precision.
+ *
+ * @param p See implementation for details.
+ *
+ * @return See implementation for details.
  */
 static int is_int4_precision(const char *p) {
   if (!p || !*p) return 0;
@@ -348,6 +429,11 @@ static void resolve_model_paths(const char *model_dir,
  * @brief Read ru_maxrss and convert to MiB (Linux: ru_maxrss is KiB).
  * @return RSS peak in MiB (rounded down), or 0 on failure.
  */
+/**
+ * @brief rss_peak_mib.
+ *
+ * @return See implementation for details.
+ */
 static uint32_t rss_peak_mib(void) {
   struct rusage ru;
   if (getrusage(RUSAGE_SELF, &ru) != 0) return 0;
@@ -374,6 +460,14 @@ static char *heap_strdup(const char *s) {
  * @param s String (may be NULL).
  * @param suf Suffix (may be NULL).
  * @return 1 when s ends with suf, 0 otherwise.
+ */
+/**
+ * @brief ends_with.
+ *
+ * @param s See implementation for details.
+ * @param suf See implementation for details.
+ *
+ * @return See implementation for details.
  */
 static int ends_with(const char *s, const char *suf) {
   if (!s || !suf) return 0;
@@ -402,6 +496,14 @@ typedef struct model_mmap_touch {
  * @param ctx Context to initialize.
  * @param path File path to map.
  * @return 0 on success, nonzero on failure.
+ */
+/**
+ * @brief model_touch_open.
+ *
+ * @param ctx See implementation for details.
+ * @param path See implementation for details.
+ *
+ * @return See implementation for details.
  */
 static int model_touch_open(model_mmap_touch_t *ctx, const char *path) {
   if (!ctx) return 1;
@@ -440,6 +542,11 @@ static int model_touch_open(model_mmap_touch_t *ctx, const char *path) {
 /**
  * @brief Close and unmap a model touch context.
  * @param ctx Context to close (safe to call repeatedly).
+ */
+/**
+ * @brief model_touch_close.
+ *
+ * @param ctx See implementation for details.
  */
 static void model_touch_close(model_mmap_touch_t *ctx) {
   if (!ctx) return;
@@ -646,6 +753,11 @@ static int cudart_touch_bytes(size_t bytes_per_token,
  *
  * @param s Input UTF-8 string (may be NULL).
  */
+/**
+ * @brief json_print_escaped_string.
+ *
+ * @param s See implementation for details.
+ */
 static void json_print_escaped_string(const char *s) {
   fputc('"', stdout);
   if (!s) {
@@ -686,6 +798,14 @@ static void json_print_escaped_string(const char *s) {
  * @param tokenizer_opt Optional explicit tokenizer path.
  * @param out Output path.
  * @param outsz Output capacity.
+ */
+/**
+ * @brief resolve_tokenizer_path.
+ *
+ * @param model_dir See implementation for details.
+ * @param tokenizer_opt See implementation for details.
+ * @param out See implementation for details.
+ * @param outsz See implementation for details.
  */
 static void resolve_tokenizer_path(const char *model_dir, const char *tokenizer_opt, char *out, size_t outsz) {
   if (!out || outsz == 0) return;
@@ -732,6 +852,16 @@ static void resolve_tokenizer_path(const char *model_dir, const char *tokenizer_
  * @param n Number of IDs.
  * @param out_text Output allocated string (caller frees). NULL on failure.
  * @return 0 on success, nonzero on failure.
+ */
+/**
+ * @brief decode_tokens_best_effort.
+ *
+ * @param tok_path See implementation for details.
+ * @param ids See implementation for details.
+ * @param n See implementation for details.
+ * @param out_text See implementation for details.
+ *
+ * @return See implementation for details.
  */
 static int decode_tokens_best_effort(const char *tok_path, const int *ids, size_t n, char **out_text) {
   if (!out_text) return 1;
@@ -866,6 +996,11 @@ typedef struct cli_extras {
   int aggregate;
   int rounds;
 
+  /* Optional expected-token verification */
+  const char *expected_tokens_file;
+  int report_tokens;
+  size_t report_tokens_max;
+
   const char *model_dir;
   const char *model_json;
   const char *model_bin;
@@ -908,6 +1043,9 @@ typedef struct cli_extras {
 /**
  * @brief Print CLI usage to stderr.
  */
+/**
+ * @brief usage.
+ */
 static void usage(void) {
   fprintf(stderr,
           "Usage: inference-engine [--prompt TEXT] [--max-new N]\n"
@@ -934,6 +1072,11 @@ static void usage(void) {
  * @brief Initialize CLI defaults.
  * @param e Options struct to fill.
  */
+/**
+ * @brief cli_extras_defaults.
+ *
+ * @param e See implementation for details.
+ */
 static void cli_extras_defaults(cli_extras_t *e) {
   e->prompt = NULL;
   e->max_new = 8;
@@ -948,6 +1091,11 @@ static void cli_extras_defaults(cli_extras_t *e) {
   e->warmup_tokens = 1;
   e->aggregate = 0;
   e->rounds = 1;
+
+
+  e->expected_tokens_file = NULL;
+  e->report_tokens = 1;
+  e->report_tokens_max = 0;
 
   e->model_dir = NULL;
   e->model_json = NULL;
@@ -991,6 +1139,13 @@ static void cli_extras_defaults(cli_extras_t *e) {
  * @param s Input string.
  * @return Parsed value.
  */
+/**
+ * @brief safe_atoi.
+ *
+ * @param s See implementation for details.
+ *
+ * @return See implementation for details.
+ */
 static long safe_atoi(const char *s) {
   if (!s || !*s) {
     fprintf(stderr, "error: empty integer\n");
@@ -1009,6 +1164,13 @@ static long safe_atoi(const char *s) {
  * @brief Parse an unsigned 64-bit integer safely (fatal on invalid input).
  * @param s Input string.
  * @return Parsed value.
+ */
+/**
+ * @brief safe_atoull.
+ *
+ * @param s See implementation for details.
+ *
+ * @return See implementation for details.
  */
 static uint64_t safe_atoull(const char *s) {
   if (!s || !*s) {
@@ -1029,6 +1191,13 @@ static uint64_t safe_atoull(const char *s) {
  * @param s Input string.
  * @return Parsed value.
  */
+/**
+ * @brief safe_atof.
+ *
+ * @param s See implementation for details.
+ *
+ * @return See implementation for details.
+ */
 static double safe_atof(const char *s) {
   if (!s || !*s) {
     fprintf(stderr, "error: empty float\n");
@@ -1048,6 +1217,13 @@ static double safe_atof(const char *s) {
  *
  * This avoids widening the public API and keeps debug behavior available to
  * the benchmark harness and humans consistently.
+ *
+ * @param opt Parsed CLI options (may be NULL).
+ */
+/**
+ * @brief apply_cli_debug_env.
+ *
+ * @param opt See implementation for details.
  */
 static void apply_cli_debug_env(const cli_extras_t *opt) {
   if (!opt) return;
@@ -1104,10 +1280,23 @@ static void apply_cli_debug_env(const cli_extras_t *opt) {
 
 /**
  * @brief Parse CLI flags into cli_extras_t.
+ *
+ * Parsing is intentionally strict: invalid flags or values return nonzero to
+ * keep harness behavior deterministic.
+ *
  * @param argc argc.
  * @param argv argv.
  * @param out Output options.
  * @return 0 on success, nonzero on help/error.
+ */
+/**
+ * @brief parse_flags.
+ *
+ * @param argc See implementation for details.
+ * @param argv See implementation for details.
+ * @param out See implementation for details.
+ *
+ * @return See implementation for details.
  */
 static int parse_flags(int argc, char **argv, cli_extras_t *out) {
   cli_extras_defaults(out);
@@ -1221,6 +1410,19 @@ static int parse_flags(int argc, char **argv, cli_extras_t *out) {
     } else if (!strcmp(a, "--aggregate")) {
       out->aggregate = 1;
 
+    } else if (!strcmp(a, "--expected-tokens")) {
+      if (++i >= argc) { usage(); return -1; }
+      out->expected_tokens_file = argv[i];
+
+    } else if (!strcmp(a, "--no-report-tokens")) {
+      out->report_tokens = 0;
+
+    } else if (!strcmp(a, "--report-tokens-max")) {
+      if (++i >= argc) { usage(); return -1; }
+      long v = safe_atoi(argv[i]);
+      if (v < 0) v = 0;
+      out->report_tokens_max = (size_t)v;
+
     } else if (!strcmp(a, "--print-text")) {
       out->print_text = 1;
 
@@ -1292,10 +1494,24 @@ static int parse_flags(int argc, char **argv, cli_extras_t *out) {
 
 /**
  * @brief Read the first non-empty line from a text file.
+ *
+ * This helper is preserved for compatibility and for quick, human-friendly runs.
+ * The benchmark harness should use @c --prompts-file (and will automatically
+ * enable @c --aggregate when no explicit @c --prompt is provided).
+ *
  * @param path File path.
  * @param buf Output buffer.
  * @param bufsz Output capacity.
  * @return 1 if a line was read, 0 if none, -1 on error.
+ */
+/**
+ * @brief read_first_nonempty_line.
+ *
+ * @param path See implementation for details.
+ * @param buf See implementation for details.
+ * @param bufsz See implementation for details.
+ *
+ * @return See implementation for details.
  */
 static int read_first_nonempty_line(const char *path, char *buf, size_t bufsz) {
   FILE *f = fopen(path, "r");
@@ -1321,14 +1537,19 @@ static int read_first_nonempty_line(const char *path, char *buf, size_t bufsz) {
  * @brief Prompt list (preloaded) to avoid file I/O in the timed window.
  */
 typedef struct prompt_list {
-  char **items;
-  size_t count;
-  size_t cap;
+  char **items;   /**< Owned prompt strings (UTF-8). */
+  size_t count;   /**< Number of prompts. */
+  size_t cap;     /**< Capacity of @c items. */
 } prompt_list_t;
 
 /**
  * @brief Initialize an empty prompt list.
  * @param pl Prompt list to initialize.
+ */
+/**
+ * @brief prompt_list_init.
+ *
+ * @param pl See implementation for details.
  */
 static void prompt_list_init(prompt_list_t *pl) {
   if (!pl) return;
@@ -1340,6 +1561,11 @@ static void prompt_list_init(prompt_list_t *pl) {
 /**
  * @brief Free a prompt list and all owned strings.
  * @param pl Prompt list to free.
+ */
+/**
+ * @brief prompt_list_free.
+ *
+ * @param pl See implementation for details.
  */
 static void prompt_list_free(prompt_list_t *pl) {
   if (!pl) return;
@@ -1357,6 +1583,14 @@ static void prompt_list_free(prompt_list_t *pl) {
  * @param pl Prompt list.
  * @param s Prompt string (must be non-NULL).
  * @return 0 on success, nonzero on OOM.
+ */
+/**
+ * @brief prompt_list_push_copy.
+ *
+ * @param pl See implementation for details.
+ * @param s See implementation for details.
+ *
+ * @return See implementation for details.
  */
 static int prompt_list_push_copy(prompt_list_t *pl, const char *s) {
   if (!pl || !s) return 1;
@@ -1378,9 +1612,20 @@ static int prompt_list_push_copy(prompt_list_t *pl, const char *s) {
 
 /**
  * @brief Read all non-empty lines from a prompts file into memory.
+ *
+ * Lines are trimmed of trailing CR/LF. Empty lines are skipped.
+ *
  * @param path Prompts file path.
  * @param out Prompt list to fill (must be initialized).
  * @return 0 on success, nonzero on failure.
+ */
+/**
+ * @brief prompt_list_read_file.
+ *
+ * @param path See implementation for details.
+ * @param out See implementation for details.
+ *
+ * @return See implementation for details.
  */
 static int prompt_list_read_file(const char *path, prompt_list_t *out) {
   if (!path || !*path || !out) return 1;
@@ -1407,12 +1652,479 @@ static int prompt_list_read_file(const char *path, prompt_list_t *out) {
 
   (void)fclose(f);
 
-  if (rc == 0 && out->count == 0) {
-    /* Empty file: treat as success with zero prompts. */
-    return 0;
+  /* Empty file is not an error; caller can decide how to handle it. */
+  return rc;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Expected tokens (golden output)                                            */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * @brief Compute a stable 64-bit prompt ID (FNV-1a over bytes).
+ *
+ * This avoids storing or parsing raw prompt strings in the golden file and keeps
+ * the comparison logic simple and deterministic.
+ *
+ * @param s Prompt string (UTF-8).
+ * @return 64-bit FNV-1a hash of the prompt bytes.
+ */
+/**
+ * @brief prompt_id_fnv1a64.
+ *
+ * @param s See implementation for details.
+ *
+ * @return See implementation for details.
+ */
+static uint64_t prompt_id_fnv1a64(const char *s) {
+  const uint64_t FNV_OFF = 1469598103934665603ULL;
+  const uint64_t FNV_PRIME = 1099511628211ULL;
+
+  uint64_t h = FNV_OFF;
+  if (!s) return h;
+
+  const unsigned char *p = (const unsigned char *)s;
+  while (*p) {
+    h ^= (uint64_t)(*p++);
+    h *= FNV_PRIME;
+  }
+  return h;
+}
+
+/**
+ * @brief Parse an unsigned 64-bit integer in decimal or 0x-prefixed hex.
+ * @param s Input string.
+ * @param out Parsed value.
+ * @return 0 on success, nonzero on failure.
+ */
+/**
+ * @brief parse_u64_auto.
+ *
+ * @param s See implementation for details.
+ * @param out See implementation for details.
+ *
+ * @return See implementation for details.
+ */
+static int parse_u64_auto(const char *s, uint64_t *out) {
+  if (!s || !*s || !out) return 1;
+
+  int base = 10;
+  if (s[0] == '0' && (s[1] == 'x' || s[1] == 'X')) base = 16;
+
+  char *end = NULL;
+  unsigned long long v = strtoull(s, &end, base);
+  if (end == s) return 2;
+  while (end && (*end == ' ' || *end == '\t' || *end == '\r' || *end == '\n')) ++end;
+  if (end && *end) return 3;
+
+  *out = (uint64_t)v;
+  return 0;
+}
+
+/**
+ * @brief An entry in the expected-tokens table.
+ *
+ * The token list is compared against the engine-generated token IDs for a prompt.
+ */
+typedef struct expected_tokens_entry {
+  uint64_t prompt_id;  /**< Prompt ID (FNV-1a). */
+  int *tokens;         /**< Owned token array. */
+  size_t n_tokens;     /**< Number of tokens in @c tokens. */
+} expected_tokens_entry_t;
+
+/**
+ * @brief A table of expected tokens, loaded from a text file.
+ */
+typedef struct expected_tokens_table {
+  expected_tokens_entry_t *entries; /**< Owned array of entries. */
+  size_t count;                     /**< Number of entries. */
+  size_t cap;                       /**< Capacity of entries. */
+} expected_tokens_table_t;
+
+/**
+ * @brief Initialize an expected-tokens table.
+ * @param t Table.
+ */
+/**
+ * @brief expected_tokens_table_init.
+ *
+ * @param t See implementation for details.
+ */
+static void expected_tokens_table_init(expected_tokens_table_t *t) {
+  if (!t) return;
+  t->entries = NULL;
+  t->count = 0;
+  t->cap = 0;
+}
+
+/**
+ * @brief Free an expected-tokens table.
+ * @param t Table.
+ */
+/**
+ * @brief expected_tokens_table_free.
+ *
+ * @param t See implementation for details.
+ */
+static void expected_tokens_table_free(expected_tokens_table_t *t) {
+  if (!t) return;
+  if (t->entries) {
+    for (size_t i = 0; i < t->count; ++i) free(t->entries[i].tokens);
+    free(t->entries);
+  }
+  t->entries = NULL;
+  t->count = 0;
+  t->cap = 0;
+}
+
+/**
+ * @brief Append an entry to the expected-tokens table.
+ * @param t Table.
+ * @param prompt_id Prompt ID.
+ * @param tokens Owned token array (moved).
+ * @param n_tokens Number of tokens.
+ * @return 0 on success, nonzero on failure.
+ */
+static int expected_tokens_table_push(expected_tokens_table_t *t,
+                                      uint64_t prompt_id,
+                                      int *tokens,
+                                      size_t n_tokens) {
+  if (!t || !tokens || n_tokens == 0) return 1;
+
+  if (t->count == t->cap) {
+    size_t ncap = (t->cap == 0) ? 16 : (t->cap * 2);
+    expected_tokens_entry_t *ne = (expected_tokens_entry_t *)realloc(t->entries, ncap * sizeof(*ne));
+    if (!ne) return 2;
+    t->entries = ne;
+    t->cap = ncap;
   }
 
-  return rc;
+  t->entries[t->count].prompt_id = prompt_id;
+  t->entries[t->count].tokens = tokens;
+  t->entries[t->count].n_tokens = n_tokens;
+  t->count++;
+  return 0;
+}
+
+/**
+ * @brief Compare actual tokens against expected tokens for one prompt.
+ *
+ * @param expected Expected token IDs.
+ * @param n_expected Number of expected tokens.
+ * @param actual Actual token IDs.
+ * @param n_actual Number of actual tokens.
+ * @param mismatch_index Output: first mismatch index (valid when return is nonzero).
+ * @param expected_at Output: expected token at mismatch (valid when return is nonzero).
+ * @param actual_at Output: actual token at mismatch (valid when return is nonzero).
+ * @return 0 when equal (length and contents), nonzero otherwise.
+ */
+static int expected_tokens_compare(const int *expected,
+                                   size_t n_expected,
+                                   const int *actual,
+                                   size_t n_actual,
+                                   size_t *mismatch_index,
+                                   int *expected_at,
+                                   int *actual_at) {
+  if (!expected || !actual) return 1;
+  const size_t n = (n_expected < n_actual) ? n_expected : n_actual;
+
+  for (size_t i = 0; i < n; ++i) {
+    if (expected[i] != actual[i]) {
+      if (mismatch_index) *mismatch_index = i;
+      if (expected_at) *expected_at = expected[i];
+      if (actual_at) *actual_at = actual[i];
+      return 2;
+    }
+  }
+
+  if (n_expected != n_actual) {
+    if (mismatch_index) *mismatch_index = n;
+    if (expected_at) *expected_at = (n < n_expected) ? expected[n] : 0;
+    if (actual_at) *actual_at = (n < n_actual) ? actual[n] : 0;
+    return 3;
+  }
+
+  return 0;
+}
+
+/**
+ * @brief Parse a comma-separated list of integers.
+ * @param s Input string (modified by this function).
+ * @param out_tokens Output allocated token array (owned by caller on success).
+ * @param out_n Output token count.
+ * @return 0 on success, nonzero on failure.
+ */
+/**
+ * @brief parse_token_list_inplace.
+ *
+ * @param s See implementation for details.
+ * @param out_tokens See implementation for details.
+ * @param out_n See implementation for details.
+ *
+ * @return See implementation for details.
+ */
+static int parse_token_list_inplace(char *s, int **out_tokens, size_t *out_n) {
+  if (!s || !out_tokens || !out_n) return 1;
+  *out_tokens = NULL;
+  *out_n = 0;
+
+  size_t cap = 64;
+  size_t n = 0;
+  int *tok = (int *)malloc(cap * sizeof(int));
+  if (!tok) return 2;
+
+  char *p = s;
+  while (*p) {
+    while (*p == ' ' || *p == '\t') ++p;
+    if (!*p) break;
+
+    char *end = NULL;
+    long v = strtol(p, &end, 10);
+    if (end == p) { free(tok); return 3; }
+
+    if (n == cap) {
+      size_t ncap = cap * 2;
+      int *nt = (int *)realloc(tok, ncap * sizeof(int));
+      if (!nt) { free(tok); return 4; }
+      tok = nt;
+      cap = ncap;
+    }
+    tok[n++] = (int)v;
+
+    p = end;
+    while (*p == ' ' || *p == '\t') ++p;
+    if (*p == ',') { ++p; continue; }
+    if (*p == '\0' || *p == '\r' || *p == '\n') break;
+
+    /* Unexpected separator. */
+    free(tok);
+    return 5;
+  }
+
+  if (n == 0) { free(tok); return 6; }
+  *out_tokens = tok;
+  *out_n = n;
+  return 0;
+}
+
+/**
+ * @brief Load expected tokens from a text file.
+ *
+ * File format (one entry per line):
+ *  - Leading/trailing whitespace is allowed.
+ *  - Empty lines and lines beginning with '#' are ignored.
+ *  - Each entry is: <prompt_id> <whitespace> <token0,token1,token2,...>
+ *
+ * prompt_id can be decimal or 0x-prefixed hex. The prompt_id is the FNV-1a hash
+ * of the prompt bytes, as returned by @ref prompt_id_fnv1a64.
+ *
+ * @param path Expected tokens file path.
+ * @param out Output table (initialized by this function).
+ * @return 0 on success, nonzero on failure.
+ */
+/**
+ * @brief expected_tokens_table_load.
+ *
+ * @param path See implementation for details.
+ * @param out See implementation for details.
+ *
+ * @return See implementation for details.
+ */
+static int expected_tokens_table_load(const char *path, expected_tokens_table_t *out) {
+  if (!path || !*path || !out) return 1;
+
+  expected_tokens_table_init(out);
+
+  FILE *f = fopen(path, "r");
+  if (!f) {
+    fprintf(stderr, "warn: cannot open expected tokens file '%s': %s\n", path, strerror(errno));
+    return 2;
+  }
+
+  char line[65536];
+  int rc = 0;
+
+  while (fgets(line, (int)sizeof(line), f)) {
+    char *p = line;
+    while (*p == ' ' || *p == '\t') ++p;
+    if (*p == '\0' || *p == '\r' || *p == '\n' || *p == '#') continue;
+
+    /* Split at first whitespace. */
+    char *q = p;
+    while (*q && *q != ' ' && *q != '\t' && *q != '\r' && *q != '\n') ++q;
+    if (*q == '\0') continue;
+    *q++ = '\0';
+
+    uint64_t pid = 0;
+    if (parse_u64_auto(p, &pid) != 0) continue;
+
+    while (*q == ' ' || *q == '\t') ++q;
+    if (*q == '\0' || *q == '\r' || *q == '\n') continue;
+
+    /* Trim CR/LF. */
+    size_t n = strlen(q);
+    while (n && (q[n - 1] == '\n' || q[n - 1] == '\r')) q[--n] = '\0';
+    if (n == 0) continue;
+
+    int *tok = NULL;
+    size_t ntok = 0;
+    if (parse_token_list_inplace(q, &tok, &ntok) != 0) continue;
+
+    if (expected_tokens_table_push(out, pid, tok, ntok) != 0) {
+      free(tok);
+      rc = 3;
+      break;
+    }
+  }
+
+  (void)fclose(f);
+
+  if (rc != 0) {
+    expected_tokens_table_free(out);
+    return rc;
+  }
+  return 0;
+}
+
+/**
+ * @brief Find an expected entry by prompt ID.
+ * @param t Table (may be NULL).
+ * @param prompt_id Prompt ID.
+ * @return Pointer to entry or NULL when not found.
+ */
+static const expected_tokens_entry_t *expected_tokens_find(const expected_tokens_table_t *t,
+                                                           uint64_t prompt_id) {
+  if (!t || !t->entries || t->count == 0) return NULL;
+  for (size_t i = 0; i < t->count; ++i) {
+    if (t->entries[i].prompt_id == prompt_id) return &t->entries[i];
+  }
+  return NULL;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Per-prompt report structures                                               */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * @brief A token buffer owned by the report (copy of engine output).
+ */
+typedef struct report_token_buf {
+  int *ids;     /**< Owned token IDs (int). */
+  size_t n;     /**< Number of valid tokens. */
+} report_token_buf_t;
+
+/**
+ * @brief Free a report token buffer.
+ * @param b Buffer.
+ */
+/**
+ * @brief report_token_buf_free.
+ *
+ * @param b See implementation for details.
+ */
+static void report_token_buf_free(report_token_buf_t *b) {
+  if (!b) return;
+  free(b->ids);
+  b->ids = NULL;
+  b->n = 0;
+}
+
+/**
+ * @brief Copy tokens into a report token buffer (truncating if requested).
+ *
+ * @param ids Input token IDs.
+ * @param n Input token count.
+ * @param max_keep Maximum tokens to keep (0 keeps all).
+ * @param out Output buffer (owned).
+ * @return 0 on success, nonzero on OOM.
+ */
+/**
+ * @brief report_token_buf_copy.
+ *
+ * @param ids See implementation for details.
+ * @param n See implementation for details.
+ * @param max_keep See implementation for details.
+ * @param out See implementation for details.
+ *
+ * @return See implementation for details.
+ */
+static int report_token_buf_copy(const int *ids, size_t n, size_t max_keep, report_token_buf_t *out) {
+  if (!out) return 1;
+  out->ids = NULL;
+  out->n = 0;
+  if (!ids || n == 0) return 0;
+
+  size_t keep = n;
+  if (max_keep > 0 && keep > max_keep) keep = max_keep;
+
+  int *cp = (int *)malloc(sizeof(int) * keep);
+  if (!cp) return 2;
+  memcpy(cp, ids, sizeof(int) * keep);
+  out->ids = cp;
+  out->n = keep;
+  return 0;
+}
+
+/**
+ * @brief Per-prompt per-round record, suitable for JSON reporting.
+ */
+typedef struct prompt_round_record {
+  size_t prompt_index;          /**< Index into the prompts list. */
+  int round_index;              /**< Round index [0..rounds-1]. */
+
+  uint64_t prompt_id;           /**< Prompt stable ID (FNV-1a). */
+
+  size_t tokens_generated;      /**< Tokens generated for this prompt in this round. */
+  report_token_buf_t tokens;    /**< Copy of generated token IDs (optional). */
+
+  double window_time_s;         /**< Time measured around generate + strict touch for this prompt. */
+  double prefill_time_s;        /**< Engine-reported prefill time. */
+  double decode_time_s;         /**< Engine-reported decode time. */
+
+  int expected_present;         /**< 1 if expected tokens were found for this prompt. */
+  int expected_ok;              /**< 1 if actual tokens matched expected tokens. */
+  size_t mismatch_index;        /**< First mismatch index (only meaningful when !expected_ok). */
+  int expected_at;              /**< Expected token at mismatch. */
+  int actual_at;                /**< Actual token at mismatch. */
+
+  char *decoded_text;           /**< Optional decoded UTF-8 text (owned). */
+} prompt_round_record_t;
+
+/**
+ * @brief Free a prompt-round record.
+ * @param r Record.
+ */
+/**
+ * @brief prompt_round_record_free.
+ *
+ * @param r See implementation for details.
+ */
+static void prompt_round_record_free(prompt_round_record_t *r) {
+  if (!r) return;
+  report_token_buf_free(&r->tokens);
+  free(r->decoded_text);
+  r->decoded_text = NULL;
+}
+
+/**
+ * @brief Print a JSON array of integers.
+ * @param ids Token IDs (may be NULL).
+ * @param n Token count.
+ */
+/**
+ * @brief json_print_int_array.
+ *
+ * @param ids See implementation for details.
+ * @param n See implementation for details.
+ */
+static void json_print_int_array(const int *ids, size_t n) {
+  fputc('[', stdout);
+  if (ids && n) {
+    for (size_t i = 0; i < n; ++i) {
+      fprintf(stdout, "%d%s", ids[i], (i + 1 < n) ? "," : "");
+    }
+  }
+  fputc(']', stdout);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1423,23 +2135,27 @@ static int prompt_list_read_file(const char *path, prompt_list_t *out) {
  * @brief Print the single JSON result object to stdout.
  *
  * This function prints exactly one JSON object, suitable for strict harness parsing.
- * If @p text_decoded is non-NULL, it will be included under the "text" key.
- * If @p tokenizer_path_used is non-NULL, it will be included under "tokenizer_path".
+ * It preserves all previously emitted fields and appends per-prompt/per-round
+ * data under the @c "prompts" key.
  *
  * TPS policy:
  *  - tps_true is decode-only TPS: tokens_generated / decode_time_s (setup/prefill excluded).
  *  - tps_window is tokens_generated / wall_time_s (entire timed window, includes strict-touch).
  *
- * @param n_tok Number of generated tokens.
- * @param tokens Token buffer (may be NULL).
+ * @param n_tok Number of generated tokens (sum over all prompts and rounds).
+ * @param tokens Optional top-level token buffer (legacy single-prompt behavior).
  * @param wall_s_in Timed window seconds (strict window).
  * @param prefill_s_in Summed prefill seconds (engine-reported).
  * @param decode_s_in Summed decode seconds (engine-reported).
  * @param kv_hits KV cache hits.
  * @param kv_misses KV cache misses.
  * @param rss_peak_mb RSS peak in MiB.
- * @param text_decoded Optional decoded text (UTF-8).
+ * @param text_decoded Optional decoded text (UTF-8) for legacy single prompt.
  * @param tokenizer_path_used Optional resolved tokenizer path used by CLI.
+ * @param expected_file Optional expected tokens file path (for reporting only).
+ * @param prompts Prompt list (preloaded).
+ * @param rounds Number of rounds.
+ * @param recs Per-prompt/per-round records (length must be prompts->count * rounds).
  */
 static void print_json_result(size_t n_tok,
                               const int *tokens,
@@ -1450,7 +2166,11 @@ static void print_json_result(size_t n_tok,
                               uint64_t kv_misses,
                               uint32_t rss_peak_mb,
                               const char *text_decoded,
-                              const char *tokenizer_path_used) {
+                              const char *tokenizer_path_used,
+                              const char *expected_file,
+                              const prompt_list_t *prompts,
+                              int rounds,
+                              const prompt_round_record_t *recs) {
   const double wall_s = (wall_s_in > 0.0) ? wall_s_in : 0.0;
   const double prefill_s = (prefill_s_in > 0.0) ? prefill_s_in : 0.0;
   const double decode_s = (decode_s_in > 0.0) ? decode_s_in : 0.0;
@@ -1468,15 +2188,20 @@ static void print_json_result(size_t n_tok,
 
   fprintf(stdout, "{\"tokens_generated\":%zu,", n_tok);
 
-  fputs("\"tokens\":[", stdout);
-  if (tokens && n_tok > 0) {
-    for (size_t i = 0; i < n_tok; ++i) fprintf(stdout, "%d%s", tokens[i], (i + 1 < n_tok) ? "," : "");
-  }
-  fputs("],", stdout);
+  fputs("\"tokens\":", stdout);
+  if (tokens && n_tok > 0) json_print_int_array(tokens, n_tok);
+  else json_print_int_array(NULL, 0);
+  fputs(",", stdout);
 
   if (tokenizer_path_used && *tokenizer_path_used) {
     fputs("\"tokenizer_path\":", stdout);
     json_print_escaped_string(tokenizer_path_used);
+    fputs(",", stdout);
+  }
+
+  if (expected_file && *expected_file) {
+    fputs("\"expected_tokens_file\":", stdout);
+    json_print_escaped_string(expected_file);
     fputs(",", stdout);
   }
 
@@ -1496,7 +2221,7 @@ static void print_json_result(size_t n_tok,
           "\"latency_p95_ms\":%.3f,"
           "\"rss_peak_mb\":%u,"
           "\"kv_hits\":%" PRIu64 ","
-          "\"kv_misses\":%" PRIu64 "}\n",
+          "\"kv_misses\":%" PRIu64 ",",
           wall_s,
           prefill_s,
           decode_s,
@@ -1507,6 +2232,94 @@ static void print_json_result(size_t n_tok,
           (unsigned)rss_peak_mb,
           kv_hits,
           kv_misses);
+
+  /* Per-prompt details: always present (possibly empty). */
+  const size_t n_prompts = (prompts ? prompts->count : 0);
+  fprintf(stdout, "\"prompts_count\":%zu,", n_prompts);
+  fprintf(stdout, "\"rounds\":%d,", (rounds > 0 ? rounds : 1));
+
+  fputs("\"prompts\":[", stdout);
+  if (prompts && recs && n_prompts > 0) {
+    for (size_t pi = 0; pi < n_prompts; ++pi) {
+      /* Aggregate totals for this prompt. */
+      size_t tok_sum = 0;
+      double win_sum = 0.0, pre_sum = 0.0, dec_sum = 0.0;
+      int exp_present = 0;
+      int exp_all_ok = 1;
+
+      for (int rr = 0; rr < (rounds > 0 ? rounds : 1); ++rr) {
+        const prompt_round_record_t *r = &recs[(size_t)rr * n_prompts + pi];
+        tok_sum += r->tokens_generated;
+        win_sum += r->window_time_s;
+        pre_sum += r->prefill_time_s;
+        dec_sum += r->decode_time_s;
+
+        if (r->expected_present) exp_present = 1;
+        if (r->expected_present && !r->expected_ok) exp_all_ok = 0;
+      }
+
+      const double ptps_true = (dec_sum > 0.0) ? ((double)tok_sum / dec_sum) : 0.0;
+      const double ptps_win = (win_sum > 0.0) ? ((double)tok_sum / win_sum) : 0.0;
+
+      fputs("{", stdout);
+
+      fprintf(stdout, "\"prompt_index\":%zu,", pi);
+      fputs("\"prompt\":", stdout);
+      json_print_escaped_string(prompts->items[pi]);
+      fputs(",", stdout);
+
+      fprintf(stdout, "\"prompt_id\":\"0x%016" PRIx64 "\",", (uint64_t)prompt_id_fnv1a64(prompts->items[pi]));
+
+      fprintf(stdout, "\"tokens_generated\":%zu,", tok_sum);
+      fprintf(stdout, "\"window_time_s\":%.6f,", win_sum);
+      fprintf(stdout, "\"prefill_time_s\":%.6f,", pre_sum);
+      fprintf(stdout, "\"decode_time_s\":%.6f,", dec_sum);
+      fprintf(stdout, "\"tps_true\":%.6f,", ptps_true);
+      fprintf(stdout, "\"tps_window\":%.6f,", ptps_win);
+
+      fprintf(stdout, "\"expected_present\":%s,", exp_present ? "true" : "false");
+      fprintf(stdout, "\"expected_all_ok\":%s,", (exp_present && exp_all_ok) ? "true" : "false");
+
+      fputs("\"rounds\":[", stdout);
+      for (int rr = 0; rr < (rounds > 0 ? rounds : 1); ++rr) {
+        const prompt_round_record_t *r = &recs[(size_t)rr * n_prompts + pi];
+
+        fputs("{", stdout);
+        fprintf(stdout, "\"round\":%d,", rr);
+        fprintf(stdout, "\"tokens_generated\":%zu,", r->tokens_generated);
+        fprintf(stdout, "\"window_time_s\":%.6f,", r->window_time_s);
+        fprintf(stdout, "\"prefill_time_s\":%.6f,", r->prefill_time_s);
+        fprintf(stdout, "\"decode_time_s\":%.6f,", r->decode_time_s);
+
+        fprintf(stdout, "\"expected_present\":%s,", r->expected_present ? "true" : "false");
+        fprintf(stdout, "\"expected_ok\":%s,", (r->expected_present && r->expected_ok) ? "true" : "false");
+
+        if (r->expected_present && !r->expected_ok) {
+          fprintf(stdout, "\"mismatch_index\":%zu,", r->mismatch_index);
+          fprintf(stdout, "\"expected_at\":%d,", r->expected_at);
+          fprintf(stdout, "\"actual_at\":%d,", r->actual_at);
+        }
+
+        fputs("\"tokens\":", stdout);
+        json_print_int_array(r->tokens.ids, r->tokens.n);
+        fputs(",", stdout);
+
+        if (r->decoded_text) {
+          fputs("\"text\":", stdout);
+          json_print_escaped_string(r->decoded_text);
+        } else {
+          fputs("\"text\":null", stdout);
+        }
+
+        fputs("}", stdout);
+        if (rr + 1 < (rounds > 0 ? rounds : 1)) fputs(",", stdout);
+      }
+      fputs("]}", stdout);
+
+      if (pi + 1 < n_prompts) fputs(",", stdout);
+    }
+  }
+  fputs("]}\n", stdout);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1527,6 +2340,14 @@ static int device_is_cuda(const char *dev) { return ascii_ieq(dev, "cuda") ? 1 :
  */
 static int device_is_cpu(const char *dev) { return ascii_ieq(dev, "cpu") ? 1 : 0; }
 
+/**
+ * @brief main.
+ *
+ * @param argc See implementation for details.
+ * @param argv See implementation for details.
+ *
+ * @return See implementation for details.
+ */
 int main(int argc, char **argv) {
   cli_extras_t opt;
   if (parse_flags(argc, argv, &opt) != 0) return 2;
@@ -1578,7 +2399,7 @@ int main(int argc, char **argv) {
   if (opt.model_dir && *opt.model_dir) {
     if (!dir_accessible(opt.model_dir)) {
       fprintf(stderr, "error: --model-dir '%s' is not accessible: %s\n", opt.model_dir, strerror(errno));
-      print_json_result(0, NULL, 0.0, 0.0, 0.0, 0, 0, 0, NULL, NULL);
+      print_json_result(0, NULL, 0.0, 0.0, 0.0, 0, 0, 0, NULL, NULL, opt.expected_tokens_file, NULL, 1, NULL);
       return 3;
     }
   }
@@ -1592,15 +2413,11 @@ int main(int argc, char **argv) {
                       json_path, sizeof(json_path),
                       bin_path, sizeof(bin_path));
 
-  char prompt_buf[8192];
-  if (!opt.prompt && opt.prompts_file && !opt.aggregate) {
-    int r = read_first_nonempty_line(opt.prompts_file, prompt_buf, sizeof(prompt_buf));
-    if (r == 1) opt.prompt = prompt_buf;
-    else opt.prompt = "bench";
-  }
+  /* When a prompts file is provided and no explicit prompt is set, default to aggregate mode. */
+  if (opt.prompts_file && *opt.prompts_file && !opt.prompt) opt.aggregate = 1;
 
   if (!opt.prompt && !opt.prompts_file) {
-    print_json_result(0, NULL, 0.0, 0.0, 0.0, 0, 0, 0, NULL, NULL);
+    print_json_result(0, NULL, 0.0, 0.0, 0.0, 0, 0, 0, NULL, NULL, opt.expected_tokens_file, NULL, 1, NULL);
     return 0;
   }
 
@@ -1626,12 +2443,12 @@ int main(int argc, char **argv) {
       fprintf(stderr,
               "error: failed to open model (%s, %s), status=%d, errno=%d (%s)\n",
               json_path, bin_path, wrc, errno, strerror(errno));
-      print_json_result(0, NULL, 0.0, 0.0, 0.0, 0, 0, 0, NULL, tokenizer_path_heap);
+      print_json_result(0, NULL, 0.0, 0.0, 0.0, 0, 0, 0, NULL, tokenizer_path_heap, opt.expected_tokens_file, NULL, 1, NULL);
       free(tokenizer_path_heap);
       return 3;
     }
     fprintf(stderr, "warn: model metadata not found; stub JSON output\n");
-    print_json_result(0, NULL, 0.0, 0.0, 0.0, 0, 0, 0, NULL, tokenizer_path_heap);
+    print_json_result(0, NULL, 0.0, 0.0, 0.0, 0, 0, 0, NULL, tokenizer_path_heap, opt.expected_tokens_file, NULL, 1, NULL);
     free(tokenizer_path_heap);
     return 0;
   }
@@ -1655,7 +2472,7 @@ int main(int argc, char **argv) {
   if (st != IE_OK || !engine) {
     fprintf(stderr, "error: ie_engine_create failed (status=%d)\n", (int)st);
     ie_weights_close(&w);
-    print_json_result(0, NULL, 0.0, 0.0, 0.0, 0, 0, 0, NULL, tokenizer_path_heap);
+    print_json_result(0, NULL, 0.0, 0.0, 0.0, 0, 0, 0, NULL, tokenizer_path_heap, opt.expected_tokens_file, NULL, 1, NULL);
     free(tokenizer_path_heap);
     return 5;
   }
@@ -1677,7 +2494,7 @@ int main(int argc, char **argv) {
     fprintf(stderr, "error: OOM allocating token buffer\n");
     ie_engine_destroy(engine);
     ie_weights_close(&w);
-    print_json_result(0, NULL, 0.0, 0.0, 0.0, 0, 0, 0, NULL, tokenizer_path_heap);
+    print_json_result(0, NULL, 0.0, 0.0, 0.0, 0, 0, 0, NULL, tokenizer_path_heap, opt.expected_tokens_file, NULL, 1, NULL);
     free(tokenizer_path_heap);
     return 6;
   }
@@ -1688,16 +2505,37 @@ int main(int argc, char **argv) {
   const int want_cuda = device_is_cuda(opt.device) ? 1 : 0;
   const int want_cpu = device_is_cpu(opt.device) ? 1 : 0;
 
-  /* Preload prompts (when aggregate) so file I/O is not part of the timed window. */
+  /* Preload prompts so file I/O is outside the timed window. */
   prompt_list_t prompts;
   prompt_list_init(&prompts);
 
-  if (opt.aggregate && opt.prompts_file) {
+  if (opt.prompts_file && *opt.prompts_file && opt.aggregate) {
     (void)prompt_list_read_file(opt.prompts_file, &prompts);
-    if (prompts.count == 0) {
-      /* Keep behavior predictable even with empty/unreadable prompt files. */
-      (void)prompt_list_push_copy(&prompts, "bench");
-    }
+  }
+
+  if (prompts.count == 0 && opt.prompt) {
+    (void)prompt_list_push_copy(&prompts, opt.prompt);
+  }
+
+  if (prompts.count == 0 && opt.prompts_file && *opt.prompts_file && !opt.aggregate) {
+    /* Legacy compatibility: if the user explicitly disabled aggregate, run first line only. */
+    char first[8192];
+    int r = read_first_nonempty_line(opt.prompts_file, first, sizeof(first));
+    if (r == 1) (void)prompt_list_push_copy(&prompts, first);
+  }
+
+  if (prompts.count == 0) {
+    /* Keep behavior predictable even with empty/unreadable prompt files. */
+    (void)prompt_list_push_copy(&prompts, "bench");
+  }
+
+  /* Load expected tokens table (optional). */
+  expected_tokens_table_t expected;
+  expected_tokens_table_init(&expected);
+  int expected_loaded = 0;
+  if (opt.expected_tokens_file && *opt.expected_tokens_file) {
+    if (expected_tokens_table_load(opt.expected_tokens_file, &expected) == 0) expected_loaded = 1;
+    else fprintf(stderr, "warn: expected tokens file could not be loaded (continuing)\n");
   }
 
   model_mmap_touch_t mt;
@@ -1713,63 +2551,48 @@ int main(int argc, char **argv) {
   /* Preload cudart (dlopen/dlsym) outside the timed window to avoid setup overhead. */
   if (want_cuda && verify_touch && bytes_per_token > 0) (void)cudart_get_api();
 
+  const int rounds = (opt.rounds > 0 ? opt.rounds : 1);
+  const size_t n_prompts = prompts.count;
+
+  prompt_round_record_t *recs = (prompt_round_record_t *)calloc((size_t)rounds * n_prompts, sizeof(*recs));
+  if (!recs) {
+    fprintf(stderr, "error: OOM allocating report records\n");
+    if (mt_ok) model_touch_close(&mt);
+    expected_tokens_table_free(&expected);
+    prompt_list_free(&prompts);
+    free(tokens);
+    ie_engine_destroy(engine);
+    ie_weights_close(&w);
+    print_json_result(0, NULL, 0.0, 0.0, 0.0, 0, 0, rss_peak_mib(), NULL, tokenizer_path_heap, opt.expected_tokens_file, NULL, rounds, NULL);
+    free(tokenizer_path_heap);
+    return 7;
+  }
+
   (void)ie_kv_begin_round();
   uint64_t total_tokens_this_round = 0;
 
   size_t tokens_generated_total = 0;
-
-  /* Decode-only timing accumulators (engine-reported). */
   double prefill_s_total = 0.0;
   double decode_s_total = 0.0;
 
   /* Timed window begins here: steady-state generation + strict-touch work only. */
   const double t0 = now_sec();
 
-  for (int rr = 0; rr < (opt.rounds > 0 ? opt.rounds : 1); ++rr) {
-    if (opt.aggregate && prompts.count > 0) {
-      for (size_t pi = 0; pi < prompts.count; ++pi) {
-        const char *p = prompts.items[pi];
-        size_t n_here = 0;
-
-        ie_generate_stats_t gs;
-        memset(&gs, 0, sizeof(gs));
-
-        st = ie_engine_generate_ex(engine, p, cap, tokens, &n_here, &gs);
-        if (st != IE_OK) {
-          fprintf(stderr, "error: ie_engine_generate_ex (status=%d)\n", (int)st);
-          continue;
-        }
-
-        tokens_generated_total += n_here;
-        total_tokens_this_round += (uint64_t)n_here;
-
-        prefill_s_total += gs.prefill_time_s;
-        decode_s_total += gs.decode_time_s;
-
-        if (want_cuda && verify_touch && bytes_per_token && n_here > 0) {
-          int rc = cudart_touch_bytes(bytes_per_token, (uint64_t)n_here, stride_bytes, verify_touch);
-          if (rc != 0) fprintf(stderr, "error: CUDA strict touch failed (rc=%d)\n", rc);
-        }
-
-        if (want_cpu && verify_touch && bytes_per_token && n_here > 0 && mt_ok) {
-          (void)model_touch_bytes(&mt, bytes_per_token * n_here, stride_bytes, verify_touch);
-        }
-      }
-    } else {
-      const char *p = (opt.prompt ? opt.prompt : "bench");
+  for (int rr = 0; rr < rounds; ++rr) {
+    for (size_t pi = 0; pi < n_prompts; ++pi) {
+      const char *p = prompts.items[pi];
       size_t n_here = 0;
 
       ie_generate_stats_t gs;
       memset(&gs, 0, sizeof(gs));
 
+      const double pt0 = now_sec();
+
       st = ie_engine_generate_ex(engine, p, cap, tokens, &n_here, &gs);
-      if (st != IE_OK) fprintf(stderr, "error: ie_engine_generate_ex failed (status=%d)\n", (int)st);
-
-      tokens_generated_total += n_here;
-      total_tokens_this_round += (uint64_t)n_here;
-
-      prefill_s_total += gs.prefill_time_s;
-      decode_s_total += gs.decode_time_s;
+      if (st != IE_OK) {
+        fprintf(stderr, "error: ie_engine_generate_ex (status=%d)\n", (int)st);
+        continue;
+      }
 
       if (want_cuda && verify_touch && bytes_per_token && n_here > 0) {
         int rc = cudart_touch_bytes(bytes_per_token, (uint64_t)n_here, stride_bytes, verify_touch);
@@ -1778,6 +2601,48 @@ int main(int argc, char **argv) {
 
       if (want_cpu && verify_touch && bytes_per_token && n_here > 0 && mt_ok) {
         (void)model_touch_bytes(&mt, bytes_per_token * n_here, stride_bytes, verify_touch);
+      }
+
+      const double pt1 = now_sec();
+
+      tokens_generated_total += n_here;
+      total_tokens_this_round += (uint64_t)n_here;
+
+      prefill_s_total += gs.prefill_time_s;
+      decode_s_total += gs.decode_time_s;
+
+      const size_t ridx = (size_t)rr * n_prompts + pi;
+      prompt_round_record_t *r = &recs[ridx];
+      memset(r, 0, sizeof(*r));
+
+      r->prompt_index = pi;
+      r->round_index = rr;
+      r->prompt_id = prompt_id_fnv1a64(p);
+      r->tokens_generated = n_here;
+      r->window_time_s = (pt1 - pt0);
+      r->prefill_time_s = gs.prefill_time_s;
+      r->decode_time_s = gs.decode_time_s;
+
+      if (opt.report_tokens) {
+        const size_t max_keep = opt.report_tokens_max;
+        if (report_token_buf_copy(tokens, n_here, max_keep, &r->tokens) != 0) {
+          fprintf(stderr, "warn: OOM while copying tokens for report (continuing)\n");
+        }
+      }
+
+      if (expected_loaded) {
+        const expected_tokens_entry_t *e = expected_tokens_find(&expected, r->prompt_id);
+        if (e) {
+          r->expected_present = 1;
+
+          size_t mi = 0;
+          int ea = 0, aa = 0;
+          int cmp = expected_tokens_compare(e->tokens, e->n_tokens, tokens, n_here, &mi, &ea, &aa);
+          r->expected_ok = (cmp == 0) ? 1 : 0;
+          r->mismatch_index = mi;
+          r->expected_at = ea;
+          r->actual_at = aa;
+        }
       }
     }
   }
@@ -1790,19 +2655,33 @@ int main(int argc, char **argv) {
 
   const uint32_t rss_mib = rss_peak_mib();
 
-  /* Only print tokens array in non-aggregate single-round mode (original behavior). */
-  const int single_run_tokens = (!opt.aggregate && opt.rounds <= 1) ? 1 : 0;
-  const int *tokens_to_print = single_run_tokens ? tokens : NULL;
+  /* Legacy single-prompt token array and text for existing tooling. */
+  const int legacy_single_prompt = (opt.prompts_file == NULL && n_prompts == 1 && rounds == 1);
+  const int *tokens_to_print = legacy_single_prompt ? tokens : NULL;
 
-  /* Decode text only when we have a stable token sequence to decode. */
-  char *decoded = NULL;
-  if (opt.print_text && single_run_tokens && tokens_generated_total > 0) {
+  char *decoded_legacy = NULL;
+  if (opt.print_text && legacy_single_prompt && tokens_generated_total > 0) {
     if (tokenizer_path_heap && *tokenizer_path_heap) {
-      if (decode_tokens_best_effort(tokenizer_path_heap, tokens, tokens_generated_total, &decoded) != 0) {
-        decoded = NULL;
+      if (decode_tokens_best_effort(tokenizer_path_heap, tokens, tokens_generated_total, &decoded_legacy) != 0) {
+        decoded_legacy = NULL;
       }
     } else {
       fprintf(stderr, "warn: tokenizer file not found under model dir '%s'\n", model_dir_eff);
+    }
+  }
+
+  /* Optional per-record decode (outside the timed window). */
+  if (opt.print_text && tokenizer_path_heap && *tokenizer_path_heap) {
+    for (int rr = 0; rr < rounds; ++rr) {
+      for (size_t pi = 0; pi < n_prompts; ++pi) {
+        prompt_round_record_t *r = &recs[(size_t)rr * n_prompts + pi];
+        if (r->tokens.ids && r->tokens.n > 0) {
+          char *txt = NULL;
+          if (decode_tokens_best_effort(tokenizer_path_heap, r->tokens.ids, r->tokens.n, &txt) == 0) {
+            r->decoded_text = txt;
+          }
+        }
+      }
     }
   }
 
@@ -1814,13 +2693,21 @@ int main(int argc, char **argv) {
                     kv_hits_round,
                     kv_miss_round,
                     rss_mib,
-                    decoded,
-                    (opt.print_text ? tokenizer_path_heap : NULL));
+                    decoded_legacy,
+                    (opt.print_text ? tokenizer_path_heap : NULL),
+                    opt.expected_tokens_file,
+                    &prompts,
+                    rounds,
+                    recs);
 
-  free(decoded);
+  free(decoded_legacy);
 
   if (mt_ok) model_touch_close(&mt);
 
+  for (size_t i = 0; i < (size_t)rounds * n_prompts; ++i) prompt_round_record_free(&recs[i]);
+  free(recs);
+
+  expected_tokens_table_free(&expected);
   prompt_list_free(&prompts);
 
   free(tokens);
