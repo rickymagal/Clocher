@@ -582,6 +582,15 @@ static int ie_debug_nan_enabled_(void) {
   return cached;
 }
 
+static int ie_trace_bf16_enabled_(void) {
+  static int cached = -1;
+  if (cached < 0) {
+    const char *s = getenv("IE_TRACE_BF16");
+    cached = (s && s[0] && strcmp(s, "0") != 0) ? 1 : 0;
+  }
+  return cached;
+}
+
 static int ie_check_finite_f32_(const float *v, size_t n, const char *tag,
                                 uint32_t layer, uint32_t pos) {
   if (!v || !tag || n == 0) return 0;
@@ -1126,6 +1135,7 @@ static int ie_resolve_moe_layer(struct ie_gptoss_infer_impl *impl, uint32_t l,
 
 static int ie_forward_one_token(struct ie_gptoss_infer_impl *impl, ie_kv_cache *kv_layers,
                                 uint32_t token_id, uint32_t pos, float *out_logits) {
+  static int bf16_trace_done = 0;
   if (!impl || !kv_layers || !out_logits) return -1;
 
   const ie_gptoss_hparams_t *hp = impl->hp;
@@ -1200,8 +1210,21 @@ static int ie_forward_one_token(struct ie_gptoss_infer_impl *impl, ie_kv_cache *
       return -90;
     }
 
+    const int trace_on = ie_trace_bf16_enabled_() && !bf16_trace_done;
+    if (trace_on) {
+      fprintf(stderr, "[TRACE] bf16 gemv: layer=%u op=q rows=%zu cols=%zu\n",
+              (unsigned)l, q_dim, (size_t)d_model);
+    }
     if (ie_gemv_bf16_f32(W->q_w, impl->x1, impl->q, q_dim, (size_t)d_model, W->q_b) != 0) return -12;
+    if (trace_on) {
+      fprintf(stderr, "[TRACE] bf16 gemv: layer=%u op=k rows=%zu cols=%zu\n",
+              (unsigned)l, kv_dim, (size_t)d_model);
+    }
     if (ie_gemv_bf16_f32(W->k_w, impl->x1, impl->k, kv_dim, (size_t)d_model, W->k_b) != 0) return -13;
+    if (trace_on) {
+      fprintf(stderr, "[TRACE] bf16 gemv: layer=%u op=v rows=%zu cols=%zu\n",
+              (unsigned)l, kv_dim, (size_t)d_model);
+    }
     if (ie_gemv_bf16_f32(W->v_w, impl->x1, impl->v, kv_dim, (size_t)d_model, W->v_b) != 0) return -14;
 
     if (ie_rope_apply_f32(impl->q, NULL, (size_t)n_heads, (size_t)d_head, pos, rope_theta_eff) != 0) return -15;
@@ -1233,6 +1256,10 @@ static int ie_forward_one_token(struct ie_gptoss_infer_impl *impl, ie_kv_cache *
       }
     }
 
+    if (trace_on) {
+      fprintf(stderr, "[TRACE] bf16 gemv: layer=%u op=o rows=%zu cols=%zu\n",
+              (unsigned)l, (size_t)d_model, q_dim);
+    }
     if (ie_gemv_bf16_f32(W->o_w, impl->attn_out, impl->x2, (size_t)d_model, q_dim, W->o_b) != 0) return -19;
     for (uint32_t i = 0; i < d_model; ++i) impl->x[i] += impl->x2[i];
 
@@ -1246,6 +1273,10 @@ static int ie_forward_one_token(struct ie_gptoss_infer_impl *impl, ie_kv_cache *
       const uint32_t n_exp = M->n_experts;
       if (n_exp == 0u || !impl->router_logits) return -21;
 
+      if (trace_on) {
+        fprintf(stderr, "[TRACE] bf16 gemv: layer=%u op=router rows=%u cols=%u\n",
+                (unsigned)l, (unsigned)n_exp, (unsigned)d_model);
+      }
       if (ie_gemv_bf16_f32(M->router_w, impl->x1, impl->router_logits,
                            (size_t)n_exp, (size_t)d_model, M->router_b) != 0) {
         IE_LOGE("router gemv failed: layer=%u pos=%u n_experts=%u",
@@ -1342,6 +1373,14 @@ static int ie_forward_one_token(struct ie_gptoss_infer_impl *impl, ie_kv_cache *
   if (ie_rmsnorm_cpu_f32_bf16w(impl->x, impl->w_norm_bf16, (size_t)d_model, impl->rms_eps, impl->x1) != 0)
     return -26;
 
+  {
+    const int trace_on = ie_trace_bf16_enabled_() && !bf16_trace_done;
+    if (trace_on) {
+      fprintf(stderr, "[TRACE] bf16 gemv: op=lm_head rows=%u cols=%u\n",
+              (unsigned)vocab, (unsigned)d_model);
+      bf16_trace_done = 1;
+    }
+  }
   if (ie_gemv_bf16_f32(impl->w_lm_bf16, impl->x1, out_logits, (size_t)vocab, (size_t)d_model, NULL) != 0)
     return -27;
 
