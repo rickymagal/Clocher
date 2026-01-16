@@ -6,6 +6,7 @@ from pathlib import Path
 HF_DIR  = "models/gpt-oss-20b/hf"
 Q4_DIR  = "models/gpt-oss-20b/q4"
 MAN_OUT = "quant/q4_manifest.expanded.json"
+INCLUDE_LM_HEAD = os.getenv("IE_Q4_INCLUDE_LM_HEAD") == "1"
 
 inc_w = re.compile(r'.*\.weight$')
 exc_any = [
@@ -13,9 +14,10 @@ exc_any = [
     re.compile(r'.*(embed|embedding).*'),
     re.compile(r'.*(layernorm|layer_norm|rms_norm|ln).*'),
     re.compile(r'.*(norm.*weight).*'),
-    re.compile(r'.*(lm_head|final_linear)\.weight$'),
     re.compile(r'.*embed_out\.weight$'),
 ]
+if not INCLUDE_LM_HEAD:
+    exc_any.append(re.compile(r'.*(lm_head|final_linear)\.weight$'))
 
 def wanted(k: str) -> bool:
     if not inc_w.fullmatch(k): return False

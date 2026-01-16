@@ -107,6 +107,16 @@ int ie_gemv_q4_0_f32(const uint8_t *W_q4, const uint8_t *W_scales, size_t scale_
                      const uint16_t *bias_bf16);
 
 /**
+ * @brief Initialize log2(u8, q3) LUT for Q4 kernels (generic path).
+ */
+void ie_q4_log2_u8_q3_init_generic(void);
+
+/**
+ * @brief Initialize log2(u8, q3) LUT for Q4 kernels (AVX2 path).
+ */
+void ie_q4_log2_u8_q3_init_avx2(void);
+
+/**
  * @brief GEMV with Q4_0 weights and predecoded FP32 scales.
  *
  * @param W_q4      Q4 blocks (row-major).

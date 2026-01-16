@@ -25,7 +25,6 @@
 #include <stdint.h>
 #include <string.h>
 #include <math.h>
-#include <pthread.h>
 
 #include <immintrin.h>
 
@@ -64,17 +63,26 @@ static inline float ie_bf16_to_f32_scalar(uint16_t b) {
  * @return Decoded scale value.
  */
 static float ie_log2_u8_q3_lut_[256];
-static pthread_once_t ie_log2_u8_q3_once_ = PTHREAD_ONCE_INIT;
+static int ie_log2_u8_q3_ready_ = 0;
 
-static void ie_log2_u8_q3_init_(void) {
+static void ie_log2_u8_q3_init_impl_(void) {
   for (int i = 0; i < 256; ++i) {
     const float exp = ((float)(i - 128)) * 0.125f;
     ie_log2_u8_q3_lut_[i] = exp2f(exp);
   }
+  ie_log2_u8_q3_ready_ = 1;
+}
+
+void ie_q4_log2_u8_q3_init_avx2(void) {
+  if (!ie_log2_u8_q3_ready_) {
+    ie_log2_u8_q3_init_impl_();
+  }
 }
 
 static inline float ie_log2_u8_q3_to_f32(uint8_t v) {
-  pthread_once(&ie_log2_u8_q3_once_, ie_log2_u8_q3_init_);
+  if (!ie_log2_u8_q3_ready_) {
+    ie_log2_u8_q3_init_impl_();
+  }
   return ie_log2_u8_q3_lut_[v];
 }
 

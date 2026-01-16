@@ -33,6 +33,7 @@
 #define _POSIX_C_SOURCE 200809L
 
 #include <fcntl.h>
+#include <limits.h>
 #include <math.h>
 #include <stdarg.h>
 #include <stddef.h>
@@ -187,6 +188,12 @@ typedef struct ie_moe_w {
   /** @brief Router bias (BF16), shape [n_experts], optional. */
   const uint16_t *router_b;
 
+  /** @brief Router weight (FP32), shape [n_experts, d_model], optional. */
+  float *router_w_f32;
+
+  /** @brief Router bias (FP32), shape [n_experts], optional. */
+  float *router_b_f32;
+
   /** @brief Whether router weight is stored transposed (currently unused). */
   int router_transposed;
 
@@ -243,8 +250,14 @@ typedef struct ie_gptoss_layer_w {
   /** @brief RMSNorm #1 weight (BF16), shape [d_model]. */
   const uint16_t *ln1_w;
 
+  /** @brief RMSNorm #1 weight (FP32), shape [d_model], optional. */
+  float *ln1_w_f32;
+
   /** @brief RMSNorm #2 weight (BF16), shape [d_model]. */
   const uint16_t *ln2_w;
+
+  /** @brief RMSNorm #2 weight (FP32), shape [d_model], optional. */
+  float *ln2_w_f32;
 
   /** @brief Q projection weight (BF16), shape [q_dim, d_model]. */
   const uint16_t *q_w;
@@ -269,6 +282,30 @@ typedef struct ie_gptoss_layer_w {
 
   /** @brief O projection bias (BF16), shape [d_model], optional. */
   const uint16_t *o_b;
+
+  /** @brief Q projection weight (FP32), shape [q_dim, d_model], optional. */
+  float *q_w_f32;
+
+  /** @brief Q projection bias (FP32), shape [q_dim], optional. */
+  float *q_b_f32;
+
+  /** @brief K projection weight (FP32), shape [kv_dim, d_model], optional. */
+  float *k_w_f32;
+
+  /** @brief K projection bias (FP32), shape [kv_dim], optional. */
+  float *k_b_f32;
+
+  /** @brief V projection weight (FP32), shape [kv_dim, d_model], optional. */
+  float *v_w_f32;
+
+  /** @brief V projection bias (FP32), shape [kv_dim], optional. */
+  float *v_b_f32;
+
+  /** @brief O projection weight (FP32), shape [d_model, q_dim], optional. */
+  float *o_w_f32;
+
+  /** @brief O projection bias (FP32), shape [d_model], optional. */
+  float *o_b_f32;
 
   /** @brief MoE weights for this layer. */
   ie_moe_w_t moe;
@@ -314,8 +351,23 @@ struct ie_gptoss_infer_impl {
   /** @brief Final norm weight (BF16), shape [d_model]. */
   const uint16_t *w_norm_bf16;
 
+  /** @brief Final norm weight (FP32), shape [d_model], optional. */
+  float *w_norm_f32;
+
   /** @brief LM head weight (BF16), shape [vocab, d_model]. */
   const uint16_t *w_lm_bf16;
+
+  /** @brief LM head Q4 blocks (optional), shape [vocab, d_model]. */
+  const uint8_t *w_lm_q4_blocks;
+
+  /** @brief LM head Q4 scales (optional), shape [vocab, d_model]. */
+  const uint8_t *w_lm_q4_scales;
+
+  /** @brief Bytes per LM head scale element (2 = BF16, 1 = FP8 stored as u8). */
+  uint8_t w_lm_q4_scale_bytes;
+
+  /** @brief LM head weight (FP32), shape [vocab, d_model], optional. */
+  float *w_lm_f32;
 
   /** @brief Per-layer resolved weight pointers. */
   ie_gptoss_layer_w_t *layers;
@@ -380,6 +432,18 @@ struct ie_gptoss_infer_impl {
    * Default is 4 (IE_GPTOSS_MOE_TOPK_DEFAULT).
    */
   uint32_t moe_topk;
+
+  /** @brief Whether to use FP32 cached attention weights. */
+  int use_f32_attn;
+
+  /** @brief Whether to use FP32 cached router weights. */
+  int use_f32_router;
+
+  /** @brief Whether to use FP32 cached LM head weights. */
+  int use_f32_lm_head;
+
+  /** @brief Whether to use FP32 cached RMSNorm weights. */
+  int use_f32_rmsnorm;
 };
 
 /* ------------------------------------------------------------------------- */
@@ -546,6 +610,38 @@ static float ie_env_f32_clamped(const char *name, float def, float lo, float hi)
   if (v < lo) v = lo;
   if (v > hi) v = hi;
   return v;
+}
+
+/**
+ * @brief Parse an environment variable as boolean.
+ * @param name Environment variable name.
+ * @return 1 if enabled, 0 otherwise.
+ */
+static int ie_env_flag(const char *name) {
+  const char *s = getenv(name);
+  if (!s || !*s) return 0;
+  if (s[0] == '0') return 0;
+  if (s[0] == 'f' || s[0] == 'F') return 0;
+  if (s[0] == 'n' || s[0] == 'N') return 0;
+  return 1;
+}
+
+/**
+ * @brief Allocate and convert BF16 weights to FP32.
+ * @param src BF16 source buffer.
+ * @param n Number of elements.
+ * @param out Receives allocated FP32 buffer (or NULL if src/n is empty).
+ * @return 0 on success, negative on failure.
+ */
+static int ie_alloc_f32_from_bf16(const uint16_t *src, size_t n, float **out) {
+  if (!out) return -1;
+  *out = NULL;
+  if (!src || n == 0) return 0;
+  float *buf = (float *)malloc(n * sizeof(float));
+  if (!buf) return -2;
+  ie_vec_bf16_to_f32(src, buf, n);
+  *out = buf;
+  return 0;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -970,6 +1066,21 @@ static int ie_moe_expected_bytes(uint32_t n_experts, uint32_t rows, uint32_t col
   return 0;
 }
 
+static int ie_q4_expected_bytes(uint32_t rows, uint32_t cols, uint8_t scale_bytes,
+                                uint64_t *out_blocks_bytes, uint64_t *out_scales_bytes) {
+  if (!out_blocks_bytes || !out_scales_bytes) return -1;
+  if (rows == 0u || cols == 0u) return -2;
+  if ((cols % 32u) != 0u) return -3;
+  if (!(scale_bytes == 1u || scale_bytes == 2u)) return -4;
+
+  const uint64_t blocks_per_row_bytes = ((uint64_t)cols / 32u) * 16u;
+  const uint64_t scales_per_row_bytes = ((uint64_t)cols / 32u) * (uint64_t)scale_bytes;
+
+  *out_blocks_bytes = (uint64_t)rows * blocks_per_row_bytes;
+  *out_scales_bytes = (uint64_t)rows * scales_per_row_bytes;
+  return 0;
+}
+
 /* ------------------------------------------------------------------------- */
 /* Resolve MoE tensors for one layer                                          */
 /* ------------------------------------------------------------------------- */
@@ -1201,7 +1312,12 @@ static int ie_forward_one_token(struct ie_gptoss_infer_impl *impl, ie_kv_cache *
       return -10;
     }
 
-    if (ie_rmsnorm_cpu_f32_bf16w(impl->x, W->ln1_w, (size_t)d_model, impl->rms_eps, impl->x1) != 0) {
+    if (W->ln1_w_f32) {
+      if (ie_rmsnorm_cpu_f32(impl->x, W->ln1_w_f32, (size_t)d_model, impl->rms_eps, impl->x1) != 0) {
+        IE_LOGE("rmsnorm1 failed: layer=%u pos=%u", (unsigned)l, (unsigned)pos);
+        return -11;
+      }
+    } else if (ie_rmsnorm_cpu_f32_bf16w(impl->x, W->ln1_w, (size_t)d_model, impl->rms_eps, impl->x1) != 0) {
       IE_LOGE("rmsnorm1 failed: layer=%u pos=%u", (unsigned)l, (unsigned)pos);
       return -11;
     }
@@ -1215,17 +1331,29 @@ static int ie_forward_one_token(struct ie_gptoss_infer_impl *impl, ie_kv_cache *
       fprintf(stderr, "[TRACE] bf16 gemv: layer=%u op=q rows=%zu cols=%zu\n",
               (unsigned)l, q_dim, (size_t)d_model);
     }
-    if (ie_gemv_bf16_f32(W->q_w, impl->x1, impl->q, q_dim, (size_t)d_model, W->q_b) != 0) return -12;
+    if (W->q_w_f32) {
+      ie_gemv_f32(W->q_w_f32, impl->x1, impl->q, q_dim, (size_t)d_model, W->q_b_f32, 1);
+    } else {
+      if (ie_gemv_bf16_f32(W->q_w, impl->x1, impl->q, q_dim, (size_t)d_model, W->q_b) != 0) return -12;
+    }
     if (trace_on) {
       fprintf(stderr, "[TRACE] bf16 gemv: layer=%u op=k rows=%zu cols=%zu\n",
               (unsigned)l, kv_dim, (size_t)d_model);
     }
-    if (ie_gemv_bf16_f32(W->k_w, impl->x1, impl->k, kv_dim, (size_t)d_model, W->k_b) != 0) return -13;
+    if (W->k_w_f32) {
+      ie_gemv_f32(W->k_w_f32, impl->x1, impl->k, kv_dim, (size_t)d_model, W->k_b_f32, 1);
+    } else {
+      if (ie_gemv_bf16_f32(W->k_w, impl->x1, impl->k, kv_dim, (size_t)d_model, W->k_b) != 0) return -13;
+    }
     if (trace_on) {
       fprintf(stderr, "[TRACE] bf16 gemv: layer=%u op=v rows=%zu cols=%zu\n",
               (unsigned)l, kv_dim, (size_t)d_model);
     }
-    if (ie_gemv_bf16_f32(W->v_w, impl->x1, impl->v, kv_dim, (size_t)d_model, W->v_b) != 0) return -14;
+    if (W->v_w_f32) {
+      ie_gemv_f32(W->v_w_f32, impl->x1, impl->v, kv_dim, (size_t)d_model, W->v_b_f32, 1);
+    } else {
+      if (ie_gemv_bf16_f32(W->v_w, impl->x1, impl->v, kv_dim, (size_t)d_model, W->v_b) != 0) return -14;
+    }
 
     if (ie_rope_apply_f32(impl->q, NULL, (size_t)n_heads, (size_t)d_head, pos, rope_theta_eff) != 0) return -15;
     if (ie_rope_apply_f32(NULL, impl->k, (size_t)n_kv_heads, (size_t)d_head, pos, rope_theta_eff) != 0) return -16;
@@ -1260,10 +1388,19 @@ static int ie_forward_one_token(struct ie_gptoss_infer_impl *impl, ie_kv_cache *
       fprintf(stderr, "[TRACE] bf16 gemv: layer=%u op=o rows=%zu cols=%zu\n",
               (unsigned)l, (size_t)d_model, q_dim);
     }
-    if (ie_gemv_bf16_f32(W->o_w, impl->attn_out, impl->x2, (size_t)d_model, q_dim, W->o_b) != 0) return -19;
+    if (W->o_w_f32) {
+      ie_gemv_f32(W->o_w_f32, impl->attn_out, impl->x2, (size_t)d_model, q_dim, W->o_b_f32, 1);
+    } else {
+      if (ie_gemv_bf16_f32(W->o_w, impl->attn_out, impl->x2, (size_t)d_model, q_dim, W->o_b) != 0) return -19;
+    }
     for (uint32_t i = 0; i < d_model; ++i) impl->x[i] += impl->x2[i];
 
-    if (ie_rmsnorm_cpu_f32_bf16w(impl->x, W->ln2_w, (size_t)d_model, impl->rms_eps, impl->x1) != 0) {
+    if (W->ln2_w_f32) {
+      if (ie_rmsnorm_cpu_f32(impl->x, W->ln2_w_f32, (size_t)d_model, impl->rms_eps, impl->x1) != 0) {
+        IE_LOGE("rmsnorm2 failed: layer=%u pos=%u", (unsigned)l, (unsigned)pos);
+        return -20;
+      }
+    } else if (ie_rmsnorm_cpu_f32_bf16w(impl->x, W->ln2_w, (size_t)d_model, impl->rms_eps, impl->x1) != 0) {
       IE_LOGE("rmsnorm2 failed: layer=%u pos=%u", (unsigned)l, (unsigned)pos);
       return -20;
     }
@@ -1277,8 +1414,11 @@ static int ie_forward_one_token(struct ie_gptoss_infer_impl *impl, ie_kv_cache *
         fprintf(stderr, "[TRACE] bf16 gemv: layer=%u op=router rows=%u cols=%u\n",
                 (unsigned)l, (unsigned)n_exp, (unsigned)d_model);
       }
-      if (ie_gemv_bf16_f32(M->router_w, impl->x1, impl->router_logits,
-                           (size_t)n_exp, (size_t)d_model, M->router_b) != 0) {
+      if (M->router_w_f32) {
+        ie_gemv_f32(M->router_w_f32, impl->x1, impl->router_logits,
+                    (size_t)n_exp, (size_t)d_model, M->router_b_f32, 1);
+      } else if (ie_gemv_bf16_f32(M->router_w, impl->x1, impl->router_logits,
+                                  (size_t)n_exp, (size_t)d_model, M->router_b) != 0) {
         IE_LOGE("router gemv failed: layer=%u pos=%u n_experts=%u",
                 (unsigned)l, (unsigned)pos, (unsigned)n_exp);
         return -22;
@@ -1370,19 +1510,32 @@ static int ie_forward_one_token(struct ie_gptoss_infer_impl *impl, ie_kv_cache *
     for (uint32_t i = 0; i < d_model; ++i) impl->x[i] += impl->x2[i];
   }
 
-  if (ie_rmsnorm_cpu_f32_bf16w(impl->x, impl->w_norm_bf16, (size_t)d_model, impl->rms_eps, impl->x1) != 0)
+  if (impl->w_norm_f32) {
+    if (ie_rmsnorm_cpu_f32(impl->x, impl->w_norm_f32, (size_t)d_model, impl->rms_eps, impl->x1) != 0)
+      return -26;
+  } else if (ie_rmsnorm_cpu_f32_bf16w(impl->x, impl->w_norm_bf16, (size_t)d_model, impl->rms_eps, impl->x1) != 0) {
     return -26;
+  }
 
   {
     const int trace_on = ie_trace_bf16_enabled_() && !bf16_trace_done;
-    if (trace_on) {
+    if (trace_on && !impl->w_lm_q4_blocks && !impl->w_lm_f32) {
       fprintf(stderr, "[TRACE] bf16 gemv: op=lm_head rows=%u cols=%u\n",
               (unsigned)vocab, (unsigned)d_model);
       bf16_trace_done = 1;
     }
   }
-  if (ie_gemv_bf16_f32(impl->w_lm_bf16, impl->x1, out_logits, (size_t)vocab, (size_t)d_model, NULL) != 0)
-    return -27;
+  if (impl->w_lm_q4_blocks && impl->w_lm_q4_scales) {
+    if (ie_gemv_q4_0_f32(impl->w_lm_q4_blocks, impl->w_lm_q4_scales,
+                         impl->w_lm_q4_scale_bytes, impl->x1, out_logits,
+                         (size_t)vocab, (size_t)d_model, NULL) != 0)
+      return -27;
+  } else if (impl->w_lm_f32) {
+    ie_gemv_f32(impl->w_lm_f32, impl->x1, out_logits, (size_t)vocab, (size_t)d_model, NULL, 0);
+  } else {
+    if (ie_gemv_bf16_f32(impl->w_lm_bf16, impl->x1, out_logits, (size_t)vocab, (size_t)d_model, NULL) != 0)
+      return -27;
+  }
 
   if (getenv("IE_DEBUG_TOPK")) {
     uint32_t K = ie_env_u32_clamped("IE_DEBUG_TOPK", 10u, 1u, 100u);
@@ -1441,6 +1594,19 @@ int ie_gptoss_infer_create(const ie_device_t *dev_const, const ie_weights_t *w,
   impl->rms_eps = ie_env_f32_clamped("IE_RMS_EPS", IE_GPTOSS_RMS_EPS_DEFAULT, 1.0e-8f, 1.0e-2f);
   impl->rope_theta = ie_env_f32_clamped("IE_ROPE_THETA", IE_GPTOSS_ROPE_THETA_DEFAULT, 1.0f, 1.0e8f);
   impl->rope_scale = ie_env_f32_clamped("IE_ROPE_SCALE", 1.0f, 0.125f, 128.0f);
+
+  impl->use_f32_attn = ie_env_flag("IE_F32_ATTN");
+  impl->use_f32_router = ie_env_flag("IE_F32_ROUTER");
+  impl->use_f32_lm_head = ie_env_flag("IE_F32_LM_HEAD");
+  impl->use_f32_rmsnorm = ie_env_flag("IE_F32_RMSNORM");
+
+  IE_LOGI("create: f32_cache attn=%d router=%d lm_head=%d rmsnorm=%d",
+          impl->use_f32_attn, impl->use_f32_router,
+          impl->use_f32_lm_head, impl->use_f32_rmsnorm);
+
+  /* Initialize Q4 LUTs up front to avoid pthread_once in hot path. */
+  ie_q4_log2_u8_q3_init_generic();
+  ie_q4_log2_u8_q3_init_avx2();
 
   /* Step B: match model routing behavior (top-4 experts). Do not allow overrides here. */
   impl->moe_topk = IE_GPTOSS_MOE_TOPK_DEFAULT;
@@ -1572,6 +1738,13 @@ int ie_gptoss_infer_create(const ie_device_t *dev_const, const ie_weights_t *w,
       return -10;
     }
     impl->w_norm_bf16 = (const uint16_t *)v.ptr;
+    if (impl->use_f32_rmsnorm) {
+      if (ie_alloc_f32_from_bf16(impl->w_norm_bf16, (size_t)d_model, &impl->w_norm_f32) != 0) {
+        IE_LOGE("create: failed to allocate final norm f32");
+        ie_gptoss_infer_destroy((ie_gptoss_infer_t *)impl);
+        return -10;
+      }
+    }
   }
 
   {
@@ -1594,6 +1767,70 @@ int ie_gptoss_infer_create(const ie_device_t *dev_const, const ie_weights_t *w,
       return -12;
     }
     impl->w_lm_bf16 = (const uint16_t *)v.ptr;
+    {
+      ie_tensor_view_t v_q4_blocks;
+      ie_tensor_view_t v_q4_scales;
+      const char *const q4_blocks_candidates[] = {
+        "lm_head.weight_blocks",
+        "model.lm_head.weight_blocks",
+        "transformer.lm_head.weight_blocks",
+        "model.embed_tokens.weight_blocks"
+      };
+      const char *const q4_scales_candidates[] = {
+        "lm_head.weight_scales",
+        "model.lm_head.weight_scales",
+        "transformer.lm_head.weight_scales",
+        "model.embed_tokens.weight_scales"
+      };
+      const int has_blocks = (ie_w_get_first_view(impl, q4_blocks_candidates, 4, &v_q4_blocks) == 0 &&
+                              v_q4_blocks.desc);
+      const int has_scales = (ie_w_get_first_view(impl, q4_scales_candidates, 4, &v_q4_scales) == 0 &&
+                              v_q4_scales.desc);
+      if (has_blocks && has_scales) {
+        uint8_t scale_bytes = 0;
+        if (v_q4_scales.desc->dtype == TENSOR_DTYPE_BF16) scale_bytes = 2u;
+        else if (v_q4_scales.desc->dtype == TENSOR_DTYPE_U8) scale_bytes = 1u;
+        else {
+          uint64_t want_blocks = 0, want_scales_1 = 0, want_scales_2 = 0;
+          if (ie_q4_expected_bytes(vocab, d_model, 1u, &want_blocks, &want_scales_1) != 0 ||
+              ie_q4_expected_bytes(vocab, d_model, 2u, &want_blocks, &want_scales_2) != 0) {
+            IE_LOGE("create: lm_head q4 expected size failed");
+            ie_gptoss_infer_destroy((ie_gptoss_infer_t *)impl);
+            return -12;
+          }
+          if (v_q4_scales.desc->size_bytes == want_scales_1) scale_bytes = 1u;
+          else if (v_q4_scales.desc->size_bytes == want_scales_2) scale_bytes = 2u;
+        }
+        if (scale_bytes != 0u) {
+          uint64_t want_blocks = 0, want_scales = 0;
+          if (ie_q4_expected_bytes(vocab, d_model, scale_bytes, &want_blocks, &want_scales) != 0 ||
+              ie_require_size_eq(v_q4_blocks.desc, want_blocks) != 0 ||
+              ie_require_size_eq(v_q4_scales.desc, want_scales) != 0) {
+            IE_LOGE("create: lm_head q4 size mismatch");
+            ie_gptoss_infer_destroy((ie_gptoss_infer_t *)impl);
+            return -12;
+          }
+          impl->w_lm_q4_blocks = (const uint8_t *)v_q4_blocks.ptr;
+          impl->w_lm_q4_scales = (const uint8_t *)v_q4_scales.ptr;
+          impl->w_lm_q4_scale_bytes = scale_bytes;
+          IE_LOGI("create: lm_head q4 enabled (scale_bytes=%u)", (unsigned)scale_bytes);
+        }
+      }
+    }
+    if (impl->use_f32_lm_head && !impl->w_lm_q4_blocks) {
+      const uint64_t n64 = (uint64_t)vocab * (uint64_t)d_model;
+      if (n64 > (uint64_t)SIZE_MAX) {
+        IE_LOGE("create: lm_head f32 size overflow (vocab=%u d_model=%u)",
+                (unsigned)vocab, (unsigned)d_model);
+        ie_gptoss_infer_destroy((ie_gptoss_infer_t *)impl);
+        return -12;
+      }
+      if (ie_alloc_f32_from_bf16(impl->w_lm_bf16, (size_t)n64, &impl->w_lm_f32) != 0) {
+        IE_LOGE("create: failed to allocate lm_head f32");
+        ie_gptoss_infer_destroy((ie_gptoss_infer_t *)impl);
+        return -12;
+      }
+    }
   }
 
   impl->layers = (ie_gptoss_layer_w_t *)calloc((size_t)n_layers, sizeof(*impl->layers));
@@ -1628,6 +1865,13 @@ int ie_gptoss_infer_create(const ie_device_t *dev_const, const ie_weights_t *w,
       return -15;
     }
     LW->ln1_w = (const uint16_t *)v.ptr;
+    if (impl->use_f32_rmsnorm) {
+      if (ie_alloc_f32_from_bf16(LW->ln1_w, (size_t)d_model, &LW->ln1_w_f32) != 0) {
+        IE_LOGE("create: failed to allocate ln1 f32 layer=%u", (unsigned)l);
+        ie_gptoss_infer_destroy((ie_gptoss_infer_t *)impl);
+        return -15;
+      }
+    }
 
     const char *const q_w_fmts[] = {"model.layers.%u.self_attn.q_proj.weight"};
     const char *const q_b_fmts[] = {"model.layers.%u.self_attn.q_proj.bias"};
@@ -1737,6 +1981,34 @@ int ie_gptoss_infer_create(const ie_device_t *dev_const, const ie_weights_t *w,
       LW->o_b = NULL;
     }
 
+    if (impl->use_f32_attn) {
+      const size_t q_dim_sz = (size_t)q_dim;
+      const size_t kv_dim_sz = (size_t)kv_dim;
+      const size_t d_model_sz = (size_t)d_model;
+      const uint64_t q_w_n64 = q_dim * (uint64_t)d_model;
+      const uint64_t kv_w_n64 = kv_dim * (uint64_t)d_model;
+      const uint64_t o_w_n64 = (uint64_t)d_model * q_dim;
+#if SIZE_MAX < UINT64_MAX
+      if (q_w_n64 > (uint64_t)SIZE_MAX || kv_w_n64 > (uint64_t)SIZE_MAX || o_w_n64 > (uint64_t)SIZE_MAX) {
+        IE_LOGE("create: f32 attn weight size overflow layer=%u", (unsigned)l);
+        ie_gptoss_infer_destroy((ie_gptoss_infer_t *)impl);
+        return -27;
+      }
+#endif
+      if (ie_alloc_f32_from_bf16(LW->q_w, (size_t)q_w_n64, &LW->q_w_f32) != 0 ||
+          ie_alloc_f32_from_bf16(LW->q_b, q_dim_sz, &LW->q_b_f32) != 0 ||
+          ie_alloc_f32_from_bf16(LW->k_w, (size_t)kv_w_n64, &LW->k_w_f32) != 0 ||
+          ie_alloc_f32_from_bf16(LW->k_b, kv_dim_sz, &LW->k_b_f32) != 0 ||
+          ie_alloc_f32_from_bf16(LW->v_w, (size_t)kv_w_n64, &LW->v_w_f32) != 0 ||
+          ie_alloc_f32_from_bf16(LW->v_b, kv_dim_sz, &LW->v_b_f32) != 0 ||
+          ie_alloc_f32_from_bf16(LW->o_w, (size_t)o_w_n64, &LW->o_w_f32) != 0 ||
+          ie_alloc_f32_from_bf16(LW->o_b, d_model_sz, &LW->o_b_f32) != 0) {
+        IE_LOGE("create: failed to allocate f32 attn weights layer=%u", (unsigned)l);
+        ie_gptoss_infer_destroy((ie_gptoss_infer_t *)impl);
+        return -27;
+      }
+    }
+
     const char *const ln2_fmts[] = {
       "model.layers.%u.post_attention_layernorm.weight",
       "model.layers.%u.ffn_norm.weight"
@@ -1753,12 +2025,37 @@ int ie_gptoss_infer_create(const ie_device_t *dev_const, const ie_weights_t *w,
       return -29;
     }
     LW->ln2_w = (const uint16_t *)v.ptr;
+    if (impl->use_f32_rmsnorm) {
+      if (ie_alloc_f32_from_bf16(LW->ln2_w, (size_t)d_model, &LW->ln2_w_f32) != 0) {
+        IE_LOGE("create: failed to allocate ln2 f32 layer=%u", (unsigned)l);
+        ie_gptoss_infer_destroy((ie_gptoss_infer_t *)impl);
+        return -29;
+      }
+    }
 
     {
       const int rc_moe = ie_resolve_moe_layer(impl, l, LW);
       if (rc_moe != 0) {
         IE_LOGE("create: moe resolve failed: layer=%u rc=%d d_model=%u d_ff=%u",
                 (unsigned)l, rc_moe, (unsigned)d_model, (unsigned)d_ff);
+        ie_gptoss_infer_destroy((ie_gptoss_infer_t *)impl);
+        return -30;
+      }
+    }
+
+    if (impl->use_f32_router) {
+      const uint64_t n_exp = (uint64_t)LW->moe.n_experts;
+      const uint64_t router_n64 = n_exp * (uint64_t)d_model;
+      if (n_exp > 0 && router_n64 <= (uint64_t)SIZE_MAX) {
+        if (ie_alloc_f32_from_bf16(LW->moe.router_w, (size_t)router_n64, &LW->moe.router_w_f32) != 0 ||
+            ie_alloc_f32_from_bf16(LW->moe.router_b, (size_t)n_exp, &LW->moe.router_b_f32) != 0) {
+          IE_LOGE("create: failed to allocate f32 router weights layer=%u", (unsigned)l);
+          ie_gptoss_infer_destroy((ie_gptoss_infer_t *)impl);
+          return -30;
+        }
+      } else if (n_exp > 0) {
+        IE_LOGE("create: f32 router size overflow layer=%u n_exp=%u d_model=%u",
+                (unsigned)l, (unsigned)LW->moe.n_experts, (unsigned)d_model);
         ie_gptoss_infer_destroy((ie_gptoss_infer_t *)impl);
         return -30;
       }
@@ -1801,6 +2098,26 @@ void ie_gptoss_infer_destroy(ie_gptoss_infer_t *ctx) {
   if (impl->bin_base) ie_munmap_ro(impl->bin_base, impl->bin_size);
   tensor_map_free(&impl->tmap);
 
+  if (impl->layers) {
+    for (uint32_t l = 0; l < impl->hp->n_layers; ++l) {
+      ie_gptoss_layer_w_t *LW = &impl->layers[l];
+      free(LW->ln1_w_f32);
+      free(LW->ln2_w_f32);
+      free(LW->q_w_f32);
+      free(LW->q_b_f32);
+      free(LW->k_w_f32);
+      free(LW->k_b_f32);
+      free(LW->v_w_f32);
+      free(LW->v_b_f32);
+      free(LW->o_w_f32);
+      free(LW->o_b_f32);
+      free(LW->moe.router_w_f32);
+      free(LW->moe.router_b_f32);
+    }
+  }
+
+  free(impl->w_norm_f32);
+  free(impl->w_lm_f32);
   free(impl->tmap_path_used);
   free(impl->layers);
 

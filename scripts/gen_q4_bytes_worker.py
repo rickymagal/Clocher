@@ -11,10 +11,13 @@ import torch
 torch.set_num_threads(1)
 
 INC_W = re.compile(r".*\.weight$")
+INCLUDE_LM_HEAD = os.getenv("IE_Q4_INCLUDE_LM_HEAD") == "1"
 EXC = [re.compile(x) for x in [
     r".*\.bias$", r".*(embed|embedding).*", r".*(layernorm|layer_norm|rms_norm|ln).*",
-    r".*(norm.*weight).*", r".*(lm_head|final_linear)\.weight$", r".*embed_out\.weight$",
+    r".*(norm.*weight).*", r".*embed_out\.weight$",
 ]]
+if not INCLUDE_LM_HEAD:
+    EXC.append(re.compile(r".*(lm_head|final_linear)\.weight$"))
 
 def wanted(k: str) -> bool:
     if not INC_W.match(k): return False

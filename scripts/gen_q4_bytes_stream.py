@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import argparse, re, glob, json
+import argparse, re, glob, json, os
 from pathlib import Path
 
 import numpy as np
@@ -8,14 +8,16 @@ from safetensors.torch import load_file as safe_load_file
 
 INC_W = re.compile(r".*\.weight$")
 
+INCLUDE_LM_HEAD = os.getenv("IE_Q4_INCLUDE_LM_HEAD") == "1"
 EXC = [re.compile(x) for x in [
     r".*\.bias$",
     r".*(embed|embedding).*",
     r".*(layernorm|layer_norm|rms_norm|ln).*",
     r".*(norm.*weight).*",
-    r".*(lm_head|final_linear)\.weight$",
     r".*embed_out\.weight$",
 ]]
+if not INCLUDE_LM_HEAD:
+    EXC.append(re.compile(r".*(lm_head|final_linear)\.weight$"))
 
 def wanted(k: str) -> bool:
     if not INC_W.match(k):
