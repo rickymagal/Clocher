@@ -50,6 +50,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <pthread.h>
 #include <string.h>
 #include <time.h>
 #include <sys/stat.h>
@@ -331,6 +332,108 @@ static void log_prompt_preview_(const char *prompt) {
   tmp[n] = '\0';
 
   ie_log_info("prompt: bytes=%zu preview=\"%s%s\"", strlen(prompt), tmp, (prompt[n] ? "..." : ""));
+}
+
+static pthread_mutex_t trace_ids_mu_ = PTHREAD_MUTEX_INITIALIZER;
+static FILE *trace_ids_fp_ = NULL;
+static int trace_ids_init_ = 0;
+
+static FILE *trace_ids_open_(void) {
+  pthread_mutex_lock(&trace_ids_mu_);
+  if (trace_ids_init_) {
+    FILE *fp = trace_ids_fp_;
+    pthread_mutex_unlock(&trace_ids_mu_);
+    return fp;
+  }
+
+  trace_ids_init_ = 1;
+  const char *path = getenv("IE_TRACE_IDS_JSONL");
+  if (!path || path[0] == '\0') {
+    trace_ids_fp_ = NULL;
+    pthread_mutex_unlock(&trace_ids_mu_);
+    return NULL;
+  }
+
+  trace_ids_fp_ = fopen(path, "a");
+  if (!trace_ids_fp_) {
+    ie_log_warn("ie_trace_ids: failed to open '%s'", path);
+  } else {
+    (void)setvbuf(trace_ids_fp_, NULL, _IOLBF, 0);
+  }
+
+  FILE *fp = trace_ids_fp_;
+  pthread_mutex_unlock(&trace_ids_mu_);
+  return fp;
+}
+
+static int trace_ids_prompt_index_(size_t *out) {
+  if (!out) return 0;
+  const char *s = getenv("IE_TRACE_PROMPT_INDEX");
+  if (!s || s[0] == '\0') return 0;
+  char *end = NULL;
+  unsigned long long v = strtoull(s, &end, 10);
+  if (end == s || (end && *end)) return 0;
+  *out = (size_t)v;
+  return 1;
+}
+
+static void json_write_escaped_(FILE *fp, const char *s) {
+  fputc('"', fp);
+  if (s) {
+    for (const unsigned char *p = (const unsigned char *)s; *p; ++p) {
+      const unsigned char ch = *p;
+      switch (ch) {
+        case '"': fputs("\\\"", fp); break;
+        case '\\': fputs("\\\\", fp); break;
+        case '\b': fputs("\\b", fp); break;
+        case '\f': fputs("\\f", fp); break;
+        case '\n': fputs("\\n", fp); break;
+        case '\r': fputs("\\r", fp); break;
+        case '\t': fputs("\\t", fp); break;
+        default:
+          if (ch < 0x20) {
+            fprintf(fp, "\\u%04x", (unsigned)ch);
+          } else {
+            fputc((int)ch, fp);
+          }
+          break;
+      }
+    }
+  }
+  fputc('"', fp);
+}
+
+static void trace_ids_prompt_(size_t prompt_index,
+                              const char *prompt,
+                              const uint32_t *prompt_ids,
+                              uint32_t n_prompt) {
+  FILE *fp = trace_ids_open_();
+  if (!fp) return;
+
+  pthread_mutex_lock(&trace_ids_mu_);
+  fprintf(fp, "{\"kind\":\"prompt\",\"prompt_index\":%zu,", prompt_index);
+  fputs("\"prompt\":", fp);
+  json_write_escaped_(fp, prompt ? prompt : "");
+  fputs(",\"prompt_token_ids\":[", fp);
+  for (uint32_t i = 0; i < n_prompt; ++i) {
+    if (i) fputc(',', fp);
+    fprintf(fp, "%u", (unsigned)prompt_ids[i]);
+  }
+  fputs("]}\n", fp);
+  pthread_mutex_unlock(&trace_ids_mu_);
+}
+
+static void trace_ids_step_(size_t prompt_index, size_t step, uint32_t next_id) {
+  FILE *fp = trace_ids_open_();
+  if (!fp) return;
+
+  pthread_mutex_lock(&trace_ids_mu_);
+  fprintf(fp,
+          "{\"kind\":\"gen_step\",\"prompt_index\":%zu,\"step\":%zu,\"next_id\":%u}\n",
+          prompt_index,
+          step,
+          (unsigned)next_id);
+  pthread_mutex_unlock(&trace_ids_mu_);
 }
 
 
@@ -800,6 +903,12 @@ ie_status_t ie_engine_generate_ex(const ie_engine_t *e,
 
   ie_log_info("ie_engine_generate_ex: encoded prompt tokens=%" PRIu32, n_prompt);
 
+  size_t trace_prompt_index = 0;
+  const int trace_prompt = trace_ids_prompt_index_(&trace_prompt_index);
+  if (trace_prompt) {
+    trace_ids_prompt_(trace_prompt_index, prompt, prompt_ids, n_prompt);
+  }
+
   if (log_tokens) {
     const uint32_t cap = (n_prompt < 32u) ? n_prompt : 32u;
     char line[512];
@@ -909,6 +1018,10 @@ ie_status_t ie_engine_generate_ex(const ie_engine_t *e,
     }
 
     out_tokens[produced] = (int)next;
+
+    if (trace_prompt) {
+      trace_ids_step_(trace_prompt_index, produced, next);
+    }
 
     if (log_every > 0 && (produced % (size_t)log_every) == 0) {
       ie_log_info("ie_engine_generate_ex: step=%zu next_token=%" PRIu32, produced, next);

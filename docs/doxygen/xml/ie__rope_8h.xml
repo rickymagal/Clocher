@@ -1,0 +1,299 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.8" xml:lang="en-US">
+  <compounddef id="ie__rope_8h" kind="file" language="C++">
+    <compoundname>ie_rope.h</compoundname>
+    <includes local="no">stddef.h</includes>
+    <includes local="no">stdint.h</includes>
+    <includedby refid="rope_8c" local="yes">engine/src/math/rope.c</includedby>
+    <incdepgraph>
+      <node id="1">
+        <label>engine/include/ie_rope.h</label>
+        <link refid="ie__rope_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="3" relation="include">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>stddef.h</label>
+      </node>
+      <node id="3">
+        <label>stdint.h</label>
+      </node>
+    </incdepgraph>
+    <invincdepgraph>
+      <node id="1">
+        <label>engine/include/ie_rope.h</label>
+        <link refid="ie__rope_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>engine/src/math/rope.c</label>
+        <link refid="rope_8c"/>
+      </node>
+    </invincdepgraph>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="ie__rope_8h_1ae8c1140c5d28dc4907041cd146b5f083" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int ie_rope_apply_one_f32</definition>
+        <argsstring>(float *x, size_t head_dim, uint32_t pos, float theta)</argsstring>
+        <name>ie_rope_apply_one_f32</name>
+        <param>
+          <type>float *</type>
+          <declname>x</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>head_dim</declname>
+        </param>
+        <param>
+          <type>uint32_t</type>
+          <declname>pos</declname>
+        </param>
+        <param>
+          <type>float</type>
+          <declname>theta</declname>
+        </param>
+        <briefdescription>
+<para>Apply RoPE to a single head vector in-place. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>The head vector is treated as interleaved pairs: (x[0], x[1]), (x[2], x[3]), ...</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>x</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Pointer to head vector (length head_dim). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>head_dim</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Per-head dimension (must be even and &gt;= 2). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>pos</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Position index. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>theta</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>RoPE base theta (must be &gt; 0). </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>0 on success, negative on error. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/ie_rope.h" line="45" column="5" bodyfile="engine/src/math/rope.c" bodystart="141" bodyend="169" declfile="engine/include/ie_rope.h" declline="45" declcolumn="5"/>
+        <references refid="rope_8c_1a77b332ec2a9ecd1347197d95c961b438" compoundref="rope_8c" startline="127" endline="135">ie_rope_inv_freq</references>
+        <references refid="rope_8c_1af48b9ee7bfa3e934704a80ce5db339c1" compoundref="rope_8c" startline="92" endline="110">ie_rope_pos_mul</references>
+        <referencedby refid="ie__kernels_8h_1af89b1384a30307fe173f81fa75cac73f" compoundref="rope_8c" startline="171" endline="192">ie_rope_apply_f32</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="ie__rope_8h_1af89b1384a30307fe173f81fa75cac73f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int ie_rope_apply_f32</definition>
+        <argsstring>(float *q, float *k, size_t heads, size_t head_dim, uint32_t pos, float theta)</argsstring>
+        <name>ie_rope_apply_f32</name>
+        <param>
+          <type>float *</type>
+          <declname>q</declname>
+        </param>
+        <param>
+          <type>float *</type>
+          <declname>k</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>heads</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>head_dim</declname>
+        </param>
+        <param>
+          <type>uint32_t</type>
+          <declname>pos</declname>
+        </param>
+        <param>
+          <type>float</type>
+          <declname>theta</declname>
+        </param>
+        <briefdescription>
+<para>Apply RoPE to Q and/or K for multiple heads. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Either <computeroutput>q</computeroutput> or <computeroutput>k</computeroutput> may be NULL. If both are NULL, this is a no-op returning 0.</para>
+<para>Buffers are expected in row-major layout: q layout: [heads, head_dim] k layout: [heads, head_dim]</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>q</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Q buffer, layout [heads, head_dim], may be NULL. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>k</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>K buffer, layout [heads, head_dim], may be NULL. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>heads</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of heads in q/k (must be &gt; 0 if q or k is non-NULL). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>head_dim</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Per-head dimension (must be even and &gt;= 2). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>pos</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Position index. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>theta</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>RoPE base theta (must be &gt; 0). </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>0 on success, negative on error.</para>
+</simplesect>
+Apply RoPE to Q and/or K for multiple heads.</para>
+<para>This function applies RoPE on the first head_dim elements, interpreted as interleaved pairs (even, odd): (x0, x1) -&gt; (x0*cos - x1*sin, x0*sin + x1*cos)</para>
+<para>The caller passes Q and K shaped as [heads, head_dim] flattened.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>q</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Q buffer, [heads * head_dim]. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>k</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>K buffer, [heads * head_dim]. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>heads</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of heads in q/k. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>head_dim</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Head dimension (must be even for paired rotation). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>pos</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Sequence position (0-based). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>theta</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>RoPE base (commonly 10000.0f). </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>0 on success, negative on invalid args. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/ie_rope.h" line="65" column="5" bodyfile="engine/src/math/rope.c" bodystart="171" bodyend="192" declfile="engine/include/ie_rope.h" declline="65" declcolumn="5"/>
+        <referencedby refid="infer__gptoss_8c_1a463151430d9b4dce6eae9210c3c598f0" compoundref="infer__gptoss_8c" startline="1359" endline="1694">ie_forward_one_token</referencedby>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para>Rotary Position Embedding (RoPE) interfaces. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>RoPE rotates interleaved pairs (2*i, 2*i+1) in each head.</para>
+<para>This header matches the runtime usage where calls may pass only q or only k (the other pointer may be NULL), and the function returns an int status code.</para>
+<para>RoPE scaling:<itemizedlist>
+<listitem><para>Scaling is implemented inside the RoPE helper (see <ref refid="rope_8c" kindref="compound">engine/src/math/rope.c</ref>).</para>
+</listitem><listitem><para>Environment variables supported by the implementation:<itemizedlist>
+<listitem><para>IE_ROPE_LINEAR_SCALE: positive float factor f, effective pos = pos / f</para>
+</listitem><listitem><para>IE_ROPE_POS_SCALE: positive float multiplier m, effective pos = pos * m </para>
+</listitem></itemizedlist>
+</para>
+</listitem></itemizedlist>
+</para>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="comment">/*<sp/>============================================================================</highlight></codeline>
+<codeline lineno="2"><highlight class="comment"><sp/>*<sp/>File:<sp/>engine/include/ie_rope.h</highlight></codeline>
+<codeline lineno="3"><highlight class="comment"><sp/>*<sp/>============================================================================</highlight></codeline>
+<codeline lineno="4"><highlight class="comment"><sp/>*/</highlight></codeline>
+<codeline lineno="22"><highlight class="normal"></highlight><highlight class="preprocessor">#ifndef<sp/>IE_ROPE_H</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="23"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>IE_ROPE_H</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="24"><highlight class="normal"></highlight></codeline>
+<codeline lineno="25"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stddef.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="26"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stdint.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="27"><highlight class="normal"></highlight></codeline>
+<codeline lineno="28"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="29"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/></highlight><highlight class="stringliteral">&quot;C&quot;</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="30"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="31"><highlight class="normal"></highlight></codeline>
+<codeline lineno="45"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="ie__rope_8h_1ae8c1140c5d28dc4907041cd146b5f083" kindref="member">ie_rope_apply_one_f32</ref>(</highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*x,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>head_dim,<sp/>uint32_t<sp/>pos,<sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>theta);</highlight></codeline>
+<codeline lineno="46"><highlight class="normal"></highlight></codeline>
+<codeline lineno="65"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="ie__rope_8h_1af89b1384a30307fe173f81fa75cac73f" kindref="member">ie_rope_apply_f32</ref>(</highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*q,<sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*k,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>heads,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>head_dim,<sp/>uint32_t<sp/>pos,</highlight></codeline>
+<codeline lineno="66"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>theta);</highlight></codeline>
+<codeline lineno="67"><highlight class="normal"></highlight></codeline>
+<codeline lineno="68"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="69"><highlight class="normal">}<sp/></highlight><highlight class="comment">/*<sp/>extern<sp/>&quot;C&quot;<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="70"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="71"><highlight class="normal"></highlight></codeline>
+<codeline lineno="72"><highlight class="normal"></highlight><highlight class="preprocessor">#endif<sp/></highlight><highlight class="comment">/*<sp/>IE_ROPE_H<sp/>*/</highlight><highlight class="preprocessor"></highlight></codeline>
+    </programlisting>
+    <location file="engine/include/ie_rope.h"/>
+  </compounddef>
+</doxygen>

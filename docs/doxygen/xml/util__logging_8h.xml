@@ -3,9 +3,15 @@
   <compounddef id="util__logging_8h" kind="file" language="C++">
     <compoundname>util_logging.h</compoundname>
     <includes local="no">stdarg.h</includes>
+    <includedby refid="ie__api_8c" local="yes">engine/src/ie_api.c</includedby>
+    <includedby refid="tokenizer_8c" local="yes">engine/src/io/tokenizer.c</includedby>
+    <includedby refid="weights_8c" local="yes">engine/src/io/weights.c</includedby>
+    <includedby refid="gemv__generic_8c" local="yes">engine/src/kernels/gemv_generic.c</includedby>
+    <includedby refid="main__chat_8c" local="yes">engine/src/main_chat.c</includedby>
     <includedby refid="main__infer_8c" local="yes">engine/src/main_infer.c</includedby>
     <includedby refid="numa__policy_8c" local="yes">engine/src/opt/numa_policy.c</includedby>
     <includedby refid="replicate__hot_8c" local="yes">engine/src/opt/replicate_hot.c</includedby>
+    <includedby refid="util__logging_8c" local="yes">engine/src/util_logging.c</includedby>
     <includedby refid="test__dedup__loader_8c" local="yes">tests/c/test_dedup_loader.c</includedby>
     <incdepgraph>
       <node id="1">
@@ -30,32 +36,68 @@
         </childnode>
         <childnode refid="5" relation="include">
         </childnode>
+        <childnode refid="6" relation="include">
+        </childnode>
+        <childnode refid="7" relation="include">
+        </childnode>
+        <childnode refid="8" relation="include">
+        </childnode>
+        <childnode refid="9" relation="include">
+        </childnode>
+        <childnode refid="10" relation="include">
+        </childnode>
+        <childnode refid="11" relation="include">
+        </childnode>
       </node>
       <node id="2">
+        <label>engine/src/ie_api.c</label>
+        <link refid="ie__api_8c"/>
+      </node>
+      <node id="3">
+        <label>engine/src/io/tokenizer.c</label>
+        <link refid="tokenizer_8c"/>
+      </node>
+      <node id="4">
+        <label>engine/src/io/weights.c</label>
+        <link refid="weights_8c"/>
+      </node>
+      <node id="5">
+        <label>engine/src/kernels/gemv_generic.c</label>
+        <link refid="gemv__generic_8c"/>
+      </node>
+      <node id="6">
+        <label>engine/src/main_chat.c</label>
+        <link refid="main__chat_8c"/>
+      </node>
+      <node id="7">
         <label>engine/src/main_infer.c</label>
         <link refid="main__infer_8c"/>
       </node>
-      <node id="3">
+      <node id="8">
         <label>engine/src/opt/numa_policy.c</label>
         <link refid="numa__policy_8c"/>
       </node>
-      <node id="4">
+      <node id="9">
         <label>engine/src/opt/replicate_hot.c</label>
         <link refid="replicate__hot_8c"/>
       </node>
-      <node id="5">
+      <node id="10">
+        <label>engine/src/util_logging.c</label>
+        <link refid="util__logging_8c"/>
+      </node>
+      <node id="11">
         <label>tests/c/test_dedup_loader.c</label>
         <link refid="test__dedup__loader_8c"/>
       </node>
     </invincdepgraph>
     <sectiondef kind="func">
       <memberdef kind="function" id="util__logging_8h_1a7bff220c76442d1372d81e26f77c2921" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
-        <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">void</ref></type>
+        <type>void</type>
         <definition>void ie_log_info</definition>
         <argsstring>(const char *fmt,...)</argsstring>
         <name>ie_log_info</name>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">const</ref> <ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">char</ref> *</type>
+          <type>const char *</type>
           <declname>fmt</declname>
         </param>
         <param>
@@ -78,25 +120,7 @@
 <parametername>...</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Arguments.</para>
-</parameterdescription>
-</parameteritem>
-</parameterlist>
-Log an informational message (printf-style).</para>
-<para><parameterlist kind="param"><parameteritem>
-<parameternamelist>
-<parametername>fmt</parametername>
-</parameternamelist>
-<parameterdescription>
-<para>printf-style format string. </para>
-</parameterdescription>
-</parameteritem>
-<parameteritem>
-<parameternamelist>
-<parametername>...</parametername>
-</parameternamelist>
-<parameterdescription>
-<para>Variadic arguments. </para>
+<para>Arguments. </para>
 </parameterdescription>
 </parameteritem>
 </parameterlist>
@@ -104,17 +128,28 @@ Log an informational message (printf-style).</para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="engine/include/util_logging.h" line="17" column="6" bodyfile="engine/src/util_logging.c" bodystart="28" bodyend="35" declfile="engine/include/util_logging.h" declline="17" declcolumn="6"/>
-        <references refid="util__logging_8c_1ab80060ad0a06923e07f013630c67e2b1" compoundref="util__logging_8c" startline="15">g_log_level</references>
-        <references refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" compoundref="ie__device__cuda_8cu" startline="92" endline="110">ie_gemv_rowwise_f32_kernel</references>
+        <location file="engine/include/util_logging.h" line="17" column="6" bodyfile="engine/src/util_logging.c" bodystart="27" bodyend="32" declfile="engine/include/util_logging.h" declline="17" declcolumn="6"/>
+        <references refid="util__logging_8c_1ac0a8abb7ed0f336e7d2a4a9eeac1e634" compoundref="util__logging_8c" startline="15" endline="25">ie_vlog_</references>
+        <referencedby refid="ie__api_8c_1a215873dea479191195e8c959e211dd12" compoundref="ie__api_8c" startline="492" endline="529">debug_dump_topk_</referencedby>
+        <referencedby refid="ie__api_8h_1a84bd87043352946e9d53b0f8a5c4abe0" compoundref="ie__api_8c" startline="535" endline="786">ie_engine_create</referencedby>
+        <referencedby refid="ie__api_8h_1a5a9a30f05ef6183f6a75811c616b3a0a" compoundref="ie__api_8c" startline="788" endline="816">ie_engine_destroy</referencedby>
+        <referencedby refid="ie__api_8h_1a950ac9a0efe5a4fe068a288e57099c4a" compoundref="ie__api_8c" startline="826" endline="1109">ie_engine_generate_ex</referencedby>
+        <referencedby refid="gemv__generic_8c_1abdc04113c83880ea48ee1599cf3db331" compoundref="gemv__generic_8c" startline="40" endline="55">ie_log_kernel_once</referencedby>
+        <referencedby refid="ie__io_8h_1a68bc61261a64b4fe8bd566fc7d399a2e" compoundref="tokenizer_8c" startline="357" endline="414">ie_tok_decode</referencedby>
+        <referencedby refid="ie__io_8h_1a2b9cb342eb062867f93fb786548003f7" compoundref="tokenizer_8c" startline="266" endline="337">ie_tok_encode</referencedby>
+        <referencedby refid="ie__io_8h_1adbe33a7f4e53bcb709d56dc753c9148b" compoundref="tokenizer_8c" startline="176" endline="228">ie_vocab_load</referencedby>
+        <referencedby refid="ie__api_8c_1a199233701fc36a14c4dd9ca0b6ba3267" compoundref="ie__api_8c" startline="250" endline="262">log_hparams_</referencedby>
+        <referencedby refid="ie__api_8c_1a6043c93ff69b9a5560d3563173bbe413" compoundref="ie__api_8c" startline="264" endline="273">log_hparams_ex_</referencedby>
+        <referencedby refid="ie__api_8c_1ae91baeed684675458103911630006d6b" compoundref="ie__api_8c" startline="319" endline="335">log_prompt_preview_</referencedby>
+        <referencedby refid="tokenizer_8c_1ad024cfc5e6543de537bba2d31c18e817" compoundref="tokenizer_8c" startline="137" endline="154">tok_log_preview_</referencedby>
       </memberdef>
       <memberdef kind="function" id="util__logging_8h_1a760c448d737b236033d80eb69d83981f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
-        <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">void</ref></type>
+        <type>void</type>
         <definition>void ie_log_warn</definition>
         <argsstring>(const char *fmt,...)</argsstring>
         <name>ie_log_warn</name>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">const</ref> <ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">char</ref> *</type>
+          <type>const char *</type>
           <declname>fmt</declname>
         </param>
         <param>
@@ -145,15 +180,20 @@ Log an informational message (printf-style).</para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="engine/include/util_logging.h" line="25" column="6" declfile="engine/include/util_logging.h" declline="25" declcolumn="6"/>
+        <location file="engine/include/util_logging.h" line="25" column="6" bodyfile="engine/src/util_logging.c" bodystart="34" bodyend="39" declfile="engine/include/util_logging.h" declline="25" declcolumn="6"/>
+        <references refid="util__logging_8c_1ac0a8abb7ed0f336e7d2a4a9eeac1e634" compoundref="util__logging_8c" startline="15" endline="25">ie_vlog_</references>
+        <referencedby refid="ie__api_8h_1a84bd87043352946e9d53b0f8a5c4abe0" compoundref="ie__api_8c" startline="535" endline="786">ie_engine_create</referencedby>
+        <referencedby refid="ie__api_8h_1a950ac9a0efe5a4fe068a288e57099c4a" compoundref="ie__api_8c" startline="826" endline="1109">ie_engine_generate_ex</referencedby>
+        <referencedby refid="ie__api_8c_1a037b105c112037bdbc1725c6c88fd1ff" compoundref="ie__api_8c" startline="275" endline="311">maybe_correct_head_dim_</referencedby>
+        <referencedby refid="ie__api_8c_1aaa7948350c8b5bf09b749517bad63ce9" compoundref="ie__api_8c" startline="341" endline="367">trace_ids_open_</referencedby>
       </memberdef>
       <memberdef kind="function" id="util__logging_8h_1aea21466075cc03977bc4fcde5130d6a4" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
-        <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">void</ref></type>
+        <type>void</type>
         <definition>void ie_log_error</definition>
         <argsstring>(const char *fmt,...)</argsstring>
         <name>ie_log_error</name>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">const</ref> <ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">char</ref> *</type>
+          <type>const char *</type>
           <declname>fmt</declname>
         </param>
         <param>
@@ -184,7 +224,18 @@ Log an informational message (printf-style).</para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="engine/include/util_logging.h" line="33" column="6" declfile="engine/include/util_logging.h" declline="33" declcolumn="6"/>
+        <location file="engine/include/util_logging.h" line="33" column="6" bodyfile="engine/src/util_logging.c" bodystart="41" bodyend="46" declfile="engine/include/util_logging.h" declline="33" declcolumn="6"/>
+        <references refid="util__logging_8c_1ac0a8abb7ed0f336e7d2a4a9eeac1e634" compoundref="util__logging_8c" startline="15" endline="25">ie_vlog_</references>
+        <referencedby refid="main__chat_8c_1ae896159f978561c1c42b20fbd05559e4" compoundref="main__chat_8c" startline="73" endline="108">cmd_decode</referencedby>
+        <referencedby refid="main__chat_8c_1a85977bfad7ce939338220eda76285abd" compoundref="main__chat_8c" startline="110" endline="139">cmd_encode</referencedby>
+        <referencedby refid="main__chat_8c_1ac47c278fe62ce7ee4c6901d302bb155f" compoundref="main__chat_8c" startline="141" endline="183">cmd_roundtrip</referencedby>
+        <referencedby refid="ie__api_8h_1a84bd87043352946e9d53b0f8a5c4abe0" compoundref="ie__api_8c" startline="535" endline="786">ie_engine_create</referencedby>
+        <referencedby refid="ie__api_8h_1a950ac9a0efe5a4fe068a288e57099c4a" compoundref="ie__api_8c" startline="826" endline="1109">ie_engine_generate_ex</referencedby>
+        <referencedby refid="gemv__generic_8c_1a3e532847f3b6cd6a2ed3be0786ee18ce" compoundref="gemv__generic_8c" startline="151" endline="166">ie_gemv_qi8_stub_impl</referencedby>
+        <referencedby refid="ie__io_8h_1a68bc61261a64b4fe8bd566fc7d399a2e" compoundref="tokenizer_8c" startline="357" endline="414">ie_tok_decode</referencedby>
+        <referencedby refid="ie__io_8h_1a2b9cb342eb062867f93fb786548003f7" compoundref="tokenizer_8c" startline="266" endline="337">ie_tok_encode</referencedby>
+        <referencedby refid="ie__io_8h_1adbe33a7f4e53bcb709d56dc753c9148b" compoundref="tokenizer_8c" startline="176" endline="228">ie_vocab_load</referencedby>
+        <referencedby refid="main__chat_8c_1a3c04138a5bfe5d72780bb7e82a18e627" compoundref="main__chat_8c" startline="185" endline="231">main</referencedby>
       </memberdef>
     </sectiondef>
     <briefdescription>
@@ -199,11 +250,11 @@ Log an informational message (printf-style).</para>
 <codeline lineno="8"><highlight class="normal"></highlight></codeline>
 <codeline lineno="9"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stdarg.h&gt;</highlight><highlight class="normal"></highlight></codeline>
 <codeline lineno="10"><highlight class="normal"></highlight></codeline>
-<codeline lineno="17"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="util__logging_8h_1a7bff220c76442d1372d81e26f77c2921" kindref="member">ie_log_info</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">fmt</ref>,<sp/>...);</highlight></codeline>
+<codeline lineno="17"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="util__logging_8h_1a7bff220c76442d1372d81e26f77c2921" kindref="member">ie_log_info</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*fmt,<sp/>...);</highlight></codeline>
 <codeline lineno="18"><highlight class="normal"></highlight></codeline>
-<codeline lineno="25" refid="util__logging_8h_1a760c448d737b236033d80eb69d83981f" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="util__logging_8h_1a760c448d737b236033d80eb69d83981f" kindref="member">ie_log_warn</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">fmt</ref>,<sp/>...);</highlight></codeline>
+<codeline lineno="25"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="util__logging_8h_1a760c448d737b236033d80eb69d83981f" kindref="member">ie_log_warn</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*fmt,<sp/>...);</highlight></codeline>
 <codeline lineno="26"><highlight class="normal"></highlight></codeline>
-<codeline lineno="33" refid="util__logging_8h_1aea21466075cc03977bc4fcde5130d6a4" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="util__logging_8h_1aea21466075cc03977bc4fcde5130d6a4" kindref="member">ie_log_error</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">fmt</ref>,<sp/>...);</highlight></codeline>
+<codeline lineno="33"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="util__logging_8h_1aea21466075cc03977bc4fcde5130d6a4" kindref="member">ie_log_error</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*fmt,<sp/>...);</highlight></codeline>
 <codeline lineno="34"><highlight class="normal"></highlight></codeline>
 <codeline lineno="35"><highlight class="normal"></highlight><highlight class="preprocessor">#endif<sp/></highlight><highlight class="comment">/*<sp/>UTIL_LOGGING_H<sp/>*/</highlight><highlight class="preprocessor"></highlight></codeline>
     </programlisting>

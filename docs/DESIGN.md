@@ -1,7 +1,7 @@
 # Design (CPU baseline + INT4 path)
 
 This document describes the hot path, API boundaries, and precision modes.  
-**Last updated:** 2025-10-24 21:00:48 UTC
+**Last updated:** 2026-01-17 15:54:51 UTC
 
 ## Process and boundaries
 - Single binary `inference-engine`: create → generate → collect metrics → destroy.
@@ -54,6 +54,20 @@ This document describes the hot path, API boundaries, and precision modes.
 - **Peak RSS** (Linux `/proc/self/status:VmHWM` → MiB; fallback `getrusage`).
 - KV hits/misses counter stubs aggregated per round.
 
+## Benchmark reporting & verification
+- `make bench` runs a strict TPS pass and then a reporting pass (`bench-report`) that writes JSONL under `REPORT_ROOT`.
+- `REPORT=1` enables report emission; `REPORT_ROOT` controls the output directory.
+- `VERIFY=0` skips `bench-verify` when full validation is too slow or not required.
+- `WARMUP_TOKENS` (default `0`) controls warmup in strict runs to avoid RNG drift between expected/verified outputs.
+
+### HF ID verification (strict mode)
+- Optional cross‑check against Hugging Face reference IDs:
+  - Prompt token IDs must match HF exactly.
+  - Generated next‑token IDs are compared step‑by‑step (greedy).
+  - Optional top‑k/logits checks use `HF_TOPK` and `HF_LOGITS_TOL`.
+- Controlled by `VERIFY_HF_IDS=1` plus `HF_PY`, `HF_DIR`, `HF_DEVICE`, `HF_DTYPE`.
+- Intended for GPU/large‑RAM hosts; CPU‑only 20B verification can be memory‑heavy.
+
 ## GPU integration (CUDA path)
 - Device layer: `engine/src/devices/ie_device_cuda.cu`, kernels in `engine/src/kernels/ie_kernels_cuda.cu`.
 - Build: `make build-cuda` → `build/inference-engine.cuda`.
@@ -78,6 +92,13 @@ This document describes the hot path, API boundaries, and precision modes.
 
 ### Data Flow (INT4 path)
 HF shards → `hf_to_iebin.py --q4-map` → IEBIN (`model.ie.json` + `model.ie.bin` with INT4-packed tensors) → Runtime `IE_PRECISION=int4w` → GEMV kernels read packed weights (or dequant on load), semantics unchanged.
+
+### Streaming Q4 packers (large HF models)
+- For very large HF checkpoints, Q4 packing can be done in streaming mode:
+  - `scripts/gen_q4_bytes_stream.py` writes `model.q4.bin` plus `model.q4.scales.fp16.bin`.
+  - `scripts/gen_q4_bytes_stream_all.sh` batches shards.
+  - `scripts/append_q4_attn_from_hf.py` can append Q4 attention projections into a compat JSON/Q4 bin.
+- These tools avoid loading all weights into memory at once and are intended for long‑running offline conversion.
 
 ### Metrics Integrity
 - The timed window is **only**: `ie_engine_generate(...)` + optional *work-touch* loop.

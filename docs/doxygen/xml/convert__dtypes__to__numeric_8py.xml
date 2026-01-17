@@ -1,0 +1,57 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.8" xml:lang="en-US">
+  <compounddef id="convert__dtypes__to__numeric_8py" kind="file" language="Python">
+    <compoundname>convert_dtypes_to_numeric.py</compoundname>
+    <innernamespace refid="namespaceconvert__dtypes__to__numeric">convert_dtypes_to_numeric</innernamespace>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1" refid="namespaceconvert__dtypes__to__numeric" refkind="compound"><highlight class="comment">#!/usr/bin/env<sp/>python3</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="2"><highlight class="normal"></highlight><highlight class="keyword">import</highlight><highlight class="normal"><sp/>json,<sp/>sys,<sp/>pathlib</highlight></codeline>
+<codeline lineno="3"><highlight class="normal"></highlight></codeline>
+<codeline lineno="4" refid="namespaceconvert__dtypes__to__numeric_1a01b00d9498604e77ec6dc990a3ffa99b" refkind="member"><highlight class="normal">MAP<sp/>=<sp/>{</highlight></codeline>
+<codeline lineno="5"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">#<sp/>Floating-point<sp/>family</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="6"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;F64&quot;</highlight><highlight class="normal">:<sp/>0,</highlight></codeline>
+<codeline lineno="7"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;F32&quot;</highlight><highlight class="normal">:<sp/>3,</highlight></codeline>
+<codeline lineno="8"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;BF16&quot;</highlight><highlight class="normal">:<sp/>2,</highlight></codeline>
+<codeline lineno="9"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;F16&quot;</highlight><highlight class="normal">:<sp/>1,</highlight></codeline>
+<codeline lineno="10"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;FP8&quot;</highlight><highlight class="normal">:<sp/>6,</highlight></codeline>
+<codeline lineno="11"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;FP4&quot;</highlight><highlight class="normal">:<sp/>7,</highlight></codeline>
+<codeline lineno="12"><highlight class="normal"></highlight></codeline>
+<codeline lineno="13"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">#<sp/>Integer<sp/>/<sp/>quantized<sp/>family</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="14"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;INT8&quot;</highlight><highlight class="normal">:<sp/>4,</highlight></codeline>
+<codeline lineno="15"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;INT4&quot;</highlight><highlight class="normal">:<sp/>5,</highlight></codeline>
+<codeline lineno="16"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;UINT8&quot;</highlight><highlight class="normal">:<sp/>8,</highlight></codeline>
+<codeline lineno="17"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;UINT4&quot;</highlight><highlight class="normal">:<sp/>9,</highlight></codeline>
+<codeline lineno="18"><highlight class="normal"></highlight></codeline>
+<codeline lineno="19"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="comment">#<sp/>Unsigned<sp/>exponent<sp/>quantization<sp/>formats<sp/>(used<sp/>for<sp/>scales)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="20"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;UE8&quot;</highlight><highlight class="normal">:<sp/>10,</highlight></codeline>
+<codeline lineno="21"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;UE4&quot;</highlight><highlight class="normal">:<sp/>11,</highlight></codeline>
+<codeline lineno="22"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;U8&quot;</highlight><highlight class="normal">:<sp/>12,</highlight></codeline>
+<codeline lineno="23"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;U4&quot;</highlight><highlight class="normal">:<sp/>13,</highlight></codeline>
+<codeline lineno="24"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="25"><highlight class="normal"></highlight></codeline>
+<codeline lineno="26" refid="namespaceconvert__dtypes__to__numeric_1a6e1f8f63edf468d486e77c62d293460f" refkind="member"><highlight class="normal">src<sp/>=<sp/>pathlib.Path(sys.argv[1])</highlight></codeline>
+<codeline lineno="27" refid="namespaceconvert__dtypes__to__numeric_1a415d14a7ade776b6bb2e544f0be25e6b" refkind="member"><highlight class="normal">dst<sp/>=<sp/>pathlib.Path(sys.argv[2])</highlight></codeline>
+<codeline lineno="28" refid="namespaceconvert__dtypes__to__numeric_1a916c517d81453d7904a929a87d6430f2" refkind="member"><highlight class="normal">j<sp/>=<sp/>json.load(src.open())</highlight></codeline>
+<codeline lineno="29" refid="namespaceconvert__dtypes__to__numeric_1a0332296ea5bde95f8e72005df06144a8" refkind="member"><highlight class="normal">out<sp/>=<sp/>{}</highlight></codeline>
+<codeline lineno="30"><highlight class="normal"></highlight></codeline>
+<codeline lineno="31"><highlight class="normal"></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>k,<sp/>v<sp/></highlight><highlight class="keywordflow">in</highlight><highlight class="normal"><sp/>j.items():</highlight></codeline>
+<codeline lineno="32"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>isinstance(v,<sp/>str):</highlight></codeline>
+<codeline lineno="33" refid="namespaceconvert__dtypes__to__numeric_1a594d6119d07e6b13101d171294108745" refkind="member"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>code<sp/>=<sp/>MAP.get(v.upper())</highlight></codeline>
+<codeline lineno="34"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>code<sp/></highlight><highlight class="keywordflow">is</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">None</highlight><highlight class="normal">:</highlight></codeline>
+<codeline lineno="35"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">raise</highlight><highlight class="normal"><sp/>SystemExit(f</highlight><highlight class="stringliteral">&quot;ERROR:<sp/>unknown<sp/>dtype<sp/>string<sp/>&apos;{v}&apos;<sp/>for<sp/>tensor<sp/>&apos;{k}&apos;&quot;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline lineno="36"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>out[k]<sp/>=<sp/>code</highlight></codeline>
+<codeline lineno="37"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">elif</highlight><highlight class="normal"><sp/>isinstance(v,<sp/>(int,<sp/>float)):</highlight></codeline>
+<codeline lineno="38"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>out[k]<sp/>=<sp/>int(v)</highlight></codeline>
+<codeline lineno="39"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">else</highlight><highlight class="normal">:</highlight></codeline>
+<codeline lineno="40"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">raise</highlight><highlight class="normal"><sp/>SystemExit(f</highlight><highlight class="stringliteral">&quot;ERROR:<sp/>unexpected<sp/>dtype<sp/>value<sp/>{v!r}<sp/>for<sp/>&apos;{k}&apos;&quot;</highlight><highlight class="normal">)</highlight></codeline>
+<codeline lineno="41"><highlight class="normal"></highlight></codeline>
+<codeline lineno="42"><highlight class="normal">dst.write_text(json.dumps(out,<sp/>indent=2))</highlight></codeline>
+<codeline lineno="43"><highlight class="normal">print(f</highlight><highlight class="stringliteral">&quot;OK:<sp/>wrote<sp/>numeric<sp/>dtypes<sp/>-&gt;<sp/>{dst}<sp/>({len(out)}<sp/>entries)&quot;</highlight><highlight class="normal">)</highlight></codeline>
+    </programlisting>
+    <location file="scripts/convert_dtypes_to_numeric.py"/>
+  </compounddef>
+</doxygen>

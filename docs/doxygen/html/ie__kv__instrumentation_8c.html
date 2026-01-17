@@ -98,19 +98,16 @@ $(document).ready(function(){initNavTree('ie__kv__instrumentation_8c.html',''); 
 </div><!--header-->
 <div class="contents">
 
-<p>FIFO-set based KV cache hit/miss counters (single-threaded).  
+<p>Lightweight KV cache reuse counters (process-local, single-threaded).  
 <a href="#details">More...</a></p>
 <div class="textblock"><code>#include &quot;<a class="el" href="ie__kv__instrumentation_8h_source.html">ie_kv_instrumentation.h</a>&quot;</code><br />
 <code>#include &lt;assert.h&gt;</code><br />
 <code>#include &lt;stddef.h&gt;</code><br />
 <code>#include &lt;stdint.h&gt;</code><br />
-<code>#include &lt;stdio.h&gt;</code><br />
-<code>#include &lt;stdlib.h&gt;</code><br />
-<code>#include &lt;string.h&gt;</code><br />
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for ie_kv_instrumentation.c:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ie__kv__instrumentation_8c__incl.svg" width="640" height="183"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="ie__kv__instrumentation_8c__incl.svg" width="440" height="183"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 </div>
 <p><a href="ie__kv__instrumentation_8c_source.html">Go to the source code of this file.</a></p>
@@ -122,97 +119,115 @@ Data Structures</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:a886abd7a4ad752897b4469e29cc344e3" id="r_a886abd7a4ad752897b4469e29cc344e3"><td class="memItemLeft" align="right" valign="top"><a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">static</a> <a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">size_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ie__kv__instrumentation_8c.html#a886abd7a4ad752897b4469e29cc344e3">env_size</a> (<a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">const</a> <a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">char</a> *name, <a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">size_t</a> <a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">defv</a>)</td></tr>
-<tr class="memdesc:a886abd7a4ad752897b4469e29cc344e3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Strict-decimal environment reader with fallback.  <br /></td></tr>
-<tr class="separator:a886abd7a4ad752897b4469e29cc344e3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a37bd44541ec645006f436707ca67b407" id="r_a37bd44541ec645006f436707ca67b407"><td class="memItemLeft" align="right" valign="top"><a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">static</a> <a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ie__kv__instrumentation_8c.html#a37bd44541ec645006f436707ca67b407">kv_contains</a> (<a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">uint32_t</a> <a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">token</a>)</td></tr>
-<tr class="memdesc:a37bd44541ec645006f436707ca67b407"><td class="mdescLeft">&#160;</td><td class="mdescRight">Linear membership test in the FIFO set.  <br /></td></tr>
-<tr class="separator:a37bd44541ec645006f436707ca67b407"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a83b5153f7145e76551b31ced07063538" id="r_a83b5153f7145e76551b31ced07063538"><td class="memItemLeft" align="right" valign="top"><a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">static</a> <a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ie__kv__instrumentation_8c.html#a83b5153f7145e76551b31ced07063538">kv_insert_fifo</a> (<a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">uint32_t</a> <a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">token</a>)</td></tr>
-<tr class="memdesc:a83b5153f7145e76551b31ced07063538"><td class="mdescLeft">&#160;</td><td class="mdescRight">Insert token into the FIFO set, evicting the oldest if full.  <br /></td></tr>
-<tr class="separator:a83b5153f7145e76551b31ced07063538"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0a8ac6ff4fa3502470774c6cb9e6f488" id="r_a0a8ac6ff4fa3502470774c6cb9e6f488"><td class="memItemLeft" align="right" valign="top"><a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ie__kv__instrumentation_8c.html#a0a8ac6ff4fa3502470774c6cb9e6f488">ie_kv_begin_round</a> (<a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">void</a>)</td></tr>
-<tr class="memdesc:a0a8ac6ff4fa3502470774c6cb9e6f488"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initialize KV counters and allocate a token set for the round.  <br /></td></tr>
+<tr class="memitem:a0a8ac6ff4fa3502470774c6cb9e6f488" id="r_a0a8ac6ff4fa3502470774c6cb9e6f488"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ie__kv__instrumentation_8c.html#a0a8ac6ff4fa3502470774c6cb9e6f488">ie_kv_begin_round</a> (void)</td></tr>
+<tr class="memdesc:a0a8ac6ff4fa3502470774c6cb9e6f488"><td class="mdescLeft">&#160;</td><td class="mdescRight">Begin (or reset) KV instrumentation for the current round.  <br /></td></tr>
 <tr class="separator:a0a8ac6ff4fa3502470774c6cb9e6f488"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a27b3df57a37a25798490912b1e92d716" id="r_a27b3df57a37a25798490912b1e92d716"><td class="memItemLeft" align="right" valign="top"><a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ie__kv__instrumentation_8c.html#a27b3df57a37a25798490912b1e92d716">ie_kv_on_token</a> (<a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">uint32_t</a> <a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">token</a>)</td></tr>
-<tr class="memdesc:a27b3df57a37a25798490912b1e92d716"><td class="mdescLeft">&#160;</td><td class="mdescRight">Report a produced token to the KV tracker.  <br /></td></tr>
-<tr class="separator:a27b3df57a37a25798490912b1e92d716"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2c9789a487a67ebc8e6054aa0b991e4e" id="r_a2c9789a487a67ebc8e6054aa0b991e4e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ie__kv__instrumentation_8c.html#a2c9789a487a67ebc8e6054aa0b991e4e">ie_kv_finish_round</a> (<a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">uint64_t</a> <a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">total_tokens</a>, <a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">uint64_t</a> *<a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">out_hits</a>, <a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">uint64_t</a> *<a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">out_misses</a>)</td></tr>
-<tr class="memdesc:a2c9789a487a67ebc8e6054aa0b991e4e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Finalize the round and return hit/miss counters.  <br /></td></tr>
+<tr class="memitem:a9897c8f0778487dbf6988f0253a195a3" id="r_a9897c8f0778487dbf6988f0253a195a3"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ie__kv__instrumentation_8c.html#a9897c8f0778487dbf6988f0253a195a3">ie_kv_add_hits</a> (uint64_t n)</td></tr>
+<tr class="memdesc:a9897c8f0778487dbf6988f0253a195a3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Add to the KV "hit" counter.  <br /></td></tr>
+<tr class="separator:a9897c8f0778487dbf6988f0253a195a3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a12fb475a0e4a167cdc2581321c1ff0a0" id="r_a12fb475a0e4a167cdc2581321c1ff0a0"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ie__kv__instrumentation_8c.html#a12fb475a0e4a167cdc2581321c1ff0a0">ie_kv_add_misses</a> (uint64_t n)</td></tr>
+<tr class="memdesc:a12fb475a0e4a167cdc2581321c1ff0a0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Add to the KV "miss" counter.  <br /></td></tr>
+<tr class="separator:a12fb475a0e4a167cdc2581321c1ff0a0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2c9789a487a67ebc8e6054aa0b991e4e" id="r_a2c9789a487a67ebc8e6054aa0b991e4e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ie__kv__instrumentation_8c.html#a2c9789a487a67ebc8e6054aa0b991e4e">ie_kv_finish_round</a> (uint64_t total_tokens, uint64_t *out_hits, uint64_t *out_misses)</td></tr>
+<tr class="memdesc:a2c9789a487a67ebc8e6054aa0b991e4e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Finish a round and return the accumulated counters.  <br /></td></tr>
 <tr class="separator:a2c9789a487a67ebc8e6054aa0b991e4e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a27b3df57a37a25798490912b1e92d716" id="r_a27b3df57a37a25798490912b1e92d716"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ie__kv__instrumentation_8c.html#a27b3df57a37a25798490912b1e92d716">ie_kv_on_token</a> (uint32_t token)</td></tr>
+<tr class="memdesc:a27b3df57a37a25798490912b1e92d716"><td class="mdescLeft">&#160;</td><td class="mdescRight">Deprecated legacy hook (no-op).  <br /></td></tr>
+<tr class="separator:a27b3df57a37a25798490912b1e92d716"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="var-members" name="var-members"></a>
 Variables</h2></td></tr>
-<tr class="memitem:a37cc7552afd879b87e4dba0dfdcc607d" id="r_a37cc7552afd879b87e4dba0dfdcc607d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">static</a> <a class="el" href="structie__kv__state__t.html">ie_kv_state_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ie__kv__instrumentation_8c.html#a37cc7552afd879b87e4dba0dfdcc607d">g_kv</a></td></tr>
+<tr class="memitem:a37cc7552afd879b87e4dba0dfdcc607d" id="r_a37cc7552afd879b87e4dba0dfdcc607d"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="structie__kv__state__t.html">ie_kv_state_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ie__kv__instrumentation_8c.html#a37cc7552afd879b87e4dba0dfdcc607d">g_kv</a></td></tr>
 <tr class="separator:a37cc7552afd879b87e4dba0dfdcc607d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>FIFO-set based KV cache hit/miss counters (single-threaded). </p>
+<div class="textblock"><p>Lightweight KV cache reuse counters (process-local, single-threaded). </p>
 <p>See <a class="el" href="ie__kv__instrumentation_8h.html">ie_kv_instrumentation.h</a> for the high-level description. </p>
 
 <p class="definition">Definition in file <a class="el" href="ie__kv__instrumentation_8c_source.html">ie_kv_instrumentation.c</a>.</p>
 </div><h2 class="groupheader">Function Documentation</h2>
-<a id="a886abd7a4ad752897b4469e29cc344e3" name="a886abd7a4ad752897b4469e29cc344e3"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a886abd7a4ad752897b4469e29cc344e3">&#9670;&#160;</a></span>env_size()</h2>
+<a id="a9897c8f0778487dbf6988f0253a195a3" name="a9897c8f0778487dbf6988f0253a195a3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9897c8f0778487dbf6988f0253a195a3">&#9670;&#160;</a></span>ie_kv_add_hits()</h2>
 
 <div class="memitem">
 <div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">static</a> <a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">size_t</a> env_size </td>
+          <td class="memname">void ie_kv_add_hits </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">const</a> <a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">char</a> *&#160;</td>
-          <td class="paramname"><em>name</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
+          <td class="paramtype">uint64_t&#160;</td>
+          <td class="paramname"><em>n</em></td><td>)</td>
           <td></td>
-          <td class="paramtype"><a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">size_t</a>&#160;</td>
-          <td class="paramname"><em>defv</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
         </tr>
       </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">static</span></span>  </td>
-  </tr>
-</table>
 </div><div class="memdoc">
 
-<p>Strict-decimal environment reader with fallback. </p>
+<p>Add to the KV "hit" counter. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">name</td><td>Env var name. </td></tr>
-    <tr><td class="paramname">defv</td><td>Default value when unset/invalid. </td></tr>
+    <tr><td class="paramname">n</td><td>Number of reused (cached) K/V entries. </td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>Parsed non-negative value. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="ie__kv__instrumentation_8c_source.html#l00045">45</a> of file <a class="el" href="ie__kv__instrumentation_8c_source.html">ie_kv_instrumentation.c</a>.</p>
-<div class="fragment"><div class="line"><span class="lineno">   45</span>                                                      {</div>
-<div class="line"><span class="lineno">   46</span>  <span class="keyword">const</span> <span class="keywordtype">char</span> *<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">s</a> = <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">getenv</a>(name);</div>
-<div class="line"><span class="lineno">   47</span>  <span class="keywordflow">if</span> (!<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">s</a> || !*<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">s</a>) <span class="keywordflow">return</span> <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">defv</a>;</div>
-<div class="line"><span class="lineno">   48</span>  <span class="keywordtype">char</span> *end = <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">NULL</a>;</div>
-<div class="line"><span class="lineno">   49</span>  <span class="keywordtype">long</span> <span class="keywordtype">long</span> v = <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">strtoll</a>(<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">s</a>, &amp;end, 10);</div>
-<div class="line"><span class="lineno">   50</span>  <span class="keywordflow">if</span> (end == <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">s</a> || (end &amp;&amp; *end)) <span class="keywordflow">return</span> <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">defv</a>;</div>
-<div class="line"><span class="lineno">   51</span>  <span class="keywordflow">if</span> (v &lt;= 0) <span class="keywordflow">return</span> <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">defv</a>;</div>
-<div class="line"><span class="lineno">   52</span>  <span class="keywordflow">return</span> (<span class="keywordtype">size_t</span>)v;</div>
-<div class="line"><span class="lineno">   53</span>}</div>
-<div class="ttc" id="aie__device__cuda_8cu_html_a5e3d9fee84981707669f5c2398f0c4ab"><div class="ttname"><a href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">ie_gemv_rowwise_f32_kernel</a></div><div class="ttdeci">__global__ void ie_gemv_rowwise_f32_kernel(const float *W, const float *x, float *y, const float *bias, size_t rows, size_t cols)</div><div class="ttdoc">Row-wise GEMV kernel: each thread computes one output row.</div><div class="ttdef"><b>Definition</b> <a href="ie__device__cuda_8cu_source.html#l00092">ie_device_cuda.cu:92</a></div></div>
+<p class="definition">Definition at line <a class="el" href="ie__kv__instrumentation_8c_source.html#l00038">38</a> of file <a class="el" href="ie__kv__instrumentation_8c_source.html">ie_kv_instrumentation.c</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">   38</span>                                {</div>
+<div class="line"><span class="lineno">   39</span>  <span class="keywordflow">if</span> (!<a class="code hl_variable" href="ie__kv__instrumentation_8c.html#a37cc7552afd879b87e4dba0dfdcc607d">g_kv</a>.<a class="code hl_variable" href="structie__kv__state__t.html#a828ea65682d5c2bc18f50ed573c651cd">ready</a>) <span class="keywordflow">return</span>;</div>
+<div class="line"><span class="lineno">   40</span>  <a class="code hl_variable" href="ie__kv__instrumentation_8c.html#a37cc7552afd879b87e4dba0dfdcc607d">g_kv</a>.<a class="code hl_variable" href="structie__kv__state__t.html#a25296c199f82f3f7ccde330a649d58d8">hits</a> += n;</div>
+<div class="line"><span class="lineno">   41</span>}</div>
+<div class="ttc" id="aie__kv__instrumentation_8c_html_a37cc7552afd879b87e4dba0dfdcc607d"><div class="ttname"><a href="ie__kv__instrumentation_8c.html#a37cc7552afd879b87e4dba0dfdcc607d">g_kv</a></div><div class="ttdeci">static ie_kv_state_t g_kv</div><div class="ttdef"><b>Definition</b> <a href="ie__kv__instrumentation_8c_source.html#l00026">ie_kv_instrumentation.c:26</a></div></div>
+<div class="ttc" id="astructie__kv__state__t_html_a25296c199f82f3f7ccde330a649d58d8"><div class="ttname"><a href="structie__kv__state__t.html#a25296c199f82f3f7ccde330a649d58d8">ie_kv_state_t::hits</a></div><div class="ttdeci">uint64_t hits</div><div class="ttdef"><b>Definition</b> <a href="ie__kv__instrumentation_8c_source.html#l00021">ie_kv_instrumentation.c:21</a></div></div>
+<div class="ttc" id="astructie__kv__state__t_html_a828ea65682d5c2bc18f50ed573c651cd"><div class="ttname"><a href="structie__kv__state__t.html#a828ea65682d5c2bc18f50ed573c651cd">ie_kv_state_t::ready</a></div><div class="ttdeci">int ready</div><div class="ttdef"><b>Definition</b> <a href="ie__kv__instrumentation_8c_source.html#l00023">ie_kv_instrumentation.c:23</a></div></div>
 </div><!-- fragment -->
-<p class="reference">Referenced by <a class="el" href="ie__kv__instrumentation_8c_source.html#l00087">ie_kv_begin_round()</a>.</p>
+<p class="reference">References <a class="el" href="ie__kv__instrumentation_8c_source.html#l00026">g_kv</a>, <a class="el" href="ie__kv__instrumentation_8c_source.html#l00021">ie_kv_state_t::hits</a>, and <a class="el" href="ie__kv__instrumentation_8c_source.html#l00023">ie_kv_state_t::ready</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="infer__gptoss_8c_source.html#l01359">ie_forward_one_token()</a>, and <a class="el" href="kv__cache_8c_source.html#l00053">ie_kv_hit_add_local()</a>.</p>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ie__kv__instrumentation_8c_a886abd7a4ad752897b4469e29cc344e3_icgraph.svg" width="384" height="36"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="ie__kv__instrumentation_8c_a9897c8f0778487dbf6988f0253a195a3_icgraph.svg" width="100%" height="419"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
+</div>
+
+</div>
+</div>
+<a id="a12fb475a0e4a167cdc2581321c1ff0a0" name="a12fb475a0e4a167cdc2581321c1ff0a0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a12fb475a0e4a167cdc2581321c1ff0a0">&#9670;&#160;</a></span>ie_kv_add_misses()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void ie_kv_add_misses </td>
+          <td>(</td>
+          <td class="paramtype">uint64_t&#160;</td>
+          <td class="paramname"><em>n</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Add to the KV "miss" counter. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">n</td><td>Number of newly-produced K/V entries. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="ie__kv__instrumentation_8c_source.html#l00043">43</a> of file <a class="el" href="ie__kv__instrumentation_8c_source.html">ie_kv_instrumentation.c</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">   43</span>                                  {</div>
+<div class="line"><span class="lineno">   44</span>  <span class="keywordflow">if</span> (!<a class="code hl_variable" href="ie__kv__instrumentation_8c.html#a37cc7552afd879b87e4dba0dfdcc607d">g_kv</a>.<a class="code hl_variable" href="structie__kv__state__t.html#a828ea65682d5c2bc18f50ed573c651cd">ready</a>) <span class="keywordflow">return</span>;</div>
+<div class="line"><span class="lineno">   45</span>  <a class="code hl_variable" href="ie__kv__instrumentation_8c.html#a37cc7552afd879b87e4dba0dfdcc607d">g_kv</a>.<a class="code hl_variable" href="structie__kv__state__t.html#a1fa1e42d45d8cc9ac8305769f5afc259">misses</a> += n;</div>
+<div class="line"><span class="lineno">   46</span>}</div>
+<div class="ttc" id="astructie__kv__state__t_html_a1fa1e42d45d8cc9ac8305769f5afc259"><div class="ttname"><a href="structie__kv__state__t.html#a1fa1e42d45d8cc9ac8305769f5afc259">ie_kv_state_t::misses</a></div><div class="ttdeci">uint64_t misses</div><div class="ttdef"><b>Definition</b> <a href="ie__kv__instrumentation_8c_source.html#l00022">ie_kv_instrumentation.c:22</a></div></div>
+</div><!-- fragment -->
+<p class="reference">References <a class="el" href="ie__kv__instrumentation_8c_source.html#l00026">g_kv</a>, <a class="el" href="ie__kv__instrumentation_8c_source.html#l00022">ie_kv_state_t::misses</a>, and <a class="el" href="ie__kv__instrumentation_8c_source.html#l00023">ie_kv_state_t::ready</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="infer__gptoss_8c_source.html#l01359">ie_forward_one_token()</a>, and <a class="el" href="kv__cache_8c_source.html#l00065">ie_kv_miss_add_local()</a>.</p>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="ie__kv__instrumentation_8c_a12fb475a0e4a167cdc2581321c1ff0a0_icgraph.svg" width="100%" height="419"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
 </div>
 
 </div>
@@ -224,63 +239,29 @@ Here is the caller graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">int</a> ie_kv_begin_round </td>
+          <td class="memname">int ie_kv_begin_round </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">void</a>&#160;</td>
+          <td class="paramtype">void&#160;</td>
           <td class="paramname"></td><td>)</td>
           <td></td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p>Initialize KV counters and allocate a token set for the round. </p>
-<p>Capacity is read from the environment variable <code>IE_KV_CAP</code> if present; otherwise a default capacity of 4096 tokens is used. Passing this function multiple times resets the state (counters and set) for a new round.</p>
-<dl class="section return"><dt>Returns</dt><dd>0 on success; non-zero on allocation failure. </dd></dl>
+<p>Begin (or reset) KV instrumentation for the current round. </p>
+<dl class="section return"><dt>Returns</dt><dd>0 on success. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="ie__kv__instrumentation_8c_source.html#l00087">87</a> of file <a class="el" href="ie__kv__instrumentation_8c_source.html">ie_kv_instrumentation.c</a>.</p>
-<div class="fragment"><div class="line"><span class="lineno">   87</span>                            {</div>
-<div class="line"><span class="lineno">   88</span>  <span class="comment">/* Reset counters and (re)allocate set as needed. */</span></div>
-<div class="line"><span class="lineno">   89</span>  <span class="keyword">const</span> <span class="keywordtype">size_t</span> cap = <a class="code hl_function" href="ie__kv__instrumentation_8c.html#a886abd7a4ad752897b4469e29cc344e3">env_size</a>(<span class="stringliteral">&quot;IE_KV_CAP&quot;</span>, 4096); <span class="comment">/* default: 4K tokens */</span></div>
-<div class="line"><span class="lineno">   90</span>  <span class="keywordflow">if</span> (<a class="code hl_variable" href="ie__kv__instrumentation_8c.html#a37cc7552afd879b87e4dba0dfdcc607d">g_kv</a>.<a class="code hl_variable" href="structie__kv__state__t.html#aef9869041cb48c24bd4a4b10ad278342">slots</a> &amp;&amp; <a class="code hl_variable" href="ie__kv__instrumentation_8c.html#a37cc7552afd879b87e4dba0dfdcc607d">g_kv</a>.<a class="code hl_variable" href="structie__kv__state__t.html#a9c61076416b6215136db9cced44ff019">capacity</a> != cap) {</div>
-<div class="line"><span class="lineno">   91</span>    <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">free</a>(<a class="code hl_variable" href="ie__kv__instrumentation_8c.html#a37cc7552afd879b87e4dba0dfdcc607d">g_kv</a>.<a class="code hl_variable" href="structie__kv__state__t.html#aef9869041cb48c24bd4a4b10ad278342">slots</a>);</div>
-<div class="line"><span class="lineno">   92</span>    <a class="code hl_variable" href="ie__kv__instrumentation_8c.html#a37cc7552afd879b87e4dba0dfdcc607d">g_kv</a>.<a class="code hl_variable" href="structie__kv__state__t.html#aef9869041cb48c24bd4a4b10ad278342">slots</a> = <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">NULL</a>;</div>
-<div class="line"><span class="lineno">   93</span>  }</div>
-<div class="line"><span class="lineno">   94</span>  <span class="keywordflow">if</span> (!<a class="code hl_variable" href="ie__kv__instrumentation_8c.html#a37cc7552afd879b87e4dba0dfdcc607d">g_kv</a>.<a class="code hl_variable" href="structie__kv__state__t.html#aef9869041cb48c24bd4a4b10ad278342">slots</a>) {</div>
-<div class="line"><span class="lineno">   95</span>    <a class="code hl_variable" href="ie__kv__instrumentation_8c.html#a37cc7552afd879b87e4dba0dfdcc607d">g_kv</a>.<a class="code hl_variable" href="structie__kv__state__t.html#aef9869041cb48c24bd4a4b10ad278342">slots</a> = (<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">uint32_t</a> *)<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">malloc</a>(<span class="keyword">sizeof</span>(<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">uint32_t</a>) * cap);</div>
-<div class="line"><span class="lineno">   96</span>    <span class="keywordflow">if</span> (!<a class="code hl_variable" href="ie__kv__instrumentation_8c.html#a37cc7552afd879b87e4dba0dfdcc607d">g_kv</a>.<a class="code hl_variable" href="structie__kv__state__t.html#aef9869041cb48c24bd4a4b10ad278342">slots</a>) {</div>
-<div class="line"><span class="lineno">   97</span>      <a class="code hl_variable" href="ie__kv__instrumentation_8c.html#a37cc7552afd879b87e4dba0dfdcc607d">g_kv</a>.<a class="code hl_variable" href="structie__kv__state__t.html#a9c61076416b6215136db9cced44ff019">capacity</a> = 0;</div>
-<div class="line"><span class="lineno">   98</span>      <a class="code hl_variable" href="ie__kv__instrumentation_8c.html#a37cc7552afd879b87e4dba0dfdcc607d">g_kv</a>.<a class="code hl_variable" href="structie__kv__state__t.html#a0719757df84d8f699aec2dcc427a8674">count</a> = <a class="code hl_variable" href="ie__kv__instrumentation_8c.html#a37cc7552afd879b87e4dba0dfdcc607d">g_kv</a>.<a class="code hl_variable" href="structie__kv__state__t.html#ab8bc75960c3a8b68d1e7d519222a423e">head</a> = 0;</div>
-<div class="line"><span class="lineno">   99</span>      <a class="code hl_variable" href="ie__kv__instrumentation_8c.html#a37cc7552afd879b87e4dba0dfdcc607d">g_kv</a>.<a class="code hl_variable" href="structie__kv__state__t.html#a25296c199f82f3f7ccde330a649d58d8">hits</a> = <a class="code hl_variable" href="ie__kv__instrumentation_8c.html#a37cc7552afd879b87e4dba0dfdcc607d">g_kv</a>.<a class="code hl_variable" href="structie__kv__state__t.html#a1fa1e42d45d8cc9ac8305769f5afc259">misses</a> = 0;</div>
-<div class="line"><span class="lineno">  100</span>      <a class="code hl_variable" href="ie__kv__instrumentation_8c.html#a37cc7552afd879b87e4dba0dfdcc607d">g_kv</a>.<a class="code hl_variable" href="structie__kv__state__t.html#a828ea65682d5c2bc18f50ed573c651cd">ready</a> = 0;</div>
-<div class="line"><span class="lineno">  101</span>      <span class="keywordflow">return</span> -1;</div>
-<div class="line"><span class="lineno">  102</span>    }</div>
-<div class="line"><span class="lineno">  103</span>  }</div>
-<div class="line"><span class="lineno">  104</span>  <a class="code hl_variable" href="ie__kv__instrumentation_8c.html#a37cc7552afd879b87e4dba0dfdcc607d">g_kv</a>.<a class="code hl_variable" href="structie__kv__state__t.html#a9c61076416b6215136db9cced44ff019">capacity</a> = cap;</div>
-<div class="line"><span class="lineno">  105</span>  <a class="code hl_variable" href="ie__kv__instrumentation_8c.html#a37cc7552afd879b87e4dba0dfdcc607d">g_kv</a>.<a class="code hl_variable" href="structie__kv__state__t.html#a0719757df84d8f699aec2dcc427a8674">count</a> = 0;</div>
-<div class="line"><span class="lineno">  106</span>  <a class="code hl_variable" href="ie__kv__instrumentation_8c.html#a37cc7552afd879b87e4dba0dfdcc607d">g_kv</a>.<a class="code hl_variable" href="structie__kv__state__t.html#ab8bc75960c3a8b68d1e7d519222a423e">head</a> = 0;</div>
-<div class="line"><span class="lineno">  107</span>  <a class="code hl_variable" href="ie__kv__instrumentation_8c.html#a37cc7552afd879b87e4dba0dfdcc607d">g_kv</a>.<a class="code hl_variable" href="structie__kv__state__t.html#a25296c199f82f3f7ccde330a649d58d8">hits</a> = 0;</div>
-<div class="line"><span class="lineno">  108</span>  <a class="code hl_variable" href="ie__kv__instrumentation_8c.html#a37cc7552afd879b87e4dba0dfdcc607d">g_kv</a>.<a class="code hl_variable" href="structie__kv__state__t.html#a1fa1e42d45d8cc9ac8305769f5afc259">misses</a> = 0;</div>
-<div class="line"><span class="lineno">  109</span>  <a class="code hl_variable" href="ie__kv__instrumentation_8c.html#a37cc7552afd879b87e4dba0dfdcc607d">g_kv</a>.<a class="code hl_variable" href="structie__kv__state__t.html#a828ea65682d5c2bc18f50ed573c651cd">ready</a> = 1;</div>
-<div class="line"><span class="lineno">  110</span>  <span class="keywordflow">return</span> 0;</div>
-<div class="line"><span class="lineno">  111</span>}</div>
-<div class="ttc" id="aie__kv__instrumentation_8c_html_a37cc7552afd879b87e4dba0dfdcc607d"><div class="ttname"><a href="ie__kv__instrumentation_8c.html#a37cc7552afd879b87e4dba0dfdcc607d">g_kv</a></div><div class="ttdeci">static ie_kv_state_t g_kv</div><div class="ttdef"><b>Definition</b> <a href="ie__kv__instrumentation_8c_source.html#l00033">ie_kv_instrumentation.c:33</a></div></div>
-<div class="ttc" id="aie__kv__instrumentation_8c_html_a886abd7a4ad752897b4469e29cc344e3"><div class="ttname"><a href="ie__kv__instrumentation_8c.html#a886abd7a4ad752897b4469e29cc344e3">env_size</a></div><div class="ttdeci">static size_t env_size(const char *name, size_t defv)</div><div class="ttdoc">Strict-decimal environment reader with fallback.</div><div class="ttdef"><b>Definition</b> <a href="ie__kv__instrumentation_8c_source.html#l00045">ie_kv_instrumentation.c:45</a></div></div>
-<div class="ttc" id="astructie__kv__state__t_html_a0719757df84d8f699aec2dcc427a8674"><div class="ttname"><a href="structie__kv__state__t.html#a0719757df84d8f699aec2dcc427a8674">ie_kv_state_t::count</a></div><div class="ttdeci">size_t count</div><div class="ttdef"><b>Definition</b> <a href="ie__kv__instrumentation_8c_source.html#l00026">ie_kv_instrumentation.c:26</a></div></div>
-<div class="ttc" id="astructie__kv__state__t_html_a1fa1e42d45d8cc9ac8305769f5afc259"><div class="ttname"><a href="structie__kv__state__t.html#a1fa1e42d45d8cc9ac8305769f5afc259">ie_kv_state_t::misses</a></div><div class="ttdeci">uint64_t misses</div><div class="ttdef"><b>Definition</b> <a href="ie__kv__instrumentation_8c_source.html#l00029">ie_kv_instrumentation.c:29</a></div></div>
-<div class="ttc" id="astructie__kv__state__t_html_a25296c199f82f3f7ccde330a649d58d8"><div class="ttname"><a href="structie__kv__state__t.html#a25296c199f82f3f7ccde330a649d58d8">ie_kv_state_t::hits</a></div><div class="ttdeci">uint64_t hits</div><div class="ttdef"><b>Definition</b> <a href="ie__kv__instrumentation_8c_source.html#l00028">ie_kv_instrumentation.c:28</a></div></div>
-<div class="ttc" id="astructie__kv__state__t_html_a828ea65682d5c2bc18f50ed573c651cd"><div class="ttname"><a href="structie__kv__state__t.html#a828ea65682d5c2bc18f50ed573c651cd">ie_kv_state_t::ready</a></div><div class="ttdeci">int ready</div><div class="ttdef"><b>Definition</b> <a href="ie__kv__instrumentation_8c_source.html#l00030">ie_kv_instrumentation.c:30</a></div></div>
-<div class="ttc" id="astructie__kv__state__t_html_a9c61076416b6215136db9cced44ff019"><div class="ttname"><a href="structie__kv__state__t.html#a9c61076416b6215136db9cced44ff019">ie_kv_state_t::capacity</a></div><div class="ttdeci">size_t capacity</div><div class="ttdef"><b>Definition</b> <a href="ie__kv__instrumentation_8c_source.html#l00025">ie_kv_instrumentation.c:25</a></div></div>
-<div class="ttc" id="astructie__kv__state__t_html_ab8bc75960c3a8b68d1e7d519222a423e"><div class="ttname"><a href="structie__kv__state__t.html#ab8bc75960c3a8b68d1e7d519222a423e">ie_kv_state_t::head</a></div><div class="ttdeci">size_t head</div><div class="ttdef"><b>Definition</b> <a href="ie__kv__instrumentation_8c_source.html#l00027">ie_kv_instrumentation.c:27</a></div></div>
-<div class="ttc" id="astructie__kv__state__t_html_aef9869041cb48c24bd4a4b10ad278342"><div class="ttname"><a href="structie__kv__state__t.html#aef9869041cb48c24bd4a4b10ad278342">ie_kv_state_t::slots</a></div><div class="ttdeci">uint32_t * slots</div><div class="ttdef"><b>Definition</b> <a href="ie__kv__instrumentation_8c_source.html#l00024">ie_kv_instrumentation.c:24</a></div></div>
+<p class="definition">Definition at line <a class="el" href="ie__kv__instrumentation_8c_source.html#l00031">31</a> of file <a class="el" href="ie__kv__instrumentation_8c_source.html">ie_kv_instrumentation.c</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">   31</span>                            {</div>
+<div class="line"><span class="lineno">   32</span>  <a class="code hl_variable" href="ie__kv__instrumentation_8c.html#a37cc7552afd879b87e4dba0dfdcc607d">g_kv</a>.<a class="code hl_variable" href="structie__kv__state__t.html#a25296c199f82f3f7ccde330a649d58d8">hits</a> = 0;</div>
+<div class="line"><span class="lineno">   33</span>  <a class="code hl_variable" href="ie__kv__instrumentation_8c.html#a37cc7552afd879b87e4dba0dfdcc607d">g_kv</a>.<a class="code hl_variable" href="structie__kv__state__t.html#a1fa1e42d45d8cc9ac8305769f5afc259">misses</a> = 0;</div>
+<div class="line"><span class="lineno">   34</span>  <a class="code hl_variable" href="ie__kv__instrumentation_8c.html#a37cc7552afd879b87e4dba0dfdcc607d">g_kv</a>.<a class="code hl_variable" href="structie__kv__state__t.html#a828ea65682d5c2bc18f50ed573c651cd">ready</a> = 1;</div>
+<div class="line"><span class="lineno">   35</span>  <span class="keywordflow">return</span> 0;</div>
+<div class="line"><span class="lineno">   36</span>}</div>
 </div><!-- fragment -->
-<p class="reference">References <a class="el" href="ie__kv__instrumentation_8c_source.html#l00025">ie_kv_state_t::capacity</a>, <a class="el" href="ie__kv__instrumentation_8c_source.html#l00026">ie_kv_state_t::count</a>, <a class="el" href="ie__kv__instrumentation_8c_source.html#l00045">env_size()</a>, <a class="el" href="ie__kv__instrumentation_8c_source.html#l00033">g_kv</a>, <a class="el" href="ie__kv__instrumentation_8c_source.html#l00027">ie_kv_state_t::head</a>, <a class="el" href="ie__kv__instrumentation_8c_source.html#l00028">ie_kv_state_t::hits</a>, <a class="el" href="ie__device__cuda_8cu_source.html#l00092">ie_gemv_rowwise_f32_kernel()</a>, <a class="el" href="ie__kv__instrumentation_8c_source.html#l00029">ie_kv_state_t::misses</a>, <a class="el" href="ie__kv__instrumentation_8c_source.html#l00030">ie_kv_state_t::ready</a>, and <a class="el" href="ie__kv__instrumentation_8c_source.html#l00024">ie_kv_state_t::slots</a>.</p>
+<p class="reference">References <a class="el" href="ie__kv__instrumentation_8c_source.html#l00026">g_kv</a>, <a class="el" href="ie__kv__instrumentation_8c_source.html#l00021">ie_kv_state_t::hits</a>, <a class="el" href="ie__kv__instrumentation_8c_source.html#l00022">ie_kv_state_t::misses</a>, and <a class="el" href="ie__kv__instrumentation_8c_source.html#l00023">ie_kv_state_t::ready</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="main__infer_8c_source.html#l00938">main()</a>.</p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ie__kv__instrumentation_8c_a0a8ac6ff4fa3502470774c6cb9e6f488_cgraph.svg" width="370" height="102"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
+<p class="reference">Referenced by <a class="el" href="main__infer_8c_source.html#l02362">main()</a>.</p>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
@@ -296,21 +277,21 @@ Here is the caller graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">void</a> ie_kv_finish_round </td>
+          <td class="memname">void ie_kv_finish_round </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">uint64_t</a>&#160;</td>
+          <td class="paramtype">uint64_t&#160;</td>
           <td class="paramname"><em>total_tokens</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">uint64_t</a> *&#160;</td>
+          <td class="paramtype">uint64_t *&#160;</td>
           <td class="paramname"><em>out_hits</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">uint64_t</a> *&#160;</td>
+          <td class="paramtype">uint64_t *&#160;</td>
           <td class="paramname"><em>out_misses</em>&#160;</td>
         </tr>
         <tr>
@@ -321,54 +302,47 @@ Here is the caller graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p>Finalize the round and return hit/miss counters. </p>
-<p>If no tokens were reported (counters are both zero) but <code>total_tokens</code> is non-zero, this function conservatively assumes all tokens were <b>misses</b>.</p>
-<p>This call also frees any internal buffers allocated by <a class="el" href="ie__kv__instrumentation_8h.html#a0a8ac6ff4fa3502470774c6cb9e6f488" title="Initialize KV counters and allocate a token set for the round.">ie_kv_begin_round()</a>.</p>
+<p>Finish a round and return the accumulated counters. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">total_tokens</td><td>Total tokens generated in the round (for fallback). </td></tr>
-    <tr><td class="paramname">out_hits</td><td>Output: total hit count (non-NULL). </td></tr>
-    <tr><td class="paramname">out_misses</td><td>Output: total miss count (non-NULL). </td></tr>
+    <tr><td class="paramname">total_tokens</td><td>Number of tokens in the round, used only as a fallback. </td></tr>
+    <tr><td class="paramname">out_hits</td><td>Output hit count (must be non-NULL). </td></tr>
+    <tr><td class="paramname">out_misses</td><td>Output miss count (must be non-NULL). </td></tr>
   </table>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ie__kv__instrumentation_8c_source.html#l00123">123</a> of file <a class="el" href="ie__kv__instrumentation_8c_source.html">ie_kv_instrumentation.c</a>.</p>
-<div class="fragment"><div class="line"><span class="lineno">  125</span>                                              {</div>
-<div class="line"><span class="lineno">  126</span>  <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">assert</a>(<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">out_hits</a>   != <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">NULL</a>);</div>
-<div class="line"><span class="lineno">  127</span>  <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">assert</a>(<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">out_misses</a> != <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">NULL</a>);</div>
-<div class="line"><span class="lineno">  128</span>  <span class="keywordflow">if</span> (!<a class="code hl_variable" href="ie__kv__instrumentation_8c.html#a37cc7552afd879b87e4dba0dfdcc607d">g_kv</a>.<a class="code hl_variable" href="structie__kv__state__t.html#a828ea65682d5c2bc18f50ed573c651cd">ready</a>) {</div>
-<div class="line"><span class="lineno">  129</span>    <span class="comment">/* Not initialized: conservative fallback. */</span></div>
-<div class="line"><span class="lineno">  130</span>    *<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">out_hits</a> = 0;</div>
-<div class="line"><span class="lineno">  131</span>    *<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">out_misses</a> = <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">total_tokens</a>;</div>
-<div class="line"><span class="lineno">  132</span>    <span class="keywordflow">return</span>;</div>
-<div class="line"><span class="lineno">  133</span>  }</div>
-<div class="line"><span class="lineno">  134</span>  <span class="comment">/* Fallback if no tokens were observed but caller claims otherwise. */</span></div>
-<div class="line"><span class="lineno">  135</span>  <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">uint64_t</a> hits   = <a class="code hl_variable" href="ie__kv__instrumentation_8c.html#a37cc7552afd879b87e4dba0dfdcc607d">g_kv</a>.<a class="code hl_variable" href="structie__kv__state__t.html#a25296c199f82f3f7ccde330a649d58d8">hits</a>;</div>
-<div class="line"><span class="lineno">  136</span>  <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">uint64_t</a> misses = <a class="code hl_variable" href="ie__kv__instrumentation_8c.html#a37cc7552afd879b87e4dba0dfdcc607d">g_kv</a>.<a class="code hl_variable" href="structie__kv__state__t.html#a1fa1e42d45d8cc9ac8305769f5afc259">misses</a>;</div>
-<div class="line"><span class="lineno">  137</span>  <span class="keywordflow">if</span> ((hits + misses) == 0 &amp;&amp; <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">total_tokens</a> &gt; 0) {</div>
-<div class="line"><span class="lineno">  138</span>    misses = <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">total_tokens</a>;</div>
-<div class="line"><span class="lineno">  139</span>  }</div>
-<div class="line"><span class="lineno">  140</span> </div>
-<div class="line"><span class="lineno">  141</span>  *<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">out_hits</a>   = hits;</div>
-<div class="line"><span class="lineno">  142</span>  *<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">out_misses</a> = misses;</div>
-<div class="line"><span class="lineno">  143</span> </div>
-<div class="line"><span class="lineno">  144</span>  <span class="comment">/* Free the set to keep memory footprint low across short-lived runs. */</span></div>
-<div class="line"><span class="lineno">  145</span>  <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">free</a>(<a class="code hl_variable" href="ie__kv__instrumentation_8c.html#a37cc7552afd879b87e4dba0dfdcc607d">g_kv</a>.<a class="code hl_variable" href="structie__kv__state__t.html#aef9869041cb48c24bd4a4b10ad278342">slots</a>);</div>
-<div class="line"><span class="lineno">  146</span>  <a class="code hl_variable" href="ie__kv__instrumentation_8c.html#a37cc7552afd879b87e4dba0dfdcc607d">g_kv</a>.<a class="code hl_variable" href="structie__kv__state__t.html#aef9869041cb48c24bd4a4b10ad278342">slots</a> = <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">NULL</a>;</div>
-<div class="line"><span class="lineno">  147</span>  <a class="code hl_variable" href="ie__kv__instrumentation_8c.html#a37cc7552afd879b87e4dba0dfdcc607d">g_kv</a>.<a class="code hl_variable" href="structie__kv__state__t.html#a9c61076416b6215136db9cced44ff019">capacity</a> = <a class="code hl_variable" href="ie__kv__instrumentation_8c.html#a37cc7552afd879b87e4dba0dfdcc607d">g_kv</a>.<a class="code hl_variable" href="structie__kv__state__t.html#a0719757df84d8f699aec2dcc427a8674">count</a> = <a class="code hl_variable" href="ie__kv__instrumentation_8c.html#a37cc7552afd879b87e4dba0dfdcc607d">g_kv</a>.<a class="code hl_variable" href="structie__kv__state__t.html#ab8bc75960c3a8b68d1e7d519222a423e">head</a> = 0;</div>
-<div class="line"><span class="lineno">  148</span>  <a class="code hl_variable" href="ie__kv__instrumentation_8c.html#a37cc7552afd879b87e4dba0dfdcc607d">g_kv</a>.<a class="code hl_variable" href="structie__kv__state__t.html#a25296c199f82f3f7ccde330a649d58d8">hits</a> = <a class="code hl_variable" href="ie__kv__instrumentation_8c.html#a37cc7552afd879b87e4dba0dfdcc607d">g_kv</a>.<a class="code hl_variable" href="structie__kv__state__t.html#a1fa1e42d45d8cc9ac8305769f5afc259">misses</a> = 0;</div>
-<div class="line"><span class="lineno">  149</span>  <a class="code hl_variable" href="ie__kv__instrumentation_8c.html#a37cc7552afd879b87e4dba0dfdcc607d">g_kv</a>.<a class="code hl_variable" href="structie__kv__state__t.html#a828ea65682d5c2bc18f50ed573c651cd">ready</a> = 0;</div>
-<div class="line"><span class="lineno">  150</span>}</div>
+<p class="definition">Definition at line <a class="el" href="ie__kv__instrumentation_8c_source.html#l00048">48</a> of file <a class="el" href="ie__kv__instrumentation_8c_source.html">ie_kv_instrumentation.c</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">   50</span>                                              {</div>
+<div class="line"><span class="lineno">   51</span>  assert(out_hits != NULL);</div>
+<div class="line"><span class="lineno">   52</span>  assert(out_misses != NULL);</div>
+<div class="line"><span class="lineno">   53</span> </div>
+<div class="line"><span class="lineno">   54</span>  <span class="keywordflow">if</span> (!<a class="code hl_variable" href="ie__kv__instrumentation_8c.html#a37cc7552afd879b87e4dba0dfdcc607d">g_kv</a>.<a class="code hl_variable" href="structie__kv__state__t.html#a828ea65682d5c2bc18f50ed573c651cd">ready</a>) {</div>
+<div class="line"><span class="lineno">   55</span>    <span class="comment">/* Not initialized: conservative fallback. */</span></div>
+<div class="line"><span class="lineno">   56</span>    *out_hits = 0;</div>
+<div class="line"><span class="lineno">   57</span>    *out_misses = total_tokens;</div>
+<div class="line"><span class="lineno">   58</span>    <span class="keywordflow">return</span>;</div>
+<div class="line"><span class="lineno">   59</span>  }</div>
+<div class="line"><span class="lineno">   60</span> </div>
+<div class="line"><span class="lineno">   61</span>  uint64_t hits = <a class="code hl_variable" href="ie__kv__instrumentation_8c.html#a37cc7552afd879b87e4dba0dfdcc607d">g_kv</a>.<a class="code hl_variable" href="structie__kv__state__t.html#a25296c199f82f3f7ccde330a649d58d8">hits</a>;</div>
+<div class="line"><span class="lineno">   62</span>  uint64_t misses = <a class="code hl_variable" href="ie__kv__instrumentation_8c.html#a37cc7552afd879b87e4dba0dfdcc607d">g_kv</a>.<a class="code hl_variable" href="structie__kv__state__t.html#a1fa1e42d45d8cc9ac8305769f5afc259">misses</a>;</div>
+<div class="line"><span class="lineno">   63</span> </div>
+<div class="line"><span class="lineno">   64</span>  <span class="comment">/* Fallback if no events were recorded but caller claims progress. */</span></div>
+<div class="line"><span class="lineno">   65</span>  <span class="keywordflow">if</span> ((hits + misses) == 0 &amp;&amp; total_tokens &gt; 0) {</div>
+<div class="line"><span class="lineno">   66</span>    misses = total_tokens;</div>
+<div class="line"><span class="lineno">   67</span>  }</div>
+<div class="line"><span class="lineno">   68</span> </div>
+<div class="line"><span class="lineno">   69</span>  *out_hits = hits;</div>
+<div class="line"><span class="lineno">   70</span>  *out_misses = misses;</div>
+<div class="line"><span class="lineno">   71</span> </div>
+<div class="line"><span class="lineno">   72</span>  <a class="code hl_variable" href="ie__kv__instrumentation_8c.html#a37cc7552afd879b87e4dba0dfdcc607d">g_kv</a>.<a class="code hl_variable" href="structie__kv__state__t.html#a25296c199f82f3f7ccde330a649d58d8">hits</a> = 0;</div>
+<div class="line"><span class="lineno">   73</span>  <a class="code hl_variable" href="ie__kv__instrumentation_8c.html#a37cc7552afd879b87e4dba0dfdcc607d">g_kv</a>.<a class="code hl_variable" href="structie__kv__state__t.html#a1fa1e42d45d8cc9ac8305769f5afc259">misses</a> = 0;</div>
+<div class="line"><span class="lineno">   74</span>  <a class="code hl_variable" href="ie__kv__instrumentation_8c.html#a37cc7552afd879b87e4dba0dfdcc607d">g_kv</a>.<a class="code hl_variable" href="structie__kv__state__t.html#a828ea65682d5c2bc18f50ed573c651cd">ready</a> = 0;</div>
+<div class="line"><span class="lineno">   75</span>}</div>
 </div><!-- fragment -->
-<p class="reference">References <a class="el" href="ie__kv__instrumentation_8c_source.html#l00025">ie_kv_state_t::capacity</a>, <a class="el" href="ie__kv__instrumentation_8c_source.html#l00026">ie_kv_state_t::count</a>, <a class="el" href="ie__kv__instrumentation_8c_source.html#l00033">g_kv</a>, <a class="el" href="ie__kv__instrumentation_8c_source.html#l00027">ie_kv_state_t::head</a>, <a class="el" href="ie__kv__instrumentation_8c_source.html#l00028">ie_kv_state_t::hits</a>, <a class="el" href="ie__device__cuda_8cu_source.html#l00092">ie_gemv_rowwise_f32_kernel()</a>, <a class="el" href="ie__kv__instrumentation_8c_source.html#l00029">ie_kv_state_t::misses</a>, <a class="el" href="ie__kv__instrumentation_8c_source.html#l00030">ie_kv_state_t::ready</a>, and <a class="el" href="ie__kv__instrumentation_8c_source.html#l00024">ie_kv_state_t::slots</a>.</p>
+<p class="reference">References <a class="el" href="ie__kv__instrumentation_8c_source.html#l00026">g_kv</a>, <a class="el" href="ie__kv__instrumentation_8c_source.html#l00021">ie_kv_state_t::hits</a>, <a class="el" href="ie__kv__instrumentation_8c_source.html#l00022">ie_kv_state_t::misses</a>, and <a class="el" href="ie__kv__instrumentation_8c_source.html#l00023">ie_kv_state_t::ready</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="main__infer_8c_source.html#l00938">main()</a>.</p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ie__kv__instrumentation_8c_a2c9789a487a67ebc8e6054aa0b991e4e_cgraph.svg" width="368" height="51"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
+<p class="reference">Referenced by <a class="el" href="main__infer_8c_source.html#l02362">main()</a>.</p>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
@@ -384,151 +358,29 @@ Here is the caller graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">void</a> ie_kv_on_token </td>
+          <td class="memname">void ie_kv_on_token </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">uint32_t</a>&#160;</td>
+          <td class="paramtype">uint32_t&#160;</td>
           <td class="paramname"><em>token</em></td><td>)</td>
           <td></td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p>Report a produced token to the KV tracker. </p>
-<p>If the token is already present in the FIFO set, this increments the <b>hit</b> counter. Otherwise it increments <b>miss</b> and inserts the token (evicting the oldest element when the set is full).</p>
+<p>Deprecated legacy hook (no-op). </p>
+<p>Older builds used this hook during token generation. The current instrumentation counts reuse explicitly via ie_kv_add_hits/ie_kv_add_misses. This function is kept only to avoid breaking downstream callers.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">token</td><td>32-bit token identifier generated by the model. </td></tr>
+    <tr><td class="paramname">token</td><td>Unused. </td></tr>
   </table>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ie__kv__instrumentation_8c_source.html#l00113">113</a> of file <a class="el" href="ie__kv__instrumentation_8c_source.html">ie_kv_instrumentation.c</a>.</p>
-<div class="fragment"><div class="line"><span class="lineno">  113</span>                                    {</div>
-<div class="line"><span class="lineno">  114</span>  <span class="keywordflow">if</span> (!<a class="code hl_variable" href="ie__kv__instrumentation_8c.html#a37cc7552afd879b87e4dba0dfdcc607d">g_kv</a>.<a class="code hl_variable" href="structie__kv__state__t.html#a828ea65682d5c2bc18f50ed573c651cd">ready</a> || <a class="code hl_variable" href="ie__kv__instrumentation_8c.html#a37cc7552afd879b87e4dba0dfdcc607d">g_kv</a>.<a class="code hl_variable" href="structie__kv__state__t.html#a9c61076416b6215136db9cced44ff019">capacity</a> == 0) <span class="keywordflow">return</span>;</div>
-<div class="line"><span class="lineno">  115</span>  <span class="keywordflow">if</span> (<a class="code hl_function" href="ie__kv__instrumentation_8c.html#a37bd44541ec645006f436707ca67b407">kv_contains</a>(<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">token</a>)) {</div>
-<div class="line"><span class="lineno">  116</span>    <a class="code hl_variable" href="ie__kv__instrumentation_8c.html#a37cc7552afd879b87e4dba0dfdcc607d">g_kv</a>.<a class="code hl_variable" href="structie__kv__state__t.html#a25296c199f82f3f7ccde330a649d58d8">hits</a>++;</div>
-<div class="line"><span class="lineno">  117</span>    <span class="keywordflow">return</span>;</div>
-<div class="line"><span class="lineno">  118</span>  }</div>
-<div class="line"><span class="lineno">  119</span>  <a class="code hl_variable" href="ie__kv__instrumentation_8c.html#a37cc7552afd879b87e4dba0dfdcc607d">g_kv</a>.<a class="code hl_variable" href="structie__kv__state__t.html#a1fa1e42d45d8cc9ac8305769f5afc259">misses</a>++;</div>
-<div class="line"><span class="lineno">  120</span>  <a class="code hl_function" href="ie__kv__instrumentation_8c.html#a83b5153f7145e76551b31ced07063538">kv_insert_fifo</a>(<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">token</a>);</div>
-<div class="line"><span class="lineno">  121</span>}</div>
-<div class="ttc" id="aie__kv__instrumentation_8c_html_a37bd44541ec645006f436707ca67b407"><div class="ttname"><a href="ie__kv__instrumentation_8c.html#a37bd44541ec645006f436707ca67b407">kv_contains</a></div><div class="ttdeci">static int kv_contains(uint32_t token)</div><div class="ttdoc">Linear membership test in the FIFO set.</div><div class="ttdef"><b>Definition</b> <a href="ie__kv__instrumentation_8c_source.html#l00061">ie_kv_instrumentation.c:61</a></div></div>
-<div class="ttc" id="aie__kv__instrumentation_8c_html_a83b5153f7145e76551b31ced07063538"><div class="ttname"><a href="ie__kv__instrumentation_8c.html#a83b5153f7145e76551b31ced07063538">kv_insert_fifo</a></div><div class="ttdeci">static void kv_insert_fifo(uint32_t token)</div><div class="ttdoc">Insert token into the FIFO set, evicting the oldest if full.</div><div class="ttdef"><b>Definition</b> <a href="ie__kv__instrumentation_8c_source.html#l00073">ie_kv_instrumentation.c:73</a></div></div>
+<p class="definition">Definition at line <a class="el" href="ie__kv__instrumentation_8c_source.html#l00078">78</a> of file <a class="el" href="ie__kv__instrumentation_8c_source.html">ie_kv_instrumentation.c</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">   78</span>                                    {</div>
+<div class="line"><span class="lineno">   79</span>  (void)token;</div>
+<div class="line"><span class="lineno">   80</span>}</div>
 </div><!-- fragment -->
-<p class="reference">References <a class="el" href="ie__kv__instrumentation_8c_source.html#l00025">ie_kv_state_t::capacity</a>, <a class="el" href="ie__kv__instrumentation_8c_source.html#l00033">g_kv</a>, <a class="el" href="ie__kv__instrumentation_8c_source.html#l00028">ie_kv_state_t::hits</a>, <a class="el" href="ie__device__cuda_8cu_source.html#l00092">ie_gemv_rowwise_f32_kernel()</a>, <a class="el" href="ie__kv__instrumentation_8c_source.html#l00061">kv_contains()</a>, <a class="el" href="ie__kv__instrumentation_8c_source.html#l00073">kv_insert_fifo()</a>, <a class="el" href="ie__kv__instrumentation_8c_source.html#l00029">ie_kv_state_t::misses</a>, and <a class="el" href="ie__kv__instrumentation_8c_source.html#l00030">ie_kv_state_t::ready</a>.</p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ie__kv__instrumentation_8c_a27b3df57a37a25798490912b1e92d716_cgraph.svg" width="348" height="151"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
-<a id="a37bd44541ec645006f436707ca67b407" name="a37bd44541ec645006f436707ca67b407"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a37bd44541ec645006f436707ca67b407">&#9670;&#160;</a></span>kv_contains()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">static</a> <a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">int</a> kv_contains </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">uint32_t</a>&#160;</td>
-          <td class="paramname"><em>token</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">static</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Linear membership test in the FIFO set. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">token</td><td>Token to check. </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd>1 if found, 0 otherwise. </dd></dl>
-
-<p class="definition">Definition at line <a class="el" href="ie__kv__instrumentation_8c_source.html#l00061">61</a> of file <a class="el" href="ie__kv__instrumentation_8c_source.html">ie_kv_instrumentation.c</a>.</p>
-<div class="fragment"><div class="line"><span class="lineno">   61</span>                                       {</div>
-<div class="line"><span class="lineno">   62</span>  <span class="keywordflow">for</span> (<span class="keywordtype">size_t</span> <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">i</a> = 0; <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">i</a> &lt; <a class="code hl_variable" href="ie__kv__instrumentation_8c.html#a37cc7552afd879b87e4dba0dfdcc607d">g_kv</a>.<a class="code hl_variable" href="structie__kv__state__t.html#a0719757df84d8f699aec2dcc427a8674">count</a>; ++<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">i</a>) {</div>
-<div class="line"><span class="lineno">   63</span>    <span class="keywordflow">if</span> (<a class="code hl_variable" href="ie__kv__instrumentation_8c.html#a37cc7552afd879b87e4dba0dfdcc607d">g_kv</a>.<a class="code hl_variable" href="structie__kv__state__t.html#aef9869041cb48c24bd4a4b10ad278342">slots</a>[<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">i</a>] == <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">token</a>) <span class="keywordflow">return</span> 1;</div>
-<div class="line"><span class="lineno">   64</span>  }</div>
-<div class="line"><span class="lineno">   65</span>  <span class="keywordflow">return</span> 0;</div>
-<div class="line"><span class="lineno">   66</span>}</div>
-</div><!-- fragment -->
-<p class="reference">References <a class="el" href="ie__kv__instrumentation_8c_source.html#l00026">ie_kv_state_t::count</a>, <a class="el" href="ie__kv__instrumentation_8c_source.html#l00033">g_kv</a>, and <a class="el" href="ie__kv__instrumentation_8c_source.html#l00024">ie_kv_state_t::slots</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="ie__kv__instrumentation_8c_source.html#l00113">ie_kv_on_token()</a>.</p>
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ie__kv__instrumentation_8c_a37bd44541ec645006f436707ca67b407_icgraph.svg" width="282" height="36"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
-<a id="a83b5153f7145e76551b31ced07063538" name="a83b5153f7145e76551b31ced07063538"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a83b5153f7145e76551b31ced07063538">&#9670;&#160;</a></span>kv_insert_fifo()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">static</a> <a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">void</a> kv_insert_fifo </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">uint32_t</a>&#160;</td>
-          <td class="paramname"><em>token</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">static</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Insert token into the FIFO set, evicting the oldest if full. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">token</td><td>Token to insert. </td></tr>
-  </table>
-  </dd>
-</dl>
-
-<p class="definition">Definition at line <a class="el" href="ie__kv__instrumentation_8c_source.html#l00073">73</a> of file <a class="el" href="ie__kv__instrumentation_8c_source.html">ie_kv_instrumentation.c</a>.</p>
-<div class="fragment"><div class="line"><span class="lineno">   73</span>                                           {</div>
-<div class="line"><span class="lineno">   74</span>  <span class="keywordflow">if</span> (<a class="code hl_variable" href="ie__kv__instrumentation_8c.html#a37cc7552afd879b87e4dba0dfdcc607d">g_kv</a>.<a class="code hl_variable" href="structie__kv__state__t.html#a9c61076416b6215136db9cced44ff019">capacity</a> == 0) <span class="keywordflow">return</span>;</div>
-<div class="line"><span class="lineno">   75</span>  <span class="keywordflow">if</span> (<a class="code hl_variable" href="ie__kv__instrumentation_8c.html#a37cc7552afd879b87e4dba0dfdcc607d">g_kv</a>.<a class="code hl_variable" href="structie__kv__state__t.html#a0719757df84d8f699aec2dcc427a8674">count</a> &lt; <a class="code hl_variable" href="ie__kv__instrumentation_8c.html#a37cc7552afd879b87e4dba0dfdcc607d">g_kv</a>.<a class="code hl_variable" href="structie__kv__state__t.html#a9c61076416b6215136db9cced44ff019">capacity</a>) {</div>
-<div class="line"><span class="lineno">   76</span>    <a class="code hl_variable" href="ie__kv__instrumentation_8c.html#a37cc7552afd879b87e4dba0dfdcc607d">g_kv</a>.<a class="code hl_variable" href="structie__kv__state__t.html#aef9869041cb48c24bd4a4b10ad278342">slots</a>[<a class="code hl_variable" href="ie__kv__instrumentation_8c.html#a37cc7552afd879b87e4dba0dfdcc607d">g_kv</a>.<a class="code hl_variable" href="structie__kv__state__t.html#a0719757df84d8f699aec2dcc427a8674">count</a>++] = <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">token</a>;</div>
-<div class="line"><span class="lineno">   77</span>  } <span class="keywordflow">else</span> {</div>
-<div class="line"><span class="lineno">   78</span>    <span class="comment">/* Evict oldest at head, write new token, advance head */</span></div>
-<div class="line"><span class="lineno">   79</span>    <a class="code hl_variable" href="ie__kv__instrumentation_8c.html#a37cc7552afd879b87e4dba0dfdcc607d">g_kv</a>.<a class="code hl_variable" href="structie__kv__state__t.html#aef9869041cb48c24bd4a4b10ad278342">slots</a>[<a class="code hl_variable" href="ie__kv__instrumentation_8c.html#a37cc7552afd879b87e4dba0dfdcc607d">g_kv</a>.<a class="code hl_variable" href="structie__kv__state__t.html#ab8bc75960c3a8b68d1e7d519222a423e">head</a>] = <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">token</a>;</div>
-<div class="line"><span class="lineno">   80</span>    <a class="code hl_variable" href="ie__kv__instrumentation_8c.html#a37cc7552afd879b87e4dba0dfdcc607d">g_kv</a>.<a class="code hl_variable" href="structie__kv__state__t.html#ab8bc75960c3a8b68d1e7d519222a423e">head</a> = (<a class="code hl_variable" href="ie__kv__instrumentation_8c.html#a37cc7552afd879b87e4dba0dfdcc607d">g_kv</a>.<a class="code hl_variable" href="structie__kv__state__t.html#ab8bc75960c3a8b68d1e7d519222a423e">head</a> + 1) % <a class="code hl_variable" href="ie__kv__instrumentation_8c.html#a37cc7552afd879b87e4dba0dfdcc607d">g_kv</a>.<a class="code hl_variable" href="structie__kv__state__t.html#a9c61076416b6215136db9cced44ff019">capacity</a>;</div>
-<div class="line"><span class="lineno">   81</span>  }</div>
-<div class="line"><span class="lineno">   82</span>}</div>
-</div><!-- fragment -->
-<p class="reference">References <a class="el" href="ie__kv__instrumentation_8c_source.html#l00025">ie_kv_state_t::capacity</a>, <a class="el" href="ie__kv__instrumentation_8c_source.html#l00026">ie_kv_state_t::count</a>, <a class="el" href="ie__kv__instrumentation_8c_source.html#l00033">g_kv</a>, <a class="el" href="ie__kv__instrumentation_8c_source.html#l00027">ie_kv_state_t::head</a>, and <a class="el" href="ie__kv__instrumentation_8c_source.html#l00024">ie_kv_state_t::slots</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="ie__kv__instrumentation_8c_source.html#l00113">ie_kv_on_token()</a>.</p>
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="ie__kv__instrumentation_8c_a83b5153f7145e76551b31ced07063538_icgraph.svg" width="292" height="36"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
 </div>
 </div>
 <h2 class="groupheader">Variable Documentation</h2>
@@ -552,9 +404,9 @@ Here is the caller graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="ie__kv__instrumentation_8c_source.html#l00033">33</a> of file <a class="el" href="ie__kv__instrumentation_8c_source.html">ie_kv_instrumentation.c</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ie__kv__instrumentation_8c_source.html#l00026">26</a> of file <a class="el" href="ie__kv__instrumentation_8c_source.html">ie_kv_instrumentation.c</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="ie__kv__instrumentation_8c_source.html#l00087">ie_kv_begin_round()</a>, <a class="el" href="ie__kv__instrumentation_8c_source.html#l00123">ie_kv_finish_round()</a>, <a class="el" href="ie__kv__instrumentation_8c_source.html#l00113">ie_kv_on_token()</a>, <a class="el" href="ie__kv__instrumentation_8c_source.html#l00061">kv_contains()</a>, and <a class="el" href="ie__kv__instrumentation_8c_source.html#l00073">kv_insert_fifo()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="ie__kv__instrumentation_8c_source.html#l00038">ie_kv_add_hits()</a>, <a class="el" href="ie__kv__instrumentation_8c_source.html#l00043">ie_kv_add_misses()</a>, <a class="el" href="ie__kv__instrumentation_8c_source.html#l00031">ie_kv_begin_round()</a>, and <a class="el" href="ie__kv__instrumentation_8c_source.html#l00048">ie_kv_finish_round()</a>.</p>
 
 </div>
 </div>

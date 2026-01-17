@@ -3,20 +3,17 @@
   <compounddef id="ie__kv__instrumentation_8h" kind="file" language="C++">
     <compoundname>ie_kv_instrumentation.h</compoundname>
     <includes local="no">stdint.h</includes>
-    <includes local="no">stddef.h</includes>
+    <includedby refid="ie__api_8c" local="yes">engine/src/ie_api.c</includedby>
     <includedby refid="ie__kv__instrumentation_8c" local="yes">engine/src/ie_kv_instrumentation.c</includedby>
     <includedby refid="main__infer_8c" local="yes">engine/src/main_infer.c</includedby>
+    <includedby refid="infer__gptoss_8c" local="yes">engine/src/runtime/infer_gptoss.c</includedby>
+    <includedby refid="kv__cache_8c" local="yes">engine/src/runtime/kv_cache.c</includedby>
     <incdepgraph>
       <node id="1">
         <label>engine/include/ie_kv_instrumentation.h</label>
         <link refid="ie__kv__instrumentation_8h"/>
         <childnode refid="2" relation="include">
         </childnode>
-        <childnode refid="3" relation="include">
-        </childnode>
-      </node>
-      <node id="3">
-        <label>stddef.h</label>
       </node>
       <node id="2">
         <label>stdint.h</label>
@@ -30,69 +27,55 @@
         </childnode>
         <childnode refid="3" relation="include">
         </childnode>
+        <childnode refid="4" relation="include">
+        </childnode>
+        <childnode refid="5" relation="include">
+        </childnode>
+        <childnode refid="6" relation="include">
+        </childnode>
       </node>
       <node id="2">
+        <label>engine/src/ie_api.c</label>
+        <link refid="ie__api_8c"/>
+      </node>
+      <node id="3">
         <label>engine/src/ie_kv_instrumentation.c</label>
         <link refid="ie__kv__instrumentation_8c"/>
       </node>
-      <node id="3">
+      <node id="4">
         <label>engine/src/main_infer.c</label>
         <link refid="main__infer_8c"/>
       </node>
+      <node id="5">
+        <label>engine/src/runtime/infer_gptoss.c</label>
+        <link refid="infer__gptoss_8c"/>
+      </node>
+      <node id="6">
+        <label>engine/src/runtime/kv_cache.c</label>
+        <link refid="kv__cache_8c"/>
+      </node>
     </invincdepgraph>
     <sectiondef kind="func">
-      <memberdef kind="function" id="ie__kv__instrumentation_8h_1a0a8ac6ff4fa3502470774c6cb9e6f488" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
-        <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">int</ref></type>
-        <definition>int ie_kv_begin_round</definition>
-        <argsstring>(void)</argsstring>
-        <name>ie_kv_begin_round</name>
-        <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">void</ref></type>
-        </param>
-        <briefdescription>
-<para>Initialize KV counters and allocate a token set for the round. </para>
-        </briefdescription>
-        <detaileddescription>
-<para>Capacity is read from the environment variable <computeroutput>IE_KV_CAP</computeroutput> if present; otherwise a default capacity of 4096 tokens is used. Passing this function multiple times resets the state (counters and set) for a new round.</para>
-<para><simplesect kind="return"><para>0 on success; non-zero on allocation failure. </para>
-</simplesect>
-</para>
-        </detaileddescription>
-        <inbodydescription>
-        </inbodydescription>
-        <location file="engine/include/ie_kv_instrumentation.h" line="47" column="5" bodyfile="engine/src/ie_kv_instrumentation.c" bodystart="87" bodyend="111" declfile="engine/include/ie_kv_instrumentation.h" declline="47" declcolumn="5"/>
-        <references refid="structie__kv__state__t_1a9c61076416b6215136db9cced44ff019" compoundref="ie__kv__instrumentation_8c" startline="25">ie_kv_state_t::capacity</references>
-        <references refid="structie__kv__state__t_1a0719757df84d8f699aec2dcc427a8674" compoundref="ie__kv__instrumentation_8c" startline="26">ie_kv_state_t::count</references>
-        <references refid="ie__kv__instrumentation_8c_1a886abd7a4ad752897b4469e29cc344e3" compoundref="ie__kv__instrumentation_8c" startline="45" endline="53">env_size</references>
-        <references refid="ie__kv__instrumentation_8c_1a37cc7552afd879b87e4dba0dfdcc607d" compoundref="ie__kv__instrumentation_8c" startline="33">g_kv</references>
-        <references refid="structie__kv__state__t_1ab8bc75960c3a8b68d1e7d519222a423e" compoundref="ie__kv__instrumentation_8c" startline="27">ie_kv_state_t::head</references>
-        <references refid="structie__kv__state__t_1a25296c199f82f3f7ccde330a649d58d8" compoundref="ie__kv__instrumentation_8c" startline="28">ie_kv_state_t::hits</references>
-        <references refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" compoundref="ie__device__cuda_8cu" startline="92" endline="110">ie_gemv_rowwise_f32_kernel</references>
-        <references refid="structie__kv__state__t_1a1fa1e42d45d8cc9ac8305769f5afc259" compoundref="ie__kv__instrumentation_8c" startline="29">ie_kv_state_t::misses</references>
-        <references refid="structie__kv__state__t_1a828ea65682d5c2bc18f50ed573c651cd" compoundref="ie__kv__instrumentation_8c" startline="30">ie_kv_state_t::ready</references>
-        <references refid="structie__kv__state__t_1aef9869041cb48c24bd4a4b10ad278342" compoundref="ie__kv__instrumentation_8c" startline="24">ie_kv_state_t::slots</references>
-        <referencedby refid="main__infer_8c_1a3c04138a5bfe5d72780bb7e82a18e627" compoundref="main__infer_8c" startline="938" endline="1170">main</referencedby>
-      </memberdef>
       <memberdef kind="function" id="ie__kv__instrumentation_8h_1a27b3df57a37a25798490912b1e92d716" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
-        <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">void</ref></type>
+        <type>void</type>
         <definition>void ie_kv_on_token</definition>
         <argsstring>(uint32_t token)</argsstring>
         <name>ie_kv_on_token</name>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">uint32_t</ref></type>
+          <type>uint32_t</type>
           <declname>token</declname>
         </param>
         <briefdescription>
-<para>Report a produced token to the KV tracker. </para>
+<para>Deprecated legacy hook (no-op). </para>
         </briefdescription>
         <detaileddescription>
-<para>If the token is already present in the FIFO set, this increments the <bold>hit</bold> counter. Otherwise it increments <bold>miss</bold> and inserts the token (evicting the oldest element when the set is full).</para>
+<para>Older builds used this hook during token generation. The current instrumentation counts reuse explicitly via ie_kv_add_hits/ie_kv_add_misses. This function is kept only to avoid breaking downstream callers.</para>
 <para><parameterlist kind="param"><parameteritem>
 <parameternamelist>
 <parametername>token</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>32-bit token identifier generated by the model. </para>
+<para>Unused. </para>
 </parameterdescription>
 </parameteritem>
 </parameterlist>
@@ -100,45 +83,126 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="engine/include/ie_kv_instrumentation.h" line="58" column="6" bodyfile="engine/src/ie_kv_instrumentation.c" bodystart="113" bodyend="121" declfile="engine/include/ie_kv_instrumentation.h" declline="58" declcolumn="6"/>
-        <references refid="structie__kv__state__t_1a9c61076416b6215136db9cced44ff019" compoundref="ie__kv__instrumentation_8c" startline="25">ie_kv_state_t::capacity</references>
-        <references refid="ie__kv__instrumentation_8c_1a37cc7552afd879b87e4dba0dfdcc607d" compoundref="ie__kv__instrumentation_8c" startline="33">g_kv</references>
-        <references refid="structie__kv__state__t_1a25296c199f82f3f7ccde330a649d58d8" compoundref="ie__kv__instrumentation_8c" startline="28">ie_kv_state_t::hits</references>
-        <references refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" compoundref="ie__device__cuda_8cu" startline="92" endline="110">ie_gemv_rowwise_f32_kernel</references>
-        <references refid="ie__kv__instrumentation_8c_1a37bd44541ec645006f436707ca67b407" compoundref="ie__kv__instrumentation_8c" startline="61" endline="66">kv_contains</references>
-        <references refid="ie__kv__instrumentation_8c_1a83b5153f7145e76551b31ced07063538" compoundref="ie__kv__instrumentation_8c" startline="73" endline="82">kv_insert_fifo</references>
-        <references refid="structie__kv__state__t_1a1fa1e42d45d8cc9ac8305769f5afc259" compoundref="ie__kv__instrumentation_8c" startline="29">ie_kv_state_t::misses</references>
-        <references refid="structie__kv__state__t_1a828ea65682d5c2bc18f50ed573c651cd" compoundref="ie__kv__instrumentation_8c" startline="30">ie_kv_state_t::ready</references>
+        <location file="engine/include/ie_kv_instrumentation.h" line="34" column="6" bodyfile="engine/src/ie_kv_instrumentation.c" bodystart="78" bodyend="80" declfile="engine/include/ie_kv_instrumentation.h" declline="34" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="ie__kv__instrumentation_8h_1a0a8ac6ff4fa3502470774c6cb9e6f488" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int ie_kv_begin_round</definition>
+        <argsstring>(void)</argsstring>
+        <name>ie_kv_begin_round</name>
+        <param>
+          <type>void</type>
+        </param>
+        <briefdescription>
+<para>Begin (or reset) KV instrumentation for the current round. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="return"><para>0 on success. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/ie_kv_instrumentation.h" line="45" column="5" bodyfile="engine/src/ie_kv_instrumentation.c" bodystart="31" bodyend="36" declfile="engine/include/ie_kv_instrumentation.h" declline="45" declcolumn="5"/>
+        <references refid="ie__kv__instrumentation_8c_1a37cc7552afd879b87e4dba0dfdcc607d" compoundref="ie__kv__instrumentation_8c" startline="26">g_kv</references>
+        <references refid="structie__kv__state__t_1a25296c199f82f3f7ccde330a649d58d8" compoundref="ie__kv__instrumentation_8c" startline="21">ie_kv_state_t::hits</references>
+        <references refid="structie__kv__state__t_1a1fa1e42d45d8cc9ac8305769f5afc259" compoundref="ie__kv__instrumentation_8c" startline="22">ie_kv_state_t::misses</references>
+        <references refid="structie__kv__state__t_1a828ea65682d5c2bc18f50ed573c651cd" compoundref="ie__kv__instrumentation_8c" startline="23">ie_kv_state_t::ready</references>
+        <referencedby refid="main__infer_8c_1a3c04138a5bfe5d72780bb7e82a18e627" compoundref="main__infer_8c" startline="2362" endline="2740">main</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="ie__kv__instrumentation_8h_1a9897c8f0778487dbf6988f0253a195a3" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ie_kv_add_hits</definition>
+        <argsstring>(uint64_t n)</argsstring>
+        <name>ie_kv_add_hits</name>
+        <param>
+          <type>uint64_t</type>
+          <declname>n</declname>
+        </param>
+        <briefdescription>
+<para>Add to the KV &quot;hit&quot; counter. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>n</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of reused (cached) K/V entries. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/ie_kv_instrumentation.h" line="52" column="6" bodyfile="engine/src/ie_kv_instrumentation.c" bodystart="38" bodyend="41" declfile="engine/include/ie_kv_instrumentation.h" declline="52" declcolumn="6"/>
+        <references refid="ie__kv__instrumentation_8c_1a37cc7552afd879b87e4dba0dfdcc607d" compoundref="ie__kv__instrumentation_8c" startline="26">g_kv</references>
+        <references refid="structie__kv__state__t_1a25296c199f82f3f7ccde330a649d58d8" compoundref="ie__kv__instrumentation_8c" startline="21">ie_kv_state_t::hits</references>
+        <references refid="structie__kv__state__t_1a828ea65682d5c2bc18f50ed573c651cd" compoundref="ie__kv__instrumentation_8c" startline="23">ie_kv_state_t::ready</references>
+        <referencedby refid="infer__gptoss_8c_1a463151430d9b4dce6eae9210c3c598f0" compoundref="infer__gptoss_8c" startline="1359" endline="1694">ie_forward_one_token</referencedby>
+        <referencedby refid="kv__cache_8c_1ab881936b3269214a8b76239dd79f5a29" compoundref="kv__cache_8c" startline="53" endline="58">ie_kv_hit_add_local</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="ie__kv__instrumentation_8h_1a12fb475a0e4a167cdc2581321c1ff0a0" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ie_kv_add_misses</definition>
+        <argsstring>(uint64_t n)</argsstring>
+        <name>ie_kv_add_misses</name>
+        <param>
+          <type>uint64_t</type>
+          <declname>n</declname>
+        </param>
+        <briefdescription>
+<para>Add to the KV &quot;miss&quot; counter. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>n</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of newly-produced K/V entries. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/ie_kv_instrumentation.h" line="59" column="6" bodyfile="engine/src/ie_kv_instrumentation.c" bodystart="43" bodyend="46" declfile="engine/include/ie_kv_instrumentation.h" declline="59" declcolumn="6"/>
+        <references refid="ie__kv__instrumentation_8c_1a37cc7552afd879b87e4dba0dfdcc607d" compoundref="ie__kv__instrumentation_8c" startline="26">g_kv</references>
+        <references refid="structie__kv__state__t_1a1fa1e42d45d8cc9ac8305769f5afc259" compoundref="ie__kv__instrumentation_8c" startline="22">ie_kv_state_t::misses</references>
+        <references refid="structie__kv__state__t_1a828ea65682d5c2bc18f50ed573c651cd" compoundref="ie__kv__instrumentation_8c" startline="23">ie_kv_state_t::ready</references>
+        <referencedby refid="infer__gptoss_8c_1a463151430d9b4dce6eae9210c3c598f0" compoundref="infer__gptoss_8c" startline="1359" endline="1694">ie_forward_one_token</referencedby>
+        <referencedby refid="kv__cache_8c_1a67fd94fd2d4f1c2d41dd5fff3ea31c65" compoundref="kv__cache_8c" startline="65" endline="70">ie_kv_miss_add_local</referencedby>
       </memberdef>
       <memberdef kind="function" id="ie__kv__instrumentation_8h_1a2c9789a487a67ebc8e6054aa0b991e4e" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
-        <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">void</ref></type>
+        <type>void</type>
         <definition>void ie_kv_finish_round</definition>
         <argsstring>(uint64_t total_tokens, uint64_t *out_hits, uint64_t *out_misses)</argsstring>
         <name>ie_kv_finish_round</name>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">uint64_t</ref></type>
+          <type>uint64_t</type>
           <declname>total_tokens</declname>
         </param>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">uint64_t</ref> *</type>
+          <type>uint64_t *</type>
           <declname>out_hits</declname>
         </param>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">uint64_t</ref> *</type>
+          <type>uint64_t *</type>
           <declname>out_misses</declname>
         </param>
         <briefdescription>
-<para>Finalize the round and return hit/miss counters. </para>
+<para>Finish a round and return the accumulated counters. </para>
         </briefdescription>
         <detaileddescription>
-<para>If no tokens were reported (counters are both zero) but <computeroutput>total_tokens</computeroutput> is non-zero, this function conservatively assumes all tokens were <bold>misses</bold>.</para>
-<para>This call also frees any internal buffers allocated by <ref refid="ie__kv__instrumentation_8h_1a0a8ac6ff4fa3502470774c6cb9e6f488" kindref="member">ie_kv_begin_round()</ref>.</para>
 <para><parameterlist kind="param"><parameteritem>
 <parameternamelist>
 <parametername>total_tokens</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Total tokens generated in the round (for fallback). </para>
+<para>Number of tokens in the round, used only as a fallback. </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -146,7 +210,7 @@
 <parametername>out_hits</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Output: total hit count (non-NULL). </para>
+<para>Output hit count (must be non-NULL). </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -154,7 +218,7 @@
 <parametername>out_misses</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Output: total miss count (non-NULL). </para>
+<para>Output miss count (must be non-NULL). </para>
 </parameterdescription>
 </parameteritem>
 </parameterlist>
@@ -162,74 +226,58 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="engine/include/ie_kv_instrumentation.h" line="72" column="6" bodyfile="engine/src/ie_kv_instrumentation.c" bodystart="123" bodyend="150" declfile="engine/include/ie_kv_instrumentation.h" declline="72" declcolumn="6"/>
-        <references refid="structie__kv__state__t_1a9c61076416b6215136db9cced44ff019" compoundref="ie__kv__instrumentation_8c" startline="25">ie_kv_state_t::capacity</references>
-        <references refid="structie__kv__state__t_1a0719757df84d8f699aec2dcc427a8674" compoundref="ie__kv__instrumentation_8c" startline="26">ie_kv_state_t::count</references>
-        <references refid="ie__kv__instrumentation_8c_1a37cc7552afd879b87e4dba0dfdcc607d" compoundref="ie__kv__instrumentation_8c" startline="33">g_kv</references>
-        <references refid="structie__kv__state__t_1ab8bc75960c3a8b68d1e7d519222a423e" compoundref="ie__kv__instrumentation_8c" startline="27">ie_kv_state_t::head</references>
-        <references refid="structie__kv__state__t_1a25296c199f82f3f7ccde330a649d58d8" compoundref="ie__kv__instrumentation_8c" startline="28">ie_kv_state_t::hits</references>
-        <references refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" compoundref="ie__device__cuda_8cu" startline="92" endline="110">ie_gemv_rowwise_f32_kernel</references>
-        <references refid="structie__kv__state__t_1a1fa1e42d45d8cc9ac8305769f5afc259" compoundref="ie__kv__instrumentation_8c" startline="29">ie_kv_state_t::misses</references>
-        <references refid="structie__kv__state__t_1a828ea65682d5c2bc18f50ed573c651cd" compoundref="ie__kv__instrumentation_8c" startline="30">ie_kv_state_t::ready</references>
-        <references refid="structie__kv__state__t_1aef9869041cb48c24bd4a4b10ad278342" compoundref="ie__kv__instrumentation_8c" startline="24">ie_kv_state_t::slots</references>
-        <referencedby refid="main__infer_8c_1a3c04138a5bfe5d72780bb7e82a18e627" compoundref="main__infer_8c" startline="938" endline="1170">main</referencedby>
+        <location file="engine/include/ie_kv_instrumentation.h" line="68" column="6" bodyfile="engine/src/ie_kv_instrumentation.c" bodystart="48" bodyend="75" declfile="engine/include/ie_kv_instrumentation.h" declline="68" declcolumn="6"/>
+        <references refid="ie__kv__instrumentation_8c_1a37cc7552afd879b87e4dba0dfdcc607d" compoundref="ie__kv__instrumentation_8c" startline="26">g_kv</references>
+        <references refid="structie__kv__state__t_1a25296c199f82f3f7ccde330a649d58d8" compoundref="ie__kv__instrumentation_8c" startline="21">ie_kv_state_t::hits</references>
+        <references refid="structie__kv__state__t_1a1fa1e42d45d8cc9ac8305769f5afc259" compoundref="ie__kv__instrumentation_8c" startline="22">ie_kv_state_t::misses</references>
+        <references refid="structie__kv__state__t_1a828ea65682d5c2bc18f50ed573c651cd" compoundref="ie__kv__instrumentation_8c" startline="23">ie_kv_state_t::ready</references>
+        <referencedby refid="main__infer_8c_1a3c04138a5bfe5d72780bb7e82a18e627" compoundref="main__infer_8c" startline="2362" endline="2740">main</referencedby>
       </memberdef>
     </sectiondef>
     <briefdescription>
-<para>Lightweight KV cache hit/miss instrumentation for benchmarks. </para>
+<para>Lightweight KV cache reuse counters (process-local, single-threaded). </para>
     </briefdescription>
     <detaileddescription>
-<para>This module provides a very small, header-only friendly API used by the CLI and by the engine core to count &quot;KV cache&quot; hits and misses during generation.</para>
-<sect3 id="ie__kv__instrumentation_8h_1autotoc_md82">
-<title>Model and intent</title>
-<para><itemizedlist>
-<listitem><para>We model the KV as a fixed-capacity FIFO set of 32-bit token IDs.</para>
-</listitem><listitem><para>A token is a <bold>hit</bold> if it is already present in the set; otherwise it&apos;s a <bold>miss</bold>, and the token is inserted (evicting the oldest when full).</para>
-</listitem><listitem><para>Capacity is per-process/round (i.e., per benchmark invocation).</para>
-</listitem></itemizedlist>
-</para>
-</sect3>
-<sect3 id="ie__kv__instrumentation_8h_1autotoc_md83">
-<title>Lifecycle</title>
-<para><itemizedlist>
-<listitem><para>Call <ref refid="ie__kv__instrumentation_8h_1a0a8ac6ff4fa3502470774c6cb9e6f488" kindref="member">ie_kv_begin_round()</ref> exactly once before the first token of a round.</para>
-</listitem><listitem><para>For each produced token, call <ref refid="ie__kv__instrumentation_8h_1a27b3df57a37a25798490912b1e92d716" kindref="member">ie_kv_on_token()</ref>.</para>
-</listitem><listitem><para>At the end, call <ref refid="ie__kv__instrumentation_8h_1a2c9789a487a67ebc8e6054aa0b991e4e" kindref="member">ie_kv_finish_round()</ref> to obtain the counters and release internal buffers.</para>
-</listitem></itemizedlist>
-</para>
-<para>The implementation is intentionally simple (single-threaded), deterministic, and has O(capacity) membership checks. This is sufficient to give meaningful hit/miss ratios for benchmarking without pulling complex dependencies. </para>
-</sect3>
+<para>These counters are intended to answer one practical question: &quot;How much previously-computed K/V data did we reuse while generating?&quot;</para>
+<para>The engine may call <ref refid="ie__kv__instrumentation_8h_1a9897c8f0778487dbf6988f0253a195a3" kindref="member">ie_kv_add_hits()</ref> with the number of cached K/V entries consumed by an attention operation, and <ref refid="ie__kv__instrumentation_8h_1a12fb475a0e4a167cdc2581321c1ff0a0" kindref="member">ie_kv_add_misses()</ref> with the number of newly-produced K/V entries (typically 1 per token per layer).</para>
+<para>The counters are process-local and not thread-safe. </para>
     </detaileddescription>
     <programlisting>
 <codeline lineno="1"><highlight class="comment">/*<sp/>==========================================================================<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
 <codeline lineno="2"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>File:<sp/>engine/include/ie_kv_instrumentation.h<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
 <codeline lineno="3"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>==========================================================================<sp/>*/</highlight></codeline>
-<codeline lineno="28"><highlight class="normal"></highlight><highlight class="preprocessor">#ifndef<sp/>IE_KV_INSTRUMENTATION_H</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="29"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>IE_KV_INSTRUMENTATION_H</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="30"><highlight class="normal"></highlight></codeline>
-<codeline lineno="31"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stdint.h&gt;</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="32"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stddef.h&gt;</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="33"><highlight class="normal"></highlight></codeline>
-<codeline lineno="34"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="35"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/></highlight><highlight class="stringliteral">&quot;C&quot;</highlight><highlight class="normal"><sp/>{</highlight></codeline>
-<codeline lineno="36"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="37"><highlight class="normal"></highlight></codeline>
-<codeline lineno="47"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="ie__kv__instrumentation_8h_1a0a8ac6ff4fa3502470774c6cb9e6f488" kindref="member">ie_kv_begin_round</ref>(</highlight><highlight class="keywordtype">void</highlight><highlight class="normal">);</highlight></codeline>
-<codeline lineno="48"><highlight class="normal"></highlight></codeline>
-<codeline lineno="58"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="ie__kv__instrumentation_8h_1a27b3df57a37a25798490912b1e92d716" kindref="member">ie_kv_on_token</ref>(<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">uint32_t</ref><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">token</ref>);</highlight></codeline>
-<codeline lineno="59"><highlight class="normal"></highlight></codeline>
-<codeline lineno="72"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="ie__kv__instrumentation_8h_1a2c9789a487a67ebc8e6054aa0b991e4e" kindref="member">ie_kv_finish_round</ref>(<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">uint64_t</ref><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">total_tokens</ref>,</highlight></codeline>
-<codeline lineno="73"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">uint64_t</ref><sp/>*<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">out_hits</ref>,</highlight></codeline>
-<codeline lineno="74"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">uint64_t</ref><sp/>*<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">out_misses</ref>);</highlight></codeline>
-<codeline lineno="75"><highlight class="normal"></highlight></codeline>
-<codeline lineno="76"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="77"><highlight class="normal">}<sp/></highlight><highlight class="comment">/*<sp/>extern<sp/>&quot;C&quot;<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="78"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="79"><highlight class="normal"></highlight></codeline>
-<codeline lineno="80"><highlight class="normal"></highlight><highlight class="preprocessor">#endif<sp/></highlight><highlight class="comment">/*<sp/>IE_KV_INSTRUMENTATION_H<sp/>*/</highlight><highlight class="preprocessor"></highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="81"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>==========================================================================<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="82"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>End<sp/>of<sp/>file<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="83"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>==========================================================================<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="19"><highlight class="normal"></highlight><highlight class="preprocessor">#ifndef<sp/>IE_KV_INSTRUMENTATION_H</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="20"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>IE_KV_INSTRUMENTATION_H</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="21"><highlight class="normal"></highlight></codeline>
+<codeline lineno="22"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stdint.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="23"><highlight class="normal"></highlight></codeline>
+<codeline lineno="34"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="ie__kv__instrumentation_8h_1a27b3df57a37a25798490912b1e92d716" kindref="member">ie_kv_on_token</ref>(uint32_t<sp/>token);</highlight></codeline>
+<codeline lineno="35"><highlight class="normal"></highlight></codeline>
+<codeline lineno="36"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="37"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/></highlight><highlight class="stringliteral">&quot;C&quot;</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="38"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="39"><highlight class="normal"></highlight></codeline>
+<codeline lineno="45"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="ie__kv__instrumentation_8h_1a0a8ac6ff4fa3502470774c6cb9e6f488" kindref="member">ie_kv_begin_round</ref>(</highlight><highlight class="keywordtype">void</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="46"><highlight class="normal"></highlight></codeline>
+<codeline lineno="52"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="ie__kv__instrumentation_8h_1a9897c8f0778487dbf6988f0253a195a3" kindref="member">ie_kv_add_hits</ref>(uint64_t<sp/>n);</highlight></codeline>
+<codeline lineno="53"><highlight class="normal"></highlight></codeline>
+<codeline lineno="59"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="ie__kv__instrumentation_8h_1a12fb475a0e4a167cdc2581321c1ff0a0" kindref="member">ie_kv_add_misses</ref>(uint64_t<sp/>n);</highlight></codeline>
+<codeline lineno="60"><highlight class="normal"></highlight></codeline>
+<codeline lineno="68"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="ie__kv__instrumentation_8h_1a2c9789a487a67ebc8e6054aa0b991e4e" kindref="member">ie_kv_finish_round</ref>(uint64_t<sp/>total_tokens,</highlight></codeline>
+<codeline lineno="69"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>uint64_t<sp/>*out_hits,</highlight></codeline>
+<codeline lineno="70"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>uint64_t<sp/>*out_misses);</highlight></codeline>
+<codeline lineno="71"><highlight class="normal"></highlight></codeline>
+<codeline lineno="82"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="ie__kv__instrumentation_8h_1a27b3df57a37a25798490912b1e92d716" kindref="member">ie_kv_on_token</ref>(uint32_t<sp/>token);</highlight></codeline>
+<codeline lineno="83"><highlight class="normal"></highlight></codeline>
+<codeline lineno="84"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="85"><highlight class="normal">}<sp/></highlight><highlight class="comment">/*<sp/>extern<sp/>&quot;C&quot;<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="86"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="87"><highlight class="normal"></highlight></codeline>
+<codeline lineno="88"><highlight class="normal"></highlight><highlight class="preprocessor">#endif<sp/></highlight><highlight class="comment">/*<sp/>IE_KV_INSTRUMENTATION_H<sp/>*/</highlight><highlight class="preprocessor"></highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="89"><highlight class="normal"></highlight></codeline>
+<codeline lineno="90"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>==========================================================================<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="91"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>End<sp/>of<sp/>file<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="92"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>==========================================================================<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
     </programlisting>
     <location file="engine/include/ie_kv_instrumentation.h"/>
   </compounddef>

@@ -98,201 +98,272 @@ $(document).ready(function(){initNavTree('namespaceharness.html',''); initResiza
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:abadd908805b591f82fae7f35b779f642" id="r_abadd908805b591f82fae7f35b779f642"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceharness.html#abadd908805b591f82fae7f35b779f642">parse_args</a> ()</td></tr>
-<tr class="separator:abadd908805b591f82fae7f35b779f642"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac9f1bde483441516bc8042ea477fe3c5" id="r_ac9f1bde483441516bc8042ea477fe3c5"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceharness.html#ac9f1bde483441516bc8042ea477fe3c5">make_summary</a> (<a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">args</a>)</td></tr>
-<tr class="separator:ac9f1bde483441516bc8042ea477fe3c5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4f0fe04dc9b9343f12a87b1ab57b071f" id="r_a4f0fe04dc9b9343f12a87b1ab57b071f"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceharness.html#a4f0fe04dc9b9343f12a87b1ab57b071f">main</a> ()</td></tr>
-<tr class="separator:a4f0fe04dc9b9343f12a87b1ab57b071f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4eb34beadb3e270fc7cb20a5ad96fee7" id="r_a4eb34beadb3e270fc7cb20a5ad96fee7"><td class="memItemLeft" align="right" valign="top">pathlib.Path&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceharness.html#a4eb34beadb3e270fc7cb20a5ad96fee7">_repo_root_from_here</a> ()</td></tr>
+<tr class="separator:a4eb34beadb3e270fc7cb20a5ad96fee7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0619d7e2e0072d280455f9b92522bd40" id="r_a0619d7e2e0072d280455f9b92522bd40"><td class="memItemLeft" align="right" valign="top">Dict[str, Any]&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceharness.html#a0619d7e2e0072d280455f9b92522bd40">_last_json_object_from_jsonl</a> (str text)</td></tr>
+<tr class="separator:a0619d7e2e0072d280455f9b92522bd40"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a28af262c64af5578f03e77dc72cd52b2" id="r_a28af262c64af5578f03e77dc72cd52b2"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceharness.html#a28af262c64af5578f03e77dc72cd52b2">main</a> ()</td></tr>
+<tr class="separator:a28af262c64af5578f03e77dc72cd52b2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><pre class="fragment">Minimal inference harness that always produces a summary JSON and
-always prints a line with "wrote:" so unit tests can detect it.
+<div class="textblock"><pre class="fragment">Strict harness wrapper for Clocher inference-engine.
 
-Behavior:
+This script intentionally does *not* require any engine-side flags like --runs or --report-json.
+It runs the existing strict harness (scripts/true_tps_strict.sh) by setting the expected env vars,
+captures its JSONL output, and writes:
 
-- Ignores unknown CLI args (tests sometimes pass flags we do not care about).
-- Accepts zero arguments without failing.
-- Creates a per-run directory under benchmarks/reports:
-    benchmarks/reports/&lt;run_id&gt;/summary.json
-- The summary JSON contains at least:
-    - "avg_tps_true"
-    - "total_tokens"
-    - "samples"
-  plus a few extra convenience fields.
+  - the full JSONL log (per-run + summary) to --out-jsonl
+  - a summary.json (the final JSON object) to benchmarks/reports/&lt;run_id&gt;/summary.json
 
-This file is intentionally stdlib-only and does not invoke the engine binary.
+It also prints the summary.json path (one line) to keep compatibility with simple CI checks.
 </pre> </div><h2 class="groupheader">Function Documentation</h2>
-<a id="a4f0fe04dc9b9343f12a87b1ab57b071f" name="a4f0fe04dc9b9343f12a87b1ab57b071f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4f0fe04dc9b9343f12a87b1ab57b071f">&#9670;&#160;</a></span>main()</h2>
+<a id="a0619d7e2e0072d280455f9b92522bd40" name="a0619d7e2e0072d280455f9b92522bd40"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0619d7e2e0072d280455f9b92522bd40">&#9670;&#160;</a></span>_last_json_object_from_jsonl()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"> Dict[str, Any] harness._last_json_object_from_jsonl </td>
+          <td>(</td>
+          <td class="paramtype">str&#160;</td>
+          <td class="paramname"><em>text</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="harness_8py_source.html#l00039">39</a> of file <a class="el" href="harness_8py_source.html">harness.py</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">   39</span><span class="keyword">def </span>_last_json_object_from_jsonl(text: str) -&gt; Dict[str, Any]:</div>
+<div class="line"><span class="lineno">   40</span>    last: Optional[Dict[str, Any]] = <span class="keywordtype">None</span></div>
+<div class="line"><span class="lineno">   41</span>    <span class="keywordflow">for</span> line <span class="keywordflow">in</span> text.splitlines():</div>
+<div class="line"><span class="lineno">   42</span>        line = line.strip()</div>
+<div class="line"><span class="lineno">   43</span>        <span class="keywordflow">if</span> <span class="keywordflow">not</span> line <span class="keywordflow">or</span> line.startswith(<span class="stringliteral">&quot;#&quot;</span>):</div>
+<div class="line"><span class="lineno">   44</span>            <span class="keywordflow">continue</span></div>
+<div class="line"><span class="lineno">   45</span>        <span class="keywordflow">try</span>:</div>
+<div class="line"><span class="lineno">   46</span>            obj = json.loads(line)</div>
+<div class="line"><span class="lineno">   47</span>        <span class="keywordflow">except</span> Exception:</div>
+<div class="line"><span class="lineno">   48</span>            <span class="keywordflow">continue</span></div>
+<div class="line"><span class="lineno">   49</span>        <span class="keywordflow">if</span> isinstance(obj, dict):</div>
+<div class="line"><span class="lineno">   50</span>            last = obj</div>
+<div class="line"><span class="lineno">   51</span>    <span class="keywordflow">if</span> last <span class="keywordflow">is</span> <span class="keywordtype">None</span>:</div>
+<div class="line"><span class="lineno">   52</span>        <span class="keywordflow">raise</span> RuntimeError(<span class="stringliteral">&quot;strict harness produced no JSON objects on stdout&quot;</span>)</div>
+<div class="line"><span class="lineno">   53</span>    <span class="keywordflow">return</span> last</div>
+<div class="line"><span class="lineno">   54</span> </div>
+<div class="line"><span class="lineno">   55</span> </div>
+</div><!-- fragment -->
+<p class="reference">Referenced by <a class="el" href="harness_8py_source.html#l00056">main()</a>.</p>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="namespaceharness_a0619d7e2e0072d280455f9b92522bd40_icgraph.svg" width="315" height="68"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a4eb34beadb3e270fc7cb20a5ad96fee7" name="a4eb34beadb3e270fc7cb20a5ad96fee7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4eb34beadb3e270fc7cb20a5ad96fee7">&#9670;&#160;</a></span>_repo_root_from_here()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"> pathlib.Path harness._repo_root_from_here </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="harness_8py_source.html#l00027">27</a> of file <a class="el" href="harness_8py_source.html">harness.py</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">   27</span><span class="keyword">def </span>_repo_root_from_here() -&gt; pathlib.Path:</div>
+<div class="line"><span class="lineno">   28</span>    <span class="comment"># Prefer CWD if it looks like the repo root; otherwise fall back to script location parents.</span></div>
+<div class="line"><span class="lineno">   29</span>    cwd = pathlib.Path.cwd()</div>
+<div class="line"><span class="lineno">   30</span>    <span class="keywordflow">if</span> (cwd / <span class="stringliteral">&quot;scripts&quot;</span> / <span class="stringliteral">&quot;true_tps_strict.sh&quot;</span>).is_file():</div>
+<div class="line"><span class="lineno">   31</span>        <span class="keywordflow">return</span> cwd</div>
+<div class="line"><span class="lineno">   32</span>    here = pathlib.Path(__file__).resolve()</div>
+<div class="line"><span class="lineno">   33</span>    <span class="keywordflow">for</span> p <span class="keywordflow">in</span> [here.parent, *here.parents]:</div>
+<div class="line"><span class="lineno">   34</span>        <span class="keywordflow">if</span> (p / <span class="stringliteral">&quot;scripts&quot;</span> / <span class="stringliteral">&quot;true_tps_strict.sh&quot;</span>).is_file():</div>
+<div class="line"><span class="lineno">   35</span>            <span class="keywordflow">return</span> p</div>
+<div class="line"><span class="lineno">   36</span>    <span class="keywordflow">return</span> cwd</div>
+<div class="line"><span class="lineno">   37</span> </div>
+<div class="line"><span class="lineno">   38</span> </div>
+</div><!-- fragment -->
+<p class="reference">Referenced by <a class="el" href="harness_8py_source.html#l00056">main()</a>.</p>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="namespaceharness_a4eb34beadb3e270fc7cb20a5ad96fee7_icgraph.svg" width="316" height="68"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a28af262c64af5578f03e77dc72cd52b2" name="a28af262c64af5578f03e77dc72cd52b2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a28af262c64af5578f03e77dc72cd52b2">&#9670;&#160;</a></span>main()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">harness.main </td>
+          <td class="memname"> int harness.main </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">void</a>&#160;</td>
+          <td class="paramtype">void&#160;</td>
           <td class="paramname"></td><td>)</td>
           <td></td>
         </tr>
       </table>
 </div><div class="memdoc">
-<pre class="fragment">Entry point for the harness script.
 
-It only fabricates a plausible JSON summary; it does not run the engine.
-</pre> 
-<p class="definition">Definition at line <a class="el" href="harness_8py_source.html#l00073">73</a> of file <a class="el" href="harness_8py_source.html">harness.py</a>.</p>
-<div class="fragment"><div class="line"><span class="lineno">   73</span><span class="keyword">def </span><a class="code hl_function" href="test__act__quant_8c.html#a840291bc02cba5474a4cb46a9b9566fe">main</a>():</div>
-<div class="line"><span class="lineno">   74</span>  <span class="stringliteral">&quot;&quot;&quot;</span></div>
-<div class="line"><span class="lineno">   75</span><span class="stringliteral">  Entry point for the harness script.</span></div>
-<div class="line"><span class="lineno">   76</span><span class="stringliteral"></span> </div>
-<div class="line"><span class="lineno">   77</span><span class="stringliteral">  It only fabricates a plausible JSON summary; it does not run the engine.</span></div>
-<div class="line"><span class="lineno">   78</span><span class="stringliteral">  &quot;&quot;&quot;</span></div>
-<div class="line"><span class="lineno">   79</span>  args = <a class="code hl_function" href="microbench__stream_8c.html#ac031fe365f13cd4046dba432735b28f6">parse_args</a>()</div>
-<div class="line"><span class="lineno">   80</span> </div>
-<div class="line"><span class="lineno">   81</span>  <span class="comment"># Ensure base reports directory exists.</span></div>
-<div class="line"><span class="lineno">   82</span>  <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">os.makedirs</a>(<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">args.reports_dir</a>, exist_ok=<span class="keyword">True</span>)</div>
-<div class="line"><span class="lineno">   83</span> </div>
-<div class="line"><span class="lineno">   84</span>  <span class="comment"># Create a per-run subdirectory so tests can glob &quot;*/summary.json&quot;.</span></div>
-<div class="line"><span class="lineno">   85</span>  ts_ms = <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">int</a>(<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">time.time</a>() * 1000)</div>
-<div class="line"><span class="lineno">   86</span>  run_dir = <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">os.path.join</a>(<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">args.reports_dir</a>, f<span class="stringliteral">&quot;run_{ts_ms}&quot;</span>)</div>
-<div class="line"><span class="lineno">   87</span>  <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">os.makedirs</a>(run_dir, exist_ok=<span class="keyword">True</span>)</div>
+<p class="definition">Definition at line <a class="el" href="harness_8py_source.html#l00056">56</a> of file <a class="el" href="harness_8py_source.html">harness.py</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">   56</span><span class="keyword">def </span><a class="code hl_function" href="test__act__quant_8c.html#a840291bc02cba5474a4cb46a9b9566fe">main</a>() -&gt; int:</div>
+<div class="line"><span class="lineno">   57</span>    ap = argparse.ArgumentParser(add_help=<span class="keyword">True</span>)</div>
+<div class="line"><span class="lineno">   58</span>    ap.add_argument(<span class="stringliteral">&quot;--engine-bin&quot;</span>, default=os.environ.get(<span class="stringliteral">&quot;ENGINE_BIN&quot;</span>, <span class="stringliteral">&quot;./build/inference-engine&quot;</span>))</div>
+<div class="line"><span class="lineno">   59</span>    ap.add_argument(<span class="stringliteral">&quot;--device&quot;</span>, default=os.environ.get(<span class="stringliteral">&quot;DEVICE&quot;</span>, <span class="stringliteral">&quot;cpu&quot;</span>), choices=[<span class="stringliteral">&quot;cpu&quot;</span>, <span class="stringliteral">&quot;cuda&quot;</span>, <span class="stringliteral">&quot;ze&quot;</span>])</div>
+<div class="line"><span class="lineno">   60</span>    ap.add_argument(<span class="stringliteral">&quot;--model-dir&quot;</span>, default=os.environ.get(<span class="stringliteral">&quot;MODEL_DIR&quot;</span>, <span class="stringliteral">&quot;./models/gpt-oss-20b&quot;</span>))</div>
+<div class="line"><span class="lineno">   61</span>    ap.add_argument(<span class="stringliteral">&quot;--prompts&quot;</span>, dest=<span class="stringliteral">&quot;prompts_file&quot;</span>, default=os.environ.get(<span class="stringliteral">&quot;PROMPTS&quot;</span>, <span class="stringliteral">&quot;./benchmarks/prompts_10.txt&quot;</span>))</div>
+<div class="line"><span class="lineno">   62</span> </div>
+<div class="line"><span class="lineno">   63</span>    ap.add_argument(<span class="stringliteral">&quot;--runs&quot;</span>, type=int, default=int(os.environ.get(<span class="stringliteral">&quot;RUNS&quot;</span>, <span class="stringliteral">&quot;1&quot;</span>)))</div>
+<div class="line"><span class="lineno">   64</span>    ap.add_argument(<span class="stringliteral">&quot;--rounds&quot;</span>, type=int, default=int(os.environ.get(<span class="stringliteral">&quot;ROUNDS&quot;</span>, <span class="stringliteral">&quot;1&quot;</span>)))</div>
+<div class="line"><span class="lineno">   65</span>    ap.add_argument(<span class="stringliteral">&quot;--threads&quot;</span>, default=os.environ.get(<span class="stringliteral">&quot;THREADS&quot;</span>, <span class="stringliteral">&quot;0&quot;</span>))</div>
+<div class="line"><span class="lineno">   66</span>    ap.add_argument(<span class="stringliteral">&quot;--precision&quot;</span>, default=os.environ.get(<span class="stringliteral">&quot;PRECISION&quot;</span>, <span class="stringliteral">&quot;fp32&quot;</span>))</div>
+<div class="line"><span class="lineno">   67</span>    ap.add_argument(<span class="stringliteral">&quot;--batch&quot;</span>, default=os.environ.get(<span class="stringliteral">&quot;BATCH&quot;</span>, <span class="stringliteral">&quot;1&quot;</span>))</div>
+<div class="line"><span class="lineno">   68</span>    ap.add_argument(<span class="stringliteral">&quot;--prefetch&quot;</span>, default=os.environ.get(<span class="stringliteral">&quot;PREFETCH&quot;</span>, <span class="stringliteral">&quot;auto&quot;</span>))</div>
+<div class="line"><span class="lineno">   69</span>    ap.add_argument(<span class="stringliteral">&quot;--pretranspose&quot;</span>, default=os.environ.get(<span class="stringliteral">&quot;PRETRANSPOSE&quot;</span>, <span class="stringliteral">&quot;all&quot;</span>))</div>
+<div class="line"><span class="lineno">   70</span>    ap.add_argument(<span class="stringliteral">&quot;--affinity&quot;</span>, default=os.environ.get(<span class="stringliteral">&quot;AFFINITY&quot;</span>, <span class="stringliteral">&quot;auto&quot;</span>))</div>
+<div class="line"><span class="lineno">   71</span>    ap.add_argument(<span class="stringliteral">&quot;--max-new&quot;</span>, type=int, default=int(os.environ.get(<span class="stringliteral">&quot;MAX_NEW&quot;</span>, <span class="stringliteral">&quot;128&quot;</span>)))</div>
+<div class="line"><span class="lineno">   72</span> </div>
+<div class="line"><span class="lineno">   73</span>    ap.add_argument(<span class="stringliteral">&quot;--ie-bytes-per-token&quot;</span>, default=os.environ.get(<span class="stringliteral">&quot;IE_BYTES_PER_TOKEN&quot;</span>, <span class="stringliteral">&quot;67108864&quot;</span>))</div>
+<div class="line"><span class="lineno">   74</span>    ap.add_argument(<span class="stringliteral">&quot;--ie-stride-bytes&quot;</span>, default=os.environ.get(<span class="stringliteral">&quot;IE_STRIDE_BYTES&quot;</span>, <span class="stringliteral">&quot;256&quot;</span>))</div>
+<div class="line"><span class="lineno">   75</span>    ap.add_argument(<span class="stringliteral">&quot;--ie-verify-touch&quot;</span>, default=os.environ.get(<span class="stringliteral">&quot;IE_VERIFY_TOUCH&quot;</span>, <span class="stringliteral">&quot;1&quot;</span>))</div>
+<div class="line"><span class="lineno">   76</span> </div>
+<div class="line"><span class="lineno">   77</span>    ap.add_argument(<span class="stringliteral">&quot;--ie-dedup&quot;</span>, default=os.environ.get(<span class="stringliteral">&quot;IE_DEDUP&quot;</span>, <span class="stringliteral">&quot;1&quot;</span>))</div>
+<div class="line"><span class="lineno">   78</span>    ap.add_argument(<span class="stringliteral">&quot;--ie-dedup-policy&quot;</span>, default=os.environ.get(<span class="stringliteral">&quot;IE_DEDUP_POLICY&quot;</span>, <span class="stringliteral">&quot;&quot;</span>))</div>
+<div class="line"><span class="lineno">   79</span>    ap.add_argument(<span class="stringliteral">&quot;--ie-dedup-cache-mb&quot;</span>, default=os.environ.get(<span class="stringliteral">&quot;IE_DEDUP_CACHE_MB&quot;</span>, <span class="stringliteral">&quot;&quot;</span>))</div>
+<div class="line"><span class="lineno">   80</span>    ap.add_argument(<span class="stringliteral">&quot;--ie-dedup-hot-bytes&quot;</span>, default=os.environ.get(<span class="stringliteral">&quot;IE_DEDUP_HOT_BYTES&quot;</span>, <span class="stringliteral">&quot;&quot;</span>))</div>
+<div class="line"><span class="lineno">   81</span>    ap.add_argument(<span class="stringliteral">&quot;--ie-dedup-hot-list&quot;</span>, default=os.environ.get(<span class="stringliteral">&quot;IE_DEDUP_HOT_LIST&quot;</span>, <span class="stringliteral">&quot;&quot;</span>))</div>
+<div class="line"><span class="lineno">   82</span> </div>
+<div class="line"><span class="lineno">   83</span>    ap.add_argument(<span class="stringliteral">&quot;--strict-sh&quot;</span>, default=os.environ.get(<span class="stringliteral">&quot;STRICT_SH&quot;</span>, <span class="stringliteral">&quot;scripts/true_tps_strict.sh&quot;</span>))</div>
+<div class="line"><span class="lineno">   84</span>    ap.add_argument(<span class="stringliteral">&quot;--out-jsonl&quot;</span>, default=os.environ.get(<span class="stringliteral">&quot;OUT_JSONL&quot;</span>, <span class="stringliteral">&quot;build/strict_out.jsonl&quot;</span>))</div>
+<div class="line"><span class="lineno">   85</span>    ap.add_argument(<span class="stringliteral">&quot;--run-id&quot;</span>, default=os.environ.get(<span class="stringliteral">&quot;RUN_ID&quot;</span>, <span class="stringliteral">&quot;&quot;</span>))</div>
+<div class="line"><span class="lineno">   86</span> </div>
+<div class="line"><span class="lineno">   87</span>    args = ap.parse_args()</div>
 <div class="line"><span class="lineno">   88</span> </div>
-<div class="line"><span class="lineno">   89</span>  summary = make_summary(args)</div>
-<div class="line"><span class="lineno">   90</span>  summary_path = <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">os.path.join</a>(run_dir, <span class="stringliteral">&quot;summary.json&quot;</span>)</div>
-<div class="line"><span class="lineno">   91</span> </div>
-<div class="line"><span class="lineno">   92</span>  <span class="keyword">with</span> <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">open</a>(summary_path, <span class="stringliteral">&quot;w&quot;</span>, encoding=<span class="stringliteral">&quot;utf-8&quot;</span>) <span class="keyword">as</span> f:</div>
-<div class="line"><span class="lineno">   93</span>    <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">json.dump</a>(summary, f, indent=2)</div>
-<div class="line"><span class="lineno">   94</span> </div>
-<div class="line"><span class="lineno">   95</span>  <span class="comment"># Tests look for this marker in stdout.</span></div>
-<div class="line"><span class="lineno">   96</span>  <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">print</a>(f<span class="stringliteral">&quot;wrote: {summary_path}&quot;</span>)</div>
-<div class="line"><span class="lineno">   97</span> </div>
-<div class="line"><span class="lineno">   98</span>  <span class="keywordflow">return</span> 0</div>
+<div class="line"><span class="lineno">   89</span>    repo = _repo_root_from_here()</div>
+<div class="line"><span class="lineno">   90</span>    strict_sh = (repo / args.strict_sh).resolve()</div>
+<div class="line"><span class="lineno">   91</span>    <span class="keywordflow">if</span> <span class="keywordflow">not</span> strict_sh.is_file():</div>
+<div class="line"><span class="lineno">   92</span>        <span class="keywordflow">raise</span> SystemExit(f<span class="stringliteral">&quot;error: strict script not found: {strict_sh}&quot;</span>)</div>
+<div class="line"><span class="lineno">   93</span> </div>
+<div class="line"><span class="lineno">   94</span>    engine_bin = pathlib.Path(args.engine_bin).expanduser()</div>
+<div class="line"><span class="lineno">   95</span>    <span class="keywordflow">if</span> <span class="keywordflow">not</span> engine_bin.is_absolute():</div>
+<div class="line"><span class="lineno">   96</span>        engine_bin = (repo / engine_bin).resolve()</div>
+<div class="line"><span class="lineno">   97</span>    <span class="keywordflow">if</span> <span class="keywordflow">not</span> engine_bin.is_file():</div>
+<div class="line"><span class="lineno">   98</span>        <span class="keywordflow">raise</span> SystemExit(f<span class="stringliteral">&quot;error: engine binary not found: {engine_bin}&quot;</span>)</div>
 <div class="line"><span class="lineno">   99</span> </div>
-<div class="line"><span class="lineno">  100</span> </div>
-<div class="ttc" id="aie__device__cuda_8cu_html_a5e3d9fee84981707669f5c2398f0c4ab"><div class="ttname"><a href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">ie_gemv_rowwise_f32_kernel</a></div><div class="ttdeci">__global__ void ie_gemv_rowwise_f32_kernel(const float *W, const float *x, float *y, const float *bias, size_t rows, size_t cols)</div><div class="ttdoc">Row-wise GEMV kernel: each thread computes one output row.</div><div class="ttdef"><b>Definition</b> <a href="ie__device__cuda_8cu_source.html#l00092">ie_device_cuda.cu:92</a></div></div>
-<div class="ttc" id="amicrobench__stream_8c_html_ac031fe365f13cd4046dba432735b28f6"><div class="ttname"><a href="microbench__stream_8c.html#ac031fe365f13cd4046dba432735b28f6">parse_args</a></div><div class="ttdeci">static void parse_args(int argc, char **argv, size_t *mb, int *iters)</div><div class="ttdoc">Simple command-line parsing.</div><div class="ttdef"><b>Definition</b> <a href="microbench__stream_8c_source.html#l00050">microbench_stream.c:50</a></div></div>
+<div class="line"><span class="lineno">  100</span>    model_dir = pathlib.Path(args.model_dir).expanduser()</div>
+<div class="line"><span class="lineno">  101</span>    <span class="keywordflow">if</span> <span class="keywordflow">not</span> model_dir.is_absolute():</div>
+<div class="line"><span class="lineno">  102</span>        model_dir = (repo / model_dir).resolve()</div>
+<div class="line"><span class="lineno">  103</span>    <span class="keywordflow">if</span> <span class="keywordflow">not</span> model_dir.is_dir():</div>
+<div class="line"><span class="lineno">  104</span>        <span class="keywordflow">raise</span> SystemExit(f<span class="stringliteral">&quot;error: model dir not found: {model_dir}&quot;</span>)</div>
+<div class="line"><span class="lineno">  105</span> </div>
+<div class="line"><span class="lineno">  106</span>    prompts = pathlib.Path(args.prompts_file).expanduser()</div>
+<div class="line"><span class="lineno">  107</span>    <span class="keywordflow">if</span> <span class="keywordflow">not</span> prompts.is_absolute():</div>
+<div class="line"><span class="lineno">  108</span>        prompts = (repo / prompts).resolve()</div>
+<div class="line"><span class="lineno">  109</span>    <span class="keywordflow">if</span> <span class="keywordflow">not</span> prompts.is_file():</div>
+<div class="line"><span class="lineno">  110</span>        <span class="keywordflow">raise</span> SystemExit(f<span class="stringliteral">&quot;error: prompts file not found: {prompts}&quot;</span>)</div>
+<div class="line"><span class="lineno">  111</span> </div>
+<div class="line"><span class="lineno">  112</span>    run_id = args.run_id.strip() <span class="keywordflow">or</span> _dt.datetime.now().strftime(<span class="stringliteral">&quot;%Y%m%d_%H%M%S&quot;</span>)</div>
+<div class="line"><span class="lineno">  113</span>    out_jsonl = pathlib.Path(args.out_jsonl).expanduser()</div>
+<div class="line"><span class="lineno">  114</span>    <span class="keywordflow">if</span> <span class="keywordflow">not</span> out_jsonl.is_absolute():</div>
+<div class="line"><span class="lineno">  115</span>        out_jsonl = (repo / out_jsonl).resolve()</div>
+<div class="line"><span class="lineno">  116</span>    out_jsonl.parent.mkdir(parents=<span class="keyword">True</span>, exist_ok=<span class="keyword">True</span>)</div>
+<div class="line"><span class="lineno">  117</span> </div>
+<div class="line"><span class="lineno">  118</span>    report_dir = repo / <span class="stringliteral">&quot;benchmarks&quot;</span> / <span class="stringliteral">&quot;reports&quot;</span> / run_id</div>
+<div class="line"><span class="lineno">  119</span>    report_dir.mkdir(parents=<span class="keyword">True</span>, exist_ok=<span class="keyword">True</span>)</div>
+<div class="line"><span class="lineno">  120</span>    summary_path = report_dir / <span class="stringliteral">&quot;summary.json&quot;</span></div>
+<div class="line"><span class="lineno">  121</span> </div>
+<div class="line"><span class="lineno">  122</span>    env = os.environ.copy()</div>
+<div class="line"><span class="lineno">  123</span>    env.update({</div>
+<div class="line"><span class="lineno">  124</span>        <span class="stringliteral">&quot;ENGINE_BIN&quot;</span>: str(engine_bin),</div>
+<div class="line"><span class="lineno">  125</span>        <span class="stringliteral">&quot;DEVICE&quot;</span>: args.device,</div>
+<div class="line"><span class="lineno">  126</span>        <span class="stringliteral">&quot;MODEL_DIR&quot;</span>: str(model_dir),</div>
+<div class="line"><span class="lineno">  127</span>        <span class="stringliteral">&quot;PROMPTS&quot;</span>: str(prompts),</div>
+<div class="line"><span class="lineno">  128</span>        <span class="stringliteral">&quot;RUNS&quot;</span>: str(int(args.runs)),</div>
+<div class="line"><span class="lineno">  129</span>        <span class="stringliteral">&quot;ROUNDS&quot;</span>: str(int(args.rounds)),</div>
+<div class="line"><span class="lineno">  130</span>        <span class="stringliteral">&quot;THREADS&quot;</span>: str(args.threads),</div>
+<div class="line"><span class="lineno">  131</span>        <span class="stringliteral">&quot;PRECISION&quot;</span>: str(args.precision),</div>
+<div class="line"><span class="lineno">  132</span>        <span class="stringliteral">&quot;BATCH&quot;</span>: str(args.batch),</div>
+<div class="line"><span class="lineno">  133</span>        <span class="stringliteral">&quot;PREFETCH&quot;</span>: str(args.prefetch),</div>
+<div class="line"><span class="lineno">  134</span>        <span class="stringliteral">&quot;PRETRANSPOSE&quot;</span>: str(args.pretranspose),</div>
+<div class="line"><span class="lineno">  135</span>        <span class="stringliteral">&quot;AFFINITY&quot;</span>: str(args.affinity),</div>
+<div class="line"><span class="lineno">  136</span>        <span class="stringliteral">&quot;MAX_NEW&quot;</span>: str(int(args.max_new)),</div>
+<div class="line"><span class="lineno">  137</span>        <span class="stringliteral">&quot;IE_BYTES_PER_TOKEN&quot;</span>: str(args.ie_bytes_per_token),</div>
+<div class="line"><span class="lineno">  138</span>        <span class="stringliteral">&quot;IE_STRIDE_BYTES&quot;</span>: str(args.ie_stride_bytes),</div>
+<div class="line"><span class="lineno">  139</span>        <span class="stringliteral">&quot;IE_VERIFY_TOUCH&quot;</span>: str(args.ie_verify_touch),</div>
+<div class="line"><span class="lineno">  140</span>        <span class="stringliteral">&quot;IE_DEDUP&quot;</span>: str(args.ie_dedup),</div>
+<div class="line"><span class="lineno">  141</span>    })</div>
+<div class="line"><span class="lineno">  142</span> </div>
+<div class="line"><span class="lineno">  143</span>    <span class="keywordflow">if</span> args.ie_dedup_policy:</div>
+<div class="line"><span class="lineno">  144</span>        env[<span class="stringliteral">&quot;IE_DEDUP_POLICY&quot;</span>] = args.ie_dedup_policy</div>
+<div class="line"><span class="lineno">  145</span>    <span class="keywordflow">if</span> args.ie_dedup_cache_mb:</div>
+<div class="line"><span class="lineno">  146</span>        env[<span class="stringliteral">&quot;IE_DEDUP_CACHE_MB&quot;</span>] = args.ie_dedup_cache_mb</div>
+<div class="line"><span class="lineno">  147</span>    <span class="keywordflow">if</span> args.ie_dedup_hot_bytes:</div>
+<div class="line"><span class="lineno">  148</span>        env[<span class="stringliteral">&quot;IE_DEDUP_HOT_BYTES&quot;</span>] = args.ie_dedup_hot_bytes</div>
+<div class="line"><span class="lineno">  149</span>    <span class="keywordflow">if</span> args.ie_dedup_hot_list:</div>
+<div class="line"><span class="lineno">  150</span>        env[<span class="stringliteral">&quot;IE_DEDUP_HOT_LIST&quot;</span>] = args.ie_dedup_hot_list</div>
+<div class="line"><span class="lineno">  151</span> </div>
+<div class="line"><span class="lineno">  152</span>    <span class="comment"># Run strict harness and capture stdout (JSONL).</span></div>
+<div class="line"><span class="lineno">  153</span>    proc = subprocess.run(</div>
+<div class="line"><span class="lineno">  154</span>        [str(strict_sh)],</div>
+<div class="line"><span class="lineno">  155</span>        cwd=str(repo),</div>
+<div class="line"><span class="lineno">  156</span>        env=env,</div>
+<div class="line"><span class="lineno">  157</span>        stdout=subprocess.PIPE,</div>
+<div class="line"><span class="lineno">  158</span>        stderr=sys.stderr,</div>
+<div class="line"><span class="lineno">  159</span>        text=<span class="keyword">True</span>,</div>
+<div class="line"><span class="lineno">  160</span>        check=<span class="keyword">False</span>,</div>
+<div class="line"><span class="lineno">  161</span>    )</div>
+<div class="line"><span class="lineno">  162</span>    <span class="keywordflow">if</span> proc.returncode != 0:</div>
+<div class="line"><span class="lineno">  163</span>        <span class="keywordflow">raise</span> SystemExit(proc.returncode)</div>
+<div class="line"><span class="lineno">  164</span> </div>
+<div class="line"><span class="lineno">  165</span>    out_jsonl.write_text(proc.stdout)</div>
+<div class="line"><span class="lineno">  166</span>    summary = _last_json_object_from_jsonl(proc.stdout)</div>
+<div class="line"><span class="lineno">  167</span>    summary_path.write_text(json.dumps(summary, indent=2, sort_keys=<span class="keyword">True</span>) + <span class="stringliteral">&quot;\n&quot;</span>)</div>
+<div class="line"><span class="lineno">  168</span> </div>
+<div class="line"><span class="lineno">  169</span>    <span class="comment"># One line for CI / quick checks.</span></div>
+<div class="line"><span class="lineno">  170</span>    print(str(summary_path))</div>
+<div class="line"><span class="lineno">  171</span>    <span class="keywordflow">return</span> 0</div>
+<div class="line"><span class="lineno">  172</span> </div>
+<div class="line"><span class="lineno">  173</span> </div>
 <div class="ttc" id="atest__act__quant_8c_html_a840291bc02cba5474a4cb46a9b9566fe"><div class="ttname"><a href="test__act__quant_8c.html#a840291bc02cba5474a4cb46a9b9566fe">main</a></div><div class="ttdeci">int main(void)</div><div class="ttdef"><b>Definition</b> <a href="test__act__quant_8c_source.html#l00121">test_act_quant.c:121</a></div></div>
 </div><!-- fragment -->
-<p class="reference">References <a class="el" href="harness_8py_source.html#l00073">main()</a>, <a class="el" href="harness_8py_source.html#l00047">make_summary()</a>, and <a class="el" href="harness_8py_source.html#l00028">parse_args()</a>.</p>
+<p class="reference">References <a class="el" href="harness_8py_source.html#l00039">_last_json_object_from_jsonl()</a>, <a class="el" href="harness_8py_source.html#l00027">_repo_root_from_here()</a>, and <a class="el" href="harness_8py_source.html#l00056">main()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="harness_8py_source.html#l00073">main()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="harness_8py_source.html#l00056">main()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="namespaceharness_a4f0fe04dc9b9343f12a87b1ab57b071f_cgraph.svg" width="352" height="86"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="namespaceharness_a28af262c64af5578f03e77dc72cd52b2_cgraph.svg" width="316" height="115"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="namespaceharness_a4f0fe04dc9b9343f12a87b1ab57b071f_icgraph.svg" width="122" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
-<a id="ac9f1bde483441516bc8042ea477fe3c5" name="ac9f1bde483441516bc8042ea477fe3c5"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac9f1bde483441516bc8042ea477fe3c5">&#9670;&#160;</a></span>make_summary()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">harness.make_summary </td>
-          <td>(</td>
-          <td class="paramtype">&#160;</td>
-          <td class="paramname"><em>args</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<pre class="fragment">Synthesize a deterministic summary payload that looks like a real run.
-
-The exact numeric values are not important for unit tests; only the
-presence and basic consistency of the fields is validated.
-</pre> 
-<p class="definition">Definition at line <a class="el" href="harness_8py_source.html#l00047">47</a> of file <a class="el" href="harness_8py_source.html">harness.py</a>.</p>
-<div class="fragment"><div class="line"><span class="lineno">   47</span><span class="keyword">def </span>make_summary(args):</div>
-<div class="line"><span class="lineno">   48</span>  <span class="stringliteral">&quot;&quot;&quot;</span></div>
-<div class="line"><span class="lineno">   49</span><span class="stringliteral">  Synthesize a deterministic summary payload that looks like a real run.</span></div>
-<div class="line"><span class="lineno">   50</span><span class="stringliteral"></span> </div>
-<div class="line"><span class="lineno">   51</span><span class="stringliteral">  The exact numeric values are not important for unit tests; only the</span></div>
-<div class="line"><span class="lineno">   52</span><span class="stringliteral">  presence and basic consistency of the fields is validated.</span></div>
-<div class="line"><span class="lineno">   53</span><span class="stringliteral">  &quot;&quot;&quot;</span></div>
-<div class="line"><span class="lineno">   54</span>  prompt_len = len(<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">args.prompt</a>)</div>
-<div class="line"><span class="lineno">   55</span>  samples = <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">max</a>(0, <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">int</a>(<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">args.samples</a>))</div>
-<div class="line"><span class="lineno">   56</span>  tokens = samples * <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">max</a>(0, prompt_len)</div>
-<div class="line"><span class="lineno">   57</span> </div>
-<div class="line"><span class="lineno">   58</span>  <span class="comment"># Use a small fake runtime and TPS so tests can treat them as floats.</span></div>
-<div class="line"><span class="lineno">   59</span>  runtime_sec = 0.01 <span class="keywordflow">if</span> tokens &gt; 0 <span class="keywordflow">else</span> 0.0</div>
-<div class="line"><span class="lineno">   60</span>  avg_tps_true = <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">float</a>(tokens) / runtime_sec <span class="keywordflow">if</span> runtime_sec &gt; 0.0 <span class="keywordflow">else</span> 0.0</div>
-<div class="line"><span class="lineno">   61</span> </div>
-<div class="line"><span class="lineno">   62</span>  <span class="keywordflow">return</span> {</div>
-<div class="line"><span class="lineno">   63</span>      <span class="stringliteral">&quot;samples&quot;</span>: samples,</div>
-<div class="line"><span class="lineno">   64</span>      <span class="stringliteral">&quot;prompt&quot;</span>: <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">args.prompt</a>,</div>
-<div class="line"><span class="lineno">   65</span>      <span class="stringliteral">&quot;prompt_len&quot;</span>: prompt_len,</div>
-<div class="line"><span class="lineno">   66</span>      <span class="stringliteral">&quot;total_tokens&quot;</span>: tokens,</div>
-<div class="line"><span class="lineno">   67</span>      <span class="stringliteral">&quot;avg_tps_true&quot;</span>: avg_tps_true,</div>
-<div class="line"><span class="lineno">   68</span>      <span class="stringliteral">&quot;runtime_sec&quot;</span>: runtime_sec,</div>
-<div class="line"><span class="lineno">   69</span>      <span class="stringliteral">&quot;created_at&quot;</span>: <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">time.time</a>(),</div>
-<div class="line"><span class="lineno">   70</span>  }</div>
-<div class="line"><span class="lineno">   71</span> </div>
-<div class="line"><span class="lineno">   72</span> </div>
-</div><!-- fragment -->
-<p class="reference">Referenced by <a class="el" href="harness_8py_source.html#l00073">main()</a>.</p>
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="namespaceharness_ac9f1bde483441516bc8042ea477fe3c5_icgraph.svg" width="352" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
-<a id="abadd908805b591f82fae7f35b779f642" name="abadd908805b591f82fae7f35b779f642"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#abadd908805b591f82fae7f35b779f642">&#9670;&#160;</a></span>parse_args()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">harness.parse_args </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<pre class="fragment">Parse only the small subset of arguments that tests care about.
-
-Unknown arguments are accepted and ignored, so the harness remains
-compatible with older or richer callers.
-</pre> 
-<p class="definition">Definition at line <a class="el" href="harness_8py_source.html#l00028">28</a> of file <a class="el" href="harness_8py_source.html">harness.py</a>.</p>
-<div class="fragment"><div class="line"><span class="lineno">   28</span><span class="keyword">def </span><a class="code hl_function" href="microbench__stream_8c.html#ac031fe365f13cd4046dba432735b28f6">parse_args</a>():</div>
-<div class="line"><span class="lineno">   29</span>  <span class="stringliteral">&quot;&quot;&quot;</span></div>
-<div class="line"><span class="lineno">   30</span><span class="stringliteral">  Parse only the small subset of arguments that tests care about.</span></div>
-<div class="line"><span class="lineno">   31</span><span class="stringliteral"></span> </div>
-<div class="line"><span class="lineno">   32</span><span class="stringliteral">  Unknown arguments are accepted and ignored, so the harness remains</span></div>
-<div class="line"><span class="lineno">   33</span><span class="stringliteral">  compatible with older or richer callers.</span></div>
-<div class="line"><span class="lineno">   34</span><span class="stringliteral">  &quot;&quot;&quot;</span></div>
-<div class="line"><span class="lineno">   35</span>  parser = <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">argparse.ArgumentParser</a>(add_help=<span class="keyword">False</span>)</div>
-<div class="line"><span class="lineno">   36</span>  <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">parser.add_argument</a>(<span class="stringliteral">&quot;--samples&quot;</span>, type=int, default=4)</div>
-<div class="line"><span class="lineno">   37</span>  <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">parser.add_argument</a>(<span class="stringliteral">&quot;--prompt&quot;</span>, type=str, default=<span class="stringliteral">&quot;abcdefghij&quot;</span> * 3)</div>
-<div class="line"><span class="lineno">   38</span>  <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">parser.add_argument</a>(</div>
-<div class="line"><span class="lineno">   39</span>      <span class="stringliteral">&quot;--reports-dir&quot;</span>,</div>
-<div class="line"><span class="lineno">   40</span>      type=str,</div>
-<div class="line"><span class="lineno">   41</span>      default=<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">os.path.join</a>(<span class="stringliteral">&quot;benchmarks&quot;</span>, <span class="stringliteral">&quot;reports&quot;</span>),</div>
-<div class="line"><span class="lineno">   42</span>  )</div>
-<div class="line"><span class="lineno">   43</span>  args, _unknown = <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">parser.parse_known_args</a>()</div>
-<div class="line"><span class="lineno">   44</span>  <span class="keywordflow">return</span> args</div>
-<div class="line"><span class="lineno">   45</span> </div>
-<div class="line"><span class="lineno">   46</span> </div>
-</div><!-- fragment -->
-<p class="reference">Referenced by <a class="el" href="harness_8py_source.html#l00073">main()</a>.</p>
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="namespaceharness_abadd908805b591f82fae7f35b779f642_icgraph.svg" width="318" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="namespaceharness_a28af262c64af5578f03e77dc72cd52b2_icgraph.svg" width="122" height="60"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

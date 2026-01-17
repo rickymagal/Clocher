@@ -3,7 +3,12 @@
   <compounddef id="ie__cpu_8h" kind="file" language="C++">
     <compoundname>ie_cpu.h</compoundname>
     <includes local="no">stdbool.h</includes>
+    <includes local="no">stddef.h</includes>
+    <includedby refid="ie__api_8c" local="yes">engine/src/ie_api.c</includedby>
+    <includedby refid="gemv__generic_8c" local="yes">engine/src/kernels/gemv_generic.c</includedby>
+    <includedby refid="gemv__q4__generic_8c" local="yes">engine/src/kernels/gemv_q4_generic.c</includedby>
     <includedby refid="cpu__features_8c" local="yes">engine/src/opt/cpu_features.c</includedby>
+    <includedby refid="stream_8c" local="yes">engine/src/opt/stream.c</includedby>
     <includedby refid="test__cpu__features_8c" local="yes">tests/c/test_cpu_features.c</includedby>
     <incdepgraph>
       <node id="1">
@@ -11,9 +16,14 @@
         <link refid="ie__cpu_8h"/>
         <childnode refid="2" relation="include">
         </childnode>
+        <childnode refid="3" relation="include">
+        </childnode>
       </node>
       <node id="2">
         <label>stdbool.h</label>
+      </node>
+      <node id="3">
+        <label>stddef.h</label>
       </node>
     </incdepgraph>
     <invincdepgraph>
@@ -24,83 +34,268 @@
         </childnode>
         <childnode refid="3" relation="include">
         </childnode>
+        <childnode refid="4" relation="include">
+        </childnode>
+        <childnode refid="5" relation="include">
+        </childnode>
+        <childnode refid="6" relation="include">
+        </childnode>
+        <childnode refid="7" relation="include">
+        </childnode>
       </node>
       <node id="2">
+        <label>engine/src/ie_api.c</label>
+        <link refid="ie__api_8c"/>
+      </node>
+      <node id="3">
+        <label>engine/src/kernels/gemv_generic.c</label>
+        <link refid="gemv__generic_8c"/>
+      </node>
+      <node id="4">
+        <label>engine/src/kernels/gemv_q4_generic.c</label>
+        <link refid="gemv__q4__generic_8c"/>
+      </node>
+      <node id="5">
         <label>engine/src/opt/cpu_features.c</label>
         <link refid="cpu__features_8c"/>
       </node>
-      <node id="3">
+      <node id="6">
+        <label>engine/src/opt/stream.c</label>
+        <link refid="stream_8c"/>
+      </node>
+      <node id="7">
         <label>tests/c/test_cpu_features.c</label>
         <link refid="test__cpu__features_8c"/>
       </node>
     </invincdepgraph>
-    <innerclass refid="structie__cpu__features__t" prot="public">ie_cpu_features_t</innerclass>
-    <sectiondef kind="func">
-      <memberdef kind="function" id="ie__cpu_8h_1af2e20a1ca28854df085dbe0d88ed91c3" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
-        <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">bool</ref></type>
-        <definition>bool ie_cpu_detect</definition>
-        <argsstring>(ie_cpu_features_t *out)</argsstring>
-        <name>ie_cpu_detect</name>
-        <param>
-          <type><ref refid="structie__cpu__features__t" kindref="compound">ie_cpu_features_t</ref> *</type>
-          <declname>out</declname>
-        </param>
+    <innerclass refid="structie__cpu__features" prot="public">ie_cpu_features</innerclass>
+    <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="ie__cpu_8h_1aea2fcb4d85c37bcfc8abdbb12adbdc2d" prot="public" static="no">
+        <type>struct <ref refid="structie__cpu__features" kindref="compound">ie_cpu_features</ref></type>
+        <definition>typedef struct ie_cpu_features ie_cpu_features_t</definition>
+        <argsstring></argsstring>
+        <name>ie_cpu_features_t</name>
         <briefdescription>
-<para>Detect CPU features on the current machine. </para>
+<para>Set of x86 SIMD capabilities used by the inference engine. </para>
         </briefdescription>
         <detaileddescription>
-<para>The function is best-effort: it never crashes on unsupported platforms. On non-x86 builds it returns <computeroutput>true</computeroutput> and fills all flags as <computeroutput>false</computeroutput>.</para>
-<para><parameterlist kind="param"><parameteritem>
-<parameternamelist>
-<parametername direction="out">out</parametername>
-</parameternamelist>
-<parameterdescription>
-<para>Pointer to a <ref refid="structie__cpu__features__t" kindref="compound">ie_cpu_features_t</ref> structure to fill. </para>
-</parameterdescription>
-</parameteritem>
-</parameterlist>
-<simplesect kind="return"><para><computeroutput>true</computeroutput> if the function executed; <computeroutput>false</computeroutput> only if <computeroutput>out</computeroutput> is NULL. </para>
+<para><simplesect kind="note"><para><computeroutput>avx512_bf16</computeroutput> implies <computeroutput>avx512f</computeroutput> + OS ZMM state enabled, but the struct keeps each flag explicit so callers can emit clear logs. </para>
 </simplesect>
 </para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="engine/include/ie_cpu.h" line="36" column="6" bodyfile="engine/src/opt/cpu_features.c" bodystart="70" bodyend="102" declfile="engine/include/ie_cpu.h" declline="36" declcolumn="6"/>
-        <references refid="cpu__features_8c_1a6ab0f83647cb70ad0043407f15992363" compoundref="cpu__features_8c" startline="30" endline="49">cpuid_ex</references>
-        <references refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" compoundref="ie__device__cuda_8cu" startline="92" endline="110">ie_gemv_rowwise_f32_kernel</references>
-        <references refid="cpu__features_8c_1a5ec481b22364387e65264e28e0f81bf7" compoundref="cpu__features_8c" startline="58" endline="68">xgetbv_xcr0</references>
+        <location file="engine/include/ie_cpu.h" line="59" column="19"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="ie__cpu_8h_1af2e20a1ca28854df085dbe0d88ed91c3" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool ie_cpu_detect</definition>
+        <argsstring>(ie_cpu_features_t *out)</argsstring>
+        <name>ie_cpu_detect</name>
+        <param>
+          <type><ref refid="ie__cpu_8h_1aea2fcb4d85c37bcfc8abdbb12adbdc2d" kindref="member">ie_cpu_features_t</ref> *</type>
+          <declname>out</declname>
+        </param>
+        <briefdescription>
+<para>Detect CPU features at runtime. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="out">out</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Receives the detected capabilities. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>true if detection ran (even if all flags are false), false on invalid arguments. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/ie_cpu.h" line="68" column="6" declfile="engine/include/ie_cpu.h" declline="68" declcolumn="6"/>
         <referencedby refid="test__cpu__features_8c_1a840291bc02cba5474a4cb46a9b9566fe" compoundref="test__cpu__features_8c" startline="9" endline="15">main</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="ie__cpu_8h_1a52efeab08d996ee1bef746c591684b9d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool ie_cpu_features_detect</definition>
+        <argsstring>(ie_cpu_features_t *out)</argsstring>
+        <name>ie_cpu_features_detect</name>
+        <param>
+          <type><ref refid="ie__cpu_8h_1aea2fcb4d85c37bcfc8abdbb12adbdc2d" kindref="member">ie_cpu_features_t</ref> *</type>
+          <declname>out</declname>
+        </param>
+        <briefdescription>
+<para>Alias for <ref refid="ie__cpu_8h_1af2e20a1ca28854df085dbe0d88ed91c3" kindref="member">ie_cpu_detect</ref> for clearer call sites. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Some call sites prefer &quot;features_detect&quot; naming (e.g., instrumentation).</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="out">out</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Receives the detected capabilities. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>See <ref refid="ie__cpu_8h_1af2e20a1ca28854df085dbe0d88ed91c3" kindref="member">ie_cpu_detect</ref>. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/ie_cpu.h" line="78" column="6" bodyfile="engine/src/opt/cpu_features.c" bodystart="111" bodyend="169" declfile="engine/include/ie_cpu.h" declline="78" declcolumn="6"/>
+        <references refid="cpu__features_8c_1a57a31c8ca934dd8b9321a1b2d1b7f904" compoundref="cpu__features_8c" startline="179" endline="198">ie_cpu_features_to_string</references>
+        <references refid="cpu__features_8c_1ab2d914e201f157a55add02484039d91e" compoundref="cpu__features_8c" startline="66" endline="86">ie_cpuid_ex</references>
+        <references refid="cpu__features_8c_1a87c4545ac0ad2b6ad2fd70a090b63146" compoundref="cpu__features_8c" startline="47" endline="52">ie_env_flag</references>
+        <references refid="cpu__features_8c_1ab6c2c4097b43f59eb931f7968096761b" compoundref="cpu__features_8c" startline="95" endline="105">ie_xgetbv_xcr0</references>
+        <referencedby refid="ie__kernels_8h_1af0b48eb5cf241e9c033953abff9974ad" compoundref="gemv__q4__generic_8c" startline="228" endline="255">ie_gemv_q4_0_f32</referencedby>
+        <referencedby refid="ie__kernels_8h_1a1b919f71b86ec1791fe53bc68d5c240d" compoundref="gemv__generic_8c" startline="168" endline="213">ie_kernels_install</referencedby>
+        <referencedby refid="ie__api_8c_1af59b500a4172d473a75a7cacb005fe4c" compoundref="ie__api_8c" startline="79" endline="87">ie_q4_kernel_selected_name</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="ie__cpu_8h_1acf53c4c8f16699edb41f7b07505f6639" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>size_t</type>
+        <definition>size_t ie_cpu_features_to_string</definition>
+        <argsstring>(const ie_cpu_features_t *feats, char *buf, size_t cap)</argsstring>
+        <name>ie_cpu_features_to_string</name>
+        <param>
+          <type>const <ref refid="ie__cpu_8h_1aea2fcb4d85c37bcfc8abdbb12adbdc2d" kindref="member">ie_cpu_features_t</ref> *</type>
+          <declname>feats</declname>
+          <defname>f</defname>
+        </param>
+        <param>
+          <type>char *</type>
+          <declname>buf</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>cap</declname>
+        </param>
+        <briefdescription>
+<para>Format a feature set as a compact, stable string. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Example: <computeroutput>avx=1 avx2=1 fma=1 avx512f=0 avx512dq=0 avx512bw=0 avx512vl=0 avx512_bf16=0</computeroutput></para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>feats</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Feature set (may be NULL, treated as all zeros). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>buf</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Output buffer. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>cap</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Capacity of <computeroutput>buf</computeroutput> in bytes. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Number of bytes written (excluding NUL), or 0 on invalid buffer.</para>
+</simplesect>
+Format a feature set as a compact, stable string.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>f</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Feature struct. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>buf</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Output buffer. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>cap</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Output capacity in bytes. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Number of bytes written (excluding NUL), clamped to <computeroutput>cap-1</computeroutput>. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/ie_cpu.h" line="91" column="8" bodyfile="engine/src/opt/cpu_features.c" bodystart="179" bodyend="198" declfile="engine/include/ie_cpu.h" declline="91" declcolumn="8"/>
+        <references refid="structie__cpu__features_1a596807f0a67776f84750fc9ab34bfeb3" compoundref="ie__cpu_8h" startline="39">ie_cpu_features::avx2</references>
+        <references refid="structie__cpu__features_1a3895a19999349001a93ad4a39f4cf14f" compoundref="ie__cpu_8h" startline="58">ie_cpu_features::avx512_bf16</references>
+        <references refid="structie__cpu__features_1a56cc6e61e2073253c3fe97db5d621f21" compoundref="ie__cpu_8h" startline="41">ie_cpu_features::fma</references>
+        <referencedby refid="ie__cpu_8h_1a52efeab08d996ee1bef746c591684b9d" compoundref="cpu__features_8c" startline="111" endline="169">ie_cpu_features_detect</referencedby>
       </memberdef>
     </sectiondef>
     <briefdescription>
-<para>CPU feature detection API for runtime kernel dispatch. </para>
+<para>Runtime CPU feature detection utilities. </para>
     </briefdescription>
     <detaileddescription>
-<para>This header exposes a tiny, dependency-free interface to detect a subset of x86 CPU features (AVX2 and FMA). On non-x86 platforms, detection succeeds but all features are reported as <computeroutput>false</computeroutput>. </para>
+<para>This header defines a small, dependency-free API to detect ISA capabilities relevant to CPU inference kernels at runtime (e.g., selecting AVX2 GEMV).</para>
+<para>The implementation is best-effort:<itemizedlist>
+<listitem><para>On x86/x86_64: uses CPUID and XGETBV to confirm both HW support and OS- enabled register state (XMM/YMM/ZMM).</para>
+</listitem><listitem><para>On non-x86: reports all capabilities as false.</para>
+</listitem></itemizedlist>
+</para>
+<para>The detected flags are intended for:<itemizedlist>
+<listitem><para>Choosing kernel variants (generic vs AVX2 vs AVX-512).</para>
+</listitem><listitem><para>Logging/instrumentation to confirm which fast paths are available. </para>
+</listitem></itemizedlist>
+</para>
     </detaileddescription>
     <programlisting>
 <codeline lineno="1"><highlight class="normal"></highlight></codeline>
-<codeline lineno="10"><highlight class="normal"></highlight><highlight class="preprocessor">#ifndef<sp/>IE_CPU_H</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="11"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>IE_CPU_H</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="12"><highlight class="normal"></highlight></codeline>
-<codeline lineno="13"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stdbool.h&gt;</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="14"><highlight class="normal"></highlight></codeline>
-<codeline lineno="15"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="16"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/></highlight><highlight class="stringliteral">&quot;C&quot;</highlight><highlight class="normal"><sp/>{</highlight></codeline>
-<codeline lineno="17"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="18"><highlight class="normal"></highlight></codeline>
-<codeline lineno="22" refid="structie__cpu__features__t" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal">{</highlight></codeline>
-<codeline lineno="23" refid="structie__cpu__features__t_1a126cd9fec9b1e9ec0a746ab0a28e7251" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/><ref refid="structie__cpu__features__t_1a126cd9fec9b1e9ec0a746ab0a28e7251" kindref="member">avx2</ref>;<sp/><sp/></highlight></codeline>
-<codeline lineno="24" refid="structie__cpu__features__t_1ab186c528f9355396127156bf6e6ab099" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/><ref refid="structie__cpu__features__t_1ab186c528f9355396127156bf6e6ab099" kindref="member">fma</ref>;<sp/><sp/><sp/></highlight></codeline>
-<codeline lineno="25"><highlight class="normal">}<sp/><ref refid="structie__cpu__features__t" kindref="compound">ie_cpu_features_t</ref>;</highlight></codeline>
-<codeline lineno="26"><highlight class="normal"></highlight></codeline>
-<codeline lineno="36"><highlight class="normal"></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/><ref refid="ie__cpu_8h_1af2e20a1ca28854df085dbe0d88ed91c3" kindref="member">ie_cpu_detect</ref>(<ref refid="structie__cpu__features__t" kindref="compound">ie_cpu_features_t</ref><sp/>*<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">out</ref>);</highlight></codeline>
-<codeline lineno="37"><highlight class="normal"></highlight></codeline>
-<codeline lineno="38"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="39"><highlight class="normal">}</highlight></codeline>
-<codeline lineno="40"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="41"><highlight class="normal"></highlight></codeline>
-<codeline lineno="42"><highlight class="normal"></highlight><highlight class="preprocessor">#endif<sp/></highlight><highlight class="comment">/*<sp/>IE_CPU_H<sp/>*/</highlight><highlight class="preprocessor"></highlight></codeline>
+<codeline lineno="19"><highlight class="normal"></highlight><highlight class="preprocessor">#pragma<sp/>once</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="20"><highlight class="normal"></highlight></codeline>
+<codeline lineno="21"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stdbool.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="22"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stddef.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="23"><highlight class="normal"></highlight></codeline>
+<codeline lineno="24"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="25"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/></highlight><highlight class="stringliteral">&quot;C&quot;</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="26"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="27"><highlight class="normal"></highlight></codeline>
+<codeline lineno="35" refid="structie__cpu__features" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structie__cpu__features" kindref="compound">ie_cpu_features</ref><sp/>{</highlight></codeline>
+<codeline lineno="37" refid="structie__cpu__features_1ad34b8ad4eaa2419dcf85da2bbec779b8" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/><ref refid="structie__cpu__features_1ad34b8ad4eaa2419dcf85da2bbec779b8" kindref="member">avx</ref>;</highlight></codeline>
+<codeline lineno="39" refid="structie__cpu__features_1a596807f0a67776f84750fc9ab34bfeb3" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/><ref refid="structie__cpu__features_1a596807f0a67776f84750fc9ab34bfeb3" kindref="member">avx2</ref>;</highlight></codeline>
+<codeline lineno="41" refid="structie__cpu__features_1a56cc6e61e2073253c3fe97db5d621f21" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/><ref refid="structie__cpu__features_1a56cc6e61e2073253c3fe97db5d621f21" kindref="member">fma</ref>;</highlight></codeline>
+<codeline lineno="42"><highlight class="normal"></highlight></codeline>
+<codeline lineno="44" refid="structie__cpu__features_1a2953875922a3838549523f00c3b1a735" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/><ref refid="structie__cpu__features_1a2953875922a3838549523f00c3b1a735" kindref="member">avx512f</ref>;</highlight></codeline>
+<codeline lineno="46" refid="structie__cpu__features_1a4f742c6d25de62fb92066c21abb90046" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/><ref refid="structie__cpu__features_1a4f742c6d25de62fb92066c21abb90046" kindref="member">avx512dq</ref>;</highlight></codeline>
+<codeline lineno="48" refid="structie__cpu__features_1a69a525c4135b0f5e811aaeae63eca775" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/><ref refid="structie__cpu__features_1a69a525c4135b0f5e811aaeae63eca775" kindref="member">avx512bw</ref>;</highlight></codeline>
+<codeline lineno="50" refid="structie__cpu__features_1a25202bcf1087ba974289b6314b1a957e" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/><ref refid="structie__cpu__features_1a25202bcf1087ba974289b6314b1a957e" kindref="member">avx512vl</ref>;</highlight></codeline>
+<codeline lineno="51"><highlight class="normal"></highlight></codeline>
+<codeline lineno="58" refid="structie__cpu__features_1a3895a19999349001a93ad4a39f4cf14f" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/><ref refid="structie__cpu__features_1a3895a19999349001a93ad4a39f4cf14f" kindref="member">avx512_bf16</ref>;</highlight></codeline>
+<codeline lineno="59" refid="ie__cpu_8h_1aea2fcb4d85c37bcfc8abdbb12adbdc2d" refkind="member"><highlight class="normal">}<sp/><ref refid="ie__cpu_8h_1aea2fcb4d85c37bcfc8abdbb12adbdc2d" kindref="member">ie_cpu_features_t</ref>;</highlight></codeline>
+<codeline lineno="60"><highlight class="normal"></highlight></codeline>
+<codeline lineno="68" refid="ie__cpu_8h_1af2e20a1ca28854df085dbe0d88ed91c3" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/><ref refid="ie__cpu_8h_1af2e20a1ca28854df085dbe0d88ed91c3" kindref="member">ie_cpu_detect</ref>(<ref refid="structie__cpu__features" kindref="compound">ie_cpu_features_t</ref><sp/>*out);</highlight></codeline>
+<codeline lineno="69"><highlight class="normal"></highlight></codeline>
+<codeline lineno="78"><highlight class="normal"></highlight><highlight class="keywordtype">bool</highlight><highlight class="normal"><sp/><ref refid="ie__cpu_8h_1a52efeab08d996ee1bef746c591684b9d" kindref="member">ie_cpu_features_detect</ref>(<ref refid="structie__cpu__features" kindref="compound">ie_cpu_features_t</ref><sp/>*out);</highlight></codeline>
+<codeline lineno="79"><highlight class="normal"></highlight></codeline>
+<codeline lineno="91"><highlight class="normal"></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/><ref refid="ie__cpu_8h_1acf53c4c8f16699edb41f7b07505f6639" kindref="member">ie_cpu_features_to_string</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="structie__cpu__features" kindref="compound">ie_cpu_features_t</ref><sp/>*feats,<sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*buf,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>cap);</highlight></codeline>
+<codeline lineno="92"><highlight class="normal"></highlight></codeline>
+<codeline lineno="93"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="94"><highlight class="normal">}<sp/></highlight><highlight class="comment">/*<sp/>extern<sp/>&quot;C&quot;<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="95"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight></codeline>
     </programlisting>
     <location file="engine/include/ie_cpu.h"/>
   </compounddef>

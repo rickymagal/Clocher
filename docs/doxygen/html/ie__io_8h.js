@@ -15,6 +15,7 @@ var ie__io_8h =
       [ "IE_IO_ERR_OPEN", "ie__io_8h.html#a4c501870bd45dbe373416745a03de987aba0321da4352c7a61ea1bda842bb64d0", null ],
       [ "IE_IO_ERR_READ", "ie__io_8h.html#a4c501870bd45dbe373416745a03de987aa12fce48fd3eee2bd8a75dc61db150a7", null ],
       [ "IE_IO_ERR_ALLOC", "ie__io_8h.html#a4c501870bd45dbe373416745a03de987a215c4a31864749ed0fce240433824032", null ],
+      [ "IE_IO_ERR_OOM", "ie__io_8h.html#a4c501870bd45dbe373416745a03de987a4effb7bf4fea909987b433ca4cf26380", null ],
       [ "IE_IO_ERR_DECODE", "ie__io_8h.html#a4c501870bd45dbe373416745a03de987a9b079e5c6f78861150a9bc91623d8c42", null ]
     ] ],
     [ "ie_tok_decode", "ie__io_8h.html#a68bc61261a64b4fe8bd566fc7d399a2e", null ],

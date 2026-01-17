@@ -98,123 +98,158 @@ $(document).ready(function(){initNavTree('hf__to__iebin_8py_source.html',''); in
   <div class="headertitle"><div class="title">hf_to_iebin.py</div></div>
 </div><!--header-->
 <div class="contents">
-<a href="hf__to__iebin_8py.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno"><a class="line" href="namespacehf__to__iebin.html">    1</a></span><span class="comment"># tools/hf_to_iebin.py</span></div>
-<div class="line"><a id="l00002" name="l00002"></a><span class="lineno">    2</span><span class="keyword">import</span> json, os, sys</div>
-<div class="line"><a id="l00003" name="l00003"></a><span class="lineno">    3</span><span class="keyword">from</span> pathlib <span class="keyword">import</span> Path</div>
-<div class="line"><a id="l00004" name="l00004"></a><span class="lineno">    4</span> </div>
-<div class="foldopen" id="foldopen00005" data-start="" data-end="">
-<div class="line"><a id="l00005" name="l00005"></a><span class="lineno"><a class="line" href="namespacehf__to__iebin.html#a679924a5e20e29f674765749fb164e79">    5</a></span><span class="keyword">def </span><a class="code hl_function" href="namespacehf__to__iebin.html#a679924a5e20e29f674765749fb164e79">sizeof_dtype</a>(dtype: str) -&gt; int:</div>
-<div class="line"><a id="l00006" name="l00006"></a><span class="lineno">    6</span>    <span class="comment"># Map torch dtype string to element size in bytes.</span></div>
-<div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span>    <span class="keywordflow">return</span> {</div>
-<div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span>        <span class="stringliteral">&quot;torch.uint8&quot;</span>: 1,</div>
-<div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span>        <span class="stringliteral">&quot;torch.int8&quot;</span>: 1,</div>
-<div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span>        <span class="stringliteral">&quot;torch.bfloat16&quot;</span>: 2,</div>
-<div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span>        <span class="stringliteral">&quot;torch.float16&quot;</span>: 2,</div>
-<div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span>        <span class="stringliteral">&quot;torch.float32&quot;</span>: 4,</div>
-<div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span>        <span class="stringliteral">&quot;torch.int32&quot;</span>: 4,</div>
-<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span>        <span class="stringliteral">&quot;torch.int64&quot;</span>: 8,</div>
-<div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span>    }.<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">get</a>(dtype, <span class="keywordtype">None</span>)</div>
-<div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span> </div>
+<a href="hf__to__iebin_8py.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno"><a class="line" href="namespacehf__to__iebin.html">    1</a></span><span class="comment">#!/usr/bin/env python3</span></div>
+<div class="line"><a id="l00002" name="l00002"></a><span class="lineno">    2</span><span class="keyword">import</span> argparse</div>
+<div class="line"><a id="l00003" name="l00003"></a><span class="lineno">    3</span><span class="keyword">import</span> json</div>
+<div class="line"><a id="l00004" name="l00004"></a><span class="lineno">    4</span><span class="keyword">import</span> os</div>
+<div class="line"><a id="l00005" name="l00005"></a><span class="lineno">    5</span><span class="keyword">import</span> struct</div>
+<div class="line"><a id="l00006" name="l00006"></a><span class="lineno">    6</span><span class="keyword">from</span> pathlib <span class="keyword">import</span> Path</div>
+<div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span> </div>
+<div class="line"><a id="l00008" name="l00008"></a><span class="lineno"><a class="line" href="namespacehf__to__iebin.html#a1877e8c7bdb0adc25adf03ada179253a">    8</a></span>ALIGN = 64</div>
+<div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span> </div>
+<div class="foldopen" id="foldopen00010" data-start="" data-end="">
+<div class="line"><a id="l00010" name="l00010"></a><span class="lineno"><a class="line" href="namespacehf__to__iebin.html#a4a57e9e3c6b3f7629d8f916c935a2a27">   10</a></span><span class="keyword">def </span><a class="code hl_function" href="namespacehf__to__iebin.html#a4a57e9e3c6b3f7629d8f916c935a2a27">align_up</a>(x: int, a: int = ALIGN) -&gt; int:</div>
+<div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span>    <span class="keywordflow">return</span> (x + (a - 1)) &amp; ~(a - 1)</div>
+<div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span> </div>
 </div>
-<div class="foldopen" id="foldopen00017" data-start="" data-end="">
-<div class="line"><a id="l00017" name="l00017"></a><span class="lineno"><a class="line" href="namespacehf__to__iebin.html#aa6b2fc6446e0d9e1b0f98626c8bdd150">   17</a></span><span class="keyword">def </span><a class="code hl_function" href="namespacehf__to__iebin.html#aa6b2fc6446e0d9e1b0f98626c8bdd150">main</a>() -&gt; int:</div>
-<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span>    model_dir = Path(<span class="stringliteral">&quot;models/gpt-oss-20b&quot;</span>)</div>
-<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span>    hf_dir = model_dir / <span class="stringliteral">&quot;hf&quot;</span></div>
-<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span>    idx_path = hf_dir / <span class="stringliteral">&quot;model.safetensors.index.json&quot;</span></div>
-<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span>    <span class="keywordflow">if</span> <span class="keywordflow">not</span> <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">idx_path.exists</a>():</div>
-<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span>        <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">print</a>(f<span class="stringliteral">&quot;ERROR: missing {idx_path}&quot;</span>, file=<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">sys.stderr</a>)</div>
-<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span>        <span class="keywordflow">return</span> 2</div>
-<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span> </div>
-<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span>    <span class="comment"># Lazy import to avoid forcing a dependency if not needed elsewhere.</span></div>
-<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span>    <span class="keywordflow">try</span>:</div>
-<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span>        <span class="keyword">from</span> <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">safetensors.numpy</a> <span class="keyword">import</span> load_file <span class="keyword">as</span> st_load_numpy</div>
-<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>    <span class="keywordflow">except</span> Exception <span class="keyword">as</span> e:</div>
-<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span>        <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">print</a>(<span class="stringliteral">&quot;ERROR: please install safetensors:  pip install safetensors&quot;</span>, file=<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">sys.stderr</a>)</div>
-<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span>        <span class="keywordflow">raise</span></div>
-<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span> </div>
-<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span>    index = <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">json.loads</a>(<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">idx_path.read_text</a>())</div>
-<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span>    weight_map = <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">index.get</a>(<span class="stringliteral">&quot;weight_map&quot;</span>)</div>
-<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span>    <span class="keywordflow">if</span> <span class="keywordflow">not</span> <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">isinstance</a>(weight_map, dict) <span class="keywordflow">or</span> <span class="keywordflow">not</span> weight_map:</div>
-<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>        <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">print</a>(<span class="stringliteral">&quot;ERROR: index JSON missing non-empty weight_map&quot;</span>, file=<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">sys.stderr</a>)</div>
-<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span>        <span class="keywordflow">return</span> 2</div>
-<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span> </div>
-<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span>    <span class="comment"># Collect tensors per shard.</span></div>
-<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span>    shard_to_tensors = {}</div>
-<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>    <span class="keywordflow">for</span> name, shard <span class="keywordflow">in</span> <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">weight_map.items</a>():</div>
-<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>        <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">shard_to_tensors.setdefault</a>(shard, []).<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">append</a>(name)</div>
+<div class="foldopen" id="foldopen00013" data-start="" data-end="">
+<div class="line"><a id="l00013" name="l00013"></a><span class="lineno"><a class="line" href="namespacehf__to__iebin.html#adb5818f0f8508407f9ae78895e7a05d8">   13</a></span><span class="keyword">def </span><a class="code hl_function" href="namespacehf__to__iebin.html#adb5818f0f8508407f9ae78895e7a05d8">read_safetensors_header</a>(fin):</div>
+<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span>    hdr_len_bytes = fin.read(8)</div>
+<div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span>    <span class="keywordflow">if</span> len(hdr_len_bytes) != 8:</div>
+<div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span>        <span class="keywordflow">raise</span> RuntimeError(<span class="stringliteral">&quot;Failed to read safetensors header length&quot;</span>)</div>
+<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span>    (hdr_len,) = struct.unpack(<span class="stringliteral">&quot;&lt;Q&quot;</span>, hdr_len_bytes)</div>
+<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span>    hdr_json = fin.read(hdr_len)</div>
+<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span>    <span class="keywordflow">if</span> len(hdr_json) != hdr_len:</div>
+<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span>        <span class="keywordflow">raise</span> RuntimeError(<span class="stringliteral">&quot;Failed to read safetensors header JSON&quot;</span>)</div>
+<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span>    header = json.loads(hdr_json.decode(<span class="stringliteral">&quot;utf-8&quot;</span>))</div>
+<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span>    <span class="keywordflow">return</span> header, 8 + hdr_len</div>
+<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span> </div>
+</div>
+<div class="foldopen" id="foldopen00024" data-start="" data-end="">
+<div class="line"><a id="l00024" name="l00024"></a><span class="lineno"><a class="line" href="namespacehf__to__iebin.html#ad1fdb9ce4928f0b005c98984a1b63435">   24</a></span><span class="keyword">def </span><a class="code hl_function" href="namespacehf__to__iebin.html#ad1fdb9ce4928f0b005c98984a1b63435">infer_top_dtype</a>(tensors):</div>
+<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span>    dtypes = {t.get(<span class="stringliteral">&quot;dtype&quot;</span>) <span class="keywordflow">for</span> t <span class="keywordflow">in</span> tensors <span class="keywordflow">if</span> t.get(<span class="stringliteral">&quot;dtype&quot;</span>)}</div>
+<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span>    <span class="keywordflow">if</span> len(dtypes) == 1:</div>
+<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span>        dt = next(iter(dtypes))</div>
+<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>        <span class="keywordflow">if</span> dt == <span class="stringliteral">&quot;BF16&quot;</span>:</div>
+<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span>            <span class="keywordflow">return</span> <span class="stringliteral">&quot;bf16&quot;</span></div>
+<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span>        <span class="keywordflow">if</span> dt == <span class="stringliteral">&quot;F16&quot;</span>:</div>
+<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span>            <span class="keywordflow">return</span> <span class="stringliteral">&quot;f16&quot;</span></div>
+<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span>        <span class="keywordflow">if</span> dt == <span class="stringliteral">&quot;F32&quot;</span>:</div>
+<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span>            <span class="keywordflow">return</span> <span class="stringliteral">&quot;f32&quot;</span></div>
+<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span>        <span class="keywordflow">return</span> dt.lower()</div>
+<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>    <span class="keywordflow">if</span> <span class="stringliteral">&quot;BF16&quot;</span> <span class="keywordflow">in</span> dtypes:</div>
+<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span>        <span class="keywordflow">return</span> <span class="stringliteral">&quot;bf16&quot;</span></div>
+<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span>    <span class="keywordflow">if</span> <span class="stringliteral">&quot;F16&quot;</span> <span class="keywordflow">in</span> dtypes:</div>
+<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span>        <span class="keywordflow">return</span> <span class="stringliteral">&quot;f16&quot;</span></div>
+<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span>    <span class="keywordflow">if</span> <span class="stringliteral">&quot;F32&quot;</span> <span class="keywordflow">in</span> dtypes:</div>
+<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>        <span class="keywordflow">return</span> <span class="stringliteral">&quot;f32&quot;</span></div>
+<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>    <span class="keywordflow">return</span> <span class="stringliteral">&quot;mixed&quot;</span></div>
 <div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span> </div>
-<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span>    <span class="comment"># Note: we read each shard once, write tensors contiguously in output bin.</span></div>
-<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span>    out_bin_path = model_dir / <span class="stringliteral">&quot;model.ie.bin&quot;</span></div>
-<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>    out_json_path = model_dir / <span class="stringliteral">&quot;model.ie.json&quot;</span></div>
-<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>    tensors_meta = []</div>
-<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>    offset = 0</div>
-<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span> </div>
-<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span>    <span class="keyword">with</span> <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">out_bin_path.open</a>(<span class="stringliteral">&quot;wb&quot;</span>) <span class="keyword">as</span> fout:</div>
-<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span>        <span class="keywordflow">for</span> shard_rel <span class="keywordflow">in</span> <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">sorted</a>(shard_to_tensors):</div>
-<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>            shard_path = hf_dir / shard_rel</div>
-<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>            <span class="keywordflow">if</span> <span class="keywordflow">not</span> <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">shard_path.exists</a>():</div>
-<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>                <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">print</a>(f<span class="stringliteral">&quot;ERROR: shard file missing: {shard_path}&quot;</span>, file=<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">sys.stderr</a>)</div>
-<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>                <span class="keywordflow">return</span> 2</div>
-<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span> </div>
-<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span>            arrs = <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">st_load_numpy</a>(<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">str</a>(shard_path))</div>
-<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span>            <span class="comment"># Iterate tensors present in this shard, keep stable order.</span></div>
-<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span>            <span class="keywordflow">for</span> name <span class="keywordflow">in</span> <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">sorted</a>(shard_to_tensors[shard_rel]):</div>
-<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span>                <span class="keywordflow">if</span> name <span class="keywordflow">not</span> <span class="keywordflow">in</span> arrs:</div>
-<div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span>                    <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">print</a>(f<span class="stringliteral">&quot;ERROR: tensor {name} not found in {shard_rel}&quot;</span>, file=<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">sys.stderr</a>)</div>
-<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span>                    <span class="keywordflow">return</span> 2</div>
-<div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span>                arr = arrs[name]</div>
-<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span>                <span class="comment"># Normalize dtype string to torch-like tag</span></div>
-<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span>                npdt = <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">str</a>(<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">arr.dtype</a>)</div>
-<div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span>                <span class="keywordflow">if</span> npdt == <span class="stringliteral">&quot;uint8&quot;</span>:</div>
-<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span>                    dtype = <span class="stringliteral">&quot;torch.uint8&quot;</span></div>
-<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>                <span class="keywordflow">elif</span> npdt <span class="keywordflow">in</span> (<span class="stringliteral">&quot;bfloat16&quot;</span>, <span class="stringliteral">&quot;bf16&quot;</span>):</div>
-<div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span>                    dtype = <span class="stringliteral">&quot;torch.bfloat16&quot;</span></div>
-<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span>                <span class="keywordflow">elif</span> npdt <span class="keywordflow">in</span> (<span class="stringliteral">&quot;float16&quot;</span>,):</div>
-<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span>                    dtype = <span class="stringliteral">&quot;torch.float16&quot;</span></div>
-<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span>                <span class="keywordflow">elif</span> npdt <span class="keywordflow">in</span> (<span class="stringliteral">&quot;float32&quot;</span>,):</div>
-<div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span>                    dtype = <span class="stringliteral">&quot;torch.float32&quot;</span></div>
-<div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span>                <span class="keywordflow">elif</span> npdt <span class="keywordflow">in</span> (<span class="stringliteral">&quot;int32&quot;</span>,):</div>
-<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span>                    dtype = <span class="stringliteral">&quot;torch.int32&quot;</span></div>
-<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span>                <span class="keywordflow">elif</span> npdt <span class="keywordflow">in</span> (<span class="stringliteral">&quot;int64&quot;</span>,):</div>
-<div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span>                    dtype = <span class="stringliteral">&quot;torch.int64&quot;</span></div>
-<div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span>                <span class="keywordflow">else</span>:</div>
-<div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span>                    <span class="comment"># Fall back: try itemsize</span></div>
-<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span>                    dtype = f<span class="stringliteral">&quot;torch.unknown({npdt})&quot;</span></div>
-<div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span> </div>
-<div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span>                esize = <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">arr.dtype.itemsize</a></div>
-<div class="line"><a id="l00082" name="l00082"></a><span class="lineno">   82</span>                need = <a class="code hl_function" href="namespacehf__to__iebin.html#a679924a5e20e29f674765749fb164e79">sizeof_dtype</a>(dtype)</div>
-<div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span>                <span class="keywordflow">if</span> need <span class="keywordflow">is</span> <span class="keywordtype">None</span>:</div>
-<div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span>                    <span class="comment"># Unknown dtype: still write raw bytes as produced by numpy</span></div>
-<div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span>                    need = esize</div>
-<div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span>                <span class="comment"># Write raw bytes C-contiguous</span></div>
-<div class="line"><a id="l00087" name="l00087"></a><span class="lineno">   87</span>                buf = <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">arr.tobytes</a>(order=<span class="stringliteral">&quot;C&quot;</span>)</div>
-<div class="line"><a id="l00088" name="l00088"></a><span class="lineno">   88</span>                nbytes = len(buf)</div>
-<div class="line"><a id="l00089" name="l00089"></a><span class="lineno">   89</span>                <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">fout.write</a>(buf)</div>
-<div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span> </div>
-<div class="line"><a id="l00091" name="l00091"></a><span class="lineno">   91</span>                <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">tensors_meta.append</a>({</div>
-<div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span>                    <span class="stringliteral">&quot;name&quot;</span>: name,</div>
-<div class="line"><a id="l00093" name="l00093"></a><span class="lineno">   93</span>                    <span class="stringliteral">&quot;dtype&quot;</span>: dtype,</div>
-<div class="line"><a id="l00094" name="l00094"></a><span class="lineno">   94</span>                    <span class="stringliteral">&quot;shape&quot;</span>: <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">list</a>(<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">arr.shape</a>),</div>
-<div class="line"><a id="l00095" name="l00095"></a><span class="lineno">   95</span>                    <span class="stringliteral">&quot;offset&quot;</span>: offset,</div>
-<div class="line"><a id="l00096" name="l00096"></a><span class="lineno">   96</span>                    <span class="stringliteral">&quot;nbytes&quot;</span>: nbytes,</div>
-<div class="line"><a id="l00097" name="l00097"></a><span class="lineno">   97</span>                })</div>
-<div class="line"><a id="l00098" name="l00098"></a><span class="lineno">   98</span>                offset += nbytes</div>
-<div class="line"><a id="l00099" name="l00099"></a><span class="lineno">   99</span> </div>
-<div class="line"><a id="l00100" name="l00100"></a><span class="lineno">  100</span>    out = {</div>
-<div class="line"><a id="l00101" name="l00101"></a><span class="lineno">  101</span>        <span class="stringliteral">&quot;weights_bin&quot;</span>: <span class="stringliteral">&quot;model.ie.bin&quot;</span>,</div>
-<div class="line"><a id="l00102" name="l00102"></a><span class="lineno">  102</span>        <span class="stringliteral">&quot;tensors&quot;</span>: tensors_meta,</div>
-<div class="line"><a id="l00103" name="l00103"></a><span class="lineno">  103</span>    }</div>
-<div class="line"><a id="l00104" name="l00104"></a><span class="lineno">  104</span>    <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">out_json_path.write_text</a>(<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">json.dumps</a>(out, indent=2))</div>
-<div class="line"><a id="l00105" name="l00105"></a><span class="lineno">  105</span>    <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">print</a>(f<span class="stringliteral">&quot;[iebin] wrote: {out_json_path} (tensors={len(tensors_meta)})&quot;</span>)</div>
-<div class="line"><a id="l00106" name="l00106"></a><span class="lineno">  106</span>    <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">print</a>(f<span class="stringliteral">&quot;[iebin] wrote: {out_bin_path} (bytes={out_bin_path.stat().st_size})&quot;</span>)</div>
-<div class="line"><a id="l00107" name="l00107"></a><span class="lineno">  107</span>    <span class="keywordflow">return</span> 0</div>
-<div class="line"><a id="l00108" name="l00108"></a><span class="lineno">  108</span> </div>
 </div>
-<div class="line"><a id="l00109" name="l00109"></a><span class="lineno">  109</span><span class="keywordflow">if</span> __name__ == <span class="stringliteral">&quot;__main__&quot;</span>:</div>
-<div class="line"><a id="l00110" name="l00110"></a><span class="lineno">  110</span>    <span class="keywordflow">raise</span> <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">SystemExit</a>(<a class="code hl_function" href="namespacehf__to__iebin.html#aa6b2fc6446e0d9e1b0f98626c8bdd150">main</a>())</div>
-<div class="ttc" id="aie__device__cuda_8cu_html_a5e3d9fee84981707669f5c2398f0c4ab"><div class="ttname"><a href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">ie_gemv_rowwise_f32_kernel</a></div><div class="ttdeci">__global__ void ie_gemv_rowwise_f32_kernel(const float *W, const float *x, float *y, const float *bias, size_t rows, size_t cols)</div><div class="ttdoc">Row-wise GEMV kernel: each thread computes one output row.</div><div class="ttdef"><b>Definition</b> <a href="ie__device__cuda_8cu_source.html#l00092">ie_device_cuda.cu:92</a></div></div>
-<div class="ttc" id="anamespacehf__to__iebin_html_a679924a5e20e29f674765749fb164e79"><div class="ttname"><a href="namespacehf__to__iebin.html#a679924a5e20e29f674765749fb164e79">hf_to_iebin.sizeof_dtype</a></div><div class="ttdeci">int sizeof_dtype(str dtype)</div><div class="ttdef"><b>Definition</b> <a href="hf__to__iebin_8py_source.html#l00005">hf_to_iebin.py:5</a></div></div>
-<div class="ttc" id="anamespacehf__to__iebin_html_aa6b2fc6446e0d9e1b0f98626c8bdd150"><div class="ttname"><a href="namespacehf__to__iebin.html#aa6b2fc6446e0d9e1b0f98626c8bdd150">hf_to_iebin.main</a></div><div class="ttdeci">int main()</div><div class="ttdef"><b>Definition</b> <a href="hf__to__iebin_8py_source.html#l00017">hf_to_iebin.py:17</a></div></div>
+<div class="foldopen" id="foldopen00043" data-start="" data-end="">
+<div class="line"><a id="l00043" name="l00043"></a><span class="lineno"><a class="line" href="namespacehf__to__iebin.html#a3f673c9e0e16ef1db2df8c28161f3bf7">   43</a></span><span class="keyword">def </span><a class="code hl_function" href="namespacehf__to__iebin.html#a3f673c9e0e16ef1db2df8c28161f3bf7">main</a>():</div>
+<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span>    ap = argparse.ArgumentParser()</div>
+<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>    ap.add_argument(<span class="stringliteral">&quot;--hf-dir&quot;</span>, required=<span class="keyword">True</span>, help=<span class="stringliteral">&quot;Directory containing model.safetensors.index.json and shard .safetensors files&quot;</span>)</div>
+<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>    ap.add_argument(<span class="stringliteral">&quot;--out-dir&quot;</span>, required=<span class="keyword">True</span>, help=<span class="stringliteral">&quot;Output directory for model.ie.json/bin&quot;</span>)</div>
+<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>    args = ap.parse_args()</div>
+<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span> </div>
+<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span>    hf_dir = Path(args.hf_dir).resolve()</div>
+<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span>    out_dir = Path(args.out_dir).resolve()</div>
+<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>    out_dir.mkdir(parents=<span class="keyword">True</span>, exist_ok=<span class="keyword">True</span>)</div>
+<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span> </div>
+<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>    idx_path = hf_dir / <span class="stringliteral">&quot;model.safetensors.index.json&quot;</span></div>
+<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>    <span class="keywordflow">if</span> <span class="keywordflow">not</span> idx_path.is_file():</div>
+<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>        <span class="keywordflow">raise</span> SystemExit(f<span class="stringliteral">&quot;ERROR: missing {idx_path}&quot;</span>)</div>
+<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span> </div>
+<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span>    idx = json.loads(idx_path.read_text(encoding=<span class="stringliteral">&quot;utf-8&quot;</span>))</div>
+<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span>    weight_map = idx.get(<span class="stringliteral">&quot;weight_map&quot;</span>, {})</div>
+<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span>    <span class="keywordflow">if</span> <span class="keywordflow">not</span> isinstance(weight_map, dict) <span class="keywordflow">or</span> <span class="keywordflow">not</span> weight_map:</div>
+<div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span>        <span class="keywordflow">raise</span> SystemExit(<span class="stringliteral">&quot;ERROR: index has empty weight_map&quot;</span>)</div>
+<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span> </div>
+<div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span>    shard_to_keys = {}</div>
+<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span>    <span class="keywordflow">for</span> name, shard <span class="keywordflow">in</span> weight_map.items():</div>
+<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span>        shard_to_keys.setdefault(shard, []).append(name)</div>
+<div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span> </div>
+<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span>    shards = sorted(shard_to_keys.keys())</div>
+<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>    <span class="keywordflow">for</span> s <span class="keywordflow">in</span> shards:</div>
+<div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span>        shard_to_keys[s].sort()</div>
+<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span> </div>
+<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span>    out_bin = out_dir / <span class="stringliteral">&quot;model.ie.bin&quot;</span></div>
+<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span>    out_json = out_dir / <span class="stringliteral">&quot;model.ie.json&quot;</span></div>
+<div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span> </div>
+<div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span>    tensors = []</div>
+<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span>    cur_off = 0</div>
+<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span> </div>
+<div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span>    <span class="keyword">with</span> open(out_bin, <span class="stringliteral">&quot;wb&quot;</span>) <span class="keyword">as</span> bout:</div>
+<div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span>        <span class="keywordflow">for</span> shard_name <span class="keywordflow">in</span> shards:</div>
+<div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span>            shard_path = hf_dir / shard_name</div>
+<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span>            <span class="keywordflow">if</span> <span class="keywordflow">not</span> shard_path.is_file():</div>
+<div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span>                <span class="keywordflow">raise</span> SystemExit(f<span class="stringliteral">&quot;ERROR: missing shard {shard_path}&quot;</span>)</div>
+<div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span> </div>
+<div class="line"><a id="l00082" name="l00082"></a><span class="lineno">   82</span>            <span class="keyword">with</span> open(shard_path, <span class="stringliteral">&quot;rb&quot;</span>) <span class="keyword">as</span> fin:</div>
+<div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span>                header, data_base = <a class="code hl_function" href="namespacehf__to__iebin.html#adb5818f0f8508407f9ae78895e7a05d8">read_safetensors_header</a>(fin)</div>
+<div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span> </div>
+<div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span>                <span class="keywordflow">for</span> key <span class="keywordflow">in</span> shard_to_keys[shard_name]:</div>
+<div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span>                    meta = header.get(key)</div>
+<div class="line"><a id="l00087" name="l00087"></a><span class="lineno">   87</span>                    <span class="keywordflow">if</span> meta <span class="keywordflow">is</span> <span class="keywordtype">None</span>:</div>
+<div class="line"><a id="l00088" name="l00088"></a><span class="lineno">   88</span>                        <span class="keywordflow">raise</span> SystemExit(f<span class="stringliteral">&quot;ERROR: tensor &#39;{key}&#39; not found in header of {shard_name}&quot;</span>)</div>
+<div class="line"><a id="l00089" name="l00089"></a><span class="lineno">   89</span> </div>
+<div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span>                    dtype = meta.get(<span class="stringliteral">&quot;dtype&quot;</span>)</div>
+<div class="line"><a id="l00091" name="l00091"></a><span class="lineno">   91</span>                    shape = meta.get(<span class="stringliteral">&quot;shape&quot;</span>)</div>
+<div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span>                    offs = meta.get(<span class="stringliteral">&quot;data_offsets&quot;</span>)</div>
+<div class="line"><a id="l00093" name="l00093"></a><span class="lineno">   93</span>                    <span class="keywordflow">if</span> dtype <span class="keywordflow">is</span> <span class="keywordtype">None</span> <span class="keywordflow">or</span> shape <span class="keywordflow">is</span> <span class="keywordtype">None</span> <span class="keywordflow">or</span> offs <span class="keywordflow">is</span> <span class="keywordtype">None</span>:</div>
+<div class="line"><a id="l00094" name="l00094"></a><span class="lineno">   94</span>                        <span class="keywordflow">raise</span> SystemExit(f<span class="stringliteral">&quot;ERROR: malformed meta for &#39;{key}&#39; in {shard_name}&quot;</span>)</div>
+<div class="line"><a id="l00095" name="l00095"></a><span class="lineno">   95</span> </div>
+<div class="line"><a id="l00096" name="l00096"></a><span class="lineno">   96</span>                    start, end = int(offs[0]), int(offs[1])</div>
+<div class="line"><a id="l00097" name="l00097"></a><span class="lineno">   97</span>                    nbytes = end - start</div>
+<div class="line"><a id="l00098" name="l00098"></a><span class="lineno">   98</span>                    <span class="keywordflow">if</span> nbytes &lt;= 0:</div>
+<div class="line"><a id="l00099" name="l00099"></a><span class="lineno">   99</span>                        <span class="keywordflow">raise</span> SystemExit(f<span class="stringliteral">&quot;ERROR: bad data_offsets for &#39;{key}&#39; in {shard_name}: {offs}&quot;</span>)</div>
+<div class="line"><a id="l00100" name="l00100"></a><span class="lineno">  100</span> </div>
+<div class="line"><a id="l00101" name="l00101"></a><span class="lineno">  101</span>                    aligned = <a class="code hl_function" href="namespacehf__to__iebin.html#a4a57e9e3c6b3f7629d8f916c935a2a27">align_up</a>(cur_off, ALIGN)</div>
+<div class="line"><a id="l00102" name="l00102"></a><span class="lineno">  102</span>                    <span class="keywordflow">if</span> aligned != cur_off:</div>
+<div class="line"><a id="l00103" name="l00103"></a><span class="lineno">  103</span>                        bout.write(b<span class="stringliteral">&quot;\x00&quot;</span> * (aligned - cur_off))</div>
+<div class="line"><a id="l00104" name="l00104"></a><span class="lineno">  104</span>                        cur_off = aligned</div>
+<div class="line"><a id="l00105" name="l00105"></a><span class="lineno">  105</span> </div>
+<div class="line"><a id="l00106" name="l00106"></a><span class="lineno">  106</span>                    fin.seek(data_base + start, os.SEEK_SET)</div>
+<div class="line"><a id="l00107" name="l00107"></a><span class="lineno">  107</span> </div>
+<div class="line"><a id="l00108" name="l00108"></a><span class="lineno">  108</span>                    remaining = nbytes</div>
+<div class="line"><a id="l00109" name="l00109"></a><span class="lineno">  109</span>                    buf_sz = 8 * 1024 * 1024</div>
+<div class="line"><a id="l00110" name="l00110"></a><span class="lineno">  110</span>                    <span class="keywordflow">while</span> remaining &gt; 0:</div>
+<div class="line"><a id="l00111" name="l00111"></a><span class="lineno">  111</span>                        chunk = fin.read(min(buf_sz, remaining))</div>
+<div class="line"><a id="l00112" name="l00112"></a><span class="lineno">  112</span>                        <span class="keywordflow">if</span> <span class="keywordflow">not</span> chunk:</div>
+<div class="line"><a id="l00113" name="l00113"></a><span class="lineno">  113</span>                            <span class="keywordflow">raise</span> SystemExit(f<span class="stringliteral">&quot;ERROR: unexpected EOF while reading &#39;{key}&#39; from {shard_name}&quot;</span>)</div>
+<div class="line"><a id="l00114" name="l00114"></a><span class="lineno">  114</span>                        bout.write(chunk)</div>
+<div class="line"><a id="l00115" name="l00115"></a><span class="lineno">  115</span>                        remaining -= len(chunk)</div>
+<div class="line"><a id="l00116" name="l00116"></a><span class="lineno">  116</span> </div>
+<div class="line"><a id="l00117" name="l00117"></a><span class="lineno">  117</span>                    tensors.append({</div>
+<div class="line"><a id="l00118" name="l00118"></a><span class="lineno">  118</span>                        <span class="stringliteral">&quot;name&quot;</span>: key,</div>
+<div class="line"><a id="l00119" name="l00119"></a><span class="lineno">  119</span>                        <span class="stringliteral">&quot;dtype&quot;</span>: dtype,</div>
+<div class="line"><a id="l00120" name="l00120"></a><span class="lineno">  120</span>                        <span class="stringliteral">&quot;shape&quot;</span>: shape,</div>
+<div class="line"><a id="l00121" name="l00121"></a><span class="lineno">  121</span>                        <span class="stringliteral">&quot;nbytes&quot;</span>: nbytes,</div>
+<div class="line"><a id="l00122" name="l00122"></a><span class="lineno">  122</span>                        <span class="stringliteral">&quot;offset&quot;</span>: cur_off,</div>
+<div class="line"><a id="l00123" name="l00123"></a><span class="lineno">  123</span>                    })</div>
+<div class="line"><a id="l00124" name="l00124"></a><span class="lineno">  124</span>                    cur_off += nbytes</div>
+<div class="line"><a id="l00125" name="l00125"></a><span class="lineno">  125</span> </div>
+<div class="line"><a id="l00126" name="l00126"></a><span class="lineno">  126</span>    manifest = {</div>
+<div class="line"><a id="l00127" name="l00127"></a><span class="lineno">  127</span>        <span class="stringliteral">&quot;version&quot;</span>: 1,</div>
+<div class="line"><a id="l00128" name="l00128"></a><span class="lineno">  128</span>        <span class="stringliteral">&quot;dtype&quot;</span>: <a class="code hl_function" href="namespacehf__to__iebin.html#ad1fdb9ce4928f0b005c98984a1b63435">infer_top_dtype</a>(tensors),</div>
+<div class="line"><a id="l00129" name="l00129"></a><span class="lineno">  129</span>        <span class="stringliteral">&quot;weights_bin&quot;</span>: <span class="stringliteral">&quot;model.ie.bin&quot;</span>,</div>
+<div class="line"><a id="l00130" name="l00130"></a><span class="lineno">  130</span>        <span class="stringliteral">&quot;format&quot;</span>: <span class="stringliteral">&quot;iebin_v1_raw_safetensors&quot;</span>,</div>
+<div class="line"><a id="l00131" name="l00131"></a><span class="lineno">  131</span>        <span class="stringliteral">&quot;hf_dir&quot;</span>: str(hf_dir),</div>
+<div class="line"><a id="l00132" name="l00132"></a><span class="lineno">  132</span>        <span class="stringliteral">&quot;tensors&quot;</span>: tensors,</div>
+<div class="line"><a id="l00133" name="l00133"></a><span class="lineno">  133</span>    }</div>
+<div class="line"><a id="l00134" name="l00134"></a><span class="lineno">  134</span> </div>
+<div class="line"><a id="l00135" name="l00135"></a><span class="lineno">  135</span>    out_json.write_text(json.dumps(manifest, indent=2), encoding=<span class="stringliteral">&quot;utf-8&quot;</span>)</div>
+<div class="line"><a id="l00136" name="l00136"></a><span class="lineno">  136</span>    print(f<span class="stringliteral">&quot;OK: wrote {out_json} and {out_bin}&quot;</span>)</div>
+<div class="line"><a id="l00137" name="l00137"></a><span class="lineno">  137</span>    <span class="keywordflow">return</span> 0</div>
+<div class="line"><a id="l00138" name="l00138"></a><span class="lineno">  138</span> </div>
+</div>
+<div class="line"><a id="l00139" name="l00139"></a><span class="lineno">  139</span><span class="keywordflow">if</span> __name__ == <span class="stringliteral">&quot;__main__&quot;</span>:</div>
+<div class="line"><a id="l00140" name="l00140"></a><span class="lineno">  140</span>    <span class="keywordflow">raise</span> SystemExit(<a class="code hl_function" href="namespacehf__to__iebin.html#a3f673c9e0e16ef1db2df8c28161f3bf7">main</a>())</div>
+<div class="ttc" id="anamespacehf__to__iebin_html_a3f673c9e0e16ef1db2df8c28161f3bf7"><div class="ttname"><a href="namespacehf__to__iebin.html#a3f673c9e0e16ef1db2df8c28161f3bf7">hf_to_iebin.main</a></div><div class="ttdeci">main()</div><div class="ttdef"><b>Definition</b> <a href="hf__to__iebin_8py_source.html#l00043">hf_to_iebin.py:43</a></div></div>
+<div class="ttc" id="anamespacehf__to__iebin_html_a4a57e9e3c6b3f7629d8f916c935a2a27"><div class="ttname"><a href="namespacehf__to__iebin.html#a4a57e9e3c6b3f7629d8f916c935a2a27">hf_to_iebin.align_up</a></div><div class="ttdeci">int align_up(int x, int a=ALIGN)</div><div class="ttdef"><b>Definition</b> <a href="hf__to__iebin_8py_source.html#l00010">hf_to_iebin.py:10</a></div></div>
+<div class="ttc" id="anamespacehf__to__iebin_html_ad1fdb9ce4928f0b005c98984a1b63435"><div class="ttname"><a href="namespacehf__to__iebin.html#ad1fdb9ce4928f0b005c98984a1b63435">hf_to_iebin.infer_top_dtype</a></div><div class="ttdeci">infer_top_dtype(tensors)</div><div class="ttdef"><b>Definition</b> <a href="hf__to__iebin_8py_source.html#l00024">hf_to_iebin.py:24</a></div></div>
+<div class="ttc" id="anamespacehf__to__iebin_html_adb5818f0f8508407f9ae78895e7a05d8"><div class="ttname"><a href="namespacehf__to__iebin.html#adb5818f0f8508407f9ae78895e7a05d8">hf_to_iebin.read_safetensors_header</a></div><div class="ttdeci">read_safetensors_header(fin)</div><div class="ttdef"><b>Definition</b> <a href="hf__to__iebin_8py_source.html#l00013">hf_to_iebin.py:13</a></div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->

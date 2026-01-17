@@ -1,0 +1,663 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.8" xml:lang="en-US">
+  <compounddef id="gemv__q4__avx2_8c" kind="file" language="C++">
+    <compoundname>gemv_q4_avx2.c</compoundname>
+    <includes refid="ie__kernels_8h" local="yes">ie_kernels.h</includes>
+    <includes local="no">stddef.h</includes>
+    <includes local="no">stdint.h</includes>
+    <includes local="no">string.h</includes>
+    <includes local="no">math.h</includes>
+    <includes local="no">immintrin.h</includes>
+    <incdepgraph>
+      <node id="2">
+        <label>ie_kernels.h</label>
+        <link refid="ie__kernels_8h"/>
+        <childnode refid="3" relation="include">
+        </childnode>
+        <childnode refid="4" relation="include">
+        </childnode>
+        <childnode refid="5" relation="include">
+        </childnode>
+      </node>
+      <node id="5">
+        <label>ie_quant_act.h</label>
+        <link refid="ie__quant__act_8h"/>
+        <childnode refid="3" relation="include">
+        </childnode>
+        <childnode refid="4" relation="include">
+        </childnode>
+      </node>
+      <node id="1">
+        <label>engine/src/kernels/gemv_q4_avx2.c</label>
+        <link refid="gemv__q4__avx2_8c"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="3" relation="include">
+        </childnode>
+        <childnode refid="4" relation="include">
+        </childnode>
+        <childnode refid="6" relation="include">
+        </childnode>
+        <childnode refid="7" relation="include">
+        </childnode>
+        <childnode refid="8" relation="include">
+        </childnode>
+      </node>
+      <node id="8">
+        <label>immintrin.h</label>
+      </node>
+      <node id="7">
+        <label>math.h</label>
+      </node>
+      <node id="3">
+        <label>stddef.h</label>
+      </node>
+      <node id="4">
+        <label>stdint.h</label>
+      </node>
+      <node id="6">
+        <label>string.h</label>
+      </node>
+    </incdepgraph>
+    <sectiondef kind="define">
+      <memberdef kind="define" id="gemv__q4__avx2_8c_1afabb7fe9c94f4d7c15ad9d1b0c91e51d" prot="public" static="no">
+        <name>IE_TARGET_AVX2_FMA</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/src/kernels/gemv_q4_avx2.c" line="35" column="10" bodyfile="engine/src/kernels/gemv_q4_avx2.c" bodystart="35" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="var">
+      <memberdef kind="variable" id="gemv__q4__avx2_8c_1a53cca55d969c1f77583fa8de27dfb210" prot="public" static="yes" mutable="no">
+        <type>float</type>
+        <definition>float ie_log2_u8_q3_lut_[256]</definition>
+        <argsstring>[256]</argsstring>
+        <name>ie_log2_u8_q3_lut_</name>
+        <briefdescription>
+<para>Decode log2(u8, q3) scale encoding to float. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Scale bytes for Q4_0 weights use a log2(u8, q3) encoding: exp = (v - 128) * 2^-3 scale = 2^exp</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>v</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Encoded scale byte. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Decoded scale value. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/src/kernels/gemv_q4_avx2.c" line="65" column="14" bodyfile="engine/src/kernels/gemv_q4_avx2.c" bodystart="65" bodyend="-1"/>
+        <referencedby refid="gemv__q4__avx2_8c_1a0b7e711f14a960dd75261e196943ea83" compoundref="gemv__q4__avx2_8c" startline="68" endline="74">ie_log2_u8_q3_init_impl_</referencedby>
+        <referencedby refid="gemv__q4__avx2_8c_1acb45092051d8188cb83e8521544f1a16" compoundref="gemv__q4__avx2_8c" startline="82" endline="87">ie_log2_u8_q3_to_f32</referencedby>
+      </memberdef>
+      <memberdef kind="variable" id="gemv__q4__avx2_8c_1a3b63c2730a4b79474a3ec82335dabca9" prot="public" static="yes" mutable="no">
+        <type>int</type>
+        <definition>int ie_log2_u8_q3_ready_</definition>
+        <argsstring></argsstring>
+        <name>ie_log2_u8_q3_ready_</name>
+        <initializer>= 0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/src/kernels/gemv_q4_avx2.c" line="66" column="12" bodyfile="engine/src/kernels/gemv_q4_avx2.c" bodystart="66" bodyend="-1"/>
+        <referencedby refid="gemv__q4__avx2_8c_1a0b7e711f14a960dd75261e196943ea83" compoundref="gemv__q4__avx2_8c" startline="68" endline="74">ie_log2_u8_q3_init_impl_</referencedby>
+        <referencedby refid="gemv__q4__avx2_8c_1acb45092051d8188cb83e8521544f1a16" compoundref="gemv__q4__avx2_8c" startline="82" endline="87">ie_log2_u8_q3_to_f32</referencedby>
+        <referencedby refid="ie__kernels_8h_1acdd3012fa894dbd82a4156eb09074acd" compoundref="gemv__q4__avx2_8c" startline="76" endline="80">ie_q4_log2_u8_q3_init_avx2</referencedby>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="gemv__q4__avx2_8c_1afdc87ae238cd923bbf554e36532dc00d" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>float</type>
+        <definition>static float ie_bf16_to_f32_scalar</definition>
+        <argsstring>(uint16_t b)</argsstring>
+        <name>ie_bf16_to_f32_scalar</name>
+        <param>
+          <type>uint16_t</type>
+          <declname>b</declname>
+        </param>
+        <briefdescription>
+<para>Convert a BF16 value stored as a uint16_t to float. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>b</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>BF16 bits. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>The corresponding float value. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/src/kernels/gemv_q4_avx2.c" line="45" column="21" bodyfile="engine/src/kernels/gemv_q4_avx2.c" bodystart="45" bodyend="52"/>
+        <referencedby refid="gemv__q4__avx2_8c_1a2fea8f09ec3127c16d845dba817200b8" compoundref="gemv__q4__avx2_8c" startline="208" endline="247">ie_gemv_q4_0_f32_avx2_impl</referencedby>
+        <referencedby refid="gemv__q4__avx2_8c_1a0d62180096534e482fbb8fe67b98e4fd" compoundref="gemv__q4__avx2_8c" startline="96" endline="103">ie_q4_load_scale_f32</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="gemv__q4__avx2_8c_1a0b7e711f14a960dd75261e196943ea83" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>static void ie_log2_u8_q3_init_impl_</definition>
+        <argsstring>(void)</argsstring>
+        <name>ie_log2_u8_q3_init_impl_</name>
+        <param>
+          <type>void</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/src/kernels/gemv_q4_avx2.c" line="68" column="13" bodyfile="engine/src/kernels/gemv_q4_avx2.c" bodystart="68" bodyend="74"/>
+        <references refid="gemv__q4__avx2_8c_1a53cca55d969c1f77583fa8de27dfb210" compoundref="gemv__q4__avx2_8c" startline="65">ie_log2_u8_q3_lut_</references>
+        <references refid="gemv__q4__avx2_8c_1a3b63c2730a4b79474a3ec82335dabca9" compoundref="gemv__q4__avx2_8c" startline="66">ie_log2_u8_q3_ready_</references>
+        <referencedby refid="gemv__q4__avx2_8c_1acb45092051d8188cb83e8521544f1a16" compoundref="gemv__q4__avx2_8c" startline="82" endline="87">ie_log2_u8_q3_to_f32</referencedby>
+        <referencedby refid="ie__kernels_8h_1acdd3012fa894dbd82a4156eb09074acd" compoundref="gemv__q4__avx2_8c" startline="76" endline="80">ie_q4_log2_u8_q3_init_avx2</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="gemv__q4__avx2_8c_1acdd3012fa894dbd82a4156eb09074acd" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ie_q4_log2_u8_q3_init_avx2</definition>
+        <argsstring>(void)</argsstring>
+        <name>ie_q4_log2_u8_q3_init_avx2</name>
+        <param>
+          <type>void</type>
+        </param>
+        <briefdescription>
+<para>Initialize log2(u8, q3) LUT for Q4 kernels (AVX2 path). </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/src/kernels/gemv_q4_avx2.c" line="76" column="6" bodyfile="engine/src/kernels/gemv_q4_avx2.c" bodystart="76" bodyend="80"/>
+        <references refid="gemv__q4__avx2_8c_1a0b7e711f14a960dd75261e196943ea83" compoundref="gemv__q4__avx2_8c" startline="68" endline="74">ie_log2_u8_q3_init_impl_</references>
+        <references refid="gemv__q4__avx2_8c_1a3b63c2730a4b79474a3ec82335dabca9" compoundref="gemv__q4__avx2_8c" startline="66">ie_log2_u8_q3_ready_</references>
+        <referencedby refid="ie__infer_8h_1a569ac499d7bce188c1e21fa9377b9bae" compoundref="infer__gptoss_8c" startline="1700" endline="2290">ie_gptoss_infer_create</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="gemv__q4__avx2_8c_1acb45092051d8188cb83e8521544f1a16" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>float</type>
+        <definition>static float ie_log2_u8_q3_to_f32</definition>
+        <argsstring>(uint8_t v)</argsstring>
+        <name>ie_log2_u8_q3_to_f32</name>
+        <param>
+          <type>uint8_t</type>
+          <declname>v</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/src/kernels/gemv_q4_avx2.c" line="82" column="21" bodyfile="engine/src/kernels/gemv_q4_avx2.c" bodystart="82" bodyend="87"/>
+        <references refid="gemv__q4__avx2_8c_1a0b7e711f14a960dd75261e196943ea83" compoundref="gemv__q4__avx2_8c" startline="68" endline="74">ie_log2_u8_q3_init_impl_</references>
+        <references refid="gemv__q4__avx2_8c_1a53cca55d969c1f77583fa8de27dfb210" compoundref="gemv__q4__avx2_8c" startline="65">ie_log2_u8_q3_lut_</references>
+        <references refid="gemv__q4__avx2_8c_1a3b63c2730a4b79474a3ec82335dabca9" compoundref="gemv__q4__avx2_8c" startline="66">ie_log2_u8_q3_ready_</references>
+        <referencedby refid="gemv__q4__avx2_8c_1a0d62180096534e482fbb8fe67b98e4fd" compoundref="gemv__q4__avx2_8c" startline="96" endline="103">ie_q4_load_scale_f32</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="gemv__q4__avx2_8c_1a0d62180096534e482fbb8fe67b98e4fd" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>float</type>
+        <definition>static float ie_q4_load_scale_f32</definition>
+        <argsstring>(const uint8_t *scales, size_t scale_bytes)</argsstring>
+        <name>ie_q4_load_scale_f32</name>
+        <param>
+          <type>const uint8_t *</type>
+          <declname>scales</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>scale_bytes</declname>
+        </param>
+        <briefdescription>
+<para>Load a per-block scale value (BF16 or FP8 E4M3) as float. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>scales</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Pointer to scale storage for the block. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>scale_bytes</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Bytes per scale (1 or 2). </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Scale as float. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/src/kernels/gemv_q4_avx2.c" line="96" column="21" bodyfile="engine/src/kernels/gemv_q4_avx2.c" bodystart="96" bodyend="103"/>
+        <references refid="gemv__q4__avx2_8c_1afdc87ae238cd923bbf554e36532dc00d" compoundref="gemv__q4__avx2_8c" startline="45" endline="52">ie_bf16_to_f32_scalar</references>
+        <references refid="gemv__q4__avx2_8c_1acb45092051d8188cb83e8521544f1a16" compoundref="gemv__q4__avx2_8c" startline="82" endline="87">ie_log2_u8_q3_to_f32</references>
+        <referencedby refid="gemv__q4__avx2_8c_1a2fea8f09ec3127c16d845dba817200b8" compoundref="gemv__q4__avx2_8c" startline="208" endline="247">ie_gemv_q4_0_f32_avx2_impl</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="gemv__q4__avx2_8c_1a6925be1ed2abd13aef877a68bed45995" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>float</type>
+        <definition>static float ie_hsum256_ps</definition>
+        <argsstring>(__m256 v)</argsstring>
+        <name>ie_hsum256_ps</name>
+        <param>
+          <type>__m256</type>
+          <declname>v</declname>
+        </param>
+        <briefdescription>
+<para>Horizontal sum of an AVX2 register. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>v</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Input vector. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Sum of all 8 lanes. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/src/kernels/gemv_q4_avx2.c" line="111" column="24" bodyfile="engine/src/kernels/gemv_q4_avx2.c" bodystart="111" bodyend="115"/>
+        <referencedby refid="gemv__q4__avx2_8c_1abdafb1096e984805e4105b2feb9c5b06" compoundref="gemv__q4__avx2_8c" startline="133" endline="193">ie_q4_0_block_dot_f32_avx2</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="gemv__q4__avx2_8c_1abdafb1096e984805e4105b2feb9c5b06" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>float</type>
+        <definition>static float ie_q4_0_block_dot_f32_avx2</definition>
+        <argsstring>(const uint8_t *q, const float *x, float scale)</argsstring>
+        <name>ie_q4_0_block_dot_f32_avx2</name>
+        <param>
+          <type>const uint8_t *</type>
+          <declname>q</declname>
+        </param>
+        <param>
+          <type>const float *</type>
+          <declname>x</declname>
+        </param>
+        <param>
+          <type>float</type>
+          <declname>scale</declname>
+        </param>
+        <briefdescription>
+<para>Compute a dot product for one Q4_0 block (32 weights). </para>
+        </briefdescription>
+        <detaileddescription>
+<para>This uses the following unpack strategy:<itemizedlist>
+<listitem><para>Load 16 bytes packed nibbles.</para>
+</listitem><listitem><para>Extract low and high nibbles.</para>
+</listitem><listitem><para>Use pshufb with a 16-byte LUT to map nibbles -&gt; signed weights [-8..7].</para>
+</listitem><listitem><para>Interleave even/odd weights to obtain w0..w31 in order.</para>
+</listitem><listitem><para>Convert 8 weights at a time to float and accumulate.</para>
+</listitem></itemizedlist>
+</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>q</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Pointer to 16 packed bytes. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>x</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Pointer to 32 floats. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>scale</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Block scale. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Dot(q, x) scaled. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/src/kernels/gemv_q4_avx2.c" line="133" column="17" bodyfile="engine/src/kernels/gemv_q4_avx2.c" bodystart="133" bodyend="193"/>
+        <references refid="gemv__q4__avx2_8c_1a6925be1ed2abd13aef877a68bed45995" compoundref="gemv__q4__avx2_8c" startline="111" endline="115">ie_hsum256_ps</references>
+        <referencedby refid="gemv__q4__avx2_8c_1a2fea8f09ec3127c16d845dba817200b8" compoundref="gemv__q4__avx2_8c" startline="208" endline="247">ie_gemv_q4_0_f32_avx2_impl</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="gemv__q4__avx2_8c_1a2fea8f09ec3127c16d845dba817200b8" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int ie_gemv_q4_0_f32_avx2_impl</definition>
+        <argsstring>(const uint8_t *W_blocks, const uint8_t *W_scales, size_t scale_bytes, const float *x, float *y, size_t rows, size_t cols, const uint16_t *bias_bf16)</argsstring>
+        <name>ie_gemv_q4_0_f32_avx2_impl</name>
+        <param>
+          <type>const uint8_t *</type>
+          <declname>W_blocks</declname>
+        </param>
+        <param>
+          <type>const uint8_t *</type>
+          <declname>W_scales</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>scale_bytes</declname>
+        </param>
+        <param>
+          <type>const float *</type>
+          <declname>x</declname>
+        </param>
+        <param>
+          <type>float *</type>
+          <declname>y</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>rows</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>cols</declname>
+        </param>
+        <param>
+          <type>const uint16_t *</type>
+          <declname>bias_bf16</declname>
+        </param>
+        <briefdescription>
+<para>AVX2+FMA implementation of <ref refid="ie__kernels_8h_1af0b48eb5cf241e9c033953abff9974ad" kindref="member">ie_gemv_q4_0_f32</ref>. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>W_blocks</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Packed blocks pointer. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>W_scales</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Scales pointer. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>scale_bytes</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Bytes per scale (1 or 2). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>x</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Input vector. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>y</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Output vector. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>rows</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of rows. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>cols</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of columns (multiple of 32). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>bias_bf16</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Optional BF16 bias. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>0 on success, non-zero on invalid arguments. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/src/kernels/gemv_q4_avx2.c" line="208" column="8" bodyfile="engine/src/kernels/gemv_q4_avx2.c" bodystart="208" bodyend="247"/>
+        <references refid="gemv__q4__avx2_8c_1afdc87ae238cd923bbf554e36532dc00d" compoundref="gemv__q4__avx2_8c" startline="45" endline="52">ie_bf16_to_f32_scalar</references>
+        <references refid="gemv__q4__avx2_8c_1abdafb1096e984805e4105b2feb9c5b06" compoundref="gemv__q4__avx2_8c" startline="133" endline="193">ie_q4_0_block_dot_f32_avx2</references>
+        <references refid="gemv__q4__avx2_8c_1a0d62180096534e482fbb8fe67b98e4fd" compoundref="gemv__q4__avx2_8c" startline="96" endline="103">ie_q4_load_scale_f32</references>
+        <referencedby refid="ie__kernels_8h_1af0b48eb5cf241e9c033953abff9974ad" compoundref="gemv__q4__generic_8c" startline="228" endline="255">ie_gemv_q4_0_f32</referencedby>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para>AVX2+FMA Q4_0 GEMV kernel. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>This module implements an AVX2+FMA optimized variant of the Q4_0 matrix-vector multiply used by the GPT-OSS INT4 path.</para>
+<para>The exported symbol is <ref refid="gemv__q4__avx2_8c_1a2fea8f09ec3127c16d845dba817200b8" kindref="member">ie_gemv_q4_0_f32_avx2_impl</ref>. The generic module selects this implementation at runtime when the CPU supports AVX2 and FMA.</para>
+<para>Correctness model:<itemizedlist>
+<listitem><para>We unpack packed 4-bit weights into signed int8 values in [-8, 7].</para>
+</listitem><listitem><para>We multiply by a per-block scale (BF16 or FP8 E4M3).</para>
+</listitem><listitem><para>We compute a dot product against an FP32 input vector. </para>
+</listitem></itemizedlist>
+</para>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="comment">/*<sp/>============================================================================</highlight></codeline>
+<codeline lineno="2"><highlight class="comment"><sp/>*<sp/>File:<sp/>engine/src/kernels/gemv_q4_avx2.c</highlight></codeline>
+<codeline lineno="3"><highlight class="comment"><sp/>*<sp/>============================================================================</highlight></codeline>
+<codeline lineno="4"><highlight class="comment"><sp/>*/</highlight></codeline>
+<codeline lineno="22"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;<ref refid="ie__kernels_8h" kindref="compound">ie_kernels.h</ref>&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="23"><highlight class="normal"></highlight></codeline>
+<codeline lineno="24"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stddef.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="25"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stdint.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="26"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;string.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="27"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;math.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="28"><highlight class="normal"></highlight></codeline>
+<codeline lineno="29"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;immintrin.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="30"><highlight class="normal"></highlight></codeline>
+<codeline lineno="31"><highlight class="normal"></highlight><highlight class="preprocessor">#ifndef<sp/>IE_TARGET_AVX2_FMA</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="32"><highlight class="normal"></highlight><highlight class="preprocessor">#if<sp/>defined(__GNUC__)<sp/>||<sp/>defined(__clang__)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="33"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>IE_TARGET_AVX2_FMA<sp/>__attribute__((target(&quot;avx2,fma&quot;)))</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="34"><highlight class="normal"></highlight><highlight class="preprocessor">#else</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="35" refid="gemv__q4__avx2_8c_1afabb7fe9c94f4d7c15ad9d1b0c91e51d" refkind="member"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>IE_TARGET_AVX2_FMA</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="36"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="37"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="38"><highlight class="normal"></highlight></codeline>
+<codeline lineno="45" refid="gemv__q4__avx2_8c_1afdc87ae238cd923bbf554e36532dc00d" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">inline</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/><ref refid="gemv__q4__avx2_8c_1afdc87ae238cd923bbf554e36532dc00d" kindref="member">ie_bf16_to_f32_scalar</ref>(uint16_t<sp/>b)<sp/>{</highlight></codeline>
+<codeline lineno="46"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">union<sp/></highlight><highlight class="normal">{</highlight></codeline>
+<codeline lineno="47"><highlight class="normal"><sp/><sp/><sp/><sp/>uint32_t<sp/>u;</highlight></codeline>
+<codeline lineno="48"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>f;</highlight></codeline>
+<codeline lineno="49"><highlight class="normal"><sp/><sp/>}<sp/>v;</highlight></codeline>
+<codeline lineno="50"><highlight class="normal"><sp/><sp/>v.u<sp/>=<sp/>((uint32_t)b)<sp/>&lt;&lt;<sp/>16;</highlight></codeline>
+<codeline lineno="51"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>v.f;</highlight></codeline>
+<codeline lineno="52"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="53"><highlight class="normal"></highlight></codeline>
+<codeline lineno="65" refid="gemv__q4__avx2_8c_1a53cca55d969c1f77583fa8de27dfb210" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/><ref refid="gemv__q4__avx2_8c_1a53cca55d969c1f77583fa8de27dfb210" kindref="member">ie_log2_u8_q3_lut_</ref>[256];</highlight></codeline>
+<codeline lineno="66" refid="gemv__q4__avx2_8c_1a3b63c2730a4b79474a3ec82335dabca9" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="gemv__q4__avx2_8c_1a3b63c2730a4b79474a3ec82335dabca9" kindref="member">ie_log2_u8_q3_ready_</ref><sp/>=<sp/>0;</highlight></codeline>
+<codeline lineno="67"><highlight class="normal"></highlight></codeline>
+<codeline lineno="68" refid="gemv__q4__avx2_8c_1a0b7e711f14a960dd75261e196943ea83" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="gemv__q4__avx2_8c_1a0b7e711f14a960dd75261e196943ea83" kindref="member">ie_log2_u8_q3_init_impl_</ref>(</highlight><highlight class="keywordtype">void</highlight><highlight class="normal">)<sp/>{</highlight></codeline>
+<codeline lineno="69"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(</highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>i<sp/>=<sp/>0;<sp/>i<sp/>&lt;<sp/>256;<sp/>++i)<sp/>{</highlight></codeline>
+<codeline lineno="70"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>exp<sp/>=<sp/>((float)(i<sp/>-<sp/>128))<sp/>*<sp/>0.125f;</highlight></codeline>
+<codeline lineno="71"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="gemv__q4__avx2_8c_1a53cca55d969c1f77583fa8de27dfb210" kindref="member">ie_log2_u8_q3_lut_</ref>[i]<sp/>=<sp/>exp2f(exp);</highlight></codeline>
+<codeline lineno="72"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="73"><highlight class="normal"><sp/><sp/><ref refid="gemv__q4__avx2_8c_1a3b63c2730a4b79474a3ec82335dabca9" kindref="member">ie_log2_u8_q3_ready_</ref><sp/>=<sp/>1;</highlight></codeline>
+<codeline lineno="74"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="75"><highlight class="normal"></highlight></codeline>
+<codeline lineno="76" refid="ie__kernels_8h_1acdd3012fa894dbd82a4156eb09074acd" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="gemv__q4__avx2_8c_1acdd3012fa894dbd82a4156eb09074acd" kindref="member">ie_q4_log2_u8_q3_init_avx2</ref>(</highlight><highlight class="keywordtype">void</highlight><highlight class="normal">)<sp/>{</highlight></codeline>
+<codeline lineno="77"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!<ref refid="gemv__q4__avx2_8c_1a3b63c2730a4b79474a3ec82335dabca9" kindref="member">ie_log2_u8_q3_ready_</ref>)<sp/>{</highlight></codeline>
+<codeline lineno="78"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="gemv__q4__avx2_8c_1a0b7e711f14a960dd75261e196943ea83" kindref="member">ie_log2_u8_q3_init_impl_</ref>();</highlight></codeline>
+<codeline lineno="79"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="80"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="81"><highlight class="normal"></highlight></codeline>
+<codeline lineno="82" refid="gemv__q4__avx2_8c_1acb45092051d8188cb83e8521544f1a16" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">inline</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/><ref refid="gemv__q4__avx2_8c_1acb45092051d8188cb83e8521544f1a16" kindref="member">ie_log2_u8_q3_to_f32</ref>(uint8_t<sp/>v)<sp/>{</highlight></codeline>
+<codeline lineno="83"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!<ref refid="gemv__q4__avx2_8c_1a3b63c2730a4b79474a3ec82335dabca9" kindref="member">ie_log2_u8_q3_ready_</ref>)<sp/>{</highlight></codeline>
+<codeline lineno="84"><highlight class="normal"><sp/><sp/><sp/><sp/><ref refid="gemv__q4__avx2_8c_1a0b7e711f14a960dd75261e196943ea83" kindref="member">ie_log2_u8_q3_init_impl_</ref>();</highlight></codeline>
+<codeline lineno="85"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="86"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/><ref refid="gemv__q4__avx2_8c_1a53cca55d969c1f77583fa8de27dfb210" kindref="member">ie_log2_u8_q3_lut_</ref>[v];</highlight></codeline>
+<codeline lineno="87"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="88"><highlight class="normal"></highlight></codeline>
+<codeline lineno="96" refid="gemv__q4__avx2_8c_1a0d62180096534e482fbb8fe67b98e4fd" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">inline</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/><ref refid="gemv__q4__avx2_8c_1a0d62180096534e482fbb8fe67b98e4fd" kindref="member">ie_q4_load_scale_f32</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>uint8_t<sp/>*scales,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>scale_bytes)<sp/>{</highlight></codeline>
+<codeline lineno="97"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(scale_bytes<sp/>==<sp/>2)<sp/>{</highlight></codeline>
+<codeline lineno="98"><highlight class="normal"><sp/><sp/><sp/><sp/>uint16_t<sp/>b;</highlight></codeline>
+<codeline lineno="99"><highlight class="normal"><sp/><sp/><sp/><sp/>memcpy(&amp;b,<sp/>scales,<sp/></highlight><highlight class="keyword">sizeof</highlight><highlight class="normal">(uint16_t));</highlight></codeline>
+<codeline lineno="100"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/><ref refid="gemv__q4__avx2_8c_1afdc87ae238cd923bbf554e36532dc00d" kindref="member">ie_bf16_to_f32_scalar</ref>(b);</highlight></codeline>
+<codeline lineno="101"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="102"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/><ref refid="gemv__q4__avx2_8c_1acb45092051d8188cb83e8521544f1a16" kindref="member">ie_log2_u8_q3_to_f32</ref>(scales[0]);</highlight></codeline>
+<codeline lineno="103"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="104"><highlight class="normal"></highlight></codeline>
+<codeline lineno="111" refid="gemv__q4__avx2_8c_1a6925be1ed2abd13aef877a68bed45995" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/><ref refid="gemv__q4__avx2_8c_1afabb7fe9c94f4d7c15ad9d1b0c91e51d" kindref="member">IE_TARGET_AVX2_FMA</ref><sp/></highlight><highlight class="keyword">inline</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/><ref refid="gemv__q4__avx2_8c_1a6925be1ed2abd13aef877a68bed45995" kindref="member">ie_hsum256_ps</ref>(__m256<sp/>v)<sp/>{</highlight></codeline>
+<codeline lineno="112"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>tmp[8];</highlight></codeline>
+<codeline lineno="113"><highlight class="normal"><sp/><sp/>_mm256_storeu_ps(tmp,<sp/>v);</highlight></codeline>
+<codeline lineno="114"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>tmp[0]<sp/>+<sp/>tmp[1]<sp/>+<sp/>tmp[2]<sp/>+<sp/>tmp[3]<sp/>+<sp/>tmp[4]<sp/>+<sp/>tmp[5]<sp/>+<sp/>tmp[6]<sp/>+<sp/>tmp[7];</highlight></codeline>
+<codeline lineno="115"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="116"><highlight class="normal"></highlight></codeline>
+<codeline lineno="133" refid="gemv__q4__avx2_8c_1abdafb1096e984805e4105b2feb9c5b06" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/><ref refid="gemv__q4__avx2_8c_1afabb7fe9c94f4d7c15ad9d1b0c91e51d" kindref="member">IE_TARGET_AVX2_FMA</ref><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/><ref refid="gemv__q4__avx2_8c_1abdafb1096e984805e4105b2feb9c5b06" kindref="member">ie_q4_0_block_dot_f32_avx2</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>uint8_t<sp/>*q,</highlight></codeline>
+<codeline lineno="134"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*x,</highlight></codeline>
+<codeline lineno="135"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>scale)<sp/>{</highlight></codeline>
+<codeline lineno="136"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>__m128i<sp/>v<sp/>=<sp/>_mm_loadu_si128((</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>__m128i<sp/>*)q);</highlight></codeline>
+<codeline lineno="137"><highlight class="normal"></highlight></codeline>
+<codeline lineno="138"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>__m128i<sp/>mask<sp/>=<sp/>_mm_set1_epi8(0x0F);</highlight></codeline>
+<codeline lineno="139"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>__m128i<sp/>lo<sp/>=<sp/>_mm_and_si128(v,<sp/>mask);</highlight></codeline>
+<codeline lineno="140"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>__m128i<sp/>hi<sp/>=<sp/>_mm_and_si128(_mm_srli_epi16(v,<sp/>4),<sp/>mask);</highlight></codeline>
+<codeline lineno="141"><highlight class="normal"></highlight></codeline>
+<codeline lineno="142"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>__m128i<sp/>lut<sp/>=</highlight></codeline>
+<codeline lineno="143"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>_mm_setr_epi8((</highlight><highlight class="keywordtype">char</highlight><highlight class="normal">)0,<sp/>(</highlight><highlight class="keywordtype">char</highlight><highlight class="normal">)1,<sp/>(</highlight><highlight class="keywordtype">char</highlight><highlight class="normal">)2,<sp/>(</highlight><highlight class="keywordtype">char</highlight><highlight class="normal">)3,<sp/>(</highlight><highlight class="keywordtype">char</highlight><highlight class="normal">)4,<sp/>(</highlight><highlight class="keywordtype">char</highlight><highlight class="normal">)5,<sp/>(</highlight><highlight class="keywordtype">char</highlight><highlight class="normal">)6,<sp/>(</highlight><highlight class="keywordtype">char</highlight><highlight class="normal">)7,</highlight></codeline>
+<codeline lineno="144"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>(</highlight><highlight class="keywordtype">char</highlight><highlight class="normal">)-8,<sp/>(</highlight><highlight class="keywordtype">char</highlight><highlight class="normal">)-7,<sp/>(</highlight><highlight class="keywordtype">char</highlight><highlight class="normal">)-6,<sp/>(</highlight><highlight class="keywordtype">char</highlight><highlight class="normal">)-5,<sp/>(</highlight><highlight class="keywordtype">char</highlight><highlight class="normal">)-4,<sp/>(</highlight><highlight class="keywordtype">char</highlight><highlight class="normal">)-3,<sp/>(</highlight><highlight class="keywordtype">char</highlight><highlight class="normal">)-2,<sp/>(</highlight><highlight class="keywordtype">char</highlight><highlight class="normal">)-1);</highlight></codeline>
+<codeline lineno="145"><highlight class="normal"></highlight></codeline>
+<codeline lineno="146"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>__m128i<sp/>w_even<sp/>=<sp/>_mm_shuffle_epi8(lut,<sp/>lo);</highlight></codeline>
+<codeline lineno="147"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>__m128i<sp/>w_odd<sp/>=<sp/>_mm_shuffle_epi8(lut,<sp/>hi);</highlight></codeline>
+<codeline lineno="148"><highlight class="normal"></highlight></codeline>
+<codeline lineno="149"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>__m128i<sp/>w0_15<sp/>=<sp/>_mm_unpacklo_epi8(w_even,<sp/>w_odd);</highlight></codeline>
+<codeline lineno="150"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>__m128i<sp/>w16_31<sp/>=<sp/>_mm_unpackhi_epi8(w_even,<sp/>w_odd);</highlight></codeline>
+<codeline lineno="151"><highlight class="normal"></highlight></codeline>
+<codeline lineno="152"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>__m256<sp/>scale_v<sp/>=<sp/>_mm256_set1_ps(scale);</highlight></codeline>
+<codeline lineno="153"><highlight class="normal"></highlight></codeline>
+<codeline lineno="154"><highlight class="normal"><sp/><sp/>__m256<sp/>acc<sp/>=<sp/>_mm256_setzero_ps();</highlight></codeline>
+<codeline lineno="155"><highlight class="normal"></highlight></codeline>
+<codeline lineno="156"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">/*<sp/>0..7<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="157"><highlight class="normal"><sp/><sp/>{</highlight></codeline>
+<codeline lineno="158"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>__m128i<sp/>w8<sp/>=<sp/>_mm_cvtepi8_epi16(w0_15);</highlight></codeline>
+<codeline lineno="159"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>__m256i<sp/>wi32<sp/>=<sp/>_mm256_cvtepi16_epi32(w8);</highlight></codeline>
+<codeline lineno="160"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>__m256<sp/>wf<sp/>=<sp/>_mm256_cvtepi32_ps(wi32);</highlight></codeline>
+<codeline lineno="161"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>__m256<sp/>xs<sp/>=<sp/>_mm256_loadu_ps(x<sp/>+<sp/>0);</highlight></codeline>
+<codeline lineno="162"><highlight class="normal"><sp/><sp/><sp/><sp/>acc<sp/>=<sp/>_mm256_fmadd_ps(_mm256_mul_ps(wf,<sp/>scale_v),<sp/>xs,<sp/>acc);</highlight></codeline>
+<codeline lineno="163"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="164"><highlight class="normal"></highlight></codeline>
+<codeline lineno="165"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">/*<sp/>8..15<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="166"><highlight class="normal"><sp/><sp/>{</highlight></codeline>
+<codeline lineno="167"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>__m128i<sp/>w8<sp/>=<sp/>_mm_cvtepi8_epi16(_mm_srli_si128(w0_15,<sp/>8));</highlight></codeline>
+<codeline lineno="168"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>__m256i<sp/>wi32<sp/>=<sp/>_mm256_cvtepi16_epi32(w8);</highlight></codeline>
+<codeline lineno="169"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>__m256<sp/>wf<sp/>=<sp/>_mm256_cvtepi32_ps(wi32);</highlight></codeline>
+<codeline lineno="170"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>__m256<sp/>xs<sp/>=<sp/>_mm256_loadu_ps(x<sp/>+<sp/>8);</highlight></codeline>
+<codeline lineno="171"><highlight class="normal"><sp/><sp/><sp/><sp/>acc<sp/>=<sp/>_mm256_fmadd_ps(_mm256_mul_ps(wf,<sp/>scale_v),<sp/>xs,<sp/>acc);</highlight></codeline>
+<codeline lineno="172"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="173"><highlight class="normal"></highlight></codeline>
+<codeline lineno="174"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">/*<sp/>16..23<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="175"><highlight class="normal"><sp/><sp/>{</highlight></codeline>
+<codeline lineno="176"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>__m128i<sp/>w8<sp/>=<sp/>_mm_cvtepi8_epi16(w16_31);</highlight></codeline>
+<codeline lineno="177"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>__m256i<sp/>wi32<sp/>=<sp/>_mm256_cvtepi16_epi32(w8);</highlight></codeline>
+<codeline lineno="178"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>__m256<sp/>wf<sp/>=<sp/>_mm256_cvtepi32_ps(wi32);</highlight></codeline>
+<codeline lineno="179"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>__m256<sp/>xs<sp/>=<sp/>_mm256_loadu_ps(x<sp/>+<sp/>16);</highlight></codeline>
+<codeline lineno="180"><highlight class="normal"><sp/><sp/><sp/><sp/>acc<sp/>=<sp/>_mm256_fmadd_ps(_mm256_mul_ps(wf,<sp/>scale_v),<sp/>xs,<sp/>acc);</highlight></codeline>
+<codeline lineno="181"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="182"><highlight class="normal"></highlight></codeline>
+<codeline lineno="183"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">/*<sp/>24..31<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="184"><highlight class="normal"><sp/><sp/>{</highlight></codeline>
+<codeline lineno="185"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>__m128i<sp/>w8<sp/>=<sp/>_mm_cvtepi8_epi16(_mm_srli_si128(w16_31,<sp/>8));</highlight></codeline>
+<codeline lineno="186"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>__m256i<sp/>wi32<sp/>=<sp/>_mm256_cvtepi16_epi32(w8);</highlight></codeline>
+<codeline lineno="187"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>__m256<sp/>wf<sp/>=<sp/>_mm256_cvtepi32_ps(wi32);</highlight></codeline>
+<codeline lineno="188"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>__m256<sp/>xs<sp/>=<sp/>_mm256_loadu_ps(x<sp/>+<sp/>24);</highlight></codeline>
+<codeline lineno="189"><highlight class="normal"><sp/><sp/><sp/><sp/>acc<sp/>=<sp/>_mm256_fmadd_ps(_mm256_mul_ps(wf,<sp/>scale_v),<sp/>xs,<sp/>acc);</highlight></codeline>
+<codeline lineno="190"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="191"><highlight class="normal"></highlight></codeline>
+<codeline lineno="192"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/><ref refid="gemv__q4__avx2_8c_1a6925be1ed2abd13aef877a68bed45995" kindref="member">ie_hsum256_ps</ref>(acc);</highlight></codeline>
+<codeline lineno="193"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="194"><highlight class="normal"></highlight></codeline>
+<codeline lineno="208" refid="gemv__q4__avx2_8c_1a2fea8f09ec3127c16d845dba817200b8" refkind="member"><highlight class="normal"><ref refid="gemv__q4__avx2_8c_1afabb7fe9c94f4d7c15ad9d1b0c91e51d" kindref="member">IE_TARGET_AVX2_FMA</ref><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="gemv__q4__avx2_8c_1a2fea8f09ec3127c16d845dba817200b8" kindref="member">ie_gemv_q4_0_f32_avx2_impl</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>uint8_t<sp/>*W_blocks,</highlight></codeline>
+<codeline lineno="209"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>uint8_t<sp/>*W_scales,</highlight></codeline>
+<codeline lineno="210"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>scale_bytes,</highlight></codeline>
+<codeline lineno="211"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*x,</highlight></codeline>
+<codeline lineno="212"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*y,</highlight></codeline>
+<codeline lineno="213"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>rows,</highlight></codeline>
+<codeline lineno="214"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>cols,</highlight></codeline>
+<codeline lineno="215"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>uint16_t<sp/>*bias_bf16)<sp/>{</highlight></codeline>
+<codeline lineno="216"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!W_blocks<sp/>||<sp/>!W_scales<sp/>||<sp/>!x<sp/>||<sp/>!y)<sp/>{</highlight></codeline>
+<codeline lineno="217"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>1;</highlight></codeline>
+<codeline lineno="218"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="219"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(cols<sp/>==<sp/>0<sp/>||<sp/>(cols<sp/>%<sp/>32)<sp/>!=<sp/>0)<sp/>{</highlight></codeline>
+<codeline lineno="220"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>2;</highlight></codeline>
+<codeline lineno="221"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="222"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!(scale_bytes<sp/>==<sp/>1<sp/>||<sp/>scale_bytes<sp/>==<sp/>2))<sp/>{</highlight></codeline>
+<codeline lineno="223"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>3;</highlight></codeline>
+<codeline lineno="224"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="225"><highlight class="normal"></highlight></codeline>
+<codeline lineno="226"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>n_blocks<sp/>=<sp/>cols<sp/>/<sp/>32;</highlight></codeline>
+<codeline lineno="227"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>row_block_bytes<sp/>=<sp/>n_blocks<sp/>*<sp/>16;</highlight></codeline>
+<codeline lineno="228"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>row_scale_bytes<sp/>=<sp/>n_blocks<sp/>*<sp/>scale_bytes;</highlight></codeline>
+<codeline lineno="229"><highlight class="normal"></highlight></codeline>
+<codeline lineno="230"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>r<sp/>=<sp/>0;<sp/>r<sp/>&lt;<sp/>rows;<sp/>++r)<sp/>{</highlight></codeline>
+<codeline lineno="231"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>uint8_t<sp/>*row_blocks<sp/>=<sp/>W_blocks<sp/>+<sp/>r<sp/>*<sp/>row_block_bytes;</highlight></codeline>
+<codeline lineno="232"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>uint8_t<sp/>*row_scales<sp/>=<sp/>W_scales<sp/>+<sp/>r<sp/>*<sp/>row_scale_bytes;</highlight></codeline>
+<codeline lineno="233"><highlight class="normal"></highlight></codeline>
+<codeline lineno="234"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>acc<sp/>=<sp/>0.0f;</highlight></codeline>
+<codeline lineno="235"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>b<sp/>=<sp/>0;<sp/>b<sp/>&lt;<sp/>n_blocks;<sp/>++b)<sp/>{</highlight></codeline>
+<codeline lineno="236"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>d<sp/>=<sp/><ref refid="gemv__q4__avx2_8c_1a0d62180096534e482fbb8fe67b98e4fd" kindref="member">ie_q4_load_scale_f32</ref>(row_scales<sp/>+<sp/>b<sp/>*<sp/>scale_bytes,<sp/>scale_bytes);</highlight></codeline>
+<codeline lineno="237"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>acc<sp/>+=<sp/><ref refid="gemv__q4__avx2_8c_1abdafb1096e984805e4105b2feb9c5b06" kindref="member">ie_q4_0_block_dot_f32_avx2</ref>(row_blocks<sp/>+<sp/>b<sp/>*<sp/>16,<sp/>x<sp/>+<sp/>b<sp/>*<sp/>32,<sp/>d);</highlight></codeline>
+<codeline lineno="238"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="239"><highlight class="normal"></highlight></codeline>
+<codeline lineno="240"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(bias_bf16)<sp/>{</highlight></codeline>
+<codeline lineno="241"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>acc<sp/>+=<sp/><ref refid="gemv__q4__avx2_8c_1afdc87ae238cd923bbf554e36532dc00d" kindref="member">ie_bf16_to_f32_scalar</ref>(bias_bf16[r]);</highlight></codeline>
+<codeline lineno="242"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="243"><highlight class="normal"><sp/><sp/><sp/><sp/>y[r]<sp/>=<sp/>acc;</highlight></codeline>
+<codeline lineno="244"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="245"><highlight class="normal"></highlight></codeline>
+<codeline lineno="246"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>0;</highlight></codeline>
+<codeline lineno="247"><highlight class="normal">}</highlight></codeline>
+    </programlisting>
+    <location file="engine/src/kernels/gemv_q4_avx2.c"/>
+  </compounddef>
+</doxygen>

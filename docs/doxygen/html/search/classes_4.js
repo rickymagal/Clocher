@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['group_5flist_5fs_0',['group_list_s',['../structgroup__list__s.html',1,'']]],
-  ['group_5fs_1',['group_s',['../structgroup__s.html',1,'']]]
+  ['expected_5ftokens_5fentry_0',['expected_tokens_entry',['../structexpected__tokens__entry.html',1,'']]],
+  ['expected_5ftokens_5ftable_1',['expected_tokens_table',['../structexpected__tokens__table.html',1,'']]]
 ];

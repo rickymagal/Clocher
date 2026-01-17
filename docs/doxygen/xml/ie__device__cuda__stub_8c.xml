@@ -2,26 +2,43 @@
 <doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.8" xml:lang="en-US">
   <compounddef id="ie__device__cuda__stub_8c" kind="file" language="C++">
     <compoundname>ie_device_cuda_stub.c</compoundname>
+    <includes refid="ie__device__cuda_8h" local="yes">ie_device_cuda.h</includes>
     <includes local="no">stddef.h</includes>
+    <includes local="no">stdint.h</includes>
     <incdepgraph>
+      <node id="2">
+        <label>ie_device_cuda.h</label>
+        <link refid="ie__device__cuda_8h"/>
+        <childnode refid="3" relation="include">
+        </childnode>
+        <childnode refid="4" relation="include">
+        </childnode>
+      </node>
       <node id="1">
         <label>engine/src/devices/ie_device_cuda_stub.c</label>
         <link refid="ie__device__cuda__stub_8c"/>
         <childnode refid="2" relation="include">
         </childnode>
+        <childnode refid="3" relation="include">
+        </childnode>
+        <childnode refid="4" relation="include">
+        </childnode>
       </node>
-      <node id="2">
+      <node id="3">
         <label>stddef.h</label>
+      </node>
+      <node id="4">
+        <label>stdint.h</label>
       </node>
     </incdepgraph>
     <sectiondef kind="func">
       <memberdef kind="function" id="ie__device__cuda__stub_8c_1aa7d18bba67349415d8d7cf8c92ed5e77" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
-        <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">int</ref></type>
+        <type>int</type>
         <definition>int ie_cuda_is_available</definition>
         <argsstring>(void)</argsstring>
         <name>ie_cuda_is_available</name>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">void</ref></type>
+          <type>void</type>
         </param>
         <briefdescription>
 <para>Returns non-zero if at least one CUDA device is available. </para>
@@ -37,58 +54,191 @@ Returns non-zero if at least one CUDA device is available.</para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="engine/src/devices/ie_device_cuda_stub.c" line="4" column="5" bodyfile="engine/src/devices/ie_device_cuda_stub.c" bodystart="4" bodyend="6"/>
-        <references refid="ie__device__cuda_8cu_1a4ed091f3252b0eddeb76bd1d8fc63168" compoundref="ie__device__cuda_8cu" startline="62" endline="64">ie_cuda_clear_last_error</references>
-        <references refid="ie__device__cuda_8cu_1a0391d9bf2a39582d39265da97820553f" compoundref="ie__device__cuda_8cu" startline="36" endline="41">ie_cuda_set_last_error_cuda</references>
-        <referencedby refid="ie__device__common_8c_1ae4ac15a3b8fea25568b8cdeb2cd781fe" compoundref="ie__device__common_8c" startline="320" endline="347">cuda_try_create</referencedby>
+        <location file="engine/src/devices/ie_device_cuda_stub.c" line="7" column="5" bodyfile="engine/src/devices/ie_device_cuda_stub.c" bodystart="7" bodyend="9"/>
+        <references refid="ie__device__cuda_8cu_1a4ed091f3252b0eddeb76bd1d8fc63168" compoundref="ie__device__cuda_8cu" startline="63" endline="65">ie_cuda_clear_last_error</references>
+        <references refid="ie__device__cuda_8cu_1a0391d9bf2a39582d39265da97820553f" compoundref="ie__device__cuda_8cu" startline="37" endline="42">ie_cuda_set_last_error_cuda</references>
+        <referencedby refid="ie__device__common_8c_1ae4ac15a3b8fea25568b8cdeb2cd781fe" compoundref="ie__device__common_8c" startline="408" endline="436">cuda_try_create</referencedby>
       </memberdef>
-      <memberdef kind="function" id="ie__device__cuda__stub_8c_1ab6f8a4915a09c9a92ac530c4188a0482" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
-        <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">int</ref></type>
+      <memberdef kind="function" id="ie__device__cuda__stub_8c_1ab13dfa272ae7d081b8310b86c139ecf9" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
         <definition>int ie_cuda_init</definition>
-        <argsstring>(int gpu_id)</argsstring>
+        <argsstring>(int device_ordinal, char *out_name, size_t name_cap, char *out_driver, size_t driver_cap)</argsstring>
         <name>ie_cuda_init</name>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">int</ref></type>
-          <declname>gpu_id</declname>
+          <type>int</type>
+          <declname>device_ordinal</declname>
+        </param>
+        <param>
+          <type>char *</type>
+          <declname>out_name</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>name_cap</declname>
+        </param>
+        <param>
+          <type>char *</type>
+          <declname>out_driver</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>driver_cap</declname>
         </param>
         <briefdescription>
+<para>Initialize CUDA for a given device ordinal and return basic identity strings. </para>
         </briefdescription>
         <detaileddescription>
+<para>This performs cudaSetDevice() and a minimal runtime initialization (cudaFree(0)) so that driver activity is observable (e.g., /dev/nvidiactl gets touched).</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>device_ordinal</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>CUDA device ordinal (0..N-1). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>out_name</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Output buffer for the GPU name (may be NULL if name_cap=0). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>name_cap</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Capacity of out_name in bytes. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>out_driver</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Output buffer for a driver/runtime version string (may be NULL if driver_cap=0). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>driver_cap</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Capacity of out_driver in bytes. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>0 on success, negative on failure.</para>
+</simplesect>
+Initialize CUDA for a given device ordinal and return basic identity strings.</para>
+<para>This forces runtime/driver initialization via cudaFree(0) so preflight checks can observe real driver activity.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>device_ordinal</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>CUDA device ordinal. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>out_name</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Output buffer for device name (may be NULL). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>name_cap</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Capacity of <computeroutput>out_name</computeroutput> in bytes. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>out_driver</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Output buffer for driver/runtime versions (may be NULL). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>driver_cap</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Capacity of <computeroutput>out_driver</computeroutput> in bytes. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>0 on success, negative on failure. </para>
+</simplesect>
+</para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="engine/src/devices/ie_device_cuda_stub.c" line="8" column="5" bodyfile="engine/src/devices/ie_device_cuda_stub.c" bodystart="8" bodyend="11"/>
+        <location file="engine/src/devices/ie_device_cuda_stub.c" line="11" column="5" bodyfile="engine/src/devices/ie_device_cuda_stub.c" bodystart="11" bodyend="18"/>
+        <references refid="ie__device__cuda_8cu_1a4ed091f3252b0eddeb76bd1d8fc63168" compoundref="ie__device__cuda_8cu" startline="63" endline="65">ie_cuda_clear_last_error</references>
+        <references refid="ie__device__cuda_8cu_1a0391d9bf2a39582d39265da97820553f" compoundref="ie__device__cuda_8cu" startline="37" endline="42">ie_cuda_set_last_error_cuda</references>
+        <referencedby refid="ie__device__common_8c_1ae4ac15a3b8fea25568b8cdeb2cd781fe" compoundref="ie__device__common_8c" startline="408" endline="436">cuda_try_create</referencedby>
       </memberdef>
-      <memberdef kind="function" id="ie__device__cuda__stub_8c_1a6b4b4a8fab52857b3d27f965f152036f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
-        <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">int</ref></type>
-        <definition>int ie_cuda_malloc</definition>
-        <argsstring>(void **out, size_t bytes)</argsstring>
+      <memberdef kind="function" id="ie__device__cuda__stub_8c_1a5e37ce0218789795b250e4dfec782e6d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void *</type>
+        <definition>void * ie_cuda_malloc</definition>
+        <argsstring>(size_t nbytes)</argsstring>
         <name>ie_cuda_malloc</name>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">void</ref> **</type>
-          <declname>out</declname>
-        </param>
-        <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">size_t</ref></type>
-          <declname>bytes</declname>
+          <type>size_t</type>
+          <declname>nbytes</declname>
         </param>
         <briefdescription>
+<para>Allocate device memory. </para>
         </briefdescription>
         <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>nbytes</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of bytes. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Device pointer on success, NULL on failure.</para>
+</simplesect>
+Allocate device memory.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>nbytes</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of bytes. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Device pointer on success, NULL on failure. </para>
+</simplesect>
+</para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="engine/src/devices/ie_device_cuda_stub.c" line="13" column="5" bodyfile="engine/src/devices/ie_device_cuda_stub.c" bodystart="13" bodyend="17"/>
+        <location file="engine/src/devices/ie_device_cuda_stub.c" line="20" column="6" bodyfile="engine/src/devices/ie_device_cuda_stub.c" bodystart="20" bodyend="23"/>
+        <references refid="ie__device__cuda_8cu_1a4ed091f3252b0eddeb76bd1d8fc63168" compoundref="ie__device__cuda_8cu" startline="63" endline="65">ie_cuda_clear_last_error</references>
+        <references refid="ie__device__cuda_8cu_1a0391d9bf2a39582d39265da97820553f" compoundref="ie__device__cuda_8cu" startline="37" endline="42">ie_cuda_set_last_error_cuda</references>
+        <referencedby refid="ie__device__common_8c_1a56608584d5096e56c6de8baeb07edb11" compoundref="ie__device__common_8c" startline="204" endline="220">cuda_ensure_capacity</referencedby>
       </memberdef>
-      <memberdef kind="function" id="ie__device__cuda__stub_8c_1a7aa3c245312a87827c310085cffdf6b5" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
-        <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">int</ref></type>
-        <definition>int ie_cuda_free</definition>
-        <argsstring>(void *ptr)</argsstring>
+      <memberdef kind="function" id="ie__device__cuda__stub_8c_1a3cd69e11d8225356f06f8a1f4d9b3191" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ie_cuda_free</definition>
+        <argsstring>(void *p)</argsstring>
         <name>ie_cuda_free</name>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">void</ref> *</type>
+          <type>void *</type>
           <declname>p</declname>
-          <defname>ptr</defname>
         </param>
         <briefdescription>
 <para>Free device memory allocated by <ref refid="ie__device__cuda_8h_1a5e37ce0218789795b250e4dfec782e6d" kindref="member">ie_cuda_malloc()</ref>. </para>
@@ -117,107 +267,391 @@ Free device memory allocated by <ref refid="ie__device__cuda_8h_1a5e37ce02187897
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="engine/src/devices/ie_device_cuda_stub.c" line="19" column="5" bodyfile="engine/src/devices/ie_device_cuda_stub.c" bodystart="19" bodyend="22"/>
-        <references refid="ie__device__cuda_8cu_1a4ed091f3252b0eddeb76bd1d8fc63168" compoundref="ie__device__cuda_8cu" startline="62" endline="64">ie_cuda_clear_last_error</references>
-        <references refid="ie__device__cuda_8cu_1a0391d9bf2a39582d39265da97820553f" compoundref="ie__device__cuda_8cu" startline="36" endline="41">ie_cuda_set_last_error_cuda</references>
-        <referencedby refid="ie__device__common_8c_1a7ecb9f771aea0ef0d125bbe31b53c87a" compoundref="ie__device__common_8c" startline="299" endline="309">cuda_destroy_thunk</referencedby>
-        <referencedby refid="ie__device__common_8c_1a56608584d5096e56c6de8baeb07edb11" compoundref="ie__device__common_8c" startline="176" endline="192">cuda_ensure_capacity</referencedby>
+        <location file="engine/src/devices/ie_device_cuda_stub.c" line="25" column="6" bodyfile="engine/src/devices/ie_device_cuda_stub.c" bodystart="25" bodyend="27"/>
+        <references refid="ie__device__cuda_8cu_1a4ed091f3252b0eddeb76bd1d8fc63168" compoundref="ie__device__cuda_8cu" startline="63" endline="65">ie_cuda_clear_last_error</references>
+        <references refid="ie__device__cuda_8cu_1a0391d9bf2a39582d39265da97820553f" compoundref="ie__device__cuda_8cu" startline="37" endline="42">ie_cuda_set_last_error_cuda</references>
+        <referencedby refid="ie__device__common_8c_1a7ecb9f771aea0ef0d125bbe31b53c87a" compoundref="ie__device__common_8c" startline="386" endline="397">cuda_destroy_thunk</referencedby>
+        <referencedby refid="ie__device__common_8c_1a56608584d5096e56c6de8baeb07edb11" compoundref="ie__device__common_8c" startline="204" endline="220">cuda_ensure_capacity</referencedby>
       </memberdef>
-      <memberdef kind="function" id="ie__device__cuda__stub_8c_1abf3eb8cae14ea4ad177b6dc69d940017" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
-        <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">int</ref></type>
+      <memberdef kind="function" id="ie__device__cuda__stub_8c_1a13ade60bbdaef0afaf4b53fd42c1e38c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
         <definition>int ie_cuda_memcpy</definition>
-        <argsstring>(void *dst, const void *src, size_t bytes, int kind)</argsstring>
+        <argsstring>(void *dst, const void *src, size_t nbytes, ie_cuda_copy_kind_t kind)</argsstring>
         <name>ie_cuda_memcpy</name>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">void</ref> *</type>
+          <type>void *</type>
           <declname>dst</declname>
         </param>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">const</ref> <ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">void</ref> *</type>
+          <type>const void *</type>
           <declname>src</declname>
         </param>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">size_t</ref></type>
-          <declname>bytes</declname>
+          <type>size_t</type>
+          <declname>nbytes</declname>
         </param>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">int</ref></type>
+          <type><ref refid="ie__device__cuda_8h_1adbc073828f03b9ba8e64db6ca1c9dc8d" kindref="member">ie_cuda_copy_kind_t</ref></type>
           <declname>kind</declname>
         </param>
         <briefdescription>
+<para>Copy memory using CUDA. </para>
         </briefdescription>
         <detaileddescription>
+<para>For IE_CUDA_COPY_DEFAULT, cudaMemcpyDefault is used.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>dst</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Destination pointer. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>src</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Source pointer. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>nbytes</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of bytes. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>kind</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Copy kind. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>0 on success, negative on failure.</para>
+</simplesect>
+Copy memory using CUDA.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>dst</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Destination pointer. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>src</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Source pointer. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>nbytes</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of bytes. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>kind</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Copy direction. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>0 on success, negative on failure. </para>
+</simplesect>
+</para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="engine/src/devices/ie_device_cuda_stub.c" line="24" column="5" bodyfile="engine/src/devices/ie_device_cuda_stub.c" bodystart="24" bodyend="30"/>
+        <location file="engine/src/devices/ie_device_cuda_stub.c" line="29" column="5" bodyfile="engine/src/devices/ie_device_cuda_stub.c" bodystart="29" bodyend="35"/>
+        <references refid="ie__device__cuda_8cu_1a4ed091f3252b0eddeb76bd1d8fc63168" compoundref="ie__device__cuda_8cu" startline="63" endline="65">ie_cuda_clear_last_error</references>
+        <references refid="ie__device__cuda_8h_1ab644df28685d4189f6fd0d910e006820ae0496dad832ab977e29c04e586e78809" compoundref="ie__device__cuda_8h" startline="32">IE_CUDA_COPY_D2D</references>
+        <references refid="ie__device__cuda_8h_1ab644df28685d4189f6fd0d910e006820a7ca600f1ee4fbdc1bd070aa46da0b28e" compoundref="ie__device__cuda_8h" startline="31">IE_CUDA_COPY_D2H</references>
+        <references refid="ie__device__cuda_8h_1ab644df28685d4189f6fd0d910e006820a68730f2081a5fbf8f472c6807be86dc5" compoundref="ie__device__cuda_8h" startline="29">IE_CUDA_COPY_DEFAULT</references>
+        <references refid="ie__device__cuda_8h_1ab644df28685d4189f6fd0d910e006820a358d353ab75ec7b409bbd3e8fb3ee4aa" compoundref="ie__device__cuda_8h" startline="30">IE_CUDA_COPY_H2D</references>
+        <references refid="ie__device__cuda_8cu_1a0391d9bf2a39582d39265da97820553f" compoundref="ie__device__cuda_8cu" startline="37" endline="42">ie_cuda_set_last_error_cuda</references>
+        <referencedby refid="ie__device__common_8c_1a10d98754f37925ce0fd653a011fc9d47" compoundref="ie__device__common_8c" startline="261" endline="303">cuda_gemv_f32_thunk</referencedby>
+        <referencedby refid="ie__device__common_8c_1ab97116893ac6fb20f32aaf7462a13b50" compoundref="ie__device__common_8c" startline="311" endline="362">cuda_gemv_q4_0_f32_thunk</referencedby>
+        <referencedby refid="ie__device__common_8c_1a3e7e82d7cc2da1e044d74015a6ac37cd" compoundref="ie__device__common_8c" startline="245" endline="254">cuda_memcpy_thunk</referencedby>
       </memberdef>
-      <memberdef kind="function" id="ie__device__cuda__stub_8c_1adc972872ea9d1da72d17f42f6a4c8754" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
-        <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">int</ref></type>
-        <definition>int ie_cuda_device_synchronize</definition>
-        <argsstring>(void)</argsstring>
-        <name>ie_cuda_device_synchronize</name>
-        <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">void</ref></type>
-        </param>
-        <briefdescription>
-        </briefdescription>
-        <detaileddescription>
-        </detaileddescription>
-        <inbodydescription>
-        </inbodydescription>
-        <location file="engine/src/devices/ie_device_cuda_stub.c" line="32" column="5" bodyfile="engine/src/devices/ie_device_cuda_stub.c" bodystart="32" bodyend="34"/>
-      </memberdef>
-      <memberdef kind="function" id="ie__device__cuda__stub_8c_1a3817bfd6aee5bd5f6372426a6dc934ab" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
-        <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">const</ref> <ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">char</ref> *</type>
-        <definition>const char * ie_cuda_get_error_string</definition>
-        <argsstring>(int err)</argsstring>
-        <name>ie_cuda_get_error_string</name>
-        <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">int</ref></type>
-          <declname>err</declname>
-        </param>
-        <briefdescription>
-        </briefdescription>
-        <detaileddescription>
-        </detaileddescription>
-        <inbodydescription>
-        </inbodydescription>
-        <location file="engine/src/devices/ie_device_cuda_stub.c" line="36" column="12" bodyfile="engine/src/devices/ie_device_cuda_stub.c" bodystart="36" bodyend="39"/>
-      </memberdef>
-      <memberdef kind="function" id="ie__device__cuda__stub_8c_1a1396b8af251ca96e7b84200f4a974e34" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
-        <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">int</ref></type>
+      <memberdef kind="function" id="ie__device__cuda__stub_8c_1aca120e7a1c8d8c71e0c9c55ff55b5a2e" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
         <definition>int ie_cuda_gemv_f32</definition>
-        <argsstring>(void *out, const void *w, const void *x, int rows, int cols)</argsstring>
+        <argsstring>(const float *dW, const float *dx, float *dy, size_t rows, size_t cols, const float *dbias)</argsstring>
         <name>ie_cuda_gemv_f32</name>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">void</ref> *</type>
-          <declname>out</declname>
+          <type>const float *</type>
+          <declname>dW</declname>
         </param>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">const</ref> <ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">void</ref> *</type>
-          <declname>w</declname>
+          <type>const float *</type>
+          <declname>dx</declname>
         </param>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">const</ref> <ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">void</ref> *</type>
-          <declname>x</declname>
+          <type>float *</type>
+          <declname>dy</declname>
         </param>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">int</ref></type>
+          <type>size_t</type>
           <declname>rows</declname>
         </param>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">int</ref></type>
+          <type>size_t</type>
           <declname>cols</declname>
         </param>
+        <param>
+          <type>const float *</type>
+          <declname>dbias</declname>
+        </param>
         <briefdescription>
+<para>Launch a GEMV FP32 kernel: y = W*x + bias (bias optional). </para>
         </briefdescription>
         <detaileddescription>
+<para>All pointers must be device pointers. bias may be NULL.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>dW</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Device pointer to row-major matrix W (rows x cols). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>dx</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Device pointer to vector x (cols). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>dy</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Device pointer to vector y (rows). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>rows</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of rows in W / entries in y. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>cols</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of cols in W / entries in x. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>dbias</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Optional device pointer to bias (rows) or NULL. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>0 on success, negative on failure.</para>
+</simplesect>
+Launch a GEMV FP32 kernel: y = W*x + bias (bias optional).</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>dW</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Device pointer to row-major weights (rows x cols). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>dx</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Device pointer to input vector (cols). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>dy</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Device pointer to output vector (rows). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>rows</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Rows. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>cols</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Cols. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>dbias</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Optional bias vector (rows) or NULL. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>0 on success, negative on failure. </para>
+</simplesect>
+</para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="engine/src/devices/ie_device_cuda_stub.c" line="41" column="5" bodyfile="engine/src/devices/ie_device_cuda_stub.c" bodystart="41" bodyend="48"/>
+        <location file="engine/src/devices/ie_device_cuda_stub.c" line="37" column="5" bodyfile="engine/src/devices/ie_device_cuda_stub.c" bodystart="37" bodyend="50"/>
+        <references refid="ie__device__cuda_8cu_1a40d63f78b522bf7ee843ee4813368659" compoundref="ie__device__cuda_8cu" startline="29">g_last_err</references>
+        <references refid="ie__device__cuda_8cu_1a4ed091f3252b0eddeb76bd1d8fc63168" compoundref="ie__device__cuda_8cu" startline="63" endline="65">ie_cuda_clear_last_error</references>
+        <references refid="ie__device__cuda_8cu_1a0391d9bf2a39582d39265da97820553f" compoundref="ie__device__cuda_8cu" startline="37" endline="42">ie_cuda_set_last_error_cuda</references>
+        <referencedby refid="ie__device__common_8c_1a10d98754f37925ce0fd653a011fc9d47" compoundref="ie__device__common_8c" startline="261" endline="303">cuda_gemv_f32_thunk</referencedby>
       </memberdef>
+      <memberdef kind="function" id="ie__device__cuda__stub_8c_1a5352cd0342ec8b242f5683c117bb8973" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int ie_cuda_gemv_q4_0_f32</definition>
+        <argsstring>(const uint8_t *dW_q4, const uint8_t *dW_scales, size_t scale_bytes, const float *dx, float *dy, size_t rows, size_t cols, const uint16_t *dbias_bf16)</argsstring>
+        <name>ie_cuda_gemv_q4_0_f32</name>
+        <param>
+          <type>const uint8_t *</type>
+          <declname>dW_q4</declname>
+        </param>
+        <param>
+          <type>const uint8_t *</type>
+          <declname>dW_scales</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>scale_bytes</declname>
+        </param>
+        <param>
+          <type>const float *</type>
+          <declname>dx</declname>
+        </param>
+        <param>
+          <type>float *</type>
+          <declname>dy</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>rows</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>cols</declname>
+        </param>
+        <param>
+          <type>const uint16_t *</type>
+          <declname>dbias_bf16</declname>
+        </param>
+        <briefdescription>
+<para>Launch a GEMV Q4_0 kernel: y = dequant(Wq4) * x (+ optional BF16 bias). </para>
+        </briefdescription>
+        <detaileddescription>
+<para>All pointers must be device pointers. bias may be NULL.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>dW_q4</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Device pointer to packed Q4_0 weights. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>dW_scales</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Device pointer to per-block scales. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>scale_bytes</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Bytes per scale (1 or 2). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>dx</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Device pointer to input vector (FP32). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>dy</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Device pointer to output vector (FP32). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>rows</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Rows. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>cols</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Cols (multiple of 32). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>dbias_bf16</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Optional device pointer to BF16 bias (rows) or NULL. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>0 on success, negative on failure.</para>
+</simplesect>
+Launch a GEMV Q4_0 kernel: y = dequant(Wq4) * x (+ optional BF16 bias). </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/src/devices/ie_device_cuda_stub.c" line="52" column="5" bodyfile="engine/src/devices/ie_device_cuda_stub.c" bodystart="52" bodyend="69"/>
+        <references refid="ie__device__cuda_8cu_1a40d63f78b522bf7ee843ee4813368659" compoundref="ie__device__cuda_8cu" startline="29">g_last_err</references>
+        <references refid="ie__device__cuda_8cu_1a4ed091f3252b0eddeb76bd1d8fc63168" compoundref="ie__device__cuda_8cu" startline="63" endline="65">ie_cuda_clear_last_error</references>
+        <references refid="ie__device__cuda_8cu_1a0391d9bf2a39582d39265da97820553f" compoundref="ie__device__cuda_8cu" startline="37" endline="42">ie_cuda_set_last_error_cuda</references>
+        <referencedby refid="ie__device__common_8c_1ab97116893ac6fb20f32aaf7462a13b50" compoundref="ie__device__common_8c" startline="311" endline="362">cuda_gemv_q4_0_f32_thunk</referencedby>
+      </memberdef>
+      <member refid="group__IE__GPU_1ga6656c0ddd9df382048e7cd162e0c1d64" kind="function"><name>ie_cuda_last_error_string</name></member>
     </sectiondef>
     <briefdescription>
     </briefdescription>
@@ -225,53 +659,78 @@ Free device memory allocated by <ref refid="ie__device__cuda_8h_1a5e37ce02187897
     </detaileddescription>
     <programlisting>
 <codeline lineno="1"><highlight class="comment">//<sp/>File:<sp/>engine/src/devices/ie_device_cuda_stub.c</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="2"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stddef.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="2"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;<ref refid="ie__device__cuda_8h" kindref="compound">ie_device_cuda.h</ref>&quot;</highlight><highlight class="normal"></highlight></codeline>
 <codeline lineno="3"><highlight class="normal"></highlight></codeline>
-<codeline lineno="4" refid="ie__device__cuda__stub_8c_1aa7d18bba67349415d8d7cf8c92ed5e77" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="ie__device__cuda__stub_8c_1aa7d18bba67349415d8d7cf8c92ed5e77" kindref="member">ie_cuda_is_available</ref>(</highlight><highlight class="keywordtype">void</highlight><highlight class="normal">)<sp/>{</highlight></codeline>
-<codeline lineno="5"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>0;</highlight></codeline>
-<codeline lineno="6"><highlight class="normal">}</highlight></codeline>
-<codeline lineno="7"><highlight class="normal"></highlight></codeline>
-<codeline lineno="8" refid="ie__device__cuda__stub_8c_1ab6f8a4915a09c9a92ac530c4188a0482" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="ie__device__cuda__stub_8c_1ab6f8a4915a09c9a92ac530c4188a0482" kindref="member">ie_cuda_init</ref>(</highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">gpu_id</ref>)<sp/>{</highlight></codeline>
-<codeline lineno="9"><highlight class="normal"><sp/><sp/>(<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">void</ref>)<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">gpu_id</ref>;</highlight></codeline>
-<codeline lineno="10"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>-1;</highlight></codeline>
-<codeline lineno="11"><highlight class="normal">}</highlight></codeline>
-<codeline lineno="12"><highlight class="normal"></highlight></codeline>
-<codeline lineno="13" refid="ie__device__cuda__stub_8c_1a6b4b4a8fab52857b3d27f965f152036f" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="ie__device__cuda__stub_8c_1a6b4b4a8fab52857b3d27f965f152036f" kindref="member">ie_cuda_malloc</ref>(</highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>**<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">out</ref>,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>bytes)<sp/>{</highlight></codeline>
-<codeline lineno="14"><highlight class="normal"><sp/><sp/>(<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">void</ref>)bytes;</highlight></codeline>
-<codeline lineno="15"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">out</ref>)<sp/>*<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">out</ref><sp/>=<sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">NULL</ref>;</highlight></codeline>
-<codeline lineno="16"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>-1;</highlight></codeline>
-<codeline lineno="17"><highlight class="normal">}</highlight></codeline>
-<codeline lineno="18"><highlight class="normal"></highlight></codeline>
-<codeline lineno="19" refid="ie__device__cuda__stub_8c_1a7aa3c245312a87827c310085cffdf6b5" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="ie__device__cuda__stub_8c_1a7aa3c245312a87827c310085cffdf6b5" kindref="member">ie_cuda_free</ref>(</highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*ptr)<sp/>{</highlight></codeline>
-<codeline lineno="20"><highlight class="normal"><sp/><sp/>(<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">void</ref>)ptr;</highlight></codeline>
-<codeline lineno="21"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>0;</highlight></codeline>
-<codeline lineno="22"><highlight class="normal">}</highlight></codeline>
-<codeline lineno="23"><highlight class="normal"></highlight></codeline>
-<codeline lineno="24" refid="ie__device__cuda__stub_8c_1abf3eb8cae14ea4ad177b6dc69d940017" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="ie__device__cuda__stub_8c_1abf3eb8cae14ea4ad177b6dc69d940017" kindref="member">ie_cuda_memcpy</ref>(</highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">dst</ref>,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">src</ref>,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>bytes,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>kind)<sp/>{</highlight></codeline>
-<codeline lineno="25"><highlight class="normal"><sp/><sp/>(<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">void</ref>)<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">dst</ref>;</highlight></codeline>
-<codeline lineno="26"><highlight class="normal"><sp/><sp/>(<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">void</ref>)<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">src</ref>;</highlight></codeline>
-<codeline lineno="27"><highlight class="normal"><sp/><sp/>(<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">void</ref>)bytes;</highlight></codeline>
-<codeline lineno="28"><highlight class="normal"><sp/><sp/>(<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">void</ref>)kind;</highlight></codeline>
-<codeline lineno="29"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>-1;</highlight></codeline>
-<codeline lineno="30"><highlight class="normal">}</highlight></codeline>
-<codeline lineno="31"><highlight class="normal"></highlight></codeline>
-<codeline lineno="32" refid="ie__device__cuda__stub_8c_1adc972872ea9d1da72d17f42f6a4c8754" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="ie__device__cuda__stub_8c_1adc972872ea9d1da72d17f42f6a4c8754" kindref="member">ie_cuda_device_synchronize</ref>(</highlight><highlight class="keywordtype">void</highlight><highlight class="normal">)<sp/>{</highlight></codeline>
-<codeline lineno="33"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>-1;</highlight></codeline>
-<codeline lineno="34"><highlight class="normal">}</highlight></codeline>
-<codeline lineno="35"><highlight class="normal"></highlight></codeline>
-<codeline lineno="36" refid="ie__device__cuda__stub_8c_1a3817bfd6aee5bd5f6372426a6dc934ab" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*<ref refid="ie__device__cuda__stub_8c_1a3817bfd6aee5bd5f6372426a6dc934ab" kindref="member">ie_cuda_get_error_string</ref>(</highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">err</ref>)<sp/>{</highlight></codeline>
-<codeline lineno="37"><highlight class="normal"><sp/><sp/>(<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">void</ref>)<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">err</ref>;</highlight></codeline>
-<codeline lineno="38"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/></highlight><highlight class="stringliteral">&quot;CUDA<sp/>unavailable<sp/>(stub)&quot;</highlight><highlight class="normal">;</highlight></codeline>
-<codeline lineno="39"><highlight class="normal">}</highlight></codeline>
-<codeline lineno="40"><highlight class="normal"></highlight></codeline>
-<codeline lineno="41" refid="ie__device__cuda__stub_8c_1a1396b8af251ca96e7b84200f4a974e34" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="ie__device__cuda__stub_8c_1a1396b8af251ca96e7b84200f4a974e34" kindref="member">ie_cuda_gemv_f32</ref>(</highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">out</ref>,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*w,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">x</ref>,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>rows,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>cols)<sp/>{</highlight></codeline>
-<codeline lineno="42"><highlight class="normal"><sp/><sp/>(<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">void</ref>)<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">out</ref>;</highlight></codeline>
-<codeline lineno="43"><highlight class="normal"><sp/><sp/>(<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">void</ref>)w;</highlight></codeline>
-<codeline lineno="44"><highlight class="normal"><sp/><sp/>(<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">void</ref>)<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">x</ref>;</highlight></codeline>
-<codeline lineno="45"><highlight class="normal"><sp/><sp/>(<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">void</ref>)rows;</highlight></codeline>
-<codeline lineno="46"><highlight class="normal"><sp/><sp/>(<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">void</ref>)cols;</highlight></codeline>
-<codeline lineno="47"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>-1;</highlight></codeline>
-<codeline lineno="48"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="4"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stddef.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="5"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stdint.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="6"><highlight class="normal"></highlight></codeline>
+<codeline lineno="7" refid="ie__device__cuda__stub_8c_1aa7d18bba67349415d8d7cf8c92ed5e77" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="ie__device__cuda__stub_8c_1aa7d18bba67349415d8d7cf8c92ed5e77" kindref="member">ie_cuda_is_available</ref>(</highlight><highlight class="keywordtype">void</highlight><highlight class="normal">)<sp/>{</highlight></codeline>
+<codeline lineno="8"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>0;</highlight></codeline>
+<codeline lineno="9"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="10"><highlight class="normal"></highlight></codeline>
+<codeline lineno="11" refid="ie__device__cuda__stub_8c_1ab13dfa272ae7d081b8310b86c139ecf9" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="ie__device__cuda__stub_8c_1ab13dfa272ae7d081b8310b86c139ecf9" kindref="member">ie_cuda_init</ref>(</highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>device_ordinal,</highlight></codeline>
+<codeline lineno="12"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*out_name,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>name_cap,</highlight></codeline>
+<codeline lineno="13"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*out_driver,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>driver_cap)<sp/>{</highlight></codeline>
+<codeline lineno="14"><highlight class="normal"><sp/><sp/>(void)device_ordinal;</highlight></codeline>
+<codeline lineno="15"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(out_name<sp/>&amp;&amp;<sp/>name_cap)<sp/>out_name[0]<sp/>=<sp/></highlight><highlight class="charliteral">&apos;\0&apos;</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="16"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(out_driver<sp/>&amp;&amp;<sp/>driver_cap)<sp/>out_driver[0]<sp/>=<sp/></highlight><highlight class="charliteral">&apos;\0&apos;</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="17"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>-1;</highlight></codeline>
+<codeline lineno="18"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="19"><highlight class="normal"></highlight></codeline>
+<codeline lineno="20" refid="ie__device__cuda__stub_8c_1a5e37ce0218789795b250e4dfec782e6d" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*<ref refid="ie__device__cuda__stub_8c_1a5e37ce0218789795b250e4dfec782e6d" kindref="member">ie_cuda_malloc</ref>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>nbytes)<sp/>{</highlight></codeline>
+<codeline lineno="21"><highlight class="normal"><sp/><sp/>(void)nbytes;</highlight></codeline>
+<codeline lineno="22"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>NULL;</highlight></codeline>
+<codeline lineno="23"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="24"><highlight class="normal"></highlight></codeline>
+<codeline lineno="25" refid="ie__device__cuda__stub_8c_1a3cd69e11d8225356f06f8a1f4d9b3191" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="ie__device__cuda__stub_8c_1a3cd69e11d8225356f06f8a1f4d9b3191" kindref="member">ie_cuda_free</ref>(</highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*p)<sp/>{</highlight></codeline>
+<codeline lineno="26"><highlight class="normal"><sp/><sp/>(void)p;</highlight></codeline>
+<codeline lineno="27"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="28"><highlight class="normal"></highlight></codeline>
+<codeline lineno="29" refid="ie__device__cuda__stub_8c_1a13ade60bbdaef0afaf4b53fd42c1e38c" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="ie__device__cuda__stub_8c_1a13ade60bbdaef0afaf4b53fd42c1e38c" kindref="member">ie_cuda_memcpy</ref>(</highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*dst,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*src,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>nbytes,<sp/><ref refid="ie__device__cuda_8h_1adbc073828f03b9ba8e64db6ca1c9dc8d" kindref="member">ie_cuda_copy_kind_t</ref><sp/>kind)<sp/>{</highlight></codeline>
+<codeline lineno="30"><highlight class="normal"><sp/><sp/>(void)dst;</highlight></codeline>
+<codeline lineno="31"><highlight class="normal"><sp/><sp/>(void)src;</highlight></codeline>
+<codeline lineno="32"><highlight class="normal"><sp/><sp/>(void)nbytes;</highlight></codeline>
+<codeline lineno="33"><highlight class="normal"><sp/><sp/>(void)kind;</highlight></codeline>
+<codeline lineno="34"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>-1;</highlight></codeline>
+<codeline lineno="35"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="36"><highlight class="normal"></highlight></codeline>
+<codeline lineno="37" refid="ie__device__cuda__stub_8c_1aca120e7a1c8d8c71e0c9c55ff55b5a2e" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="ie__device__cuda__stub_8c_1aca120e7a1c8d8c71e0c9c55ff55b5a2e" kindref="member">ie_cuda_gemv_f32</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*dW,</highlight></codeline>
+<codeline lineno="38"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*dx,</highlight></codeline>
+<codeline lineno="39"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*dy,</highlight></codeline>
+<codeline lineno="40"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>rows,</highlight></codeline>
+<codeline lineno="41"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>cols,</highlight></codeline>
+<codeline lineno="42"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*dbias)<sp/>{</highlight></codeline>
+<codeline lineno="43"><highlight class="normal"><sp/><sp/>(void)dW;</highlight></codeline>
+<codeline lineno="44"><highlight class="normal"><sp/><sp/>(void)dx;</highlight></codeline>
+<codeline lineno="45"><highlight class="normal"><sp/><sp/>(void)dy;</highlight></codeline>
+<codeline lineno="46"><highlight class="normal"><sp/><sp/>(void)rows;</highlight></codeline>
+<codeline lineno="47"><highlight class="normal"><sp/><sp/>(void)cols;</highlight></codeline>
+<codeline lineno="48"><highlight class="normal"><sp/><sp/>(void)dbias;</highlight></codeline>
+<codeline lineno="49"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>-1;</highlight></codeline>
+<codeline lineno="50"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="51"><highlight class="normal"></highlight></codeline>
+<codeline lineno="52" refid="ie__device__cuda__stub_8c_1a5352cd0342ec8b242f5683c117bb8973" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="ie__device__cuda__stub_8c_1a5352cd0342ec8b242f5683c117bb8973" kindref="member">ie_cuda_gemv_q4_0_f32</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>uint8_t<sp/>*dW_q4,</highlight></codeline>
+<codeline lineno="53"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>uint8_t<sp/>*dW_scales,</highlight></codeline>
+<codeline lineno="54"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>scale_bytes,</highlight></codeline>
+<codeline lineno="55"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*dx,</highlight></codeline>
+<codeline lineno="56"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*dy,</highlight></codeline>
+<codeline lineno="57"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>rows,</highlight></codeline>
+<codeline lineno="58"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>cols,</highlight></codeline>
+<codeline lineno="59"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>uint16_t<sp/>*dbias_bf16)<sp/>{</highlight></codeline>
+<codeline lineno="60"><highlight class="normal"><sp/><sp/>(void)dW_q4;</highlight></codeline>
+<codeline lineno="61"><highlight class="normal"><sp/><sp/>(void)dW_scales;</highlight></codeline>
+<codeline lineno="62"><highlight class="normal"><sp/><sp/>(void)scale_bytes;</highlight></codeline>
+<codeline lineno="63"><highlight class="normal"><sp/><sp/>(void)dx;</highlight></codeline>
+<codeline lineno="64"><highlight class="normal"><sp/><sp/>(void)dy;</highlight></codeline>
+<codeline lineno="65"><highlight class="normal"><sp/><sp/>(void)rows;</highlight></codeline>
+<codeline lineno="66"><highlight class="normal"><sp/><sp/>(void)cols;</highlight></codeline>
+<codeline lineno="67"><highlight class="normal"><sp/><sp/>(void)dbias_bf16;</highlight></codeline>
+<codeline lineno="68"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>-1;</highlight></codeline>
+<codeline lineno="69"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="70"><highlight class="normal"></highlight></codeline>
+<codeline lineno="71" refid="group__IE__GPU_1ga6656c0ddd9df382048e7cd162e0c1d64" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*<ref refid="group__IE__GPU_1ga6656c0ddd9df382048e7cd162e0c1d64" kindref="member">ie_cuda_last_error_string</ref>(</highlight><highlight class="keywordtype">void</highlight><highlight class="normal">)<sp/>{</highlight></codeline>
+<codeline lineno="72"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/></highlight><highlight class="stringliteral">&quot;CUDA<sp/>unavailable<sp/>(stub)&quot;</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="73"><highlight class="normal">}</highlight></codeline>
     </programlisting>
     <location file="engine/src/devices/ie_device_cuda_stub.c"/>
   </compounddef>

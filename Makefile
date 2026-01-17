@@ -44,6 +44,7 @@ REPORT_ARGS ?=
 # Script that verifies per-prompt reports (must exist if VERIFY=1).
 VERIFY_SCRIPT ?= tools/verify_report_tokens.py
 VERIFY_ARGS ?= --require-expected
+STRICT_VERIFY_SCRIPT ?= tools/verify_strict_ids.py
 
 # =============================================================================
 # Toolchains
@@ -325,6 +326,15 @@ bench-report: $(BIN_CPU)
       ROUNDS_VAL="$${ROUNDS:-1}"; \
       EXPECTED_TOKENS_VAL="$${EXPECTED_TOKENS:-$$(dirname "$$ABS_PROMPTS")/expected_tokens.txt}"; \
       DEDUP_VAL="1"; \
+      VERIFY_HF_IDS_VAL="$${VERIFY_HF_IDS:-1}"; \
+      HF_DIR_VAL="$${HF_DIR:-$$ABS_MDIR/hf/original}"; \
+      HF_PY_VAL="$${HF_PY:-$(CURDIR)/.venv/bin/python}"; \
+      if [ ! -x "$$HF_PY_VAL" ]; then HF_PY_VAL="$${HF_PY:-python3}"; fi; \
+      HF_DEVICE_VAL="$${HF_DEVICE:-cpu}"; \
+      HF_DTYPE_VAL="$${HF_DTYPE:-fp32}"; \
+      HF_TOPK_VAL="$${HF_TOPK:-0}"; \
+      HF_LOGITS_TOL_VAL="$${HF_LOGITS_TOL:-}"; \
+      HF_CHECK_PROMPT_VAL="$${HF_CHECK_PROMPT:-1}"; \
       GEN_BIN="$${EXPECTED_TOKENS_BIN:-$(BIN_CPU)}"; \
       ABS_GEN_BIN="$$(realpath -m "$$GEN_BIN")"; \
       if [ "$${EXPECTED_TOKENS_GENERATE:-$(EXPECTED_TOKENS_GENERATE)}" = "1" ] || [ ! -f "$$EXPECTED_TOKENS_VAL" ]; then \
@@ -445,6 +455,16 @@ bench-report-cuda: $(BIN_CUDA)
 bench-verify:
 > @set -e; set -o pipefail; \
       if [ "$${VERIFY:-$(VERIFY)}" != "1" ]; then echo "[bench-verify] VERIFY=0; nothing to do."; exit 0; fi; \
+      VERIFY_HF_IDS_VAL="$${VERIFY_HF_IDS:-1}"; \
+      if [ "$$VERIFY_HF_IDS_VAL" = "1" ]; then \
+        if [ ! -f "$(STRICT_VERIFY_SCRIPT)" ]; then echo "ERROR: VERIFY_HF_IDS=1 but missing $(STRICT_VERIFY_SCRIPT)"; exit 2; fi; \
+        SP="$${STRICT_REPORT_PATH:-$(BUILD)/strict_cpu.json}"; \
+        if [ ! -f "$$SP" ]; then echo "ERROR: strict report '$$SP' not found"; exit 2; fi; \
+        echo "[bench-verify] verifying strict IDs $$SP"; \
+        $(PYTHON) "$(STRICT_VERIFY_SCRIPT)" "$$SP"; \
+        echo "[bench-verify] OK"; \
+        exit 0; \
+      fi; \
       if [ ! -f "$(VERIFY_SCRIPT)" ]; then echo "ERROR: VERIFY=1 but missing $(VERIFY_SCRIPT)"; exit 2; fi; \
       RP="$${REPORT_PATH:-}"; \
       if [ -z "$$RP" ]; then \
@@ -463,6 +483,16 @@ bench-verify:
 bench-verify-cuda:
 > @set -e; set -o pipefail; \
       if [ "$${VERIFY:-$(VERIFY)}" != "1" ]; then echo "[bench-verify-cuda] VERIFY=0; nothing to do."; exit 0; fi; \
+      VERIFY_HF_IDS_VAL="$${VERIFY_HF_IDS:-1}"; \
+      if [ "$$VERIFY_HF_IDS_VAL" = "1" ]; then \
+        if [ ! -f "$(STRICT_VERIFY_SCRIPT)" ]; then echo "ERROR: VERIFY_HF_IDS=1 but missing $(STRICT_VERIFY_SCRIPT)"; exit 2; fi; \
+        SP="$${STRICT_REPORT_PATH:-$(BUILD)/strict_gpu.json}"; \
+        if [ ! -f "$$SP" ]; then echo "ERROR: strict report '$$SP' not found"; exit 2; fi; \
+        echo "[bench-verify-cuda] verifying strict IDs $$SP"; \
+        $(PYTHON) "$(STRICT_VERIFY_SCRIPT)" "$$SP"; \
+        echo "[bench-verify-cuda] OK"; \
+        exit 0; \
+      fi; \
       if [ ! -f "$(VERIFY_SCRIPT)" ]; then echo "ERROR: VERIFY=1 but missing $(VERIFY_SCRIPT)"; exit 2; fi; \
       RP="$${REPORT_PATH:-}"; \
       if [ -z "$$RP" ]; then \
@@ -504,6 +534,18 @@ bench: $(BIN_CPU)
       MAX_NEW_VAL="$${MAX_NEW:-128}"; \
       RUNS_VAL="$${RUNS:-3}"; \
       ROUNDS_VAL="$${ROUNDS:-1}"; \
+      VERIFY_HF_IDS_VAL="$${VERIFY_HF_IDS:-1}"; \
+      HF_DIR_VAL="$${HF_DIR:-$$ABS_MDIR/hf/original}"; \
+      HF_PY_VAL="$${HF_PY:-$(CURDIR)/.venv/bin/python}"; \
+      if [ ! -x "$$HF_PY_VAL" ]; then HF_PY_VAL="$${HF_PY:-python3}"; fi; \
+      HF_DEVICE_VAL="$${HF_DEVICE:-cpu}"; \
+      HF_DTYPE_VAL="$${HF_DTYPE:-fp32}"; \
+      HF_TOPK_VAL="$${HF_TOPK:-0}"; \
+      HF_LOGITS_TOL_VAL="$${HF_LOGITS_TOL:-}"; \
+      HF_CHECK_PROMPT_VAL="$${HF_CHECK_PROMPT:-1}"; \
+      if [ "$$VERIFY_HF_IDS_VAL" = "1" ] && [ ! -d "$$HF_DIR_VAL" ]; then \
+        echo "ERROR: VERIFY_HF_IDS=1 but HF_DIR not found: $$HF_DIR_VAL"; exit 2; \
+      fi; \
       echo "[bench] strict run (true TPS)… (RUNS=$$RUNS_VAL, ROUNDS=$$ROUNDS_VAL, IE_DEDUP=$$DEDUP_VAL)"; \
       env -i PATH="$$PATH" SHELL="$$SHELL" HOME="$$HOME" \
       ENGINE_BIN="$$ABS_BIN" DEVICE="cpu" MODEL_DIR="$$ABS_MDIR" PROMPTS="$$ABS_PROMPTS" \
@@ -515,11 +557,10 @@ bench: $(BIN_CPU)
       IE_ACTIVATIONS="$$IE_ACTIVATIONS" IE_FP8_FORMAT="$$IE_FP8_FORMAT" IE_HOT_REPLICATE="$$IE_HOT_REPLICATE" \
       IE_DEDUP="$$DEDUP_VAL" IE_DEDUP_POLICY="$$IE_DEDUP_POLICY" IE_DEDUP_CACHE_MB="$$IE_DEDUP_CACHE_MB" IE_DEDUP_HOT_BYTES="$$IE_DEDUP_HOT_BYTES" IE_DEDUP_HOT_LIST="$$IE_DEDUP_HOT_LIST" \
       IE_PREFETCH_DISTANCE="$$IE_PREFETCH_DISTANCE" IE_NT_LOADS="$$IE_NT_LOADS" IE_L3_BYTES="$$IE_L3_BYTES" IE_NT_THRESHOLD_RATIO="$$IE_NT_THRESHOLD_RATIO" IE_STREAM_BLOCK_BYTES="$$IE_STREAM_BLOCK_BYTES" IE_REUSE_GUARD_WINDOWS="$$IE_REUSE_GUARD_WINDOWS" \
+      VERIFY_HF_IDS="$$VERIFY_HF_IDS_VAL" HF_DIR="$$HF_DIR_VAL" HF_PY="$$HF_PY_VAL" \
+      HF_DEVICE="$$HF_DEVICE_VAL" HF_DTYPE="$$HF_DTYPE_VAL" HF_TOPK="$$HF_TOPK_VAL" \
+      HF_LOGITS_TOL="$$HF_LOGITS_TOL_VAL" HF_CHECK_PROMPT="$$HF_CHECK_PROMPT_VAL" \
       bash scripts/true_tps_strict.sh | tee $(BUILD)/strict_cpu.json; \
-      if [ "$${REPORT:-$(REPORT)}" = "1" ]; then \
-        $(MAKE) bench-report PROMPTS="$$ABS_PROMPTS" MODEL_DIR="$$ABS_MDIR" THREADS="$$THREADS_VAL" PRECISION="$$PRECISION_VAL" BATCH="$$BATCH_VAL" PREFETCH="$$PREFETCH_VAL" PRETRANSPOSE="$$PRETRANS_VAL" AFFINITY="$$AFFINITY_VAL" MAX_NEW="$$MAX_NEW_VAL" RUNS="$$RUNS_VAL" ROUNDS="$$ROUNDS_VAL"; \
-        if [ "$${VERIFY:-$(VERIFY)}" = "1" ]; then $(MAKE) bench-verify; fi; \
-      fi; \
       echo "[bench] updating docs/PERFORMANCE.md (CPU)…"; \
       if [ -f $(BUILD)/strict_gpu.json ]; then \
         GPU_ARG="--gpu-json $(BUILD)/strict_gpu.json --gpu-engine-bin $$(realpath -m $(BIN_CUDA))"; \
@@ -541,7 +582,12 @@ bench: $(BIN_CPU)
         --ie-bytes-per-token "$${IE_BYTES_PER_TOKEN:-67108864}" \
         --ie-stride-bytes "$${IE_STRIDE_BYTES:-256}" \
         --ie-verify-touch "$${IE_VERIFY_TOUCH:-1}" \
-        --model-dir "$$ABS_MDIR"
+        --model-dir "$$ABS_MDIR"; \
+      if [ "$${REPORT:-$(REPORT)}" = "1" ]; then \
+        $(MAKE) bench-report PROMPTS="$$ABS_PROMPTS" MODEL_DIR="$$ABS_MDIR" THREADS="$$THREADS_VAL" PRECISION="$$PRECISION_VAL" BATCH="$$BATCH_VAL" PREFETCH="$$PREFETCH_VAL" PRETRANSPOSE="$$PRETRANS_VAL" AFFINITY="$$AFFINITY_VAL" MAX_NEW="$$MAX_NEW_VAL" RUNS="$$RUNS_VAL" ROUNDS="$$ROUNDS_VAL"; \
+        if [ "$${VERIFY:-$(VERIFY)}" = "1" ]; then $(MAKE) bench-verify VERIFY_HF_IDS="$$VERIFY_HF_IDS_VAL" STRICT_REPORT_PATH="$(BUILD)/strict_cpu.json"; fi; \
+      fi; \
+      
 
 bench-cuda: $(BIN_CUDA)
 > @set -e; set -o pipefail; \
@@ -570,6 +616,18 @@ bench-cuda: $(BIN_CUDA)
       MAX_NEW_VAL="$${MAX_NEW:-128}"; \
       RUNS_VAL="$${RUNS:-3}"; \
       ROUNDS_VAL="$${ROUNDS:-1}"; \
+      VERIFY_HF_IDS_VAL="$${VERIFY_HF_IDS:-1}"; \
+      HF_DIR_VAL="$${HF_DIR:-$$ABS_MDIR/hf/original}"; \
+      HF_PY_VAL="$${HF_PY:-$(CURDIR)/.venv/bin/python}"; \
+      if [ ! -x "$$HF_PY_VAL" ]; then HF_PY_VAL="$${HF_PY:-python3}"; fi; \
+      HF_DEVICE_VAL="$${HF_DEVICE:-cpu}"; \
+      HF_DTYPE_VAL="$${HF_DTYPE:-fp32}"; \
+      HF_TOPK_VAL="$${HF_TOPK:-0}"; \
+      HF_LOGITS_TOL_VAL="$${HF_LOGITS_TOL:-}"; \
+      HF_CHECK_PROMPT_VAL="$${HF_CHECK_PROMPT:-1}"; \
+      if [ "$$VERIFY_HF_IDS_VAL" = "1" ] && [ ! -d "$$HF_DIR_VAL" ]; then \
+        echo "ERROR: VERIFY_HF_IDS=1 but HF_DIR not found: $$HF_DIR_VAL"; exit 2; \
+      fi; \
       echo "[bench-cuda] strict run (true TPS)… (RUNS=$$RUNS_VAL, ROUNDS=$$ROUNDS_VAL, IE_DEDUP=$$DEDUP_VAL)"; \
       env -i PATH="$$PATH" SHELL="$$SHELL" HOME="$$HOME" \
       ENGINE_BIN="$$ABS_BIN" DEVICE="cuda" MODEL_DIR="$$ABS_MDIR" PROMPTS="$$ABS_PROMPTS" \
@@ -582,10 +640,13 @@ bench-cuda: $(BIN_CUDA)
       IE_DEDUP="$$DEDUP_VAL" IE_DEDUP_POLICY="$$IE_DEDUP_POLICY" IE_DEDUP_CACHE_MB="$$IE_DEDUP_CACHE_MB" IE_DEDUP_HOT_BYTES="$$IE_DEDUP_HOT_BYTES" IE_DEDUP_HOT_LIST="$$IE_DEDUP_HOT_LIST" \
       IE_PREFETCH_DISTANCE="$$IE_PREFETCH_DISTANCE" IE_NT_LOADS="$$IE_NT_LOADS" IE_L3_BYTES="$$IE_L3_BYTES" IE_NT_THRESHOLD_RATIO="$$IE_NT_THRESHOLD_RATIO" IE_STREAM_BLOCK_BYTES="$$IE_STREAM_BLOCK_BYTES" IE_REUSE_GUARD_WINDOWS="$$IE_REUSE_GUARD_WINDOWS" \
       IE_METRICS_MEM="1" IE_METRICS_MEM_TOML="monitoring/metrics_memory.toml" \
+      VERIFY_HF_IDS="$$VERIFY_HF_IDS_VAL" HF_DIR="$$HF_DIR_VAL" HF_PY="$$HF_PY_VAL" \
+      HF_DEVICE="$$HF_DEVICE_VAL" HF_DTYPE="$$HF_DTYPE_VAL" HF_TOPK="$$HF_TOPK_VAL" \
+      HF_LOGITS_TOL="$$HF_LOGITS_TOL_VAL" HF_CHECK_PROMPT="$$HF_CHECK_PROMPT_VAL" \
       bash scripts/true_tps_strict.sh | tee $(BUILD)/strict_gpu.json; \
       if [ "$${REPORT:-$(REPORT)}" = "1" ]; then \
         $(MAKE) bench-report-cuda PROMPTS="$$ABS_PROMPTS" MODEL_DIR="$$ABS_MDIR" THREADS="$$THREADS_VAL" PRECISION="$$PRECISION_VAL" BATCH="$$BATCH_VAL" PREFETCH="$$PREFETCH_VAL" PRETRANSPOSE="$$PRETRANS_VAL" AFFINITY="$$AFFINITY_VAL" MAX_NEW="$$MAX_NEW_VAL" RUNS="$$RUNS_VAL" ROUNDS="$$ROUNDS_VAL"; \
-        if [ "$${VERIFY:-$(VERIFY)}" = "1" ]; then $(MAKE) bench-verify-cuda; fi; \
+        if [ "$${VERIFY:-$(VERIFY)}" = "1" ]; then $(MAKE) bench-verify-cuda VERIFY_HF_IDS="$$VERIFY_HF_IDS_VAL" STRICT_REPORT_PATH="$(BUILD)/strict_gpu.json"; fi; \
       fi; \
       echo "[bench-cuda] updating docs/PERFORMANCE.md (GPU)…"; \
       if [ -f $(BUILD)/strict_cpu.json ]; then \

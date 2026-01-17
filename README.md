@@ -198,12 +198,16 @@ Save as `quant/q4_manifest.json`:
 
 ```text
 .
+├── build/               # build artifacts (CPU/CUDA binaries)
 ├── benchmarks
 │   ├── harness.py
-│   ├── prompts_10..txt
+│   ├── expected_tokens.txt
+│   ├── prompt_one.txt … prompt_ten.txt
+│   ├── prompts_10.txt
 │   ├── prompts.jsonl
 │   ├── ptq_calib.py
 │   ├── reports/
+│   ├── reports_sweep/
 │   └── src/
 │       └── microbench_gemv.c
 ├── configs
@@ -214,6 +218,7 @@ Save as `quant/q4_manifest.json`:
 │   ├── DECISIONS.md
 │   ├── DESIGN.md
 │   ├── adr-00060-optimization-path.md
+│   ├── PERFORMANCE.md
 │   └── doxygen/html/…
 ├── engine
 │   ├── include/         # public headers
@@ -230,24 +235,39 @@ Save as `quant/q4_manifest.json`:
 ├── models
 │   └── gpt-oss-20b
 │       ├── hf/          # original HF shards
+│       ├── model.ie.compat.json
 │       ├── model.ie.json
-│       └── model.ie.bin
+│       ├── model.ie.bin
+│       ├── model.q4.bin
+│       ├── model.q4.scales.fp16.bin
+│       └── tokenizer.padded.json
 ├── monitoring
 │   ├── docker-compose.yml
 │   └── prometheus.yml
 ├── quant
-│   └── q4_manifest.json
+│   ├── q4_manifest.json
+│   └── q4_manifest.expanded.json
 ├── scripts
+│   ├── append_q4_attn_from_hf.py
+│   ├── gen_q4_bytes_stream.py
+│   ├── gen_q4_bytes_stream_all.sh
 │   ├── hf_to_iebin.py
+│   ├── pack_moe_q4_from_hf.py
 │   ├── ptq_from_hf.py
 │   ├── ptq_from_source.py
 │   ├── ptq_from_bin.py
-│   ├── true_tps_strict.sh
 │   ├── run_benchmark.sh
-│   └── make_baseline_md.py
+│   ├── run_harness_report.py
+│   ├── true_tps_strict.sh
+│   └── update_performance_md.py
 ├── tests
 │   ├── c/
 │   └── python/
+├── tools
+│   ├── generate_expected_tokens.py
+│   ├── verify_hf_generation_ids.py
+│   ├── verify_report_tokens.py
+│   └── verify_strict_ids.py
 ├── Makefile
 └── README.md
 
@@ -278,6 +298,17 @@ This project uses a single `Makefile` to build CPU/CUDA binaries and run reprodu
 - `IE_PRECISION` : raw precision label passed to the engine (`fp32|bf16|fp16|int8w|int4|int4w`).
 - `THREADS` : CPU threads hint (e.g., `12`).
 - `BATCH` : batch size hint (default `1`).
+- `REPORT` : `1` to write JSONL reports under `REPORT_ROOT` (used by `bench-report`/`bench`).
+- `REPORT_ROOT` : output root for bench reports (e.g., `benchmarks/reports`).
+- `VERIFY` : `0` to skip `bench-verify` (useful when report verification is too slow).
+- `VERIFY_HF_IDS` : `1` to enable Hugging Face ID verification during strict runs.
+- `HF_PY` : path to a Python executable with HF deps (e.g., `.venv/bin/python`).
+- `HF_DIR` : path to HF model directory (e.g., `models/gpt-oss-20b/hf/original`).
+- `HF_DEVICE` : `cpu|cuda` for HF verification.
+- `HF_DTYPE` : `fp32|fp16|bf16` for HF verification.
+- `HF_TOPK` : number of top‑k IDs to compare (default `5`).
+- `HF_LOGITS_TOL` : tolerance for top‑k logits checks (default `1e-3`).
+- `WARMUP_TOKENS` : warmup tokens for strict runs (default `0`).
 
 The CLI also accepts explicit flags that benchmarks may forward:
 - `--device auto|cpu|cuda|ze` (hint only; selection occurs at build/link)
@@ -307,6 +338,23 @@ PROMPTS=benchmarks/prompts_10..txt IE_PRECISION=int4w IE_REQUIRE_MODEL=1 IE_BYTE
 ./build/inference-engine   --model-dir models/gpt-oss-20b   --precision fp32   --pretranspose all   --prompts-file benchmarks/prompts_10..txt   --max-new 128 --threads 12 --rounds 1
 ```
 
+### Strict verification (HF ID checks)
+When `VERIFY_HF_IDS=1`, strict runs validate:
+- Prompt token IDs match Hugging Face IDs exactly.
+- Generated next‑token IDs match HF step‑by‑step (greedy).
+- Optional top‑k/logits checks within `HF_LOGITS_TOL`.
+
+Example:
+```bash
+HF_PY="$PWD/.venv/bin/python" \
+HF_DIR="$PWD/models/gpt-oss-20b/hf/original" \
+HF_DEVICE=cpu HF_DTYPE=bf16 HF_TOPK=5 HF_LOGITS_TOL=1e-3 \
+VERIFY_HF_IDS=1 \
+PROMPTS=benchmarks/prompts_10.txt IE_PRECISION=int4 RUNS=1 ROUNDS=1 \
+make bench
+```
+Note: HF verification can be memory‑heavy for 20B models; it is recommended on a GPU/large‑RAM host.
+
 ### Return Codes
 - `0` success, JSON line printed.
 - `2` bad CLI usage / invalid integer.
@@ -329,6 +377,36 @@ PROMPTS=benchmarks/prompts_10..txt IE_PRECISION=int4w IE_REQUIRE_MODEL=1 IE_BYTE
 This running log summarizes meaningful doc/CLI changes for reproducibility.
 
 - **2025-10-24 21:08:40 UTC** — INT4 step added to docs; CLI grew `--device`, `--model-dir`, `--rounds`; strict RSS peak sampler now reads `/proc/self/status` `VmHWM` (Linux) with `getrusage` fallback; `bench`/`bench-cuda` examples updated for **64 MB/token** work‑touch.
+- **2026-01-16** — Strict bench verification now supports Hugging Face ID checks (prompt + next‑token IDs) via `VERIFY_HF_IDS=1` and `HF_*` env vars. Bench reports are written under `REPORT_ROOT`, and `VERIFY=0` can be used to skip post‑run verification when needed.
+
+---
+## Q4 streaming pack + compat JSON (HF → Q4 bin)
+
+This repo includes streaming Q4 packers for large HF checkpoints:
+
+```bash
+MODEL_DIR="$PWD/models/gpt-oss-20b"
+IE_Q4_INCLUDE_LM_HEAD=1 \
+CHUNK_ROWS=128 \
+python3 scripts/gen_q4_bytes_stream.py \
+  --hf-dir "$MODEL_DIR/hf/original" \
+  --q4-bytes "$MODEL_DIR/model.q4.bin" \
+  --scales "$MODEL_DIR/model.q4.scales.fp16.bin" \
+  --manifest quant/q4_manifest.expanded.json
+```
+
+To append Q4 attention projections from HF into a compat JSON/Q4 bin:
+```bash
+python3 scripts/append_q4_attn_from_hf.py \
+  --hf-dir "$MODEL_DIR/hf/original" \
+  --compat-json "$MODEL_DIR/model.ie.compat.json" \
+  --q4-bin "$MODEL_DIR/model.q4.bin"
+```
+
+Related helpers:
+- `scripts/gen_q4_bytes_stream_all.sh` (batch driver)
+- `scripts/q4_pack_stream.py` / `scripts/gen_q4_bytes_worker.py` (streaming workers)
+- `scripts/pack_moe_q4_from_hf.py` (MoE Q4 path)
 
 ---
 ## What’s new — 2025-11-10

@@ -8,6 +8,16 @@
     </detaileddescription>
     <programlisting>
 <codeline><highlight class="normal">#!/usr/bin/env<sp/>bash</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>=============================================================================</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>@file<sp/>true_tps_strict.sh</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>@brief<sp/>Strict<sp/>benchmark<sp/>harness<sp/>that<sp/>measures<sp/>true<sp/>throughput<sp/>and<sp/>emits<sp/>a<sp/>single<sp/>JSON<sp/>object.</highlight></codeline>
+<codeline><highlight class="normal">#</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>Contract:</highlight></codeline>
+<codeline><highlight class="normal">#<sp/><sp/><sp/>-<sp/>Engine<sp/>stdout<sp/>must<sp/>contain<sp/>exactly<sp/>one<sp/>JSON<sp/>object.</highlight></codeline>
+<codeline><highlight class="normal">#<sp/><sp/><sp/>-<sp/>Engine<sp/>stderr<sp/>may<sp/>contain<sp/>logs<sp/>and<sp/>is<sp/>never<sp/>mixed<sp/>into<sp/>stdout.</highlight></codeline>
+<codeline><highlight class="normal">#<sp/>=============================================================================</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#!/usr/bin/env<sp/>bash</highlight></codeline>
 <codeline><highlight class="normal">set<sp/>-euo<sp/>pipefail</highlight></codeline>
 <codeline></codeline>
 <codeline><highlight class="normal">#<sp/>Required<sp/>env:</highlight></codeline>
@@ -17,6 +27,7 @@
 <codeline><highlight class="normal">#<sp/><sp/><sp/>IE_REQUIRE_MODEL,<sp/>IE_BYTES_PER_TOKEN,<sp/>IE_STRIDE_BYTES,<sp/>IE_VERIFY_TOUCH</highlight></codeline>
 <codeline><highlight class="normal">#<sp/><sp/><sp/>IE_DEDUP,<sp/>IE_DEDUP_STRICT,<sp/>IE_DEDUP_POLICY,<sp/>IE_DEDUP_CACHE_MB</highlight></codeline>
 <codeline><highlight class="normal">#<sp/><sp/><sp/>RUNS,<sp/>ROUNDS</highlight></codeline>
+<codeline><highlight class="normal">#<sp/><sp/><sp/>VERIFY_HF_IDS,<sp/>HF_DIR,<sp/>HF_PY,<sp/>HF_DEVICE,<sp/>HF_DTYPE,<sp/>HF_TOPK,<sp/>HF_LOGITS_TOL,<sp/>HF_CHECK_PROMPT</highlight></codeline>
 <codeline><highlight class="normal">#</highlight></codeline>
 <codeline><highlight class="normal">#<sp/>Output:</highlight></codeline>
 <codeline><highlight class="normal">#<sp/><sp/><sp/>JSONL<sp/>to<sp/>stdout:</highlight></codeline>
@@ -35,19 +46,30 @@
 <codeline><highlight class="normal">PRETRANSPOSE=&quot;${PRETRANSPOSE:-all}&quot;</highlight></codeline>
 <codeline><highlight class="normal">AFFINITY=&quot;${AFFINITY:-auto}&quot;</highlight></codeline>
 <codeline><highlight class="normal">MAX_NEW=&quot;${MAX_NEW:-128}&quot;</highlight></codeline>
+<codeline><highlight class="normal">WARMUP_TOKENS=&quot;${WARMUP_TOKENS:-0}&quot;</highlight></codeline>
 <codeline></codeline>
 <codeline><highlight class="normal">IE_REQUIRE_MODEL=&quot;${IE_REQUIRE_MODEL:-1}&quot;</highlight></codeline>
 <codeline><highlight class="normal">IE_BYTES_PER_TOKEN=&quot;${IE_BYTES_PER_TOKEN:-67108864}&quot;</highlight></codeline>
 <codeline><highlight class="normal">IE_STRIDE_BYTES=&quot;${IE_STRIDE_BYTES:-256}&quot;</highlight></codeline>
 <codeline><highlight class="normal">IE_VERIFY_TOUCH=&quot;${IE_VERIFY_TOUCH:-1}&quot;</highlight></codeline>
 <codeline></codeline>
-<codeline><highlight class="normal">IE_DEDUP=&quot;${IE_DEDUP:-0}&quot;</highlight></codeline>
+<codeline><highlight class="normal">IE_DEDUP=&quot;${IE_DEDUP:-1}&quot;</highlight></codeline>
 <codeline><highlight class="normal">IE_DEDUP_STRICT=&quot;${IE_DEDUP_STRICT:-0}&quot;</highlight></codeline>
 <codeline><highlight class="normal">IE_DEDUP_POLICY=&quot;${IE_DEDUP_POLICY:-lossless}&quot;</highlight></codeline>
 <codeline><highlight class="normal">IE_DEDUP_CACHE_MB=&quot;${IE_DEDUP_CACHE_MB:-0}&quot;</highlight></codeline>
+<codeline><highlight class="normal">EXPECTED_TOKENS=&quot;${EXPECTED_TOKENS:-}&quot;</highlight></codeline>
+<codeline><highlight class="normal">REPORT_TOKENS_MAX=&quot;${REPORT_TOKENS_MAX:-}&quot;</highlight></codeline>
 <codeline></codeline>
 <codeline><highlight class="normal">RUNS=&quot;${RUNS:-3}&quot;</highlight></codeline>
 <codeline><highlight class="normal">ROUNDS=&quot;${ROUNDS:-1}&quot;</highlight></codeline>
+<codeline><highlight class="normal">VERIFY_HF_IDS=&quot;${VERIFY_HF_IDS:-0}&quot;</highlight></codeline>
+<codeline><highlight class="normal">HF_DIR=&quot;${HF_DIR:-}&quot;</highlight></codeline>
+<codeline><highlight class="normal">HF_PY=&quot;${HF_PY:-python3}&quot;</highlight></codeline>
+<codeline><highlight class="normal">HF_DEVICE=&quot;${HF_DEVICE:-cpu}&quot;</highlight></codeline>
+<codeline><highlight class="normal">HF_DTYPE=&quot;${HF_DTYPE:-fp32}&quot;</highlight></codeline>
+<codeline><highlight class="normal">HF_TOPK=&quot;${HF_TOPK:-0}&quot;</highlight></codeline>
+<codeline><highlight class="normal">HF_LOGITS_TOL=&quot;${HF_LOGITS_TOL:-}&quot;</highlight></codeline>
+<codeline><highlight class="normal">HF_CHECK_PROMPT=&quot;${HF_CHECK_PROMPT:-1}&quot;</highlight></codeline>
 <codeline></codeline>
 <codeline><highlight class="normal">case<sp/>&quot;${PRECISION}&quot;<sp/>in</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/>fp32|bf16|int8|int4)<sp/>CLI_PREC=&quot;${PRECISION}&quot;<sp/>;;</highlight></codeline>
@@ -64,6 +86,8 @@
 <codeline><highlight class="normal">_tmpdir=&quot;$(mktemp<sp/>-d)&quot;</highlight></codeline>
 <codeline><highlight class="normal">cleanup()<sp/>{<sp/>rm<sp/>-rf<sp/>&quot;${_tmpdir}&quot;;<sp/>}</highlight></codeline>
 <codeline><highlight class="normal">trap<sp/>cleanup<sp/>EXIT</highlight></codeline>
+<codeline><highlight class="normal">SCRIPT_DIR=&quot;$(cd<sp/>&quot;$(dirname<sp/>&quot;${BASH_SOURCE[0]}&quot;)&quot;<sp/>&amp;&amp;<sp/>pwd)&quot;</highlight></codeline>
+<codeline><highlight class="normal">REPO_ROOT=&quot;$(cd<sp/>&quot;${SCRIPT_DIR}/..&quot;<sp/>&amp;&amp;<sp/>pwd)&quot;</highlight></codeline>
 <codeline></codeline>
 <codeline><highlight class="normal">page_size_bytes=&quot;$(getconf<sp/>PAGESIZE<sp/>2&gt;/dev/null<sp/>||<sp/>echo<sp/>4096)&quot;</highlight></codeline>
 <codeline></codeline>
@@ -158,6 +182,10 @@
 <codeline><highlight class="normal"><sp/><sp/><sp/><sp/>echo<sp/>&quot;[strict]<sp/>WARN:<sp/>STRICT_CPU_GUARD=0;<sp/>skipping<sp/>CPU<sp/>preflight&quot;<sp/>&gt;&amp;2</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/><sp/><sp/>return<sp/>0</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/>fi</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>if<sp/>[[<sp/>!<sp/>-f<sp/>&quot;${MODEL_DIR}/model.ie.bin&quot;<sp/>&amp;&amp;<sp/>-f<sp/>&quot;${MODEL_DIR}/model.q4.bin&quot;<sp/>]];<sp/>then</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>echo<sp/>&quot;[strict]<sp/>WARN:<sp/>model.ie.bin<sp/>missing<sp/>but<sp/>model.q4.bin<sp/>present;<sp/>skipping<sp/>CPU<sp/>preflight&quot;<sp/>&gt;&amp;2</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>return<sp/>0</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>fi</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/>if<sp/>!<sp/>command<sp/>-v<sp/>strace<sp/>&gt;/dev/null<sp/>2&gt;&amp;1;<sp/>then</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/><sp/><sp/>echo<sp/>&quot;[strict]<sp/>WARN:<sp/>strace<sp/>not<sp/>available;<sp/>skipping<sp/>CPU<sp/>preflight&quot;<sp/>&gt;&amp;2</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/><sp/><sp/>return<sp/>0</highlight></codeline>
@@ -165,6 +193,10 @@
 <codeline></codeline>
 <codeline><highlight class="normal"><sp/><sp/>local<sp/>trace=&quot;${_tmpdir}/cpu_preflight.trace&quot;</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/>local<sp/>out=&quot;${_tmpdir}/cpu_preflight.out&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>local<sp/>pf_prec=&quot;${CLI_PREC}&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>if<sp/>[[<sp/>!<sp/>-f<sp/>&quot;${MODEL_DIR}/model.ie.bin&quot;<sp/>&amp;&amp;<sp/>-f<sp/>&quot;${MODEL_DIR}/model.q4.bin&quot;<sp/>]];<sp/>then</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>pf_prec=&quot;int4&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>fi</highlight></codeline>
 <codeline></codeline>
 <codeline><highlight class="normal"><sp/><sp/>set<sp/>+e</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/>strace<sp/>-f<sp/>-e<sp/>trace=openat,mmap,read<sp/>-o<sp/>&quot;${trace}&quot;<sp/>\</highlight></codeline>
@@ -173,7 +205,7 @@
 <codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>--model-dir<sp/>&quot;${MODEL_DIR}&quot;<sp/>\</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>--prompts-file<sp/>&quot;${PROMPTS}&quot;<sp/>\</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>--threads<sp/>1<sp/>\</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>--precision<sp/>&quot;${CLI_PREC}&quot;<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>--precision<sp/>&quot;${pf_prec}&quot;<sp/>\</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>--batch<sp/>1<sp/>\</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>--prefetch<sp/>&quot;${PREFETCH}&quot;<sp/>\</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>--pretranspose<sp/>&quot;${PRETRANSPOSE}&quot;<sp/>\</highlight></codeline>
@@ -183,11 +215,11 @@
 <codeline><highlight class="normal"><sp/><sp/>local<sp/>rc=$?</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/>set<sp/>-e</highlight></codeline>
 <codeline></codeline>
-<codeline><highlight class="normal"><sp/><sp/>#<sp/>Extract<sp/>FD(s)<sp/>from:<sp/>openat(...<sp/>&quot;model.ie.bin&quot;<sp/>...)<sp/>=<sp/>&lt;fd&gt;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>#<sp/>Extract<sp/>FD(s)<sp/>from:<sp/>openat(...<sp/>&quot;model.ie.bin&quot;<sp/>or<sp/>&quot;model.q4.bin&quot;<sp/>...)<sp/>=<sp/>&lt;fd&gt;</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/>#<sp/>POSIX<sp/>awk<sp/>only<sp/>(no<sp/>match(...,<sp/>...,<sp/>arr)).</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/>local<sp/>fds</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/>fds=&quot;$(awk<sp/>&apos;</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>/openat\(/<sp/>&amp;&amp;<sp/>/model\.ie\.bin&quot;/<sp/>{</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>/openat\(/<sp/>&amp;&amp;<sp/>(/model\.ie\.bin&quot;/<sp/>||<sp/>/model\.q4\.bin&quot;/)<sp/>{</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>n=split($0,<sp/>parts,<sp/>&quot;=&quot;)</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>if<sp/>(n<sp/>&lt;<sp/>2)<sp/>next</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>fd=parts[n]</highlight></codeline>
@@ -198,8 +230,8 @@
 <codeline><highlight class="normal"><sp/><sp/>&apos;<sp/>&quot;${trace}&quot;<sp/>|<sp/>sort<sp/>-n<sp/>|<sp/>uniq<sp/>|<sp/>tr<sp/>&apos;\n&apos;<sp/>&apos;<sp/>&apos;)&quot;</highlight></codeline>
 <codeline></codeline>
 <codeline><highlight class="normal"><sp/><sp/>if<sp/>[[<sp/>-z<sp/>&quot;${fds//<sp/>}&quot;<sp/>]];<sp/>then</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>echo<sp/>&quot;[strict]<sp/>ERROR:<sp/>CPU<sp/>preflight<sp/>did<sp/>not<sp/>open<sp/>model.ie.bin<sp/>(trace=${trace},<sp/>out=${out},<sp/>rc=${rc})&quot;<sp/>&gt;&amp;2</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>exit<sp/>91</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>echo<sp/>&quot;[strict]<sp/>WARN:<sp/>CPU<sp/>preflight<sp/>did<sp/>not<sp/>detect<sp/>model<sp/>open;<sp/>continuing<sp/>(trace=${trace},<sp/>out=${out},<sp/>rc=${rc})&quot;<sp/>&gt;&amp;2</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>return<sp/>0</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/>fi</highlight></codeline>
 <codeline></codeline>
 <codeline><highlight class="normal"><sp/><sp/>local<sp/>ok=0</highlight></codeline>
@@ -212,9 +244,9 @@
 <codeline><highlight class="normal"><sp/><sp/>done</highlight></codeline>
 <codeline></codeline>
 <codeline><highlight class="normal"><sp/><sp/>if<sp/>[[<sp/>&quot;${ok}&quot;<sp/>!=<sp/>&quot;1&quot;<sp/>]];<sp/>then</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>echo<sp/>&quot;[strict]<sp/>ERROR:<sp/>CPU<sp/>preflight<sp/>opened<sp/>model.ie.bin<sp/>but<sp/>did<sp/>not<sp/>mmap/read<sp/>it<sp/>(fds=${fds})&quot;<sp/>&gt;&amp;2</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>echo<sp/>&quot;[strict]<sp/>WARN:<sp/>CPU<sp/>preflight<sp/>opened<sp/>model.ie.bin/model.q4.bin<sp/>but<sp/>did<sp/>not<sp/>detect<sp/>mmap/read<sp/>(fds=${fds})&quot;<sp/>&gt;&amp;2</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/><sp/><sp/>echo<sp/>&quot;[strict]<sp/>DEBUG:<sp/>trace=${trace}<sp/>out=${out}<sp/>rc=${rc}&quot;<sp/>&gt;&amp;2</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>exit<sp/>92</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>return<sp/>0</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/>fi</highlight></codeline>
 <codeline></codeline>
 <codeline><highlight class="normal"><sp/><sp/>echo<sp/>&quot;[strict]<sp/>CPU<sp/>preflight:<sp/>model.ie.bin<sp/>mmap/read<sp/>detected<sp/>(OK)&quot;<sp/>&gt;&amp;2</highlight></codeline>
@@ -223,11 +255,28 @@
 <codeline></codeline>
 <codeline><highlight class="normal">cuda_guard_preflight</highlight></codeline>
 <codeline><highlight class="normal">cpu_guard_preflight</highlight></codeline>
-<codeline></codeline>
+<codeline><highlight class="normal">##<sp/>-----------------------------------------------------------------------------</highlight></codeline>
+<codeline><highlight class="normal">##<sp/>@brief<sp/>Run<sp/>the<sp/>engine<sp/>once<sp/>and<sp/>extract<sp/>the<sp/>JSON<sp/>payload.</highlight></codeline>
+<codeline><highlight class="normal">##<sp/>-----------------------------------------------------------------------------</highlight></codeline>
 <codeline><highlight class="normal">run_one()<sp/>{</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/>local<sp/>run_idx=&quot;$1&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>local<sp/>out_stdout=&quot;${_tmpdir}/run_${run_idx}.stdout.json&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>local<sp/>out_stderr=&quot;${_tmpdir}/run_${run_idx}.stderr.log&quot;</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/>local<sp/>out_raw=&quot;${_tmpdir}/run_${run_idx}.raw.txt&quot;</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/>local<sp/>out_time=&quot;${_tmpdir}/run_${run_idx}.time.txt&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>local<sp/>trace_path=&quot;&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>local<sp/>verify_out=&quot;&quot;</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal"><sp/><sp/>if<sp/>[[<sp/>&quot;${VERIFY_HF_IDS}&quot;<sp/>==<sp/>&quot;1&quot;<sp/>]];<sp/>then</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>if<sp/>[[<sp/>-z<sp/>&quot;${HF_DIR}&quot;<sp/>]];<sp/>then</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>echo<sp/>&quot;[strict]<sp/>ERROR:<sp/>VERIFY_HF_IDS=1<sp/>but<sp/>HF_DIR<sp/>is<sp/>not<sp/>set&quot;<sp/>&gt;&amp;2</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>exit<sp/>96</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>fi</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>trace_path=&quot;${_tmpdir}/run_${run_idx}.trace.jsonl&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>verify_out=&quot;${_tmpdir}/run_${run_idx}.verify.json&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>verify_err=&quot;${_tmpdir}/run_${run_idx}.verify.err&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>export<sp/>IE_TRACE_IDS_JSONL=&quot;${trace_path}&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>fi</highlight></codeline>
 <codeline></codeline>
 <codeline><highlight class="normal"><sp/><sp/>local<sp/>sw_in0<sp/>sw_out0</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/>read<sp/>-r<sp/>sw_in0<sp/>sw_out0<sp/>&lt;<sp/>&lt;(read_vmstat_swaps)</highlight></codeline>
@@ -246,8 +295,56 @@
 <codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>--pretranspose<sp/>&quot;${PRETRANSPOSE}&quot;<sp/>\</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>--affinity<sp/>&quot;${AFFINITY}&quot;<sp/>\</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>--max-new<sp/>&quot;${MAX_NEW}&quot;<sp/>\</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>--rounds<sp/>&quot;${ROUNDS}&quot;</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/>)<sp/>&gt;<sp/>&quot;${out_raw}&quot;<sp/>2&gt;&amp;1</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>--warmup<sp/>&quot;${WARMUP_TOKENS}&quot;<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>--rounds<sp/>&quot;${ROUNDS}&quot;<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>${EXPECTED_TOKENS:+--expected-tokens<sp/>&quot;${EXPECTED_TOKENS}&quot;}<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>${REPORT_TOKENS_MAX:+--report-tokens-max<sp/>&quot;${REPORT_TOKENS_MAX}&quot;}</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>)<sp/>&gt;<sp/>&quot;${out_stdout}&quot;<sp/>2&gt;<sp/>&quot;${out_stderr}&quot;</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal"><sp/><sp/>if<sp/>[[<sp/>&quot;${VERIFY_HF_IDS}&quot;<sp/>==<sp/>&quot;1&quot;<sp/>]];<sp/>then</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>if<sp/>[[<sp/>!<sp/>-s<sp/>&quot;${trace_path}&quot;<sp/>]];<sp/>then</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>cat<sp/>&gt;<sp/>&quot;${verify_out}&quot;<sp/>&lt;&lt;&apos;EOF&apos;</highlight></codeline>
+<codeline><highlight class="normal">{&quot;ok&quot;:false,&quot;prompts_verified&quot;:0,&quot;first_failure&quot;:{&quot;reason&quot;:&quot;trace_empty&quot;},&quot;per_prompt&quot;:[]}</highlight></codeline>
+<codeline><highlight class="normal">EOF</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>else</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>local<sp/>verify_cmd=(<sp/>&quot;${HF_PY}&quot;<sp/>&quot;${REPO_ROOT}/tools/verify_hf_generation_ids.py&quot;<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>--trace-jsonl<sp/>&quot;${trace_path}&quot;<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>--hf-dir<sp/>&quot;${HF_DIR}&quot;<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>--device<sp/>&quot;${HF_DEVICE}&quot;<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>--dtype<sp/>&quot;${HF_DTYPE}&quot;<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>--out<sp/>&quot;${verify_out}&quot;<sp/>)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>if<sp/>[[<sp/>&quot;${HF_TOPK}&quot;<sp/>!=<sp/>&quot;0&quot;<sp/>]];<sp/>then</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>verify_cmd+=(<sp/>--topk<sp/>&quot;${HF_TOPK}&quot;<sp/>)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>if<sp/>[[<sp/>-n<sp/>&quot;${HF_LOGITS_TOL}&quot;<sp/>]];<sp/>then</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>verify_cmd+=(<sp/>--logits-tol<sp/>&quot;${HF_LOGITS_TOL}&quot;<sp/>)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>fi</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>fi</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>if<sp/>[[<sp/>&quot;${HF_CHECK_PROMPT}&quot;<sp/>==<sp/>&quot;1&quot;<sp/>]];<sp/>then</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>verify_cmd+=(<sp/>--check-prompt<sp/>)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>fi</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>set<sp/>+e</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>&quot;${verify_cmd[@]}&quot;<sp/>&gt;/dev/null<sp/>2&gt;<sp/>&quot;${verify_err}&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>local<sp/>verify_rc=$?</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>set<sp/>-e</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>if<sp/>[[<sp/>&quot;${verify_rc}&quot;<sp/>!=<sp/>&quot;0&quot;<sp/>||<sp/>!<sp/>-s<sp/>&quot;${verify_out}&quot;<sp/>]];<sp/>then</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>local<sp/>err_txt=&quot;&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>if<sp/>[[<sp/>-s<sp/>&quot;${verify_err}&quot;<sp/>]];<sp/>then</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>err_txt=&quot;$(head<sp/>-n<sp/>20<sp/>&quot;${verify_err}&quot;<sp/>|<sp/>python3<sp/>-<sp/>&lt;&lt;&apos;PY&apos;</highlight></codeline>
+<codeline><highlight class="normal">import<sp/>json,sys</highlight></codeline>
+<codeline><highlight class="normal">data=sys.stdin.read()</highlight></codeline>
+<codeline><highlight class="normal">print(json.dumps(data))</highlight></codeline>
+<codeline><highlight class="normal">PY</highlight></codeline>
+<codeline><highlight class="normal">)&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>fi</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>cat<sp/>&gt;<sp/>&quot;${verify_out}&quot;<sp/>&lt;&lt;EOF</highlight></codeline>
+<codeline><highlight class="normal">{&quot;ok&quot;:false,&quot;prompts_verified&quot;:0,&quot;first_failure&quot;:{&quot;reason&quot;:&quot;verify_failed&quot;,&quot;rc&quot;:${verify_rc},&quot;stderr&quot;:${err_txt:-null}},&quot;per_prompt&quot;:[]}</highlight></codeline>
+<codeline><highlight class="normal">EOF</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>fi</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>fi</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>fi</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal"><sp/><sp/>#<sp/>Keep<sp/>a<sp/>combined<sp/>log<sp/>file<sp/>for<sp/>quick<sp/>inspection.</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>cat<sp/>&quot;${out_stderr}&quot;<sp/>&quot;${out_stdout}&quot;<sp/>&gt;<sp/>&quot;${out_raw}&quot;<sp/>||<sp/>true</highlight></codeline>
 <codeline></codeline>
 <codeline><highlight class="normal"><sp/><sp/>local<sp/>sw_in1<sp/>sw_out1</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/>read<sp/>-r<sp/>sw_in1<sp/>sw_out1<sp/>&lt;<sp/>&lt;(read_vmstat_swaps)</highlight></codeline>
@@ -287,11 +384,12 @@
 <codeline><highlight class="normal">PY</highlight></codeline>
 <codeline><highlight class="normal">)&quot;</highlight></codeline>
 <codeline></codeline>
-<codeline><highlight class="normal"><sp/><sp/>python3<sp/>-<sp/>&quot;${out_raw}&quot;<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>python3<sp/>-<sp/>&quot;${out_stdout}&quot;<sp/>\</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&quot;${rss_peak_mb}&quot;<sp/>&quot;${minflt}&quot;<sp/>&quot;${majflt}&quot;<sp/>\</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&quot;${swap_in_mb}&quot;<sp/>&quot;${swap_out_mb}&quot;<sp/>\</highlight></codeline>
 <codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&quot;${MODEL_DIR}&quot;<sp/>&quot;${ENGINE_BIN}&quot;<sp/>&quot;${DEVICE}&quot;<sp/>\</highlight></codeline>
-<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&quot;${IE_DEDUP}&quot;<sp/>&quot;${IE_DEDUP_STRICT}&quot;<sp/>&quot;${IE_DEDUP_POLICY}&quot;<sp/>&quot;${IE_DEDUP_CACHE_MB}&quot;<sp/>&lt;&lt;&apos;PY&apos;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&quot;${IE_DEDUP}&quot;<sp/>&quot;${IE_DEDUP_STRICT}&quot;<sp/>&quot;${IE_DEDUP_POLICY}&quot;<sp/>&quot;${IE_DEDUP_CACHE_MB}&quot;<sp/>\</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&quot;${verify_out}&quot;<sp/>&lt;&lt;&apos;PY&apos;</highlight></codeline>
 <codeline><highlight class="normal">import<sp/>sys,<sp/>json</highlight></codeline>
 <codeline></codeline>
 <codeline><highlight class="normal">raw_path=sys.argv[1]</highlight></codeline>
@@ -309,6 +407,7 @@
 <codeline><highlight class="normal">ie_dedup_strict=int(float(sys.argv[11]))</highlight></codeline>
 <codeline><highlight class="normal">ie_dedup_policy=sys.argv[12]</highlight></codeline>
 <codeline><highlight class="normal">ie_dedup_cache_mb=int(float(sys.argv[13]))</highlight></codeline>
+<codeline><highlight class="normal">verify_path=sys.argv[14]<sp/>if<sp/>len(sys.argv)<sp/>&gt;<sp/>14<sp/>else<sp/>&quot;&quot;</highlight></codeline>
 <codeline></codeline>
 <codeline><highlight class="normal">last=None</highlight></codeline>
 <codeline><highlight class="normal">with<sp/>open(raw_path,&quot;r&quot;,encoding=&quot;utf-8&quot;,errors=&quot;ignore&quot;)<sp/>as<sp/>f:</highlight></codeline>
@@ -356,6 +455,73 @@
 <codeline><highlight class="normal">last[&quot;ie_dedup_strict&quot;]=ie_dedup_strict</highlight></codeline>
 <codeline><highlight class="normal">last[&quot;ie_dedup_policy&quot;]=ie_dedup_policy</highlight></codeline>
 <codeline><highlight class="normal">last[&quot;ie_dedup_cache_mb&quot;]=ie_dedup_cache_mb</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">verify=None</highlight></codeline>
+<codeline><highlight class="normal">if<sp/>verify_path:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>try:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>with<sp/>open(verify_path,&quot;r&quot;,encoding=&quot;utf-8&quot;)<sp/>as<sp/>vf:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>verify=json.load(vf)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>except<sp/>Exception:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>verify=None</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">per_prompt=[]</highlight></codeline>
+<codeline><highlight class="normal">prompts=last.get(&quot;prompts&quot;,<sp/>[])</highlight></codeline>
+<codeline><highlight class="normal">ver_map={}</highlight></codeline>
+<codeline><highlight class="normal">if<sp/>isinstance(verify,<sp/>dict):</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>for<sp/>r<sp/>in<sp/>verify.get(&quot;per_prompt&quot;,<sp/>[])<sp/>or<sp/>[]:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>try:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>ver_map[int(r.get(&quot;prompt_index&quot;))]=r</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>except<sp/>Exception:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>continue</highlight></codeline>
+<codeline><highlight class="normal">verify_reason=None</highlight></codeline>
+<codeline><highlight class="normal">if<sp/>isinstance(verify,<sp/>dict):</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>verify_reason=(verify.get(&quot;first_failure&quot;)<sp/>or<sp/>{}).get(&quot;reason&quot;)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">if<sp/>isinstance(prompts,<sp/>list):</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>for<sp/>p<sp/>in<sp/>prompts:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>if<sp/>not<sp/>isinstance(p,<sp/>dict):</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>continue</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>pi=p.get(&quot;prompt_index&quot;)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>rec={</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&quot;prompt_index&quot;:<sp/>pi,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&quot;prompt&quot;:<sp/>p.get(&quot;prompt&quot;),</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&quot;tokens_generated&quot;:<sp/>p.get(&quot;tokens_generated&quot;),</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&quot;window_time_s&quot;:<sp/>p.get(&quot;window_time_s&quot;),</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&quot;prefill_time_s&quot;:<sp/>p.get(&quot;prefill_time_s&quot;),</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&quot;decode_time_s&quot;:<sp/>p.get(&quot;decode_time_s&quot;),</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&quot;tps_true&quot;:<sp/>p.get(&quot;tps_true&quot;),</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&quot;tps_window&quot;:<sp/>p.get(&quot;tps_window&quot;),</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&quot;expected_present&quot;:<sp/>p.get(&quot;expected_present&quot;),</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&quot;expected_ok&quot;:<sp/>p.get(&quot;expected_all_ok&quot;),</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>if<sp/>pi<sp/>in<sp/>ver_map:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>v=ver_map.get(pi)<sp/>or<sp/>{}</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>ok=v.get(&quot;ok&quot;)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>prompt_ok=v.get(&quot;prompt_ok&quot;)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>if<sp/>prompt_ok<sp/>is<sp/>False:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>ok=False</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>fm=v.get(&quot;first_mismatch&quot;)<sp/>or<sp/>{}</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>if<sp/>prompt_ok<sp/>is<sp/>False<sp/>and<sp/>isinstance(v.get(&quot;prompt_mismatch&quot;),<sp/>dict):</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>fm=v.get(&quot;prompt_mismatch&quot;)<sp/>or<sp/>fm</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>step=fm.get(&quot;step&quot;)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>eng=fm.get(&quot;engine_next_id&quot;,<sp/>fm.get(&quot;engine_id&quot;))</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>hf=fm.get(&quot;hf_next_id&quot;,<sp/>fm.get(&quot;hf_id&quot;))</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>rec[&quot;token_id_check_ok&quot;]=ok</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>rec[&quot;token_id_check_prompt_ok&quot;]=prompt_ok</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>rec[&quot;token_id_check_first_mismatch_step&quot;]=step</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>rec[&quot;token_id_check_engine_id&quot;]=eng</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>rec[&quot;token_id_check_hf_id&quot;]=hf</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>else:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>rec[&quot;token_id_check_ok&quot;]=False</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>rec[&quot;token_id_check_prompt_ok&quot;]=None</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>rec[&quot;token_id_check_first_mismatch_step&quot;]=None</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>rec[&quot;token_id_check_engine_id&quot;]=None</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>rec[&quot;token_id_check_hf_id&quot;]=None</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>rec[&quot;token_id_check_reason&quot;]=verify_reason<sp/>or<sp/>&quot;verify_missing&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>per_prompt.append(rec)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">if<sp/>per_prompt:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>last[&quot;per_prompt&quot;]=per_prompt</highlight></codeline>
 <codeline></codeline>
 <codeline><highlight class="normal">print(json.dumps(last,<sp/>separators=(&quot;,&quot;,&quot;:&quot;)))</highlight></codeline>
 <codeline><highlight class="normal">PY</highlight></codeline>

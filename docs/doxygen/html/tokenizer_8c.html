@@ -101,64 +101,77 @@ $(document).ready(function(){initNavTree('tokenizer_8c.html',''); initResizable(
 <a href="#details">More...</a></p>
 <div class="textblock"><code>#include &lt;ctype.h&gt;</code><br />
 <code>#include &lt;errno.h&gt;</code><br />
+<code>#include &lt;inttypes.h&gt;</code><br />
 <code>#include &lt;stdint.h&gt;</code><br />
 <code>#include &lt;stdio.h&gt;</code><br />
 <code>#include &lt;stdlib.h&gt;</code><br />
 <code>#include &lt;string.h&gt;</code><br />
 <code>#include &quot;<a class="el" href="ie__io_8h_source.html">ie_io.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="util__logging_8h_source.html">util_logging.h</a>&quot;</code><br />
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for tokenizer.c:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="tokenizer_8c__incl.svg" width="600" height="183"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="tokenizer_8c__incl.svg" width="100%" height="437"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
 </div>
 </div>
 <p><a href="tokenizer_8c_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="define-members" name="define-members"></a>
 Macros</h2></td></tr>
-<tr class="memitem:a3024ccd4a9af5109d24e6c57565d74a1" id="r_a3024ccd4a9af5109d24e6c57565d74a1"><td class="memItemLeft" align="right" valign="top">#<a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">define</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="tokenizer_8c.html#a3024ccd4a9af5109d24e6c57565d74a1">_POSIX_C_SOURCE</a>&#160;&#160;&#160;200809<a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">L</a></td></tr>
+<tr class="memitem:a3024ccd4a9af5109d24e6c57565d74a1" id="r_a3024ccd4a9af5109d24e6c57565d74a1"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="tokenizer_8c.html#a3024ccd4a9af5109d24e6c57565d74a1">_POSIX_C_SOURCE</a>&#160;&#160;&#160;200809L</td></tr>
 <tr class="separator:a3024ccd4a9af5109d24e6c57565d74a1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:a35b758cbf8aeb3348c6eec59a770f888" id="r_a35b758cbf8aeb3348c6eec59a770f888"><td class="memItemLeft" align="right" valign="top"><a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">static</a> <a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="tokenizer_8c.html#a35b758cbf8aeb3348c6eec59a770f888">is_space_byte</a> (<a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">unsigned</a> <a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">char</a> <a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">c</a>)</td></tr>
-<tr class="memdesc:a35b758cbf8aeb3348c6eec59a770f888"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return 1 if <code>c</code> is ASCII whitespace, 0 otherwise.  <br /></td></tr>
-<tr class="separator:a35b758cbf8aeb3348c6eec59a770f888"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab65f36294d9d8ee9d8b027673b01de30" id="r_ab65f36294d9d8ee9d8b027673b01de30"><td class="memItemLeft" align="right" valign="top"><a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">static</a> <a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">uint32_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="tokenizer_8c.html#ab65f36294d9d8ee9d8b027673b01de30">fnv1a_32</a> (<a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">const</a> <a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">void</a> *ptr, <a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">size_t</a> len)</td></tr>
-<tr class="memdesc:ab65f36294d9d8ee9d8b027673b01de30"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute 32-bit FNV-1a hash for a memory region.  <br /></td></tr>
-<tr class="separator:ab65f36294d9d8ee9d8b027673b01de30"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3ca2adb2290e006f09b1fb7f274bd371" id="r_a3ca2adb2290e006f09b1fb7f274bd371"><td class="memItemLeft" align="right" valign="top"><a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">static</a> <a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">uint32_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="tokenizer_8c.html#a3ca2adb2290e006f09b1fb7f274bd371">clamp_to_pos31</a> (<a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">uint32_t</a> <a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">x</a>)</td></tr>
-<tr class="memdesc:a3ca2adb2290e006f09b1fb7f274bd371"><td class="mdescLeft">&#160;</td><td class="mdescRight">Clamp an unsigned 32-bit value into a positive 31-bit ID space.  <br /></td></tr>
-<tr class="separator:a3ca2adb2290e006f09b1fb7f274bd371"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:adbe33a7f4e53bcb709d56dc753c9148b" id="r_adbe33a7f4e53bcb709d56dc753c9148b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="tokenizer_8c.html#adbe33a7f4e53bcb709d56dc753c9148b">ie_vocab_load</a> (<a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">const</a> <a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">char</a> *<a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">vocab_path</a>, <a class="el" href="ie__io_8h.html#a8bdd12fff1489e034fcb2e8f7f29039a">ie_vocab_t</a> *<a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">out</a>)</td></tr>
+<tr class="memitem:a863ec1870637861eb15fa5ac24cfaf2a" id="r_a863ec1870637861eb15fa5ac24cfaf2a"><td class="memItemLeft" align="right" valign="top">static int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="tokenizer_8c.html#a863ec1870637861eb15fa5ac24cfaf2a">tok_env_flag_</a> (const char *name, int default_value)</td></tr>
+<tr class="memdesc:a863ec1870637861eb15fa5ac24cfaf2a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read a boolean environment variable as 0/1.  <br /></td></tr>
+<tr class="separator:a863ec1870637861eb15fa5ac24cfaf2a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aca4f0da2226b5ed16e71e5524f84e0d8" id="r_aca4f0da2226b5ed16e71e5524f84e0d8"><td class="memItemLeft" align="right" valign="top">static int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="tokenizer_8c.html#aca4f0da2226b5ed16e71e5524f84e0d8">is_space_byte_</a> (unsigned char c)</td></tr>
+<tr class="memdesc:aca4f0da2226b5ed16e71e5524f84e0d8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return 1 if <code>c</code> is ASCII whitespace, 0 otherwise.  <br /></td></tr>
+<tr class="separator:aca4f0da2226b5ed16e71e5524f84e0d8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5f45335764cbb4aecfbd2fea264cf1d5" id="r_a5f45335764cbb4aecfbd2fea264cf1d5"><td class="memItemLeft" align="right" valign="top">static uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="tokenizer_8c.html#a5f45335764cbb4aecfbd2fea264cf1d5">fnv1a_32_</a> (const void *ptr, size_t len)</td></tr>
+<tr class="memdesc:a5f45335764cbb4aecfbd2fea264cf1d5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute 32-bit FNV-1a hash for a memory region.  <br /></td></tr>
+<tr class="separator:a5f45335764cbb4aecfbd2fea264cf1d5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9795df9525cac512228dfcc901d51c00" id="r_a9795df9525cac512228dfcc901d51c00"><td class="memItemLeft" align="right" valign="top">static uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="tokenizer_8c.html#a9795df9525cac512228dfcc901d51c00">clamp_to_pos31_</a> (uint32_t x)</td></tr>
+<tr class="memdesc:a9795df9525cac512228dfcc901d51c00"><td class="mdescLeft">&#160;</td><td class="mdescRight">Clamp an unsigned 32-bit value into a positive 31-bit ID space.  <br /></td></tr>
+<tr class="separator:a9795df9525cac512228dfcc901d51c00"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad024cfc5e6543de537bba2d31c18e817" id="r_ad024cfc5e6543de537bba2d31c18e817"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="tokenizer_8c.html#ad024cfc5e6543de537bba2d31c18e817">tok_log_preview_</a> (const char *label, const char *s)</td></tr>
+<tr class="memdesc:ad024cfc5e6543de537bba2d31c18e817"><td class="mdescLeft">&#160;</td><td class="mdescRight">Log a short, safe preview of a string for diagnostics.  <br /></td></tr>
+<tr class="separator:ad024cfc5e6543de537bba2d31c18e817"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adbe33a7f4e53bcb709d56dc753c9148b" id="r_adbe33a7f4e53bcb709d56dc753c9148b"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="tokenizer_8c.html#adbe33a7f4e53bcb709d56dc753c9148b">ie_vocab_load</a> (const char *vocab_path, <a class="el" href="ie__io_8h.html#a8bdd12fff1489e034fcb2e8f7f29039a">ie_vocab_t</a> *out)</td></tr>
 <tr class="memdesc:adbe33a7f4e53bcb709d56dc753c9148b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Load a vocabulary file or default to a stub.  <br /></td></tr>
 <tr class="separator:adbe33a7f4e53bcb709d56dc753c9148b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1a76c23fd3fdf25bdae9ee6e9103cf83" id="r_a1a76c23fd3fdf25bdae9ee6e9103cf83"><td class="memItemLeft" align="right" valign="top"><a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="tokenizer_8c.html#a1a76c23fd3fdf25bdae9ee6e9103cf83">ie_vocab_free</a> (<a class="el" href="ie__io_8h.html#a8bdd12fff1489e034fcb2e8f7f29039a">ie_vocab_t</a> *v)</td></tr>
-<tr class="memdesc:a1a76c23fd3fdf25bdae9ee6e9103cf83"><td class="mdescLeft">&#160;</td><td class="mdescRight">Release vocabulary resources (currently a no-op).  <br /></td></tr>
+<tr class="memitem:a1a76c23fd3fdf25bdae9ee6e9103cf83" id="r_a1a76c23fd3fdf25bdae9ee6e9103cf83"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="tokenizer_8c.html#a1a76c23fd3fdf25bdae9ee6e9103cf83">ie_vocab_free</a> (<a class="el" href="ie__io_8h.html#a8bdd12fff1489e034fcb2e8f7f29039a">ie_vocab_t</a> *v)</td></tr>
+<tr class="memdesc:a1a76c23fd3fdf25bdae9ee6e9103cf83"><td class="mdescLeft">&#160;</td><td class="mdescRight">Free vocabulary resources.  <br /></td></tr>
 <tr class="separator:a1a76c23fd3fdf25bdae9ee6e9103cf83"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2b9cb342eb062867f93fb786548003f7" id="r_a2b9cb342eb062867f93fb786548003f7"><td class="memItemLeft" align="right" valign="top"><a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="tokenizer_8c.html#a2b9cb342eb062867f93fb786548003f7">ie_tok_encode</a> (<a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">const</a> <a class="el" href="ie__io_8h.html#a8bdd12fff1489e034fcb2e8f7f29039a">ie_vocab_t</a> *v, <a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">const</a> <a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">char</a> *<a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">text</a>, <a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">uint32_t</a> *ids, <a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">uint32_t</a> *<a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">out_count</a>)</td></tr>
+<tr class="memitem:a2b9cb342eb062867f93fb786548003f7" id="r_a2b9cb342eb062867f93fb786548003f7"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="tokenizer_8c.html#a2b9cb342eb062867f93fb786548003f7">ie_tok_encode</a> (const <a class="el" href="ie__io_8h.html#a8bdd12fff1489e034fcb2e8f7f29039a">ie_vocab_t</a> *v, const char *text, uint32_t *ids, uint32_t *out_count)</td></tr>
 <tr class="memdesc:a2b9cb342eb062867f93fb786548003f7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Encode UTF-8 text with whitespace tokenization and hashed IDs.  <br /></td></tr>
 <tr class="separator:a2b9cb342eb062867f93fb786548003f7"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a68bc61261a64b4fe8bd566fc7d399a2e" id="r_a68bc61261a64b4fe8bd566fc7d399a2e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="tokenizer_8c.html#a68bc61261a64b4fe8bd566fc7d399a2e">ie_tok_decode</a> (<a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">const</a> <a class="el" href="ie__io_8h.html#a8bdd12fff1489e034fcb2e8f7f29039a">ie_vocab_t</a> *v, <a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">const</a> <a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">uint32_t</a> *ids, <a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">uint32_t</a> count, <a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">char</a> *<a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">out</a>, <a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">size_t</a> <a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">out_sz</a>)</td></tr>
-<tr class="memdesc:a68bc61261a64b4fe8bd566fc7d399a2e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Decode token IDs to a simple, deterministic placeholder string.  <br /></td></tr>
+<tr class="memitem:a68bc61261a64b4fe8bd566fc7d399a2e" id="r_a68bc61261a64b4fe8bd566fc7d399a2e"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="tokenizer_8c.html#a68bc61261a64b4fe8bd566fc7d399a2e">ie_tok_decode</a> (const <a class="el" href="ie__io_8h.html#a8bdd12fff1489e034fcb2e8f7f29039a">ie_vocab_t</a> *v, const uint32_t *ids, uint32_t count, char *out, size_t out_sz)</td></tr>
+<tr class="memdesc:a68bc61261a64b4fe8bd566fc7d399a2e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Decode token IDs to a deterministic placeholder string.  <br /></td></tr>
 <tr class="separator:a68bc61261a64b4fe8bd566fc7d399a2e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Minimal, dependency-free tokenizer used by tests and the CLI harness. </p>
-<p>This module provides a tiny public API declared in ie_io.h:</p><ul>
-<li><a class="el" href="ie__io_8h.html#adbe33a7f4e53bcb709d56dc753c9148b">ie_vocab_load</a> : Load a vocabulary file or fall back to a stub.</li>
+<p>This module provides the small tokenizer/vocabulary API declared in ie_io.h:</p><ul>
+<li><a class="el" href="ie__io_8h.html#adbe33a7f4e53bcb709d56dc753c9148b">ie_vocab_load</a> : Load a vocabulary descriptor (best-effort).</li>
+<li><a class="el" href="ie__io_8h.html#a1a76c23fd3fdf25bdae9ee6e9103cf83">ie_vocab_free</a> : Release vocabulary resources (no-op here).</li>
 <li><a class="el" href="ie__io_8h.html#a2b9cb342eb062867f93fb786548003f7">ie_tok_encode</a> : Encode a UTF-8 string into token IDs.</li>
-<li><a class="el" href="ie__io_8h.html#a68bc61261a64b4fe8bd566fc7d399a2e">ie_tok_decode</a> : Convert token IDs back into printable placeholders.</li>
+<li><a class="el" href="ie__io_8h.html#a68bc61261a64b4fe8bd566fc7d399a2e">ie_tok_decode</a> : Convert token IDs back into a deterministic textual form.</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md91"></a>
-Design goals</h2>
-<ul>
-<li><b>Deterministic</b> behavior for CI and unit tests.</li>
-<li><b>No third-party dependencies</b>; standard C library only.</li>
-<li><b>Whitespace tokenization</b>: contiguous whitespace collapses to a single separator. Thus <code>"hello world  from   engine"</code> yields 4 tokens.</li>
-<li><b>Stable IDs</b>: IDs are produced by hashing each token with a fixed 32-bit FNV-1a variant and then clamping to a positive 31-bit range.</li>
+<p>Important: This is intentionally NOT a real BPE/WordPiece tokenizer. It exists to keep unit tests deterministic and to allow a lightweight harness without external tokenizer artifacts. Production inference must use the model's real tokenizer.</p>
+<p>Tokenization model:</p><ul>
+<li>Split on ASCII whitespace (isspace()).</li>
+<li>Each token is mapped to a stable 31-bit positive integer using FNV-1a.</li>
 </ul>
-<p>This is intentionally not a real BPE/WordPiece tokenizer; its purpose is to keep tests green and provide a lightweight harness without extra artifacts. </p>
+<p>Size-query behavior:</p><ul>
+<li>Encoding supports a size-only pass by calling <a class="el" href="ie__io_8h.html#a2b9cb342eb062867f93fb786548003f7">ie_tok_encode</a> with <code>ids</code> == NULL. The required number of tokens is returned via <code>out_count</code>.</li>
+</ul>
+<p>Logging:</p><ul>
+<li>INFO logs for vocabulary load decisions.</li>
+<li>ERROR logs for invalid args and capacity issues.</li>
+<li>Optional per-call verbose logs controlled by IE_TOKENIZER_VERBOSE=1. </li>
+</ul>
 
 <p class="definition">Definition in file <a class="el" href="tokenizer_8c_source.html">tokenizer.c</a>.</p>
 </div><h2 class="groupheader">Macro Definition Documentation</h2>
@@ -169,18 +182,18 @@ Design goals</h2>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">#<a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">define</a> _POSIX_C_SOURCE&#160;&#160;&#160;200809<a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">L</a></td>
+          <td class="memname">#define _POSIX_C_SOURCE&#160;&#160;&#160;200809L</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="tokenizer_8c_source.html#l00023">23</a> of file <a class="el" href="tokenizer_8c_source.html">tokenizer.c</a>.</p>
+<p class="definition">Definition at line <a class="el" href="tokenizer_8c_source.html#l00036">36</a> of file <a class="el" href="tokenizer_8c_source.html">tokenizer.c</a>.</p>
 
 </div>
 </div>
 <h2 class="groupheader">Function Documentation</h2>
-<a id="a3ca2adb2290e006f09b1fb7f274bd371" name="a3ca2adb2290e006f09b1fb7f274bd371"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3ca2adb2290e006f09b1fb7f274bd371">&#9670;&#160;</a></span>clamp_to_pos31()</h2>
+<a id="a9795df9525cac512228dfcc901d51c00" name="a9795df9525cac512228dfcc901d51c00"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9795df9525cac512228dfcc901d51c00">&#9670;&#160;</a></span>clamp_to_pos31_()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -189,9 +202,9 @@ Design goals</h2>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">static</a> <a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">uint32_t</a> clamp_to_pos31 </td>
+          <td class="memname">static uint32_t clamp_to_pos31_ </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">uint32_t</a>&#160;</td>
+          <td class="paramtype">uint32_t&#160;</td>
           <td class="paramname"><em>x</em></td><td>)</td>
           <td></td>
         </tr>
@@ -204,6 +217,7 @@ Design goals</h2>
 </div><div class="memdoc">
 
 <p>Clamp an unsigned 32-bit value into a positive 31-bit ID space. </p>
+<p>Ensures the returned value is in the range [1, 0x7FFFFFFF].</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">x</td><td>Arbitrary 32-bit value. </td></tr>
@@ -212,31 +226,23 @@ Design goals</h2>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Value in the range [1, 0x7FFFFFFF]. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="tokenizer_8c_source.html#l00075">75</a> of file <a class="el" href="tokenizer_8c_source.html">tokenizer.c</a>.</p>
-<div class="fragment"><div class="line"><span class="lineno">   75</span>                                           {</div>
-<div class="line"><span class="lineno">   76</span>  <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">uint32_t</a> <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">y</a> = <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">x</a> &amp; 0x7FFFFFFFu;</div>
-<div class="line"><span class="lineno">   77</span>  <span class="keywordflow">return</span> (<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">y</a> == 0u) ? 1u : <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">y</a>;</div>
-<div class="line"><span class="lineno">   78</span>}</div>
-<div class="ttc" id="aie__device__cuda_8cu_html_a5e3d9fee84981707669f5c2398f0c4ab"><div class="ttname"><a href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">ie_gemv_rowwise_f32_kernel</a></div><div class="ttdeci">__global__ void ie_gemv_rowwise_f32_kernel(const float *W, const float *x, float *y, const float *bias, size_t rows, size_t cols)</div><div class="ttdoc">Row-wise GEMV kernel: each thread computes one output row.</div><div class="ttdef"><b>Definition</b> <a href="ie__device__cuda_8cu_source.html#l00092">ie_device_cuda.cu:92</a></div></div>
+<p class="definition">Definition at line <a class="el" href="tokenizer_8c_source.html#l00123">123</a> of file <a class="el" href="tokenizer_8c_source.html">tokenizer.c</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">  123</span>                                            {</div>
+<div class="line"><span class="lineno">  124</span>  uint32_t y = x &amp; 0x7FFFFFFFu;</div>
+<div class="line"><span class="lineno">  125</span>  <span class="keywordflow">return</span> (y == 0u) ? 1u : y;</div>
+<div class="line"><span class="lineno">  126</span>}</div>
 </div><!-- fragment -->
-<p class="reference">References <a class="el" href="ie__device__cuda_8cu_source.html#l00092">ie_gemv_rowwise_f32_kernel()</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="tokenizer_8c_source.html#l00162">ie_tok_encode()</a>.</p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="tokenizer_8c_a3ca2adb2290e006f09b1fb7f274bd371_cgraph.svg" width="354" height="51"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
+<p class="reference">Referenced by <a class="el" href="tokenizer_8c_source.html#l00266">ie_tok_encode()</a>.</p>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="tokenizer_8c_a3ca2adb2290e006f09b1fb7f274bd371_icgraph.svg" width="406" height="36"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="tokenizer_8c_a9795df9525cac512228dfcc901d51c00_icgraph.svg" width="412" height="36"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="ab65f36294d9d8ee9d8b027673b01de30" name="ab65f36294d9d8ee9d8b027673b01de30"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab65f36294d9d8ee9d8b027673b01de30">&#9670;&#160;</a></span>fnv1a_32()</h2>
+<a id="a5f45335764cbb4aecfbd2fea264cf1d5" name="a5f45335764cbb4aecfbd2fea264cf1d5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5f45335764cbb4aecfbd2fea264cf1d5">&#9670;&#160;</a></span>fnv1a_32_()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -245,15 +251,15 @@ Here is the caller graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">static</a> <a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">uint32_t</a> fnv1a_32 </td>
+          <td class="memname">static uint32_t fnv1a_32_ </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">const</a> <a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">void</a> *&#160;</td>
+          <td class="paramtype">const void *&#160;</td>
           <td class="paramname"><em>ptr</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">size_t</a>&#160;</td>
+          <td class="paramtype">size_t&#160;</td>
           <td class="paramname"><em>len</em>&#160;</td>
         </tr>
         <tr>
@@ -270,32 +276,32 @@ Here is the caller graph for this function:</div>
 </div><div class="memdoc">
 
 <p>Compute 32-bit FNV-1a hash for a memory region. </p>
-<p>Produces a stable ID for each token. The returned value is in the full 32-bit range; callers may clamp to 31-bit positive domain as needed.</p>
+<p>The returned value occupies the full 32-bit range. Callers typically clamp to a positive ID space for portability across signed/unsigned paths.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">ptr</td><td>Pointer to bytes. </td></tr>
+    <tr><td class="paramname">ptr</td><td>Pointer to the input bytes. </td></tr>
     <tr><td class="paramname">len</td><td>Number of bytes. </td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>32-bit hash value. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>32-bit FNV-1a hash. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="tokenizer_8c_source.html#l00059">59</a> of file <a class="el" href="tokenizer_8c_source.html">tokenizer.c</a>.</p>
-<div class="fragment"><div class="line"><span class="lineno">   59</span>                                                      {</div>
-<div class="line"><span class="lineno">   60</span>  <span class="keyword">const</span> <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">uint8_t</a> *<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">p</a> = (<span class="keyword">const</span> <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">uint8_t</a>*)ptr;</div>
-<div class="line"><span class="lineno">   61</span>  <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">uint32_t</a> <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">h</a> = 2166136261u;           <span class="comment">/* offset basis */</span></div>
-<div class="line"><span class="lineno">   62</span>  <span class="keywordflow">for</span> (<span class="keywordtype">size_t</span> <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">i</a> = 0; <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">i</a> &lt; len; ++<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">i</a>) {</div>
-<div class="line"><span class="lineno">   63</span>    <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">h</a> ^= (<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">uint32_t</a>)<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">p</a>[<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">i</a>];</div>
-<div class="line"><span class="lineno">   64</span>    <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">h</a> *= 16777619u;                   <span class="comment">/* FNV prime */</span></div>
-<div class="line"><span class="lineno">   65</span>  }</div>
-<div class="line"><span class="lineno">   66</span>  <span class="keywordflow">return</span> <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">h</a>;</div>
-<div class="line"><span class="lineno">   67</span>}</div>
+<p class="definition">Definition at line <a class="el" href="tokenizer_8c_source.html#l00104">104</a> of file <a class="el" href="tokenizer_8c_source.html">tokenizer.c</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">  104</span>                                                       {</div>
+<div class="line"><span class="lineno">  105</span>  <span class="keyword">const</span> uint8_t *p = (<span class="keyword">const</span> uint8_t *)ptr;</div>
+<div class="line"><span class="lineno">  106</span>  uint32_t h = 2166136261u; <span class="comment">/* offset basis */</span></div>
+<div class="line"><span class="lineno">  107</span>  <span class="keywordflow">for</span> (<span class="keywordtype">size_t</span> i = 0; i &lt; len; ++i) {</div>
+<div class="line"><span class="lineno">  108</span>    h ^= (uint32_t)p[i];</div>
+<div class="line"><span class="lineno">  109</span>    h *= 16777619u;         <span class="comment">/* FNV prime */</span></div>
+<div class="line"><span class="lineno">  110</span>  }</div>
+<div class="line"><span class="lineno">  111</span>  <span class="keywordflow">return</span> h;</div>
+<div class="line"><span class="lineno">  112</span>}</div>
 </div><!-- fragment -->
-<p class="reference">Referenced by <a class="el" href="tokenizer_8c_source.html#l00162">ie_tok_encode()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="tokenizer_8c_source.html#l00266">ie_tok_encode()</a>.</p>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="tokenizer_8c_ab65f36294d9d8ee9d8b027673b01de30_icgraph.svg" width="360" height="36"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="tokenizer_8c_a5f45335764cbb4aecfbd2fea264cf1d5_icgraph.svg" width="367" height="36"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -307,33 +313,33 @@ Here is the caller graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">int</a> ie_tok_decode </td>
+          <td class="memname">int ie_tok_decode </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">const</a> <a class="el" href="ie__io_8h.html#a8bdd12fff1489e034fcb2e8f7f29039a">ie_vocab_t</a> *&#160;</td>
+          <td class="paramtype">const <a class="el" href="ie__io_8h.html#a8bdd12fff1489e034fcb2e8f7f29039a">ie_vocab_t</a> *&#160;</td>
           <td class="paramname"><em>v</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">const</a> <a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">uint32_t</a> *&#160;</td>
+          <td class="paramtype">const uint32_t *&#160;</td>
           <td class="paramname"><em>ids</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">uint32_t</a>&#160;</td>
+          <td class="paramtype">uint32_t&#160;</td>
           <td class="paramname"><em>count</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">char</a> *&#160;</td>
+          <td class="paramtype">char *&#160;</td>
           <td class="paramname"><em>out</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">size_t</a>&#160;</td>
+          <td class="paramtype">size_t&#160;</td>
           <td class="paramname"><em>out_sz</em>&#160;</td>
         </tr>
         <tr>
@@ -344,75 +350,99 @@ Here is the caller graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p>Decode token IDs to a simple, deterministic placeholder string. </p>
+<p>Decode token IDs to a deterministic placeholder string. </p>
 <p>Decode token IDs into a printable placeholder string.</p>
-<p>Format: <code>"T&lt;ID0&gt; T&lt;ID1&gt; ... T&lt;IDn&gt;"</code> (space-separated). This is sufficient for unit-test invariants that check spacing and a predictable prefix.</p>
+<p>Output format:</p><ul>
+<li>"T&lt;ID0&gt; T&lt;ID1&gt; ... T&lt;IDn&gt;" (space-separated)</li>
+</ul>
+<p>This is intended for unit tests and harness debugging, not for real model text.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">v</td><td>Loaded vocabulary (unused but reserved). </td></tr>
-    <tr><td class="paramname">ids</td><td>Array of token IDs. </td></tr>
+    <tr><td class="paramname">v</td><td>Loaded vocabulary descriptor (unused by this implementation). </td></tr>
+    <tr><td class="paramname">ids</td><td>Array of token IDs (may be NULL when <code>count</code> == 0). </td></tr>
     <tr><td class="paramname">count</td><td>Number of IDs. </td></tr>
-    <tr><td class="paramname">out</td><td>Output buffer for the textual form. </td></tr>
-    <tr><td class="paramname">out_sz</td><td>Capacity of <code>out</code> in bytes. </td></tr>
+    <tr><td class="paramname">out</td><td>Output buffer (must not be NULL). </td></tr>
+    <tr><td class="paramname">out_sz</td><td>Capacity of <code>out</code> in bytes (must be &gt; 0). </td></tr>
   </table>
   </dd>
 </dl>
 <dl class="retval"><dt>Return values</dt><dd>
   <table class="retval">
-    <tr><td class="paramname">0</td><td>on success. </td></tr>
-    <tr><td class="paramname">-1</td><td>on invalid arguments (e.g., NULL <code>out</code> or zero <code>out_sz</code>). </td></tr>
-    <tr><td class="paramname">-2</td><td>if <code>out</code> is too small to hold the formatted string. </td></tr>
+    <tr><td class="paramname">0</td><td>Success. </td></tr>
+    <tr><td class="paramname">-1</td><td>Invalid arguments. </td></tr>
+    <tr><td class="paramname">-2</td><td>Output buffer too small or formatting truncated. </td></tr>
   </table>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="tokenizer_8c_source.html#l00231">231</a> of file <a class="el" href="tokenizer_8c_source.html">tokenizer.c</a>.</p>
-<div class="fragment"><div class="line"><span class="lineno">  235</span>                                 {</div>
-<div class="line"><span class="lineno">  236</span>  (<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">void</a>)v;</div>
-<div class="line"><span class="lineno">  237</span>  <span class="keywordflow">if</span> (!<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">out</a> || <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">out_sz</a> == 0) <span class="keywordflow">return</span> -1;</div>
-<div class="line"><span class="lineno">  238</span> </div>
-<div class="line"><span class="lineno">  239</span>  <span class="comment">/* Handle empty sequence. */</span></div>
-<div class="line"><span class="lineno">  240</span>  <span class="keywordflow">if</span> (!ids || count == 0) {</div>
-<div class="line"><span class="lineno">  241</span>    <span class="keywordflow">if</span> (<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">out_sz</a> &gt; 0) <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">out</a>[0] = <span class="charliteral">&#39;\0&#39;</span>;</div>
-<div class="line"><span class="lineno">  242</span>    <span class="keywordflow">return</span> 0;</div>
-<div class="line"><span class="lineno">  243</span>  }</div>
-<div class="line"><span class="lineno">  244</span> </div>
-<div class="line"><span class="lineno">  245</span>  <span class="comment">/* Conservative sizing: worst case &quot;T4294967295 &quot; per token + NUL. */</span></div>
-<div class="line"><span class="lineno">  246</span>  <span class="keyword">const</span> <span class="keywordtype">size_t</span> <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">worst_per</a> = <span class="keyword">sizeof</span>(<span class="stringliteral">&quot;T4294967295 &quot;</span>) - 1; <span class="comment">/* 12 bytes */</span></div>
-<div class="line"><span class="lineno">  247</span>  <span class="keywordtype">size_t</span> <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">worst</a> = (<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">size_t</a>)count * <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">worst_per</a> + 1;</div>
-<div class="line"><span class="lineno">  248</span>  <span class="keywordflow">if</span> (<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">out_sz</a> &lt; <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">worst</a>) {</div>
-<div class="line"><span class="lineno">  249</span>    <span class="comment">/* Strict contract for tests: return error if too small. */</span></div>
-<div class="line"><span class="lineno">  250</span>    <span class="keywordflow">return</span> -2;</div>
-<div class="line"><span class="lineno">  251</span>  }</div>
-<div class="line"><span class="lineno">  252</span> </div>
-<div class="line"><span class="lineno">  253</span>  <span class="keywordtype">char</span> *<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">p</a> = <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">out</a>;</div>
-<div class="line"><span class="lineno">  254</span>  <span class="keywordtype">size_t</span> <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">rem</a> = <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">out_sz</a>;</div>
-<div class="line"><span class="lineno">  255</span> </div>
-<div class="line"><span class="lineno">  256</span>  <span class="keywordflow">for</span> (<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">uint32_t</a> <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">i</a> = 0; <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">i</a> &lt; count; ++<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">i</a>) {</div>
-<div class="line"><span class="lineno">  257</span>    <span class="keywordtype">int</span> n = (<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">i</a> == 0)</div>
-<div class="line"><span class="lineno">  258</span>      ? <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">snprintf</a>(<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">p</a>, <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">rem</a>, <span class="stringliteral">&quot;T%u&quot;</span>, ids[<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">i</a>])</div>
-<div class="line"><span class="lineno">  259</span>      : <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">snprintf</a>(<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">p</a>, <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">rem</a>, <span class="stringliteral">&quot; T%u&quot;</span>, ids[<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">i</a>]);</div>
-<div class="line"><span class="lineno">  260</span> </div>
-<div class="line"><span class="lineno">  261</span>    <span class="keywordflow">if</span> (n &lt; 0 || (<span class="keywordtype">size_t</span>)n &gt;= <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">rem</a>) {</div>
-<div class="line"><span class="lineno">  262</span>      <span class="keywordflow">return</span> -2;</div>
-<div class="line"><span class="lineno">  263</span>    }</div>
-<div class="line"><span class="lineno">  264</span>    <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">p</a>   += (<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">size_t</a>)n;</div>
-<div class="line"><span class="lineno">  265</span>    <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">rem</a> -= (<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">size_t</a>)n;</div>
-<div class="line"><span class="lineno">  266</span>  }</div>
-<div class="line"><span class="lineno">  267</span> </div>
-<div class="line"><span class="lineno">  268</span>  <span class="comment">/* Ensure NUL-termination. */</span></div>
-<div class="line"><span class="lineno">  269</span>  <span class="keywordflow">if</span> (<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">rem</a> == 0) <span class="keywordflow">return</span> -2;</div>
-<div class="line"><span class="lineno">  270</span>  *<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">p</a> = <span class="charliteral">&#39;\0&#39;</span>;</div>
-<div class="line"><span class="lineno">  271</span>  <span class="keywordflow">return</span> 0;</div>
-<div class="line"><span class="lineno">  272</span>}</div>
+<p class="definition">Definition at line <a class="el" href="tokenizer_8c_source.html#l00357">357</a> of file <a class="el" href="tokenizer_8c_source.html">tokenizer.c</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">  361</span>                                 {</div>
+<div class="line"><span class="lineno">  362</span>  (void)v;</div>
+<div class="line"><span class="lineno">  363</span> </div>
+<div class="line"><span class="lineno">  364</span>  <span class="keywordflow">if</span> (!out || out_sz == 0) {</div>
+<div class="line"><span class="lineno">  365</span>    <a class="code hl_function" href="util__logging_8h.html#aea21466075cc03977bc4fcde5130d6a4">ie_log_error</a>(<span class="stringliteral">&quot;ie_tok_decode: bad args (out=%p out_sz=%zu)&quot;</span>, (<span class="keywordtype">void</span> *)out, out_sz);</div>
+<div class="line"><span class="lineno">  366</span>    <span class="keywordflow">return</span> -1;</div>
+<div class="line"><span class="lineno">  367</span>  }</div>
+<div class="line"><span class="lineno">  368</span> </div>
+<div class="line"><span class="lineno">  369</span>  <span class="keyword">const</span> <span class="keywordtype">int</span> verbose = <a class="code hl_function" href="tokenizer_8c.html#a863ec1870637861eb15fa5ac24cfaf2a">tok_env_flag_</a>(<span class="stringliteral">&quot;IE_TOKENIZER_VERBOSE&quot;</span>, 0);</div>
+<div class="line"><span class="lineno">  370</span> </div>
+<div class="line"><span class="lineno">  371</span>  <span class="comment">/* Handle empty sequence. */</span></div>
+<div class="line"><span class="lineno">  372</span>  <span class="keywordflow">if</span> (!ids || count == 0) {</div>
+<div class="line"><span class="lineno">  373</span>    <a class="code hl_variable" href="namespaceconvert__dtypes__to__numeric.html#a0332296ea5bde95f8e72005df06144a8">out</a>[0] = <span class="charliteral">&#39;\0&#39;</span>;</div>
+<div class="line"><span class="lineno">  374</span>    <span class="keywordflow">if</span> (verbose) <a class="code hl_function" href="util__logging_8h.html#a7bff220c76442d1372d81e26f77c2921">ie_log_info</a>(<span class="stringliteral">&quot;ie_tok_decode: empty input&quot;</span>);</div>
+<div class="line"><span class="lineno">  375</span>    <span class="keywordflow">return</span> 0;</div>
+<div class="line"><span class="lineno">  376</span>  }</div>
+<div class="line"><span class="lineno">  377</span> </div>
+<div class="line"><span class="lineno">  378</span>  <span class="comment">/* Conservative sizing: worst case &quot;T4294967295 &quot; per token + NUL. */</span></div>
+<div class="line"><span class="lineno">  379</span>  <span class="keyword">const</span> <span class="keywordtype">size_t</span> worst_per = <span class="keyword">sizeof</span>(<span class="stringliteral">&quot;T4294967295 &quot;</span>) - 1; <span class="comment">/* 12 bytes */</span></div>
+<div class="line"><span class="lineno">  380</span>  <span class="keyword">const</span> <span class="keywordtype">size_t</span> worst = (size_t)count * worst_per + 1;</div>
+<div class="line"><span class="lineno">  381</span> </div>
+<div class="line"><span class="lineno">  382</span>  <span class="keywordflow">if</span> (out_sz &lt; worst) {</div>
+<div class="line"><span class="lineno">  383</span>    <a class="code hl_function" href="util__logging_8h.html#aea21466075cc03977bc4fcde5130d6a4">ie_log_error</a>(<span class="stringliteral">&quot;ie_tok_decode: output buffer too small (count=%&quot;</span> PRIu32 <span class="stringliteral">&quot; out_sz=%zu need_at_least=%zu)&quot;</span>,</div>
+<div class="line"><span class="lineno">  384</span>                 count,</div>
+<div class="line"><span class="lineno">  385</span>                 out_sz,</div>
+<div class="line"><span class="lineno">  386</span>                 worst);</div>
+<div class="line"><span class="lineno">  387</span>    <span class="keywordflow">return</span> -2;</div>
+<div class="line"><span class="lineno">  388</span>  }</div>
+<div class="line"><span class="lineno">  389</span> </div>
+<div class="line"><span class="lineno">  390</span>  <span class="keywordtype">char</span> *p = <a class="code hl_variable" href="namespaceconvert__dtypes__to__numeric.html#a0332296ea5bde95f8e72005df06144a8">out</a>;</div>
+<div class="line"><span class="lineno">  391</span>  <span class="keywordtype">size_t</span> rem = out_sz;</div>
+<div class="line"><span class="lineno">  392</span> </div>
+<div class="line"><span class="lineno">  393</span>  <span class="keywordflow">for</span> (uint32_t i = 0; i &lt; count; ++i) {</div>
+<div class="line"><span class="lineno">  394</span>    <span class="keyword">const</span> <span class="keywordtype">int</span> n = (i == 0)</div>
+<div class="line"><span class="lineno">  395</span>      ? snprintf(p, rem, <span class="stringliteral">&quot;T%u&quot;</span>, (<span class="keywordtype">unsigned</span>)ids[i])</div>
+<div class="line"><span class="lineno">  396</span>      : snprintf(p, rem, <span class="stringliteral">&quot; T%u&quot;</span>, (unsigned)ids[i]);</div>
+<div class="line"><span class="lineno">  397</span> </div>
+<div class="line"><span class="lineno">  398</span>    <span class="keywordflow">if</span> (n &lt; 0 || (<span class="keywordtype">size_t</span>)n &gt;= rem) {</div>
+<div class="line"><span class="lineno">  399</span>      <a class="code hl_function" href="util__logging_8h.html#aea21466075cc03977bc4fcde5130d6a4">ie_log_error</a>(<span class="stringliteral">&quot;ie_tok_decode: snprintf failed/truncated (i=%&quot;</span> PRIu32 <span class="stringliteral">&quot; rem=%zu n=%d)&quot;</span>, i, rem, n);</div>
+<div class="line"><span class="lineno">  400</span>      <span class="keywordflow">return</span> -2;</div>
+<div class="line"><span class="lineno">  401</span>    }</div>
+<div class="line"><span class="lineno">  402</span>    p += (size_t)n;</div>
+<div class="line"><span class="lineno">  403</span>    rem -= (size_t)n;</div>
+<div class="line"><span class="lineno">  404</span>  }</div>
+<div class="line"><span class="lineno">  405</span> </div>
+<div class="line"><span class="lineno">  406</span>  <span class="keywordflow">if</span> (rem == 0) {</div>
+<div class="line"><span class="lineno">  407</span>    <a class="code hl_function" href="util__logging_8h.html#aea21466075cc03977bc4fcde5130d6a4">ie_log_error</a>(<span class="stringliteral">&quot;ie_tok_decode: no space for NUL terminator (count=%&quot;</span> PRIu32 <span class="stringliteral">&quot; out_sz=%zu)&quot;</span>, count, out_sz);</div>
+<div class="line"><span class="lineno">  408</span>    <span class="keywordflow">return</span> -2;</div>
+<div class="line"><span class="lineno">  409</span>  }</div>
+<div class="line"><span class="lineno">  410</span>  *p = <span class="charliteral">&#39;\0&#39;</span>;</div>
+<div class="line"><span class="lineno">  411</span> </div>
+<div class="line"><span class="lineno">  412</span>  <span class="keywordflow">if</span> (verbose) <a class="code hl_function" href="tokenizer_8c.html#ad024cfc5e6543de537bba2d31c18e817">tok_log_preview_</a>(<span class="stringliteral">&quot;ie_tok_decode output&quot;</span>, out);</div>
+<div class="line"><span class="lineno">  413</span>  <span class="keywordflow">return</span> 0;</div>
+<div class="line"><span class="lineno">  414</span>}</div>
+<div class="ttc" id="anamespaceconvert__dtypes__to__numeric_html_a0332296ea5bde95f8e72005df06144a8"><div class="ttname"><a href="namespaceconvert__dtypes__to__numeric.html#a0332296ea5bde95f8e72005df06144a8">convert_dtypes_to_numeric.out</a></div><div class="ttdeci">dict out</div><div class="ttdef"><b>Definition</b> <a href="convert__dtypes__to__numeric_8py_source.html#l00029">convert_dtypes_to_numeric.py:29</a></div></div>
+<div class="ttc" id="atokenizer_8c_html_a863ec1870637861eb15fa5ac24cfaf2a"><div class="ttname"><a href="tokenizer_8c.html#a863ec1870637861eb15fa5ac24cfaf2a">tok_env_flag_</a></div><div class="ttdeci">static int tok_env_flag_(const char *name, int default_value)</div><div class="ttdoc">Read a boolean environment variable as 0/1.</div><div class="ttdef"><b>Definition</b> <a href="tokenizer_8c_source.html#l00068">tokenizer.c:68</a></div></div>
+<div class="ttc" id="atokenizer_8c_html_ad024cfc5e6543de537bba2d31c18e817"><div class="ttname"><a href="tokenizer_8c.html#ad024cfc5e6543de537bba2d31c18e817">tok_log_preview_</a></div><div class="ttdeci">static void tok_log_preview_(const char *label, const char *s)</div><div class="ttdoc">Log a short, safe preview of a string for diagnostics.</div><div class="ttdef"><b>Definition</b> <a href="tokenizer_8c_source.html#l00137">tokenizer.c:137</a></div></div>
+<div class="ttc" id="autil__logging_8h_html_a7bff220c76442d1372d81e26f77c2921"><div class="ttname"><a href="util__logging_8h.html#a7bff220c76442d1372d81e26f77c2921">ie_log_info</a></div><div class="ttdeci">void ie_log_info(const char *fmt,...)</div><div class="ttdoc">Log an informational message (printf-style).</div><div class="ttdef"><b>Definition</b> <a href="util__logging_8c_source.html#l00027">util_logging.c:27</a></div></div>
+<div class="ttc" id="autil__logging_8h_html_aea21466075cc03977bc4fcde5130d6a4"><div class="ttname"><a href="util__logging_8h.html#aea21466075cc03977bc4fcde5130d6a4">ie_log_error</a></div><div class="ttdeci">void ie_log_error(const char *fmt,...)</div><div class="ttdoc">Log an error message (printf-style).</div><div class="ttdef"><b>Definition</b> <a href="util__logging_8c_source.html#l00041">util_logging.c:41</a></div></div>
 </div><!-- fragment -->
-<p class="reference">References <a class="el" href="ie__device__cuda_8cu_source.html#l00092">ie_gemv_rowwise_f32_kernel()</a>.</p>
+<p class="reference">References <a class="el" href="util__logging_8c_source.html#l00041">ie_log_error()</a>, <a class="el" href="util__logging_8c_source.html#l00027">ie_log_info()</a>, <a class="el" href="tokenizer_8c_source.html#l00068">tok_env_flag_()</a>, and <a class="el" href="tokenizer_8c_source.html#l00137">tok_log_preview_()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="test__tokenizer_8c_source.html#l00024">main()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="tokenizer_8c_a68bc61261a64b4fe8bd566fc7d399a2e_cgraph.svg" width="342" height="51"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="tokenizer_8c_a68bc61261a64b4fe8bd566fc7d399a2e_cgraph.svg" width="582" height="186"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
@@ -429,27 +459,27 @@ Here is the caller graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">int</a> ie_tok_encode </td>
+          <td class="memname">int ie_tok_encode </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">const</a> <a class="el" href="ie__io_8h.html#a8bdd12fff1489e034fcb2e8f7f29039a">ie_vocab_t</a> *&#160;</td>
+          <td class="paramtype">const <a class="el" href="ie__io_8h.html#a8bdd12fff1489e034fcb2e8f7f29039a">ie_vocab_t</a> *&#160;</td>
           <td class="paramname"><em>v</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">const</a> <a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">char</a> *&#160;</td>
+          <td class="paramtype">const char *&#160;</td>
           <td class="paramname"><em>text</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">uint32_t</a> *&#160;</td>
+          <td class="paramtype">uint32_t *&#160;</td>
           <td class="paramname"><em>ids</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">uint32_t</a> *&#160;</td>
+          <td class="paramtype">uint32_t *&#160;</td>
           <td class="paramname"><em>out_count</em>&#160;</td>
         </tr>
         <tr>
@@ -461,89 +491,110 @@ Here is the caller graph for this function:</div>
 </div><div class="memdoc">
 
 <p>Encode UTF-8 text with whitespace tokenization and hashed IDs. </p>
-<p>Encode UTF-8 text into token IDs (whitespace split, hashed IDs).</p>
-<p>Tokenization rule: split on <b>one or more</b> whitespace characters (ASCII). Consecutive whitespace collapses to a single separator, producing no empty tokens. For example, <code>"hello  world"</code> yields 2 tokens.</p>
-<p><b>Size-only mode:</b> pass <code>ids == NULL</code> to receive the required length in <code>*out_count</code> without writing IDs.</p>
+<p>Encode UTF-8 text into token IDs (stub implementation).</p>
+<p>Tokenization rule: split on one or more ASCII whitespace characters. Empty tokens are never produced.</p>
+<p>Size-only mode:</p><ul>
+<li>Pass <code>ids</code> == NULL to receive the required token count in <code>out_count</code>.</li>
+</ul>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">v</td><td>Loaded vocabulary descriptor (only <code>vocab_size</code> is used). </td></tr>
-    <tr><td class="paramname">text</td><td>NUL-terminated UTF-8 string. Must not be NULL. </td></tr>
-    <tr><td class="paramname">ids</td><td>Output buffer of length <code>*out_count</code> (or NULL for size query). </td></tr>
-    <tr><td class="paramname">out_count</td><td>In: capacity of <code>ids</code> when <code>ids != NULL</code>. <br  />
- Out: number of tokens written (or needed). </td></tr>
+    <tr><td class="paramname">v</td><td>Loaded vocabulary descriptor (unused by this implementation). </td></tr>
+    <tr><td class="paramname">text</td><td>NUL-terminated UTF-8 string (must not be NULL). </td></tr>
+    <tr><td class="paramname">ids</td><td>Output buffer (or NULL for size query). </td></tr>
+    <tr><td class="paramname">out_count</td><td>In: capacity of <code>ids</code> when <code>ids</code> != NULL. Out: number of tokens written (or needed when <code>ids</code> == NULL). </td></tr>
   </table>
   </dd>
 </dl>
 <dl class="retval"><dt>Return values</dt><dd>
   <table class="retval">
-    <tr><td class="paramname">0</td><td>on success. </td></tr>
-    <tr><td class="paramname">-1</td><td>on invalid arguments. </td></tr>
-    <tr><td class="paramname">-2</td><td>if provided capacity is insufficient to hold all tokens. </td></tr>
+    <tr><td class="paramname">0</td><td>Success. </td></tr>
+    <tr><td class="paramname">-1</td><td>Invalid arguments. </td></tr>
+    <tr><td class="paramname">-2</td><td>Insufficient capacity when <code>ids</code> != NULL. </td></tr>
   </table>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="tokenizer_8c_source.html#l00162">162</a> of file <a class="el" href="tokenizer_8c_source.html">tokenizer.c</a>.</p>
-<div class="fragment"><div class="line"><span class="lineno">  165</span>                                       {</div>
-<div class="line"><span class="lineno">  166</span>  (<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">void</a>)v; <span class="comment">/* vocab_size is not required for hashing but reserved for future use */</span></div>
-<div class="line"><span class="lineno">  167</span>  <span class="keywordflow">if</span> (!<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">text</a> || !<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">out_count</a>) <span class="keywordflow">return</span> -1;</div>
-<div class="line"><span class="lineno">  168</span> </div>
-<div class="line"><span class="lineno">  169</span>  <span class="keyword">const</span> <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> *<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">s</a> = (<span class="keyword">const</span> <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span>*)<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">text</a>;</div>
-<div class="line"><span class="lineno">  170</span>  <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">uint32_t</a> <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">needed</a> = 0;</div>
-<div class="line"><span class="lineno">  171</span> </div>
-<div class="line"><span class="lineno">  172</span>  <span class="comment">/* First pass: count tokens. */</span></div>
-<div class="line"><span class="lineno">  173</span>  <span class="keywordtype">size_t</span> <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">i</a> = 0;</div>
-<div class="line"><span class="lineno">  174</span>  <span class="keyword">const</span> <span class="keywordtype">size_t</span> <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">L</a> = <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">strlen</a>(<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">text</a>);</div>
-<div class="line"><span class="lineno">  175</span>  <span class="keywordflow">while</span> (<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">i</a> &lt; <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">L</a>) {</div>
-<div class="line"><span class="lineno">  176</span>    <span class="comment">/* Skip leading whitespace between tokens. */</span></div>
-<div class="line"><span class="lineno">  177</span>    <span class="keywordflow">while</span> (<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">i</a> &lt; <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">L</a> &amp;&amp; <a class="code hl_function" href="tokenizer_8c.html#a35b758cbf8aeb3348c6eec59a770f888">is_space_byte</a>(<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">s</a>[<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">i</a>])) ++<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">i</a>;</div>
-<div class="line"><span class="lineno">  178</span>    <span class="keywordflow">if</span> (<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">i</a> &gt;= <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">L</a>) <span class="keywordflow">break</span>;</div>
-<div class="line"><span class="lineno">  179</span> </div>
-<div class="line"><span class="lineno">  180</span>    <span class="comment">/* Start of token. */</span></div>
-<div class="line"><span class="lineno">  181</span>    <span class="keywordtype">size_t</span> start = <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">i</a>;</div>
-<div class="line"><span class="lineno">  182</span>    <span class="keywordflow">while</span> (<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">i</a> &lt; <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">L</a> &amp;&amp; !<a class="code hl_function" href="tokenizer_8c.html#a35b758cbf8aeb3348c6eec59a770f888">is_space_byte</a>(<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">s</a>[<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">i</a>])) ++<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">i</a>;</div>
-<div class="line"><span class="lineno">  183</span>    <span class="keywordtype">size_t</span> <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">tok_len</a> = <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">i</a> - start;</div>
-<div class="line"><span class="lineno">  184</span>    <span class="keywordflow">if</span> (<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">tok_len</a> &gt; 0) {</div>
-<div class="line"><span class="lineno">  185</span>      ++<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">needed</a>;</div>
-<div class="line"><span class="lineno">  186</span>    }</div>
-<div class="line"><span class="lineno">  187</span>  }</div>
-<div class="line"><span class="lineno">  188</span> </div>
-<div class="line"><span class="lineno">  189</span>  <span class="keywordflow">if</span> (!ids) {</div>
-<div class="line"><span class="lineno">  190</span>    *<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">out_count</a> = <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">needed</a>;</div>
-<div class="line"><span class="lineno">  191</span>    <span class="keywordflow">return</span> 0;</div>
-<div class="line"><span class="lineno">  192</span>  }</div>
-<div class="line"><span class="lineno">  193</span> </div>
-<div class="line"><span class="lineno">  194</span>  <span class="comment">/* Second pass: produce IDs; respect capacity in *out_count. */</span></div>
-<div class="line"><span class="lineno">  195</span>  <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">uint32_t</a> cap = *<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">out_count</a>;</div>
-<div class="line"><span class="lineno">  196</span>  <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">uint32_t</a> <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">wrote</a> = 0;</div>
-<div class="line"><span class="lineno">  197</span>  <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">i</a> = 0;</div>
-<div class="line"><span class="lineno">  198</span>  <span class="keywordflow">while</span> (<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">i</a> &lt; <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">L</a> &amp;&amp; <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">wrote</a> &lt; cap) {</div>
-<div class="line"><span class="lineno">  199</span>    <span class="keywordflow">while</span> (<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">i</a> &lt; <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">L</a> &amp;&amp; <a class="code hl_function" href="tokenizer_8c.html#a35b758cbf8aeb3348c6eec59a770f888">is_space_byte</a>(<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">s</a>[<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">i</a>])) ++<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">i</a>;</div>
-<div class="line"><span class="lineno">  200</span>    <span class="keywordflow">if</span> (<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">i</a> &gt;= <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">L</a>) <span class="keywordflow">break</span>;</div>
-<div class="line"><span class="lineno">  201</span>    <span class="keywordtype">size_t</span> start = <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">i</a>;</div>
-<div class="line"><span class="lineno">  202</span>    <span class="keywordflow">while</span> (<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">i</a> &lt; <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">L</a> &amp;&amp; !<a class="code hl_function" href="tokenizer_8c.html#a35b758cbf8aeb3348c6eec59a770f888">is_space_byte</a>(<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">s</a>[<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">i</a>])) ++<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">i</a>;</div>
-<div class="line"><span class="lineno">  203</span>    <span class="keywordtype">size_t</span> <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">tok_len</a> = <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">i</a> - start;</div>
-<div class="line"><span class="lineno">  204</span>    <span class="keywordflow">if</span> (<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">tok_len</a> &gt; 0) {</div>
-<div class="line"><span class="lineno">  205</span>      <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">uint32_t</a> <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">h</a> = <a class="code hl_function" href="tokenizer_8c.html#ab65f36294d9d8ee9d8b027673b01de30">fnv1a_32</a>(<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">s</a> + start, <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">tok_len</a>);</div>
-<div class="line"><span class="lineno">  206</span>      ids[<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">wrote</a>++] = <a class="code hl_function" href="tokenizer_8c.html#a3ca2adb2290e006f09b1fb7f274bd371">clamp_to_pos31</a>(<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">h</a>);</div>
-<div class="line"><span class="lineno">  207</span>    }</div>
-<div class="line"><span class="lineno">  208</span>  }</div>
-<div class="line"><span class="lineno">  209</span> </div>
-<div class="line"><span class="lineno">  210</span>  *<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">out_count</a> = <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">wrote</a>;</div>
-<div class="line"><span class="lineno">  211</span>  <span class="comment">/* If capacity was insufficient, signal failure. Tests pre-size correctly. */</span></div>
-<div class="line"><span class="lineno">  212</span>  <span class="keywordflow">return</span> (<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">wrote</a> == <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">needed</a>) ? 0 : -2;</div>
-<div class="line"><span class="lineno">  213</span>}</div>
-<div class="ttc" id="atokenizer_8c_html_a35b758cbf8aeb3348c6eec59a770f888"><div class="ttname"><a href="tokenizer_8c.html#a35b758cbf8aeb3348c6eec59a770f888">is_space_byte</a></div><div class="ttdeci">static int is_space_byte(unsigned char c)</div><div class="ttdoc">Return 1 if c is ASCII whitespace, 0 otherwise.</div><div class="ttdef"><b>Definition</b> <a href="tokenizer_8c_source.html#l00044">tokenizer.c:44</a></div></div>
-<div class="ttc" id="atokenizer_8c_html_a3ca2adb2290e006f09b1fb7f274bd371"><div class="ttname"><a href="tokenizer_8c.html#a3ca2adb2290e006f09b1fb7f274bd371">clamp_to_pos31</a></div><div class="ttdeci">static uint32_t clamp_to_pos31(uint32_t x)</div><div class="ttdoc">Clamp an unsigned 32-bit value into a positive 31-bit ID space.</div><div class="ttdef"><b>Definition</b> <a href="tokenizer_8c_source.html#l00075">tokenizer.c:75</a></div></div>
-<div class="ttc" id="atokenizer_8c_html_ab65f36294d9d8ee9d8b027673b01de30"><div class="ttname"><a href="tokenizer_8c.html#ab65f36294d9d8ee9d8b027673b01de30">fnv1a_32</a></div><div class="ttdeci">static uint32_t fnv1a_32(const void *ptr, size_t len)</div><div class="ttdoc">Compute 32-bit FNV-1a hash for a memory region.</div><div class="ttdef"><b>Definition</b> <a href="tokenizer_8c_source.html#l00059">tokenizer.c:59</a></div></div>
+<p class="definition">Definition at line <a class="el" href="tokenizer_8c_source.html#l00266">266</a> of file <a class="el" href="tokenizer_8c_source.html">tokenizer.c</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">  269</span>                                       {</div>
+<div class="line"><span class="lineno">  270</span>  (void)v;</div>
+<div class="line"><span class="lineno">  271</span>  <span class="keywordflow">if</span> (!text || !out_count) {</div>
+<div class="line"><span class="lineno">  272</span>    <a class="code hl_function" href="util__logging_8h.html#aea21466075cc03977bc4fcde5130d6a4">ie_log_error</a>(<span class="stringliteral">&quot;ie_tok_encode: bad args (text=%p out_count=%p)&quot;</span>, (<span class="keyword">const</span> <span class="keywordtype">void</span> *)text, (<span class="keywordtype">void</span> *)out_count);</div>
+<div class="line"><span class="lineno">  273</span>    <span class="keywordflow">return</span> -1;</div>
+<div class="line"><span class="lineno">  274</span>  }</div>
+<div class="line"><span class="lineno">  275</span> </div>
+<div class="line"><span class="lineno">  276</span>  <span class="keyword">const</span> <span class="keywordtype">int</span> verbose = <a class="code hl_function" href="tokenizer_8c.html#a863ec1870637861eb15fa5ac24cfaf2a">tok_env_flag_</a>(<span class="stringliteral">&quot;IE_TOKENIZER_VERBOSE&quot;</span>, 0);</div>
+<div class="line"><span class="lineno">  277</span>  <span class="keywordflow">if</span> (verbose) <a class="code hl_function" href="tokenizer_8c.html#ad024cfc5e6543de537bba2d31c18e817">tok_log_preview_</a>(<span class="stringliteral">&quot;ie_tok_encode input&quot;</span>, text);</div>
+<div class="line"><span class="lineno">  278</span> </div>
+<div class="line"><span class="lineno">  279</span>  <span class="keyword">const</span> <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> *s = (<span class="keyword">const</span> <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> *)text;</div>
+<div class="line"><span class="lineno">  280</span>  <span class="keyword">const</span> <span class="keywordtype">size_t</span> L = strlen(text);</div>
+<div class="line"><span class="lineno">  281</span> </div>
+<div class="line"><span class="lineno">  282</span>  uint32_t needed = 0;</div>
+<div class="line"><span class="lineno">  283</span> </div>
+<div class="line"><span class="lineno">  284</span>  <span class="comment">/* First pass: count tokens. */</span></div>
+<div class="line"><span class="lineno">  285</span>  <span class="keywordtype">size_t</span> i = 0;</div>
+<div class="line"><span class="lineno">  286</span>  <span class="keywordflow">while</span> (i &lt; L) {</div>
+<div class="line"><span class="lineno">  287</span>    <span class="keywordflow">while</span> (i &lt; L &amp;&amp; <a class="code hl_function" href="tokenizer_8c.html#aca4f0da2226b5ed16e71e5524f84e0d8">is_space_byte_</a>(s[i])) ++i;</div>
+<div class="line"><span class="lineno">  288</span>    <span class="keywordflow">if</span> (i &gt;= L) <span class="keywordflow">break</span>;</div>
+<div class="line"><span class="lineno">  289</span> </div>
+<div class="line"><span class="lineno">  290</span>    <span class="keywordtype">size_t</span> start = i;</div>
+<div class="line"><span class="lineno">  291</span>    <span class="keywordflow">while</span> (i &lt; L &amp;&amp; !<a class="code hl_function" href="tokenizer_8c.html#aca4f0da2226b5ed16e71e5524f84e0d8">is_space_byte_</a>(s[i])) ++i;</div>
+<div class="line"><span class="lineno">  292</span> </div>
+<div class="line"><span class="lineno">  293</span>    <span class="keywordflow">if</span> (i &gt; start) ++needed;</div>
+<div class="line"><span class="lineno">  294</span>  }</div>
+<div class="line"><span class="lineno">  295</span> </div>
+<div class="line"><span class="lineno">  296</span>  <span class="keywordflow">if</span> (!ids) {</div>
+<div class="line"><span class="lineno">  297</span>    *out_count = needed;</div>
+<div class="line"><span class="lineno">  298</span>    <span class="keywordflow">if</span> (verbose) {</div>
+<div class="line"><span class="lineno">  299</span>      <a class="code hl_function" href="util__logging_8h.html#a7bff220c76442d1372d81e26f77c2921">ie_log_info</a>(<span class="stringliteral">&quot;ie_tok_encode: size-query result needed=%&quot;</span> PRIu32, needed);</div>
+<div class="line"><span class="lineno">  300</span>    }</div>
+<div class="line"><span class="lineno">  301</span>    <span class="keywordflow">return</span> 0;</div>
+<div class="line"><span class="lineno">  302</span>  }</div>
+<div class="line"><span class="lineno">  303</span> </div>
+<div class="line"><span class="lineno">  304</span>  <span class="comment">/* Second pass: produce IDs; respect capacity in *out_count. */</span></div>
+<div class="line"><span class="lineno">  305</span>  <span class="keyword">const</span> uint32_t cap = *out_count;</div>
+<div class="line"><span class="lineno">  306</span>  uint32_t wrote = 0;</div>
+<div class="line"><span class="lineno">  307</span> </div>
+<div class="line"><span class="lineno">  308</span>  i = 0;</div>
+<div class="line"><span class="lineno">  309</span>  <span class="keywordflow">while</span> (i &lt; L &amp;&amp; wrote &lt; cap) {</div>
+<div class="line"><span class="lineno">  310</span>    <span class="keywordflow">while</span> (i &lt; L &amp;&amp; <a class="code hl_function" href="tokenizer_8c.html#aca4f0da2226b5ed16e71e5524f84e0d8">is_space_byte_</a>(s[i])) ++i;</div>
+<div class="line"><span class="lineno">  311</span>    <span class="keywordflow">if</span> (i &gt;= L) <span class="keywordflow">break</span>;</div>
+<div class="line"><span class="lineno">  312</span> </div>
+<div class="line"><span class="lineno">  313</span>    <span class="keywordtype">size_t</span> start = i;</div>
+<div class="line"><span class="lineno">  314</span>    <span class="keywordflow">while</span> (i &lt; L &amp;&amp; !<a class="code hl_function" href="tokenizer_8c.html#aca4f0da2226b5ed16e71e5524f84e0d8">is_space_byte_</a>(s[i])) ++i;</div>
+<div class="line"><span class="lineno">  315</span> </div>
+<div class="line"><span class="lineno">  316</span>    <span class="keyword">const</span> <span class="keywordtype">size_t</span> tok_len = i - start;</div>
+<div class="line"><span class="lineno">  317</span>    <span class="keywordflow">if</span> (tok_len &gt; 0) {</div>
+<div class="line"><span class="lineno">  318</span>      <span class="keyword">const</span> uint32_t h = <a class="code hl_function" href="tokenizer_8c.html#a5f45335764cbb4aecfbd2fea264cf1d5">fnv1a_32_</a>(s + start, tok_len);</div>
+<div class="line"><span class="lineno">  319</span>      ids[wrote++] = <a class="code hl_function" href="tokenizer_8c.html#a9795df9525cac512228dfcc901d51c00">clamp_to_pos31_</a>(h);</div>
+<div class="line"><span class="lineno">  320</span>    }</div>
+<div class="line"><span class="lineno">  321</span>  }</div>
+<div class="line"><span class="lineno">  322</span> </div>
+<div class="line"><span class="lineno">  323</span>  *out_count = wrote;</div>
+<div class="line"><span class="lineno">  324</span> </div>
+<div class="line"><span class="lineno">  325</span>  <span class="keywordflow">if</span> (wrote != needed) {</div>
+<div class="line"><span class="lineno">  326</span>    <a class="code hl_function" href="util__logging_8h.html#aea21466075cc03977bc4fcde5130d6a4">ie_log_error</a>(<span class="stringliteral">&quot;ie_tok_encode: insufficient capacity (needed=%&quot;</span> PRIu32 <span class="stringliteral">&quot; cap=%&quot;</span> PRIu32 <span class="stringliteral">&quot; wrote=%&quot;</span> PRIu32 <span class="stringliteral">&quot;)&quot;</span>,</div>
+<div class="line"><span class="lineno">  327</span>                 needed,</div>
+<div class="line"><span class="lineno">  328</span>                 cap,</div>
+<div class="line"><span class="lineno">  329</span>                 wrote);</div>
+<div class="line"><span class="lineno">  330</span>    <span class="keywordflow">return</span> -2;</div>
+<div class="line"><span class="lineno">  331</span>  }</div>
+<div class="line"><span class="lineno">  332</span> </div>
+<div class="line"><span class="lineno">  333</span>  <span class="keywordflow">if</span> (verbose) {</div>
+<div class="line"><span class="lineno">  334</span>    <a class="code hl_function" href="util__logging_8h.html#a7bff220c76442d1372d81e26f77c2921">ie_log_info</a>(<span class="stringliteral">&quot;ie_tok_encode: ok (tokens=%&quot;</span> PRIu32 <span class="stringliteral">&quot;)&quot;</span>, wrote);</div>
+<div class="line"><span class="lineno">  335</span>  }</div>
+<div class="line"><span class="lineno">  336</span>  <span class="keywordflow">return</span> 0;</div>
+<div class="line"><span class="lineno">  337</span>}</div>
+<div class="ttc" id="atokenizer_8c_html_a5f45335764cbb4aecfbd2fea264cf1d5"><div class="ttname"><a href="tokenizer_8c.html#a5f45335764cbb4aecfbd2fea264cf1d5">fnv1a_32_</a></div><div class="ttdeci">static uint32_t fnv1a_32_(const void *ptr, size_t len)</div><div class="ttdoc">Compute 32-bit FNV-1a hash for a memory region.</div><div class="ttdef"><b>Definition</b> <a href="tokenizer_8c_source.html#l00104">tokenizer.c:104</a></div></div>
+<div class="ttc" id="atokenizer_8c_html_a9795df9525cac512228dfcc901d51c00"><div class="ttname"><a href="tokenizer_8c.html#a9795df9525cac512228dfcc901d51c00">clamp_to_pos31_</a></div><div class="ttdeci">static uint32_t clamp_to_pos31_(uint32_t x)</div><div class="ttdoc">Clamp an unsigned 32-bit value into a positive 31-bit ID space.</div><div class="ttdef"><b>Definition</b> <a href="tokenizer_8c_source.html#l00123">tokenizer.c:123</a></div></div>
+<div class="ttc" id="atokenizer_8c_html_aca4f0da2226b5ed16e71e5524f84e0d8"><div class="ttname"><a href="tokenizer_8c.html#aca4f0da2226b5ed16e71e5524f84e0d8">is_space_byte_</a></div><div class="ttdeci">static int is_space_byte_(unsigned char c)</div><div class="ttdoc">Return 1 if c is ASCII whitespace, 0 otherwise.</div><div class="ttdef"><b>Definition</b> <a href="tokenizer_8c_source.html#l00089">tokenizer.c:89</a></div></div>
 </div><!-- fragment -->
-<p class="reference">References <a class="el" href="tokenizer_8c_source.html#l00075">clamp_to_pos31()</a>, <a class="el" href="tokenizer_8c_source.html#l00059">fnv1a_32()</a>, <a class="el" href="ie__device__cuda_8cu_source.html#l00092">ie_gemv_rowwise_f32_kernel()</a>, and <a class="el" href="tokenizer_8c_source.html#l00044">is_space_byte()</a>.</p>
+<p class="reference">References <a class="el" href="tokenizer_8c_source.html#l00123">clamp_to_pos31_()</a>, <a class="el" href="tokenizer_8c_source.html#l00104">fnv1a_32_()</a>, <a class="el" href="util__logging_8c_source.html#l00041">ie_log_error()</a>, <a class="el" href="util__logging_8c_source.html#l00027">ie_log_info()</a>, <a class="el" href="tokenizer_8c_source.html#l00089">is_space_byte_()</a>, <a class="el" href="tokenizer_8c_source.html#l00068">tok_env_flag_()</a>, and <a class="el" href="tokenizer_8c_source.html#l00137">tok_log_preview_()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="test__tokenizer_8c_source.html#l00024">main()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="tokenizer_8c_a2b9cb342eb062867f93fb786548003f7_cgraph.svg" width="518" height="187"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="tokenizer_8c_a2b9cb342eb062867f93fb786548003f7_cgraph.svg" width="582" height="336"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
@@ -560,7 +611,7 @@ Here is the caller graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">void</a> ie_vocab_free </td>
+          <td class="memname">void ie_vocab_free </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="ie__io_8h.html#a8bdd12fff1489e034fcb2e8f7f29039a">ie_vocab_t</a> *&#160;</td>
           <td class="paramname"><em>v</em></td><td>)</td>
@@ -569,27 +620,21 @@ Here is the caller graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p>Release vocabulary resources (currently a no-op). </p>
-<p>Present for API symmetry; implementations may later allocate resources.</p>
+<p>Free vocabulary resources. </p>
+<p>Release vocabulary resources.</p>
+<p>This tokenizer implementation does not allocate dynamic resources for the vocab. This function is kept for API symmetry and future expansion.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">v</td><td>Vocabulary pointer (may be NULL). </td></tr>
+    <tr><td class="paramname">v</td><td>Vocabulary handle (may be NULL). </td></tr>
   </table>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="tokenizer_8c_source.html#l00134">134</a> of file <a class="el" href="tokenizer_8c_source.html">tokenizer.c</a>.</p>
-<div class="fragment"><div class="line"><span class="lineno">  134</span>                                  {</div>
-<div class="line"><span class="lineno">  135</span>  (<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">void</a>)v;</div>
-<div class="line"><span class="lineno">  136</span>}</div>
+<p class="definition">Definition at line <a class="el" href="tokenizer_8c_source.html#l00239">239</a> of file <a class="el" href="tokenizer_8c_source.html">tokenizer.c</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">  239</span>                                  {</div>
+<div class="line"><span class="lineno">  240</span>  (void)v;</div>
+<div class="line"><span class="lineno">  241</span>}</div>
 </div><!-- fragment -->
-<p class="reference">References <a class="el" href="ie__device__cuda_8cu_source.html#l00092">ie_gemv_rowwise_f32_kernel()</a>.</p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="tokenizer_8c_a1a76c23fd3fdf25bdae9ee6e9103cf83_cgraph.svg" width="339" height="51"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
 </div>
 </div>
 <a id="adbe33a7f4e53bcb709d56dc753c9148b" name="adbe33a7f4e53bcb709d56dc753c9148b"></a>
@@ -599,9 +644,9 @@ Here is the call graph for this function:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">int</a> ie_vocab_load </td>
+          <td class="memname">int ie_vocab_load </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">const</a> <a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">char</a> *&#160;</td>
+          <td class="paramtype">const char *&#160;</td>
           <td class="paramname"><em>vocab_path</em>, </td>
         </tr>
         <tr>
@@ -619,68 +664,86 @@ Here is the call graph for this function:</div>
 </div><div class="memdoc">
 
 <p>Load a vocabulary file or default to a stub. </p>
-<p>Load a vocabulary from vocab_path or fall back to a stub.</p>
-<p>The implementation accepts any readable file but only attempts to detect a simple JSON-like <code>"vocabSize": &lt;int&gt;</code> field. If the file is missing or unparsable, a small stub vocab is returned to keep execution deterministic.</p>
+<p>Load a vocabulary file or fall back to a stub.</p>
+<p>This implementation does not parse a full tokenizer model. It only attempts a best-effort scan for a JSON-like field <code>"vocabSize": &lt;int&gt;</code> in the first few KB of the file.</p>
+<p>If the file is missing/unreadable/unparsable, a deterministic stub value is returned to keep tests stable.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">vocab_path</td><td>Path to a vocabulary file (may be NULL). </td></tr>
-    <tr><td class="paramname">out</td><td>Output vocabulary (written on success). </td></tr>
+    <tr><td class="paramname">vocab_path</td><td>Path to a vocabulary file (may be NULL or empty). </td></tr>
+    <tr><td class="paramname">out</td><td>Output vocabulary (must not be NULL). </td></tr>
   </table>
   </dd>
 </dl>
 <dl class="retval"><dt>Return values</dt><dd>
   <table class="retval">
-    <tr><td class="paramname">0</td><td>on success (including stub fallback). </td></tr>
-    <tr><td class="paramname">-1</td><td>on invalid arguments (e.g., <code>out</code> is NULL). </td></tr>
+    <tr><td class="paramname">0</td><td>Success (including stub fallback). </td></tr>
+    <tr><td class="paramname">-1</td><td>Invalid arguments. </td></tr>
   </table>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="tokenizer_8c_source.html#l00097">97</a> of file <a class="el" href="tokenizer_8c_source.html">tokenizer.c</a>.</p>
-<div class="fragment"><div class="line"><span class="lineno">   97</span>                                                           {</div>
-<div class="line"><span class="lineno">   98</span>  <span class="keywordflow">if</span> (!<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">out</a>) <span class="keywordflow">return</span> -1;</div>
-<div class="line"><span class="lineno">   99</span> </div>
-<div class="line"><span class="lineno">  100</span>  <span class="comment">/* Default stub value if anything goes wrong. */</span></div>
-<div class="line"><span class="lineno">  101</span>  <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">out</a>-&gt;vocab_size = 50000;</div>
-<div class="line"><span class="lineno">  102</span> </div>
-<div class="line"><span class="lineno">  103</span>  <span class="keywordflow">if</span> (!<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">vocab_path</a> || !*<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">vocab_path</a>) {</div>
-<div class="line"><span class="lineno">  104</span>    <span class="keywordflow">return</span> 0;</div>
-<div class="line"><span class="lineno">  105</span>  }</div>
-<div class="line"><span class="lineno">  106</span> </div>
-<div class="line"><span class="lineno">  107</span>  <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">FILE</a> *f = <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">fopen</a>(<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">vocab_path</a>, <span class="stringliteral">&quot;rb&quot;</span>);</div>
-<div class="line"><span class="lineno">  108</span>  <span class="keywordflow">if</span> (!f) {</div>
-<div class="line"><span class="lineno">  109</span>    <span class="comment">/* Keep stub; report success to remain permissive. */</span></div>
-<div class="line"><span class="lineno">  110</span>    <span class="keywordflow">return</span> 0;</div>
-<div class="line"><span class="lineno">  111</span>  }</div>
-<div class="line"><span class="lineno">  112</span> </div>
-<div class="line"><span class="lineno">  113</span>  <span class="comment">/* Read a small prefix to try and find &quot;vocabSize&quot;. */</span></div>
-<div class="line"><span class="lineno">  114</span>  <span class="keywordtype">char</span> <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">buf</a>[4096];</div>
-<div class="line"><span class="lineno">  115</span>  <span class="keywordtype">size_t</span> n = <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">fread</a>(<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">buf</a>, 1, <span class="keyword">sizeof</span>(<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">buf</a>)-1, f);</div>
-<div class="line"><span class="lineno">  116</span>  <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">fclose</a>(f);</div>
-<div class="line"><span class="lineno">  117</span>  <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">buf</a>[n] = <span class="charliteral">&#39;\0&#39;</span>;</div>
-<div class="line"><span class="lineno">  118</span> </div>
-<div class="line"><span class="lineno">  119</span>  <span class="comment">/* Very relaxed scan for a number after &quot;vocabSize&quot;. */</span></div>
-<div class="line"><span class="lineno">  120</span>  <span class="keyword">const</span> <span class="keywordtype">char</span> *<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">key</a> = <span class="stringliteral">&quot;vocabSize&quot;</span>;</div>
-<div class="line"><span class="lineno">  121</span>  <span class="keywordtype">char</span> *<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">hit</a> = <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">strstr</a>(<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">buf</a>, <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">key</a>);</div>
-<div class="line"><span class="lineno">  122</span>  <span class="keywordflow">if</span> (<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">hit</a>) {</div>
-<div class="line"><span class="lineno">  123</span>    <span class="comment">/* Move to the first digit after key. */</span></div>
-<div class="line"><span class="lineno">  124</span>    <span class="keywordtype">char</span> *<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">p</a> = <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">hit</a> + (<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">int</a>)<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">strlen</a>(<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">key</a>);</div>
-<div class="line"><span class="lineno">  125</span>    <span class="keywordflow">while</span> (*<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">p</a> &amp;&amp; (*<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">p</a> == <span class="charliteral">&#39; &#39;</span> || *<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">p</a> == <span class="charliteral">&#39;\t&#39;</span> || *<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">p</a> == <span class="charliteral">&#39;&quot;&#39;</span> || *<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">p</a> == <span class="charliteral">&#39;\&#39;&#39;</span> || *<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">p</a> == <span class="charliteral">&#39;:&#39;</span> )) ++<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">p</a>;</div>
-<div class="line"><span class="lineno">  126</span>    <span class="keywordtype">long</span> val = 0;</div>
-<div class="line"><span class="lineno">  127</span>    <span class="keywordflow">if</span> (<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">sscanf</a>(<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">p</a>, <span class="stringliteral">&quot;%ld&quot;</span>, &amp;val) == 1 &amp;&amp; val &gt; 0 &amp;&amp; val &lt; 100000000L) {</div>
-<div class="line"><span class="lineno">  128</span>      <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">out</a>-&gt;vocab_size = (<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">int</a>)val;</div>
-<div class="line"><span class="lineno">  129</span>    }</div>
-<div class="line"><span class="lineno">  130</span>  }</div>
-<div class="line"><span class="lineno">  131</span>  <span class="keywordflow">return</span> 0;</div>
-<div class="line"><span class="lineno">  132</span>}</div>
+<p class="definition">Definition at line <a class="el" href="tokenizer_8c_source.html#l00176">176</a> of file <a class="el" href="tokenizer_8c_source.html">tokenizer.c</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">  176</span>                                                           {</div>
+<div class="line"><span class="lineno">  177</span>  <span class="keywordflow">if</span> (!out) {</div>
+<div class="line"><span class="lineno">  178</span>    <a class="code hl_function" href="util__logging_8h.html#aea21466075cc03977bc4fcde5130d6a4">ie_log_error</a>(<span class="stringliteral">&quot;ie_vocab_load: bad args (out=NULL)&quot;</span>);</div>
+<div class="line"><span class="lineno">  179</span>    <span class="keywordflow">return</span> -1;</div>
+<div class="line"><span class="lineno">  180</span>  }</div>
+<div class="line"><span class="lineno">  181</span> </div>
+<div class="line"><span class="lineno">  182</span>  <span class="comment">/* Default stub value if anything goes wrong. */</span></div>
+<div class="line"><span class="lineno">  183</span>  <a class="code hl_variable" href="namespaceconvert__dtypes__to__numeric.html#a0332296ea5bde95f8e72005df06144a8">out</a>-&gt;vocab_size = 50000;</div>
+<div class="line"><span class="lineno">  184</span> </div>
+<div class="line"><span class="lineno">  185</span>  <span class="keywordflow">if</span> (!vocab_path || !*vocab_path) {</div>
+<div class="line"><span class="lineno">  186</span>    <a class="code hl_function" href="util__logging_8h.html#a7bff220c76442d1372d81e26f77c2921">ie_log_info</a>(<span class="stringliteral">&quot;ie_vocab_load: no path provided; using stub vocab_size=%d&quot;</span>, <a class="code hl_variable" href="namespaceconvert__dtypes__to__numeric.html#a0332296ea5bde95f8e72005df06144a8">out</a>-&gt;vocab_size);</div>
+<div class="line"><span class="lineno">  187</span>    <span class="keywordflow">return</span> 0;</div>
+<div class="line"><span class="lineno">  188</span>  }</div>
+<div class="line"><span class="lineno">  189</span> </div>
+<div class="line"><span class="lineno">  190</span>  FILE *f = fopen(vocab_path, <span class="stringliteral">&quot;rb&quot;</span>);</div>
+<div class="line"><span class="lineno">  191</span>  <span class="keywordflow">if</span> (!f) {</div>
+<div class="line"><span class="lineno">  192</span>    <a class="code hl_function" href="util__logging_8h.html#a7bff220c76442d1372d81e26f77c2921">ie_log_info</a>(<span class="stringliteral">&quot;ie_vocab_load: cannot open \&quot;%s\&quot; (errno=%d: %s); using stub vocab_size=%d&quot;</span>,</div>
+<div class="line"><span class="lineno">  193</span>                vocab_path,</div>
+<div class="line"><span class="lineno">  194</span>                errno,</div>
+<div class="line"><span class="lineno">  195</span>                strerror(errno),</div>
+<div class="line"><span class="lineno">  196</span>                <a class="code hl_variable" href="namespaceconvert__dtypes__to__numeric.html#a0332296ea5bde95f8e72005df06144a8">out</a>-&gt;vocab_size);</div>
+<div class="line"><span class="lineno">  197</span>    <span class="keywordflow">return</span> 0;</div>
+<div class="line"><span class="lineno">  198</span>  }</div>
+<div class="line"><span class="lineno">  199</span> </div>
+<div class="line"><span class="lineno">  200</span>  <span class="comment">/* Read a small prefix to try and find &quot;vocabSize&quot;. */</span></div>
+<div class="line"><span class="lineno">  201</span>  <span class="keywordtype">char</span> buf[4096];</div>
+<div class="line"><span class="lineno">  202</span>  <span class="keywordtype">size_t</span> n = fread(buf, 1, <span class="keyword">sizeof</span>(buf) - 1, f);</div>
+<div class="line"><span class="lineno">  203</span>  fclose(f);</div>
+<div class="line"><span class="lineno">  204</span>  buf[n] = <span class="charliteral">&#39;\0&#39;</span>;</div>
+<div class="line"><span class="lineno">  205</span> </div>
+<div class="line"><span class="lineno">  206</span>  <span class="comment">/* Very relaxed scan for a number after &quot;vocabSize&quot;. */</span></div>
+<div class="line"><span class="lineno">  207</span>  <span class="keyword">const</span> <span class="keywordtype">char</span> *key = <span class="stringliteral">&quot;vocabSize&quot;</span>;</div>
+<div class="line"><span class="lineno">  208</span>  <span class="keywordtype">char</span> *hit = strstr(buf, key);</div>
+<div class="line"><span class="lineno">  209</span>  <span class="keywordflow">if</span> (hit) {</div>
+<div class="line"><span class="lineno">  210</span>    <span class="keywordtype">char</span> *p = hit + (int)strlen(key);</div>
+<div class="line"><span class="lineno">  211</span>    <span class="keywordflow">while</span> (*p &amp;&amp; (*p == <span class="charliteral">&#39; &#39;</span> || *p == <span class="charliteral">&#39;\t&#39;</span> || *p == <span class="charliteral">&#39;&quot;&#39;</span> || *p == <span class="charliteral">&#39;\&#39;&#39;</span> || *p == <span class="charliteral">&#39;:&#39;</span>)) ++p;</div>
+<div class="line"><span class="lineno">  212</span> </div>
+<div class="line"><span class="lineno">  213</span>    <span class="keywordtype">long</span> val = 0;</div>
+<div class="line"><span class="lineno">  214</span>    <span class="keywordflow">if</span> (sscanf(p, <span class="stringliteral">&quot;%ld&quot;</span>, &amp;val) == 1 &amp;&amp; val &gt; 0 &amp;&amp; val &lt; 100000000L) {</div>
+<div class="line"><span class="lineno">  215</span>      <a class="code hl_variable" href="namespaceconvert__dtypes__to__numeric.html#a0332296ea5bde95f8e72005df06144a8">out</a>-&gt;vocab_size = (int)val;</div>
+<div class="line"><span class="lineno">  216</span>      <a class="code hl_function" href="util__logging_8h.html#a7bff220c76442d1372d81e26f77c2921">ie_log_info</a>(<span class="stringliteral">&quot;ie_vocab_load: parsed vocab_size=%d from \&quot;%s\&quot;&quot;</span>, <a class="code hl_variable" href="namespaceconvert__dtypes__to__numeric.html#a0332296ea5bde95f8e72005df06144a8">out</a>-&gt;vocab_size, vocab_path);</div>
+<div class="line"><span class="lineno">  217</span>      <span class="keywordflow">return</span> 0;</div>
+<div class="line"><span class="lineno">  218</span>    }</div>
+<div class="line"><span class="lineno">  219</span> </div>
+<div class="line"><span class="lineno">  220</span>    <a class="code hl_function" href="util__logging_8h.html#a7bff220c76442d1372d81e26f77c2921">ie_log_info</a>(<span class="stringliteral">&quot;ie_vocab_load: found key \&quot;%s\&quot; but failed to parse number; using stub vocab_size=%d&quot;</span>,</div>
+<div class="line"><span class="lineno">  221</span>                key,</div>
+<div class="line"><span class="lineno">  222</span>                <a class="code hl_variable" href="namespaceconvert__dtypes__to__numeric.html#a0332296ea5bde95f8e72005df06144a8">out</a>-&gt;vocab_size);</div>
+<div class="line"><span class="lineno">  223</span>    <span class="keywordflow">return</span> 0;</div>
+<div class="line"><span class="lineno">  224</span>  }</div>
+<div class="line"><span class="lineno">  225</span> </div>
+<div class="line"><span class="lineno">  226</span>  <a class="code hl_function" href="util__logging_8h.html#a7bff220c76442d1372d81e26f77c2921">ie_log_info</a>(<span class="stringliteral">&quot;ie_vocab_load: key \&quot;%s\&quot; not found; using stub vocab_size=%d&quot;</span>, key, <a class="code hl_variable" href="namespaceconvert__dtypes__to__numeric.html#a0332296ea5bde95f8e72005df06144a8">out</a>-&gt;vocab_size);</div>
+<div class="line"><span class="lineno">  227</span>  <span class="keywordflow">return</span> 0;</div>
+<div class="line"><span class="lineno">  228</span>}</div>
 </div><!-- fragment -->
-<p class="reference">References <a class="el" href="ie__device__cuda_8cu_source.html#l00092">ie_gemv_rowwise_f32_kernel()</a>.</p>
+<p class="reference">References <a class="el" href="util__logging_8c_source.html#l00041">ie_log_error()</a>, and <a class="el" href="util__logging_8c_source.html#l00027">ie_log_info()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="test__tokenizer_8c_source.html#l00024">main()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="tokenizer_8c_adbe33a7f4e53bcb709d56dc753c9148b_cgraph.svg" width="340" height="51"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="tokenizer_8c_adbe33a7f4e53bcb709d56dc753c9148b_cgraph.svg" width="396" height="86"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
@@ -690,8 +753,8 @@ Here is the caller graph for this function:</div>
 
 </div>
 </div>
-<a id="a35b758cbf8aeb3348c6eec59a770f888" name="a35b758cbf8aeb3348c6eec59a770f888"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a35b758cbf8aeb3348c6eec59a770f888">&#9670;&#160;</a></span>is_space_byte()</h2>
+<a id="aca4f0da2226b5ed16e71e5524f84e0d8" name="aca4f0da2226b5ed16e71e5524f84e0d8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aca4f0da2226b5ed16e71e5524f84e0d8">&#9670;&#160;</a></span>is_space_byte_()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -700,9 +763,9 @@ Here is the caller graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">static</a> <a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">int</a> is_space_byte </td>
+          <td class="memname">static int is_space_byte_ </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">unsigned</a> <a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">char</a>&#160;</td>
+          <td class="paramtype">unsigned char&#160;</td>
           <td class="paramname"><em>c</em></td><td>)</td>
           <td></td>
         </tr>
@@ -723,16 +786,170 @@ Here is the caller graph for this function:</div>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>1 if whitespace, 0 otherwise. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="tokenizer_8c_source.html#l00044">44</a> of file <a class="el" href="tokenizer_8c_source.html">tokenizer.c</a>.</p>
-<div class="fragment"><div class="line"><span class="lineno">   44</span>                                          {</div>
-<div class="line"><span class="lineno">   45</span>  <span class="keywordflow">return</span> <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">isspace</a>((<span class="keywordtype">int</span>)<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">c</a>) ? 1 : 0;</div>
-<div class="line"><span class="lineno">   46</span>}</div>
+<p class="definition">Definition at line <a class="el" href="tokenizer_8c_source.html#l00089">89</a> of file <a class="el" href="tokenizer_8c_source.html">tokenizer.c</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">   89</span>                                           {</div>
+<div class="line"><span class="lineno">   90</span>  <span class="keywordflow">return</span> isspace((<span class="keywordtype">int</span>)c) ? 1 : 0;</div>
+<div class="line"><span class="lineno">   91</span>}</div>
 </div><!-- fragment -->
-<p class="reference">Referenced by <a class="el" href="tokenizer_8c_source.html#l00162">ie_tok_encode()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="tokenizer_8c_source.html#l00266">ie_tok_encode()</a>.</p>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="tokenizer_8c_a35b758cbf8aeb3348c6eec59a770f888_icgraph.svg" width="392" height="36"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="tokenizer_8c_aca4f0da2226b5ed16e71e5524f84e0d8_icgraph.svg" width="399" height="36"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a863ec1870637861eb15fa5ac24cfaf2a" name="a863ec1870637861eb15fa5ac24cfaf2a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a863ec1870637861eb15fa5ac24cfaf2a">&#9670;&#160;</a></span>tok_env_flag_()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static int tok_env_flag_ </td>
+          <td>(</td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>name</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>default_value</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Read a boolean environment variable as 0/1. </p>
+<p>Accepted spellings (case-sensitive variants included):</p><ul>
+<li>false: "0", "false", "FALSE", "no", "NO", "off", "OFF"</li>
+<li>true: "1", "true", "TRUE", "yes", "YES", "on", "ON"</li>
+</ul>
+<p>Any other non-empty value is treated as true.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">name</td><td>Environment variable name (must not be NULL). </td></tr>
+    <tr><td class="paramname">default_value</td><td>Value used when variable is unset or empty. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>0 or 1. </dd></dl>
+
+<p class="definition">Definition at line <a class="el" href="tokenizer_8c_source.html#l00068">68</a> of file <a class="el" href="tokenizer_8c_source.html">tokenizer.c</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">   68</span>                                                              {</div>
+<div class="line"><span class="lineno">   69</span>  <span class="keyword">const</span> <span class="keywordtype">char</span> *v = getenv(name);</div>
+<div class="line"><span class="lineno">   70</span>  <span class="keywordflow">if</span> (!v || !*v) <span class="keywordflow">return</span> default_value;</div>
+<div class="line"><span class="lineno">   71</span> </div>
+<div class="line"><span class="lineno">   72</span>  <span class="keywordflow">if</span> (strcmp(v, <span class="stringliteral">&quot;0&quot;</span>) == 0 || strcmp(v, <span class="stringliteral">&quot;false&quot;</span>) == 0 || strcmp(v, <span class="stringliteral">&quot;FALSE&quot;</span>) == 0 ||</div>
+<div class="line"><span class="lineno">   73</span>      strcmp(v, <span class="stringliteral">&quot;no&quot;</span>) == 0 || strcmp(v, <span class="stringliteral">&quot;NO&quot;</span>) == 0 || strcmp(v, <span class="stringliteral">&quot;off&quot;</span>) == 0 || strcmp(v, <span class="stringliteral">&quot;OFF&quot;</span>) == 0) {</div>
+<div class="line"><span class="lineno">   74</span>    <span class="keywordflow">return</span> 0;</div>
+<div class="line"><span class="lineno">   75</span>  }</div>
+<div class="line"><span class="lineno">   76</span>  <span class="keywordflow">if</span> (strcmp(v, <span class="stringliteral">&quot;1&quot;</span>) == 0 || strcmp(v, <span class="stringliteral">&quot;true&quot;</span>) == 0 || strcmp(v, <span class="stringliteral">&quot;TRUE&quot;</span>) == 0 ||</div>
+<div class="line"><span class="lineno">   77</span>      strcmp(v, <span class="stringliteral">&quot;yes&quot;</span>) == 0 || strcmp(v, <span class="stringliteral">&quot;YES&quot;</span>) == 0 || strcmp(v, <span class="stringliteral">&quot;on&quot;</span>) == 0 || strcmp(v, <span class="stringliteral">&quot;ON&quot;</span>) == 0) {</div>
+<div class="line"><span class="lineno">   78</span>    <span class="keywordflow">return</span> 1;</div>
+<div class="line"><span class="lineno">   79</span>  }</div>
+<div class="line"><span class="lineno">   80</span>  <span class="keywordflow">return</span> 1;</div>
+<div class="line"><span class="lineno">   81</span>}</div>
+</div><!-- fragment -->
+<p class="reference">Referenced by <a class="el" href="tokenizer_8c_source.html#l00357">ie_tok_decode()</a>, and <a class="el" href="tokenizer_8c_source.html#l00266">ie_tok_encode()</a>.</p>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="tokenizer_8c_a863ec1870637861eb15fa5ac24cfaf2a_icgraph.svg" width="390" height="86"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="ad024cfc5e6543de537bba2d31c18e817" name="ad024cfc5e6543de537bba2d31c18e817"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad024cfc5e6543de537bba2d31c18e817">&#9670;&#160;</a></span>tok_log_preview_()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static void tok_log_preview_ </td>
+          <td>(</td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>label</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>s</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Log a short, safe preview of a string for diagnostics. </p>
+<p>Logs at most 96 bytes, replacing newlines/tabs with spaces.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">label</td><td>Label for the log line (may be NULL). </td></tr>
+    <tr><td class="paramname">s</td><td>String to preview (may be NULL). </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="tokenizer_8c_source.html#l00137">137</a> of file <a class="el" href="tokenizer_8c_source.html">tokenizer.c</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">  137</span>                                                               {</div>
+<div class="line"><span class="lineno">  138</span>  <span class="keywordflow">if</span> (!label) label = <span class="stringliteral">&quot;text&quot;</span>;</div>
+<div class="line"><span class="lineno">  139</span>  <span class="keywordflow">if</span> (!s) {</div>
+<div class="line"><span class="lineno">  140</span>    <a class="code hl_function" href="util__logging_8h.html#a7bff220c76442d1372d81e26f77c2921">ie_log_info</a>(<span class="stringliteral">&quot;%s: (null)&quot;</span>, label);</div>
+<div class="line"><span class="lineno">  141</span>    <span class="keywordflow">return</span>;</div>
+<div class="line"><span class="lineno">  142</span>  }</div>
+<div class="line"><span class="lineno">  143</span> </div>
+<div class="line"><span class="lineno">  144</span>  <span class="keywordtype">char</span> tmp[128];</div>
+<div class="line"><span class="lineno">  145</span>  <span class="keywordtype">size_t</span> n = 0;</div>
+<div class="line"><span class="lineno">  146</span>  <span class="keywordflow">for</span> (; s[n] &amp;&amp; n + 1 &lt; <span class="keyword">sizeof</span>(tmp) &amp;&amp; n &lt; 96; ++n) {</div>
+<div class="line"><span class="lineno">  147</span>    <span class="keywordtype">char</span> ch = s[n];</div>
+<div class="line"><span class="lineno">  148</span>    <span class="keywordflow">if</span> (ch == <span class="charliteral">&#39;\n&#39;</span> || ch == <span class="charliteral">&#39;\r&#39;</span> || ch == <span class="charliteral">&#39;\t&#39;</span>) ch = <span class="charliteral">&#39; &#39;</span>;</div>
+<div class="line"><span class="lineno">  149</span>    tmp[n] = ch;</div>
+<div class="line"><span class="lineno">  150</span>  }</div>
+<div class="line"><span class="lineno">  151</span>  tmp[n] = <span class="charliteral">&#39;\0&#39;</span>;</div>
+<div class="line"><span class="lineno">  152</span> </div>
+<div class="line"><span class="lineno">  153</span>  <a class="code hl_function" href="util__logging_8h.html#a7bff220c76442d1372d81e26f77c2921">ie_log_info</a>(<span class="stringliteral">&quot;%s: bytes=%zu preview=\&quot;%s%s\&quot;&quot;</span>, label, strlen(s), tmp, (s[n] ? <span class="stringliteral">&quot;...&quot;</span> : <span class="stringliteral">&quot;&quot;</span>));</div>
+<div class="line"><span class="lineno">  154</span>}</div>
+</div><!-- fragment -->
+<p class="reference">References <a class="el" href="util__logging_8c_source.html#l00027">ie_log_info()</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="tokenizer_8c_source.html#l00357">ie_tok_decode()</a>, and <a class="el" href="tokenizer_8c_source.html#l00266">ie_tok_encode()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="tokenizer_8c_ad024cfc5e6543de537bba2d31c18e817_cgraph.svg" width="412" height="36"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="tokenizer_8c_ad024cfc5e6543de537bba2d31c18e817_icgraph.svg" width="414" height="86"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>

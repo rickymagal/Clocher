@@ -1,8 +1,10 @@
 var gemv__avx2_8c =
 [
-    [ "ie_aligned_free_64", "gemv__avx2_8c.html#ab8bfc2b6932f6ab5333d08820254657b", null ],
-    [ "ie_aligned_malloc_64", "gemv__avx2_8c.html#a98f4555def3b7ae80b82b7dbdb90b616", null ],
-    [ "ie_gemv_f32_avx2_impl", "gemv__avx2_8c.html#a63b484c2984caeed7dfc9b5002444f57", null ],
-    [ "ie_gemv_qi8_f32_avx2_impl", "gemv__avx2_8c.html#aa8a6c887be55a3af970b49855f86682d", null ],
-    [ "ie_round_up_pow2", "gemv__avx2_8c.html#a18c7fc5422d78bcaf53f4d2d178ff3d6", null ]
+    [ "IE_TARGET_AVX2", "gemv__avx2_8c.html#acc9c9d271f4d0dde17977cde7a3d3cc5", null ],
+    [ "ie_bf16x8_to_f32", "gemv__avx2_8c.html#af98ef5b386495afea4aa3d751bab35fd", null ],
+    [ "ie_gemv_bf16_f32_avx2_impl", "gemv__avx2_8c.html#a77b098e769256a6b3dc5cee67134585d", null ],
+    [ "ie_gemv_f32_avx2_impl", "gemv__avx2_8c.html#acaba4ae4061c51c21ce544cdef0abfeb", null ],
+    [ "ie_gemv_qi8_avx2_impl", "gemv__avx2_8c.html#a061189cc7f89d42b42e03eccedb0a59e", null ],
+    [ "ie_hsum256_ps", "gemv__avx2_8c.html#a6925be1ed2abd13aef877a68bed45995", null ],
+    [ "ie_vec_bf16_to_f32_avx2_impl", "gemv__avx2_8c.html#a182d6274d92f1f94910f1881e7cd3b19", null ]
 ];

@@ -22,27 +22,27 @@
         <argsstring></argsstring>
         <name>ie_cli_extras_t</name>
         <briefdescription>
-<para>Parsed extras for I/O &amp; batching. </para>
+<para>Common &quot;extras&quot; CLI configuration used by inference entrypoints. </para>
         </briefdescription>
         <detaileddescription>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="engine/include/ie_cli_extras.h" line="20" column="17"/>
+        <location file="engine/include/ie_cli_extras.h" line="44" column="17"/>
       </memberdef>
     </sectiondef>
     <sectiondef kind="func">
-      <memberdef kind="function" id="ie__cli__extras_8h_1a89be7fbc0a03ebe6e144ed9b526045a7" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
-        <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">void</ref></type>
-        <definition>static void ie_cli_extras_defaults</definition>
+      <memberdef kind="function" id="ie__cli__extras_8h_1a0f6c73a2106885bcbd7bdb18bc45603f" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>static void ie_cli_extras_init</definition>
         <argsstring>(ie_cli_extras_t *e)</argsstring>
-        <name>ie_cli_extras_defaults</name>
+        <name>ie_cli_extras_init</name>
         <param>
           <type><ref refid="ie__cli__extras_8h_1abff28603eb6f713e47a82f7573559c14" kindref="member">ie_cli_extras_t</ref> *</type>
           <declname>e</declname>
         </param>
         <briefdescription>
-<para>Populate defaults for CLI extras. </para>
+<para>Initialize an <ref refid="ie__cli__extras_8h_1abff28603eb6f713e47a82f7573559c14" kindref="member">ie_cli_extras_t</ref> with safe defaults. </para>
         </briefdescription>
         <detaileddescription>
 <para><parameterlist kind="param"><parameteritem>
@@ -50,7 +50,7 @@
 <parametername>e</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Output struct to initialize. </para>
+<para>Extras struct to initialize. </para>
 </parameterdescription>
 </parameteritem>
 </parameterlist>
@@ -58,49 +58,74 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="engine/include/ie_cli_extras.h" line="27" column="20" bodyfile="engine/include/ie_cli_extras.h" bodystart="27" bodyend="33"/>
-        <references refid="structie__cli__extras_1a6d65ced667b70b4eaac6543425c6949c" compoundref="ie__cli__extras_8h" startline="16">ie_cli_extras::batch</references>
-        <references refid="structie__cli__extras_1adabeb6985b713f2cef2e63ba67379ecf" compoundref="ie__cli__extras_8h" startline="17">ie_cli_extras::prefetch</references>
-        <references refid="structie__cli__extras_1a90cfb62097607907fe50c00016ea2e53" compoundref="ie__cli__extras_8h" startline="19">ie_cli_extras::prompts_file</references>
-        <references refid="structie__cli__extras_1a775c61b7ff6b47695404ae95f2374ab1" compoundref="ie__cli__extras_8h" startline="18">ie_cli_extras::warmup</references>
+        <location file="engine/include/ie_cli_extras.h" line="50" column="20" bodyfile="engine/include/ie_cli_extras.h" bodystart="50" bodyend="62"/>
+        <references refid="structie__cli__extras_1a8bd3fac705dc83f16f106e970afbf227" compoundref="ie__cli__extras_8h" startline="37">ie_cli_extras::aggregate</references>
+        <references refid="structie__cli__extras_1ac5ccb7b15f43b29b1978077a3be1e339" compoundref="ie__cli__extras_8h" startline="34">ie_cli_extras::batch</references>
+        <references refid="structie__cli__extras_1a456f2a7601c5f41be12b1d865ff0961c" compoundref="ie__cli__extras_8h" startline="40">ie_cli_extras::expected_tokens_file</references>
+        <references refid="structie__cli__extras_1a779df0789a9b9f2218535a985dc81a4e" compoundref="ie__cli__extras_8h" startline="35">ie_cli_extras::prefetch</references>
+        <references refid="structie__cli__extras_1a90cfb62097607907fe50c00016ea2e53" compoundref="ie__cli__extras_8h" startline="33">ie_cli_extras::prompts_file</references>
+        <references refid="structie__cli__extras_1aa7720674a320a1f9e06304ae2c5946a6" compoundref="ie__cli__extras_8h" startline="42">ie_cli_extras::report_tokens</references>
+        <references refid="structie__cli__extras_1aa2dccee54ce66abecfeffe451696e3eb" compoundref="ie__cli__extras_8h" startline="43">ie_cli_extras::report_tokens_max</references>
+        <references refid="structie__cli__extras_1a2266b152957f2c77696b6b56176c3e85" compoundref="ie__cli__extras_8h" startline="38">ie_cli_extras::rounds</references>
+        <references refid="structie__cli__extras_1a23db6e6bcbeb94d688f7fac2147ff501" compoundref="ie__cli__extras_8h" startline="36">ie_cli_extras::warmup_tokens</references>
       </memberdef>
     </sectiondef>
     <briefdescription>
-<para>Optional CLI extras for Step 6: batching &amp; warmup flags. </para>
+<para>Small, self-contained CLI extras shared across benchmark-style entrypoints. </para>
     </briefdescription>
     <detaileddescription>
+<para>This header intentionally defines only the &quot;extras&quot; flags that are common across harness entrypoints (batching, prompts file, rounds, and optional expected-token verification). It does not impose a particular argument parser implementation.</para>
+<para>Expected tokens file format (one entry per line): &lt;prompt_id&gt;&lt;whitespace&gt;&lt;token0,token1,token2,...&gt;</para>
+<para><itemizedlist>
+<listitem><para>Lines starting with &apos;#&apos; and empty lines are ignored.</para>
+</listitem><listitem><para>prompt_id can be decimal or 0x-prefixed hexadecimal.</para>
+</listitem><listitem><para>prompt_id is a stable 64-bit FNV-1a hash of the prompt bytes (UTF-8).</para>
+</listitem></itemizedlist>
+</para>
+<para>The intent is to allow a strict harness to verify that an engine build is stable (token IDs are identical) across runs and across environments. </para>
     </detaileddescription>
     <programlisting>
 <codeline lineno="1"><highlight class="normal"></highlight></codeline>
-<codeline lineno="5"><highlight class="normal"></highlight><highlight class="preprocessor">#ifndef<sp/>IE_CLI_EXTRAS_H</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="6"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>IE_CLI_EXTRAS_H</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="7"><highlight class="normal"></highlight></codeline>
-<codeline lineno="8"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stddef.h&gt;</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="9"><highlight class="normal"></highlight></codeline>
-<codeline lineno="10"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="11"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/></highlight><highlight class="stringliteral">&quot;C&quot;</highlight><highlight class="normal"><sp/>{</highlight></codeline>
-<codeline lineno="12"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="13"><highlight class="normal"></highlight></codeline>
-<codeline lineno="15" refid="structie__cli__extras" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structie__cli__extras" kindref="compound">ie_cli_extras</ref><sp/>{</highlight></codeline>
-<codeline lineno="16" refid="structie__cli__extras_1a6d65ced667b70b4eaac6543425c6949c" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/><ref refid="structie__cli__extras_1a6d65ced667b70b4eaac6543425c6949c" kindref="member">batch</ref>;<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight></codeline>
-<codeline lineno="17" refid="structie__cli__extras_1adabeb6985b713f2cef2e63ba67379ecf" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/><ref refid="structie__cli__extras_1adabeb6985b713f2cef2e63ba67379ecf" kindref="member">prefetch</ref>;<sp/><sp/><sp/><sp/><sp/></highlight></codeline>
-<codeline lineno="18" refid="structie__cli__extras_1a775c61b7ff6b47695404ae95f2374ab1" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/><ref refid="structie__cli__extras_1a775c61b7ff6b47695404ae95f2374ab1" kindref="member">warmup</ref>;<sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight></codeline>
-<codeline lineno="19" refid="structie__cli__extras_1a90cfb62097607907fe50c00016ea2e53" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*<ref refid="structie__cli__extras_1a90cfb62097607907fe50c00016ea2e53" kindref="member">prompts_file</ref>;<sp/></highlight></codeline>
-<codeline lineno="20" refid="ie__cli__extras_8h_1abff28603eb6f713e47a82f7573559c14" refkind="member"><highlight class="normal">}<sp/><ref refid="ie__cli__extras_8h_1abff28603eb6f713e47a82f7573559c14" kindref="member">ie_cli_extras_t</ref>;</highlight></codeline>
-<codeline lineno="21"><highlight class="normal"></highlight></codeline>
-<codeline lineno="27" refid="ie__cli__extras_8h_1a89be7fbc0a03ebe6e144ed9b526045a7" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">inline</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="ie__cli__extras_8h_1a89be7fbc0a03ebe6e144ed9b526045a7" kindref="member">ie_cli_extras_defaults</ref>(<ref refid="structie__cli__extras" kindref="compound">ie_cli_extras_t</ref><sp/>*<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">e</ref>)<sp/>{</highlight></codeline>
-<codeline lineno="28"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">e</ref>)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal">;</highlight></codeline>
-<codeline lineno="29"><highlight class="normal"><sp/><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">e</ref>-&gt;<ref refid="structie__cli__extras_1a6d65ced667b70b4eaac6543425c6949c" kindref="member">batch</ref><sp/>=<sp/>1;</highlight></codeline>
-<codeline lineno="30"><highlight class="normal"><sp/><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">e</ref>-&gt;prefetch<sp/>=<sp/>0;<sp/><sp/></highlight><highlight class="comment">/*<sp/>0<sp/>=&gt;<sp/>auto<sp/>=<sp/>max(1,<sp/>threads/2)<sp/>inside<sp/>main<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="31"><highlight class="normal"><sp/><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">e</ref>-&gt;warmup<sp/>=<sp/>0;</highlight></codeline>
-<codeline lineno="32"><highlight class="normal"><sp/><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">e</ref>-&gt;prompts_file<sp/>=<sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">NULL</ref>;</highlight></codeline>
-<codeline lineno="33"><highlight class="normal">}</highlight></codeline>
-<codeline lineno="34"><highlight class="normal"></highlight></codeline>
-<codeline lineno="35"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="36"><highlight class="normal">}<sp/></highlight><highlight class="comment">/*<sp/>extern<sp/>&quot;C&quot;<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="37"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="38"><highlight class="normal"></highlight></codeline>
-<codeline lineno="39"><highlight class="normal"></highlight><highlight class="preprocessor">#endif<sp/></highlight><highlight class="comment">/*<sp/>IE_CLI_EXTRAS_H<sp/>*/</highlight><highlight class="preprocessor"></highlight></codeline>
+<codeline lineno="20"><highlight class="normal"></highlight><highlight class="preprocessor">#ifndef<sp/>IE_CLI_EXTRAS_H</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="21"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>IE_CLI_EXTRAS_H</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="22"><highlight class="normal"></highlight></codeline>
+<codeline lineno="23"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stddef.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="24"><highlight class="normal"></highlight></codeline>
+<codeline lineno="25"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="26"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/></highlight><highlight class="stringliteral">&quot;C&quot;</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="27"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="28"><highlight class="normal"></highlight></codeline>
+<codeline lineno="32" refid="structie__cli__extras" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structie__cli__extras" kindref="compound">ie_cli_extras</ref><sp/>{</highlight></codeline>
+<codeline lineno="33" refid="structie__cli__extras_1a90cfb62097607907fe50c00016ea2e53" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*<ref refid="structie__cli__extras_1a90cfb62097607907fe50c00016ea2e53" kindref="member">prompts_file</ref>;<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight></codeline>
+<codeline lineno="34" refid="structie__cli__extras_1ac5ccb7b15f43b29b1978077a3be1e339" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="structie__cli__extras_1ac5ccb7b15f43b29b1978077a3be1e339" kindref="member">batch</ref>;<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight></codeline>
+<codeline lineno="35" refid="structie__cli__extras_1a779df0789a9b9f2218535a985dc81a4e" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*<ref refid="structie__cli__extras_1a779df0789a9b9f2218535a985dc81a4e" kindref="member">prefetch</ref>;<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight></codeline>
+<codeline lineno="36" refid="structie__cli__extras_1a23db6e6bcbeb94d688f7fac2147ff501" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="structie__cli__extras_1a23db6e6bcbeb94d688f7fac2147ff501" kindref="member">warmup_tokens</ref>;<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight></codeline>
+<codeline lineno="37" refid="structie__cli__extras_1a8bd3fac705dc83f16f106e970afbf227" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="structie__cli__extras_1a8bd3fac705dc83f16f106e970afbf227" kindref="member">aggregate</ref>;<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight></codeline>
+<codeline lineno="38" refid="structie__cli__extras_1a2266b152957f2c77696b6b56176c3e85" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="structie__cli__extras_1a2266b152957f2c77696b6b56176c3e85" kindref="member">rounds</ref>;<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight></codeline>
+<codeline lineno="40" refid="structie__cli__extras_1a456f2a7601c5f41be12b1d865ff0961c" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*<ref refid="structie__cli__extras_1a456f2a7601c5f41be12b1d865ff0961c" kindref="member">expected_tokens_file</ref>;<sp/></highlight></codeline>
+<codeline lineno="42" refid="structie__cli__extras_1aa7720674a320a1f9e06304ae2c5946a6" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="structie__cli__extras_1aa7720674a320a1f9e06304ae2c5946a6" kindref="member">report_tokens</ref>;<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight></codeline>
+<codeline lineno="43" refid="structie__cli__extras_1aa2dccee54ce66abecfeffe451696e3eb" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/><ref refid="structie__cli__extras_1aa2dccee54ce66abecfeffe451696e3eb" kindref="member">report_tokens_max</ref>;<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight></codeline>
+<codeline lineno="44" refid="ie__cli__extras_8h_1abff28603eb6f713e47a82f7573559c14" refkind="member"><highlight class="normal">}<sp/><ref refid="ie__cli__extras_8h_1abff28603eb6f713e47a82f7573559c14" kindref="member">ie_cli_extras_t</ref>;</highlight></codeline>
+<codeline lineno="45"><highlight class="normal"></highlight></codeline>
+<codeline lineno="50" refid="ie__cli__extras_8h_1a0f6c73a2106885bcbd7bdb18bc45603f" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">inline</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="ie__cli__extras_8h_1a0f6c73a2106885bcbd7bdb18bc45603f" kindref="member">ie_cli_extras_init</ref>(<ref refid="structie__cli__extras" kindref="compound">ie_cli_extras_t</ref><sp/>*e)<sp/>{</highlight></codeline>
+<codeline lineno="51"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!e)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="52"><highlight class="normal"><sp/><sp/>e-&gt;<ref refid="structie__cli__extras_1a90cfb62097607907fe50c00016ea2e53" kindref="member">prompts_file</ref><sp/>=<sp/>NULL;</highlight></codeline>
+<codeline lineno="53"><highlight class="normal"><sp/><sp/>e-&gt;<ref refid="structie__cli__extras_1ac5ccb7b15f43b29b1978077a3be1e339" kindref="member">batch</ref><sp/>=<sp/>1;</highlight></codeline>
+<codeline lineno="54"><highlight class="normal"><sp/><sp/>e-&gt;<ref refid="structie__cli__extras_1a779df0789a9b9f2218535a985dc81a4e" kindref="member">prefetch</ref><sp/>=<sp/></highlight><highlight class="stringliteral">&quot;auto&quot;</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="55"><highlight class="normal"><sp/><sp/>e-&gt;<ref refid="structie__cli__extras_1a23db6e6bcbeb94d688f7fac2147ff501" kindref="member">warmup_tokens</ref><sp/>=<sp/>1;</highlight></codeline>
+<codeline lineno="56"><highlight class="normal"><sp/><sp/>e-&gt;<ref refid="structie__cli__extras_1a8bd3fac705dc83f16f106e970afbf227" kindref="member">aggregate</ref><sp/>=<sp/>0;</highlight></codeline>
+<codeline lineno="57"><highlight class="normal"><sp/><sp/>e-&gt;<ref refid="structie__cli__extras_1a2266b152957f2c77696b6b56176c3e85" kindref="member">rounds</ref><sp/>=<sp/>1;</highlight></codeline>
+<codeline lineno="58"><highlight class="normal"></highlight></codeline>
+<codeline lineno="59"><highlight class="normal"><sp/><sp/>e-&gt;<ref refid="structie__cli__extras_1a456f2a7601c5f41be12b1d865ff0961c" kindref="member">expected_tokens_file</ref><sp/>=<sp/>NULL;</highlight></codeline>
+<codeline lineno="60"><highlight class="normal"><sp/><sp/>e-&gt;<ref refid="structie__cli__extras_1aa7720674a320a1f9e06304ae2c5946a6" kindref="member">report_tokens</ref><sp/>=<sp/>1;</highlight></codeline>
+<codeline lineno="61"><highlight class="normal"><sp/><sp/>e-&gt;<ref refid="structie__cli__extras_1aa2dccee54ce66abecfeffe451696e3eb" kindref="member">report_tokens_max</ref><sp/>=<sp/>0;</highlight></codeline>
+<codeline lineno="62"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="63"><highlight class="normal"></highlight></codeline>
+<codeline lineno="64"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="65"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="66"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="67"><highlight class="normal"></highlight></codeline>
+<codeline lineno="68"><highlight class="normal"></highlight><highlight class="preprocessor">#endif<sp/></highlight><highlight class="comment">/*<sp/>IE_CLI_EXTRAS_H<sp/>*/</highlight><highlight class="preprocessor"></highlight></codeline>
     </programlisting>
     <location file="engine/include/ie_cli_extras.h"/>
   </compounddef>

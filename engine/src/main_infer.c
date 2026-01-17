@@ -1014,6 +1014,7 @@ typedef struct cli_extras {
   /* Text decode options */
   int print_text;
   const char *tokenizer_path;
+  const char *trace_ids_path;
 
   /* Deterministic/debug convenience flags (wired to env vars) */
   int log_tokens;
@@ -1061,6 +1062,7 @@ static void usage(void) {
           "                        [--prefetch on|off|auto|N] [--warmup N]\n"
           "                        [--rounds N] [--aggregate]\n"
           "                        [--print-text] [--tokenizer PATH]\n"
+          "                        [--trace-ids PATH]\n"
           "                        [--seed N] [--greedy]\n"
           "                        [--temperature F] [--top-p F] [--top-k N]\n"
           "                        [--log-tokens] [--log-every N]\n"
@@ -1109,6 +1111,7 @@ static void cli_extras_defaults(cli_extras_t *e) {
 
   e->print_text = 0;
   e->tokenizer_path = NULL;
+  e->trace_ids_path = NULL;
 
   e->log_tokens = 0;
   e->log_every = 0;
@@ -1229,6 +1232,10 @@ static void apply_cli_debug_env(const cli_extras_t *opt) {
   if (!opt) return;
 
   char buf[128];
+
+  if (opt->trace_ids_path && *opt->trace_ids_path) {
+    (void)setenv("IE_TRACE_IDS_JSONL", opt->trace_ids_path, 1);
+  }
 
   if (opt->log_tokens) {
     (void)setenv("IE_API_LOG_TOKENS", "1", 1);
@@ -1429,6 +1436,10 @@ static int parse_flags(int argc, char **argv, cli_extras_t *out) {
     } else if (!strcmp(a, "--tokenizer")) {
       if (++i >= argc) { usage(); return -1; }
       out->tokenizer_path = argv[i];
+
+    } else if (!strcmp(a, "--trace-ids")) {
+      if (++i >= argc) { usage(); return -1; }
+      out->trace_ids_path = argv[i];
 
     } else if (!strcmp(a, "--log-tokens")) {
       out->log_tokens = 1;
@@ -2354,6 +2365,8 @@ int main(int argc, char **argv) {
 
   /* Apply deterministic/debug knobs early (before engine creation). */
   apply_cli_debug_env(&opt);
+  const char *trace_path_env = getenv("IE_TRACE_IDS_JSONL");
+  const int trace_ids_enabled = (trace_path_env && *trace_path_env) ? 1 : 0;
 
   /* Allow env override for print-text without breaking harness defaults. */
   if (!opt.print_text) opt.print_text = (int)env_long("IE_PRINT_TEXT", 0);
@@ -2478,6 +2491,9 @@ int main(int argc, char **argv) {
   }
 
   if (opt.warmup_tokens > 0) {
+    if (trace_ids_enabled) {
+      (void)unsetenv("IE_TRACE_PROMPT_INDEX");
+    }
     const char *wprompt = "warmup";
     int wtoks[128];
     size_t wcount = 0;
@@ -2582,6 +2598,12 @@ int main(int argc, char **argv) {
     for (size_t pi = 0; pi < n_prompts; ++pi) {
       const char *p = prompts.items[pi];
       size_t n_here = 0;
+
+      if (trace_ids_enabled) {
+        char buf[32];
+        (void)snprintf(buf, sizeof(buf), "%zu", pi);
+        (void)setenv("IE_TRACE_PROMPT_INDEX", buf, 1);
+      }
 
       ie_generate_stats_t gs;
       memset(&gs, 0, sizeof(gs));

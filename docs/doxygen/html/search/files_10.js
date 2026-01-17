@@ -1,10 +1,13 @@
 var searchData=
 [
-  ['set_5fnuma_2esh_0',['set_numa.sh',['../set__numa_8sh.html',1,'']]],
-  ['sparse_5fformat_2eh_1',['sparse_format.h',['../sparse__format_8h.html',1,'']]],
-  ['sparse_5fio_2ec_2',['sparse_io.c',['../sparse__io_8c.html',1,'']]],
-  ['spec_2ec_3',['spec.c',['../spec_8c.html',1,'']]],
-  ['spec_2eh_4',['spec.h',['../spec_8h.html',1,'']]],
-  ['split_5fq4_5fmanifest_5fto_5ffiles_2epy_5',['split_q4_manifest_to_files.py',['../split__q4__manifest__to__files_8py.html',1,'']]],
-  ['stream_2ec_6',['stream.c',['../stream_8c.html',1,'']]]
+  ['readme_2emd_0',['README.md',['../README_8md.html',1,'']]],
+  ['rebuild_5fdedup_5fand_5fquant_2esh_1',['rebuild_dedup_and_quant.sh',['../rebuild__dedup__and__quant_8sh.html',1,'']]],
+  ['replicate_5fhot_2ec_2',['replicate_hot.c',['../replicate__hot_8c.html',1,'']]],
+  ['rmsnorm_5fcpu_2ec_3',['rmsnorm_cpu.c',['../rmsnorm__cpu_8c.html',1,'']]],
+  ['rmsnorm_5fcuda_2ecu_4',['rmsnorm_cuda.cu',['../rmsnorm__cuda_8cu.html',1,'']]],
+  ['rope_2ec_5',['rope.c',['../rope_8c.html',1,'']]],
+  ['run_5fbenchmark_2esh_6',['run_benchmark.sh',['../run__benchmark_8sh.html',1,'']]],
+  ['run_5fgptoss_2esh_7',['run_gptoss.sh',['../run__gptoss_8sh.html',1,'']]],
+  ['run_5fharness_5freport_2epy_8',['run_harness_report.py',['../run__harness__report_8py.html',1,'']]],
+  ['run_5fquant_5fand_5fdedup_2esh_9',['run_quant_and_dedup.sh',['../run__quant__and__dedup_8sh.html',1,'']]]
 ];

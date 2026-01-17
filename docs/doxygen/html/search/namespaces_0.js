@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['build_5fdedup_5fsource_5ffrom_5fmanifest_0',['build_dedup_source_from_manifest',['../namespacebuild__dedup__source__from__manifest.html',1,'']]]
+  ['append_5fq4_5fattn_5ffrom_5fhf_0',['append_q4_attn_from_hf',['../namespaceappend__q4__attn__from__hf.html',1,'']]]
 ];

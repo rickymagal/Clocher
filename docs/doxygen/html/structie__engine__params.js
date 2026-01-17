@@ -5,5 +5,8 @@ var structie__engine__params =
     [ "prefetch", "structie__engine__params.html#a34f965300425f8c1115b2408a4adc04a", null ],
     [ "pretranspose", "structie__engine__params.html#a992270ba61612b2acb319aed5cbfca13", null ],
     [ "sparsity", "structie__engine__params.html#a1dff4c9644aa8bf7e389f84426c529e1", null ],
-    [ "threads", "structie__engine__params.html#a0c0b5f7588c98d30e0d2535790f6f24c", null ]
+    [ "threads", "structie__engine__params.html#a0c0b5f7588c98d30e0d2535790f6f24c", null ],
+    [ "tokenizer_path", "structie__engine__params.html#a16a831d93768c1a6d392163596de8277", null ],
+    [ "weights_bin_path", "structie__engine__params.html#acfb35b9cd1d6ca63786793da5380b5f1", null ],
+    [ "weights_json_path", "structie__engine__params.html#a1266e9b614224d36975a586e6981969f", null ]
 ];

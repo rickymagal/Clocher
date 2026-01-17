@@ -1,0 +1,304 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.8" xml:lang="en-US">
+  <compounddef id="debug__gptoss__create_8sh" kind="file" language="C++">
+    <compoundname>debug_gptoss_create.sh</compoundname>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline><highlight class="normal">#!/usr/bin/env<sp/>bash</highlight></codeline>
+<codeline><highlight class="normal">set<sp/>-u</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">MODEL_DIR=&quot;${1:-models/gpt-oss-20b}&quot;</highlight></codeline>
+<codeline><highlight class="normal">IE_JSON=&quot;$MODEL_DIR/model.ie.json&quot;</highlight></codeline>
+<codeline><highlight class="normal">IE_BIN=&quot;$MODEL_DIR/model.ie.bin&quot;</highlight></codeline>
+<codeline><highlight class="normal">TMAP_JSON=&quot;$MODEL_DIR/tensor_map.json&quot;</highlight></codeline>
+<codeline><highlight class="normal">HP_JSON=&quot;$MODEL_DIR/hparams.auto.json&quot;</highlight></codeline>
+<codeline><highlight class="normal">CFG1=&quot;$MODEL_DIR/config.json&quot;</highlight></codeline>
+<codeline><highlight class="normal">CFG2=&quot;$MODEL_DIR/hf/original/config.json&quot;</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">echo<sp/>&quot;MODEL_DIR=$MODEL_DIR&quot;</highlight></codeline>
+<codeline><highlight class="normal">echo</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">echo<sp/>&quot;[1/6]<sp/>File<sp/>presence&quot;</highlight></codeline>
+<codeline><highlight class="normal">ls<sp/>-la<sp/>&quot;$IE_JSON&quot;<sp/>2&gt;/dev/null<sp/>||<sp/>true</highlight></codeline>
+<codeline><highlight class="normal">ls<sp/>-la<sp/>&quot;$IE_BIN&quot;<sp/>2&gt;/dev/null<sp/>||<sp/>true</highlight></codeline>
+<codeline><highlight class="normal">ls<sp/>-la<sp/>&quot;$TMAP_JSON&quot;<sp/>2&gt;/dev/null<sp/>||<sp/>true</highlight></codeline>
+<codeline><highlight class="normal">ls<sp/>-la<sp/>&quot;$HP_JSON&quot;<sp/>2&gt;/dev/null<sp/>||<sp/>true</highlight></codeline>
+<codeline><highlight class="normal">ls<sp/>-la<sp/>&quot;$CFG1&quot;<sp/>2&gt;/dev/null<sp/>||<sp/>true</highlight></codeline>
+<codeline><highlight class="normal">ls<sp/>-la<sp/>&quot;$CFG2&quot;<sp/>2&gt;/dev/null<sp/>||<sp/>true</highlight></codeline>
+<codeline><highlight class="normal">echo</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">echo<sp/>&quot;[2/6]<sp/>Generate<sp/>tensor_map.json<sp/>+<sp/>hparams.auto.json<sp/>from<sp/>model.ie.json&quot;</highlight></codeline>
+<codeline><highlight class="normal">python3<sp/>-<sp/>&lt;&lt;&apos;PY&apos;</highlight></codeline>
+<codeline><highlight class="normal">import<sp/>json,<sp/>os,<sp/>re,<sp/>sys</highlight></codeline>
+<codeline><highlight class="normal">from<sp/>math<sp/>import<sp/>prod</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">model_dir<sp/>=<sp/>os.environ.get(&quot;MODEL_DIR&quot;,<sp/>&quot;models/gpt-oss-20b&quot;)</highlight></codeline>
+<codeline><highlight class="normal">ie_json<sp/><sp/><sp/>=<sp/>os.path.join(model_dir,<sp/>&quot;model.ie.json&quot;)</highlight></codeline>
+<codeline><highlight class="normal">tmap_json<sp/>=<sp/>os.path.join(model_dir,<sp/>&quot;tensor_map.json&quot;)</highlight></codeline>
+<codeline><highlight class="normal">hp_json<sp/><sp/><sp/>=<sp/>os.path.join(model_dir,<sp/>&quot;hparams.auto.json&quot;)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">with<sp/>open(ie_json,<sp/>&quot;r&quot;,<sp/>encoding=&quot;utf-8&quot;)<sp/>as<sp/>f:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>j<sp/>=<sp/>json.load(f)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">tensors<sp/>=<sp/>j.get(&quot;tensors&quot;,<sp/>[])</highlight></codeline>
+<codeline><highlight class="normal">if<sp/>not<sp/>isinstance(tensors,<sp/>list)<sp/>or<sp/>not<sp/>tensors:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>raise<sp/>SystemExit(&quot;model.ie.json<sp/>has<sp/>no<sp/>tensors[]&quot;)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">by<sp/>=<sp/>{}</highlight></codeline>
+<codeline><highlight class="normal">for<sp/>t<sp/>in<sp/>tensors:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>if<sp/>isinstance(t,<sp/>dict)<sp/>and<sp/>isinstance(t.get(&quot;name&quot;),<sp/>str):</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>by[t[&quot;name&quot;]]<sp/>=<sp/>t</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">def<sp/>get_int_field(t,<sp/>*keys):</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>for<sp/>k<sp/>in<sp/>keys:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>v<sp/>=<sp/>t.get(k)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>if<sp/>v<sp/>is<sp/>not<sp/>None:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>return<sp/>int(v)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>return<sp/>None</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">def<sp/>get_shape(name):</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>t<sp/>=<sp/>by.get(name)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>if<sp/>not<sp/>t:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>return<sp/>None</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>sh<sp/>=<sp/>t.get(&quot;shape&quot;)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>if<sp/>isinstance(sh,<sp/>list)<sp/>and<sp/>all(isinstance(x,<sp/>int)<sp/>for<sp/>x<sp/>in<sp/>sh)<sp/>and<sp/>len(sh)<sp/>&gt;=<sp/>1:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>return<sp/>sh</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>return<sp/>None</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">def<sp/>pick_existing(*cands):</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>for<sp/>c<sp/>in<sp/>cands:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>if<sp/>c<sp/>in<sp/>by:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>return<sp/>c</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>return<sp/>&quot;&quot;</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>----<sp/>tensor_map.json</highlight></codeline>
+<codeline><highlight class="normal">out<sp/>=<sp/>[]</highlight></codeline>
+<codeline><highlight class="normal">for<sp/>name,<sp/>t<sp/>in<sp/>by.items():</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>off<sp/>=<sp/>get_int_field(t,<sp/>&quot;offset&quot;)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>nb<sp/><sp/>=<sp/>get_int_field(t,<sp/>&quot;size_bytes&quot;,<sp/>&quot;nbytes&quot;,<sp/>&quot;byte_size&quot;)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>if<sp/>off<sp/>is<sp/>None<sp/>or<sp/>nb<sp/>is<sp/>None:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>continue</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>out.append({&quot;name&quot;:<sp/>name,<sp/>&quot;offset&quot;:<sp/>off,<sp/>&quot;size_bytes&quot;:<sp/>nb})</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">if<sp/>not<sp/>out:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>raise<sp/>SystemExit(&quot;No<sp/>tensors<sp/>had<sp/>(name,<sp/>offset,<sp/>size_bytes).&quot;)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">with<sp/>open(tmap_json,<sp/>&quot;w&quot;,<sp/>encoding=&quot;utf-8&quot;)<sp/>as<sp/>f:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>json.dump({&quot;tensors&quot;:<sp/>out},<sp/>f,<sp/>indent=2)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">print(f&quot;Wrote<sp/>{tmap_json}<sp/>tensors={len(out)}&quot;)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>----<sp/>core<sp/>dims</highlight></codeline>
+<codeline><highlight class="normal">embed<sp/>=<sp/>pick_existing(&quot;model.embed_tokens.weight&quot;,<sp/>&quot;transformer.wte.weight&quot;,<sp/>&quot;tok_embeddings.weight&quot;)</highlight></codeline>
+<codeline><highlight class="normal">if<sp/>not<sp/>embed:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>raise<sp/>SystemExit(&quot;Could<sp/>not<sp/>find<sp/>embed_tokens<sp/>weight.&quot;)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">esh<sp/>=<sp/>get_shape(embed)</highlight></codeline>
+<codeline><highlight class="normal">if<sp/>not<sp/>esh<sp/>or<sp/>len(esh)<sp/>!=<sp/>2:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>raise<sp/>SystemExit(f&quot;Embed<sp/>tensor<sp/>has<sp/>no<sp/>usable<sp/>shape:<sp/>{embed}<sp/>shape={esh}&quot;)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">vocab_size,<sp/>d_model<sp/>=<sp/>esh[0],<sp/>esh[1]</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>layers<sp/>count</highlight></codeline>
+<codeline><highlight class="normal">layer_ids<sp/>=<sp/>[]</highlight></codeline>
+<codeline><highlight class="normal">pat<sp/>=<sp/>re.compile(r&quot;^model\.layers\.(\d+)\.&quot;)</highlight></codeline>
+<codeline><highlight class="normal">for<sp/>name<sp/>in<sp/>by.keys():</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>m<sp/>=<sp/>pat.match(name)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>if<sp/>m:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>layer_ids.append(int(m.group(1)))</highlight></codeline>
+<codeline><highlight class="normal">n_layers<sp/>=<sp/>(max(layer_ids)<sp/>+<sp/>1)<sp/>if<sp/>layer_ids<sp/>else<sp/>0</highlight></codeline>
+<codeline><highlight class="normal">if<sp/>n_layers<sp/>&lt;=<sp/>0:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>raise<sp/>SystemExit(&quot;Could<sp/>not<sp/>detect<sp/>n_layers<sp/>from<sp/>tensor<sp/>names.&quot;)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>attention<sp/>proj<sp/>dims<sp/>from<sp/>shapes<sp/>(preferred)<sp/>else<sp/>bytes<sp/>fallback<sp/>is<sp/>unreliable<sp/>across<sp/>dtypes</highlight></codeline>
+<codeline><highlight class="normal">q_name<sp/>=<sp/>pick_existing(</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&quot;model.layers.0.self_attn.q_proj.weight&quot;,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&quot;model.layers.0.self_attn.q_proj.qweight&quot;,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&quot;model.layers.0.attn.q_proj.weight&quot;,</highlight></codeline>
+<codeline><highlight class="normal">)</highlight></codeline>
+<codeline><highlight class="normal">k_name<sp/>=<sp/>pick_existing(</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&quot;model.layers.0.self_attn.k_proj.weight&quot;,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&quot;model.layers.0.self_attn.k_proj.qweight&quot;,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&quot;model.layers.0.attn.k_proj.weight&quot;,</highlight></codeline>
+<codeline><highlight class="normal">)</highlight></codeline>
+<codeline><highlight class="normal">v_name<sp/>=<sp/>pick_existing(</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&quot;model.layers.0.self_attn.v_proj.weight&quot;,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&quot;model.layers.0.self_attn.v_proj.qweight&quot;,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&quot;model.layers.0.attn.v_proj.weight&quot;,</highlight></codeline>
+<codeline><highlight class="normal">)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">if<sp/>not<sp/>(q_name<sp/>and<sp/>k_name<sp/>and<sp/>v_name):</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>#<sp/>If<sp/>naming<sp/>differs,<sp/>print<sp/>helpful<sp/>candidates<sp/>and<sp/>fail.</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>cands<sp/>=<sp/>[n<sp/>for<sp/>n<sp/>in<sp/>by.keys()<sp/>if<sp/>n.startswith(&quot;model.layers.0&quot;)<sp/>and<sp/>&quot;attn&quot;<sp/>in<sp/>n<sp/>and<sp/>n.endswith(&quot;weight&quot;)]</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>cands<sp/>=<sp/>sorted(cands)[:50]</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>raise<sp/>SystemExit(&quot;Could<sp/>not<sp/>find<sp/>q/k/v<sp/>proj<sp/>weights.<sp/>First<sp/>50<sp/>attn<sp/>weights:\n&quot;<sp/>+<sp/>&quot;\n&quot;.join(cands))</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">def<sp/>out_dim_from_proj(name):</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>sh<sp/>=<sp/>get_shape(name)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>if<sp/>sh<sp/>and<sp/>len(sh)<sp/>==<sp/>2:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>a,<sp/>b<sp/>=<sp/>sh</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>one<sp/>dim<sp/>should<sp/>match<sp/>d_model<sp/>(input<sp/>features);<sp/>the<sp/>other<sp/>is<sp/>output</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>if<sp/>a<sp/>==<sp/>d_model<sp/>and<sp/>b<sp/>!=<sp/>d_model:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>return<sp/>b</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>if<sp/>b<sp/>==<sp/>d_model<sp/>and<sp/>a<sp/>!=<sp/>d_model:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>return<sp/>a</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>if<sp/>neither<sp/>matches,<sp/>still<sp/>return<sp/>first<sp/>dim<sp/>as<sp/>a<sp/>fallback</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>return<sp/>sh[0]</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>#<sp/>bytes<sp/>fallback<sp/>(very<sp/>shaky).<sp/>Fail<sp/>instead<sp/>of<sp/>guessing<sp/>wrong.</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>raise<sp/>SystemExit(f&quot;Proj<sp/>tensor<sp/>missing<sp/>shape;<sp/>cannot<sp/>infer<sp/>dims<sp/>safely:<sp/>{name}&quot;)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">q_dim<sp/><sp/>=<sp/>out_dim_from_proj(q_name)</highlight></codeline>
+<codeline><highlight class="normal">kv_dim<sp/>=<sp/>out_dim_from_proj(k_name)</highlight></codeline>
+<codeline><highlight class="normal">kv_dim2=<sp/>out_dim_from_proj(v_name)</highlight></codeline>
+<codeline><highlight class="normal">if<sp/>kv_dim2<sp/>!=<sp/>kv_dim:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>print(f&quot;warn:<sp/>k_proj<sp/>out_dim={kv_dim}<sp/>v_proj<sp/>out_dim={kv_dim2}<sp/>(using<sp/>k_proj)&quot;)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>head<sp/>geometry:<sp/>choose<sp/>a<sp/>head_dim<sp/>that<sp/>divides<sp/>both<sp/>q_dim<sp/>and<sp/>kv_dim,<sp/>prefer<sp/>64<sp/>then<sp/>128<sp/>then<sp/>32,<sp/>else<sp/>max<sp/>&lt;=<sp/>256.</highlight></codeline>
+<codeline><highlight class="normal">prefs<sp/>=<sp/>[64,<sp/>128,<sp/>32,<sp/>80,<sp/>96,<sp/>48,<sp/>40,<sp/>24,<sp/>16]</highlight></codeline>
+<codeline><highlight class="normal">head_dim<sp/>=<sp/>None</highlight></codeline>
+<codeline><highlight class="normal">for<sp/>hd<sp/>in<sp/>prefs:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>if<sp/>q_dim<sp/>%<sp/>hd<sp/>==<sp/>0<sp/>and<sp/>kv_dim<sp/>%<sp/>hd<sp/>==<sp/>0:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>head_dim<sp/>=<sp/>hd</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>break</highlight></codeline>
+<codeline><highlight class="normal">if<sp/>head_dim<sp/>is<sp/>None:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>#<sp/>fallback:<sp/>largest<sp/>common<sp/>divisor<sp/>&lt;=<sp/>256</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>for<sp/>hd<sp/>in<sp/>range(256,<sp/>7,<sp/>-1):</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>if<sp/>q_dim<sp/>%<sp/>hd<sp/>==<sp/>0<sp/>and<sp/>kv_dim<sp/>%<sp/>hd<sp/>==<sp/>0:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>head_dim<sp/>=<sp/>hd</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>break</highlight></codeline>
+<codeline><highlight class="normal">if<sp/>head_dim<sp/>is<sp/>None:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>raise<sp/>SystemExit(f&quot;Could<sp/>not<sp/>find<sp/>a<sp/>consistent<sp/>head_dim<sp/>for<sp/>q_dim={q_dim}<sp/>kv_dim={kv_dim}&quot;)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">n_heads<sp/>=<sp/>q_dim<sp/>//<sp/>head_dim</highlight></codeline>
+<codeline><highlight class="normal">n_kv_heads<sp/>=<sp/>kv_dim<sp/>//<sp/>head_dim</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>d_ff<sp/>from<sp/>MLP<sp/>shapes</highlight></codeline>
+<codeline><highlight class="normal">mlp_candidates<sp/>=<sp/>[</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&quot;model.layers.0.mlp.gate_proj.weight&quot;,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&quot;model.layers.0.mlp.up_proj.weight&quot;,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&quot;model.layers.0.mlp.fc1.weight&quot;,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&quot;model.layers.0.mlp.w1.weight&quot;,</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&quot;model.layers.0.mlp.gate.weight&quot;,</highlight></codeline>
+<codeline><highlight class="normal">]</highlight></codeline>
+<codeline><highlight class="normal">mlp_found<sp/>=<sp/>&quot;&quot;</highlight></codeline>
+<codeline><highlight class="normal">for<sp/>nm<sp/>in<sp/>mlp_candidates:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>if<sp/>nm<sp/>in<sp/>by:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>mlp_found<sp/>=<sp/>nm</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>break</highlight></codeline>
+<codeline><highlight class="normal">if<sp/>not<sp/>mlp_found:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>#<sp/>try<sp/>fuzzy</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>for<sp/>nm<sp/>in<sp/>by.keys():</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>if<sp/>nm.startswith(&quot;model.layers.0&quot;)<sp/>and<sp/>&quot;.mlp.&quot;<sp/>in<sp/>nm<sp/>and<sp/>nm.endswith(&quot;.weight&quot;):</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>if<sp/>any(k<sp/>in<sp/>nm<sp/>for<sp/>k<sp/>in<sp/>(&quot;gate&quot;,<sp/>&quot;up&quot;,<sp/>&quot;fc1&quot;,<sp/>&quot;w1&quot;)):</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>mlp_found<sp/>=<sp/>nm</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>break</highlight></codeline>
+<codeline><highlight class="normal">if<sp/>not<sp/>mlp_found:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>cands<sp/>=<sp/>[n<sp/>for<sp/>n<sp/>in<sp/>by.keys()<sp/>if<sp/>n.startswith(&quot;model.layers.0&quot;)<sp/>and<sp/>&quot;.mlp.&quot;<sp/>in<sp/>n<sp/>and<sp/>n.endswith(&quot;.weight&quot;)]</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>cands<sp/>=<sp/>sorted(cands)[:80]</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>raise<sp/>SystemExit(&quot;Could<sp/>not<sp/>find<sp/>an<sp/>MLP<sp/>proj<sp/>weight<sp/>to<sp/>infer<sp/>d_ff.<sp/>First<sp/>80<sp/>mlp<sp/>weights:\n&quot;<sp/>+<sp/>&quot;\n&quot;.join(cands))</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">mlp_sh<sp/>=<sp/>get_shape(mlp_found)</highlight></codeline>
+<codeline><highlight class="normal">if<sp/>not<sp/>mlp_sh<sp/>or<sp/>len(mlp_sh)<sp/>!=<sp/>2:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>raise<sp/>SystemExit(f&quot;MLP<sp/>tensor<sp/>has<sp/>no<sp/>usable<sp/>shape:<sp/>{mlp_found}<sp/>shape={mlp_sh}&quot;)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">a,<sp/>b<sp/>=<sp/>mlp_sh</highlight></codeline>
+<codeline><highlight class="normal">if<sp/>a<sp/>==<sp/>d_model<sp/>and<sp/>b<sp/>!=<sp/>d_model:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>d_ff<sp/>=<sp/>b</highlight></codeline>
+<codeline><highlight class="normal">elif<sp/>b<sp/>==<sp/>d_model<sp/>and<sp/>a<sp/>!=<sp/>d_model:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>d_ff<sp/>=<sp/>a</highlight></codeline>
+<codeline><highlight class="normal">else:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>d_ff<sp/>=<sp/>max(a,<sp/>b)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">#<sp/>experts<sp/>count<sp/>(best-effort)</highlight></codeline>
+<codeline><highlight class="normal">n_experts<sp/>=<sp/>None</highlight></codeline>
+<codeline><highlight class="normal">for<sp/>nm<sp/>in<sp/>by.keys():</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>if<sp/>nm.startswith(&quot;model.layers.0&quot;)<sp/>and<sp/>(&quot;experts&quot;<sp/>in<sp/>nm<sp/>or<sp/>&quot;moe&quot;<sp/>in<sp/>nm):</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>#<sp/>very<sp/>rough:<sp/>look<sp/>for<sp/>&quot;experts.&lt;id&gt;.&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>m<sp/>=<sp/>re.search(r&quot;\.experts\.(\d+)\.&quot;,<sp/>nm)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>if<sp/>m:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>n_experts<sp/>=<sp/>max(n_experts<sp/>or<sp/>0,<sp/>int(m.group(1))<sp/>+<sp/>1)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">hp<sp/>=<sp/>{</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&quot;d_model&quot;:<sp/>int(d_model),</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&quot;vocab_size&quot;:<sp/>int(vocab_size),</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&quot;n_layers&quot;:<sp/>int(n_layers),</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&quot;n_heads&quot;:<sp/>int(n_heads),</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&quot;n_kv_heads&quot;:<sp/>int(n_kv_heads),</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&quot;d_head&quot;:<sp/>int(head_dim),</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&quot;d_ff&quot;:<sp/>int(d_ff),</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&quot;q_dim&quot;:<sp/>int(q_dim),</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&quot;kv_dim&quot;:<sp/>int(kv_dim),</highlight></codeline>
+<codeline><highlight class="normal">}</highlight></codeline>
+<codeline><highlight class="normal">if<sp/>n_experts<sp/>is<sp/>not<sp/>None:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>hp[&quot;n_experts_layer0&quot;]<sp/>=<sp/>int(n_experts)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">with<sp/>open(hp_json,<sp/>&quot;w&quot;,<sp/>encoding=&quot;utf-8&quot;)<sp/>as<sp/>f:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>json.dump(hp,<sp/>f,<sp/>indent=2)</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">print(f&quot;Wrote<sp/>{hp_json}&quot;)</highlight></codeline>
+<codeline><highlight class="normal">print(json.dumps(hp,<sp/>indent=2))</highlight></codeline>
+<codeline><highlight class="normal">PY</highlight></codeline>
+<codeline><highlight class="normal">echo</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">echo<sp/>&quot;[3/6]<sp/>Sanity:<sp/>tensor_map<sp/>end<sp/>offset<sp/>vs<sp/>model.ie.bin<sp/>size&quot;</highlight></codeline>
+<codeline><highlight class="normal">python3<sp/>-<sp/>&lt;&lt;&apos;PY&apos;</highlight></codeline>
+<codeline><highlight class="normal">import<sp/>json,<sp/>os,<sp/>sys</highlight></codeline>
+<codeline><highlight class="normal">model_dir<sp/>=<sp/>os.environ.get(&quot;MODEL_DIR&quot;,<sp/>&quot;models/gpt-oss-20b&quot;)</highlight></codeline>
+<codeline><highlight class="normal">tmap<sp/>=<sp/>os.path.join(model_dir,<sp/>&quot;tensor_map.json&quot;)</highlight></codeline>
+<codeline><highlight class="normal">binp<sp/>=<sp/>os.path.join(model_dir,<sp/>&quot;model.ie.bin&quot;)</highlight></codeline>
+<codeline><highlight class="normal">if<sp/>not<sp/>os.path.exists(tmap):</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>raise<sp/>SystemExit(&quot;tensor_map.json<sp/>missing&quot;)</highlight></codeline>
+<codeline><highlight class="normal">if<sp/>not<sp/>os.path.exists(binp):</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>raise<sp/>SystemExit(&quot;model.ie.bin<sp/>missing&quot;)</highlight></codeline>
+<codeline><highlight class="normal">j<sp/>=<sp/>json.load(open(tmap,<sp/>&quot;r&quot;,<sp/>encoding=&quot;utf-8&quot;))</highlight></codeline>
+<codeline><highlight class="normal">mx<sp/>=<sp/>0</highlight></codeline>
+<codeline><highlight class="normal">for<sp/>t<sp/>in<sp/>j.get(&quot;tensors&quot;,<sp/>[]):</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>off<sp/>=<sp/>int(t[&quot;offset&quot;]);<sp/>nb<sp/>=<sp/>int(t[&quot;size_bytes&quot;])</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>mx<sp/>=<sp/>max(mx,<sp/>off<sp/>+<sp/>nb)</highlight></codeline>
+<codeline><highlight class="normal">sz<sp/>=<sp/>os.path.getsize(binp)</highlight></codeline>
+<codeline><highlight class="normal">print(&quot;model.ie.bin<sp/>size_bytes<sp/>=&quot;,<sp/>sz)</highlight></codeline>
+<codeline><highlight class="normal">print(&quot;max(offset+size_bytes)<sp/>=&quot;,<sp/>mx)</highlight></codeline>
+<codeline><highlight class="normal">if<sp/>mx<sp/>&gt;<sp/>sz:</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>print(&quot;ERROR:<sp/>tensor<sp/>map<sp/>references<sp/>beyond<sp/>end<sp/>of<sp/>model.ie.bin&quot;)</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>sys.exit(2)</highlight></codeline>
+<codeline><highlight class="normal">print(&quot;OK&quot;)</highlight></codeline>
+<codeline><highlight class="normal">PY</highlight></codeline>
+<codeline><highlight class="normal">echo</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">echo<sp/>&quot;[4/6]<sp/>IMPORTANT:<sp/>config.json<sp/>availability&quot;</highlight></codeline>
+<codeline><highlight class="normal">if<sp/>[<sp/>-f<sp/>&quot;$CFG1&quot;<sp/>];<sp/>then</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>echo<sp/>&quot;Found<sp/>$CFG1&quot;</highlight></codeline>
+<codeline><highlight class="normal">elif<sp/>[<sp/>-f<sp/>&quot;$CFG2&quot;<sp/>];<sp/>then</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>echo<sp/>&quot;Found<sp/>$CFG2&quot;</highlight></codeline>
+<codeline><highlight class="normal">else</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>echo<sp/>&quot;MISSING<sp/>config.json<sp/>in<sp/>both:&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>echo<sp/>&quot;<sp/><sp/>$CFG1&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>echo<sp/>&quot;<sp/><sp/>$CFG2&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>echo<sp/>&quot;If<sp/>your<sp/>engine<sp/>still<sp/>requires<sp/>it,<sp/>download<sp/>it<sp/>(example):&quot;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>echo<sp/>&quot;<sp/><sp/>hf<sp/>download<sp/>openai/gpt-oss-20b<sp/>config.json<sp/>--local-dir<sp/>$MODEL_DIR/hf/original<sp/>--local-dir-use-symlinks<sp/>False&quot;</highlight></codeline>
+<codeline><highlight class="normal">fi</highlight></codeline>
+<codeline><highlight class="normal">echo</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">echo<sp/>&quot;[5/6]<sp/>Rebuild&quot;</highlight></codeline>
+<codeline><highlight class="normal">make<sp/>build</highlight></codeline>
+<codeline><highlight class="normal">echo</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">echo<sp/>&quot;[6/6]<sp/>Run<sp/>with<sp/>maximum<sp/>logging&quot;</highlight></codeline>
+<codeline><highlight class="normal">export<sp/>IE_LOG_LEVEL=debug</highlight></codeline>
+<codeline><highlight class="normal">export<sp/>IE_LOG=debug</highlight></codeline>
+<codeline><highlight class="normal">export<sp/>IE_DEBUG=1</highlight></codeline>
+<codeline><highlight class="normal">export<sp/>IE_VERIFY_TOUCH=1</highlight></codeline>
+<codeline><highlight class="normal">export<sp/>IE_BYTES_PER_TOKEN=67108864</highlight></codeline>
+<codeline><highlight class="normal">export<sp/>IE_STRIDE_BYTES=256</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">./build/inference-engine<sp/>--model-dir<sp/>&quot;$MODEL_DIR&quot;<sp/>--prompt<sp/>&quot;Hello.&quot;<sp/>--max-new<sp/>32</highlight></codeline>
+<codeline><highlight class="normal">rc=$?</highlight></codeline>
+<codeline><highlight class="normal">echo<sp/>&quot;exit=$rc&quot;</highlight></codeline>
+<codeline><highlight class="normal">exit<sp/>$rc</highlight></codeline>
+    </programlisting>
+    <location file="scripts/debug_gptoss_create.sh"/>
+  </compounddef>
+</doxygen>

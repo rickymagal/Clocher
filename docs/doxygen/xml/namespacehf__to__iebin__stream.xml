@@ -4,7 +4,7 @@
     <compoundname>hf_to_iebin_stream</compoundname>
     <sectiondef kind="var">
       <memberdef kind="variable" id="namespacehf__to__iebin__stream_1a7f097357e34a92fb429965ca466619db" prot="public" static="no" mutable="no">
-        <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">int</ref></type>
+        <type>int</type>
         <definition>int hf_to_iebin_stream.ALIGN</definition>
         <argsstring></argsstring>
         <name>ALIGN</name>
@@ -19,14 +19,14 @@
         <location file="scripts/hf_to_iebin_stream.py" line="13" column="1" bodyfile="scripts/hf_to_iebin_stream.py" bodystart="13" bodyend="-1"/>
       </memberdef>
       <memberdef kind="variable" id="namespacehf__to__iebin__stream_1aaac90de3ec7303ed1f6912aaf7316080" prot="public" static="no" mutable="no">
-        <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">dict</ref></type>
+        <type>dict</type>
         <definition>dict hf_to_iebin_stream.DTYPE_MAP</definition>
         <argsstring></argsstring>
         <name>DTYPE_MAP</name>
         <qualifiedname>hf_to_iebin_stream.DTYPE_MAP</qualifiedname>
         <initializer>=  {
     &quot;F16&quot;: (&quot;f16&quot;, np.float16),
-    &quot;BF16&quot;: (&quot;bf16&quot;, np.float16),  # <ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">fallback:</ref> <ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">store</ref> <ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">as</ref> <ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">f16</ref> <ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">if</ref> <ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">BF16</ref> <ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">unsupported</ref> <ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">in</ref> <ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">consumer</ref>
+    &quot;BF16&quot;: (&quot;bf16&quot;, np.float16),  # fallback: store as f16 if BF16 unsupported in consumer
     &quot;F32&quot;: (&quot;f32&quot;, np.float32),
     &quot;I8&quot;: (&quot;i8&quot;, np.int8),
     &quot;U8&quot;: (&quot;u8&quot;, np.uint8),
@@ -48,17 +48,17 @@
     </sectiondef>
     <sectiondef kind="func">
       <memberdef kind="function" id="namespacehf__to__iebin__stream_1ad6d5845e3a10015c477f7d5d593a6734" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
-        <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">int</ref></type>
+        <type>int</type>
         <definition> int hf_to_iebin_stream.align_up</definition>
         <argsstring>(int x, int a)</argsstring>
         <name>align_up</name>
         <qualifiedname>hf_to_iebin_stream.align_up</qualifiedname>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">int</ref></type>
+          <type>int</type>
           <declname>x</declname>
         </param>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">int</ref></type>
+          <type>int</type>
           <declname>a</declname>
         </param>
         <briefdescription>
@@ -87,11 +87,10 @@
         <inbodydescription>
         </inbodydescription>
         <location file="scripts/hf_to_iebin_stream.py" line="32" column="1" bodyfile="scripts/hf_to_iebin_stream.py" bodystart="32" bodyend="34"/>
-        <references refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" compoundref="ie__device__cuda_8cu" startline="92" endline="110">ie_gemv_rowwise_f32_kernel</references>
         <referencedby refid="namespacehf__to__iebin__stream_1a945e31086e049119fcb2dcc1ab32fa17" compoundref="hf__to__iebin__stream_8py" startline="35" endline="45">load_index</referencedby>
       </memberdef>
       <memberdef kind="function" id="namespacehf__to__iebin__stream_1a945e31086e049119fcb2dcc1ab32fa17" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
-        <type>Tuple[Dict[<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">str</ref>, <ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">str</ref>], List[<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">str</ref>]]</type>
+        <type>Tuple[Dict[str, str], List[str]]</type>
         <definition> Tuple[Dict[str, str], List[str]] hf_to_iebin_stream.load_index</definition>
         <argsstring>(Path hf_dir)</argsstring>
         <name>load_index</name>
@@ -107,7 +106,6 @@
         <inbodydescription>
         </inbodydescription>
         <location file="scripts/hf_to_iebin_stream.py" line="35" column="1" bodyfile="scripts/hf_to_iebin_stream.py" bodystart="35" bodyend="45"/>
-        <references refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" compoundref="ie__device__cuda_8cu" startline="92" endline="110">ie_gemv_rowwise_f32_kernel</references>
         <references refid="namespacehf__to__iebin__stream_1ad8dd183012774408e2e4579fdba5ce76" compoundref="hf__to__iebin__stream_8py" startline="32" endline="34">read_json</references>
         <referencedby refid="namespacehf__to__iebin__stream_1aedd1fb465230e977d7d66d5bc70b48fc" compoundref="hf__to__iebin__stream_8py" startline="51" endline="179">main</referencedby>
       </memberdef>
@@ -128,11 +126,10 @@
         <inbodydescription>
         </inbodydescription>
         <location file="scripts/hf_to_iebin_stream.py" line="46" column="1" bodyfile="scripts/hf_to_iebin_stream.py" bodystart="46" bodyend="50"/>
-        <references refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" compoundref="ie__device__cuda_8cu" startline="92" endline="110">ie_gemv_rowwise_f32_kernel</references>
         <referencedby refid="namespacehf__to__iebin__stream_1aedd1fb465230e977d7d66d5bc70b48fc" compoundref="hf__to__iebin__stream_8py" startline="51" endline="179">main</referencedby>
       </memberdef>
       <memberdef kind="function" id="namespacehf__to__iebin__stream_1aedd1fb465230e977d7d66d5bc70b48fc" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
-        <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">int</ref></type>
+        <type>int</type>
         <definition> int hf_to_iebin_stream.main</definition>
         <argsstring>()</argsstring>
         <name>main</name>
@@ -145,7 +142,6 @@
         </inbodydescription>
         <location file="scripts/hf_to_iebin_stream.py" line="51" column="1" bodyfile="scripts/hf_to_iebin_stream.py" bodystart="51" bodyend="179"/>
         <references refid="namespacehf__to__iebin__stream_1ad6d5845e3a10015c477f7d5d593a6734" compoundref="hf__to__iebin__stream_8py" startline="29" endline="31">align_up</references>
-        <references refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" compoundref="ie__device__cuda_8cu" startline="92" endline="110">ie_gemv_rowwise_f32_kernel</references>
         <references refid="namespacehf__to__iebin__stream_1a945e31086e049119fcb2dcc1ab32fa17" compoundref="hf__to__iebin__stream_8py" startline="35" endline="45">load_index</references>
         <references refid="namespacehf__to__iebin__stream_1aedd1fb465230e977d7d66d5bc70b48fc" compoundref="hf__to__iebin__stream_8py" startline="51" endline="179">main</references>
         <references refid="namespacehf__to__iebin__stream_1aa8ad5a8ebfc7d44aead7abb5aaa71dd0" compoundref="hf__to__iebin__stream_8py" startline="46" endline="50">np_ensure_contig</references>

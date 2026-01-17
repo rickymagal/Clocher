@@ -8,8 +8,6 @@
     <includedby refid="ie__kernels_8h" local="yes">engine/include/ie_kernels.h</includedby>
     <includedby refid="ie__kernels__cuda_8h" local="yes">engine/include/ie_kernels_cuda.h</includedby>
     <includedby refid="ie__kv__cache_8h" local="yes">engine/include/ie_kv_cache.h</includedby>
-    <includedby refid="gemv__avx2_8c" local="yes">engine/src/kernels/gemv_avx2.c</includedby>
-    <includedby refid="gemv__generic_8c" local="yes">engine/src/kernels/gemv_generic.c</includedby>
     <includedby refid="act__fp8_8c" local="yes">engine/src/quant/act_fp8.c</includedby>
     <includedby refid="act__int8_8c" local="yes">engine/src/quant/act_int8.c</includedby>
     <includedby refid="kv__cache_8c" local="yes">engine/src/runtime/kv_cache.c</includedby>
@@ -35,6 +33,42 @@
         <label>benchmarks/src/microbench_act_path.c</label>
         <link refid="microbench__act__path_8c"/>
       </node>
+      <node id="18">
+        <label>engine/include/generate_gptoss.h</label>
+        <link refid="generate__gptoss_8h"/>
+        <childnode refid="19" relation="include">
+        </childnode>
+      </node>
+      <node id="20">
+        <label>engine/include/gptoss_hparams.h</label>
+        <link refid="gptoss__hparams_8h"/>
+        <childnode refid="21" relation="include">
+        </childnode>
+        <childnode refid="19" relation="include">
+        </childnode>
+        <childnode refid="22" relation="include">
+        </childnode>
+      </node>
+      <node id="23">
+        <label>engine/include/gptoss_weights_index.h</label>
+        <link refid="gptoss__weights__index_8h"/>
+        <childnode refid="24" relation="include">
+        </childnode>
+      </node>
+      <node id="17">
+        <label>engine/include/ie_infer.h</label>
+        <link refid="ie__infer_8h"/>
+        <childnode refid="18" relation="include">
+        </childnode>
+        <childnode refid="20" relation="include">
+        </childnode>
+        <childnode refid="23" relation="include">
+        </childnode>
+        <childnode refid="21" relation="include">
+        </childnode>
+        <childnode refid="12" relation="include">
+        </childnode>
+      </node>
       <node id="3">
         <label>engine/include/ie_kernels.h</label>
         <link refid="ie__kernels_8h"/>
@@ -46,17 +80,37 @@
         </childnode>
         <childnode refid="7" relation="include">
         </childnode>
-      </node>
-      <node id="8">
-        <label>engine/include/ie_kernels_cuda.h</label>
-        <link refid="ie__kernels__cuda_8h"/>
+        <childnode refid="8" relation="include">
+        </childnode>
         <childnode refid="9" relation="include">
         </childnode>
+        <childnode refid="10" relation="include">
+        </childnode>
+        <childnode refid="11" relation="include">
+        </childnode>
+        <childnode refid="12" relation="include">
+        </childnode>
+        <childnode refid="13" relation="include">
+        </childnode>
       </node>
-      <node id="10">
+      <node id="14">
+        <label>engine/include/ie_kernels_cuda.h</label>
+        <link refid="ie__kernels__cuda_8h"/>
+        <childnode refid="15" relation="include">
+        </childnode>
+      </node>
+      <node id="16">
         <label>engine/include/ie_kv_cache.h</label>
         <link refid="ie__kv__cache_8h"/>
-        <childnode refid="11" relation="include">
+        <childnode refid="17" relation="include">
+        </childnode>
+        <childnode refid="21" relation="include">
+        </childnode>
+        <childnode refid="19" relation="include">
+        </childnode>
+        <childnode refid="12" relation="include">
+        </childnode>
+        <childnode refid="25" relation="include">
         </childnode>
       </node>
       <node id="1">
@@ -66,56 +120,92 @@
         </childnode>
         <childnode refid="3" relation="include">
         </childnode>
-        <childnode refid="8" relation="include">
-        </childnode>
-        <childnode refid="10" relation="include">
-        </childnode>
-        <childnode refid="5" relation="include">
-        </childnode>
-        <childnode refid="6" relation="include">
-        </childnode>
-        <childnode refid="12" relation="include">
-        </childnode>
-        <childnode refid="13" relation="include">
-        </childnode>
-        <childnode refid="11" relation="include">
-        </childnode>
         <childnode refid="14" relation="include">
+        </childnode>
+        <childnode refid="16" relation="include">
+        </childnode>
+        <childnode refid="26" relation="include">
+        </childnode>
+        <childnode refid="27" relation="include">
+        </childnode>
+        <childnode refid="25" relation="include">
+        </childnode>
+        <childnode refid="28" relation="include">
         </childnode>
       </node>
       <node id="4">
         <label>engine/src/devices/ie_device_common.c</label>
         <link refid="ie__device__common_8c"/>
       </node>
+      <node id="21">
+        <label>engine/src/ie_api.c</label>
+        <link refid="ie__api_8c"/>
+      </node>
       <node id="5">
+        <label>engine/src/kernels/attn_cpu.c</label>
+        <link refid="attn__cpu_8c"/>
+      </node>
+      <node id="6">
         <label>engine/src/kernels/gemv_avx2.c</label>
         <link refid="gemv__avx2_8c"/>
       </node>
-      <node id="6">
+      <node id="7">
         <label>engine/src/kernels/gemv_generic.c</label>
         <link refid="gemv__generic_8c"/>
       </node>
+      <node id="8">
+        <label>engine/src/kernels/gemv_q4_avx2.c</label>
+        <link refid="gemv__q4__avx2_8c"/>
+      </node>
       <node id="9">
+        <label>engine/src/kernels/gemv_q4_generic.c</label>
+        <link refid="gemv__q4__generic_8c"/>
+      </node>
+      <node id="15">
         <label>engine/src/kernels/ie_kernels_cuda.cu</label>
         <link refid="ie__kernels__cuda_8cu"/>
       </node>
-      <node id="12">
+      <node id="10">
+        <label>engine/src/kernels/mlp_cpu.c</label>
+        <link refid="mlp__cpu_8c"/>
+      </node>
+      <node id="11">
+        <label>engine/src/kernels/rmsnorm_cpu.c</label>
+        <link refid="rmsnorm__cpu_8c"/>
+      </node>
+      <node id="26">
         <label>engine/src/quant/act_fp8.c</label>
         <link refid="act__fp8_8c"/>
       </node>
-      <node id="13">
+      <node id="27">
         <label>engine/src/quant/act_int8.c</label>
         <link refid="act__int8_8c"/>
       </node>
-      <node id="11">
+      <node id="19">
+        <label>engine/src/runtime/generate_gptoss.c</label>
+        <link refid="generate__gptoss_8c"/>
+      </node>
+      <node id="22">
+        <label>engine/src/runtime/gptoss_hparams.c</label>
+        <link refid="gptoss__hparams_8c"/>
+      </node>
+      <node id="24">
+        <label>engine/src/runtime/gptoss_weights_index.c</label>
+        <link refid="gptoss__weights__index_8c"/>
+      </node>
+      <node id="12">
+        <label>engine/src/runtime/infer_gptoss.c</label>
+        <link refid="infer__gptoss_8c"/>
+      </node>
+      <node id="25">
         <label>engine/src/runtime/kv_cache.c</label>
         <link refid="kv__cache_8c"/>
       </node>
-      <node id="14">
+      <node id="28">
         <label>tests/c/test_act_quant.c</label>
         <link refid="test__act__quant_8c"/>
       </node>
-      <node id="7">
+      <node id="13">
         <label>tests/c/test_kernels.c</label>
         <link refid="test__kernels_8c"/>
       </node>
@@ -155,7 +245,7 @@
     </sectiondef>
     <sectiondef kind="typedef">
       <memberdef kind="typedef" id="ie__quant__act_8h_1acde80049f7aaf8894f79f70702c0b9cc" prot="public" static="no">
-        <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">enum</ref> <ref refid="ie__quant__act_8h_1a67a1bdaa8281d1c69b6b76ecba79c52c" kindref="member">ie_fp8_format</ref></type>
+        <type>enum <ref refid="ie__quant__act_8h_1a67a1bdaa8281d1c69b6b76ecba79c52c" kindref="member">ie_fp8_format</ref></type>
         <definition>typedef enum ie_fp8_format ie_fp8_format</definition>
         <argsstring></argsstring>
         <name>ie_fp8_format</name>
@@ -183,28 +273,28 @@
     </sectiondef>
     <sectiondef kind="func">
       <memberdef kind="function" id="ie__quant__act_8h_1a383703e828dd5701507b0d1f6ab1cf73" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
-        <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">void</ref></type>
+        <type>void</type>
         <definition>void ie_act_i8_params_from_minmax</definition>
         <argsstring>(float minv, float maxv, int symmetric, float *out_scale, int8_t *out_zero)</argsstring>
         <name>ie_act_i8_params_from_minmax</name>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">float</ref></type>
+          <type>float</type>
           <declname>minv</declname>
         </param>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">float</ref></type>
+          <type>float</type>
           <declname>maxv</declname>
         </param>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">int</ref></type>
+          <type>int</type>
           <declname>symmetric</declname>
         </param>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">float</ref> *</type>
+          <type>float *</type>
           <declname>out_scale</declname>
         </param>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">int8_t</ref> *</type>
+          <type>int8_t *</type>
           <declname>out_zero</declname>
         </param>
         <briefdescription>
@@ -267,29 +357,28 @@
         </inbodydescription>
         <location file="engine/include/ie_quant_act.h" line="62" column="6" bodyfile="engine/src/quant/act_int8.c" bodystart="51" bodyend="79" declfile="engine/include/ie_quant_act.h" declline="62" declcolumn="6"/>
         <references refid="act__int8_8c_1a06921ebd025375319bac8a4b43888241" compoundref="act__int8_8c" startline="18" endline="20">ie_fabsf</references>
-        <references refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" compoundref="ie__device__cuda_8cu" startline="92" endline="110">ie_gemv_rowwise_f32_kernel</references>
         <references refid="act__int8_8c_1ad80154c444341a2ed6f1be5eb0bdb5de" compoundref="act__int8_8c" startline="22" endline="24">ie_maxf</references>
         <references refid="act__int8_8c_1a7490ce5fac2e6e5e1b7812006550be41" compoundref="act__int8_8c" startline="31" endline="34">ie_rne</references>
         <referencedby refid="microbench__act__path_8c_1aa8d8e89d147a706279cd7995fcc08571" compoundref="microbench__act__path_8c" startline="46" endline="74">bench_int8</referencedby>
         <referencedby refid="ie__quant__act_8h_1ad17e6b199c1c826b681db341c72701ef" compoundref="act__int8_8c" startline="109" endline="128">ie_act_i8_group_params_from_data</referencedby>
-        <referencedby refid="ie__kv__cache_8h_1a60418a220d683776a9ff5e04783e67d6" compoundref="kv__cache_8c" startline="199" endline="245">ie_kv_store_token_int8_per_tensor</referencedby>
+        <referencedby refid="ie__kv__cache_8h_1a60418a220d683776a9ff5e04783e67d6" compoundref="kv__cache_8c" startline="533" endline="579">ie_kv_store_token_int8_per_tensor</referencedby>
         <referencedby refid="test__act__quant_8c_1a83ac16910c5fbcf8d045ba1a01bc2604" compoundref="test__act__quant_8c" startline="37" endline="58">test_int8_per_tensor</referencedby>
       </memberdef>
       <memberdef kind="function" id="ie__quant__act_8h_1a6d9a5a967125879dcd69327e9d5fa04b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
-        <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">void</ref></type>
+        <type>void</type>
         <definition>void ie_quantize_act_int8</definition>
         <argsstring>(const float *src, int8_t *dst, size_t n, ie_act_i8_params params, int symmetric)</argsstring>
         <name>ie_quantize_act_int8</name>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">const</ref> <ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">float</ref> *</type>
+          <type>const float *</type>
           <declname>src</declname>
         </param>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">int8_t</ref> *</type>
+          <type>int8_t *</type>
           <declname>dst</declname>
         </param>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">size_t</ref></type>
+          <type>size_t</type>
           <declname>n</declname>
         </param>
         <param>
@@ -297,7 +386,7 @@
           <declname>params</declname>
         </param>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">int</ref></type>
+          <type>int</type>
           <declname>symmetric</declname>
         </param>
         <briefdescription>
@@ -350,31 +439,30 @@
         <inbodydescription>
         </inbodydescription>
         <location file="engine/include/ie_quant_act.h" line="74" column="6" bodyfile="engine/src/quant/act_int8.c" bodystart="81" bodyend="98" declfile="engine/include/ie_quant_act.h" declline="74" declcolumn="6"/>
-        <references refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" compoundref="ie__device__cuda_8cu" startline="92" endline="110">ie_gemv_rowwise_f32_kernel</references>
         <references refid="act__int8_8c_1a7490ce5fac2e6e5e1b7812006550be41" compoundref="act__int8_8c" startline="31" endline="34">ie_rne</references>
         <references refid="act__int8_8c_1adbe29326b240b464a7a7a8773210fb8f" compoundref="act__int8_8c" startline="36" endline="40">ie_sat_i8</references>
         <references refid="act__int8_8c_1a312c061258a9180793b777e396301655" compoundref="act__int8_8c" startline="43" endline="47">ie_sat_sym_i8</references>
         <references refid="structie__act__i8__params_1ac0ec31737c16640ac332b562ea6be9a1" compoundref="ie__quant__act_8h" startline="41">ie_act_i8_params::scale</references>
         <references refid="structie__act__i8__params_1ab19e71539ecb14b16a4c65b425be4c32" compoundref="ie__quant__act_8h" startline="42">ie_act_i8_params::zero_point</references>
         <referencedby refid="microbench__act__path_8c_1aa8d8e89d147a706279cd7995fcc08571" compoundref="microbench__act__path_8c" startline="46" endline="74">bench_int8</referencedby>
-        <referencedby refid="ie__kv__cache_8h_1a60418a220d683776a9ff5e04783e67d6" compoundref="kv__cache_8c" startline="199" endline="245">ie_kv_store_token_int8_per_tensor</referencedby>
+        <referencedby refid="ie__kv__cache_8h_1a60418a220d683776a9ff5e04783e67d6" compoundref="kv__cache_8c" startline="533" endline="579">ie_kv_store_token_int8_per_tensor</referencedby>
         <referencedby refid="test__act__quant_8c_1a83ac16910c5fbcf8d045ba1a01bc2604" compoundref="test__act__quant_8c" startline="37" endline="58">test_int8_per_tensor</referencedby>
       </memberdef>
       <memberdef kind="function" id="ie__quant__act_8h_1aa7d3ff181746bd40d9d863e51ac0b024" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
-        <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">void</ref></type>
+        <type>void</type>
         <definition>void ie_dequantize_act_int8</definition>
         <argsstring>(const int8_t *src, float *dst, size_t n, ie_act_i8_params params)</argsstring>
         <name>ie_dequantize_act_int8</name>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">const</ref> <ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">int8_t</ref> *</type>
+          <type>const int8_t *</type>
           <declname>src</declname>
         </param>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">float</ref> *</type>
+          <type>float *</type>
           <declname>dst</declname>
         </param>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">size_t</ref></type>
+          <type>size_t</type>
           <declname>n</declname>
         </param>
         <param>
@@ -423,39 +511,38 @@
         <inbodydescription>
         </inbodydescription>
         <location file="engine/include/ie_quant_act.h" line="85" column="6" bodyfile="engine/src/quant/act_int8.c" bodystart="100" bodyend="107" declfile="engine/include/ie_quant_act.h" declline="85" declcolumn="6"/>
-        <references refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" compoundref="ie__device__cuda_8cu" startline="92" endline="110">ie_gemv_rowwise_f32_kernel</references>
         <references refid="structie__act__i8__params_1ac0ec31737c16640ac332b562ea6be9a1" compoundref="ie__quant__act_8h" startline="41">ie_act_i8_params::scale</references>
         <references refid="structie__act__i8__params_1ab19e71539ecb14b16a4c65b425be4c32" compoundref="ie__quant__act_8h" startline="42">ie_act_i8_params::zero_point</references>
         <referencedby refid="microbench__act__path_8c_1aa8d8e89d147a706279cd7995fcc08571" compoundref="microbench__act__path_8c" startline="46" endline="74">bench_int8</referencedby>
         <referencedby refid="test__act__quant_8c_1a83ac16910c5fbcf8d045ba1a01bc2604" compoundref="test__act__quant_8c" startline="37" endline="58">test_int8_per_tensor</referencedby>
       </memberdef>
       <memberdef kind="function" id="ie__quant__act_8h_1ad17e6b199c1c826b681db341c72701ef" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
-        <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">void</ref></type>
+        <type>void</type>
         <definition>void ie_act_i8_group_params_from_data</definition>
         <argsstring>(const float *src, size_t n, size_t group_size, int symmetric, float *out_scales, int8_t *out_zeros)</argsstring>
         <name>ie_act_i8_group_params_from_data</name>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">const</ref> <ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">float</ref> *</type>
+          <type>const float *</type>
           <declname>src</declname>
         </param>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">size_t</ref></type>
+          <type>size_t</type>
           <declname>n</declname>
         </param>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">size_t</ref></type>
+          <type>size_t</type>
           <declname>group_size</declname>
         </param>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">int</ref></type>
+          <type>int</type>
           <declname>symmetric</declname>
         </param>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">float</ref> *</type>
+          <type>float *</type>
           <declname>out_scales</declname>
         </param>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">int8_t</ref> *</type>
+          <type>int8_t *</type>
           <declname>out_zeros</declname>
         </param>
         <briefdescription>
@@ -518,43 +605,42 @@
         </inbodydescription>
         <location file="engine/include/ie_quant_act.h" line="102" column="6" bodyfile="engine/src/quant/act_int8.c" bodystart="109" bodyend="128" declfile="engine/include/ie_quant_act.h" declline="102" declcolumn="6"/>
         <references refid="act__int8_8c_1a383703e828dd5701507b0d1f6ab1cf73" compoundref="act__int8_8c" startline="51" endline="79">ie_act_i8_params_from_minmax</references>
-        <references refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" compoundref="ie__device__cuda_8cu" startline="92" endline="110">ie_gemv_rowwise_f32_kernel</references>
         <references refid="act__int8_8c_1ad80154c444341a2ed6f1be5eb0bdb5de" compoundref="act__int8_8c" startline="22" endline="24">ie_maxf</references>
         <references refid="act__int8_8c_1ab1c0766c72ff5b328ace7f8354021ff8" compoundref="act__int8_8c" startline="26" endline="28">ie_minf</references>
-        <referencedby refid="ie__kv__cache_8h_1a5b546a5423f4572607a07d8d55146024" compoundref="kv__cache_8c" startline="247" endline="293">ie_kv_store_token_int8_per_group</referencedby>
+        <referencedby refid="ie__kv__cache_8h_1a5b546a5423f4572607a07d8d55146024" compoundref="kv__cache_8c" startline="595" endline="636">ie_kv_store_token_int8_per_group</referencedby>
         <referencedby refid="test__act__quant_8c_1a21e36220792f5bceb2c110dc45605c5e" compoundref="test__act__quant_8c" startline="60" endline="87">test_int8_per_group</referencedby>
       </memberdef>
       <memberdef kind="function" id="ie__quant__act_8h_1a8e3abfa039c2b7c2fca327f68a2d7b09" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
-        <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">void</ref></type>
+        <type>void</type>
         <definition>void ie_quantize_act_int8_per_group</definition>
         <argsstring>(const float *src, int8_t *dst, size_t n, size_t group_size, const float *scales, const int8_t *zeros, int symmetric)</argsstring>
         <name>ie_quantize_act_int8_per_group</name>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">const</ref> <ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">float</ref> *</type>
+          <type>const float *</type>
           <declname>src</declname>
         </param>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">int8_t</ref> *</type>
+          <type>int8_t *</type>
           <declname>dst</declname>
         </param>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">size_t</ref></type>
+          <type>size_t</type>
           <declname>n</declname>
         </param>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">size_t</ref></type>
+          <type>size_t</type>
           <declname>group_size</declname>
         </param>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">const</ref> <ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">float</ref> *</type>
+          <type>const float *</type>
           <declname>scales</declname>
         </param>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">const</ref> <ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">int8_t</ref> *</type>
+          <type>const int8_t *</type>
           <declname>zeros</declname>
         </param>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">int</ref></type>
+          <type>int</type>
           <declname>symmetric</declname>
         </param>
         <briefdescription>
@@ -623,40 +709,39 @@
         <inbodydescription>
         </inbodydescription>
         <location file="engine/include/ie_quant_act.h" line="117" column="6" bodyfile="engine/src/quant/act_int8.c" bodystart="130" bodyend="153" declfile="engine/include/ie_quant_act.h" declline="117" declcolumn="6"/>
-        <references refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" compoundref="ie__device__cuda_8cu" startline="92" endline="110">ie_gemv_rowwise_f32_kernel</references>
         <references refid="act__int8_8c_1a7490ce5fac2e6e5e1b7812006550be41" compoundref="act__int8_8c" startline="31" endline="34">ie_rne</references>
         <references refid="act__int8_8c_1adbe29326b240b464a7a7a8773210fb8f" compoundref="act__int8_8c" startline="36" endline="40">ie_sat_i8</references>
         <references refid="act__int8_8c_1a312c061258a9180793b777e396301655" compoundref="act__int8_8c" startline="43" endline="47">ie_sat_sym_i8</references>
-        <referencedby refid="ie__kv__cache_8h_1a5b546a5423f4572607a07d8d55146024" compoundref="kv__cache_8c" startline="247" endline="293">ie_kv_store_token_int8_per_group</referencedby>
+        <referencedby refid="ie__kv__cache_8h_1a5b546a5423f4572607a07d8d55146024" compoundref="kv__cache_8c" startline="595" endline="636">ie_kv_store_token_int8_per_group</referencedby>
         <referencedby refid="test__act__quant_8c_1a21e36220792f5bceb2c110dc45605c5e" compoundref="test__act__quant_8c" startline="60" endline="87">test_int8_per_group</referencedby>
       </memberdef>
       <memberdef kind="function" id="ie__quant__act_8h_1a725b47baea6b1f41980edb5e307cfa0f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
-        <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">void</ref></type>
+        <type>void</type>
         <definition>void ie_dequantize_act_int8_per_group</definition>
         <argsstring>(const int8_t *src, float *dst, size_t n, size_t group_size, const float *scales, const int8_t *zeros)</argsstring>
         <name>ie_dequantize_act_int8_per_group</name>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">const</ref> <ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">int8_t</ref> *</type>
+          <type>const int8_t *</type>
           <declname>src</declname>
         </param>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">float</ref> *</type>
+          <type>float *</type>
           <declname>dst</declname>
         </param>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">size_t</ref></type>
+          <type>size_t</type>
           <declname>n</declname>
         </param>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">size_t</ref></type>
+          <type>size_t</type>
           <declname>group_size</declname>
         </param>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">const</ref> <ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">float</ref> *</type>
+          <type>const float *</type>
           <declname>scales</declname>
         </param>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">const</ref> <ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">int8_t</ref> *</type>
+          <type>const int8_t *</type>
           <declname>zeros</declname>
         </param>
         <briefdescription>
@@ -717,24 +802,23 @@
         <inbodydescription>
         </inbodydescription>
         <location file="engine/include/ie_quant_act.h" line="132" column="6" bodyfile="engine/src/quant/act_int8.c" bodystart="155" bodyend="169" declfile="engine/include/ie_quant_act.h" declline="132" declcolumn="6"/>
-        <references refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" compoundref="ie__device__cuda_8cu" startline="92" endline="110">ie_gemv_rowwise_f32_kernel</references>
         <referencedby refid="test__act__quant_8c_1a21e36220792f5bceb2c110dc45605c5e" compoundref="test__act__quant_8c" startline="60" endline="87">test_int8_per_group</referencedby>
       </memberdef>
       <memberdef kind="function" id="ie__quant__act_8h_1a91772f4827e6d4c82915434eb55a9f17" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
-        <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">void</ref></type>
+        <type>void</type>
         <definition>void ie_quantize_act_fp8</definition>
         <argsstring>(const float *src, uint8_t *dst, size_t n, ie_fp8_format fmt)</argsstring>
         <name>ie_quantize_act_fp8</name>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">const</ref> <ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">float</ref> *</type>
+          <type>const float *</type>
           <declname>src</declname>
         </param>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">uint8_t</ref> *</type>
+          <type>uint8_t *</type>
           <declname>dst</declname>
         </param>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">size_t</ref></type>
+          <type>size_t</type>
           <declname>n</declname>
         </param>
         <param>
@@ -789,28 +873,27 @@
         </inbodydescription>
         <location file="engine/include/ie_quant_act.h" line="148" column="6" bodyfile="engine/src/quant/act_fp8.c" bodystart="182" bodyend="193" declfile="engine/include/ie_quant_act.h" declline="148" declcolumn="6"/>
         <references refid="ie__quant__act_8h_1a67a1bdaa8281d1c69b6b76ecba79c52ca67cfe56fcb473bed9a2f92388f2fc347" compoundref="ie__quant__act_8h" startline="28">IE_FP8_E4M3</references>
-        <references refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" compoundref="ie__device__cuda_8cu" startline="92" endline="110">ie_gemv_rowwise_f32_kernel</references>
         <references refid="act__fp8_8c_1a202a6a4b5ffeadd5e70ea00de8307dd4" compoundref="act__fp8_8c" startline="44" endline="91">ie_pack_fp8_e4m3</references>
         <references refid="act__fp8_8c_1a3c2a81020974f897eee0c71515548031" compoundref="act__fp8_8c" startline="112" endline="154">ie_pack_fp8_e5m2</references>
         <referencedby refid="microbench__act__path_8c_1a3ddaada8ef50378cb1e48d907c7b6430" compoundref="microbench__act__path_8c" startline="76" endline="96">bench_fp8</referencedby>
-        <referencedby refid="ie__kv__cache_8h_1ac56756d0ff12628cbbba305e3c8af8a9" compoundref="kv__cache_8c" startline="295" endline="325">ie_kv_store_token_fp8</referencedby>
+        <referencedby refid="ie__kv__cache_8h_1ac56756d0ff12628cbbba305e3c8af8a9" compoundref="kv__cache_8c" startline="651" endline="679">ie_kv_store_token_fp8</referencedby>
         <referencedby refid="test__act__quant_8c_1a4e29e70dc75d159784f30252375c4c24" compoundref="test__act__quant_8c" startline="89" endline="119">test_fp8_sweep</referencedby>
       </memberdef>
       <memberdef kind="function" id="ie__quant__act_8h_1aca462f5af36ea8b096edc92c4252db71" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
-        <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">void</ref></type>
+        <type>void</type>
         <definition>void ie_dequantize_act_fp8</definition>
         <argsstring>(const uint8_t *src, float *dst, size_t n, ie_fp8_format fmt)</argsstring>
         <name>ie_dequantize_act_fp8</name>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">const</ref> <ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">uint8_t</ref> *</type>
+          <type>const uint8_t *</type>
           <declname>src</declname>
         </param>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">float</ref> *</type>
+          <type>float *</type>
           <declname>dst</declname>
         </param>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">size_t</ref></type>
+          <type>size_t</type>
           <declname>n</declname>
         </param>
         <param>
@@ -860,11 +943,10 @@
         </inbodydescription>
         <location file="engine/include/ie_quant_act.h" line="159" column="6" bodyfile="engine/src/quant/act_fp8.c" bodystart="195" bodyend="206" declfile="engine/include/ie_quant_act.h" declline="159" declcolumn="6"/>
         <references refid="ie__quant__act_8h_1a67a1bdaa8281d1c69b6b76ecba79c52ca67cfe56fcb473bed9a2f92388f2fc347" compoundref="ie__quant__act_8h" startline="28">IE_FP8_E4M3</references>
-        <references refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" compoundref="ie__device__cuda_8cu" startline="92" endline="110">ie_gemv_rowwise_f32_kernel</references>
         <references refid="act__fp8_8c_1a52bd1c6672e488e69c328a8462a03638" compoundref="act__fp8_8c" startline="93" endline="110">ie_unpack_fp8_e4m3</references>
         <references refid="act__fp8_8c_1a8980ac38b93f25c750abde5ec521b4d1" compoundref="act__fp8_8c" startline="156" endline="178">ie_unpack_fp8_e5m2</references>
         <referencedby refid="microbench__act__path_8c_1a3ddaada8ef50378cb1e48d907c7b6430" compoundref="microbench__act__path_8c" startline="76" endline="96">bench_fp8</referencedby>
-        <referencedby refid="ie__kv__cache_8h_1ac4d09efdefb7662b78e44d9b2127bdcf" compoundref="kv__cache_8c" startline="327" endline="399">ie_kv_load_token_f32</referencedby>
+        <referencedby refid="ie__kv__cache_8h_1ac4d09efdefb7662b78e44d9b2127bdcf" compoundref="kv__cache_8c" startline="694" endline="762">ie_kv_load_token_f32</referencedby>
         <referencedby refid="test__act__quant_8c_1a4e29e70dc75d159784f30252375c4c24" compoundref="test__act__quant_8c" startline="89" endline="119">test_fp8_sweep</referencedby>
       </memberdef>
     </sectiondef>
@@ -901,36 +983,36 @@
 <codeline lineno="32"><highlight class="normal"></highlight></codeline>
 <codeline lineno="40" refid="structie__act__i8__params" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structie__act__i8__params" kindref="compound">ie_act_i8_params</ref><sp/>{</highlight></codeline>
 <codeline lineno="41" refid="structie__act__i8__params_1ac0ec31737c16640ac332b562ea6be9a1" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/><sp/><ref refid="structie__act__i8__params_1ac0ec31737c16640ac332b562ea6be9a1" kindref="member">scale</ref>;<sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight></codeline>
-<codeline lineno="42" refid="structie__act__i8__params_1ab19e71539ecb14b16a4c65b425be4c32" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">int8_t</ref><sp/><ref refid="structie__act__i8__params_1ab19e71539ecb14b16a4c65b425be4c32" kindref="member">zero_point</ref>;<sp/><sp/></highlight></codeline>
+<codeline lineno="42" refid="structie__act__i8__params_1ab19e71539ecb14b16a4c65b425be4c32" refkind="member"><highlight class="normal"><sp/><sp/>int8_t<sp/><ref refid="structie__act__i8__params_1ab19e71539ecb14b16a4c65b425be4c32" kindref="member">zero_point</ref>;<sp/><sp/></highlight></codeline>
 <codeline lineno="43" refid="ie__quant__act_8h_1a1907fe44afdd4b30ee6e683d6c183f82" refkind="member"><highlight class="normal">}<sp/><ref refid="structie__act__i8__params" kindref="compound">ie_act_i8_params</ref>;</highlight></codeline>
 <codeline lineno="44"><highlight class="normal"></highlight></codeline>
-<codeline lineno="62"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="ie__quant__act_8h_1a383703e828dd5701507b0d1f6ab1cf73" kindref="member">ie_act_i8_params_from_minmax</ref>(</highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">minv</ref>,<sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">maxv</ref>,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>symmetric,</highlight></codeline>
-<codeline lineno="63"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal">*<sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">out_scale</ref>,<sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">int8_t</ref>*<sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">out_zero</ref>);</highlight></codeline>
+<codeline lineno="62"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="ie__quant__act_8h_1a383703e828dd5701507b0d1f6ab1cf73" kindref="member">ie_act_i8_params_from_minmax</ref>(</highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>minv,<sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>maxv,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>symmetric,</highlight></codeline>
+<codeline lineno="63"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal">*<sp/>out_scale,<sp/>int8_t*<sp/>out_zero);</highlight></codeline>
 <codeline lineno="64"><highlight class="normal"></highlight></codeline>
-<codeline lineno="74"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="ie__quant__act_8h_1a6d9a5a967125879dcd69327e9d5fa04b" kindref="member">ie_quantize_act_int8</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal">*<sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">src</ref>,<sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">int8_t</ref>*<sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">dst</ref>,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>n,</highlight></codeline>
+<codeline lineno="74"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="ie__quant__act_8h_1a6d9a5a967125879dcd69327e9d5fa04b" kindref="member">ie_quantize_act_int8</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal">*<sp/>src,<sp/>int8_t*<sp/>dst,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>n,</highlight></codeline>
 <codeline lineno="75"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="structie__act__i8__params" kindref="compound">ie_act_i8_params</ref><sp/>params,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>symmetric);</highlight></codeline>
 <codeline lineno="76"><highlight class="normal"></highlight></codeline>
-<codeline lineno="85"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="ie__quant__act_8h_1aa7d3ff181746bd40d9d863e51ac0b024" kindref="member">ie_dequantize_act_int8</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">int8_t</ref>*<sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">src</ref>,<sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal">*<sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">dst</ref>,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>n,</highlight></codeline>
+<codeline lineno="85"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="ie__quant__act_8h_1aa7d3ff181746bd40d9d863e51ac0b024" kindref="member">ie_dequantize_act_int8</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>int8_t*<sp/>src,<sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal">*<sp/>dst,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>n,</highlight></codeline>
 <codeline lineno="86"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="structie__act__i8__params" kindref="compound">ie_act_i8_params</ref><sp/>params);</highlight></codeline>
 <codeline lineno="87"><highlight class="normal"></highlight></codeline>
-<codeline lineno="102"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="ie__quant__act_8h_1ad17e6b199c1c826b681db341c72701ef" kindref="member">ie_act_i8_group_params_from_data</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal">*<sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">src</ref>,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>n,</highlight></codeline>
+<codeline lineno="102"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="ie__quant__act_8h_1ad17e6b199c1c826b681db341c72701ef" kindref="member">ie_act_i8_group_params_from_data</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal">*<sp/>src,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>n,</highlight></codeline>
 <codeline lineno="103"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>group_size,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>symmetric,</highlight></codeline>
-<codeline lineno="104"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal">*<sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">out_scales</ref>,<sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">int8_t</ref>*<sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">out_zeros</ref>);</highlight></codeline>
+<codeline lineno="104"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal">*<sp/>out_scales,<sp/>int8_t*<sp/>out_zeros);</highlight></codeline>
 <codeline lineno="105"><highlight class="normal"></highlight></codeline>
-<codeline lineno="117"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="ie__quant__act_8h_1a8e3abfa039c2b7c2fca327f68a2d7b09" kindref="member">ie_quantize_act_int8_per_group</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal">*<sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">src</ref>,<sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">int8_t</ref>*<sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">dst</ref>,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>n,</highlight></codeline>
+<codeline lineno="117"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="ie__quant__act_8h_1a8e3abfa039c2b7c2fca327f68a2d7b09" kindref="member">ie_quantize_act_int8_per_group</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal">*<sp/>src,<sp/>int8_t*<sp/>dst,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>n,</highlight></codeline>
 <codeline lineno="118"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>group_size,</highlight></codeline>
-<codeline lineno="119"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal">*<sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">scales</ref>,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">int8_t</ref>*<sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">zeros</ref>,</highlight></codeline>
+<codeline lineno="119"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal">*<sp/>scales,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>int8_t*<sp/>zeros,</highlight></codeline>
 <codeline lineno="120"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>symmetric);</highlight></codeline>
 <codeline lineno="121"><highlight class="normal"></highlight></codeline>
-<codeline lineno="132"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="ie__quant__act_8h_1a725b47baea6b1f41980edb5e307cfa0f" kindref="member">ie_dequantize_act_int8_per_group</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">int8_t</ref>*<sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">src</ref>,<sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal">*<sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">dst</ref>,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>n,</highlight></codeline>
+<codeline lineno="132"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="ie__quant__act_8h_1a725b47baea6b1f41980edb5e307cfa0f" kindref="member">ie_dequantize_act_int8_per_group</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>int8_t*<sp/>src,<sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal">*<sp/>dst,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>n,</highlight></codeline>
 <codeline lineno="133"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>group_size,</highlight></codeline>
-<codeline lineno="134"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal">*<sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">scales</ref>,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">int8_t</ref>*<sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">zeros</ref>);</highlight></codeline>
+<codeline lineno="134"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal">*<sp/>scales,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>int8_t*<sp/>zeros);</highlight></codeline>
 <codeline lineno="135"><highlight class="normal"></highlight></codeline>
-<codeline lineno="148"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="ie__quant__act_8h_1a91772f4827e6d4c82915434eb55a9f17" kindref="member">ie_quantize_act_fp8</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal">*<sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">src</ref>,<sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">uint8_t</ref>*<sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">dst</ref>,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>n,</highlight></codeline>
-<codeline lineno="149"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="ie__quant__act_8h_1a67a1bdaa8281d1c69b6b76ecba79c52c" kindref="member">ie_fp8_format</ref><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">fmt</ref>);</highlight></codeline>
+<codeline lineno="148"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="ie__quant__act_8h_1a91772f4827e6d4c82915434eb55a9f17" kindref="member">ie_quantize_act_fp8</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal">*<sp/>src,<sp/>uint8_t*<sp/>dst,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>n,</highlight></codeline>
+<codeline lineno="149"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="ie__quant__act_8h_1a67a1bdaa8281d1c69b6b76ecba79c52c" kindref="member">ie_fp8_format</ref><sp/>fmt);</highlight></codeline>
 <codeline lineno="150"><highlight class="normal"></highlight></codeline>
-<codeline lineno="159"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="ie__quant__act_8h_1aca462f5af36ea8b096edc92c4252db71" kindref="member">ie_dequantize_act_fp8</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">uint8_t</ref>*<sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">src</ref>,<sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal">*<sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">dst</ref>,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>n,</highlight></codeline>
-<codeline lineno="160"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="ie__quant__act_8h_1a67a1bdaa8281d1c69b6b76ecba79c52c" kindref="member">ie_fp8_format</ref><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">fmt</ref>);</highlight></codeline>
+<codeline lineno="159"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="ie__quant__act_8h_1aca462f5af36ea8b096edc92c4252db71" kindref="member">ie_dequantize_act_fp8</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>uint8_t*<sp/>src,<sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal">*<sp/>dst,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>n,</highlight></codeline>
+<codeline lineno="160"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="ie__quant__act_8h_1a67a1bdaa8281d1c69b6b76ecba79c52c" kindref="member">ie_fp8_format</ref><sp/>fmt);</highlight></codeline>
 <codeline lineno="161"><highlight class="normal"></highlight></codeline>
 <codeline lineno="162"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
 <codeline lineno="163"><highlight class="normal">}<sp/></highlight><highlight class="comment">/*<sp/>extern<sp/>&quot;C&quot;<sp/>*/</highlight><highlight class="normal"></highlight></codeline>

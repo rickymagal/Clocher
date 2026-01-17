@@ -5,6 +5,10 @@
     <includes local="no">stddef.h</includes>
     <includes local="no">stdint.h</includes>
     <includes refid="ie__quant__act_8h" local="yes">ie_quant_act.h</includes>
+    <includedby refid="ie__infer_8h" local="yes">engine/include/ie_infer.h</includedby>
+    <includedby refid="ie__api_8c" local="yes">engine/src/ie_api.c</includedby>
+    <includedby refid="generate__gptoss_8c" local="yes">engine/src/runtime/generate_gptoss.c</includedby>
+    <includedby refid="infer__gptoss_8c" local="yes">engine/src/runtime/infer_gptoss.c</includedby>
     <includedby refid="kv__cache_8c" local="yes">engine/src/runtime/kv_cache.c</includedby>
     <incdepgraph>
       <node id="1">
@@ -33,13 +37,77 @@
       </node>
     </incdepgraph>
     <invincdepgraph>
+      <node id="3">
+        <label>engine/include/generate_gptoss.h</label>
+        <link refid="generate__gptoss_8h"/>
+        <childnode refid="4" relation="include">
+        </childnode>
+      </node>
+      <node id="5">
+        <label>engine/include/gptoss_hparams.h</label>
+        <link refid="gptoss__hparams_8h"/>
+        <childnode refid="6" relation="include">
+        </childnode>
+        <childnode refid="4" relation="include">
+        </childnode>
+        <childnode refid="7" relation="include">
+        </childnode>
+      </node>
+      <node id="8">
+        <label>engine/include/gptoss_weights_index.h</label>
+        <link refid="gptoss__weights__index_8h"/>
+        <childnode refid="9" relation="include">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>engine/include/ie_infer.h</label>
+        <link refid="ie__infer_8h"/>
+        <childnode refid="3" relation="include">
+        </childnode>
+        <childnode refid="5" relation="include">
+        </childnode>
+        <childnode refid="8" relation="include">
+        </childnode>
+        <childnode refid="6" relation="include">
+        </childnode>
+        <childnode refid="10" relation="include">
+        </childnode>
+      </node>
       <node id="1">
         <label>engine/include/ie_kv_cache.h</label>
         <link refid="ie__kv__cache_8h"/>
         <childnode refid="2" relation="include">
         </childnode>
+        <childnode refid="6" relation="include">
+        </childnode>
+        <childnode refid="4" relation="include">
+        </childnode>
+        <childnode refid="10" relation="include">
+        </childnode>
+        <childnode refid="11" relation="include">
+        </childnode>
       </node>
-      <node id="2">
+      <node id="6">
+        <label>engine/src/ie_api.c</label>
+        <link refid="ie__api_8c"/>
+      </node>
+      <node id="4">
+        <label>engine/src/runtime/generate_gptoss.c</label>
+        <link refid="generate__gptoss_8c"/>
+      </node>
+      <node id="7">
+        <label>engine/src/runtime/gptoss_hparams.c</label>
+        <link refid="gptoss__hparams_8c"/>
+      </node>
+      <node id="9">
+        <label>engine/src/runtime/gptoss_weights_index.c</label>
+        <link refid="gptoss__weights__index_8c"/>
+      </node>
+      <node id="10">
+        <label>engine/src/runtime/infer_gptoss.c</label>
+        <link refid="infer__gptoss_8c"/>
+      </node>
+      <node id="11">
         <label>engine/src/runtime/kv_cache.c</label>
         <link refid="kv__cache_8c"/>
       </node>
@@ -54,7 +122,7 @@
           <name>IE_KV_STORAGE_F32</name>
           <initializer>= 0</initializer>
           <briefdescription>
-<para>Store K/V as FP32. </para>
+<para>Raw FP32 payloads. </para>
           </briefdescription>
           <detaileddescription>
           </detaileddescription>
@@ -63,7 +131,7 @@
           <name>IE_KV_STORAGE_INT8</name>
           <initializer>= 1</initializer>
           <briefdescription>
-<para>Store K/V as INT8 with affine de/quant. </para>
+<para>INT8 payloads + affine params (per-group). </para>
           </briefdescription>
           <detaileddescription>
           </detaileddescription>
@@ -72,34 +140,35 @@
           <name>IE_KV_STORAGE_FP8</name>
           <initializer>= 2</initializer>
           <briefdescription>
-<para>Store K/V as FP8 (E4M3 or E5M2), no scale arrays. </para>
+<para>FP8 payloads (E4M3/E5M2) stored as uint8_t codes. </para>
           </briefdescription>
           <detaileddescription>
           </detaileddescription>
         </enumvalue>
         <briefdescription>
-<para>Backing element format for K/V payloads. </para>
+<para>KV cache storage encoding. </para>
         </briefdescription>
         <detaileddescription>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="engine/include/ie_kv_cache.h" line="42" column="1" bodyfile="engine/include/ie_kv_cache.h" bodystart="42" bodyend="46"/>
+        <location file="engine/include/ie_kv_cache.h" line="64" column="1" bodyfile="engine/include/ie_kv_cache.h" bodystart="64" bodyend="71"/>
       </memberdef>
     </sectiondef>
     <sectiondef kind="typedef">
       <memberdef kind="typedef" id="ie__kv__cache_8h_1a0d17fc9a63ef1afb38f6f57aa5d2890e" prot="public" static="no">
-        <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">enum</ref> <ref refid="ie__kv__cache_8h_1a2bb962f9a31709cc159ccb5f8c8f2fe7" kindref="member">ie_kv_storage_type</ref></type>
+        <type>enum <ref refid="ie__kv__cache_8h_1a2bb962f9a31709cc159ccb5f8c8f2fe7" kindref="member">ie_kv_storage_type</ref></type>
         <definition>typedef enum ie_kv_storage_type ie_kv_storage_type</definition>
         <argsstring></argsstring>
         <name>ie_kv_storage_type</name>
         <briefdescription>
+<para>KV cache storage encoding. </para>
         </briefdescription>
         <detaileddescription>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="engine/include/ie_kv_cache.h" line="46" column="20"/>
+        <location file="engine/include/ie_kv_cache.h" line="71" column="20"/>
       </memberdef>
       <memberdef kind="typedef" id="ie__kv__cache_8h_1aaa5b2b3fe8a82fbafc9fe86346fa2098" prot="public" static="no">
         <type>struct <ref refid="structie__kv__opts" kindref="compound">ie_kv_opts</ref></type>
@@ -107,12 +176,13 @@
         <argsstring></argsstring>
         <name>ie_kv_opts</name>
         <briefdescription>
+<para>Options to initialize a KV cache. </para>
         </briefdescription>
         <detaileddescription>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="engine/include/ie_kv_cache.h" line="59" column="12"/>
+        <location file="engine/include/ie_kv_cache.h" line="113" column="12"/>
       </memberdef>
       <memberdef kind="typedef" id="ie__kv__cache_8h_1ac8ed54f6c843f425493cdf42d6e01aca" prot="public" static="no">
         <type>struct <ref refid="structie__kv__cache" kindref="compound">ie_kv_cache</ref></type>
@@ -120,96 +190,19 @@
         <argsstring></argsstring>
         <name>ie_kv_cache</name>
         <briefdescription>
+<para>A KV cache storing K/V for one transformer layer. </para>
         </briefdescription>
         <detaileddescription>
+<para>The cache owns one backing allocation (a single slab) when created via <ref refid="ie__kv__cache_8h_1aee468d29a9d01d0168240ac86b9de0be" kindref="member">ie_kv_init()</ref> or as the owner slice of <ref refid="ie__kv__cache_8h_1ab44456fc4842c15b2091f0a059e06584" kindref="member">ie_kv_init_layers()</ref>. Non-owner slices created by <ref refid="ie__kv__cache_8h_1ab44456fc4842c15b2091f0a059e06584" kindref="member">ie_kv_init_layers()</ref> point inside the owner&apos;s backing slab and must not free it. </para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="engine/include/ie_kv_cache.h" line="92" column="13"/>
+        <location file="engine/include/ie_kv_cache.h" line="159" column="13"/>
       </memberdef>
     </sectiondef>
     <sectiondef kind="func">
-      <memberdef kind="function" id="ie__kv__cache_8h_1aee468d29a9d01d0168240ac86b9de0be" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
-        <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">int</ref></type>
-        <definition>int ie_kv_init</definition>
-        <argsstring>(ie_kv_cache *kv, const ie_kv_opts *opts)</argsstring>
-        <name>ie_kv_init</name>
-        <param>
-          <type><ref refid="structie__kv__cache" kindref="compound">ie_kv_cache</ref> *</type>
-          <declname>kv</declname>
-        </param>
-        <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">const</ref> <ref refid="structie__kv__opts" kindref="compound">ie_kv_opts</ref> *</type>
-          <declname>opts</declname>
-        </param>
-        <briefdescription>
-<para>Initialize a KV cache with the given options and allocate backing memory. </para>
-        </briefdescription>
-        <detaileddescription>
-<para>On success, the cache owns all internal buffers and must be released with <ref refid="ie__kv__cache_8h_1a3162328c77fddbae7e49b4c5e811c0d4" kindref="member">ie_kv_free()</ref>. All buffers are zero-initialized.</para>
-<para><parameterlist kind="param"><parameteritem>
-<parameternamelist>
-<parametername>kv</parametername>
-</parameternamelist>
-<parameterdescription>
-<para>Pointer to an uninitialized cache handle (output). </para>
-</parameterdescription>
-</parameteritem>
-<parameteritem>
-<parameternamelist>
-<parametername>opts</parametername>
-</parameternamelist>
-<parameterdescription>
-<para>Options controlling shape and storage policy. </para>
-</parameterdescription>
-</parameteritem>
-</parameterlist>
-<simplesect kind="return"><para>0 on success; non-zero on bad arguments or allocation failure. </para>
-</simplesect>
-</para>
-        </detaileddescription>
-        <inbodydescription>
-        </inbodydescription>
-        <location file="engine/include/ie_kv_cache.h" line="104" column="5" bodyfile="engine/src/runtime/kv_cache.c" bodystart="134" bodyend="162" declfile="engine/include/ie_kv_cache.h" declline="104" declcolumn="5"/>
-        <references refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" compoundref="ie__device__cuda_8cu" startline="92" endline="110">ie_gemv_rowwise_f32_kernel</references>
-        <references refid="kv__cache_8c_1a8a85b8af06f6fa492264e4ddffd43c59" compoundref="kv__cache_8c" startline="125" endline="132">ie_kv_element_size</references>
-        <references refid="kv__cache_8c_1a3162328c77fddbae7e49b4c5e811c0d4" compoundref="kv__cache_8c" startline="164" endline="176">ie_kv_free</references>
-        <references refid="ie__kv__cache_8h_1a2bb962f9a31709cc159ccb5f8c8f2fe7ab359088fa091562c7be08e6292060f3f" compoundref="ie__kv__cache_8h" startline="44">IE_KV_STORAGE_INT8</references>
-        <references refid="kv__cache_8c_1ae7ae5636d2bd2306eb7aacdfcd67d171" compoundref="kv__cache_8c" startline="98" endline="121">kv_validate_and_derive</references>
-      </memberdef>
-      <memberdef kind="function" id="ie__kv__cache_8h_1a3162328c77fddbae7e49b4c5e811c0d4" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
-        <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">void</ref></type>
-        <definition>void ie_kv_free</definition>
-        <argsstring>(ie_kv_cache *kv)</argsstring>
-        <name>ie_kv_free</name>
-        <param>
-          <type><ref refid="structie__kv__cache" kindref="compound">ie_kv_cache</ref> *</type>
-          <declname>kv</declname>
-        </param>
-        <briefdescription>
-<para>Free all resources owned by a KV cache. </para>
-        </briefdescription>
-        <detaileddescription>
-<para>It is safe to call with a NULL pointer or with a partially initialized handle.</para>
-<para><parameterlist kind="param"><parameteritem>
-<parameternamelist>
-<parametername>kv</parametername>
-</parameternamelist>
-<parameterdescription>
-<para>Cache handle to be destroyed. </para>
-</parameterdescription>
-</parameteritem>
-</parameterlist>
-</para>
-        </detaileddescription>
-        <inbodydescription>
-        </inbodydescription>
-        <location file="engine/include/ie_kv_cache.h" line="113" column="6" bodyfile="engine/src/runtime/kv_cache.c" bodystart="164" bodyend="176" declfile="engine/include/ie_kv_cache.h" declline="113" declcolumn="6"/>
-        <references refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" compoundref="ie__device__cuda_8cu" startline="92" endline="110">ie_gemv_rowwise_f32_kernel</references>
-        <referencedby refid="ie__kv__cache_8h_1aee468d29a9d01d0168240ac86b9de0be" compoundref="kv__cache_8c" startline="134" endline="162">ie_kv_init</referencedby>
-      </memberdef>
       <memberdef kind="function" id="ie__kv__cache_8h_1a8a85b8af06f6fa492264e4ddffd43c59" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
-        <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">size_t</ref></type>
+        <type>size_t</type>
         <definition>size_t ie_kv_element_size</definition>
         <argsstring>(ie_kv_storage_type storage)</argsstring>
         <name>ie_kv_element_size</name>
@@ -218,7 +211,7 @@
           <declname>storage</declname>
         </param>
         <briefdescription>
-<para>Return the element size (in bytes) of the configured storage. </para>
+<para>Return element size in bytes for a given storage encoding. </para>
         </briefdescription>
         <detaileddescription>
 <para><parameterlist kind="param"><parameteritem>
@@ -226,25 +219,308 @@
 <parametername>storage</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Storage kind. </para>
+<para>KV storage encoding. </para>
 </parameterdescription>
 </parameteritem>
 </parameterlist>
-<simplesect kind="return"><para>Size in bytes of one element in K/V buffers. </para>
+<simplesect kind="return"><para>Element size (bytes), or 0 for unknown storage.</para>
+</simplesect>
+Return element size in bytes for a given storage encoding.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>storage</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Storage type. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Element size in bytes; 0 for unknown. </para>
 </simplesect>
 </para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="engine/include/ie_kv_cache.h" line="121" column="8" bodyfile="engine/src/runtime/kv_cache.c" bodystart="125" bodyend="132" declfile="engine/include/ie_kv_cache.h" declline="121" declcolumn="8"/>
-        <references refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" compoundref="ie__device__cuda_8cu" startline="92" endline="110">ie_gemv_rowwise_f32_kernel</references>
-        <references refid="ie__kv__cache_8h_1a2bb962f9a31709cc159ccb5f8c8f2fe7a4fa6c4868332a5127755fdee56404f54" compoundref="ie__kv__cache_8h" startline="43">IE_KV_STORAGE_F32</references>
-        <references refid="ie__kv__cache_8h_1a2bb962f9a31709cc159ccb5f8c8f2fe7a73f4d2a149b7a80c6da1074b8149c231" compoundref="ie__kv__cache_8h" startline="45">IE_KV_STORAGE_FP8</references>
-        <references refid="ie__kv__cache_8h_1a2bb962f9a31709cc159ccb5f8c8f2fe7ab359088fa091562c7be08e6292060f3f" compoundref="ie__kv__cache_8h" startline="44">IE_KV_STORAGE_INT8</references>
-        <referencedby refid="ie__kv__cache_8h_1aee468d29a9d01d0168240ac86b9de0be" compoundref="kv__cache_8c" startline="134" endline="162">ie_kv_init</referencedby>
+        <location file="engine/include/ie_kv_cache.h" line="171" column="8" bodyfile="engine/src/runtime/kv_cache.c" bodystart="361" bodyend="368" declfile="engine/include/ie_kv_cache.h" declline="171" declcolumn="8"/>
+        <references refid="ie__kv__cache_8h_1a2bb962f9a31709cc159ccb5f8c8f2fe7a4fa6c4868332a5127755fdee56404f54" compoundref="ie__kv__cache_8h" startline="66">IE_KV_STORAGE_F32</references>
+        <references refid="ie__kv__cache_8h_1a2bb962f9a31709cc159ccb5f8c8f2fe7a73f4d2a149b7a80c6da1074b8149c231" compoundref="ie__kv__cache_8h" startline="70">IE_KV_STORAGE_FP8</references>
+        <references refid="ie__kv__cache_8h_1a2bb962f9a31709cc159ccb5f8c8f2fe7ab359088fa091562c7be08e6292060f3f" compoundref="ie__kv__cache_8h" startline="68">IE_KV_STORAGE_INT8</references>
+        <referencedby refid="kv__cache_8c_1a3a5dae31fd73bab11ded7b840c47ee20" compoundref="kv__cache_8c" startline="278" endline="351">kv_assign_from_slab</referencedby>
+        <referencedby refid="kv__cache_8c_1a58995c59772743c57528e27f1e0f950f" compoundref="kv__cache_8c" startline="215" endline="268">kv_compute_slab_bytes</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="ie__kv__cache_8h_1aee468d29a9d01d0168240ac86b9de0be" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int ie_kv_init</definition>
+        <argsstring>(ie_kv_cache *kv, const ie_kv_opts *opts)</argsstring>
+        <name>ie_kv_init</name>
+        <param>
+          <type><ref refid="structie__kv__cache" kindref="compound">ie_kv_cache</ref> *</type>
+          <declname>kv</declname>
+        </param>
+        <param>
+          <type>const <ref refid="structie__kv__opts" kindref="compound">ie_kv_opts</ref> *</type>
+          <declname>opts</declname>
+        </param>
+        <briefdescription>
+<para>Initialize a single KV cache, allocating its backing memory. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>kv</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Cache object to initialize. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>opts</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Initialization options. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>0 on success; non-zero on error.</para>
+</simplesect>
+Initialize a single KV cache, allocating its backing memory.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>kv</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Cache to initialize. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>opts</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Options describing cache geometry and storage format. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>0 on success; non-zero on failure. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/ie_kv_cache.h" line="180" column="5" bodyfile="engine/src/runtime/kv_cache.c" bodystart="377" bodyend="396" declfile="engine/include/ie_kv_cache.h" declline="180" declcolumn="5"/>
+        <references refid="structie__kv__cache_1a2929afee951e4b53bac9631ce23c0520" compoundref="ie__kv__cache_8h" startline="156">ie_kv_cache::backing</references>
+        <references refid="structie__kv__cache_1acb898a4dab6c3b24eaec7e62ef8451f5" compoundref="ie__kv__cache_8h" startline="157">ie_kv_cache::backing_bytes</references>
+        <references refid="structie__kv__cache_1a1ae2fa7fdf862db1242b940a7ced2d87" compoundref="ie__kv__cache_8h" startline="158">ie_kv_cache::backing_owner</references>
+        <references refid="kv__cache_8c_1a3a5dae31fd73bab11ded7b840c47ee20" compoundref="kv__cache_8c" startline="278" endline="351">kv_assign_from_slab</references>
+        <references refid="kv__cache_8c_1a58995c59772743c57528e27f1e0f950f" compoundref="kv__cache_8c" startline="215" endline="268">kv_compute_slab_bytes</references>
+        <references refid="kv__cache_8c_1ae7ae5636d2bd2306eb7aacdfcd67d171" compoundref="kv__cache_8c" startline="159" endline="199">kv_validate_and_derive</references>
+      </memberdef>
+      <memberdef kind="function" id="ie__kv__cache_8h_1ab44456fc4842c15b2091f0a059e06584" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int ie_kv_init_layers</definition>
+        <argsstring>(ie_kv_cache *kv_layers, int n_layers, const ie_kv_opts *opts)</argsstring>
+        <name>ie_kv_init_layers</name>
+        <param>
+          <type><ref refid="structie__kv__cache" kindref="compound">ie_kv_cache</ref> *</type>
+          <declname>kv_layers</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>n_layers</declname>
+        </param>
+        <param>
+          <type>const <ref refid="structie__kv__opts" kindref="compound">ie_kv_opts</ref> *</type>
+          <declname>opts</declname>
+        </param>
+        <briefdescription>
+<para>Initialize an array of KV caches (one per layer) using one shared slab. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>This is the preferred initialization for transformer inference. It allocates one contiguous backing slab that contains K/V payloads and any parameter/scratch arrays for all layers, then slices it into <computeroutput>n_layers</computeroutput> independent cache views.</para>
+<para>Ownership:<itemizedlist>
+<listitem><para>kv_layers[0] is marked as the backing owner and will free the slab.</para>
+</listitem><listitem><para>kv_layers[i&gt;0] are non-owners; calling <ref refid="ie__kv__cache_8h_1a3162328c77fddbae7e49b4c5e811c0d4" kindref="member">ie_kv_free()</ref> on them is safe and will not free the slab.</para>
+</listitem></itemizedlist>
+</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>kv_layers</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Array of length <computeroutput>n_layers</computeroutput>. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>n_layers</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of layers. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>opts</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Initialization options (applies to every layer). </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>0 on success; non-zero on error.</para>
+</simplesect>
+Initialize an array of KV caches (one per layer) using one shared slab.</para>
+<para>This allocates a single slab large enough for <computeroutput>n_layers</computeroutput> caches and then assigns each cache view to its slice. The first layer is marked as the owner of the slab and will free it when <ref refid="ie__kv__cache_8h_1a555aaa1e797b4ef229ad911a7a6ee8b5" kindref="member">ie_kv_free_layers()</ref> is called.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>kv_layers</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Array of caches, length n_layers. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>n_layers</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of layers (must be &gt; 0). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>opts</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Cache options applied to every layer. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>0 on success; non-zero on failure. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/ie_kv_cache.h" line="200" column="5" bodyfile="engine/src/runtime/kv_cache.c" bodystart="411" bodyend="453" declfile="engine/include/ie_kv_cache.h" declline="200" declcolumn="5"/>
+        <references refid="kv__cache_8c_1a76293369d6a0cef565da1beb27e3378f" compoundref="kv__cache_8c" startline="81" endline="83">align_up_sz</references>
+        <references refid="structie__kv__cache_1a2929afee951e4b53bac9631ce23c0520" compoundref="ie__kv__cache_8h" startline="156">ie_kv_cache::backing</references>
+        <references refid="structie__kv__cache_1acb898a4dab6c3b24eaec7e62ef8451f5" compoundref="ie__kv__cache_8h" startline="157">ie_kv_cache::backing_bytes</references>
+        <references refid="structie__kv__cache_1a1ae2fa7fdf862db1242b940a7ced2d87" compoundref="ie__kv__cache_8h" startline="158">ie_kv_cache::backing_owner</references>
+        <references refid="kv__cache_8c_1a3a5dae31fd73bab11ded7b840c47ee20" compoundref="kv__cache_8c" startline="278" endline="351">kv_assign_from_slab</references>
+        <references refid="kv__cache_8c_1a58995c59772743c57528e27f1e0f950f" compoundref="kv__cache_8c" startline="215" endline="268">kv_compute_slab_bytes</references>
+        <references refid="kv__cache_8c_1ae7ae5636d2bd2306eb7aacdfcd67d171" compoundref="kv__cache_8c" startline="159" endline="199">kv_validate_and_derive</references>
+        <references refid="kv__cache_8c_1a26e25d063ae4f824f5cfee8e56156372" compoundref="kv__cache_8c" startline="118" endline="127">mul_overflow_sz</references>
+        <referencedby refid="ie__api_8h_1a950ac9a0efe5a4fe068a288e57099c4a" compoundref="ie__api_8c" startline="826" endline="1109">ie_engine_generate_ex</referencedby>
+        <referencedby refid="generate__gptoss_8h_1ae2b49a4109c69ec3ff996adea490690d" compoundref="generate__gptoss_8c" startline="38" endline="213">ie_generate_gptoss</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="ie__kv__cache_8h_1a3162328c77fddbae7e49b4c5e811c0d4" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ie_kv_free</definition>
+        <argsstring>(ie_kv_cache *kv)</argsstring>
+        <name>ie_kv_free</name>
+        <param>
+          <type><ref refid="structie__kv__cache" kindref="compound">ie_kv_cache</ref> *</type>
+          <declname>kv</declname>
+        </param>
+        <briefdescription>
+<para>Free a KV cache and release its backing memory if owned. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>kv</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Cache to free.</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+Free a KV cache and release its backing memory if owned.</para>
+<para>Only the cache marked as owner frees the shared slab. After freeing, the structure is zeroed to prevent accidental reuse.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>kv</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Cache instance. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/ie_kv_cache.h" line="207" column="6" bodyfile="engine/src/runtime/kv_cache.c" bodystart="464" bodyend="472" declfile="engine/include/ie_kv_cache.h" declline="207" declcolumn="6"/>
+        <references refid="structie__kv__cache_1a2929afee951e4b53bac9631ce23c0520" compoundref="ie__kv__cache_8h" startline="156">ie_kv_cache::backing</references>
+        <references refid="structie__kv__cache_1a1ae2fa7fdf862db1242b940a7ced2d87" compoundref="ie__kv__cache_8h" startline="158">ie_kv_cache::backing_owner</references>
+        <referencedby refid="ie__kv__cache_8h_1a555aaa1e797b4ef229ad911a7a6ee8b5" compoundref="kv__cache_8c" startline="483" endline="490">ie_kv_free_layers</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="ie__kv__cache_8h_1a555aaa1e797b4ef229ad911a7a6ee8b5" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ie_kv_free_layers</definition>
+        <argsstring>(ie_kv_cache *kv_layers, int n_layers)</argsstring>
+        <name>ie_kv_free_layers</name>
+        <param>
+          <type><ref refid="structie__kv__cache" kindref="compound">ie_kv_cache</ref> *</type>
+          <declname>kv_layers</declname>
+        </param>
+        <param>
+          <type>int</type>
+          <declname>n_layers</declname>
+        </param>
+        <briefdescription>
+<para>Convenience to free an array of KV caches created by <ref refid="ie__kv__cache_8h_1ab44456fc4842c15b2091f0a059e06584" kindref="member">ie_kv_init_layers()</ref>. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>kv_layers</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Array of KV caches. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>n_layers</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of layers.</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+Convenience to free an array of KV caches created by <ref refid="ie__kv__cache_8h_1ab44456fc4842c15b2091f0a059e06584" kindref="member">ie_kv_init_layers()</ref>.</para>
+<para>Freeing the owner (layer 0) is sufficient; other layers are cleared.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>kv_layers</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Array of layer caches. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>n_layers</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of layers. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/ie_kv_cache.h" line="215" column="6" bodyfile="engine/src/runtime/kv_cache.c" bodystart="483" bodyend="490" declfile="engine/include/ie_kv_cache.h" declline="215" declcolumn="6"/>
+        <references refid="kv__cache_8c_1a3162328c77fddbae7e49b4c5e811c0d4" compoundref="kv__cache_8c" startline="464" endline="472">ie_kv_free</references>
+        <referencedby refid="ie__api_8h_1a950ac9a0efe5a4fe068a288e57099c4a" compoundref="ie__api_8c" startline="826" endline="1109">ie_engine_generate_ex</referencedby>
+        <referencedby refid="generate__gptoss_8h_1ae2b49a4109c69ec3ff996adea490690d" compoundref="generate__gptoss_8c" startline="38" endline="213">ie_generate_gptoss</referencedby>
       </memberdef>
       <memberdef kind="function" id="ie__kv__cache_8h_1ae4ab616a9e9d6e030e7ba634404f114e" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
-        <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">int</ref></type>
+        <type>int</type>
         <definition>int ie_kv_store_token_f32</definition>
         <argsstring>(ie_kv_cache *kv, size_t t, const float *K_f32, const float *V_f32)</argsstring>
         <name>ie_kv_store_token_f32</name>
@@ -253,28 +529,28 @@
           <declname>kv</declname>
         </param>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">size_t</ref></type>
+          <type>size_t</type>
           <declname>t</declname>
         </param>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">const</ref> <ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">float</ref> *</type>
+          <type>const float *</type>
           <declname>K_f32</declname>
         </param>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">const</ref> <ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">float</ref> *</type>
+          <type>const float *</type>
           <declname>V_f32</declname>
         </param>
         <briefdescription>
-<para>Store one token’s worth of K/V rows provided in FP32 into the cache. </para>
+<para>Store a token&apos;s K/V slice into an FP32 cache. </para>
         </briefdescription>
         <detaileddescription>
-<para>The input slices must be contiguous and laid out as [heads, head_dim]. This function requires <computeroutput>storage == IE_KV_STORAGE_F32</computeroutput>.</para>
+<para>Expects <computeroutput>K_f32</computeroutput> and <computeroutput>V_f32</computeroutput> laid out as [heads, head_dim] (contiguous).</para>
 <para><parameterlist kind="param"><parameteritem>
 <parameternamelist>
 <parametername>kv</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Cache handle. </para>
+<para>Cache (must be IE_KV_STORAGE_F32). </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -282,7 +558,7 @@
 <parametername>t</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Token index in [0, max_seq). </para>
+<para>Token index. </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -290,7 +566,7 @@
 <parametername>K_f32</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Pointer to input K slice (length heads*head_dim). </para>
+<para>K slice [H*D]. </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -298,23 +574,64 @@
 <parametername>V_f32</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Pointer to input V slice (length heads*head_dim). </para>
+<para>V slice [H*D]. </para>
 </parameterdescription>
 </parameteritem>
 </parameterlist>
-<simplesect kind="return"><para>0 on success; non-zero on errors or type mismatch. </para>
+<simplesect kind="return"><para>0 on success; non-zero on error.</para>
+</simplesect>
+Store a token&apos;s K/V slice into an FP32 cache.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>kv</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Cache. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>t</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Token index. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>K_f32</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>K data (length heads*head_dim). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>V_f32</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>V data (length heads*head_dim). </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>0 on success; non-zero on failure. </para>
 </simplesect>
 </para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="engine/include/ie_kv_cache.h" line="135" column="5" bodyfile="engine/src/runtime/kv_cache.c" bodystart="178" bodyend="197" declfile="engine/include/ie_kv_cache.h" declline="135" declcolumn="5"/>
-        <references refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" compoundref="ie__device__cuda_8cu" startline="92" endline="110">ie_gemv_rowwise_f32_kernel</references>
-        <references refid="ie__kv__cache_8h_1a2bb962f9a31709cc159ccb5f8c8f2fe7a4fa6c4868332a5127755fdee56404f54" compoundref="ie__kv__cache_8h" startline="43">IE_KV_STORAGE_F32</references>
-        <references refid="kv__cache_8c_1acaff19ff67c66594ad4c72d3a9cc35d6" compoundref="kv__cache_8c" startline="88" endline="91">payload_index</references>
+        <location file="engine/include/ie_kv_cache.h" line="229" column="5" bodyfile="engine/src/runtime/kv_cache.c" bodystart="501" bodyend="517" declfile="engine/include/ie_kv_cache.h" declline="229" declcolumn="5"/>
+        <references refid="structie__kv__cache_1a651ffe5e067714a367503a5127bdd61a" compoundref="ie__kv__cache_8h" startline="127">ie_kv_cache::head_dim</references>
+        <references refid="structie__kv__cache_1a2e7da98c2fd80c84f468848ad63bb6cb" compoundref="ie__kv__cache_8h" startline="126">ie_kv_cache::heads</references>
+        <references refid="ie__kv__cache_8h_1a2bb962f9a31709cc159ccb5f8c8f2fe7a4fa6c4868332a5127755fdee56404f54" compoundref="ie__kv__cache_8h" startline="66">IE_KV_STORAGE_F32</references>
+        <references refid="structie__kv__cache_1a9e6a8eae8f60ca5906d3009c7bda555a" compoundref="ie__kv__cache_8h" startline="141">ie_kv_cache::K</references>
+        <references refid="structie__kv__cache_1a4cbe1fc1959314c75e9d61f9c24d5671" compoundref="ie__kv__cache_8h" startline="128">ie_kv_cache::max_seq</references>
+        <references refid="structie__kv__cache_1aee83829eb2a9d19077145b88c0bb43bb" compoundref="ie__kv__cache_8h" startline="131">ie_kv_cache::storage</references>
+        <references refid="structie__kv__cache_1aab8e8a472aacd8cfce26a16b79f1995c" compoundref="ie__kv__cache_8h" startline="142">ie_kv_cache::V</references>
+        <referencedby refid="infer__gptoss_8c_1a463151430d9b4dce6eae9210c3c598f0" compoundref="infer__gptoss_8c" startline="1359" endline="1694">ie_forward_one_token</referencedby>
       </memberdef>
       <memberdef kind="function" id="ie__kv__cache_8h_1a60418a220d683776a9ff5e04783e67d6" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
-        <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">int</ref></type>
+        <type>int</type>
         <definition>int ie_kv_store_token_int8_per_tensor</definition>
         <argsstring>(ie_kv_cache *kv, size_t t, const float *K_f32, const float *V_f32)</argsstring>
         <name>ie_kv_store_token_int8_per_tensor</name>
@@ -323,28 +640,28 @@
           <declname>kv</declname>
         </param>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">size_t</ref></type>
+          <type>size_t</type>
           <declname>t</declname>
         </param>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">const</ref> <ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">float</ref> *</type>
+          <type>const float *</type>
           <declname>K_f32</declname>
         </param>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">const</ref> <ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">float</ref> *</type>
+          <type>const float *</type>
           <declname>V_f32</declname>
         </param>
         <briefdescription>
-<para>Store one token’s K/V using INT8 per-tensor parameters (one scale/zp per head). </para>
+<para>Store a token&apos;s K/V slice into an INT8 cache using per-tensor params. </para>
         </briefdescription>
         <detaileddescription>
-<para>For each head, parameters are derived from the K (or V) slice’s min/max and recorded with the payload. Requires <computeroutput>storage == IE_KV_STORAGE_INT8</computeroutput> and uses <computeroutput>kv-&gt;symmetric</computeroutput> to choose symmetric/asymmetric mapping.</para>
+<para>Per-tensor means one (scale, zero) per (token, head), replicated across all groups for that (token, head) to keep dequantization consistent.</para>
 <para><parameterlist kind="param"><parameteritem>
 <parameternamelist>
 <parametername>kv</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Cache handle. </para>
+<para>Cache (must be IE_KV_STORAGE_INT8). </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -352,7 +669,7 @@
 <parametername>t</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Token index in [0, max_seq). </para>
+<para>Token index. </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -360,7 +677,7 @@
 <parametername>K_f32</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Input K slice (heads*head_dim). </para>
+<para>K slice [H*D]. </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -368,26 +685,75 @@
 <parametername>V_f32</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Input V slice (heads*head_dim). </para>
+<para>V slice [H*D]. </para>
 </parameterdescription>
 </parameteritem>
 </parameterlist>
-<simplesect kind="return"><para>0 on success; non-zero on errors or type mismatch. </para>
+<simplesect kind="return"><para>0 on success; non-zero on error.</para>
+</simplesect>
+Store a token&apos;s K/V slice into an INT8 cache using per-tensor params.</para>
+<para>Computes a single affine scale/zero for each (token, head) using min/max over the whole head_dim, then quantizes all D values. The same parameters are replicated into every group slot to keep the load path consistent.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>kv</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Cache. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>t</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Token index. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>K_f32</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>K data (length heads*head_dim). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>V_f32</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>V data (length heads*head_dim). </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>0 on success; non-zero on failure. </para>
 </simplesect>
 </para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="engine/include/ie_kv_cache.h" line="151" column="5" bodyfile="engine/src/runtime/kv_cache.c" bodystart="199" bodyend="245" declfile="engine/include/ie_kv_cache.h" declline="151" declcolumn="5"/>
+        <location file="engine/include/ie_kv_cache.h" line="245" column="5" bodyfile="engine/src/runtime/kv_cache.c" bodystart="533" bodyend="579" declfile="engine/include/ie_kv_cache.h" declline="245" declcolumn="5"/>
+        <references refid="structie__kv__cache_1aefb1816230bdfbc069a73a9ff142cf10" compoundref="ie__kv__cache_8h" startline="138">ie_kv_cache::group_count</references>
+        <references refid="structie__kv__cache_1a651ffe5e067714a367503a5127bdd61a" compoundref="ie__kv__cache_8h" startline="127">ie_kv_cache::head_dim</references>
+        <references refid="structie__kv__cache_1a2e7da98c2fd80c84f468848ad63bb6cb" compoundref="ie__kv__cache_8h" startline="126">ie_kv_cache::heads</references>
         <references refid="ie__quant__act_8h_1a383703e828dd5701507b0d1f6ab1cf73" compoundref="act__int8_8c" startline="51" endline="79">ie_act_i8_params_from_minmax</references>
-        <references refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" compoundref="ie__device__cuda_8cu" startline="92" endline="110">ie_gemv_rowwise_f32_kernel</references>
-        <references refid="ie__kv__cache_8h_1a2bb962f9a31709cc159ccb5f8c8f2fe7ab359088fa091562c7be08e6292060f3f" compoundref="ie__kv__cache_8h" startline="44">IE_KV_STORAGE_INT8</references>
+        <references refid="ie__kv__cache_8h_1a2bb962f9a31709cc159ccb5f8c8f2fe7ab359088fa091562c7be08e6292060f3f" compoundref="ie__kv__cache_8h" startline="68">IE_KV_STORAGE_INT8</references>
         <references refid="ie__quant__act_8h_1a6d9a5a967125879dcd69327e9d5fa04b" compoundref="act__int8_8c" startline="81" endline="98">ie_quantize_act_int8</references>
-        <references refid="kv__cache_8c_1a51dbee8312b98b2d1e701dff311671ca" compoundref="kv__cache_8c" startline="80" endline="83">param_index</references>
-        <references refid="kv__cache_8c_1acaff19ff67c66594ad4c72d3a9cc35d6" compoundref="kv__cache_8c" startline="88" endline="91">payload_index</references>
+        <references refid="structie__kv__cache_1a9e6a8eae8f60ca5906d3009c7bda555a" compoundref="ie__kv__cache_8h" startline="141">ie_kv_cache::K</references>
+        <references refid="structie__kv__cache_1a4cbe1fc1959314c75e9d61f9c24d5671" compoundref="ie__kv__cache_8h" startline="128">ie_kv_cache::max_seq</references>
+        <references refid="kv__cache_8c_1a51dbee8312b98b2d1e701dff311671ca" compoundref="kv__cache_8c" startline="106" endline="108">param_index</references>
+        <references refid="structie__act__i8__params_1ac0ec31737c16640ac332b562ea6be9a1" compoundref="ie__quant__act_8h" startline="41">ie_act_i8_params::scale</references>
+        <references refid="structie__kv__cache_1a29ae9701475d9022e9af099093af0f28" compoundref="ie__kv__cache_8h" startline="145">ie_kv_cache::scales_K</references>
+        <references refid="structie__kv__cache_1afe4d4cb4c8c4e59be84c73d5203a77e3" compoundref="ie__kv__cache_8h" startline="147">ie_kv_cache::scales_V</references>
+        <references refid="structie__kv__cache_1aee83829eb2a9d19077145b88c0bb43bb" compoundref="ie__kv__cache_8h" startline="131">ie_kv_cache::storage</references>
+        <references refid="structie__kv__cache_1a0519ee3ba83644795e084a6005f3bed3" compoundref="ie__kv__cache_8h" startline="133">ie_kv_cache::symmetric</references>
+        <references refid="structie__kv__cache_1aab8e8a472aacd8cfce26a16b79f1995c" compoundref="ie__kv__cache_8h" startline="142">ie_kv_cache::V</references>
+        <references refid="structie__act__i8__params_1ab19e71539ecb14b16a4c65b425be4c32" compoundref="ie__quant__act_8h" startline="42">ie_act_i8_params::zero_point</references>
+        <references refid="structie__kv__cache_1a90a02bd220428271d6f5be5b0a8745fe" compoundref="ie__kv__cache_8h" startline="146">ie_kv_cache::zeros_K</references>
+        <references refid="structie__kv__cache_1a9b1537532ffecc9a1c908e20a9ec4b47" compoundref="ie__kv__cache_8h" startline="148">ie_kv_cache::zeros_V</references>
       </memberdef>
       <memberdef kind="function" id="ie__kv__cache_8h_1a5b546a5423f4572607a07d8d55146024" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
-        <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">int</ref></type>
+        <type>int</type>
         <definition>int ie_kv_store_token_int8_per_group</definition>
         <argsstring>(ie_kv_cache *kv, size_t t, const float *K_f32, const float *V_f32)</argsstring>
         <name>ie_kv_store_token_int8_per_group</name>
@@ -396,28 +762,28 @@
           <declname>kv</declname>
         </param>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">size_t</ref></type>
+          <type>size_t</type>
           <declname>t</declname>
         </param>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">const</ref> <ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">float</ref> *</type>
+          <type>const float *</type>
           <declname>K_f32</declname>
         </param>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">const</ref> <ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">float</ref> *</type>
+          <type>const float *</type>
           <declname>V_f32</declname>
         </param>
         <briefdescription>
-<para>Store one token’s K/V using INT8 per-group parameters along head_dim. </para>
+<para>Store a token&apos;s K/V slice into an INT8 cache using per-group params. </para>
         </briefdescription>
         <detaileddescription>
-<para>Groups have size <computeroutput>kv-&gt;group_size</computeroutput>; parameters are computed and stored for each (token, head, group). Requires <computeroutput>storage == IE_KV_STORAGE_INT8</computeroutput>.</para>
+<para>Per-group means one (scale, zero) per (token, head, group). This path uses scratch buffers inside <computeroutput>kv</computeroutput> to avoid per-token allocations.</para>
 <para><parameterlist kind="param"><parameteritem>
 <parameternamelist>
 <parametername>kv</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Cache handle. </para>
+<para>Cache (must be IE_KV_STORAGE_INT8). </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -425,7 +791,7 @@
 <parametername>t</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Token index in [0, max_seq). </para>
+<para>Token index. </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -433,7 +799,7 @@
 <parametername>K_f32</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Input K slice (heads*head_dim). </para>
+<para>K slice [H*D]. </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -441,26 +807,76 @@
 <parametername>V_f32</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Input V slice (heads*head_dim). </para>
+<para>V slice [H*D]. </para>
 </parameterdescription>
 </parameteritem>
 </parameterlist>
-<simplesect kind="return"><para>0 on success; non-zero on errors or type mismatch. </para>
+<simplesect kind="return"><para>0 on success; non-zero on error.</para>
+</simplesect>
+Store a token&apos;s K/V slice into an INT8 cache using per-group params.</para>
+<para>Computes affine scale/zero per group of size group_size along head_dim and stores those parameters into (token, head, group). Quantization is applied group-wise to the payload.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>kv</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Cache. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>t</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Token index. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>K_f32</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>K data (length heads*head_dim). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>V_f32</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>V data (length heads*head_dim). </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>0 on success; non-zero on failure. </para>
 </simplesect>
 </para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="engine/include/ie_kv_cache.h" line="166" column="5" bodyfile="engine/src/runtime/kv_cache.c" bodystart="247" bodyend="293" declfile="engine/include/ie_kv_cache.h" declline="166" declcolumn="5"/>
+        <location file="engine/include/ie_kv_cache.h" line="261" column="5" bodyfile="engine/src/runtime/kv_cache.c" bodystart="595" bodyend="636" declfile="engine/include/ie_kv_cache.h" declline="261" declcolumn="5"/>
+        <references refid="structie__kv__cache_1aefb1816230bdfbc069a73a9ff142cf10" compoundref="ie__kv__cache_8h" startline="138">ie_kv_cache::group_count</references>
+        <references refid="structie__kv__cache_1af7753f147284fd77a46c1be4efb31bdb" compoundref="ie__kv__cache_8h" startline="132">ie_kv_cache::group_size</references>
+        <references refid="structie__kv__cache_1a651ffe5e067714a367503a5127bdd61a" compoundref="ie__kv__cache_8h" startline="127">ie_kv_cache::head_dim</references>
+        <references refid="structie__kv__cache_1a2e7da98c2fd80c84f468848ad63bb6cb" compoundref="ie__kv__cache_8h" startline="126">ie_kv_cache::heads</references>
         <references refid="ie__quant__act_8h_1ad17e6b199c1c826b681db341c72701ef" compoundref="act__int8_8c" startline="109" endline="128">ie_act_i8_group_params_from_data</references>
-        <references refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" compoundref="ie__device__cuda_8cu" startline="92" endline="110">ie_gemv_rowwise_f32_kernel</references>
-        <references refid="ie__kv__cache_8h_1a2bb962f9a31709cc159ccb5f8c8f2fe7ab359088fa091562c7be08e6292060f3f" compoundref="ie__kv__cache_8h" startline="44">IE_KV_STORAGE_INT8</references>
+        <references refid="ie__kv__cache_8h_1a2bb962f9a31709cc159ccb5f8c8f2fe7ab359088fa091562c7be08e6292060f3f" compoundref="ie__kv__cache_8h" startline="68">IE_KV_STORAGE_INT8</references>
         <references refid="ie__quant__act_8h_1a8e3abfa039c2b7c2fca327f68a2d7b09" compoundref="act__int8_8c" startline="130" endline="153">ie_quantize_act_int8_per_group</references>
-        <references refid="kv__cache_8c_1a51dbee8312b98b2d1e701dff311671ca" compoundref="kv__cache_8c" startline="80" endline="83">param_index</references>
-        <references refid="kv__cache_8c_1acaff19ff67c66594ad4c72d3a9cc35d6" compoundref="kv__cache_8c" startline="88" endline="91">payload_index</references>
+        <references refid="structie__kv__cache_1a9e6a8eae8f60ca5906d3009c7bda555a" compoundref="ie__kv__cache_8h" startline="141">ie_kv_cache::K</references>
+        <references refid="structie__kv__cache_1a4cbe1fc1959314c75e9d61f9c24d5671" compoundref="ie__kv__cache_8h" startline="128">ie_kv_cache::max_seq</references>
+        <references refid="kv__cache_8c_1a51dbee8312b98b2d1e701dff311671ca" compoundref="kv__cache_8c" startline="106" endline="108">param_index</references>
+        <references refid="structie__kv__cache_1a29ae9701475d9022e9af099093af0f28" compoundref="ie__kv__cache_8h" startline="145">ie_kv_cache::scales_K</references>
+        <references refid="structie__kv__cache_1afe4d4cb4c8c4e59be84c73d5203a77e3" compoundref="ie__kv__cache_8h" startline="147">ie_kv_cache::scales_V</references>
+        <references refid="structie__kv__cache_1ab4f603366f788231cb7b581779b67757" compoundref="ie__kv__cache_8h" startline="151">ie_kv_cache::scratch_scales</references>
+        <references refid="structie__kv__cache_1a89862af24ed09eb19150bd357cc35e73" compoundref="ie__kv__cache_8h" startline="152">ie_kv_cache::scratch_zeros</references>
+        <references refid="structie__kv__cache_1aee83829eb2a9d19077145b88c0bb43bb" compoundref="ie__kv__cache_8h" startline="131">ie_kv_cache::storage</references>
+        <references refid="structie__kv__cache_1a0519ee3ba83644795e084a6005f3bed3" compoundref="ie__kv__cache_8h" startline="133">ie_kv_cache::symmetric</references>
+        <references refid="structie__kv__cache_1aab8e8a472aacd8cfce26a16b79f1995c" compoundref="ie__kv__cache_8h" startline="142">ie_kv_cache::V</references>
+        <references refid="structie__kv__cache_1a90a02bd220428271d6f5be5b0a8745fe" compoundref="ie__kv__cache_8h" startline="146">ie_kv_cache::zeros_K</references>
+        <references refid="structie__kv__cache_1a9b1537532ffecc9a1c908e20a9ec4b47" compoundref="ie__kv__cache_8h" startline="148">ie_kv_cache::zeros_V</references>
       </memberdef>
       <memberdef kind="function" id="ie__kv__cache_8h_1ac56756d0ff12628cbbba305e3c8af8a9" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
-        <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">int</ref></type>
+        <type>int</type>
         <definition>int ie_kv_store_token_fp8</definition>
         <argsstring>(ie_kv_cache *kv, size_t t, const float *K_f32, const float *V_f32)</argsstring>
         <name>ie_kv_store_token_fp8</name>
@@ -469,28 +885,28 @@
           <declname>kv</declname>
         </param>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">size_t</ref></type>
+          <type>size_t</type>
           <declname>t</declname>
         </param>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">const</ref> <ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">float</ref> *</type>
+          <type>const float *</type>
           <declname>K_f32</declname>
         </param>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">const</ref> <ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">float</ref> *</type>
+          <type>const float *</type>
           <declname>V_f32</declname>
         </param>
         <briefdescription>
-<para>Store one token’s K/V as FP8 (E4M3/E5M2), no scale arrays. </para>
+<para>Store a token&apos;s K/V slice into an FP8 cache. </para>
         </briefdescription>
         <detaileddescription>
-<para>Uses <computeroutput>kv-&gt;fp8_format</computeroutput> for encoding. Requires <computeroutput>storage == IE_KV_STORAGE_FP8</computeroutput>.</para>
+<para>This path uses an internal scratch buffer to avoid per-token allocations.</para>
 <para><parameterlist kind="param"><parameteritem>
 <parameternamelist>
 <parametername>kv</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Cache handle. </para>
+<para>Cache (must be IE_KV_STORAGE_FP8). </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -498,7 +914,7 @@
 <parametername>t</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Token index in [0, max_seq). </para>
+<para>Token index. </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -506,7 +922,7 @@
 <parametername>K_f32</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Input K slice (heads*head_dim). </para>
+<para>K slice [H*D]. </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -514,54 +930,20 @@
 <parametername>V_f32</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Input V slice (heads*head_dim). </para>
+<para>V slice [H*D]. </para>
 </parameterdescription>
 </parameteritem>
 </parameterlist>
-<simplesect kind="return"><para>0 on success; non-zero on errors or type mismatch. </para>
+<simplesect kind="return"><para>0 on success; non-zero on error.</para>
 </simplesect>
-</para>
-        </detaileddescription>
-        <inbodydescription>
-        </inbodydescription>
-        <location file="engine/include/ie_kv_cache.h" line="180" column="5" bodyfile="engine/src/runtime/kv_cache.c" bodystart="295" bodyend="325" declfile="engine/include/ie_kv_cache.h" declline="180" declcolumn="5"/>
-        <references refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" compoundref="ie__device__cuda_8cu" startline="92" endline="110">ie_gemv_rowwise_f32_kernel</references>
-        <references refid="ie__kv__cache_8h_1a2bb962f9a31709cc159ccb5f8c8f2fe7a73f4d2a149b7a80c6da1074b8149c231" compoundref="ie__kv__cache_8h" startline="45">IE_KV_STORAGE_FP8</references>
-        <references refid="ie__quant__act_8h_1a91772f4827e6d4c82915434eb55a9f17" compoundref="act__fp8_8c" startline="182" endline="193">ie_quantize_act_fp8</references>
-        <references refid="kv__cache_8c_1acaff19ff67c66594ad4c72d3a9cc35d6" compoundref="kv__cache_8c" startline="88" endline="91">payload_index</references>
-      </memberdef>
-      <memberdef kind="function" id="ie__kv__cache_8h_1ac4d09efdefb7662b78e44d9b2127bdcf" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
-        <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">int</ref></type>
-        <definition>int ie_kv_load_token_f32</definition>
-        <argsstring>(const ie_kv_cache *kv, size_t t, float *K_out, float *V_out)</argsstring>
-        <name>ie_kv_load_token_f32</name>
-        <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">const</ref> <ref refid="structie__kv__cache" kindref="compound">ie_kv_cache</ref> *</type>
-          <declname>kv</declname>
-        </param>
-        <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">size_t</ref></type>
-          <declname>t</declname>
-        </param>
-        <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">float</ref> *</type>
-          <declname>K_out</declname>
-        </param>
-        <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">float</ref> *</type>
-          <declname>V_out</declname>
-        </param>
-        <briefdescription>
-<para>Load one token’s K/V as FP32, dequantizing/decoding if needed. </para>
-        </briefdescription>
-        <detaileddescription>
-<para>The output buffers must have length <computeroutput>heads*head_dim</computeroutput>. Works with any storage kind and performs the appropriate conversion on the fly.</para>
+Store a token&apos;s K/V slice into an FP8 cache.</para>
+<para>Quantizes activations to FP8 using the configured fp8_format and stores the packed bytes into the cache. Uses a per-head scratch buffer of length head_dim.</para>
 <para><parameterlist kind="param"><parameteritem>
 <parameternamelist>
 <parametername>kv</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Cache handle. </para>
+<para>Cache. </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -569,7 +951,83 @@
 <parametername>t</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Token index in [0, max_seq). </para>
+<para>Token index. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>K_f32</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>K data (length heads*head_dim). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>V_f32</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>V data (length heads*head_dim). </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>0 on success; non-zero on failure. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/ie_kv_cache.h" line="276" column="5" bodyfile="engine/src/runtime/kv_cache.c" bodystart="651" bodyend="679" declfile="engine/include/ie_kv_cache.h" declline="276" declcolumn="5"/>
+        <references refid="structie__kv__cache_1a2ad6b6ab3ed09d13b0d519ed0068d1d3" compoundref="ie__kv__cache_8h" startline="134">ie_kv_cache::fp8_format</references>
+        <references refid="structie__kv__cache_1a651ffe5e067714a367503a5127bdd61a" compoundref="ie__kv__cache_8h" startline="127">ie_kv_cache::head_dim</references>
+        <references refid="structie__kv__cache_1a2e7da98c2fd80c84f468848ad63bb6cb" compoundref="ie__kv__cache_8h" startline="126">ie_kv_cache::heads</references>
+        <references refid="ie__kv__cache_8h_1a2bb962f9a31709cc159ccb5f8c8f2fe7a73f4d2a149b7a80c6da1074b8149c231" compoundref="ie__kv__cache_8h" startline="70">IE_KV_STORAGE_FP8</references>
+        <references refid="ie__quant__act_8h_1a91772f4827e6d4c82915434eb55a9f17" compoundref="act__fp8_8c" startline="182" endline="193">ie_quantize_act_fp8</references>
+        <references refid="structie__kv__cache_1a9e6a8eae8f60ca5906d3009c7bda555a" compoundref="ie__kv__cache_8h" startline="141">ie_kv_cache::K</references>
+        <references refid="structie__kv__cache_1a4cbe1fc1959314c75e9d61f9c24d5671" compoundref="ie__kv__cache_8h" startline="128">ie_kv_cache::max_seq</references>
+        <references refid="structie__kv__cache_1ac494dfb9f08348467d30dcac09f5450a" compoundref="ie__kv__cache_8h" startline="153">ie_kv_cache::scratch_u8</references>
+        <references refid="structie__kv__cache_1aee83829eb2a9d19077145b88c0bb43bb" compoundref="ie__kv__cache_8h" startline="131">ie_kv_cache::storage</references>
+        <references refid="structie__kv__cache_1aab8e8a472aacd8cfce26a16b79f1995c" compoundref="ie__kv__cache_8h" startline="142">ie_kv_cache::V</references>
+      </memberdef>
+      <memberdef kind="function" id="ie__kv__cache_8h_1ac4d09efdefb7662b78e44d9b2127bdcf" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int ie_kv_load_token_f32</definition>
+        <argsstring>(const ie_kv_cache *kv, size_t t, float *K_out, float *V_out)</argsstring>
+        <name>ie_kv_load_token_f32</name>
+        <param>
+          <type>const <ref refid="structie__kv__cache" kindref="compound">ie_kv_cache</ref> *</type>
+          <declname>kv</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>t</declname>
+        </param>
+        <param>
+          <type>float *</type>
+          <declname>K_out</declname>
+        </param>
+        <param>
+          <type>float *</type>
+          <declname>V_out</declname>
+        </param>
+        <briefdescription>
+<para>Load token t as FP32 K/V slices from any storage encoding. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>kv</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Cache. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>t</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Token index. </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -577,7 +1035,7 @@
 <parametername>K_out</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Output buffer for K (FP32). </para>
+<para>Output K slice [H*D]. </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -585,29 +1043,77 @@
 <parametername>V_out</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Output buffer for V (FP32). </para>
+<para>Output V slice [H*D]. </para>
 </parameterdescription>
 </parameteritem>
 </parameterlist>
-<simplesect kind="return"><para>0 on success; non-zero on errors or bounds/type mismatch. </para>
+<simplesect kind="return"><para>0 on success; non-zero on error.</para>
+</simplesect>
+Load token t as FP32 K/V slices from any storage encoding.</para>
+<para>Performs dequantization for INT8/FP8 caches. On success, reports a KV hit. If t is out of range, reports a KV miss and returns an error.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>kv</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Cache (const). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>t</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Token index. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>K_out</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Output buffer for K (length heads*head_dim). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>V_out</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Output buffer for V (length heads*head_dim). </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>0 on success; non-zero on failure. </para>
 </simplesect>
 </para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="engine/include/ie_kv_cache.h" line="195" column="5" bodyfile="engine/src/runtime/kv_cache.c" bodystart="327" bodyend="399" declfile="engine/include/ie_kv_cache.h" declline="195" declcolumn="5"/>
+        <location file="engine/include/ie_kv_cache.h" line="288" column="5" bodyfile="engine/src/runtime/kv_cache.c" bodystart="694" bodyend="762" declfile="engine/include/ie_kv_cache.h" declline="288" declcolumn="5"/>
+        <references refid="structie__kv__cache_1a2ad6b6ab3ed09d13b0d519ed0068d1d3" compoundref="ie__kv__cache_8h" startline="134">ie_kv_cache::fp8_format</references>
+        <references refid="structie__kv__cache_1aefb1816230bdfbc069a73a9ff142cf10" compoundref="ie__kv__cache_8h" startline="138">ie_kv_cache::group_count</references>
+        <references refid="structie__kv__cache_1af7753f147284fd77a46c1be4efb31bdb" compoundref="ie__kv__cache_8h" startline="132">ie_kv_cache::group_size</references>
+        <references refid="structie__kv__cache_1a651ffe5e067714a367503a5127bdd61a" compoundref="ie__kv__cache_8h" startline="127">ie_kv_cache::head_dim</references>
+        <references refid="structie__kv__cache_1a2e7da98c2fd80c84f468848ad63bb6cb" compoundref="ie__kv__cache_8h" startline="126">ie_kv_cache::heads</references>
         <references refid="ie__quant__act_8h_1aca462f5af36ea8b096edc92c4252db71" compoundref="act__fp8_8c" startline="195" endline="206">ie_dequantize_act_fp8</references>
-        <references refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" compoundref="ie__device__cuda_8cu" startline="92" endline="110">ie_gemv_rowwise_f32_kernel</references>
-        <references refid="kv__cache_8c_1ab881936b3269214a8b76239dd79f5a29" compoundref="kv__cache_8c" startline="47" endline="53">ie_kv_hit_add_local</references>
-        <references refid="kv__cache_8c_1a67fd94fd2d4f1c2d41dd5fff3ea31c65" compoundref="kv__cache_8c" startline="60" endline="66">ie_kv_miss_add_local</references>
-        <references refid="ie__kv__cache_8h_1a2bb962f9a31709cc159ccb5f8c8f2fe7a4fa6c4868332a5127755fdee56404f54" compoundref="ie__kv__cache_8h" startline="43">IE_KV_STORAGE_F32</references>
-        <references refid="ie__kv__cache_8h_1a2bb962f9a31709cc159ccb5f8c8f2fe7a73f4d2a149b7a80c6da1074b8149c231" compoundref="ie__kv__cache_8h" startline="45">IE_KV_STORAGE_FP8</references>
-        <references refid="ie__kv__cache_8h_1a2bb962f9a31709cc159ccb5f8c8f2fe7ab359088fa091562c7be08e6292060f3f" compoundref="ie__kv__cache_8h" startline="44">IE_KV_STORAGE_INT8</references>
-        <references refid="kv__cache_8c_1a51dbee8312b98b2d1e701dff311671ca" compoundref="kv__cache_8c" startline="80" endline="83">param_index</references>
-        <references refid="kv__cache_8c_1acaff19ff67c66594ad4c72d3a9cc35d6" compoundref="kv__cache_8c" startline="88" endline="91">payload_index</references>
+        <references refid="kv__cache_8c_1ab881936b3269214a8b76239dd79f5a29" compoundref="kv__cache_8c" startline="53" endline="58">ie_kv_hit_add_local</references>
+        <references refid="kv__cache_8c_1a67fd94fd2d4f1c2d41dd5fff3ea31c65" compoundref="kv__cache_8c" startline="65" endline="70">ie_kv_miss_add_local</references>
+        <references refid="ie__kv__cache_8h_1a2bb962f9a31709cc159ccb5f8c8f2fe7a4fa6c4868332a5127755fdee56404f54" compoundref="ie__kv__cache_8h" startline="66">IE_KV_STORAGE_F32</references>
+        <references refid="ie__kv__cache_8h_1a2bb962f9a31709cc159ccb5f8c8f2fe7a73f4d2a149b7a80c6da1074b8149c231" compoundref="ie__kv__cache_8h" startline="70">IE_KV_STORAGE_FP8</references>
+        <references refid="ie__kv__cache_8h_1a2bb962f9a31709cc159ccb5f8c8f2fe7ab359088fa091562c7be08e6292060f3f" compoundref="ie__kv__cache_8h" startline="68">IE_KV_STORAGE_INT8</references>
+        <references refid="structie__kv__cache_1a9e6a8eae8f60ca5906d3009c7bda555a" compoundref="ie__kv__cache_8h" startline="141">ie_kv_cache::K</references>
+        <references refid="structie__kv__cache_1a4cbe1fc1959314c75e9d61f9c24d5671" compoundref="ie__kv__cache_8h" startline="128">ie_kv_cache::max_seq</references>
+        <references refid="kv__cache_8c_1a51dbee8312b98b2d1e701dff311671ca" compoundref="kv__cache_8c" startline="106" endline="108">param_index</references>
+        <references refid="structie__kv__cache_1a29ae9701475d9022e9af099093af0f28" compoundref="ie__kv__cache_8h" startline="145">ie_kv_cache::scales_K</references>
+        <references refid="structie__kv__cache_1afe4d4cb4c8c4e59be84c73d5203a77e3" compoundref="ie__kv__cache_8h" startline="147">ie_kv_cache::scales_V</references>
+        <references refid="structie__kv__cache_1aee83829eb2a9d19077145b88c0bb43bb" compoundref="ie__kv__cache_8h" startline="131">ie_kv_cache::storage</references>
+        <references refid="structie__kv__cache_1aab8e8a472aacd8cfce26a16b79f1995c" compoundref="ie__kv__cache_8h" startline="142">ie_kv_cache::V</references>
+        <references refid="structie__kv__cache_1a90a02bd220428271d6f5be5b0a8745fe" compoundref="ie__kv__cache_8h" startline="146">ie_kv_cache::zeros_K</references>
+        <references refid="structie__kv__cache_1a9b1537532ffecc9a1c908e20a9ec4b47" compoundref="ie__kv__cache_8h" startline="148">ie_kv_cache::zeros_V</references>
       </memberdef>
       <memberdef kind="function" id="ie__kv__cache_8h_1a99cb88be3bf32cf8750382537f3d2139" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
-        <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">int</ref></type>
+        <type>int</type>
         <definition>int ie_kv_raw_ptrs</definition>
         <argsstring>(ie_kv_cache *kv, void **out_K, void **out_V, size_t *out_lds)</argsstring>
         <name>ie_kv_raw_ptrs</name>
@@ -616,28 +1122,27 @@
           <declname>kv</declname>
         </param>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">void</ref> **</type>
+          <type>void **</type>
           <declname>out_K</declname>
         </param>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">void</ref> **</type>
+          <type>void **</type>
           <declname>out_V</declname>
         </param>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">size_t</ref> *</type>
+          <type>size_t *</type>
           <declname>out_lds</declname>
         </param>
         <briefdescription>
-<para>Return raw pointers to the internal K/V payloads and the logical stride. </para>
+<para>Get raw payload pointers and leading dimension for [t][h][d] layout. </para>
         </briefdescription>
         <detaileddescription>
-<para>This is a convenience for custom kernels that want to access the backing arrays directly. The logical leading dimension along D is <computeroutput>head_dim</computeroutput>.</para>
 <para><parameterlist kind="param"><parameteritem>
 <parameternamelist>
 <parametername>kv</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Cache handle. </para>
+<para>Cache. </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -645,7 +1150,7 @@
 <parametername>out_K</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Output pointer to the base of K buffer (may be NULL). </para>
+<para>Output K payload pointer (may be NULL). </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -653,7 +1158,7 @@
 <parametername>out_V</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Output pointer to the base of V buffer (may be NULL). </para>
+<para>Output V payload pointer (may be NULL). </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -661,119 +1166,314 @@
 <parametername>out_lds</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Output: leading dimension (equals <computeroutput>kv-&gt;head_dim</computeroutput>). </para>
+<para>Output leading dimension for the d axis (equals head_dim). </para>
 </parameterdescription>
 </parameteritem>
 </parameterlist>
-<simplesect kind="return"><para>0 on success; non-zero on bad arguments. </para>
+<simplesect kind="return"><para>0 on success; non-zero on error.</para>
+</simplesect>
+Get raw payload pointers and leading dimension for [t][h][d] layout.</para>
+<para>This is intended for debug/interop. The returned pointers reference internal cache storage and remain valid until the cache is freed.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>kv</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Cache. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>out_K</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Output pointer for K base address (optional). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>out_V</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Output pointer for V base address (optional). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>out_lds</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Output leading dimension (head_dim) (optional). </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>0 on success; non-zero on failure. </para>
 </simplesect>
 </para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="engine/include/ie_kv_cache.h" line="210" column="5" bodyfile="engine/src/runtime/kv_cache.c" bodystart="401" bodyend="407" declfile="engine/include/ie_kv_cache.h" declline="210" declcolumn="5"/>
-        <references refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" compoundref="ie__device__cuda_8cu" startline="92" endline="110">ie_gemv_rowwise_f32_kernel</references>
+        <location file="engine/include/ie_kv_cache.h" line="300" column="5" bodyfile="engine/src/runtime/kv_cache.c" bodystart="777" bodyend="783" declfile="engine/include/ie_kv_cache.h" declline="300" declcolumn="5"/>
+        <references refid="structie__kv__cache_1a651ffe5e067714a367503a5127bdd61a" compoundref="ie__kv__cache_8h" startline="127">ie_kv_cache::head_dim</references>
+        <references refid="structie__kv__cache_1a9e6a8eae8f60ca5906d3009c7bda555a" compoundref="ie__kv__cache_8h" startline="141">ie_kv_cache::K</references>
+        <references refid="structie__kv__cache_1aab8e8a472aacd8cfce26a16b79f1995c" compoundref="ie__kv__cache_8h" startline="142">ie_kv_cache::V</references>
+      </memberdef>
+      <memberdef kind="function" id="ie__kv__cache_8h_1a11517bdeb9493f0101a66c23a00ea3f6" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int ie_kv_raw_strides</definition>
+        <argsstring>(const ie_kv_cache *kv, size_t *stride_t, size_t *stride_h, size_t *stride_d)</argsstring>
+        <name>ie_kv_raw_strides</name>
+        <param>
+          <type>const <ref refid="structie__kv__cache" kindref="compound">ie_kv_cache</ref> *</type>
+          <declname>kv</declname>
+        </param>
+        <param>
+          <type>size_t *</type>
+          <declname>stride_t</declname>
+        </param>
+        <param>
+          <type>size_t *</type>
+          <declname>stride_h</declname>
+        </param>
+        <param>
+          <type>size_t *</type>
+          <declname>stride_d</declname>
+        </param>
+        <briefdescription>
+<para>Get logical strides (in elements) for the [t][h][d] layout. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Strides are independent of storage encoding and describe the logical layout: stride_d = 1 stride_h = D stride_t = H*D</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>kv</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Cache. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>stride_t</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Output stride in elements for token dimension (may be NULL). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>stride_h</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Output stride in elements for head dimension (may be NULL). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>stride_d</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Output stride in elements for dim dimension (may be NULL). </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>0 on success; non-zero on error.</para>
+</simplesect>
+Get logical strides (in elements) for the [t][h][d] layout.</para>
+<para>Strides are returned in units of elements of the underlying storage type (not bytes). The layout is:<itemizedlist>
+<listitem><para>d stride = 1</para>
+</listitem><listitem><para>h stride = head_dim</para>
+</listitem><listitem><para>t stride = heads * head_dim</para>
+</listitem></itemizedlist>
+</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>kv</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Cache (const). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>stride_t</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Output stride for token index (optional). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>stride_h</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Output stride for head index (optional). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>stride_d</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Output stride for dim index (optional). </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>0 on success; non-zero on failure. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/ie_kv_cache.h" line="317" column="5" bodyfile="engine/src/runtime/kv_cache.c" bodystart="801" bodyend="807" declfile="engine/include/ie_kv_cache.h" declline="317" declcolumn="5"/>
+        <references refid="structie__kv__cache_1a651ffe5e067714a367503a5127bdd61a" compoundref="ie__kv__cache_8h" startline="127">ie_kv_cache::head_dim</references>
+        <references refid="structie__kv__cache_1a2e7da98c2fd80c84f468848ad63bb6cb" compoundref="ie__kv__cache_8h" startline="126">ie_kv_cache::heads</references>
       </memberdef>
     </sectiondef>
     <briefdescription>
-<para>Key/Value attention cache with INT8/FP8 compression and float round-trip. </para>
+<para>Key/Value attention cache with INT8/FP8 compression and FP32 round-trip. </para>
     </briefdescription>
     <detaileddescription>
-<para>This module provides a compact and fast KV cache for transformer attention that stores per-token K/V rows using either raw FP32, INT8 with affine de/quantization, or FP8 (E4M3/E5M2). It is designed for:<itemizedlist>
-<listitem><para>Low-allocation hot paths: preallocate once for (heads, max_seq, head_dim).</para>
-</listitem><listitem><para>Explicit memory layout for predictable bandwidth.</para>
-</listitem><listitem><para>Per-token store/load helpers to integrate with decode loops.</para>
+<para>This module provides a compact KV cache for transformer attention. The cache stores per-token K/V slices laid out as [heads, head_dim] per token, flattened with head_dim as the fastest-varying dimension:</para>
+<para>index(t,h,d) = ((t * H + h) * D + d)</para>
+<para>where:<itemizedlist>
+<listitem><para>H = heads</para>
+</listitem><listitem><para>D = head_dim</para>
+</listitem><listitem><para>t in [0, max_seq)</para>
 </listitem></itemizedlist>
 </para>
-<sect2 id="ie__kv__cache_8h_1autotoc_md87">
-<title>Memory layout</title>
-<para>Let: H = heads, T = max_seq, D = head_dim, G = ceil(D / group_size).</para>
-<para>The element layout for K and V is the same across all storage kinds: index(t,h,d) = ((t * H + h) * D + d) Fastest dimension is head_dim (D), then head, then time.</para>
-<para>For INT8 storage, per-group parameters (scale, zero_point) are tracked <emphasis>per token and per head</emphasis> for both K and V: param_index(t,h,g) = ((t * H + h) * G + g)</para>
-<para>Thread-safety: the cache object is not thread-safe for concurrent writers. Readers may run concurrently if tokens are not being mutated. </para>
-</sect2>
+<para>Storage types:<itemizedlist>
+<listitem><para>IE_KV_STORAGE_F32: raw FP32 K/V payloads.</para>
+</listitem><listitem><para>IE_KV_STORAGE_INT8: INT8 payloads with per-group affine parameters (scale, zero_point) for each (token, head).</para>
+</listitem><listitem><para>IE_KV_STORAGE_FP8: FP8 payloads (E4M3/E5M2), no per-group parameters.</para>
+</listitem></itemizedlist>
+</para>
+<para>Per-group parameters (INT8): param_index(t,h,g) = ((t * H + h) * G + g) where:<itemizedlist>
+<listitem><para>group_size is provided by opts (defaults to 1 for INT8 if not provided)</para>
+</listitem><listitem><para>G = ceil(D / group_size)</para>
+</listitem></itemizedlist>
+</para>
+<para>Layered KV specification: GPT-OSS inference uses an array of caches (one per layer). To maximize TPS, this module provides <ref refid="ie__kv__cache_8h_1ab44456fc4842c15b2091f0a059e06584" kindref="member">ie_kv_init_layers()</ref> which allocates one contiguous slab for all layers and slices it into per-layer <ref refid="structie__kv__cache" kindref="compound">ie_kv_cache</ref> views.</para>
+<para>Performance notes:<itemizedlist>
+<listitem><para>The implementation avoids per-token heap allocations by keeping small scratch buffers inside the cache for INT8-per-group and FP8 paths.</para>
+</listitem><listitem><para>The [t][h][d] layout makes each token slice contiguous (H*D), enabling memcpy for FP32 store/load and predictable streaming access for attention. </para>
+</listitem></itemizedlist>
+</para>
     </detaileddescription>
     <programlisting>
-<codeline lineno="1"><highlight class="preprocessor">#ifndef<sp/>IE_KV_CACHE_H</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="2"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>IE_KV_CACHE_H</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="3"><highlight class="normal"></highlight></codeline>
-<codeline lineno="31"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stddef.h&gt;</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="32"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stdint.h&gt;</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="33"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;<ref refid="ie__quant__act_8h" kindref="compound">ie_quant_act.h</ref>&quot;</highlight><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">/*<sp/>ie_fp8_format,<sp/>ie_act_i8_params<sp/>and<sp/>helpers<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="34"><highlight class="normal"></highlight></codeline>
-<codeline lineno="35"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="36"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/></highlight><highlight class="stringliteral">&quot;C&quot;</highlight><highlight class="normal"><sp/>{</highlight></codeline>
-<codeline lineno="37"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="38"><highlight class="normal"></highlight></codeline>
-<codeline lineno="42" refid="ie__kv__cache_8h_1a2bb962f9a31709cc159ccb5f8c8f2fe7" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">enum</highlight><highlight class="normal"><sp/><ref refid="ie__kv__cache_8h_1a2bb962f9a31709cc159ccb5f8c8f2fe7" kindref="member">ie_kv_storage_type</ref><sp/>{</highlight></codeline>
-<codeline lineno="43" refid="ie__kv__cache_8h_1a2bb962f9a31709cc159ccb5f8c8f2fe7a4fa6c4868332a5127755fdee56404f54" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="ie__kv__cache_8h_1a2bb962f9a31709cc159ccb5f8c8f2fe7a4fa6c4868332a5127755fdee56404f54" kindref="member">IE_KV_STORAGE_F32</ref><sp/>=<sp/>0,<sp/><sp/><sp/><sp/><sp/><sp/></highlight></codeline>
-<codeline lineno="44" refid="ie__kv__cache_8h_1a2bb962f9a31709cc159ccb5f8c8f2fe7ab359088fa091562c7be08e6292060f3f" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="ie__kv__cache_8h_1a2bb962f9a31709cc159ccb5f8c8f2fe7ab359088fa091562c7be08e6292060f3f" kindref="member">IE_KV_STORAGE_INT8</ref><sp/>=<sp/>1,<sp/><sp/><sp/><sp/><sp/></highlight></codeline>
-<codeline lineno="45"><highlight class="normal"><sp/><sp/><ref refid="ie__kv__cache_8h_1a2bb962f9a31709cc159ccb5f8c8f2fe7a73f4d2a149b7a80c6da1074b8149c231" kindref="member">IE_KV_STORAGE_FP8</ref><sp/><sp/>=<sp/>2<sp/><sp/><sp/><sp/><sp/><sp/></highlight></codeline>
-<codeline lineno="46" refid="ie__kv__cache_8h_1a2bb962f9a31709cc159ccb5f8c8f2fe7a73f4d2a149b7a80c6da1074b8149c231" refkind="member"><highlight class="normal">}<sp/><ref refid="ie__kv__cache_8h_1a2bb962f9a31709cc159ccb5f8c8f2fe7" kindref="member">ie_kv_storage_type</ref>;</highlight></codeline>
+<codeline lineno="1"><highlight class="comment">/*<sp/>============================================================================</highlight></codeline>
+<codeline lineno="2"><highlight class="comment"><sp/>*<sp/>File:<sp/>engine/include/ie_kv_cache.h</highlight></codeline>
+<codeline lineno="3"><highlight class="comment"><sp/>*<sp/>============================================================================</highlight></codeline>
+<codeline lineno="4"><highlight class="comment"><sp/>*/</highlight></codeline>
+<codeline lineno="45"><highlight class="normal"></highlight><highlight class="preprocessor">#ifndef<sp/>IE_KV_CACHE_H</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="46"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>IE_KV_CACHE_H</highlight><highlight class="normal"></highlight></codeline>
 <codeline lineno="47"><highlight class="normal"></highlight></codeline>
-<codeline lineno="51" refid="structie__kv__opts" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structie__kv__opts" kindref="compound">ie_kv_opts</ref><sp/>{</highlight></codeline>
-<codeline lineno="52" refid="structie__kv__opts_1a60291f6cf5954a7d16fdaf981ddf9e7a" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="structie__kv__opts_1a60291f6cf5954a7d16fdaf981ddf9e7a" kindref="member">heads</ref>;<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight></codeline>
-<codeline lineno="53" refid="structie__kv__opts_1a8b9255f78606b76462a20157c24c2bda" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="structie__kv__opts_1a8b9255f78606b76462a20157c24c2bda" kindref="member">head_dim</ref>;<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight></codeline>
-<codeline lineno="54" refid="structie__kv__opts_1ad9dcb92aedeedbeddfbde834d4395421" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="structie__kv__opts_1ad9dcb92aedeedbeddfbde834d4395421" kindref="member">max_seq</ref>;<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight></codeline>
-<codeline lineno="55" refid="structie__kv__opts_1ac4e52133d322b3da023a242cab67fb7f" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="ie__kv__cache_8h_1a2bb962f9a31709cc159ccb5f8c8f2fe7" kindref="member">ie_kv_storage_type</ref><sp/><ref refid="structie__kv__opts_1ac4e52133d322b3da023a242cab67fb7f" kindref="member">storage</ref>;<sp/></highlight></codeline>
-<codeline lineno="56" refid="structie__kv__opts_1acea5bf28709f714eb88a85719fa58f9f" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/><ref refid="structie__kv__opts_1acea5bf28709f714eb88a85719fa58f9f" kindref="member">group_size</ref>;<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight></codeline>
-<codeline lineno="57" refid="structie__kv__opts_1ab68941f4eda9ed79513f35321c3e3ee1" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="structie__kv__opts_1ab68941f4eda9ed79513f35321c3e3ee1" kindref="member">symmetric</ref>;<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight></codeline>
-<codeline lineno="58" refid="structie__kv__opts_1ad52668c7f2e5bdc7adb8171947232077" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="ie__quant__act_8h_1a67a1bdaa8281d1c69b6b76ecba79c52c" kindref="member">ie_fp8_format</ref><sp/><ref refid="structie__kv__opts_1ad52668c7f2e5bdc7adb8171947232077" kindref="member">fp8_format</ref>;<sp/><sp/><sp/></highlight></codeline>
-<codeline lineno="59" refid="ie__kv__cache_8h_1aaa5b2b3fe8a82fbafc9fe86346fa2098" refkind="member"><highlight class="normal">}<sp/><ref refid="structie__kv__opts" kindref="compound">ie_kv_opts</ref>;</highlight></codeline>
+<codeline lineno="48"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="49"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/></highlight><highlight class="stringliteral">&quot;C&quot;</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="50"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="51"><highlight class="normal"></highlight></codeline>
+<codeline lineno="52"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stddef.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="53"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stdint.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="54"><highlight class="normal"></highlight></codeline>
+<codeline lineno="55"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;<ref refid="ie__quant__act_8h" kindref="compound">ie_quant_act.h</ref>&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="56"><highlight class="normal"></highlight></codeline>
+<codeline lineno="57"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>-------------------------------------------------------------------------<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="58"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>Public<sp/>types<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="59"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>-------------------------------------------------------------------------<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
 <codeline lineno="60"><highlight class="normal"></highlight></codeline>
-<codeline lineno="67" refid="structie__kv__cache" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structie__kv__cache" kindref="compound">ie_kv_cache</ref><sp/>{</highlight></codeline>
-<codeline lineno="68"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">/*<sp/>Dimensions<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="69" refid="structie__kv__cache_1a2e7da98c2fd80c84f468848ad63bb6cb" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="structie__kv__cache_1a2e7da98c2fd80c84f468848ad63bb6cb" kindref="member">heads</ref>;</highlight></codeline>
-<codeline lineno="70" refid="structie__kv__cache_1a651ffe5e067714a367503a5127bdd61a" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="structie__kv__cache_1a651ffe5e067714a367503a5127bdd61a" kindref="member">head_dim</ref>;</highlight></codeline>
-<codeline lineno="71" refid="structie__kv__cache_1a4cbe1fc1959314c75e9d61f9c24d5671" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="structie__kv__cache_1a4cbe1fc1959314c75e9d61f9c24d5671" kindref="member">max_seq</ref>;</highlight></codeline>
+<codeline lineno="64" refid="ie__kv__cache_8h_1a2bb962f9a31709cc159ccb5f8c8f2fe7" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">enum</highlight><highlight class="normal"><sp/><ref refid="ie__kv__cache_8h_1a2bb962f9a31709cc159ccb5f8c8f2fe7" kindref="member">ie_kv_storage_type</ref><sp/>{</highlight></codeline>
+<codeline lineno="66" refid="ie__kv__cache_8h_1a2bb962f9a31709cc159ccb5f8c8f2fe7a4fa6c4868332a5127755fdee56404f54" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="ie__kv__cache_8h_1a2bb962f9a31709cc159ccb5f8c8f2fe7a4fa6c4868332a5127755fdee56404f54" kindref="member">IE_KV_STORAGE_F32</ref><sp/><sp/>=<sp/>0,</highlight></codeline>
+<codeline lineno="68" refid="ie__kv__cache_8h_1a2bb962f9a31709cc159ccb5f8c8f2fe7ab359088fa091562c7be08e6292060f3f" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="ie__kv__cache_8h_1a2bb962f9a31709cc159ccb5f8c8f2fe7ab359088fa091562c7be08e6292060f3f" kindref="member">IE_KV_STORAGE_INT8</ref><sp/>=<sp/>1,</highlight></codeline>
+<codeline lineno="70"><highlight class="normal"><sp/><sp/><ref refid="ie__kv__cache_8h_1a2bb962f9a31709cc159ccb5f8c8f2fe7a73f4d2a149b7a80c6da1074b8149c231" kindref="member">IE_KV_STORAGE_FP8</ref><sp/><sp/>=<sp/>2</highlight></codeline>
+<codeline lineno="71" refid="ie__kv__cache_8h_1a2bb962f9a31709cc159ccb5f8c8f2fe7a73f4d2a149b7a80c6da1074b8149c231" refkind="member"><highlight class="normal">}<sp/><ref refid="ie__kv__cache_8h_1a2bb962f9a31709cc159ccb5f8c8f2fe7" kindref="member">ie_kv_storage_type</ref>;</highlight></codeline>
 <codeline lineno="72"><highlight class="normal"></highlight></codeline>
-<codeline lineno="73"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">/*<sp/>Storage<sp/>policy<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="74" refid="structie__kv__cache_1aee83829eb2a9d19077145b88c0bb43bb" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="ie__kv__cache_8h_1a2bb962f9a31709cc159ccb5f8c8f2fe7" kindref="member">ie_kv_storage_type</ref><sp/><ref refid="structie__kv__cache_1aee83829eb2a9d19077145b88c0bb43bb" kindref="member">storage</ref>;</highlight></codeline>
-<codeline lineno="75" refid="structie__kv__cache_1af7753f147284fd77a46c1be4efb31bdb" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/><ref refid="structie__kv__cache_1af7753f147284fd77a46c1be4efb31bdb" kindref="member">group_size</ref>;</highlight></codeline>
-<codeline lineno="76" refid="structie__kv__cache_1a0519ee3ba83644795e084a6005f3bed3" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="structie__kv__cache_1a0519ee3ba83644795e084a6005f3bed3" kindref="member">symmetric</ref>;</highlight></codeline>
-<codeline lineno="77" refid="structie__kv__cache_1a2ad6b6ab3ed09d13b0d519ed0068d1d3" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="ie__quant__act_8h_1a67a1bdaa8281d1c69b6b76ecba79c52c" kindref="member">ie_fp8_format</ref><sp/><ref refid="structie__kv__cache_1a2ad6b6ab3ed09d13b0d519ed0068d1d3" kindref="member">fp8_format</ref>;</highlight></codeline>
-<codeline lineno="78"><highlight class="normal"></highlight></codeline>
-<codeline lineno="79"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">/*<sp/>Derived<sp/>geometry<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="80" refid="structie__kv__cache_1a7c4ab6ded53e4ef3af8daf2eef0fd5e1" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/><ref refid="structie__kv__cache_1a7c4ab6ded53e4ef3af8daf2eef0fd5e1" kindref="member">elem_count</ref>;<sp/><sp/><sp/></highlight></codeline>
-<codeline lineno="81" refid="structie__kv__cache_1aefb1816230bdfbc069a73a9ff142cf10" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/><ref refid="structie__kv__cache_1aefb1816230bdfbc069a73a9ff142cf10" kindref="member">group_count</ref>;<sp/><sp/></highlight></codeline>
-<codeline lineno="83"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">/*<sp/>Payload<sp/>buffers<sp/>(ownership<sp/>belongs<sp/>to<sp/>this<sp/>object)<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="84" refid="structie__kv__cache_1a9e6a8eae8f60ca5906d3009c7bda555a" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal">*<sp/><ref refid="structie__kv__cache_1a9e6a8eae8f60ca5906d3009c7bda555a" kindref="member">K</ref>;<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight></codeline>
-<codeline lineno="85" refid="structie__kv__cache_1aab8e8a472aacd8cfce26a16b79f1995c" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal">*<sp/><ref refid="structie__kv__cache_1aab8e8a472aacd8cfce26a16b79f1995c" kindref="member">V</ref>;<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight></codeline>
-<codeline lineno="87"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">/*<sp/>INT8<sp/>per-group<sp/>parameters<sp/>for<sp/>K<sp/>and<sp/>V<sp/>(NULL<sp/>unless<sp/>storage<sp/>==<sp/>INT8).<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="88" refid="structie__kv__cache_1a29ae9701475d9022e9af099093af0f28" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal">*<sp/><sp/><ref refid="structie__kv__cache_1a29ae9701475d9022e9af099093af0f28" kindref="member">scales_K</ref>;<sp/><sp/><sp/><sp/></highlight></codeline>
-<codeline lineno="89" refid="structie__kv__cache_1a90a02bd220428271d6f5be5b0a8745fe" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">int8_t</ref>*<sp/><ref refid="structie__kv__cache_1a90a02bd220428271d6f5be5b0a8745fe" kindref="member">zeros_K</ref>;<sp/><sp/><sp/><sp/><sp/></highlight></codeline>
-<codeline lineno="90" refid="structie__kv__cache_1afe4d4cb4c8c4e59be84c73d5203a77e3" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal">*<sp/><sp/><ref refid="structie__kv__cache_1afe4d4cb4c8c4e59be84c73d5203a77e3" kindref="member">scales_V</ref>;<sp/><sp/><sp/><sp/></highlight></codeline>
-<codeline lineno="91" refid="structie__kv__cache_1a9b1537532ffecc9a1c908e20a9ec4b47" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">int8_t</ref>*<sp/><ref refid="structie__kv__cache_1a9b1537532ffecc9a1c908e20a9ec4b47" kindref="member">zeros_V</ref>;<sp/><sp/><sp/><sp/><sp/></highlight></codeline>
-<codeline lineno="92" refid="ie__kv__cache_8h_1ac8ed54f6c843f425493cdf42d6e01aca" refkind="member"><highlight class="normal">}<sp/><ref refid="structie__kv__cache" kindref="compound">ie_kv_cache</ref>;</highlight></codeline>
-<codeline lineno="93"><highlight class="normal"></highlight></codeline>
-<codeline lineno="104"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="ie__kv__cache_8h_1aee468d29a9d01d0168240ac86b9de0be" kindref="member">ie_kv_init</ref>(<ref refid="structie__kv__cache" kindref="compound">ie_kv_cache</ref>*<sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">kv</ref>,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="structie__kv__opts" kindref="compound">ie_kv_opts</ref>*<sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">opts</ref>);</highlight></codeline>
+<codeline lineno="76" refid="structie__kv__opts" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structie__kv__opts" kindref="compound">ie_kv_opts</ref><sp/>{</highlight></codeline>
+<codeline lineno="78" refid="structie__kv__opts_1a60291f6cf5954a7d16fdaf981ddf9e7a" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="structie__kv__opts_1a60291f6cf5954a7d16fdaf981ddf9e7a" kindref="member">heads</ref>;</highlight></codeline>
+<codeline lineno="80" refid="structie__kv__opts_1a8b9255f78606b76462a20157c24c2bda" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="structie__kv__opts_1a8b9255f78606b76462a20157c24c2bda" kindref="member">head_dim</ref>;</highlight></codeline>
+<codeline lineno="82" refid="structie__kv__opts_1ad9dcb92aedeedbeddfbde834d4395421" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="structie__kv__opts_1ad9dcb92aedeedbeddfbde834d4395421" kindref="member">max_seq</ref>;</highlight></codeline>
+<codeline lineno="83"><highlight class="normal"></highlight></codeline>
+<codeline lineno="85" refid="structie__kv__opts_1ac4e52133d322b3da023a242cab67fb7f" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="ie__kv__cache_8h_1a2bb962f9a31709cc159ccb5f8c8f2fe7" kindref="member">ie_kv_storage_type</ref><sp/><ref refid="structie__kv__opts_1ac4e52133d322b3da023a242cab67fb7f" kindref="member">storage</ref>;</highlight></codeline>
+<codeline lineno="86"><highlight class="normal"></highlight></codeline>
+<codeline lineno="94" refid="structie__kv__opts_1acea5bf28709f714eb88a85719fa58f9f" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/><ref refid="structie__kv__opts_1acea5bf28709f714eb88a85719fa58f9f" kindref="member">group_size</ref>;</highlight></codeline>
+<codeline lineno="95"><highlight class="normal"></highlight></codeline>
+<codeline lineno="104" refid="structie__kv__opts_1ab68941f4eda9ed79513f35321c3e3ee1" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="structie__kv__opts_1ab68941f4eda9ed79513f35321c3e3ee1" kindref="member">symmetric</ref>;</highlight></codeline>
 <codeline lineno="105"><highlight class="normal"></highlight></codeline>
-<codeline lineno="113"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="ie__kv__cache_8h_1a3162328c77fddbae7e49b4c5e811c0d4" kindref="member">ie_kv_free</ref>(<ref refid="structie__kv__cache" kindref="compound">ie_kv_cache</ref>*<sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">kv</ref>);</highlight></codeline>
+<codeline lineno="112" refid="structie__kv__opts_1ad52668c7f2e5bdc7adb8171947232077" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="ie__quant__act_8h_1a67a1bdaa8281d1c69b6b76ecba79c52c" kindref="member">ie_fp8_format</ref><sp/><ref refid="structie__kv__opts_1ad52668c7f2e5bdc7adb8171947232077" kindref="member">fp8_format</ref>;</highlight></codeline>
+<codeline lineno="113" refid="ie__kv__cache_8h_1aaa5b2b3fe8a82fbafc9fe86346fa2098" refkind="member"><highlight class="normal">}<sp/><ref refid="structie__kv__opts" kindref="compound">ie_kv_opts</ref>;</highlight></codeline>
 <codeline lineno="114"><highlight class="normal"></highlight></codeline>
-<codeline lineno="121"><highlight class="normal"></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/><ref refid="ie__kv__cache_8h_1a8a85b8af06f6fa492264e4ddffd43c59" kindref="member">ie_kv_element_size</ref>(<ref refid="ie__kv__cache_8h_1a2bb962f9a31709cc159ccb5f8c8f2fe7" kindref="member">ie_kv_storage_type</ref><sp/>storage);</highlight></codeline>
-<codeline lineno="122"><highlight class="normal"></highlight></codeline>
-<codeline lineno="135"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="ie__kv__cache_8h_1ae4ab616a9e9d6e030e7ba634404f114e" kindref="member">ie_kv_store_token_f32</ref>(<ref refid="structie__kv__cache" kindref="compound">ie_kv_cache</ref>*<sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">kv</ref>,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">t</ref>,</highlight></codeline>
-<codeline lineno="136"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal">*<sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">K_f32</ref>,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal">*<sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">V_f32</ref>);</highlight></codeline>
-<codeline lineno="137"><highlight class="normal"></highlight></codeline>
-<codeline lineno="151"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="ie__kv__cache_8h_1a60418a220d683776a9ff5e04783e67d6" kindref="member">ie_kv_store_token_int8_per_tensor</ref>(<ref refid="structie__kv__cache" kindref="compound">ie_kv_cache</ref>*<sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">kv</ref>,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">t</ref>,</highlight></codeline>
-<codeline lineno="152"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal">*<sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">K_f32</ref>,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal">*<sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">V_f32</ref>);</highlight></codeline>
-<codeline lineno="153"><highlight class="normal"></highlight></codeline>
-<codeline lineno="166"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="ie__kv__cache_8h_1a5b546a5423f4572607a07d8d55146024" kindref="member">ie_kv_store_token_int8_per_group</ref>(<ref refid="structie__kv__cache" kindref="compound">ie_kv_cache</ref>*<sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">kv</ref>,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">t</ref>,</highlight></codeline>
-<codeline lineno="167"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal">*<sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">K_f32</ref>,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal">*<sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">V_f32</ref>);</highlight></codeline>
-<codeline lineno="168"><highlight class="normal"></highlight></codeline>
-<codeline lineno="180"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="ie__kv__cache_8h_1ac56756d0ff12628cbbba305e3c8af8a9" kindref="member">ie_kv_store_token_fp8</ref>(<ref refid="structie__kv__cache" kindref="compound">ie_kv_cache</ref>*<sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">kv</ref>,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">t</ref>,</highlight></codeline>
-<codeline lineno="181"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal">*<sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">K_f32</ref>,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal">*<sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">V_f32</ref>);</highlight></codeline>
-<codeline lineno="182"><highlight class="normal"></highlight></codeline>
-<codeline lineno="195"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="ie__kv__cache_8h_1ac4d09efdefb7662b78e44d9b2127bdcf" kindref="member">ie_kv_load_token_f32</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="structie__kv__cache" kindref="compound">ie_kv_cache</ref>*<sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">kv</ref>,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">t</ref>,</highlight></codeline>
-<codeline lineno="196"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal">*<sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">K_out</ref>,<sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal">*<sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">V_out</ref>);</highlight></codeline>
-<codeline lineno="197"><highlight class="normal"></highlight></codeline>
-<codeline lineno="210"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="ie__kv__cache_8h_1a99cb88be3bf32cf8750382537f3d2139" kindref="member">ie_kv_raw_ptrs</ref>(<ref refid="structie__kv__cache" kindref="compound">ie_kv_cache</ref>*<sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">kv</ref>,<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal">**<sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">out_K</ref>,<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal">**<sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">out_V</ref>,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal">*<sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">out_lds</ref>);</highlight></codeline>
-<codeline lineno="211"><highlight class="normal"></highlight></codeline>
-<codeline lineno="212"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="213"><highlight class="normal">}<sp/></highlight><highlight class="comment">/*<sp/>extern<sp/>&quot;C&quot;<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="214"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="215"><highlight class="normal"></highlight></codeline>
-<codeline lineno="216"><highlight class="normal"></highlight><highlight class="preprocessor">#endif<sp/></highlight><highlight class="comment">/*<sp/>IE_KV_CACHE_H<sp/>*/</highlight><highlight class="preprocessor"></highlight></codeline>
+<codeline lineno="124" refid="structie__kv__cache" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structie__kv__cache" kindref="compound">ie_kv_cache</ref><sp/>{</highlight></codeline>
+<codeline lineno="125"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">/*<sp/>Geometry<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="126" refid="structie__kv__cache_1a2e7da98c2fd80c84f468848ad63bb6cb" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="structie__kv__cache_1a2e7da98c2fd80c84f468848ad63bb6cb" kindref="member">heads</ref>;</highlight></codeline>
+<codeline lineno="127" refid="structie__kv__cache_1a651ffe5e067714a367503a5127bdd61a" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="structie__kv__cache_1a651ffe5e067714a367503a5127bdd61a" kindref="member">head_dim</ref>;</highlight></codeline>
+<codeline lineno="128" refid="structie__kv__cache_1a4cbe1fc1959314c75e9d61f9c24d5671" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="structie__kv__cache_1a4cbe1fc1959314c75e9d61f9c24d5671" kindref="member">max_seq</ref>;</highlight></codeline>
+<codeline lineno="129"><highlight class="normal"></highlight></codeline>
+<codeline lineno="130"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">/*<sp/>Storage<sp/>configuration<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="131" refid="structie__kv__cache_1aee83829eb2a9d19077145b88c0bb43bb" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="ie__kv__cache_8h_1a2bb962f9a31709cc159ccb5f8c8f2fe7" kindref="member">ie_kv_storage_type</ref><sp/><ref refid="structie__kv__cache_1aee83829eb2a9d19077145b88c0bb43bb" kindref="member">storage</ref>;</highlight></codeline>
+<codeline lineno="132" refid="structie__kv__cache_1af7753f147284fd77a46c1be4efb31bdb" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/><ref refid="structie__kv__cache_1af7753f147284fd77a46c1be4efb31bdb" kindref="member">group_size</ref>;</highlight></codeline>
+<codeline lineno="133" refid="structie__kv__cache_1a0519ee3ba83644795e084a6005f3bed3" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="structie__kv__cache_1a0519ee3ba83644795e084a6005f3bed3" kindref="member">symmetric</ref>;</highlight></codeline>
+<codeline lineno="134" refid="structie__kv__cache_1a2ad6b6ab3ed09d13b0d519ed0068d1d3" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="ie__quant__act_8h_1a67a1bdaa8281d1c69b6b76ecba79c52c" kindref="member">ie_fp8_format</ref><sp/><ref refid="structie__kv__cache_1a2ad6b6ab3ed09d13b0d519ed0068d1d3" kindref="member">fp8_format</ref>;</highlight></codeline>
+<codeline lineno="135"><highlight class="normal"></highlight></codeline>
+<codeline lineno="136"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">/*<sp/>Derived<sp/>sizes<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="137" refid="structie__kv__cache_1a7c4ab6ded53e4ef3af8daf2eef0fd5e1" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/><ref refid="structie__kv__cache_1a7c4ab6ded53e4ef3af8daf2eef0fd5e1" kindref="member">elem_count</ref>;<sp/><sp/><sp/></highlight></codeline>
+<codeline lineno="138" refid="structie__kv__cache_1aefb1816230bdfbc069a73a9ff142cf10" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/><ref refid="structie__kv__cache_1aefb1816230bdfbc069a73a9ff142cf10" kindref="member">group_count</ref>;<sp/><sp/></highlight></codeline>
+<codeline lineno="140"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">/*<sp/>Payload<sp/>pointers<sp/>(point<sp/>inside<sp/>backing<sp/>slab)<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="141" refid="structie__kv__cache_1a9e6a8eae8f60ca5906d3009c7bda555a" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*<ref refid="structie__kv__cache_1a9e6a8eae8f60ca5906d3009c7bda555a" kindref="member">K</ref>;<sp/></highlight></codeline>
+<codeline lineno="142" refid="structie__kv__cache_1aab8e8a472aacd8cfce26a16b79f1995c" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*<ref refid="structie__kv__cache_1aab8e8a472aacd8cfce26a16b79f1995c" kindref="member">V</ref>;<sp/></highlight></codeline>
+<codeline lineno="144"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">/*<sp/>INT8<sp/>parameter<sp/>pointers<sp/>(point<sp/>inside<sp/>backing<sp/>slab;<sp/>NULL<sp/>unless<sp/>INT8)<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="145" refid="structie__kv__cache_1a29ae9701475d9022e9af099093af0f28" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/><sp/>*<ref refid="structie__kv__cache_1a29ae9701475d9022e9af099093af0f28" kindref="member">scales_K</ref>;</highlight></codeline>
+<codeline lineno="146" refid="structie__kv__cache_1a90a02bd220428271d6f5be5b0a8745fe" refkind="member"><highlight class="normal"><sp/><sp/>int8_t<sp/>*<ref refid="structie__kv__cache_1a90a02bd220428271d6f5be5b0a8745fe" kindref="member">zeros_K</ref>;</highlight></codeline>
+<codeline lineno="147" refid="structie__kv__cache_1afe4d4cb4c8c4e59be84c73d5203a77e3" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/><sp/>*<ref refid="structie__kv__cache_1afe4d4cb4c8c4e59be84c73d5203a77e3" kindref="member">scales_V</ref>;</highlight></codeline>
+<codeline lineno="148" refid="structie__kv__cache_1a9b1537532ffecc9a1c908e20a9ec4b47" refkind="member"><highlight class="normal"><sp/><sp/>int8_t<sp/>*<ref refid="structie__kv__cache_1a9b1537532ffecc9a1c908e20a9ec4b47" kindref="member">zeros_V</ref>;</highlight></codeline>
+<codeline lineno="149"><highlight class="normal"></highlight></codeline>
+<codeline lineno="150"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">/*<sp/>Small<sp/>scratch<sp/>buffers<sp/>(point<sp/>inside<sp/>backing<sp/>slab;<sp/>optional)<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="151" refid="structie__kv__cache_1ab4f603366f788231cb7b581779b67757" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/><sp/>*<ref refid="structie__kv__cache_1ab4f603366f788231cb7b581779b67757" kindref="member">scratch_scales</ref>;<sp/></highlight></codeline>
+<codeline lineno="152" refid="structie__kv__cache_1a89862af24ed09eb19150bd357cc35e73" refkind="member"><highlight class="normal"><sp/><sp/>int8_t<sp/>*<ref refid="structie__kv__cache_1a89862af24ed09eb19150bd357cc35e73" kindref="member">scratch_zeros</ref>;<sp/><sp/></highlight></codeline>
+<codeline lineno="153" refid="structie__kv__cache_1ac494dfb9f08348467d30dcac09f5450a" refkind="member"><highlight class="normal"><sp/><sp/>uint8_t<sp/>*<ref refid="structie__kv__cache_1ac494dfb9f08348467d30dcac09f5450a" kindref="member">scratch_u8</ref>;<sp/><sp/><sp/><sp/></highlight></codeline>
+<codeline lineno="155"><highlight class="normal"><sp/><sp/></highlight><highlight class="comment">/*<sp/>Ownership<sp/>of<sp/>the<sp/>backing<sp/>slab<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="156" refid="structie__kv__cache_1a2929afee951e4b53bac9631ce23c0520" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>*<ref refid="structie__kv__cache_1a2929afee951e4b53bac9631ce23c0520" kindref="member">backing</ref>;<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight></codeline>
+<codeline lineno="157" refid="structie__kv__cache_1acb898a4dab6c3b24eaec7e62ef8451f5" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/><ref refid="structie__kv__cache_1acb898a4dab6c3b24eaec7e62ef8451f5" kindref="member">backing_bytes</ref>;<sp/><sp/><sp/></highlight></codeline>
+<codeline lineno="158" refid="structie__kv__cache_1a1ae2fa7fdf862db1242b940a7ced2d87" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="structie__kv__cache_1a1ae2fa7fdf862db1242b940a7ced2d87" kindref="member">backing_owner</ref>;<sp/><sp/><sp/><sp/><sp/><sp/></highlight></codeline>
+<codeline lineno="159" refid="ie__kv__cache_8h_1ac8ed54f6c843f425493cdf42d6e01aca" refkind="member"><highlight class="normal">}<sp/><ref refid="structie__kv__cache" kindref="compound">ie_kv_cache</ref>;</highlight></codeline>
+<codeline lineno="160"><highlight class="normal"></highlight></codeline>
+<codeline lineno="161"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>-------------------------------------------------------------------------<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="162"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>Public<sp/>API<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="163"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>-------------------------------------------------------------------------<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="164"><highlight class="normal"></highlight></codeline>
+<codeline lineno="171"><highlight class="normal"></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/><ref refid="ie__kv__cache_8h_1a8a85b8af06f6fa492264e4ddffd43c59" kindref="member">ie_kv_element_size</ref>(<ref refid="ie__kv__cache_8h_1a2bb962f9a31709cc159ccb5f8c8f2fe7" kindref="member">ie_kv_storage_type</ref><sp/>storage);</highlight></codeline>
+<codeline lineno="172"><highlight class="normal"></highlight></codeline>
+<codeline lineno="180"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="ie__kv__cache_8h_1aee468d29a9d01d0168240ac86b9de0be" kindref="member">ie_kv_init</ref>(<ref refid="structie__kv__cache" kindref="compound">ie_kv_cache</ref><sp/>*kv,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="structie__kv__opts" kindref="compound">ie_kv_opts</ref><sp/>*opts);</highlight></codeline>
+<codeline lineno="181"><highlight class="normal"></highlight></codeline>
+<codeline lineno="200"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="ie__kv__cache_8h_1ab44456fc4842c15b2091f0a059e06584" kindref="member">ie_kv_init_layers</ref>(<ref refid="structie__kv__cache" kindref="compound">ie_kv_cache</ref><sp/>*kv_layers,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>n_layers,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="structie__kv__opts" kindref="compound">ie_kv_opts</ref><sp/>*opts);</highlight></codeline>
+<codeline lineno="201"><highlight class="normal"></highlight></codeline>
+<codeline lineno="207"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="ie__kv__cache_8h_1a3162328c77fddbae7e49b4c5e811c0d4" kindref="member">ie_kv_free</ref>(<ref refid="structie__kv__cache" kindref="compound">ie_kv_cache</ref><sp/>*kv);</highlight></codeline>
+<codeline lineno="208"><highlight class="normal"></highlight></codeline>
+<codeline lineno="215"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="ie__kv__cache_8h_1a555aaa1e797b4ef229ad911a7a6ee8b5" kindref="member">ie_kv_free_layers</ref>(<ref refid="structie__kv__cache" kindref="compound">ie_kv_cache</ref><sp/>*kv_layers,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>n_layers);</highlight></codeline>
+<codeline lineno="216"><highlight class="normal"></highlight></codeline>
+<codeline lineno="229"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="ie__kv__cache_8h_1ae4ab616a9e9d6e030e7ba634404f114e" kindref="member">ie_kv_store_token_f32</ref>(<ref refid="structie__kv__cache" kindref="compound">ie_kv_cache</ref><sp/>*kv,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>t,</highlight></codeline>
+<codeline lineno="230"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*K_f32,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*V_f32);</highlight></codeline>
+<codeline lineno="231"><highlight class="normal"></highlight></codeline>
+<codeline lineno="245"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="ie__kv__cache_8h_1a60418a220d683776a9ff5e04783e67d6" kindref="member">ie_kv_store_token_int8_per_tensor</ref>(<ref refid="structie__kv__cache" kindref="compound">ie_kv_cache</ref><sp/>*kv,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>t,</highlight></codeline>
+<codeline lineno="246"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*K_f32,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*V_f32);</highlight></codeline>
+<codeline lineno="247"><highlight class="normal"></highlight></codeline>
+<codeline lineno="261"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="ie__kv__cache_8h_1a5b546a5423f4572607a07d8d55146024" kindref="member">ie_kv_store_token_int8_per_group</ref>(<ref refid="structie__kv__cache" kindref="compound">ie_kv_cache</ref><sp/>*kv,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>t,</highlight></codeline>
+<codeline lineno="262"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*K_f32,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*V_f32);</highlight></codeline>
+<codeline lineno="263"><highlight class="normal"></highlight></codeline>
+<codeline lineno="276"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="ie__kv__cache_8h_1ac56756d0ff12628cbbba305e3c8af8a9" kindref="member">ie_kv_store_token_fp8</ref>(<ref refid="structie__kv__cache" kindref="compound">ie_kv_cache</ref><sp/>*kv,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>t,</highlight></codeline>
+<codeline lineno="277"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*K_f32,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*V_f32);</highlight></codeline>
+<codeline lineno="278"><highlight class="normal"></highlight></codeline>
+<codeline lineno="288"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="ie__kv__cache_8h_1ac4d09efdefb7662b78e44d9b2127bdcf" kindref="member">ie_kv_load_token_f32</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="structie__kv__cache" kindref="compound">ie_kv_cache</ref><sp/>*kv,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>t,</highlight></codeline>
+<codeline lineno="289"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*K_out,<sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*V_out);</highlight></codeline>
+<codeline lineno="290"><highlight class="normal"></highlight></codeline>
+<codeline lineno="300"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="ie__kv__cache_8h_1a99cb88be3bf32cf8750382537f3d2139" kindref="member">ie_kv_raw_ptrs</ref>(<ref refid="structie__kv__cache" kindref="compound">ie_kv_cache</ref><sp/>*kv,<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>**out_K,<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>**out_V,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>*out_lds);</highlight></codeline>
+<codeline lineno="301"><highlight class="normal"></highlight></codeline>
+<codeline lineno="317"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="ie__kv__cache_8h_1a11517bdeb9493f0101a66c23a00ea3f6" kindref="member">ie_kv_raw_strides</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="structie__kv__cache" kindref="compound">ie_kv_cache</ref><sp/>*kv,</highlight></codeline>
+<codeline lineno="318"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>*stride_t,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>*stride_h,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>*stride_d);</highlight></codeline>
+<codeline lineno="319"><highlight class="normal"></highlight></codeline>
+<codeline lineno="320"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="321"><highlight class="normal">}<sp/></highlight><highlight class="comment">/*<sp/>extern<sp/>&quot;C&quot;<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="322"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="323"><highlight class="normal"></highlight></codeline>
+<codeline lineno="324"><highlight class="normal"></highlight><highlight class="preprocessor">#endif<sp/></highlight><highlight class="comment">/*<sp/>IE_KV_CACHE_H<sp/>*/</highlight><highlight class="preprocessor"></highlight></codeline>
     </programlisting>
     <location file="engine/include/ie_kv_cache.h"/>
   </compounddef>

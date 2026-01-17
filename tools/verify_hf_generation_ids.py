@@ -9,7 +9,7 @@ This is designed to work *before* decode/vocab alignment is fixed.
 How it works:
 - The engine produces a JSONL "trace" with (at minimum):
   1) One "prompt" record per prompt:
-     {"kind":"prompt","prompt_index":0,"prompt_token_ids":[...]}
+     {"kind":"prompt","prompt_index":0,"prompt_token_ids":[...], "prompt":"..."}
   2) One "gen_step" record per generation step:
      {"kind":"gen_step","prompt_index":0,"step":0,"next_id":123}
      Optionally include:
@@ -54,6 +54,7 @@ class Step:
 @dataclass
 class PromptTrace:
     prompt_index: int
+    prompt_text: Optional[str]
     prompt_token_ids: List[int]
     steps: List[Step]
 
@@ -80,10 +81,16 @@ def _load_trace(path: str) -> List[PromptTrace]:
         kind = str(o.get("kind", ""))
         if kind == "prompt":
             pi = int(o["prompt_index"])
+            ptxt = o.get("prompt")
             ids = o.get("prompt_token_ids")
             if not isinstance(ids, list) or not all(isinstance(x, int) for x in ids):
                 raise ValueError(f"Trace prompt record missing/invalid prompt_token_ids (prompt_index={pi})")
-            prompts[pi] = PromptTrace(prompt_index=pi, prompt_token_ids=[int(x) for x in ids], steps=[])
+            prompts[pi] = PromptTrace(
+                prompt_index=pi,
+                prompt_text=str(ptxt) if isinstance(ptxt, str) else None,
+                prompt_token_ids=[int(x) for x in ids],
+                steps=[],
+            )
         elif kind == "gen_step":
             pi = int(o["prompt_index"])
             st = int(o["step"])
@@ -101,7 +108,7 @@ def _load_trace(path: str) -> List[PromptTrace]:
 
             if pi not in prompts:
                 # Allow traces that emit steps before the prompt record by creating a stub.
-                prompts[pi] = PromptTrace(prompt_index=pi, prompt_token_ids=[], steps=[])
+                prompts[pi] = PromptTrace(prompt_index=pi, prompt_text=None, prompt_token_ids=[], steps=[])
 
             prompts[pi].steps.append(Step(step=st, next_id=nid, topk_ids=tk_ids, topk_logits=tk_logits))
 
@@ -166,6 +173,31 @@ def _compare_topk(
     return True, None
 
 
+def _check_prompt_tokens(
+    tokenizer: Any,
+    prompt_text: str,
+    prompt_ids: List[int],
+) -> Tuple[bool, Optional[Dict[str, Any]]]:
+    hf_ids = tokenizer.encode(prompt_text, add_special_tokens=False)
+    if hf_ids == prompt_ids:
+        return True, None
+    # Report first mismatch and lengths for quick debugging.
+    min_len = min(len(hf_ids), len(prompt_ids))
+    mismatch_at = None
+    for i in range(min_len):
+        if int(hf_ids[i]) != int(prompt_ids[i]):
+            mismatch_at = i
+            break
+    return False, {
+        "reason": "prompt_token_ids_mismatch",
+        "engine_len": len(prompt_ids),
+        "hf_len": len(hf_ids),
+        "mismatch_index": mismatch_at,
+        "engine_id": int(prompt_ids[mismatch_at]) if mismatch_at is not None else None,
+        "hf_id": int(hf_ids[mismatch_at]) if mismatch_at is not None else None,
+    }
+
+
 def _verify_prompt(
     model: Any,
     prompt_ids: List[int],
@@ -227,6 +259,7 @@ def _parse() -> argparse.Namespace:
     p.add_argument("--max-prompts", type=int, default=0, help="If >0, verify only first N prompts.")
     p.add_argument("--topk", type=int, default=0, help="If >0, compare top-k IDs/logits when present in trace.")
     p.add_argument("--logits-tol", type=float, default=None, help="If set, max abs diff allowed for top-k logits.")
+    p.add_argument("--check-prompt", action="store_true", help="Verify prompt tokenization against HF tokenizer.")
     p.add_argument("--out", required=True, help="Output JSON path.")
     return p.parse_args()
 
@@ -242,7 +275,7 @@ def main() -> int:
 
     # Tokenizer not strictly required for ID-level checks, but loading it ensures
     # the HF folder is complete and config is readable.
-    _ = AutoTokenizer.from_pretrained(args.hf_dir, use_fast=True)
+    tok = AutoTokenizer.from_pretrained(args.hf_dir, use_fast=True)
 
     # Load model
     # - On CUDA, default to half precision to reduce VRAM unless the user requests otherwise.
@@ -263,6 +296,15 @@ def main() -> int:
     first_fail: Optional[Dict[str, Any]] = None
 
     for pt in traces:
+        prompt_ok = True
+        prompt_mismatch: Optional[Dict[str, Any]] = None
+        if args.check_prompt:
+            if not pt.prompt_text:
+                prompt_ok = False
+                prompt_mismatch = {"reason": "prompt_text_missing"}
+            else:
+                prompt_ok, prompt_mismatch = _check_prompt_tokens(tok, pt.prompt_text, pt.prompt_token_ids)
+
         r = _verify_prompt(
             model=model,
             prompt_ids=pt.prompt_token_ids,
@@ -275,12 +317,17 @@ def main() -> int:
             "prompt_index": pt.prompt_index,
             "prompt_len": len(pt.prompt_token_ids),
             "gen_steps": len(pt.steps),
+            "prompt_ok": prompt_ok,
+            "prompt_mismatch": prompt_mismatch,
             **r,
         }
         results.append(rec)
-        if not rec["ok"] and overall_ok:
+        if (not rec["ok"] or not prompt_ok) and overall_ok:
             overall_ok = False
-            first_fail = {"prompt_index": pt.prompt_index, **(rec.get("first_mismatch") or {})}
+            if not prompt_ok:
+                first_fail = {"prompt_index": pt.prompt_index, **(prompt_mismatch or {})}
+            else:
+                first_fail = {"prompt_index": pt.prompt_index, **(rec.get("first_mismatch") or {})}
 
     out = {
         "ok": overall_ok,

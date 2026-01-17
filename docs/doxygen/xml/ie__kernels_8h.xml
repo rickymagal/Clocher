@@ -6,8 +6,14 @@
     <includes local="no">stdint.h</includes>
     <includes refid="ie__quant__act_8h" local="yes">ie_quant_act.h</includes>
     <includedby refid="ie__device__common_8c" local="yes">engine/src/devices/ie_device_common.c</includedby>
+    <includedby refid="attn__cpu_8c" local="yes">engine/src/kernels/attn_cpu.c</includedby>
     <includedby refid="gemv__avx2_8c" local="yes">engine/src/kernels/gemv_avx2.c</includedby>
     <includedby refid="gemv__generic_8c" local="yes">engine/src/kernels/gemv_generic.c</includedby>
+    <includedby refid="gemv__q4__avx2_8c" local="yes">engine/src/kernels/gemv_q4_avx2.c</includedby>
+    <includedby refid="gemv__q4__generic_8c" local="yes">engine/src/kernels/gemv_q4_generic.c</includedby>
+    <includedby refid="mlp__cpu_8c" local="yes">engine/src/kernels/mlp_cpu.c</includedby>
+    <includedby refid="rmsnorm__cpu_8c" local="yes">engine/src/kernels/rmsnorm_cpu.c</includedby>
+    <includedby refid="infer__gptoss_8c" local="yes">engine/src/runtime/infer_gptoss.c</includedby>
     <includedby refid="test__kernels_8c" local="yes">tests/c/test_kernels.c</includedby>
     <incdepgraph>
       <node id="1">
@@ -47,32 +53,68 @@
         </childnode>
         <childnode refid="5" relation="include">
         </childnode>
+        <childnode refid="6" relation="include">
+        </childnode>
+        <childnode refid="7" relation="include">
+        </childnode>
+        <childnode refid="8" relation="include">
+        </childnode>
+        <childnode refid="9" relation="include">
+        </childnode>
+        <childnode refid="10" relation="include">
+        </childnode>
+        <childnode refid="11" relation="include">
+        </childnode>
       </node>
       <node id="2">
         <label>engine/src/devices/ie_device_common.c</label>
         <link refid="ie__device__common_8c"/>
       </node>
       <node id="3">
+        <label>engine/src/kernels/attn_cpu.c</label>
+        <link refid="attn__cpu_8c"/>
+      </node>
+      <node id="4">
         <label>engine/src/kernels/gemv_avx2.c</label>
         <link refid="gemv__avx2_8c"/>
       </node>
-      <node id="4">
+      <node id="5">
         <label>engine/src/kernels/gemv_generic.c</label>
         <link refid="gemv__generic_8c"/>
       </node>
-      <node id="5">
+      <node id="6">
+        <label>engine/src/kernels/gemv_q4_avx2.c</label>
+        <link refid="gemv__q4__avx2_8c"/>
+      </node>
+      <node id="7">
+        <label>engine/src/kernels/gemv_q4_generic.c</label>
+        <link refid="gemv__q4__generic_8c"/>
+      </node>
+      <node id="8">
+        <label>engine/src/kernels/mlp_cpu.c</label>
+        <link refid="mlp__cpu_8c"/>
+      </node>
+      <node id="9">
+        <label>engine/src/kernels/rmsnorm_cpu.c</label>
+        <link refid="rmsnorm__cpu_8c"/>
+      </node>
+      <node id="10">
+        <label>engine/src/runtime/infer_gptoss.c</label>
+        <link refid="infer__gptoss_8c"/>
+      </node>
+      <node id="11">
         <label>tests/c/test_kernels.c</label>
         <link refid="test__kernels_8c"/>
       </node>
     </invincdepgraph>
     <sectiondef kind="func">
       <memberdef kind="function" id="ie__kernels_8h_1a1b919f71b86ec1791fe53bc68d5c240d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
-        <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">void</ref></type>
+        <type>void</type>
         <definition>void ie_kernels_install</definition>
         <argsstring>(int use_avx2)</argsstring>
         <name>ie_kernels_install</name>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">int</ref></type>
+          <type>int</type>
           <declname>use_avx2</declname>
         </param>
         <briefdescription>
@@ -85,18 +127,7 @@
 <parametername>use_avx2</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Non-zero to allow selecting AVX2/FMA-optimized paths.</para>
-</parameterdescription>
-</parameteritem>
-</parameterlist>
-Install the best available CPU kernels for this process.</para>
-<para>On x86 (GCC/Clang), installs the AVX2/FMA implementation when allowed and supported by the CPU. Otherwise, installs the generic C fallback.</para>
-<para><parameterlist kind="param"><parameteritem>
-<parameternamelist>
-<parametername>use_avx2</parametername>
-</parameternamelist>
-<parameterdescription>
-<para>Non-zero to allow selecting AVX2/FMA implementation. </para>
+<para>Non-zero to allow selecting AVX2/FMA-optimized paths. </para>
 </parameterdescription>
 </parameteritem>
 </parameterlist>
@@ -104,45 +135,57 @@ Install the best available CPU kernels for this process.</para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="engine/include/ie_kernels.h" line="40" column="6" bodyfile="engine/src/kernels/gemv_generic.c" bodystart="289" bodyend="307" declfile="engine/include/ie_kernels.h" declline="40" declcolumn="6"/>
-        <references refid="gemv__generic_8c_1a51096a373f5e5010d39cbf44e34b730d" compoundref="gemv__generic_8c" startline="95" endline="117">gemv_generic_impl</references>
-        <references refid="gemv__generic_8c_1a63b484c2984caeed7dfc9b5002444f57" compoundref="gemv__avx2_8c" startline="90" endline="166">ie_gemv_f32_avx2_impl</references>
-        <references refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" compoundref="ie__device__cuda_8cu" startline="92" endline="110">ie_gemv_rowwise_f32_kernel</references>
-        <references refid="gemv__generic_8c_1aa80eb69d355054f1f8213721e72bec9a" compoundref="gemv__generic_8c" startline="73">s_gemv_f32</references>
-        <referencedby refid="ie__kernels_8h_1a4e112b3396ed21919f404631c1d4d7fb" compoundref="gemv__generic_8c" startline="323" endline="327">ie_gemv_f32</referencedby>
+        <location file="engine/include/ie_kernels.h" line="42" column="6" bodyfile="engine/src/kernels/gemv_generic.c" bodystart="168" bodyend="213" declfile="engine/include/ie_kernels.h" declline="42" declcolumn="6"/>
+        <references refid="structie__cpu__features_1a596807f0a67776f84750fc9ab34bfeb3" compoundref="ie__cpu_8h" startline="39">ie_cpu_features::avx2</references>
+        <references refid="structie__cpu__features_1a56cc6e61e2073253c3fe97db5d621f21" compoundref="ie__cpu_8h" startline="41">ie_cpu_features::fma</references>
+        <references refid="gemv__generic_8c_1a99b3b10b4668e12f4de83a83d8fae43a" compoundref="gemv__generic_8c" startline="32">g_gemv_bf16</references>
+        <references refid="gemv__generic_8c_1a0c99d34eff9213d48f521b2cbffa7980" compoundref="gemv__generic_8c" startline="31">g_gemv_f32</references>
+        <references refid="gemv__generic_8c_1ab98063423e25c0652c7f83809a5a7904" compoundref="gemv__generic_8c" startline="34">g_gemv_qi8</references>
+        <references refid="gemv__generic_8c_1a9c34d49b2d4e036ba9618ee89eb8dc73" compoundref="gemv__generic_8c" startline="33">g_vec_bf16_to_f32</references>
+        <references refid="ie__cpu_8h_1a52efeab08d996ee1bef746c591684b9d" compoundref="cpu__features_8c" startline="111" endline="169">ie_cpu_features_detect</references>
+        <references refid="gemv__avx2_8c_1a77b098e769256a6b3dc5cee67134585d" compoundref="gemv__avx2_8c" startline="77" endline="136">ie_gemv_bf16_f32_avx2_impl</references>
+        <references refid="gemv__generic_8c_1a07fc9251edf42c12732cce490f6dbec0" compoundref="gemv__generic_8c" startline="92" endline="109">ie_gemv_bf16_generic_impl</references>
+        <references refid="gemv__avx2_8c_1acaba4ae4061c51c21ce544cdef0abfeb" compoundref="gemv__avx2_8c" startline="139" endline="166">ie_gemv_f32_avx2_impl</references>
+        <references refid="gemv__generic_8c_1a2458b36cdf25be06d49e73da98c27a66" compoundref="gemv__generic_8c" startline="57" endline="74">ie_gemv_f32_generic_impl</references>
+        <references refid="gemv__avx2_8c_1a061189cc7f89d42b42e03eccedb0a59e" compoundref="gemv__avx2_8c" startline="169" endline="207">ie_gemv_qi8_avx2_impl</references>
+        <references refid="gemv__generic_8c_1a3e532847f3b6cd6a2ed3be0786ee18ce" compoundref="gemv__generic_8c" startline="151" endline="166">ie_gemv_qi8_stub_impl</references>
+        <references refid="gemv__generic_8c_1abdc04113c83880ea48ee1599cf3db331" compoundref="gemv__generic_8c" startline="40" endline="55">ie_log_kernel_once</references>
+        <references refid="gemv__avx2_8c_1a182d6274d92f1f94910f1881e7cd3b19" compoundref="gemv__avx2_8c" startline="59" endline="74">ie_vec_bf16_to_f32_avx2_impl</references>
+        <references refid="gemv__generic_8c_1a9d75736f9f9d37cbc2bb7fe37c06cc55" compoundref="gemv__generic_8c" startline="85" endline="90">ie_vec_bf16_to_f32_generic_impl</references>
+        <referencedby refid="gemv__generic_8c_1afcee3c04ff97cb24bf4d3d84cbe1b9e7" compoundref="gemv__generic_8c" startline="215" endline="218">ie_kernels_lazy_init</referencedby>
         <referencedby refid="test__kernels_8c_1a840291bc02cba5474a4cb46a9b9566fe" compoundref="test__kernels_8c" startline="149" endline="163">main</referencedby>
       </memberdef>
       <memberdef kind="function" id="ie__kernels_8h_1a4e112b3396ed21919f404631c1d4d7fb" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
-        <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">void</ref></type>
+        <type>void</type>
         <definition>void ie_gemv_f32</definition>
         <argsstring>(const float *W, const float *x, float *y, size_t rows, size_t cols, const float *bias, size_t blk_k)</argsstring>
         <name>ie_gemv_f32</name>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">const</ref> <ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">float</ref> *</type>
+          <type>const float *</type>
           <declname>W</declname>
         </param>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">const</ref> <ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">float</ref> *</type>
+          <type>const float *</type>
           <declname>x</declname>
         </param>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">float</ref> *</type>
+          <type>float *</type>
           <declname>y</declname>
         </param>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">size_t</ref></type>
+          <type>size_t</type>
           <declname>rows</declname>
         </param>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">size_t</ref></type>
+          <type>size_t</type>
           <declname>cols</declname>
         </param>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">const</ref> <ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">float</ref> *</type>
+          <type>const float *</type>
           <declname>bias</declname>
         </param>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">size_t</ref></type>
+          <type>size_t</type>
           <declname>blk_k</declname>
         </param>
         <briefdescription>
@@ -208,18 +251,117 @@ Install the best available CPU kernels for this process.</para>
 <parametername>blk_k</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Column block size for blocked-K layout; 0 for plain row-major.</para>
+<para>Column block size for blocked-K layout; 0 for plain row-major. </para>
 </parameterdescription>
 </parameteritem>
 </parameterlist>
-GEMV (fp32): y[r] = dot(W[r,:], x) + (bias ? bias[r] : 0).</para>
-<para>If kernels were not installed yet, calls <ref refid="ie__kernels_8h_1a1b919f71b86ec1791fe53bc68d5c240d" kindref="member">ie_kernels_install</ref> with AVX2 enabled.</para>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/ie_kernels.h" line="63" column="6" bodyfile="engine/src/kernels/gemv_generic.c" bodystart="247" bodyend="252" declfile="engine/include/ie_kernels.h" declline="63" declcolumn="6"/>
+        <references refid="gemv__generic_8c_1a0c99d34eff9213d48f521b2cbffa7980" compoundref="gemv__generic_8c" startline="31">g_gemv_f32</references>
+        <references refid="gemv__generic_8c_1afcee3c04ff97cb24bf4d3d84cbe1b9e7" compoundref="gemv__generic_8c" startline="215" endline="218">ie_kernels_lazy_init</references>
+        <referencedby refid="ie__device__common_8c_1a4fb9bb01bfbe71517f9df925ba9c93ec" compoundref="ie__device__common_8c" startline="105" endline="114">cpu_gemv_f32</referencedby>
+        <referencedby refid="infer__gptoss_8c_1a463151430d9b4dce6eae9210c3c598f0" compoundref="infer__gptoss_8c" startline="1359" endline="1694">ie_forward_one_token</referencedby>
+        <referencedby refid="ie__kernels_8h_1a8a3953a6293e3c65e33e01b746d9b0a2" compoundref="mlp__cpu_8c" startline="44" endline="60">ie_mlp_cpu_swiglu_f32</referencedby>
+        <referencedby refid="test__kernels_8c_1a0ac9b0c3b1d865ef69bd2bc69d14a685" compoundref="test__kernels_8c" startline="109" endline="122">test_gemv_rowmajor_no_bias</referencedby>
+        <referencedby refid="test__kernels_8c_1a2305be22b4279f3ac4d55f90584569cb" compoundref="test__kernels_8c" startline="129" endline="142">test_gemv_rowmajor_with_bias</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="ie__kernels_8h_1a782b7a53732be7ae0a2f0eb663e36321" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ie_vec_bf16_to_f32</definition>
+        <argsstring>(const uint16_t *in, float *out, size_t n)</argsstring>
+        <name>ie_vec_bf16_to_f32</name>
+        <param>
+          <type>const uint16_t *</type>
+          <declname>in</declname>
+        </param>
+        <param>
+          <type>float *</type>
+          <declname>out</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>n</declname>
+        </param>
+        <briefdescription>
+<para>Convert BF16 vector to FP32. </para>
+        </briefdescription>
+        <detaileddescription>
 <para><parameterlist kind="param"><parameteritem>
 <parameternamelist>
-<parametername>W</parametername>
+<parametername>in</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Weights. </para>
+<para>BF16 input (length n). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>out</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>FP32 output (length n). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>n</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of elements. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/ie_kernels.h" line="74" column="6" bodyfile="engine/src/kernels/gemv_generic.c" bodystart="220" bodyend="223" declfile="engine/include/ie_kernels.h" declline="74" declcolumn="6"/>
+        <references refid="gemv__generic_8c_1a9c34d49b2d4e036ba9618ee89eb8dc73" compoundref="gemv__generic_8c" startline="33">g_vec_bf16_to_f32</references>
+        <references refid="gemv__generic_8c_1afcee3c04ff97cb24bf4d3d84cbe1b9e7" compoundref="gemv__generic_8c" startline="215" endline="218">ie_kernels_lazy_init</references>
+        <referencedby refid="infer__gptoss_8c_1a3f5367f4da6656ff7ce2107ed7b9f8d2" compoundref="infer__gptoss_8c" startline="672" endline="681">ie_alloc_f32_from_bf16</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="ie__kernels_8h_1a9af71dd562560ec249ffd6cf70013282" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int ie_gemv_bf16_f32</definition>
+        <argsstring>(const uint16_t *W_bf16, const float *x, float *y, size_t rows, size_t cols, const uint16_t *bias_bf16)</argsstring>
+        <name>ie_gemv_bf16_f32</name>
+        <param>
+          <type>const uint16_t *</type>
+          <declname>W_bf16</declname>
+        </param>
+        <param>
+          <type>const float *</type>
+          <declname>x</declname>
+        </param>
+        <param>
+          <type>float *</type>
+          <declname>y</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>rows</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>cols</declname>
+        </param>
+        <param>
+          <type>const uint16_t *</type>
+          <declname>bias_bf16</declname>
+        </param>
+        <briefdescription>
+<para>GEMV with BF16 weights and FP32 activations. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>W_bf16</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>BF16 weights (row-major). </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -227,7 +369,7 @@ GEMV (fp32): y[r] = dot(W[r,:], x) + (bias ? bias[r] : 0).</para>
 <parametername>x</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Input vector. </para>
+<para>FP32 input vector. </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -235,7 +377,7 @@ GEMV (fp32): y[r] = dot(W[r,:], x) + (bias ? bias[r] : 0).</para>
 <parametername>y</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Output vector. </para>
+<para>FP32 output vector. </para>
 </parameterdescription>
 </parameteritem>
 <parameteritem>
@@ -256,64 +398,326 @@ GEMV (fp32): y[r] = dot(W[r,:], x) + (bias ? bias[r] : 0).</para>
 </parameteritem>
 <parameteritem>
 <parameternamelist>
-<parametername>bias</parametername>
+<parametername>bias_bf16</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Optional bias. </para>
-</parameterdescription>
-</parameteritem>
-<parameteritem>
-<parameternamelist>
-<parametername>blk_k</parametername>
-</parameternamelist>
-<parameterdescription>
-<para>Column block size; 0 disables blocking. </para>
+<para>Optional BF16 bias or NULL. </para>
 </parameterdescription>
 </parameteritem>
 </parameterlist>
+<simplesect kind="return"><para>0 on success, non-zero on invalid args. </para>
+</simplesect>
 </para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="engine/include/ie_kernels.h" line="61" column="6" bodyfile="engine/src/kernels/gemv_generic.c" bodystart="323" bodyend="327" declfile="engine/include/ie_kernels.h" declline="61" declcolumn="6"/>
-        <references refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" compoundref="ie__device__cuda_8cu" startline="92" endline="110">ie_gemv_rowwise_f32_kernel</references>
-        <references refid="gemv__generic_8c_1a1b919f71b86ec1791fe53bc68d5c240d" compoundref="gemv__generic_8c" startline="289" endline="307">ie_kernels_install</references>
-        <references refid="gemv__generic_8c_1aa80eb69d355054f1f8213721e72bec9a" compoundref="gemv__generic_8c" startline="73">s_gemv_f32</references>
-        <referencedby refid="ie__device__common_8c_1a4fb9bb01bfbe71517f9df925ba9c93ec" compoundref="ie__device__common_8c" startline="96" endline="105">cpu_gemv_f32</referencedby>
-        <referencedby refid="test__kernels_8c_1a0ac9b0c3b1d865ef69bd2bc69d14a685" compoundref="test__kernels_8c" startline="109" endline="122">test_gemv_rowmajor_no_bias</referencedby>
-        <referencedby refid="test__kernels_8c_1a2305be22b4279f3ac4d55f90584569cb" compoundref="test__kernels_8c" startline="129" endline="142">test_gemv_rowmajor_with_bias</referencedby>
+        <location file="engine/include/ie_kernels.h" line="87" column="5" bodyfile="engine/src/kernels/gemv_generic.c" bodystart="225" bodyend="245" declfile="engine/include/ie_kernels.h" declline="87" declcolumn="5"/>
+        <references refid="gemv__generic_8c_1af77c5ba10ee3be746b9a762cb88eba5c" compoundref="gemv__generic_8c" startline="38">g_bf16_threads</references>
+        <references refid="gemv__generic_8c_1af0183479d666aabf13f15a65e4303f11" compoundref="gemv__generic_8c" startline="37">g_bf16_tp</references>
+        <references refid="gemv__generic_8c_1a99b3b10b4668e12f4de83a83d8fae43a" compoundref="gemv__generic_8c" startline="32">g_gemv_bf16</references>
+        <references refid="gemv__generic_8c_1a4305e41e37933fb79862884be39b7951" compoundref="gemv__generic_8c" startline="121" endline="128">ie_bf16_tp_init</references>
+        <references refid="gemv__generic_8c_1ad7d21f2b326ed2749d91ed74f5b4ab27" compoundref="gemv__generic_8c" startline="140" endline="149">ie_gemv_bf16_job_run</references>
+        <references refid="gemv__generic_8c_1afcee3c04ff97cb24bf4d3d84cbe1b9e7" compoundref="gemv__generic_8c" startline="215" endline="218">ie_kernels_lazy_init</references>
+        <references refid="ie__threadpool_8h_1ac3dd114f8b47a5fe0d22f8107a51e90f" compoundref="thread__pool_8c" startline="205" endline="248">ie_tp_parallel_for</references>
+        <references refid="structie__gemv__bf16__job__t_1a83d3ca33ed0fd1754fcb860d93a95428" compoundref="gemv__generic_8c" startline="131">ie_gemv_bf16_job_t::W_bf16</references>
+        <referencedby refid="infer__gptoss_8c_1a463151430d9b4dce6eae9210c3c598f0" compoundref="infer__gptoss_8c" startline="1359" endline="1694">ie_forward_one_token</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="ie__kernels_8h_1af0b48eb5cf241e9c033953abff9974ad" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int ie_gemv_q4_0_f32</definition>
+        <argsstring>(const uint8_t *W_q4, const uint8_t *W_scales, size_t scale_bytes, const float *x, float *y, size_t rows, size_t cols, const uint16_t *bias_bf16)</argsstring>
+        <name>ie_gemv_q4_0_f32</name>
+        <param>
+          <type>const uint8_t *</type>
+          <declname>W_q4</declname>
+          <defname>W_blocks</defname>
+        </param>
+        <param>
+          <type>const uint8_t *</type>
+          <declname>W_scales</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>scale_bytes</declname>
+        </param>
+        <param>
+          <type>const float *</type>
+          <declname>x</declname>
+        </param>
+        <param>
+          <type>float *</type>
+          <declname>y</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>rows</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>cols</declname>
+        </param>
+        <param>
+          <type>const uint16_t *</type>
+          <declname>bias_bf16</declname>
+        </param>
+        <briefdescription>
+<para>GEMV with Q4_0 weights and FP32 activations. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>W_q4</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Q4 blocks (row-major). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>W_scales</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Q4 scales (row-major, BF16 or FP8). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>scale_bytes</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Bytes per scale element (1 or 2). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>x</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>FP32 input vector. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>y</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>FP32 output vector. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>rows</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Rows. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>cols</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Cols. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>bias_bf16</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Optional BF16 bias or NULL. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>0 on success, non-zero on invalid args.</para>
+</simplesect>
+GEMV with Q4_0 weights and FP32 activations.</para>
+<para>The dispatch decision is cached after the first call. This avoids the need to modify global kernel initialization routines and ensures the symbol always resolves at link time. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/ie_kernels.h" line="104" column="5" bodyfile="engine/src/kernels/gemv_q4_generic.c" bodystart="228" bodyend="255" declfile="engine/include/ie_kernels.h" declline="104" declcolumn="5"/>
+        <references refid="structie__cpu__features_1a596807f0a67776f84750fc9ab34bfeb3" compoundref="ie__cpu_8h" startline="39">ie_cpu_features::avx2</references>
+        <references refid="structie__cpu__features_1a56cc6e61e2073253c3fe97db5d621f21" compoundref="ie__cpu_8h" startline="41">ie_cpu_features::fma</references>
+        <references refid="ie__cpu_8h_1a52efeab08d996ee1bef746c591684b9d" compoundref="cpu__features_8c" startline="111" endline="169">ie_cpu_features_detect</references>
+        <references refid="gemv__q4__generic_8c_1a2fea8f09ec3127c16d845dba817200b8" compoundref="gemv__q4__avx2_8c" startline="208" endline="247">ie_gemv_q4_0_f32_avx2_impl</references>
+        <references refid="gemv__q4__generic_8c_1ae94dc0f08cc7f3c822780a7cf605812a" compoundref="gemv__q4__generic_8c" startline="184" endline="218">ie_gemv_q4_0_f32_generic_impl</references>
+        <referencedby refid="ie__device__common_8c_1a9d5e38fae37da46a4112ebdbfa83667c" compoundref="ie__device__common_8c" startline="119" endline="130">cpu_gemv_q4_0_f32</referencedby>
+        <referencedby refid="infer__gptoss_8c_1a463151430d9b4dce6eae9210c3c598f0" compoundref="infer__gptoss_8c" startline="1359" endline="1694">ie_forward_one_token</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="ie__kernels_8h_1a43aede47b7769f5c605ba1687b0336ea" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ie_q4_log2_u8_q3_init_generic</definition>
+        <argsstring>(void)</argsstring>
+        <name>ie_q4_log2_u8_q3_init_generic</name>
+        <param>
+          <type>void</type>
+        </param>
+        <briefdescription>
+<para>Initialize log2(u8, q3) LUT for Q4 kernels (generic path). </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/ie_kernels.h" line="112" column="6" bodyfile="engine/src/kernels/gemv_q4_generic.c" bodystart="90" bodyend="94" declfile="engine/include/ie_kernels.h" declline="112" declcolumn="6"/>
+        <references refid="gemv__q4__generic_8c_1a0b7e711f14a960dd75261e196943ea83" compoundref="gemv__q4__generic_8c" startline="82" endline="88">ie_log2_u8_q3_init_impl_</references>
+        <references refid="gemv__q4__generic_8c_1a3b63c2730a4b79474a3ec82335dabca9" compoundref="gemv__q4__generic_8c" startline="80">ie_log2_u8_q3_ready_</references>
+        <referencedby refid="ie__infer_8h_1a569ac499d7bce188c1e21fa9377b9bae" compoundref="infer__gptoss_8c" startline="1700" endline="2290">ie_gptoss_infer_create</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="ie__kernels_8h_1acdd3012fa894dbd82a4156eb09074acd" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ie_q4_log2_u8_q3_init_avx2</definition>
+        <argsstring>(void)</argsstring>
+        <name>ie_q4_log2_u8_q3_init_avx2</name>
+        <param>
+          <type>void</type>
+        </param>
+        <briefdescription>
+<para>Initialize log2(u8, q3) LUT for Q4 kernels (AVX2 path). </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/ie_kernels.h" line="117" column="6" bodyfile="engine/src/kernels/gemv_q4_avx2.c" bodystart="76" bodyend="80" declfile="engine/include/ie_kernels.h" declline="117" declcolumn="6"/>
+        <references refid="gemv__q4__avx2_8c_1a0b7e711f14a960dd75261e196943ea83" compoundref="gemv__q4__avx2_8c" startline="68" endline="74">ie_log2_u8_q3_init_impl_</references>
+        <references refid="gemv__q4__avx2_8c_1a3b63c2730a4b79474a3ec82335dabca9" compoundref="gemv__q4__avx2_8c" startline="66">ie_log2_u8_q3_ready_</references>
+        <referencedby refid="ie__infer_8h_1a569ac499d7bce188c1e21fa9377b9bae" compoundref="infer__gptoss_8c" startline="1700" endline="2290">ie_gptoss_infer_create</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="ie__kernels_8h_1ab1e7e524867bacef0e21924d7332c1de" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int ie_gemv_q4_0_f32_fscale</definition>
+        <argsstring>(const uint8_t *W_q4, const float *W_scales, const float *x, float *y, size_t rows, size_t cols, const uint16_t *bias_bf16)</argsstring>
+        <name>ie_gemv_q4_0_f32_fscale</name>
+        <param>
+          <type>const uint8_t *</type>
+          <declname>W_q4</declname>
+        </param>
+        <param>
+          <type>const float *</type>
+          <declname>W_scales</declname>
+        </param>
+        <param>
+          <type>const float *</type>
+          <declname>x</declname>
+        </param>
+        <param>
+          <type>float *</type>
+          <declname>y</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>rows</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>cols</declname>
+        </param>
+        <param>
+          <type>const uint16_t *</type>
+          <declname>bias_bf16</declname>
+        </param>
+        <briefdescription>
+<para>GEMV with Q4_0 weights and predecoded FP32 scales. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>W_q4</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Q4 blocks (row-major). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>W_scales</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>FP32 scales (row-major). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>x</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>FP32 input vector. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>y</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>FP32 output vector. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>rows</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Rows. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>cols</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Cols. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>bias_bf16</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Optional BF16 bias or NULL. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>0 on success, non-zero on invalid args. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/ie_kernels.h" line="131" column="5" declfile="engine/include/ie_kernels.h" declline="131" declcolumn="5"/>
       </memberdef>
       <memberdef kind="function" id="ie__kernels_8h_1abd518beacb02189b5b640948ed348f25" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
-        <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">void</ref></type>
+        <type>void</type>
         <definition>void ie_gemv_qi8_f32</definition>
         <argsstring>(const float *W, const int8_t *x_q, float *y, size_t rows, size_t cols, const float *bias, size_t blk_k, ie_act_i8_params params, int symmetric)</argsstring>
         <name>ie_gemv_qi8_f32</name>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">const</ref> <ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">float</ref> *</type>
+          <type>const float *</type>
           <declname>W</declname>
         </param>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">const</ref> <ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">int8_t</ref> *</type>
+          <type>const int8_t *</type>
           <declname>x_q</declname>
         </param>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">float</ref> *</type>
+          <type>float *</type>
           <declname>y</declname>
         </param>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">size_t</ref></type>
+          <type>size_t</type>
           <declname>rows</declname>
         </param>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">size_t</ref></type>
+          <type>size_t</type>
           <declname>cols</declname>
         </param>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">const</ref> <ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">float</ref> *</type>
+          <type>const float *</type>
           <declname>bias</declname>
         </param>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">size_t</ref></type>
+          <type>size_t</type>
           <declname>blk_k</declname>
         </param>
         <param>
@@ -321,7 +725,7 @@ GEMV (fp32): y[r] = dot(W[r,:], x) + (bias ? bias[r] : 0).</para>
           <declname>params</declname>
         </param>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">int</ref></type>
+          <type>int</type>
           <declname>symmetric</declname>
         </param>
         <briefdescription>
@@ -398,82 +802,7 @@ GEMV (fp32): y[r] = dot(W[r,:], x) + (bias ? bias[r] : 0).</para>
 <parametername>symmetric</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Informational flag (unused by some paths).</para>
-</parameterdescription>
-</parameteritem>
-</parameterlist>
-GEMV with per-tensor INT8 activations (fused dequantization).</para>
-<para>Uses AVX2/FMA implementation when available; otherwise uses the C fused path.</para>
-<para><parameterlist kind="param"><parameteritem>
-<parameternamelist>
-<parametername>W</parametername>
-</parameternamelist>
-<parameterdescription>
-<para>Weights. </para>
-</parameterdescription>
-</parameteritem>
-<parameteritem>
-<parameternamelist>
-<parametername>x_q</parametername>
-</parameternamelist>
-<parameterdescription>
-<para>INT8 activations. </para>
-</parameterdescription>
-</parameteritem>
-<parameteritem>
-<parameternamelist>
-<parametername>y</parametername>
-</parameternamelist>
-<parameterdescription>
-<para>Output. </para>
-</parameterdescription>
-</parameteritem>
-<parameteritem>
-<parameternamelist>
-<parametername>rows</parametername>
-</parameternamelist>
-<parameterdescription>
-<para>Rows. </para>
-</parameterdescription>
-</parameteritem>
-<parameteritem>
-<parameternamelist>
-<parametername>cols</parametername>
-</parameternamelist>
-<parameterdescription>
-<para>Cols. </para>
-</parameterdescription>
-</parameteritem>
-<parameteritem>
-<parameternamelist>
-<parametername>bias</parametername>
-</parameternamelist>
-<parameterdescription>
-<para>Optional bias. </para>
-</parameterdescription>
-</parameteritem>
-<parameteritem>
-<parameternamelist>
-<parametername>blk_k</parametername>
-</parameternamelist>
-<parameterdescription>
-<para>Column block size; 0 disables blocking. </para>
-</parameterdescription>
-</parameteritem>
-<parameteritem>
-<parameternamelist>
-<parametername>params</parametername>
-</parameternamelist>
-<parameterdescription>
-<para>INT8 params. </para>
-</parameterdescription>
-</parameteritem>
-<parameteritem>
-<parameternamelist>
-<parametername>symmetric</parametername>
-</parameternamelist>
-<parameterdescription>
-<para>Informational flag. </para>
+<para>Informational flag (unused by some paths). </para>
 </parameterdescription>
 </parameteritem>
 </parameterlist>
@@ -481,58 +810,55 @@ GEMV with per-tensor INT8 activations (fused dequantization).</para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="engine/include/ie_kernels.h" line="84" column="6" bodyfile="engine/src/kernels/gemv_generic.c" bodystart="345" bodyend="357" declfile="engine/include/ie_kernels.h" declline="84" declcolumn="6"/>
-        <references refid="gemv__generic_8c_1aae97939d123420c09e5c3d4d7575b934" compoundref="gemv__generic_8c" startline="137" endline="166">gemv_qi8_f32_fused_c_impl</references>
-        <references refid="gemv__generic_8c_1aa8a6c887be55a3af970b49855f86682d" compoundref="gemv__avx2_8c" startline="186" endline="214">ie_gemv_qi8_f32_avx2_impl</references>
-        <references refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" compoundref="ie__device__cuda_8cu" startline="92" endline="110">ie_gemv_rowwise_f32_kernel</references>
+        <location file="engine/include/ie_kernels.h" line="155" column="6" declfile="engine/include/ie_kernels.h" declline="155" declcolumn="6"/>
       </memberdef>
       <memberdef kind="function" id="ie__kernels_8h_1abf2b6125d5d567523a5d113f09dd73ee" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
-        <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">void</ref></type>
+        <type>void</type>
         <definition>void ie_gemv_qi8pg_f32</definition>
         <argsstring>(const float *W, const int8_t *x_q, float *y, size_t rows, size_t cols, const float *bias, size_t blk_k, size_t group_size, const float *scales, const int8_t *zeros, int symmetric)</argsstring>
         <name>ie_gemv_qi8pg_f32</name>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">const</ref> <ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">float</ref> *</type>
+          <type>const float *</type>
           <declname>W</declname>
         </param>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">const</ref> <ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">int8_t</ref> *</type>
+          <type>const int8_t *</type>
           <declname>x_q</declname>
         </param>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">float</ref> *</type>
+          <type>float *</type>
           <declname>y</declname>
         </param>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">size_t</ref></type>
+          <type>size_t</type>
           <declname>rows</declname>
         </param>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">size_t</ref></type>
+          <type>size_t</type>
           <declname>cols</declname>
         </param>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">const</ref> <ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">float</ref> *</type>
+          <type>const float *</type>
           <declname>bias</declname>
         </param>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">size_t</ref></type>
+          <type>size_t</type>
           <declname>blk_k</declname>
         </param>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">size_t</ref></type>
+          <type>size_t</type>
           <declname>group_size</declname>
         </param>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">const</ref> <ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">float</ref> *</type>
+          <type>const float *</type>
           <declname>scales</declname>
         </param>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">const</ref> <ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">int8_t</ref> *</type>
+          <type>const int8_t *</type>
           <declname>zeros</declname>
         </param>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">int</ref></type>
+          <type>int</type>
           <declname>symmetric</declname>
         </param>
         <briefdescription>
@@ -625,96 +951,6 @@ GEMV with per-tensor INT8 activations (fused dequantization).</para>
 <parametername>symmetric</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Informational flag.</para>
-</parameterdescription>
-</parameteritem>
-</parameterlist>
-GEMV with per-group INT8 activations (blockwise parameters).</para>
-<para><parameterlist kind="param"><parameteritem>
-<parameternamelist>
-<parametername>W</parametername>
-</parameternamelist>
-<parameterdescription>
-<para>Weights. </para>
-</parameterdescription>
-</parameteritem>
-<parameteritem>
-<parameternamelist>
-<parametername>x_q</parametername>
-</parameternamelist>
-<parameterdescription>
-<para>INT8 activations. </para>
-</parameterdescription>
-</parameteritem>
-<parameteritem>
-<parameternamelist>
-<parametername>y</parametername>
-</parameternamelist>
-<parameterdescription>
-<para>Output. </para>
-</parameterdescription>
-</parameteritem>
-<parameteritem>
-<parameternamelist>
-<parametername>rows</parametername>
-</parameternamelist>
-<parameterdescription>
-<para>Rows. </para>
-</parameterdescription>
-</parameteritem>
-<parameteritem>
-<parameternamelist>
-<parametername>cols</parametername>
-</parameternamelist>
-<parameterdescription>
-<para>Cols. </para>
-</parameterdescription>
-</parameteritem>
-<parameteritem>
-<parameternamelist>
-<parametername>bias</parametername>
-</parameternamelist>
-<parameterdescription>
-<para>Optional bias. </para>
-</parameterdescription>
-</parameteritem>
-<parameteritem>
-<parameternamelist>
-<parametername>blk_k</parametername>
-</parameternamelist>
-<parameterdescription>
-<para>Column block size; 0 disables blocking. </para>
-</parameterdescription>
-</parameteritem>
-<parameteritem>
-<parameternamelist>
-<parametername>group_size</parametername>
-</parameternamelist>
-<parameterdescription>
-<para>Group size. </para>
-</parameterdescription>
-</parameteritem>
-<parameteritem>
-<parameternamelist>
-<parametername>scales</parametername>
-</parameternamelist>
-<parameterdescription>
-<para>Group scales. </para>
-</parameterdescription>
-</parameteritem>
-<parameteritem>
-<parameternamelist>
-<parametername>zeros</parametername>
-</parameternamelist>
-<parameterdescription>
-<para>Group zero points. </para>
-</parameterdescription>
-</parameteritem>
-<parameteritem>
-<parameternamelist>
-<parametername>symmetric</parametername>
-</parameternamelist>
-<parameterdescription>
 <para>Informational flag. </para>
 </parameterdescription>
 </parameteritem>
@@ -723,41 +959,39 @@ GEMV with per-group INT8 activations (blockwise parameters).</para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="engine/include/ie_kernels.h" line="109" column="6" bodyfile="engine/src/kernels/gemv_generic.c" bodystart="374" bodyend="380" declfile="engine/include/ie_kernels.h" declline="109" declcolumn="6"/>
-        <references refid="gemv__generic_8c_1a439a61ba39c741d7730f5615e540ca9c" compoundref="gemv__generic_8c" startline="188" endline="219">gemv_qi8pg_f32_fused_c_impl</references>
-        <references refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" compoundref="ie__device__cuda_8cu" startline="92" endline="110">ie_gemv_rowwise_f32_kernel</references>
+        <location file="engine/include/ie_kernels.h" line="180" column="6" declfile="engine/include/ie_kernels.h" declline="180" declcolumn="6"/>
       </memberdef>
       <memberdef kind="function" id="ie__kernels_8h_1a7548a57990692513f283a22543688e1b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
-        <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">void</ref></type>
+        <type>void</type>
         <definition>void ie_gemv_qfp8_f32</definition>
         <argsstring>(const float *W, const uint8_t *x_fp8, float *y, size_t rows, size_t cols, const float *bias, size_t blk_k, ie_fp8_format fmt)</argsstring>
         <name>ie_gemv_qfp8_f32</name>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">const</ref> <ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">float</ref> *</type>
+          <type>const float *</type>
           <declname>W</declname>
         </param>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">const</ref> <ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">uint8_t</ref> *</type>
+          <type>const uint8_t *</type>
           <declname>x_fp8</declname>
         </param>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">float</ref> *</type>
+          <type>float *</type>
           <declname>y</declname>
         </param>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">size_t</ref></type>
+          <type>size_t</type>
           <declname>rows</declname>
         </param>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">size_t</ref></type>
+          <type>size_t</type>
           <declname>cols</declname>
         </param>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">const</ref> <ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">float</ref> *</type>
+          <type>const float *</type>
           <declname>bias</declname>
         </param>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">size_t</ref></type>
+          <type>size_t</type>
           <declname>blk_k</declname>
         </param>
         <param>
@@ -830,73 +1064,7 @@ GEMV with per-group INT8 activations (blockwise parameters).</para>
 <parametername>fmt</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>FP8 format selector.</para>
-</parameterdescription>
-</parameteritem>
-</parameterlist>
-GEMV with FP8 activations (software decode, fused).</para>
-<para><parameterlist kind="param"><parameteritem>
-<parameternamelist>
-<parametername>W</parametername>
-</parameternamelist>
-<parameterdescription>
-<para>Weights. </para>
-</parameterdescription>
-</parameteritem>
-<parameteritem>
-<parameternamelist>
-<parametername>x_fp8</parametername>
-</parameternamelist>
-<parameterdescription>
-<para>FP8 activations (bytes). </para>
-</parameterdescription>
-</parameteritem>
-<parameteritem>
-<parameternamelist>
-<parametername>y</parametername>
-</parameternamelist>
-<parameterdescription>
-<para>Output. </para>
-</parameterdescription>
-</parameteritem>
-<parameteritem>
-<parameternamelist>
-<parametername>rows</parametername>
-</parameternamelist>
-<parameterdescription>
-<para>Rows. </para>
-</parameterdescription>
-</parameteritem>
-<parameteritem>
-<parameternamelist>
-<parametername>cols</parametername>
-</parameternamelist>
-<parameterdescription>
-<para>Cols. </para>
-</parameterdescription>
-</parameteritem>
-<parameteritem>
-<parameternamelist>
-<parametername>bias</parametername>
-</parameternamelist>
-<parameterdescription>
-<para>Optional bias. </para>
-</parameterdescription>
-</parameteritem>
-<parameteritem>
-<parameternamelist>
-<parametername>blk_k</parametername>
-</parameternamelist>
-<parameterdescription>
-<para>Column block size; 0 disables blocking. </para>
-</parameterdescription>
-</parameteritem>
-<parameteritem>
-<parameternamelist>
-<parametername>fmt</parametername>
-</parameternamelist>
-<parameterdescription>
-<para>FP8 format. </para>
+<para>FP8 format selector. </para>
 </parameterdescription>
 </parameteritem>
 </parameterlist>
@@ -904,27 +1072,469 @@ GEMV with FP8 activations (software decode, fused).</para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="engine/include/ie_kernels.h" line="130" column="6" bodyfile="engine/src/kernels/gemv_generic.c" bodystart="394" bodyend="421" declfile="engine/include/ie_kernels.h" declline="130" declcolumn="6"/>
-        <references refid="gemv__generic_8c_1ab15089960891cb16691529c685e7a96b" compoundref="gemv__generic_8c" startline="230" endline="243">ie_decode_fp8_e4m3</references>
-        <references refid="gemv__generic_8c_1a2caa51b99ab073c3a53146ca26153558" compoundref="gemv__generic_8c" startline="256" endline="274">ie_decode_fp8_e5m2</references>
-        <references refid="ie__quant__act_8h_1a67a1bdaa8281d1c69b6b76ecba79c52ca67cfe56fcb473bed9a2f92388f2fc347" compoundref="ie__quant__act_8h" startline="28">IE_FP8_E4M3</references>
-        <references refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" compoundref="ie__device__cuda_8cu" startline="92" endline="110">ie_gemv_rowwise_f32_kernel</references>
+        <location file="engine/include/ie_kernels.h" line="201" column="6" declfile="engine/include/ie_kernels.h" declline="201" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="ie__kernels_8h_1a26fe6fbb8664b1fe0b54f4d897c68332" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int ie_attn_cpu_causal_f32</definition>
+        <argsstring>(const float *Q, const float *K, const float *V, size_t seq_len, size_t heads, size_t head_dim, float inv_sqrt_d, float *out, float *scratch)</argsstring>
+        <name>ie_attn_cpu_causal_f32</name>
+        <param>
+          <type>const float *</type>
+          <declname>Q</declname>
+        </param>
+        <param>
+          <type>const float *</type>
+          <declname>K</declname>
+        </param>
+        <param>
+          <type>const float *</type>
+          <declname>V</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>seq_len</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>heads</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>head_dim</declname>
+        </param>
+        <param>
+          <type>float</type>
+          <declname>inv_sqrt_d</declname>
+        </param>
+        <param>
+          <type>float *</type>
+          <declname>out</declname>
+        </param>
+        <param>
+          <type>float *</type>
+          <declname>scratch</declname>
+        </param>
+        <briefdescription>
+<para>Causal self-attention (FP32 reference). </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Computes per-head softmax(QK^T * inv_sqrt_d) V over seq_len tokens.</para>
+<para>Layout:<itemizedlist>
+<listitem><para>Q and out are [heads, head_dim] flattened (head_dim fastest).</para>
+</listitem><listitem><para>K and V are [seq_len, heads, head_dim] flattened (head_dim fastest).</para>
+</listitem></itemizedlist>
+</para>
+<para>scratch must have length &gt;= seq_len (floats) and is reused per head.</para>
+<para><simplesect kind="return"><para>0 on success, non-zero on invalid args.</para>
+</simplesect>
+Causal self-attention (FP32 reference).</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>Q</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Pointer to Q slice [heads*head_dim]. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>K</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Pointer to K cache [seq_len*heads*head_dim]. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>V</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Pointer to V cache [seq_len*heads*head_dim]. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>seq_len</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of cached tokens to attend over (&gt;= 1). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>heads</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of heads (&gt;= 1). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>head_dim</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Dimension per head (&gt;= 1). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>inv_sqrt_d</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Scale factor (typically 1/sqrt(head_dim)). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>out</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Output buffer [heads*head_dim]. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>scratch</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Scratch buffer [seq_len] floats (reused per head). </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>0 on success, non-zero on invalid args. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/ie_kernels.h" line="220" column="5" bodyfile="engine/src/kernels/attn_cpu.c" bodystart="76" bodyend="107" declfile="engine/include/ie_kernels.h" declline="220" declcolumn="5"/>
+        <references refid="attn__cpu_8c_1a4e1a8399e32d077b981110a3c08e8320" compoundref="attn__cpu_8c" startline="32" endline="36">dot_f32</references>
+        <references refid="infer__gptoss_8c_1a4ec378d62ae987997040f8a823587612" compoundref="infer__gptoss_8c" startline="750" endline="754">ie_dot_f32</references>
+        <references refid="infer__gptoss_8c_1a6d4741dbac2daecf63f28b89811d5567" compoundref="infer__gptoss_8c" startline="761" endline="776">ie_softmax_inplace_f32</references>
+        <references refid="attn__cpu_8c_1ad5555aa8e041b72954b935810045059e" compoundref="attn__cpu_8c" startline="28" endline="30">kv_index</references>
+        <references refid="attn__cpu_8c_1a3cc66078411d0c78b7be0b2d1f35e0b7" compoundref="attn__cpu_8c" startline="38" endline="60">softmax_inplace_f32</references>
+        <referencedby refid="infer__gptoss_8c_1a463151430d9b4dce6eae9210c3c598f0" compoundref="infer__gptoss_8c" startline="1359" endline="1694">ie_forward_one_token</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="ie__kernels_8h_1a8a3953a6293e3c65e33e01b746d9b0a2" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int ie_mlp_cpu_swiglu_f32</definition>
+        <argsstring>(const float *W_gate, const float *W_up, const float *W_down, const float *x, size_t in_dim, size_t hidden_dim, size_t out_dim, const float *b_gate, const float *b_up, const float *b_down, float *out, float *tmp_gate, float *tmp_up)</argsstring>
+        <name>ie_mlp_cpu_swiglu_f32</name>
+        <param>
+          <type>const float *</type>
+          <declname>W_gate</declname>
+        </param>
+        <param>
+          <type>const float *</type>
+          <declname>W_up</declname>
+        </param>
+        <param>
+          <type>const float *</type>
+          <declname>W_down</declname>
+        </param>
+        <param>
+          <type>const float *</type>
+          <declname>x</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>in_dim</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>hidden_dim</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>out_dim</declname>
+        </param>
+        <param>
+          <type>const float *</type>
+          <declname>b_gate</declname>
+        </param>
+        <param>
+          <type>const float *</type>
+          <declname>b_up</declname>
+        </param>
+        <param>
+          <type>const float *</type>
+          <declname>b_down</declname>
+        </param>
+        <param>
+          <type>float *</type>
+          <declname>out</declname>
+        </param>
+        <param>
+          <type>float *</type>
+          <declname>tmp_gate</declname>
+        </param>
+        <param>
+          <type>float *</type>
+          <declname>tmp_up</declname>
+        </param>
+        <briefdescription>
+<para>SwiGLU MLP forward (FP32 reference). </para>
+        </briefdescription>
+        <detaileddescription>
+<para>gate = W_gate * x + b_gate up = W_up * x + b_up act = silu(gate) * up out = W_down * act + b_down</para>
+<para>W_* are row-major matrices.</para>
+<para>tmp_gate and tmp_up must have length &gt;= hidden_dim.</para>
+<para><simplesect kind="return"><para>0 on success, non-zero on invalid args.</para>
+</simplesect>
+SwiGLU MLP forward (FP32 reference).</para>
+<para>Shapes: x: [in_dim] W_gate: [hidden_dim, in_dim] W_up: [hidden_dim, in_dim] W_down: [out_dim, hidden_dim] tmp_gate: [hidden_dim] tmp_up: [hidden_dim] out: [out_dim]</para>
+<para>Bias pointers may be NULL.</para>
+<para><simplesect kind="return"><para>0 on success, non-zero on invalid args. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/ie_kernels.h" line="239" column="5" bodyfile="engine/src/kernels/mlp_cpu.c" bodystart="44" bodyend="60" declfile="engine/include/ie_kernels.h" declline="239" declcolumn="5"/>
+        <references refid="ie__kernels_8h_1a4e112b3396ed21919f404631c1d4d7fb" compoundref="gemv__generic_8c" startline="247" endline="252">ie_gemv_f32</references>
+        <references refid="mlp__cpu_8c_1ad92c702f11c91879106ec51d43bbf949" compoundref="mlp__cpu_8c" startline="24" endline="26">silu_f32</references>
+      </memberdef>
+      <memberdef kind="function" id="ie__kernels_8h_1ad94dd48c2c8a005182431732e18431d3" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int ie_rmsnorm_cpu_f32</definition>
+        <argsstring>(const float *x, const float *w, size_t n, float eps, float *y)</argsstring>
+        <name>ie_rmsnorm_cpu_f32</name>
+        <param>
+          <type>const float *</type>
+          <declname>x</declname>
+        </param>
+        <param>
+          <type>const float *</type>
+          <declname>w</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>n</declname>
+        </param>
+        <param>
+          <type>float</type>
+          <declname>eps</declname>
+        </param>
+        <param>
+          <type>float *</type>
+          <declname>y</declname>
+        </param>
+        <briefdescription>
+<para>RMSNorm (FP32) for a single vector. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Computes: y[i] = x[i] * w[i] / sqrt(mean(x^2) + eps)</para>
+<para>This is the reference CPU implementation used by the GPT-OSS orchestration. Implementations may be swapped by the build in the future, but the signature is stable for the runtime.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>x</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Input vector (length n). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>w</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Weight vector (length n). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>n</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of elements. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>eps</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Epsilon added to the mean square before sqrt. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>y</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Output vector (length n). May alias x for in-place behavior. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>0 on success, negative on invalid args.</para>
+</simplesect>
+RMSNorm (FP32) for a single vector.</para>
+<para>This function performs:<itemizedlist>
+<listitem><para>mean-square accumulation with a double accumulator for improved stability,</para>
+</listitem><listitem><para>a single sqrtf and reciprocal,</para>
+</listitem><listitem><para>per-element scaling by the provided weight vector.</para>
+</listitem></itemizedlist>
+</para>
+<para>The function is designed to be allocation-free and deterministic. It does not attempt SIMD vectorization; higher-performance backends may be added later.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>x</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Input vector of length <computeroutput>n</computeroutput>. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>w</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Per-channel scale vector of length <computeroutput>n</computeroutput>. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>n</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of elements in <computeroutput>x</computeroutput> and <computeroutput>w</computeroutput>. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>eps</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Small epsilon added inside the sqrt for numerical stability. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>y</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Output vector of length <computeroutput>n</computeroutput> (may alias <computeroutput>x</computeroutput>). </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>0 on success, non-zero on invalid arguments. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/ie_kernels.h" line="262" column="5" bodyfile="engine/src/kernels/rmsnorm_cpu.c" bodystart="49" bodyend="70" declfile="engine/include/ie_kernels.h" declline="262" declcolumn="5"/>
+        <referencedby refid="infer__gptoss_8c_1a463151430d9b4dce6eae9210c3c598f0" compoundref="infer__gptoss_8c" startline="1359" endline="1694">ie_forward_one_token</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="ie__kernels_8h_1af89b1384a30307fe173f81fa75cac73f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int ie_rope_apply_f32</definition>
+        <argsstring>(float *q, float *k, size_t heads, size_t head_dim, uint32_t pos, float theta)</argsstring>
+        <name>ie_rope_apply_f32</name>
+        <param>
+          <type>float *</type>
+          <declname>q</declname>
+        </param>
+        <param>
+          <type>float *</type>
+          <declname>k</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>heads</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>head_dim</declname>
+        </param>
+        <param>
+          <type>uint32_t</type>
+          <declname>pos</declname>
+        </param>
+        <param>
+          <type>float</type>
+          <declname>theta</declname>
+        </param>
+        <briefdescription>
+<para>Apply Rotary Positional Embedding (RoPE) to Q and K for a single position. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>This function applies RoPE on the first head_dim elements, interpreted as interleaved pairs (even, odd): (x0, x1) -&gt; (x0*cos - x1*sin, x0*sin + x1*cos)</para>
+<para>The caller passes Q and K shaped as [heads, head_dim] flattened.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>q</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Q buffer, [heads * head_dim]. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>k</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>K buffer, [heads * head_dim]. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>heads</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of heads in q/k. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>head_dim</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Head dimension (must be even for paired rotation). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>pos</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Sequence position (0-based). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>theta</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>RoPE base (commonly 10000.0f). </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>0 on success, negative on invalid args. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/ie_kernels.h" line="282" column="5" bodyfile="engine/src/math/rope.c" bodystart="171" bodyend="192" declfile="engine/include/ie_kernels.h" declline="282" declcolumn="5"/>
+        <references refid="rope_8c_1ae8c1140c5d28dc4907041cd146b5f083" compoundref="rope_8c" startline="141" endline="169">ie_rope_apply_one_f32</references>
       </memberdef>
       <memberdef kind="function" id="ie__kernels_8h_1a31b6c03fd5b95bdecb37f06821d3ce93" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
-        <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">void</ref></type>
+        <type>void</type>
         <definition>void ie_vec_tanh_f32</definition>
         <argsstring>(float *v, size_t n, int fast_tanh)</argsstring>
         <name>ie_vec_tanh_f32</name>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">float</ref> *</type>
+          <type>float *</type>
           <declname>v</declname>
         </param>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">size_t</ref></type>
+          <type>size_t</type>
           <declname>n</declname>
         </param>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">int</ref></type>
+          <type>int</type>
           <declname>fast_tanh</declname>
         </param>
         <briefdescription>
@@ -952,7 +1562,7 @@ GEMV with FP8 activations (software decode, fused).</para>
 <parametername>fast_tanh</parametername>
 </parameternamelist>
 <parameterdescription>
-<para>Non-zero to use a fast approximation; zero to use <ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">tanhf()</ref>.</para>
+<para>Non-zero to use a fast approximation; zero to use tanhf().</para>
 </parameterdescription>
 </parameteritem>
 </parameterlist>
@@ -987,18 +1597,17 @@ Vector tanh on fp32 data (in-place).</para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="engine/include/ie_kernels.h" line="142" column="6" bodyfile="engine/src/math/fast_tanh.c" bodystart="55" bodyend="69" declfile="engine/include/ie_kernels.h" declline="142" declcolumn="6"/>
+        <location file="engine/include/ie_kernels.h" line="293" column="6" bodyfile="engine/src/math/fast_tanh.c" bodystart="55" bodyend="69" declfile="engine/include/ie_kernels.h" declline="293" declcolumn="6"/>
         <references refid="fast__tanh_8c_1a2b9a073aea2b6ff7450b2d0ee32765ae" compoundref="fast__tanh_8c" startline="28" endline="43">ie_fast_tanhf</references>
-        <references refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" compoundref="ie__device__cuda_8cu" startline="92" endline="110">ie_gemv_rowwise_f32_kernel</references>
         <referencedby refid="test__math_8c_1a840291bc02cba5474a4cb46a9b9566fe" compoundref="test__math_8c" startline="12" endline="33">main</referencedby>
       </memberdef>
       <memberdef kind="function" id="ie__kernels_8h_1a2b9a073aea2b6ff7450b2d0ee32765ae" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
-        <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">float</ref></type>
+        <type>float</type>
         <definition>float ie_fast_tanhf</definition>
         <argsstring>(float x)</argsstring>
         <name>ie_fast_tanhf</name>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">float</ref></type>
+          <type>float</type>
           <declname>x</declname>
         </param>
         <briefdescription>
@@ -1034,8 +1643,7 @@ Fast scalar tanh approximation.</para>
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="engine/include/ie_kernels.h" line="150" column="7" bodyfile="engine/src/math/fast_tanh.c" bodystart="28" bodyend="43" declfile="engine/include/ie_kernels.h" declline="150" declcolumn="7"/>
-        <references refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" compoundref="ie__device__cuda_8cu" startline="92" endline="110">ie_gemv_rowwise_f32_kernel</references>
+        <location file="engine/include/ie_kernels.h" line="301" column="7" bodyfile="engine/src/math/fast_tanh.c" bodystart="28" bodyend="43" declfile="engine/include/ie_kernels.h" declline="301" declcolumn="7"/>
       </memberdef>
     </sectiondef>
     <briefdescription>
@@ -1055,56 +1663,92 @@ Fast scalar tanh approximation.</para>
 <codeline lineno="10"><highlight class="comment"><sp/>*<sp/>-<sp/>Runtime<sp/>selection<sp/>of<sp/>ISA-specific<sp/>implementations<sp/>(e.g.,<sp/>AVX2/FMA).</highlight></codeline>
 <codeline lineno="11"><highlight class="comment"><sp/>*<sp/>-<sp/>GEMV<sp/>entry<sp/>points<sp/>for<sp/>fp32<sp/>weights<sp/>and<sp/>quantized-activation<sp/>variants.</highlight></codeline>
 <codeline lineno="12"><highlight class="comment"><sp/>*<sp/>-<sp/>Small<sp/>vector<sp/>math<sp/>helpers<sp/>used<sp/>by<sp/>fused<sp/>epilogues<sp/>(e.g.,<sp/>tanh).</highlight></codeline>
-<codeline lineno="13"><highlight class="comment"><sp/>*</highlight></codeline>
-<codeline lineno="14"><highlight class="comment"><sp/>*<sp/>Conventions:</highlight></codeline>
-<codeline lineno="15"><highlight class="comment"><sp/>*<sp/>-<sp/>Callers<sp/>own<sp/>all<sp/>buffers;<sp/>kernels<sp/>do<sp/>not<sp/>retain<sp/>pointers<sp/>after<sp/>returning.</highlight></codeline>
-<codeline lineno="16"><highlight class="comment"><sp/>*<sp/>-<sp/>After<sp/>initialization,<sp/>entry<sp/>points<sp/>are<sp/>thread-safe<sp/>assuming<sp/>inputs<sp/>do<sp/>not<sp/>alias.</highlight></codeline>
-<codeline lineno="17"><highlight class="comment"><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="18"><highlight class="normal"></highlight></codeline>
-<codeline lineno="19"><highlight class="normal"></highlight><highlight class="preprocessor">#ifndef<sp/>IE_KERNELS_H_</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="20"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>IE_KERNELS_H_</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="21"><highlight class="normal"></highlight></codeline>
-<codeline lineno="22"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stddef.h&gt;</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="23"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stdint.h&gt;</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="24"><highlight class="normal"></highlight></codeline>
-<codeline lineno="25"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;<ref refid="ie__quant__act_8h" kindref="compound">ie_quant_act.h</ref>&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="13"><highlight class="comment"><sp/>*<sp/>-<sp/>Reference<sp/>CPU<sp/>kernels<sp/>for<sp/>attention<sp/>and<sp/>MLP<sp/>building<sp/>blocks.</highlight></codeline>
+<codeline lineno="14"><highlight class="comment"><sp/>*<sp/>-<sp/>Core<sp/>math<sp/>building<sp/>blocks<sp/>needed<sp/>by<sp/>GPT-OSS<sp/>orchestration<sp/>(RMSNorm,<sp/>RoPE).</highlight></codeline>
+<codeline lineno="15"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="16"><highlight class="comment"><sp/>*<sp/>Conventions:</highlight></codeline>
+<codeline lineno="17"><highlight class="comment"><sp/>*<sp/>-<sp/>Callers<sp/>own<sp/>all<sp/>buffers;<sp/>kernels<sp/>do<sp/>not<sp/>retain<sp/>pointers<sp/>after<sp/>returning.</highlight></codeline>
+<codeline lineno="18"><highlight class="comment"><sp/>*<sp/>-<sp/>After<sp/>initialization,<sp/>entry<sp/>points<sp/>are<sp/>thread-safe<sp/>assuming<sp/>inputs<sp/>do<sp/>not<sp/>alias.</highlight></codeline>
+<codeline lineno="19"><highlight class="comment"><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="20"><highlight class="normal"></highlight></codeline>
+<codeline lineno="21"><highlight class="normal"></highlight><highlight class="preprocessor">#ifndef<sp/>IE_KERNELS_H_</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="22"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>IE_KERNELS_H_</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="23"><highlight class="normal"></highlight></codeline>
+<codeline lineno="24"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stddef.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="25"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stdint.h&gt;</highlight><highlight class="normal"></highlight></codeline>
 <codeline lineno="26"><highlight class="normal"></highlight></codeline>
-<codeline lineno="27"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="28"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/></highlight><highlight class="stringliteral">&quot;C&quot;</highlight><highlight class="normal"><sp/>{</highlight></codeline>
-<codeline lineno="29"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="30"><highlight class="normal"></highlight></codeline>
-<codeline lineno="40"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="ie__kernels_8h_1a1b919f71b86ec1791fe53bc68d5c240d" kindref="member">ie_kernels_install</ref>(</highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">use_avx2</ref>);</highlight></codeline>
-<codeline lineno="41"><highlight class="normal"></highlight></codeline>
-<codeline lineno="61"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="ie__kernels_8h_1a4e112b3396ed21919f404631c1d4d7fb" kindref="member">ie_gemv_f32</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">W</ref>,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">x</ref>,<sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">y</ref>,</highlight></codeline>
-<codeline lineno="62"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>rows,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>cols,</highlight></codeline>
-<codeline lineno="63"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">bias</ref>,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>blk_k);</highlight></codeline>
-<codeline lineno="64"><highlight class="normal"></highlight></codeline>
-<codeline lineno="84"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="ie__kernels_8h_1abd518beacb02189b5b640948ed348f25" kindref="member">ie_gemv_qi8_f32</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">W</ref>,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">int8_t</ref><sp/>*<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">x_q</ref>,<sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">y</ref>,</highlight></codeline>
-<codeline lineno="85"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>rows,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>cols,</highlight></codeline>
-<codeline lineno="86"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">bias</ref>,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>blk_k,</highlight></codeline>
-<codeline lineno="87"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="structie__act__i8__params" kindref="compound">ie_act_i8_params</ref><sp/>params,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>symmetric);</highlight></codeline>
-<codeline lineno="88"><highlight class="normal"></highlight></codeline>
-<codeline lineno="109"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="ie__kernels_8h_1abf2b6125d5d567523a5d113f09dd73ee" kindref="member">ie_gemv_qi8pg_f32</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">W</ref>,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">int8_t</ref><sp/>*<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">x_q</ref>,<sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">y</ref>,</highlight></codeline>
-<codeline lineno="110"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>rows,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>cols,</highlight></codeline>
-<codeline lineno="111"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">bias</ref>,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>blk_k,</highlight></codeline>
-<codeline lineno="112"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>group_size,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">scales</ref>,</highlight></codeline>
-<codeline lineno="113"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">int8_t</ref><sp/>*<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">zeros</ref>,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>symmetric);</highlight></codeline>
-<codeline lineno="114"><highlight class="normal"></highlight></codeline>
-<codeline lineno="130"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="ie__kernels_8h_1a7548a57990692513f283a22543688e1b" kindref="member">ie_gemv_qfp8_f32</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">W</ref>,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">uint8_t</ref><sp/>*<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">x_fp8</ref>,<sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">y</ref>,</highlight></codeline>
-<codeline lineno="131"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>rows,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>cols,</highlight></codeline>
-<codeline lineno="132"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">bias</ref>,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>blk_k,</highlight></codeline>
-<codeline lineno="133"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="ie__quant__act_8h_1a67a1bdaa8281d1c69b6b76ecba79c52c" kindref="member">ie_fp8_format</ref><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">fmt</ref>);</highlight></codeline>
-<codeline lineno="134"><highlight class="normal"></highlight></codeline>
-<codeline lineno="142"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="ie__kernels_8h_1a31b6c03fd5b95bdecb37f06821d3ce93" kindref="member">ie_vec_tanh_f32</ref>(</highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*v,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>n,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">fast_tanh</ref>);</highlight></codeline>
-<codeline lineno="143"><highlight class="normal"></highlight></codeline>
-<codeline lineno="150"><highlight class="normal"></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/><ref refid="ie__kernels_8h_1a2b9a073aea2b6ff7450b2d0ee32765ae" kindref="member">ie_fast_tanhf</ref>(</highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">x</ref>);</highlight></codeline>
-<codeline lineno="151"><highlight class="normal"></highlight></codeline>
-<codeline lineno="152"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="153"><highlight class="normal">}</highlight></codeline>
-<codeline lineno="154"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="155"><highlight class="normal"></highlight></codeline>
-<codeline lineno="156"><highlight class="normal"></highlight><highlight class="preprocessor">#endif<sp/></highlight><highlight class="comment">/*<sp/>IE_KERNELS_H_<sp/>*/</highlight><highlight class="preprocessor"></highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="157"><highlight class="normal"></highlight></codeline>
+<codeline lineno="27"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;<ref refid="ie__quant__act_8h" kindref="compound">ie_quant_act.h</ref>&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="28"><highlight class="normal"></highlight></codeline>
+<codeline lineno="29"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="30"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/></highlight><highlight class="stringliteral">&quot;C&quot;</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="31"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="32"><highlight class="normal"></highlight></codeline>
+<codeline lineno="42"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="ie__kernels_8h_1a1b919f71b86ec1791fe53bc68d5c240d" kindref="member">ie_kernels_install</ref>(</highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>use_avx2);</highlight></codeline>
+<codeline lineno="43"><highlight class="normal"></highlight></codeline>
+<codeline lineno="63"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="ie__kernels_8h_1a4e112b3396ed21919f404631c1d4d7fb" kindref="member">ie_gemv_f32</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*W,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*x,<sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*y,</highlight></codeline>
+<codeline lineno="64"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>rows,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>cols,</highlight></codeline>
+<codeline lineno="65"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*bias,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>blk_k);</highlight></codeline>
+<codeline lineno="66"><highlight class="normal"></highlight></codeline>
+<codeline lineno="74"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="ie__kernels_8h_1a782b7a53732be7ae0a2f0eb663e36321" kindref="member">ie_vec_bf16_to_f32</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>uint16_t<sp/>*in,<sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*out,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>n);</highlight></codeline>
+<codeline lineno="75"><highlight class="normal"></highlight></codeline>
+<codeline lineno="87"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="ie__kernels_8h_1a9af71dd562560ec249ffd6cf70013282" kindref="member">ie_gemv_bf16_f32</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>uint16_t<sp/>*W_bf16,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*x,<sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*y,</highlight></codeline>
+<codeline lineno="88"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>rows,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>cols,</highlight></codeline>
+<codeline lineno="89"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>uint16_t<sp/>*bias_bf16);</highlight></codeline>
+<codeline lineno="90"><highlight class="normal"></highlight></codeline>
+<codeline lineno="104"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="ie__kernels_8h_1af0b48eb5cf241e9c033953abff9974ad" kindref="member">ie_gemv_q4_0_f32</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>uint8_t<sp/>*W_q4,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>uint8_t<sp/>*W_scales,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>scale_bytes,</highlight></codeline>
+<codeline lineno="105"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*x,<sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*y,</highlight></codeline>
+<codeline lineno="106"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>rows,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>cols,</highlight></codeline>
+<codeline lineno="107"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>uint16_t<sp/>*bias_bf16);</highlight></codeline>
+<codeline lineno="108"><highlight class="normal"></highlight></codeline>
+<codeline lineno="112"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="ie__kernels_8h_1a43aede47b7769f5c605ba1687b0336ea" kindref="member">ie_q4_log2_u8_q3_init_generic</ref>(</highlight><highlight class="keywordtype">void</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="113"><highlight class="normal"></highlight></codeline>
+<codeline lineno="117"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="ie__kernels_8h_1acdd3012fa894dbd82a4156eb09074acd" kindref="member">ie_q4_log2_u8_q3_init_avx2</ref>(</highlight><highlight class="keywordtype">void</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="118"><highlight class="normal"></highlight></codeline>
+<codeline lineno="131" refid="ie__kernels_8h_1ab1e7e524867bacef0e21924d7332c1de" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="ie__kernels_8h_1ab1e7e524867bacef0e21924d7332c1de" kindref="member">ie_gemv_q4_0_f32_fscale</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>uint8_t<sp/>*W_q4,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*W_scales,</highlight></codeline>
+<codeline lineno="132"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*x,<sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*y,</highlight></codeline>
+<codeline lineno="133"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>rows,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>cols,</highlight></codeline>
+<codeline lineno="134"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>uint16_t<sp/>*bias_bf16);</highlight></codeline>
+<codeline lineno="135"><highlight class="normal"></highlight></codeline>
+<codeline lineno="155" refid="ie__kernels_8h_1abd518beacb02189b5b640948ed348f25" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="ie__kernels_8h_1abd518beacb02189b5b640948ed348f25" kindref="member">ie_gemv_qi8_f32</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*W,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>int8_t<sp/>*x_q,<sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*y,</highlight></codeline>
+<codeline lineno="156"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>rows,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>cols,</highlight></codeline>
+<codeline lineno="157"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*bias,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>blk_k,</highlight></codeline>
+<codeline lineno="158"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="structie__act__i8__params" kindref="compound">ie_act_i8_params</ref><sp/>params,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>symmetric);</highlight></codeline>
+<codeline lineno="159"><highlight class="normal"></highlight></codeline>
+<codeline lineno="180" refid="ie__kernels_8h_1abf2b6125d5d567523a5d113f09dd73ee" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="ie__kernels_8h_1abf2b6125d5d567523a5d113f09dd73ee" kindref="member">ie_gemv_qi8pg_f32</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*W,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>int8_t<sp/>*x_q,<sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*y,</highlight></codeline>
+<codeline lineno="181"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>rows,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>cols,</highlight></codeline>
+<codeline lineno="182"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*bias,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>blk_k,</highlight></codeline>
+<codeline lineno="183"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>group_size,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*scales,</highlight></codeline>
+<codeline lineno="184"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>int8_t<sp/>*zeros,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>symmetric);</highlight></codeline>
+<codeline lineno="185"><highlight class="normal"></highlight></codeline>
+<codeline lineno="201" refid="ie__kernels_8h_1a7548a57990692513f283a22543688e1b" refkind="member"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="ie__kernels_8h_1a7548a57990692513f283a22543688e1b" kindref="member">ie_gemv_qfp8_f32</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*W,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>uint8_t<sp/>*x_fp8,<sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*y,</highlight></codeline>
+<codeline lineno="202"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>rows,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>cols,</highlight></codeline>
+<codeline lineno="203"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*bias,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>blk_k,</highlight></codeline>
+<codeline lineno="204"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="ie__quant__act_8h_1a67a1bdaa8281d1c69b6b76ecba79c52c" kindref="member">ie_fp8_format</ref><sp/>fmt);</highlight></codeline>
+<codeline lineno="205"><highlight class="normal"></highlight></codeline>
+<codeline lineno="220"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="ie__kernels_8h_1a26fe6fbb8664b1fe0b54f4d897c68332" kindref="member">ie_attn_cpu_causal_f32</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*Q,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*K,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*V,</highlight></codeline>
+<codeline lineno="221"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>seq_len,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>heads,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>head_dim,</highlight></codeline>
+<codeline lineno="222"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>inv_sqrt_d,<sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*out,<sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*scratch);</highlight></codeline>
+<codeline lineno="223"><highlight class="normal"></highlight></codeline>
+<codeline lineno="239"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="ie__kernels_8h_1a8a3953a6293e3c65e33e01b746d9b0a2" kindref="member">ie_mlp_cpu_swiglu_f32</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*W_gate,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*W_up,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*W_down,</highlight></codeline>
+<codeline lineno="240"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*x,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>in_dim,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>hidden_dim,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>out_dim,</highlight></codeline>
+<codeline lineno="241"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*b_gate,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*b_up,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*b_down,</highlight></codeline>
+<codeline lineno="242"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*out,<sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*tmp_gate,<sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*tmp_up);</highlight></codeline>
+<codeline lineno="243"><highlight class="normal"></highlight></codeline>
+<codeline lineno="262"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="ie__kernels_8h_1ad94dd48c2c8a005182431732e18431d3" kindref="member">ie_rmsnorm_cpu_f32</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*x,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*w,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>n,<sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>eps,<sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*y);</highlight></codeline>
+<codeline lineno="263"><highlight class="normal"></highlight></codeline>
+<codeline lineno="282"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="ie__kernels_8h_1af89b1384a30307fe173f81fa75cac73f" kindref="member">ie_rope_apply_f32</ref>(</highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*q,<sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*k,</highlight></codeline>
+<codeline lineno="283"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>heads,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>head_dim,</highlight></codeline>
+<codeline lineno="284"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>uint32_t<sp/>pos,<sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>theta);</highlight></codeline>
+<codeline lineno="285"><highlight class="normal"></highlight></codeline>
+<codeline lineno="293"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="ie__kernels_8h_1a31b6c03fd5b95bdecb37f06821d3ce93" kindref="member">ie_vec_tanh_f32</ref>(</highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*v,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>n,<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>fast_tanh);</highlight></codeline>
+<codeline lineno="294"><highlight class="normal"></highlight></codeline>
+<codeline lineno="301"><highlight class="normal"></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/><ref refid="ie__kernels_8h_1a2b9a073aea2b6ff7450b2d0ee32765ae" kindref="member">ie_fast_tanhf</ref>(</highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>x);</highlight></codeline>
+<codeline lineno="302"><highlight class="normal"></highlight></codeline>
+<codeline lineno="303"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="304"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="305"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="306"><highlight class="normal"></highlight></codeline>
+<codeline lineno="307"><highlight class="normal"></highlight><highlight class="preprocessor">#endif<sp/></highlight><highlight class="comment">/*<sp/>IE_KERNELS_H_<sp/>*/</highlight><highlight class="preprocessor"></highlight></codeline>
     </programlisting>
     <location file="engine/include/ie_kernels.h"/>
   </compounddef>

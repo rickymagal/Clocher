@@ -283,6 +283,42 @@ typedef struct ie_gptoss_layer_w {
   /** @brief O projection bias (BF16), shape [d_model], optional. */
   const uint16_t *o_b;
 
+  /** @brief Q projection weight blocks (Q4_0), optional. */
+  const uint8_t *q_q4_blocks;
+
+  /** @brief Q projection scales (Q4_0), optional. */
+  const uint8_t *q_q4_scales;
+
+  /** @brief Q projection scale bytes (1 or 2). */
+  uint8_t q_q4_scale_bytes;
+
+  /** @brief K projection weight blocks (Q4_0), optional. */
+  const uint8_t *k_q4_blocks;
+
+  /** @brief K projection scales (Q4_0), optional. */
+  const uint8_t *k_q4_scales;
+
+  /** @brief K projection scale bytes (1 or 2). */
+  uint8_t k_q4_scale_bytes;
+
+  /** @brief V projection weight blocks (Q4_0), optional. */
+  const uint8_t *v_q4_blocks;
+
+  /** @brief V projection scales (Q4_0), optional. */
+  const uint8_t *v_q4_scales;
+
+  /** @brief V projection scale bytes (1 or 2). */
+  uint8_t v_q4_scale_bytes;
+
+  /** @brief O projection weight blocks (Q4_0), optional. */
+  const uint8_t *o_q4_blocks;
+
+  /** @brief O projection scales (Q4_0), optional. */
+  const uint8_t *o_q4_scales;
+
+  /** @brief O projection scale bytes (1 or 2). */
+  uint8_t o_q4_scale_bytes;
+
   /** @brief Q projection weight (FP32), shape [q_dim, d_model], optional. */
   float *q_w_f32;
 
@@ -1081,6 +1117,11 @@ static int ie_q4_expected_bytes(uint32_t rows, uint32_t cols, uint8_t scale_byte
   return 0;
 }
 
+static void ie_add_bias_f32(float *dst, const float *bias, size_t n) {
+  if (!dst || !bias) return;
+  for (size_t i = 0; i < n; ++i) dst[i] += bias[i];
+}
+
 /* ------------------------------------------------------------------------- */
 /* Resolve MoE tensors for one layer                                          */
 /* ------------------------------------------------------------------------- */
@@ -1240,6 +1281,77 @@ static int ie_resolve_moe_layer(struct ie_gptoss_infer_impl *impl, uint32_t l,
   return 0;
 }
 
+static int ie_resolve_q4_attn_weight(struct ie_gptoss_infer_impl *impl,
+                                     uint32_t l,
+                                     const char *const blocks_fmts[],
+                                     const char *const scales_fmts[],
+                                     uint32_t rows,
+                                     uint32_t cols,
+                                     const char *tag,
+                                     const uint8_t **out_blocks,
+                                     const uint8_t **out_scales,
+                                     uint8_t *out_scale_bytes) {
+  if (!impl || !blocks_fmts || !scales_fmts || !out_blocks || !out_scales || !out_scale_bytes) return -1;
+
+  ie_tensor_view_t v_blocks, v_scales;
+  const int have_blocks =
+      (ie_w_get_layer_fmt_view(impl, l, blocks_fmts, 1, &v_blocks, 0) == 0 && v_blocks.desc);
+  const int have_scales =
+      (ie_w_get_layer_fmt_view(impl, l, scales_fmts, 1, &v_scales, 0) == 0 && v_scales.desc);
+
+  if (!have_blocks && !have_scales) {
+    *out_blocks = NULL;
+    *out_scales = NULL;
+    *out_scale_bytes = 0u;
+    return 0;
+  }
+  if (!have_blocks || !have_scales) {
+    IE_LOGE("create: q4 %s missing blocks/scales layer=%u", tag, (unsigned)l);
+    return -2;
+  }
+
+  uint8_t scale_bytes = 0u;
+  if (v_scales.desc->dtype == TENSOR_DTYPE_BF16) scale_bytes = 2u;
+  else if (v_scales.desc->dtype == TENSOR_DTYPE_U8) scale_bytes = 1u;
+
+  if (scale_bytes == 0u) {
+    uint64_t tmp_blocks = 0, tmp_scales_1 = 0, tmp_scales_2 = 0;
+    if (ie_q4_expected_bytes(rows, cols, 1u, &tmp_blocks, &tmp_scales_1) != 0 ||
+        ie_q4_expected_bytes(rows, cols, 2u, &tmp_blocks, &tmp_scales_2) != 0) {
+      IE_LOGE("create: q4 %s bad dims layer=%u rows=%u cols=%u",
+              tag, (unsigned)l, (unsigned)rows, (unsigned)cols);
+      return -3;
+    }
+    if (v_scales.desc->size_bytes == tmp_scales_1) scale_bytes = 1u;
+    else if (v_scales.desc->size_bytes == tmp_scales_2) scale_bytes = 2u;
+    else {
+      IE_LOGE("create: q4 %s cannot infer scale_bytes layer=%u size_bytes=%llu",
+              tag, (unsigned)l, (unsigned long long)v_scales.desc->size_bytes);
+      return -4;
+    }
+  }
+
+  uint64_t want_blocks = 0, want_scales = 0;
+  if (ie_q4_expected_bytes(rows, cols, scale_bytes, &want_blocks, &want_scales) != 0) {
+    IE_LOGE("create: q4 %s bad dims layer=%u rows=%u cols=%u scale_bytes=%u",
+            tag, (unsigned)l, (unsigned)rows, (unsigned)cols, (unsigned)scale_bytes);
+    return -5;
+  }
+  if (ie_require_size_eq(v_blocks.desc, want_blocks) != 0 ||
+      ie_require_size_eq(v_scales.desc, want_scales) != 0) {
+    IE_LOGE("create: q4 %s size mismatch layer=%u want_blocks=%llu want_scales=%llu",
+            tag, (unsigned)l,
+            (unsigned long long)want_blocks,
+            (unsigned long long)want_scales);
+    return -6;
+  }
+
+  *out_blocks = (const uint8_t *)v_blocks.ptr;
+  *out_scales = (const uint8_t *)v_scales.ptr;
+  *out_scale_bytes = scale_bytes;
+  return 1;
+}
+
 /* ------------------------------------------------------------------------- */
 /* Forward pass                                                               */
 /* ------------------------------------------------------------------------- */
@@ -1327,29 +1439,47 @@ static int ie_forward_one_token(struct ie_gptoss_infer_impl *impl, ie_kv_cache *
     }
 
     const int trace_on = ie_trace_bf16_enabled_() && !bf16_trace_done;
-    if (trace_on) {
+    if (trace_on && !W->q_q4_blocks && !W->q_w_f32) {
       fprintf(stderr, "[TRACE] bf16 gemv: layer=%u op=q rows=%zu cols=%zu\n",
               (unsigned)l, q_dim, (size_t)d_model);
     }
-    if (W->q_w_f32) {
+    if (W->q_q4_blocks && W->q_q4_scales) {
+      if (ie_gemv_q4_0_f32(W->q_q4_blocks, W->q_q4_scales, W->q_q4_scale_bytes,
+                           impl->x1, impl->q, q_dim, (size_t)d_model, W->q_b) != 0) {
+        return -12;
+      }
+      if (!W->q_b && W->q_b_f32) ie_add_bias_f32(impl->q, W->q_b_f32, q_dim);
+    } else if (W->q_w_f32) {
       ie_gemv_f32(W->q_w_f32, impl->x1, impl->q, q_dim, (size_t)d_model, W->q_b_f32, 1);
     } else {
       if (ie_gemv_bf16_f32(W->q_w, impl->x1, impl->q, q_dim, (size_t)d_model, W->q_b) != 0) return -12;
     }
-    if (trace_on) {
+    if (trace_on && !W->k_q4_blocks && !W->k_w_f32) {
       fprintf(stderr, "[TRACE] bf16 gemv: layer=%u op=k rows=%zu cols=%zu\n",
               (unsigned)l, kv_dim, (size_t)d_model);
     }
-    if (W->k_w_f32) {
+    if (W->k_q4_blocks && W->k_q4_scales) {
+      if (ie_gemv_q4_0_f32(W->k_q4_blocks, W->k_q4_scales, W->k_q4_scale_bytes,
+                           impl->x1, impl->k, kv_dim, (size_t)d_model, W->k_b) != 0) {
+        return -13;
+      }
+      if (!W->k_b && W->k_b_f32) ie_add_bias_f32(impl->k, W->k_b_f32, kv_dim);
+    } else if (W->k_w_f32) {
       ie_gemv_f32(W->k_w_f32, impl->x1, impl->k, kv_dim, (size_t)d_model, W->k_b_f32, 1);
     } else {
       if (ie_gemv_bf16_f32(W->k_w, impl->x1, impl->k, kv_dim, (size_t)d_model, W->k_b) != 0) return -13;
     }
-    if (trace_on) {
+    if (trace_on && !W->v_q4_blocks && !W->v_w_f32) {
       fprintf(stderr, "[TRACE] bf16 gemv: layer=%u op=v rows=%zu cols=%zu\n",
               (unsigned)l, kv_dim, (size_t)d_model);
     }
-    if (W->v_w_f32) {
+    if (W->v_q4_blocks && W->v_q4_scales) {
+      if (ie_gemv_q4_0_f32(W->v_q4_blocks, W->v_q4_scales, W->v_q4_scale_bytes,
+                           impl->x1, impl->v, kv_dim, (size_t)d_model, W->v_b) != 0) {
+        return -14;
+      }
+      if (!W->v_b && W->v_b_f32) ie_add_bias_f32(impl->v, W->v_b_f32, kv_dim);
+    } else if (W->v_w_f32) {
       ie_gemv_f32(W->v_w_f32, impl->x1, impl->v, kv_dim, (size_t)d_model, W->v_b_f32, 1);
     } else {
       if (ie_gemv_bf16_f32(W->v_w, impl->x1, impl->v, kv_dim, (size_t)d_model, W->v_b) != 0) return -14;
@@ -1384,11 +1514,17 @@ static int ie_forward_one_token(struct ie_gptoss_infer_impl *impl, ie_kv_cache *
       }
     }
 
-    if (trace_on) {
+    if (trace_on && !W->o_q4_blocks && !W->o_w_f32) {
       fprintf(stderr, "[TRACE] bf16 gemv: layer=%u op=o rows=%zu cols=%zu\n",
               (unsigned)l, (size_t)d_model, q_dim);
     }
-    if (W->o_w_f32) {
+    if (W->o_q4_blocks && W->o_q4_scales) {
+      if (ie_gemv_q4_0_f32(W->o_q4_blocks, W->o_q4_scales, W->o_q4_scale_bytes,
+                           impl->attn_out, impl->x2, (size_t)d_model, q_dim, W->o_b) != 0) {
+        return -19;
+      }
+      if (!W->o_b && W->o_b_f32) ie_add_bias_f32(impl->x2, W->o_b_f32, (size_t)d_model);
+    } else if (W->o_w_f32) {
       ie_gemv_f32(W->o_w_f32, impl->attn_out, impl->x2, (size_t)d_model, q_dim, W->o_b_f32, 1);
     } else {
       if (ie_gemv_bf16_f32(W->o_w, impl->attn_out, impl->x2, (size_t)d_model, q_dim, W->o_b) != 0) return -19;
@@ -1843,6 +1979,15 @@ int ie_gptoss_infer_create(const ie_device_t *dev_const, const ie_weights_t *w,
   const uint64_t q_dim = (uint64_t)n_heads * (uint64_t)d_head;
   const uint64_t kv_dim = (uint64_t)n_kv_heads * (uint64_t)d_head;
 
+#if SIZE_MAX < UINT64_MAX
+  if (q_dim > (uint64_t)SIZE_MAX || kv_dim > (uint64_t)SIZE_MAX) {
+    IE_LOGE("create: attn dim overflow for size_t (q_dim=%llu kv_dim=%llu)",
+            (unsigned long long)q_dim, (unsigned long long)kv_dim);
+    ie_gptoss_infer_destroy((ie_gptoss_infer_t *)impl);
+    return -13;
+  }
+#endif
+
   for (uint32_t l = 0; l < n_layers; ++l) {
     ie_gptoss_layer_w_t *LW = &impl->layers[l];
     ie_tensor_view_t v;
@@ -1979,6 +2124,59 @@ int ie_gptoss_infer_create(const ie_device_t *dev_const, const ie_weights_t *w,
       LW->o_b = (const uint16_t *)v.ptr;
     } else {
       LW->o_b = NULL;
+    }
+
+    const char *const q_q4_blocks_fmts[] = {"model.layers.%u.self_attn.q_proj.weight_blocks"};
+    const char *const q_q4_scales_fmts[] = {"model.layers.%u.self_attn.q_proj.weight_scales"};
+    {
+      int rc_q4 = ie_resolve_q4_attn_weight(
+            impl, l, q_q4_blocks_fmts, q_q4_scales_fmts,
+            (uint32_t)q_dim, d_model, "q",
+            &LW->q_q4_blocks, &LW->q_q4_scales, &LW->q_q4_scale_bytes);
+      if (rc_q4 < 0) {
+        IE_LOGE("create: invalid q_proj q4 tensors layer=%u", (unsigned)l);
+        ie_gptoss_infer_destroy((ie_gptoss_infer_t *)impl);
+        return -27;
+      }
+    }
+    const char *const k_q4_blocks_fmts[] = {"model.layers.%u.self_attn.k_proj.weight_blocks"};
+    const char *const k_q4_scales_fmts[] = {"model.layers.%u.self_attn.k_proj.weight_scales"};
+    {
+      int rc_q4 = ie_resolve_q4_attn_weight(
+            impl, l, k_q4_blocks_fmts, k_q4_scales_fmts,
+            (uint32_t)kv_dim, d_model, "k",
+            &LW->k_q4_blocks, &LW->k_q4_scales, &LW->k_q4_scale_bytes);
+      if (rc_q4 < 0) {
+        IE_LOGE("create: invalid k_proj q4 tensors layer=%u", (unsigned)l);
+        ie_gptoss_infer_destroy((ie_gptoss_infer_t *)impl);
+        return -27;
+      }
+    }
+    const char *const v_q4_blocks_fmts[] = {"model.layers.%u.self_attn.v_proj.weight_blocks"};
+    const char *const v_q4_scales_fmts[] = {"model.layers.%u.self_attn.v_proj.weight_scales"};
+    {
+      int rc_q4 = ie_resolve_q4_attn_weight(
+            impl, l, v_q4_blocks_fmts, v_q4_scales_fmts,
+            (uint32_t)kv_dim, d_model, "v",
+            &LW->v_q4_blocks, &LW->v_q4_scales, &LW->v_q4_scale_bytes);
+      if (rc_q4 < 0) {
+        IE_LOGE("create: invalid v_proj q4 tensors layer=%u", (unsigned)l);
+        ie_gptoss_infer_destroy((ie_gptoss_infer_t *)impl);
+        return -27;
+      }
+    }
+    const char *const o_q4_blocks_fmts[] = {"model.layers.%u.self_attn.o_proj.weight_blocks"};
+    const char *const o_q4_scales_fmts[] = {"model.layers.%u.self_attn.o_proj.weight_scales"};
+    {
+      int rc_q4 = ie_resolve_q4_attn_weight(
+            impl, l, o_q4_blocks_fmts, o_q4_scales_fmts,
+            d_model, (uint32_t)q_dim, "o",
+            &LW->o_q4_blocks, &LW->o_q4_scales, &LW->o_q4_scale_bytes);
+      if (rc_q4 < 0) {
+        IE_LOGE("create: invalid o_proj q4 tensors layer=%u", (unsigned)l);
+        ie_gptoss_infer_destroy((ie_gptoss_infer_t *)impl);
+        return -27;
+      }
     }
 
     if (impl->use_f32_attn) {

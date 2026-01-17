@@ -15,6 +15,8 @@ var ie__device_8h =
     [ "ie_device_destroy", "ie__device_8h.html#a8f8a88a7dd6a58749275d2f3dea9a0ab", null ],
     [ "ie_device_gemv_block_sparse_f32", "ie__device_8h.html#ae46eb0813b9477e0f3f2084c4d52d33e", null ],
     [ "ie_device_gemv_f32", "ie__device_8h.html#af9a99d92974f072775057b5def388b77", null ],
+    [ "ie_device_gemv_q4_0_f32", "ie__device_8h.html#a137e9e9886a2abf3cf07a4c70aecb078", null ],
+    [ "ie_device_kind", "ie__device_8h.html#a34880cffeb179f4c2e8dbc0fd9fcccea", null ],
     [ "ie_device_kind_from_str", "ie__device_8h.html#aab258e9f33c12fc1276783d70b8c75a7", null ],
     [ "ie_device_memcpy", "ie__device_8h.html#ad8fe47f93fa5e18c7cf07a153f1de2fb", null ]
 ];

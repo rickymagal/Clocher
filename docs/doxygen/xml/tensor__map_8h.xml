@@ -1,0 +1,794 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.8" xml:lang="en-US">
+  <compounddef id="tensor__map_8h" kind="file" language="C++">
+    <compoundname>tensor_map.h</compoundname>
+    <includes local="no">stddef.h</includes>
+    <includes local="no">stdint.h</includes>
+    <includes local="no">stdio.h</includes>
+    <includedby refid="gptoss__weights__index_8h" local="yes">engine/include/gptoss_weights_index.h</includedby>
+    <includedby refid="ie__api_8c" local="yes">engine/src/ie_api.c</includedby>
+    <includedby refid="tensor__map_8c" local="yes">engine/src/io/tensor_map.c</includedby>
+    <includedby refid="infer__gptoss_8c" local="yes">engine/src/runtime/infer_gptoss.c</includedby>
+    <incdepgraph>
+      <node id="1">
+        <label>engine/include/tensor_map.h</label>
+        <link refid="tensor__map_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="3" relation="include">
+        </childnode>
+        <childnode refid="4" relation="include">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>stddef.h</label>
+      </node>
+      <node id="3">
+        <label>stdint.h</label>
+      </node>
+      <node id="4">
+        <label>stdio.h</label>
+      </node>
+    </incdepgraph>
+    <invincdepgraph>
+      <node id="2">
+        <label>engine/include/gptoss_weights_index.h</label>
+        <link refid="gptoss__weights__index_8h"/>
+        <childnode refid="3" relation="include">
+        </childnode>
+      </node>
+      <node id="1">
+        <label>engine/include/tensor_map.h</label>
+        <link refid="tensor__map_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="4" relation="include">
+        </childnode>
+        <childnode refid="5" relation="include">
+        </childnode>
+        <childnode refid="6" relation="include">
+        </childnode>
+      </node>
+      <node id="4">
+        <label>engine/src/ie_api.c</label>
+        <link refid="ie__api_8c"/>
+      </node>
+      <node id="5">
+        <label>engine/src/io/tensor_map.c</label>
+        <link refid="tensor__map_8c"/>
+      </node>
+      <node id="3">
+        <label>engine/src/runtime/gptoss_weights_index.c</label>
+        <link refid="gptoss__weights__index_8c"/>
+      </node>
+      <node id="6">
+        <label>engine/src/runtime/infer_gptoss.c</label>
+        <link refid="infer__gptoss_8c"/>
+      </node>
+    </invincdepgraph>
+    <innerclass refid="structtensor__desc__s" prot="public">tensor_desc_s</innerclass>
+    <innerclass refid="structtensor__map__s" prot="public">tensor_map_s</innerclass>
+    <sectiondef kind="enum">
+      <memberdef kind="enum" id="tensor__map_8h_1a2a2857711e062d6fafb189e11c772e60" prot="public" static="no" strong="no">
+        <type></type>
+        <name>tensor_dtype_e</name>
+        <enumvalue id="tensor__map_8h_1a2a2857711e062d6fafb189e11c772e60a8be2bde5845696812a062797ff5db779" prot="public">
+          <name>TENSOR_DTYPE_F32</name>
+          <initializer>= 0</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="tensor__map_8h_1a2a2857711e062d6fafb189e11c772e60abd617fa72c8bfbdcd703732a2a74e9fe" prot="public">
+          <name>TENSOR_DTYPE_F16</name>
+          <initializer>= 1</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="tensor__map_8h_1a2a2857711e062d6fafb189e11c772e60a7d14acd31ad346fe41c149dc7270d20d" prot="public">
+          <name>TENSOR_DTYPE_INT4</name>
+          <initializer>= 2</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="tensor__map_8h_1a2a2857711e062d6fafb189e11c772e60a205d1b0175039c386b1f907101942387" prot="public">
+          <name>TENSOR_DTYPE_BF16</name>
+          <initializer>= 3</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="tensor__map_8h_1a2a2857711e062d6fafb189e11c772e60a28cbf2aeff36d35b8a7d954fb0ca333b" prot="public">
+          <name>TENSOR_DTYPE_U8</name>
+          <initializer>= 4</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="tensor__map_8h_1a2a2857711e062d6fafb189e11c772e60afc9691802827f535b2385da565e74947" prot="public">
+          <name>TENSOR_DTYPE_UNKNOWN</name>
+          <initializer>= 255</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+<para>Tensor data type tag. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="note"><para>tensor_map.json may omit dtype; loaders may leave dtype as TENSOR_DTYPE_UNKNOWN. Callers must not assume dtype is populated unless their loader guarantees it. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/tensor_map.h" line="46" column="1" bodyfile="engine/include/tensor_map.h" bodystart="46" bodyend="53"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="tensor__map_8h_1ac1e5d7196426dbb29e3f26f38f4cde89" prot="public" static="no">
+        <type>enum <ref refid="tensor__map_8h_1a2a2857711e062d6fafb189e11c772e60" kindref="member">tensor_dtype_e</ref></type>
+        <definition>typedef enum tensor_dtype_e tensor_dtype_t</definition>
+        <argsstring></argsstring>
+        <name>tensor_dtype_t</name>
+        <briefdescription>
+<para>Tensor data type tag. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="note"><para>tensor_map.json may omit dtype; loaders may leave dtype as TENSOR_DTYPE_UNKNOWN. Callers must not assume dtype is populated unless their loader guarantees it. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/tensor_map.h" line="53" column="16"/>
+      </memberdef>
+      <memberdef kind="typedef" id="tensor__map_8h_1a1ed0f6ce08b1582103651d4fd14a30f1" prot="public" static="no">
+        <type>struct <ref refid="structtensor__desc__s" kindref="compound">tensor_desc_s</ref></type>
+        <definition>typedef struct tensor_desc_s tensor_desc_t</definition>
+        <argsstring></argsstring>
+        <name>tensor_desc_t</name>
+        <briefdescription>
+<para>Tensor descriptor resolved from tensor_map.json. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/tensor_map.h" line="106" column="15"/>
+      </memberdef>
+      <memberdef kind="typedef" id="tensor__map_8h_1a0ae1dced25c800bf85537db1ce9776a7" prot="public" static="no">
+        <type>struct <ref refid="structtensor__map__s" kindref="compound">tensor_map_s</ref></type>
+        <definition>typedef struct tensor_map_s tensor_map_t</definition>
+        <argsstring></argsstring>
+        <name>tensor_map_t</name>
+        <briefdescription>
+<para>In-memory tensor map. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>The loader owns all memory referenced by <ref refid="tensor__map_8h_1a1ed0f6ce08b1582103651d4fd14a30f1" kindref="member">tensor_desc_t</ref> entries. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/tensor_map.h" line="125" column="14"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="tensor__map_8h_1a58c0383240d179e8446a30faba7c6868" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>size_t</type>
+        <definition>static size_t tensor_dtype_size_bytes</definition>
+        <argsstring>(tensor_dtype_t dt)</argsstring>
+        <name>tensor_dtype_size_bytes</name>
+        <param>
+          <type><ref refid="tensor__map_8h_1ac1e5d7196426dbb29e3f26f38f4cde89" kindref="member">tensor_dtype_t</ref></type>
+          <declname>dt</declname>
+        </param>
+        <briefdescription>
+<para>Return the byte size for a dtype when representable as plain elements. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>dt</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Dtype tag. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Element size in bytes for dense element types; 0 for packed/unknown. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/tensor_map.h" line="61" column="22" bodyfile="engine/include/tensor_map.h" bodystart="61" bodyend="70"/>
+        <references refid="tensor__map_8h_1a2a2857711e062d6fafb189e11c772e60a205d1b0175039c386b1f907101942387" compoundref="tensor__map_8h" startline="50">TENSOR_DTYPE_BF16</references>
+        <references refid="tensor__map_8h_1a2a2857711e062d6fafb189e11c772e60abd617fa72c8bfbdcd703732a2a74e9fe" compoundref="tensor__map_8h" startline="48">TENSOR_DTYPE_F16</references>
+        <references refid="tensor__map_8h_1a2a2857711e062d6fafb189e11c772e60a8be2bde5845696812a062797ff5db779" compoundref="tensor__map_8h" startline="47">TENSOR_DTYPE_F32</references>
+        <references refid="tensor__map_8h_1a2a2857711e062d6fafb189e11c772e60a7d14acd31ad346fe41c149dc7270d20d" compoundref="tensor__map_8h" startline="49">TENSOR_DTYPE_INT4</references>
+        <references refid="tensor__map_8h_1a2a2857711e062d6fafb189e11c772e60a28cbf2aeff36d35b8a7d954fb0ca333b" compoundref="tensor__map_8h" startline="51">TENSOR_DTYPE_U8</references>
+      </memberdef>
+      <memberdef kind="function" id="tensor__map_8h_1ae91872c3eb11e314358c720b829b9a36" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>const char *</type>
+        <definition>static const char * tensor_dtype_name</definition>
+        <argsstring>(tensor_dtype_t dt)</argsstring>
+        <name>tensor_dtype_name</name>
+        <param>
+          <type><ref refid="tensor__map_8h_1ac1e5d7196426dbb29e3f26f38f4cde89" kindref="member">tensor_dtype_t</ref></type>
+          <declname>dt</declname>
+        </param>
+        <briefdescription>
+<para>Convert dtype tag to a stable human-readable name. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>dt</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Dtype tag. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Constant string name. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/tensor_map.h" line="78" column="26" bodyfile="engine/include/tensor_map.h" bodystart="78" bodyend="87"/>
+        <references refid="tensor__map_8h_1a2a2857711e062d6fafb189e11c772e60a205d1b0175039c386b1f907101942387" compoundref="tensor__map_8h" startline="50">TENSOR_DTYPE_BF16</references>
+        <references refid="tensor__map_8h_1a2a2857711e062d6fafb189e11c772e60abd617fa72c8bfbdcd703732a2a74e9fe" compoundref="tensor__map_8h" startline="48">TENSOR_DTYPE_F16</references>
+        <references refid="tensor__map_8h_1a2a2857711e062d6fafb189e11c772e60a8be2bde5845696812a062797ff5db779" compoundref="tensor__map_8h" startline="47">TENSOR_DTYPE_F32</references>
+        <references refid="tensor__map_8h_1a2a2857711e062d6fafb189e11c772e60a7d14acd31ad346fe41c149dc7270d20d" compoundref="tensor__map_8h" startline="49">TENSOR_DTYPE_INT4</references>
+        <references refid="tensor__map_8h_1a2a2857711e062d6fafb189e11c772e60a28cbf2aeff36d35b8a7d954fb0ca333b" compoundref="tensor__map_8h" startline="51">TENSOR_DTYPE_U8</references>
+        <referencedby refid="tensor__map_8h_1ad887f000c7ecd66c30fb2d5cad14376d" compoundref="tensor__map_8h" startline="189" endline="211">tensor_desc_to_string</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="tensor__map_8h_1ae9baec9810ee8d265c4f05f31ffb2f4c" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>int</type>
+        <definition>static int tensor_shape_to_string</definition>
+        <argsstring>(const uint32_t *shape, uint32_t ndim, char *out, size_t outsz)</argsstring>
+        <name>tensor_shape_to_string</name>
+        <param>
+          <type>const uint32_t *</type>
+          <declname>shape</declname>
+        </param>
+        <param>
+          <type>uint32_t</type>
+          <declname>ndim</declname>
+        </param>
+        <param>
+          <type>char *</type>
+          <declname>out</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>outsz</declname>
+        </param>
+        <briefdescription>
+<para>Format a shape into a compact string like &quot;[a,b,c]&quot;. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>shape</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Shape pointer (may be NULL). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>ndim</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of dims. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>out</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Output buffer. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>outsz</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Output buffer size. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Number of bytes written (excluding NUL) on success, or -1 on error. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/tensor_map.h" line="140" column="19" bodyfile="engine/include/tensor_map.h" bodystart="140" bodyend="176"/>
+        <referencedby refid="tensor__map_8h_1ad887f000c7ecd66c30fb2d5cad14376d" compoundref="tensor__map_8h" startline="189" endline="211">tensor_desc_to_string</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="tensor__map_8h_1ad887f000c7ecd66c30fb2d5cad14376d" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>int</type>
+        <definition>static int tensor_desc_to_string</definition>
+        <argsstring>(const tensor_desc_t *td, char *out, size_t outsz)</argsstring>
+        <name>tensor_desc_to_string</name>
+        <param>
+          <type>const <ref refid="tensor__map_8h_1a1ed0f6ce08b1582103651d4fd14a30f1" kindref="member">tensor_desc_t</ref> *</type>
+          <declname>td</declname>
+        </param>
+        <param>
+          <type>char *</type>
+          <declname>out</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>outsz</declname>
+        </param>
+        <briefdescription>
+<para>Format a tensor descriptor into a compact debug string. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Format: &quot;name=... off=... bytes=... dtype=... shape=[...]&quot;</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>td</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Tensor descriptor (may be NULL). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>out</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Output buffer. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>outsz</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Output buffer size. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Number of bytes written (excluding NUL) on success, or -1 on error. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/tensor_map.h" line="189" column="19" bodyfile="engine/include/tensor_map.h" bodystart="189" bodyend="211"/>
+        <references refid="structtensor__desc__s_1ab88eba5b794240beb885009efb7cd5ec" compoundref="tensor__map_8h" startline="100">tensor_desc_s::dtype</references>
+        <references refid="structtensor__desc__s_1a1134b2dbce500003f3b011f3e8a3d090" compoundref="tensor__map_8h" startline="94">tensor_desc_s::name</references>
+        <references refid="structtensor__desc__s_1a39d73e77fad5a093361fb4d0816c7d5f" compoundref="tensor__map_8h" startline="105">tensor_desc_s::ndim</references>
+        <references refid="structtensor__desc__s_1a0abe393a370bda31eda8ab11a5f8df37" compoundref="tensor__map_8h" startline="96">tensor_desc_s::offset</references>
+        <references refid="structtensor__desc__s_1afd3b79d2fae3209ac079b6ee551c31c7" compoundref="tensor__map_8h" startline="103">tensor_desc_s::shape</references>
+        <references refid="structtensor__desc__s_1a151674f0f1ad60320437f028593d8b26" compoundref="tensor__map_8h" startline="98">tensor_desc_s::size_bytes</references>
+        <references refid="tensor__map_8h_1ae91872c3eb11e314358c720b829b9a36" compoundref="tensor__map_8h" startline="78" endline="87">tensor_dtype_name</references>
+        <references refid="tensor__map_8h_1ae9baec9810ee8d265c4f05f31ffb2f4c" compoundref="tensor__map_8h" startline="140" endline="176">tensor_shape_to_string</references>
+        <referencedby refid="infer__gptoss_8c_1aa440579c3d300ca57afa938bf7e71d16" compoundref="infer__gptoss_8c" startline="907" endline="922">ie_require_size_eq</referencedby>
+        <referencedby refid="infer__gptoss_8c_1a65b986649509502cd00b8fe4117ced96" compoundref="infer__gptoss_8c" startline="1129" endline="1282">ie_resolve_moe_layer</referencedby>
+        <referencedby refid="infer__gptoss_8c_1ad423f271afd9a40793ef26f1713c53b2" compoundref="infer__gptoss_8c" startline="836" endline="854">ie_w_get_first_view</referencedby>
+        <referencedby refid="infer__gptoss_8c_1a26eda7ad261ffb2c83af5263e669d7f4" compoundref="infer__gptoss_8c" startline="866" endline="899">ie_w_get_layer_fmt_view</referencedby>
+        <referencedby refid="tensor__map_8h_1ad5a6d86e99a96405eb2d6daf95603691" compoundref="tensor__map_8c" startline="696" endline="776">tensor_map_validate_against_bin</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="tensor__map_8h_1ac4b913e2710929070b5b073b4b67b24c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int tensor_map_load</definition>
+        <argsstring>(const char *path, tensor_map_t *out)</argsstring>
+        <name>tensor_map_load</name>
+        <param>
+          <type>const char *</type>
+          <declname>path</declname>
+        </param>
+        <param>
+          <type><ref refid="tensor__map_8h_1a0ae1dced25c800bf85537db1ce9776a7" kindref="member">tensor_map_t</ref> *</type>
+          <declname>out</declname>
+        </param>
+        <briefdescription>
+<para>Load tensor_map.json from disk. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>path</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Path to tensor_map.json. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>out</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Output tensor map. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>0 on success, non-zero on failure. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/tensor_map.h" line="224" column="5" bodyfile="engine/src/io/tensor_map.c" bodystart="484" bodyend="648" declfile="engine/include/tensor_map.h" declline="224" declcolumn="5"/>
+        <references refid="tensor__map_8c_1a3dae92b1c084251e956a5773e53869b5" compoundref="tensor__map_8c" startline="72" endline="106">parse_string</references>
+        <references refid="tensor__map_8c_1a180580870bc40b8b36b78f81a1c26178" compoundref="tensor__map_8c" startline="397" endline="478">parse_tensor_object</references>
+        <references refid="tensor__map_8c_1a87fc763c39a4a64f091406e88b1c640e" compoundref="tensor__map_8c" startline="318" endline="332">push_tensor</references>
+        <references refid="tensor__map_8c_1a9ab7221db47755779150a9cc3c374b8f" compoundref="tensor__map_8c" startline="35" endline="59">read_file</references>
+        <references refid="tensor__map_8c_1a86c69aef66f60185ab7bfe466d7eb1d3" compoundref="tensor__map_8c" startline="137" endline="151">skip_array</references>
+        <references refid="tensor__map_8c_1a9e5190012370782147588f3b3b6a4886" compoundref="tensor__map_8c" startline="158" endline="184">skip_object</references>
+        <references refid="tensor__map_8c_1a751de8ccde16854a65c185afdfecfdbf" compoundref="tensor__map_8c" startline="191" endline="214">skip_value</references>
+        <references refid="tensor__map_8c_1ae19e0ad12742fe7fdff22f60436aadc7" compoundref="tensor__map_8c" startline="24" endline="27">skip_ws</references>
+        <references refid="tensor__map_8c_1aa6b53de7ce006a1a2877e2b19ad8ce24" compoundref="tensor__map_8c" startline="303" endline="308">tensor_desc_free</references>
+        <referencedby refid="gptoss__weights__index_8h_1ab0abbe94d2373ea44d51f2325c7cc46c" compoundref="gptoss__weights__index_8c" startline="417" endline="490">gptoss_weights_index_open</referencedby>
+        <referencedby refid="ie__infer_8h_1a569ac499d7bce188c1e21fa9377b9bae" compoundref="infer__gptoss_8c" startline="1700" endline="2290">ie_gptoss_infer_create</referencedby>
+        <referencedby refid="ie__api_8c_1a037b105c112037bdbc1725c6c88fd1ff" compoundref="ie__api_8c" startline="275" endline="311">maybe_correct_head_dim_</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="tensor__map_8h_1a42d154b3f93b07c41b514e468a61c803" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void tensor_map_free</definition>
+        <argsstring>(tensor_map_t *map)</argsstring>
+        <name>tensor_map_free</name>
+        <param>
+          <type><ref refid="tensor__map_8h_1a0ae1dced25c800bf85537db1ce9776a7" kindref="member">tensor_map_t</ref> *</type>
+          <declname>map</declname>
+        </param>
+        <briefdescription>
+<para>Free tensor map and all owned memory. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>map</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Tensor map (may be NULL). </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/tensor_map.h" line="231" column="6" bodyfile="engine/src/io/tensor_map.c" bodystart="650" bodyend="660" declfile="engine/include/tensor_map.h" declline="231" declcolumn="6"/>
+        <references refid="structtensor__map__s_1a64c31242ffe43f6fc36b465d1ef75462" compoundref="tensor__map_8h" startline="122">tensor_map_s::count</references>
+        <references refid="structtensor__desc__s_1a1134b2dbce500003f3b011f3e8a3d090" compoundref="tensor__map_8h" startline="94">tensor_desc_s::name</references>
+        <references refid="structtensor__desc__s_1afd3b79d2fae3209ac079b6ee551c31c7" compoundref="tensor__map_8h" startline="103">tensor_desc_s::shape</references>
+        <references refid="structtensor__map__s_1a30493d1f3d1e66d1e9de6813c2844293" compoundref="tensor__map_8h" startline="120">tensor_map_s::tensors</references>
+        <referencedby refid="gptoss__weights__index_8h_1a943d5a8178000a52f6148bdbccda2252" compoundref="gptoss__weights__index_8c" startline="492" endline="507">gptoss_weights_index_close</referencedby>
+        <referencedby refid="gptoss__weights__index_8h_1ab0abbe94d2373ea44d51f2325c7cc46c" compoundref="gptoss__weights__index_8c" startline="417" endline="490">gptoss_weights_index_open</referencedby>
+        <referencedby refid="ie__infer_8h_1a569ac499d7bce188c1e21fa9377b9bae" compoundref="infer__gptoss_8c" startline="1700" endline="2290">ie_gptoss_infer_create</referencedby>
+        <referencedby refid="ie__infer_8h_1a89e8a91978217f16a8c9ef4adae46048" compoundref="infer__gptoss_8c" startline="2292" endline="2335">ie_gptoss_infer_destroy</referencedby>
+        <referencedby refid="ie__api_8c_1a037b105c112037bdbc1725c6c88fd1ff" compoundref="ie__api_8c" startline="275" endline="311">maybe_correct_head_dim_</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="tensor__map_8h_1abe58b80593931ffe5844ee4bcee805c5" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>const <ref refid="tensor__map_8h_1a1ed0f6ce08b1582103651d4fd14a30f1" kindref="member">tensor_desc_t</ref> *</type>
+        <definition>const tensor_desc_t * tensor_map_find</definition>
+        <argsstring>(const tensor_map_t *map, const char *name)</argsstring>
+        <name>tensor_map_find</name>
+        <param>
+          <type>const <ref refid="tensor__map_8h_1a0ae1dced25c800bf85537db1ce9776a7" kindref="member">tensor_map_t</ref> *</type>
+          <declname>map</declname>
+        </param>
+        <param>
+          <type>const char *</type>
+          <declname>name</declname>
+        </param>
+        <briefdescription>
+<para>Find a tensor descriptor by exact name. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>map</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Loaded tensor map. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>name</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Tensor name. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Pointer to descriptor, or NULL if not found. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/tensor_map.h" line="240" column="21" bodyfile="engine/src/io/tensor_map.c" bodystart="662" bodyend="669" declfile="engine/include/tensor_map.h" declline="240" declcolumn="21"/>
+        <references refid="structtensor__map__s_1a64c31242ffe43f6fc36b465d1ef75462" compoundref="tensor__map_8h" startline="122">tensor_map_s::count</references>
+        <references refid="structtensor__map__s_1acb71d934b0da86d92eb41c1992756bfd" compoundref="tensor__map_8h" startline="124">tensor_map_s::loaded</references>
+        <references refid="structtensor__desc__s_1a1134b2dbce500003f3b011f3e8a3d090" compoundref="tensor__map_8h" startline="94">tensor_desc_s::name</references>
+        <references refid="structtensor__map__s_1a30493d1f3d1e66d1e9de6813c2844293" compoundref="tensor__map_8h" startline="120">tensor_map_s::tensors</references>
+        <referencedby refid="infer__gptoss_8c_1aa3b82aa04620edd8580f7ecf25a76f5f" compoundref="infer__gptoss_8c" startline="798" endline="801">ie_w_find</referencedby>
+        <referencedby refid="ie__api_8c_1a037b105c112037bdbc1725c6c88fd1ff" compoundref="ie__api_8c" startline="275" endline="311">maybe_correct_head_dim_</referencedby>
+        <referencedby refid="gptoss__weights__index_8c_1a1d0c65a6e45fb8bdf4ef6e703fbe20b5" compoundref="gptoss__weights__index_8c" startline="513" endline="573">widx_detect_arch</referencedby>
+        <referencedby refid="gptoss__weights__index_8c_1adc8f01ad4eb156e2f380f2b39e51d0ae" compoundref="gptoss__weights__index_8c" startline="332" endline="349">widx_find_any</referencedby>
+        <referencedby refid="gptoss__weights__index_8c_1a59ea306bea1c9226c31583a49f2e7ffd" compoundref="gptoss__weights__index_8c" startline="575" endline="792">widx_resolve_layer_llama</referencedby>
+        <referencedby refid="gptoss__weights__index_8c_1aaa150e690297afaababde6bd8bcb7ae7" compoundref="gptoss__weights__index_8c" startline="794" endline="858">widx_resolve_layer_neox</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="tensor__map_8h_1ad5a6d86e99a96405eb2d6daf95603691" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int tensor_map_validate_against_bin</definition>
+        <argsstring>(const tensor_map_t *map, size_t bin_size, char *err, size_t errsz)</argsstring>
+        <name>tensor_map_validate_against_bin</name>
+        <param>
+          <type>const <ref refid="tensor__map_8h_1a0ae1dced25c800bf85537db1ce9776a7" kindref="member">tensor_map_t</ref> *</type>
+          <declname>map</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>bin_size</declname>
+        </param>
+        <param>
+          <type>char *</type>
+          <declname>err</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>errsz</declname>
+        </param>
+        <briefdescription>
+<para>Validate a loaded tensor map against a mapped weights binary. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>This is a hard consistency check intended to catch stale/mismatched tensor_map.json versus model.ie.bin before any inference occurs. It validates:<itemizedlist>
+<listitem><para>name is present</para>
+</listitem><listitem><para>size_bytes is non-zero</para>
+</listitem><listitem><para>offset + size_bytes fits within bin_size</para>
+</listitem><listitem><para>no overlaps (after sorting by offset)</para>
+</listitem></itemizedlist>
+</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>map</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Loaded tensor map. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>bin_size</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Size in bytes of the mapped weights file. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>err</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Optional error buffer for a human-readable error message. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>errsz</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Size of err buffer. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>0 if valid, non-zero if invalid. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/tensor_map.h" line="259" column="5" bodyfile="engine/src/io/tensor_map.c" bodystart="696" bodyend="776" declfile="engine/include/tensor_map.h" declline="259" declcolumn="5"/>
+        <references refid="structtensor__map__s_1a64c31242ffe43f6fc36b465d1ef75462" compoundref="tensor__map_8h" startline="122">tensor_map_s::count</references>
+        <references refid="structtm__sort__ref__s_1a4f38ae166a16e951094d4bdc51c630a9" compoundref="tensor__map_8c" startline="677">tm_sort_ref_s::end</references>
+        <references refid="structtm__sort__ref__s_1ac6b00de37e50d2f99e6935ba63dd5611" compoundref="tensor__map_8c" startline="678">tm_sort_ref_s::idx</references>
+        <references refid="structtensor__map__s_1acb71d934b0da86d92eb41c1992756bfd" compoundref="tensor__map_8h" startline="124">tensor_map_s::loaded</references>
+        <references refid="structtensor__desc__s_1a1134b2dbce500003f3b011f3e8a3d090" compoundref="tensor__map_8h" startline="94">tensor_desc_s::name</references>
+        <references refid="structtm__sort__ref__s_1afaf93178be657b3090952279c97fc940" compoundref="tensor__map_8c" startline="676">tm_sort_ref_s::off</references>
+        <references refid="structtensor__desc__s_1a0abe393a370bda31eda8ab11a5f8df37" compoundref="tensor__map_8h" startline="96">tensor_desc_s::offset</references>
+        <references refid="structtensor__desc__s_1a151674f0f1ad60320437f028593d8b26" compoundref="tensor__map_8h" startline="98">tensor_desc_s::size_bytes</references>
+        <references refid="tensor__map_8h_1ad887f000c7ecd66c30fb2d5cad14376d" compoundref="tensor__map_8h" startline="189" endline="211">tensor_desc_to_string</references>
+        <references refid="structtensor__map__s_1a30493d1f3d1e66d1e9de6813c2844293" compoundref="tensor__map_8h" startline="120">tensor_map_s::tensors</references>
+        <references refid="tensor__map_8c_1a545cca475e7c6de327d07da7515a67d1" compoundref="tensor__map_8c" startline="691" endline="694">tm_set_err</references>
+        <references refid="tensor__map_8c_1a9dc54e5679c0402d5d812603754287a8" compoundref="tensor__map_8c" startline="681" endline="689">tm_sort_ref_cmp</references>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para>Loader and lookup API for tensor_map.json. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>tensor_map.json describes how logical tensor names map to byte offsets, shapes, and dtypes inside model.ie.bin.</para>
+<para>Supported input shapes:<itemizedlist>
+<listitem><para>Array style: { &quot;tensors&quot;: [ { &quot;name&quot;: &quot;...&quot;, &quot;offset&quot;: ..., ... }, ... ] }</para>
+</listitem><listitem><para>Direct array: [ { &quot;name&quot;: &quot;...&quot;, ... }, ... ]</para>
+</listitem><listitem><para>Map style: { &quot;tensor.name&quot;: { &quot;offset&quot;: ..., ... }, ... }</para>
+</listitem></itemizedlist>
+</para>
+<para>Logging philosophy:<itemizedlist>
+<listitem><para>The map container is &quot;data-only&quot;; it does not print by itself.</para>
+</listitem><listitem><para>Callers should log failures with tensor_desc_t using the helper formatters provided below (dtype name, shape string, and a compact debug string). </para>
+</listitem></itemizedlist>
+</para>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="comment">/*<sp/>============================================================================</highlight></codeline>
+<codeline lineno="2"><highlight class="comment"><sp/>*<sp/>File:<sp/>engine/include/tensor_map.h</highlight></codeline>
+<codeline lineno="3"><highlight class="comment"><sp/>*<sp/>============================================================================</highlight></codeline>
+<codeline lineno="4"><highlight class="comment"><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="5"><highlight class="normal"></highlight><highlight class="preprocessor">#ifndef<sp/>TENSOR_MAP_H_</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="6"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>TENSOR_MAP_H_</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="7"><highlight class="normal"></highlight></codeline>
+<codeline lineno="8"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="9"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/></highlight><highlight class="stringliteral">&quot;C&quot;</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="10"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="11"><highlight class="normal"></highlight></codeline>
+<codeline lineno="12"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stddef.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="13"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stdint.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="14"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stdio.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="15"><highlight class="normal"></highlight></codeline>
+<codeline lineno="35"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>-------------------------------------------------------------------------<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="36"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>Tensor<sp/>descriptor<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="37"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>-------------------------------------------------------------------------<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="38"><highlight class="normal"></highlight></codeline>
+<codeline lineno="46" refid="tensor__map_8h_1a2a2857711e062d6fafb189e11c772e60" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">enum</highlight><highlight class="normal"><sp/><ref refid="tensor__map_8h_1a2a2857711e062d6fafb189e11c772e60" kindref="member">tensor_dtype_e</ref><sp/>{</highlight></codeline>
+<codeline lineno="47" refid="tensor__map_8h_1a2a2857711e062d6fafb189e11c772e60a8be2bde5845696812a062797ff5db779" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="tensor__map_8h_1a2a2857711e062d6fafb189e11c772e60a8be2bde5845696812a062797ff5db779" kindref="member">TENSOR_DTYPE_F32</ref><sp/>=<sp/>0,</highlight></codeline>
+<codeline lineno="48" refid="tensor__map_8h_1a2a2857711e062d6fafb189e11c772e60abd617fa72c8bfbdcd703732a2a74e9fe" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="tensor__map_8h_1a2a2857711e062d6fafb189e11c772e60abd617fa72c8bfbdcd703732a2a74e9fe" kindref="member">TENSOR_DTYPE_F16</ref><sp/>=<sp/>1,</highlight></codeline>
+<codeline lineno="49" refid="tensor__map_8h_1a2a2857711e062d6fafb189e11c772e60a7d14acd31ad346fe41c149dc7270d20d" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="tensor__map_8h_1a2a2857711e062d6fafb189e11c772e60a7d14acd31ad346fe41c149dc7270d20d" kindref="member">TENSOR_DTYPE_INT4</ref><sp/>=<sp/>2,</highlight></codeline>
+<codeline lineno="50" refid="tensor__map_8h_1a2a2857711e062d6fafb189e11c772e60a205d1b0175039c386b1f907101942387" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="tensor__map_8h_1a2a2857711e062d6fafb189e11c772e60a205d1b0175039c386b1f907101942387" kindref="member">TENSOR_DTYPE_BF16</ref><sp/>=<sp/>3,</highlight></codeline>
+<codeline lineno="51" refid="tensor__map_8h_1a2a2857711e062d6fafb189e11c772e60a28cbf2aeff36d35b8a7d954fb0ca333b" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="tensor__map_8h_1a2a2857711e062d6fafb189e11c772e60a28cbf2aeff36d35b8a7d954fb0ca333b" kindref="member">TENSOR_DTYPE_U8</ref><sp/>=<sp/>4,</highlight></codeline>
+<codeline lineno="52"><highlight class="normal"><sp/><sp/><ref refid="tensor__map_8h_1a2a2857711e062d6fafb189e11c772e60afc9691802827f535b2385da565e74947" kindref="member">TENSOR_DTYPE_UNKNOWN</ref><sp/>=<sp/>255</highlight></codeline>
+<codeline lineno="53" refid="tensor__map_8h_1ac1e5d7196426dbb29e3f26f38f4cde89" refkind="member"><highlight class="normal">}<sp/><ref refid="tensor__map_8h_1ac1e5d7196426dbb29e3f26f38f4cde89" kindref="member">tensor_dtype_t</ref>;</highlight></codeline>
+<codeline lineno="54"><highlight class="normal"></highlight></codeline>
+<codeline lineno="61" refid="tensor__map_8h_1a58c0383240d179e8446a30faba7c6868" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">inline</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/><ref refid="tensor__map_8h_1a58c0383240d179e8446a30faba7c6868" kindref="member">tensor_dtype_size_bytes</ref>(<ref refid="tensor__map_8h_1ac1e5d7196426dbb29e3f26f38f4cde89" kindref="member">tensor_dtype_t</ref><sp/>dt)<sp/>{</highlight></codeline>
+<codeline lineno="62"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">switch</highlight><highlight class="normal"><sp/>(dt)<sp/>{</highlight></codeline>
+<codeline lineno="63"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">case</highlight><highlight class="normal"><sp/><ref refid="tensor__map_8h_1a2a2857711e062d6fafb189e11c772e60a8be2bde5845696812a062797ff5db779" kindref="member">TENSOR_DTYPE_F32</ref>:<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>4u;</highlight></codeline>
+<codeline lineno="64"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">case</highlight><highlight class="normal"><sp/><ref refid="tensor__map_8h_1a2a2857711e062d6fafb189e11c772e60abd617fa72c8bfbdcd703732a2a74e9fe" kindref="member">TENSOR_DTYPE_F16</ref>:<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>2u;</highlight></codeline>
+<codeline lineno="65"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">case</highlight><highlight class="normal"><sp/><ref refid="tensor__map_8h_1a2a2857711e062d6fafb189e11c772e60a205d1b0175039c386b1f907101942387" kindref="member">TENSOR_DTYPE_BF16</ref>:<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>2u;</highlight></codeline>
+<codeline lineno="66"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">case</highlight><highlight class="normal"><sp/><ref refid="tensor__map_8h_1a2a2857711e062d6fafb189e11c772e60a28cbf2aeff36d35b8a7d954fb0ca333b" kindref="member">TENSOR_DTYPE_U8</ref>:<sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>1u;</highlight></codeline>
+<codeline lineno="67"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">case</highlight><highlight class="normal"><sp/><ref refid="tensor__map_8h_1a2a2857711e062d6fafb189e11c772e60a7d14acd31ad346fe41c149dc7270d20d" kindref="member">TENSOR_DTYPE_INT4</ref>:<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>0u;<sp/></highlight><highlight class="comment">/*<sp/>packed,<sp/>size<sp/>is<sp/>tensor-specific<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="68"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">default</highlight><highlight class="normal">:<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>0u;</highlight></codeline>
+<codeline lineno="69"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="70"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="71"><highlight class="normal"></highlight></codeline>
+<codeline lineno="78" refid="tensor__map_8h_1ae91872c3eb11e314358c720b829b9a36" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">inline</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*<ref refid="tensor__map_8h_1ae91872c3eb11e314358c720b829b9a36" kindref="member">tensor_dtype_name</ref>(<ref refid="tensor__map_8h_1ac1e5d7196426dbb29e3f26f38f4cde89" kindref="member">tensor_dtype_t</ref><sp/>dt)<sp/>{</highlight></codeline>
+<codeline lineno="79"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">switch</highlight><highlight class="normal"><sp/>(dt)<sp/>{</highlight></codeline>
+<codeline lineno="80"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">case</highlight><highlight class="normal"><sp/><ref refid="tensor__map_8h_1a2a2857711e062d6fafb189e11c772e60a8be2bde5845696812a062797ff5db779" kindref="member">TENSOR_DTYPE_F32</ref>:<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/></highlight><highlight class="stringliteral">&quot;f32&quot;</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="81"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">case</highlight><highlight class="normal"><sp/><ref refid="tensor__map_8h_1a2a2857711e062d6fafb189e11c772e60abd617fa72c8bfbdcd703732a2a74e9fe" kindref="member">TENSOR_DTYPE_F16</ref>:<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/></highlight><highlight class="stringliteral">&quot;f16&quot;</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="82"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">case</highlight><highlight class="normal"><sp/><ref refid="tensor__map_8h_1a2a2857711e062d6fafb189e11c772e60a7d14acd31ad346fe41c149dc7270d20d" kindref="member">TENSOR_DTYPE_INT4</ref>:<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/></highlight><highlight class="stringliteral">&quot;int4&quot;</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="83"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">case</highlight><highlight class="normal"><sp/><ref refid="tensor__map_8h_1a2a2857711e062d6fafb189e11c772e60a205d1b0175039c386b1f907101942387" kindref="member">TENSOR_DTYPE_BF16</ref>:<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/></highlight><highlight class="stringliteral">&quot;bf16&quot;</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="84"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">case</highlight><highlight class="normal"><sp/><ref refid="tensor__map_8h_1a2a2857711e062d6fafb189e11c772e60a28cbf2aeff36d35b8a7d954fb0ca333b" kindref="member">TENSOR_DTYPE_U8</ref>:<sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/></highlight><highlight class="stringliteral">&quot;u8&quot;</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="85"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">default</highlight><highlight class="normal">:<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/></highlight><highlight class="stringliteral">&quot;unknown&quot;</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="86"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="87"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="88"><highlight class="normal"></highlight></codeline>
+<codeline lineno="92" refid="structtensor__desc__s" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structtensor__desc__s" kindref="compound">tensor_desc_s</ref><sp/>{</highlight></codeline>
+<codeline lineno="94" refid="structtensor__desc__s_1a1134b2dbce500003f3b011f3e8a3d090" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>*<ref refid="structtensor__desc__s_1a1134b2dbce500003f3b011f3e8a3d090" kindref="member">name</ref>;</highlight></codeline>
+<codeline lineno="96" refid="structtensor__desc__s_1a0abe393a370bda31eda8ab11a5f8df37" refkind="member"><highlight class="normal"><sp/><sp/>uint64_t<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="structtensor__desc__s_1a0abe393a370bda31eda8ab11a5f8df37" kindref="member">offset</ref>;</highlight></codeline>
+<codeline lineno="98" refid="structtensor__desc__s_1a151674f0f1ad60320437f028593d8b26" refkind="member"><highlight class="normal"><sp/><sp/>uint64_t<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="structtensor__desc__s_1a151674f0f1ad60320437f028593d8b26" kindref="member">size_bytes</ref>;</highlight></codeline>
+<codeline lineno="100" refid="structtensor__desc__s_1ab88eba5b794240beb885009efb7cd5ec" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="tensor__map_8h_1ac1e5d7196426dbb29e3f26f38f4cde89" kindref="member">tensor_dtype_t</ref><sp/><sp/><ref refid="structtensor__desc__s_1ab88eba5b794240beb885009efb7cd5ec" kindref="member">dtype</ref>;</highlight></codeline>
+<codeline lineno="101"><highlight class="normal"></highlight></codeline>
+<codeline lineno="103" refid="structtensor__desc__s_1afd3b79d2fae3209ac079b6ee551c31c7" refkind="member"><highlight class="normal"><sp/><sp/>uint32_t<sp/><sp/><sp/><sp/><sp/><sp/><sp/>*<ref refid="structtensor__desc__s_1afd3b79d2fae3209ac079b6ee551c31c7" kindref="member">shape</ref>;</highlight></codeline>
+<codeline lineno="105" refid="structtensor__desc__s_1a39d73e77fad5a093361fb4d0816c7d5f" refkind="member"><highlight class="normal"><sp/><sp/>uint32_t<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="structtensor__desc__s_1a39d73e77fad5a093361fb4d0816c7d5f" kindref="member">ndim</ref>;</highlight></codeline>
+<codeline lineno="106" refid="tensor__map_8h_1a1ed0f6ce08b1582103651d4fd14a30f1" refkind="member"><highlight class="normal">}<sp/><ref refid="tensor__map_8h_1a1ed0f6ce08b1582103651d4fd14a30f1" kindref="member">tensor_desc_t</ref>;</highlight></codeline>
+<codeline lineno="107"><highlight class="normal"></highlight></codeline>
+<codeline lineno="108"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>-------------------------------------------------------------------------<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="109"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>Tensor<sp/>map<sp/>container<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="110"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>-------------------------------------------------------------------------<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="111"><highlight class="normal"></highlight></codeline>
+<codeline lineno="118" refid="structtensor__map__s" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structtensor__map__s" kindref="compound">tensor_map_s</ref><sp/>{</highlight></codeline>
+<codeline lineno="120" refid="structtensor__map__s_1a30493d1f3d1e66d1e9de6813c2844293" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="structtensor__desc__s" kindref="compound">tensor_desc_t</ref><sp/>*<ref refid="structtensor__map__s_1a30493d1f3d1e66d1e9de6813c2844293" kindref="member">tensors</ref>;</highlight></codeline>
+<codeline lineno="122" refid="structtensor__map__s_1a64c31242ffe43f6fc36b465d1ef75462" refkind="member"><highlight class="normal"><sp/><sp/>uint32_t<sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="structtensor__map__s_1a64c31242ffe43f6fc36b465d1ef75462" kindref="member">count</ref>;</highlight></codeline>
+<codeline lineno="124" refid="structtensor__map__s_1acb71d934b0da86d92eb41c1992756bfd" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="structtensor__map__s_1acb71d934b0da86d92eb41c1992756bfd" kindref="member">loaded</ref>;</highlight></codeline>
+<codeline lineno="125" refid="tensor__map_8h_1a0ae1dced25c800bf85537db1ce9776a7" refkind="member"><highlight class="normal">}<sp/><ref refid="tensor__map_8h_1a0ae1dced25c800bf85537db1ce9776a7" kindref="member">tensor_map_t</ref>;</highlight></codeline>
+<codeline lineno="126"><highlight class="normal"></highlight></codeline>
+<codeline lineno="127"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>-------------------------------------------------------------------------<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="128"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>Debug<sp/>formatting<sp/>helpers<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="129"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>-------------------------------------------------------------------------<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="130"><highlight class="normal"></highlight></codeline>
+<codeline lineno="140" refid="tensor__map_8h_1ae9baec9810ee8d265c4f05f31ffb2f4c" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">inline</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="tensor__map_8h_1ae9baec9810ee8d265c4f05f31ffb2f4c" kindref="member">tensor_shape_to_string</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/>uint32_t<sp/>*shape,<sp/>uint32_t<sp/>ndim,</highlight></codeline>
+<codeline lineno="141"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*out,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>outsz)<sp/>{</highlight></codeline>
+<codeline lineno="142"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!out<sp/>||<sp/>outsz<sp/>==<sp/>0u)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>-1;</highlight></codeline>
+<codeline lineno="143"><highlight class="normal"><sp/><sp/>out[0]<sp/>=<sp/></highlight><highlight class="charliteral">&apos;\0&apos;</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="144"><highlight class="normal"></highlight></codeline>
+<codeline lineno="145"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>used<sp/>=<sp/>0;</highlight></codeline>
+<codeline lineno="146"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(used<sp/>+<sp/>1u<sp/>&gt;=<sp/>outsz)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>-1;</highlight></codeline>
+<codeline lineno="147"><highlight class="normal"><sp/><sp/>out[used++]<sp/>=<sp/></highlight><highlight class="charliteral">&apos;[&apos;</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="148"><highlight class="normal"></highlight></codeline>
+<codeline lineno="149"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!shape<sp/>||<sp/>ndim<sp/>==<sp/>0u)<sp/>{</highlight></codeline>
+<codeline lineno="150"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(used<sp/>+<sp/>2u<sp/>&gt;=<sp/>outsz)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>-1;</highlight></codeline>
+<codeline lineno="151"><highlight class="normal"><sp/><sp/><sp/><sp/>out[used++]<sp/>=<sp/></highlight><highlight class="charliteral">&apos;]&apos;</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="152"><highlight class="normal"><sp/><sp/><sp/><sp/>out[used]<sp/>=<sp/></highlight><highlight class="charliteral">&apos;\0&apos;</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="153"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>(</highlight><highlight class="keywordtype">int</highlight><highlight class="normal">)(used);</highlight></codeline>
+<codeline lineno="154"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="155"><highlight class="normal"></highlight></codeline>
+<codeline lineno="156"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(uint32_t<sp/>i<sp/>=<sp/>0;<sp/>i<sp/>&lt;<sp/>ndim;<sp/>++i)<sp/>{</highlight></codeline>
+<codeline lineno="157"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>tmp[32];</highlight></codeline>
+<codeline lineno="158"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>n<sp/>=<sp/>0;</highlight></codeline>
+<codeline lineno="159"><highlight class="normal"></highlight></codeline>
+<codeline lineno="160"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(i<sp/>==<sp/>0u)<sp/>{</highlight></codeline>
+<codeline lineno="161"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>n<sp/>=<sp/>snprintf(tmp,<sp/></highlight><highlight class="keyword">sizeof</highlight><highlight class="normal">(tmp),<sp/></highlight><highlight class="stringliteral">&quot;%u&quot;</highlight><highlight class="normal">,<sp/>(</highlight><highlight class="keywordtype">unsigned</highlight><highlight class="normal">)shape[i]);</highlight></codeline>
+<codeline lineno="162"><highlight class="normal"><sp/><sp/><sp/><sp/>}<sp/></highlight><highlight class="keywordflow">else</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="163"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>n<sp/>=<sp/>snprintf(tmp,<sp/></highlight><highlight class="keyword">sizeof</highlight><highlight class="normal">(tmp),<sp/></highlight><highlight class="stringliteral">&quot;,%u&quot;</highlight><highlight class="normal">,<sp/>(</highlight><highlight class="keywordtype">unsigned</highlight><highlight class="normal">)shape[i]);</highlight></codeline>
+<codeline lineno="164"><highlight class="normal"><sp/><sp/><sp/><sp/>}</highlight></codeline>
+<codeline lineno="165"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(n<sp/>&lt;<sp/>0)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>-1;</highlight></codeline>
+<codeline lineno="166"><highlight class="normal"></highlight></codeline>
+<codeline lineno="167"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>nn<sp/>=<sp/>(size_t)n;</highlight></codeline>
+<codeline lineno="168"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(used<sp/>+<sp/>nn<sp/>+<sp/>2u<sp/>&gt;=<sp/>outsz)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>-1;<sp/></highlight><highlight class="comment">/*<sp/>+<sp/>&apos;]&apos;<sp/>+<sp/>NUL<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="169"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>k<sp/>=<sp/>0;<sp/>k<sp/>&lt;<sp/>nn;<sp/>++k)<sp/>out[used++]<sp/>=<sp/>tmp[k];</highlight></codeline>
+<codeline lineno="170"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="171"><highlight class="normal"></highlight></codeline>
+<codeline lineno="172"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(used<sp/>+<sp/>2u<sp/>&gt;=<sp/>outsz)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>-1;</highlight></codeline>
+<codeline lineno="173"><highlight class="normal"><sp/><sp/>out[used++]<sp/>=<sp/></highlight><highlight class="charliteral">&apos;]&apos;</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="174"><highlight class="normal"><sp/><sp/>out[used]<sp/>=<sp/></highlight><highlight class="charliteral">&apos;\0&apos;</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="175"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>(</highlight><highlight class="keywordtype">int</highlight><highlight class="normal">)used;</highlight></codeline>
+<codeline lineno="176"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="177"><highlight class="normal"></highlight></codeline>
+<codeline lineno="189" refid="tensor__map_8h_1ad887f000c7ecd66c30fb2d5cad14376d" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">inline</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="tensor__map_8h_1ad887f000c7ecd66c30fb2d5cad14376d" kindref="member">tensor_desc_to_string</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="structtensor__desc__s" kindref="compound">tensor_desc_t</ref><sp/>*td,<sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*out,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>outsz)<sp/>{</highlight></codeline>
+<codeline lineno="190"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!out<sp/>||<sp/>outsz<sp/>==<sp/>0u)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>-1;</highlight></codeline>
+<codeline lineno="191"><highlight class="normal"><sp/><sp/>out[0]<sp/>=<sp/></highlight><highlight class="charliteral">&apos;\0&apos;</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="192"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!td)<sp/>{</highlight></codeline>
+<codeline lineno="193"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>n0<sp/>=<sp/>snprintf(out,<sp/>outsz,<sp/></highlight><highlight class="stringliteral">&quot;&lt;null<sp/>tensor_desc&gt;&quot;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="194"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>(n0<sp/>&lt;<sp/>0<sp/>||<sp/>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal">)n0<sp/>&gt;=<sp/>outsz)<sp/>?<sp/>-1<sp/>:<sp/>n0;</highlight></codeline>
+<codeline lineno="195"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="196"><highlight class="normal"></highlight></codeline>
+<codeline lineno="197"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>shape_buf[128];</highlight></codeline>
+<codeline lineno="198"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(<ref refid="tensor__map_8h_1ae9baec9810ee8d265c4f05f31ffb2f4c" kindref="member">tensor_shape_to_string</ref>(td-&gt;<ref refid="structtensor__desc__s_1afd3b79d2fae3209ac079b6ee551c31c7" kindref="member">shape</ref>,<sp/>td-&gt;<ref refid="structtensor__desc__s_1a39d73e77fad5a093361fb4d0816c7d5f" kindref="member">ndim</ref>,<sp/>shape_buf,<sp/></highlight><highlight class="keyword">sizeof</highlight><highlight class="normal">(shape_buf))<sp/>&lt;<sp/>0)<sp/>{</highlight></codeline>
+<codeline lineno="199"><highlight class="normal"><sp/><sp/><sp/><sp/>snprintf(shape_buf,<sp/></highlight><highlight class="keyword">sizeof</highlight><highlight class="normal">(shape_buf),<sp/></highlight><highlight class="stringliteral">&quot;[?]&quot;</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="200"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="201"><highlight class="normal"></highlight></codeline>
+<codeline lineno="202"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>n<sp/>=<sp/>snprintf(out,<sp/>outsz,</highlight></codeline>
+<codeline lineno="203"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="stringliteral">&quot;name=%s<sp/>off=%llu<sp/>bytes=%llu<sp/>dtype=%s<sp/>shape=%s&quot;</highlight><highlight class="normal">,</highlight></codeline>
+<codeline lineno="204"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>(td-&gt;<ref refid="structtensor__desc__s_1a1134b2dbce500003f3b011f3e8a3d090" kindref="member">name</ref><sp/>?<sp/>td-&gt;<ref refid="structtensor__desc__s_1a1134b2dbce500003f3b011f3e8a3d090" kindref="member">name</ref><sp/>:<sp/></highlight><highlight class="stringliteral">&quot;&lt;null&gt;&quot;</highlight><highlight class="normal">),</highlight></codeline>
+<codeline lineno="205"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>(</highlight><highlight class="keywordtype">unsigned</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">long</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">long</highlight><highlight class="normal">)td-&gt;<ref refid="structtensor__desc__s_1a0abe393a370bda31eda8ab11a5f8df37" kindref="member">offset</ref>,</highlight></codeline>
+<codeline lineno="206"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>(</highlight><highlight class="keywordtype">unsigned</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">long</highlight><highlight class="normal"><sp/>long)td-&gt;<ref refid="structtensor__desc__s_1a151674f0f1ad60320437f028593d8b26" kindref="member">size_bytes</ref>,</highlight></codeline>
+<codeline lineno="207"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="tensor__map_8h_1ae91872c3eb11e314358c720b829b9a36" kindref="member">tensor_dtype_name</ref>(td-&gt;<ref refid="structtensor__desc__s_1ab88eba5b794240beb885009efb7cd5ec" kindref="member">dtype</ref>),</highlight></codeline>
+<codeline lineno="208"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>shape_buf);</highlight></codeline>
+<codeline lineno="209"><highlight class="normal"></highlight></codeline>
+<codeline lineno="210"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>(n<sp/>&lt;<sp/>0<sp/>||<sp/>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal">)n<sp/>&gt;=<sp/>outsz)<sp/>?<sp/>-1<sp/>:<sp/>n;</highlight></codeline>
+<codeline lineno="211"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="212"><highlight class="normal"></highlight></codeline>
+<codeline lineno="213"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>-------------------------------------------------------------------------<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="214"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>API<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="215"><highlight class="normal"></highlight><highlight class="comment">/*<sp/>-------------------------------------------------------------------------<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="216"><highlight class="normal"></highlight></codeline>
+<codeline lineno="224"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="tensor__map_8h_1ac4b913e2710929070b5b073b4b67b24c" kindref="member">tensor_map_load</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*path,<sp/><ref refid="structtensor__map__s" kindref="compound">tensor_map_t</ref><sp/>*out);</highlight></codeline>
+<codeline lineno="225"><highlight class="normal"></highlight></codeline>
+<codeline lineno="231"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="tensor__map_8h_1a42d154b3f93b07c41b514e468a61c803" kindref="member">tensor_map_free</ref>(<ref refid="structtensor__map__s" kindref="compound">tensor_map_t</ref><sp/>*map);</highlight></codeline>
+<codeline lineno="232"><highlight class="normal"></highlight></codeline>
+<codeline lineno="240"><highlight class="normal"></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="structtensor__desc__s" kindref="compound">tensor_desc_t</ref><sp/>*<ref refid="tensor__map_8h_1abe58b80593931ffe5844ee4bcee805c5" kindref="member">tensor_map_find</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="structtensor__map__s" kindref="compound">tensor_map_t</ref><sp/>*map,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*name);</highlight></codeline>
+<codeline lineno="241"><highlight class="normal"></highlight></codeline>
+<codeline lineno="259"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="tensor__map_8h_1ad5a6d86e99a96405eb2d6daf95603691" kindref="member">tensor_map_validate_against_bin</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="structtensor__map__s" kindref="compound">tensor_map_t</ref><sp/>*map,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>bin_size,<sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*err,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>errsz);</highlight></codeline>
+<codeline lineno="260"><highlight class="normal"></highlight></codeline>
+<codeline lineno="261"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="262"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="263"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="264"><highlight class="normal"></highlight></codeline>
+<codeline lineno="265"><highlight class="normal"></highlight><highlight class="preprocessor">#endif<sp/></highlight><highlight class="comment">/*<sp/>TENSOR_MAP_H_<sp/>*/</highlight><highlight class="preprocessor"></highlight></codeline>
+    </programlisting>
+    <location file="engine/include/tensor_map.h"/>
+  </compounddef>
+</doxygen>

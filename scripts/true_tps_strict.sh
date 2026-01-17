@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 # =============================================================================
 # @file true_tps_strict.sh
 # @brief Strict benchmark harness that measures true throughput and emits a single JSON object.
@@ -17,6 +18,7 @@ set -euo pipefail
 #   IE_REQUIRE_MODEL, IE_BYTES_PER_TOKEN, IE_STRIDE_BYTES, IE_VERIFY_TOUCH
 #   IE_DEDUP, IE_DEDUP_STRICT, IE_DEDUP_POLICY, IE_DEDUP_CACHE_MB
 #   RUNS, ROUNDS
+#   VERIFY_HF_IDS, HF_DIR, HF_PY, HF_DEVICE, HF_DTYPE, HF_TOPK, HF_LOGITS_TOL, HF_CHECK_PROMPT
 #
 # Output:
 #   JSONL to stdout:
@@ -35,6 +37,7 @@ PREFETCH="${PREFETCH:-auto}"
 PRETRANSPOSE="${PRETRANSPOSE:-all}"
 AFFINITY="${AFFINITY:-auto}"
 MAX_NEW="${MAX_NEW:-128}"
+WARMUP_TOKENS="${WARMUP_TOKENS:-0}"
 
 IE_REQUIRE_MODEL="${IE_REQUIRE_MODEL:-1}"
 IE_BYTES_PER_TOKEN="${IE_BYTES_PER_TOKEN:-67108864}"
@@ -50,6 +53,14 @@ REPORT_TOKENS_MAX="${REPORT_TOKENS_MAX:-}"
 
 RUNS="${RUNS:-3}"
 ROUNDS="${ROUNDS:-1}"
+VERIFY_HF_IDS="${VERIFY_HF_IDS:-0}"
+HF_DIR="${HF_DIR:-}"
+HF_PY="${HF_PY:-python3}"
+HF_DEVICE="${HF_DEVICE:-cpu}"
+HF_DTYPE="${HF_DTYPE:-fp32}"
+HF_TOPK="${HF_TOPK:-0}"
+HF_LOGITS_TOL="${HF_LOGITS_TOL:-}"
+HF_CHECK_PROMPT="${HF_CHECK_PROMPT:-1}"
 
 case "${PRECISION}" in
   fp32|bf16|int8|int4) CLI_PREC="${PRECISION}" ;;
@@ -66,6 +77,8 @@ export IE_DEDUP IE_DEDUP_STRICT IE_DEDUP_POLICY IE_DEDUP_CACHE_MB
 _tmpdir="$(mktemp -d)"
 cleanup() { rm -rf "${_tmpdir}"; }
 trap cleanup EXIT
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
 page_size_bytes="$(getconf PAGESIZE 2>/dev/null || echo 4096)"
 
@@ -242,6 +255,19 @@ run_one() {
   local out_stderr="${_tmpdir}/run_${run_idx}.stderr.log"
   local out_raw="${_tmpdir}/run_${run_idx}.raw.txt"
   local out_time="${_tmpdir}/run_${run_idx}.time.txt"
+  local trace_path=""
+  local verify_out=""
+
+  if [[ "${VERIFY_HF_IDS}" == "1" ]]; then
+    if [[ -z "${HF_DIR}" ]]; then
+      echo "[strict] ERROR: VERIFY_HF_IDS=1 but HF_DIR is not set" >&2
+      exit 96
+    fi
+    trace_path="${_tmpdir}/run_${run_idx}.trace.jsonl"
+    verify_out="${_tmpdir}/run_${run_idx}.verify.json"
+    verify_err="${_tmpdir}/run_${run_idx}.verify.err"
+    export IE_TRACE_IDS_JSONL="${trace_path}"
+  fi
 
   local sw_in0 sw_out0
   read -r sw_in0 sw_out0 < <(read_vmstat_swaps)
@@ -260,10 +286,53 @@ run_one() {
         --pretranspose "${PRETRANSPOSE}" \
         --affinity "${AFFINITY}" \
         --max-new "${MAX_NEW}" \
+        --warmup "${WARMUP_TOKENS}" \
         --rounds "${ROUNDS}" \
         ${EXPECTED_TOKENS:+--expected-tokens "${EXPECTED_TOKENS}"} \
         ${REPORT_TOKENS_MAX:+--report-tokens-max "${REPORT_TOKENS_MAX}"}
   ) > "${out_stdout}" 2> "${out_stderr}"
+
+  if [[ "${VERIFY_HF_IDS}" == "1" ]]; then
+    if [[ ! -s "${trace_path}" ]]; then
+      cat > "${verify_out}" <<'EOF'
+{"ok":false,"prompts_verified":0,"first_failure":{"reason":"trace_empty"},"per_prompt":[]}
+EOF
+    else
+    local verify_cmd=( "${HF_PY}" "${REPO_ROOT}/tools/verify_hf_generation_ids.py" \
+      --trace-jsonl "${trace_path}" \
+      --hf-dir "${HF_DIR}" \
+      --device "${HF_DEVICE}" \
+      --dtype "${HF_DTYPE}" \
+      --out "${verify_out}" )
+    if [[ "${HF_TOPK}" != "0" ]]; then
+      verify_cmd+=( --topk "${HF_TOPK}" )
+      if [[ -n "${HF_LOGITS_TOL}" ]]; then
+        verify_cmd+=( --logits-tol "${HF_LOGITS_TOL}" )
+      fi
+    fi
+    if [[ "${HF_CHECK_PROMPT}" == "1" ]]; then
+      verify_cmd+=( --check-prompt )
+    fi
+      set +e
+      "${verify_cmd[@]}" >/dev/null 2> "${verify_err}"
+      local verify_rc=$?
+      set -e
+      if [[ "${verify_rc}" != "0" || ! -s "${verify_out}" ]]; then
+        local err_txt=""
+        if [[ -s "${verify_err}" ]]; then
+          err_txt="$(head -n 20 "${verify_err}" | python3 - <<'PY'
+import json,sys
+data=sys.stdin.read()
+print(json.dumps(data))
+PY
+)"
+        fi
+        cat > "${verify_out}" <<EOF
+{"ok":false,"prompts_verified":0,"first_failure":{"reason":"verify_failed","rc":${verify_rc},"stderr":${err_txt:-null}},"per_prompt":[]}
+EOF
+      fi
+    fi
+  fi
 
   # Keep a combined log file for quick inspection.
   cat "${out_stderr}" "${out_stdout}" > "${out_raw}" || true
@@ -310,7 +379,8 @@ PY
     "${rss_peak_mb}" "${minflt}" "${majflt}" \
     "${swap_in_mb}" "${swap_out_mb}" \
     "${MODEL_DIR}" "${ENGINE_BIN}" "${DEVICE}" \
-    "${IE_DEDUP}" "${IE_DEDUP_STRICT}" "${IE_DEDUP_POLICY}" "${IE_DEDUP_CACHE_MB}" <<'PY'
+    "${IE_DEDUP}" "${IE_DEDUP_STRICT}" "${IE_DEDUP_POLICY}" "${IE_DEDUP_CACHE_MB}" \
+    "${verify_out}" <<'PY'
 import sys, json
 
 raw_path=sys.argv[1]
@@ -328,6 +398,7 @@ ie_dedup=int(float(sys.argv[10]))
 ie_dedup_strict=int(float(sys.argv[11]))
 ie_dedup_policy=sys.argv[12]
 ie_dedup_cache_mb=int(float(sys.argv[13]))
+verify_path=sys.argv[14] if len(sys.argv) > 14 else ""
 
 last=None
 with open(raw_path,"r",encoding="utf-8",errors="ignore") as f:
@@ -375,6 +446,73 @@ last["ie_dedup"]=ie_dedup
 last["ie_dedup_strict"]=ie_dedup_strict
 last["ie_dedup_policy"]=ie_dedup_policy
 last["ie_dedup_cache_mb"]=ie_dedup_cache_mb
+
+verify=None
+if verify_path:
+    try:
+        with open(verify_path,"r",encoding="utf-8") as vf:
+            verify=json.load(vf)
+    except Exception:
+        verify=None
+
+per_prompt=[]
+prompts=last.get("prompts", [])
+ver_map={}
+if isinstance(verify, dict):
+    for r in verify.get("per_prompt", []) or []:
+        try:
+            ver_map[int(r.get("prompt_index"))]=r
+        except Exception:
+            continue
+verify_reason=None
+if isinstance(verify, dict):
+    verify_reason=(verify.get("first_failure") or {}).get("reason")
+
+if isinstance(prompts, list):
+    for p in prompts:
+        if not isinstance(p, dict):
+            continue
+        pi=p.get("prompt_index")
+        rec={
+            "prompt_index": pi,
+            "prompt": p.get("prompt"),
+            "tokens_generated": p.get("tokens_generated"),
+            "window_time_s": p.get("window_time_s"),
+            "prefill_time_s": p.get("prefill_time_s"),
+            "decode_time_s": p.get("decode_time_s"),
+            "tps_true": p.get("tps_true"),
+            "tps_window": p.get("tps_window"),
+            "expected_present": p.get("expected_present"),
+            "expected_ok": p.get("expected_all_ok"),
+        }
+        if pi in ver_map:
+            v=ver_map.get(pi) or {}
+            ok=v.get("ok")
+            prompt_ok=v.get("prompt_ok")
+            if prompt_ok is False:
+                ok=False
+            fm=v.get("first_mismatch") or {}
+            if prompt_ok is False and isinstance(v.get("prompt_mismatch"), dict):
+                fm=v.get("prompt_mismatch") or fm
+            step=fm.get("step")
+            eng=fm.get("engine_next_id", fm.get("engine_id"))
+            hf=fm.get("hf_next_id", fm.get("hf_id"))
+            rec["token_id_check_ok"]=ok
+            rec["token_id_check_prompt_ok"]=prompt_ok
+            rec["token_id_check_first_mismatch_step"]=step
+            rec["token_id_check_engine_id"]=eng
+            rec["token_id_check_hf_id"]=hf
+        else:
+            rec["token_id_check_ok"]=False
+            rec["token_id_check_prompt_ok"]=None
+            rec["token_id_check_first_mismatch_step"]=None
+            rec["token_id_check_engine_id"]=None
+            rec["token_id_check_hf_id"]=None
+            rec["token_id_check_reason"]=verify_reason or "verify_missing"
+        per_prompt.append(rec)
+
+if per_prompt:
+    last["per_prompt"]=per_prompt
 
 print(json.dumps(last, separators=(",",":")))
 PY

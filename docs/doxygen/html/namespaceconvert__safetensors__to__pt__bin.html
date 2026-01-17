@@ -111,7 +111,7 @@ Functions</h2></td></tr>
         <tr>
           <td class="memname">convert_safetensors_to_pt_bin.main </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">void</a>&#160;</td>
+          <td class="paramtype">void&#160;</td>
           <td class="paramname"></td><td>)</td>
           <td></td>
         </tr>
@@ -120,29 +120,28 @@ Functions</h2></td></tr>
 
 <p class="definition">Definition at line <a class="el" href="convert__safetensors__to__pt__bin_8py_source.html#l00008">8</a> of file <a class="el" href="convert__safetensors__to__pt__bin_8py_source.html">convert_safetensors_to_pt_bin.py</a>.</p>
 <div class="fragment"><div class="line"><span class="lineno">    8</span><span class="keyword">def </span><a class="code hl_function" href="test__act__quant_8c.html#a840291bc02cba5474a4cb46a9b9566fe">main</a>():</div>
-<div class="line"><span class="lineno">    9</span>    ap = <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">argparse.ArgumentParser</a>()</div>
-<div class="line"><span class="lineno">   10</span>    <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">ap.add_argument</a>(<span class="stringliteral">&quot;--in&quot;</span>, dest=<span class="stringliteral">&quot;inp&quot;</span>, required=<span class="keyword">True</span>)</div>
-<div class="line"><span class="lineno">   11</span>    <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">ap.add_argument</a>(<span class="stringliteral">&quot;--out&quot;</span>, dest=<span class="stringliteral">&quot;outp&quot;</span>, required=<span class="keyword">True</span>)</div>
-<div class="line"><span class="lineno">   12</span>    args = <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">ap.parse_args</a>()</div>
+<div class="line"><span class="lineno">    9</span>    ap = argparse.ArgumentParser()</div>
+<div class="line"><span class="lineno">   10</span>    ap.add_argument(<span class="stringliteral">&quot;--in&quot;</span>, dest=<span class="stringliteral">&quot;inp&quot;</span>, required=<span class="keyword">True</span>)</div>
+<div class="line"><span class="lineno">   11</span>    ap.add_argument(<span class="stringliteral">&quot;--out&quot;</span>, dest=<span class="stringliteral">&quot;outp&quot;</span>, required=<span class="keyword">True</span>)</div>
+<div class="line"><span class="lineno">   12</span>    args = ap.parse_args()</div>
 <div class="line"><span class="lineno">   13</span> </div>
-<div class="line"><span class="lineno">   14</span>    inp = Path(<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">args.inp</a>)</div>
-<div class="line"><span class="lineno">   15</span>    outp = Path(<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">args.outp</a>)</div>
-<div class="line"><span class="lineno">   16</span>    <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">outp.parent.mkdir</a>(parents=<span class="keyword">True</span>, exist_ok=<span class="keyword">True</span>)</div>
+<div class="line"><span class="lineno">   14</span>    inp = Path(args.inp)</div>
+<div class="line"><span class="lineno">   15</span>    outp = Path(args.outp)</div>
+<div class="line"><span class="lineno">   16</span>    outp.parent.mkdir(parents=<span class="keyword">True</span>, exist_ok=<span class="keyword">True</span>)</div>
 <div class="line"><span class="lineno">   17</span> </div>
-<div class="line"><span class="lineno">   18</span>    sd = <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">safe_load_file</a>(<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">str</a>(inp), device=<span class="stringliteral">&quot;cpu&quot;</span>)</div>
-<div class="line"><span class="lineno">   19</span>    <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">torch.save</a>(sd, <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">str</a>(outp))</div>
-<div class="line"><span class="lineno">   20</span>    <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">print</a>(f<span class="stringliteral">&quot;[ok] wrote {outp} ({inp.name} -&gt; pytorch bin)&quot;</span>)</div>
+<div class="line"><span class="lineno">   18</span>    sd = safe_load_file(str(inp), device=<span class="stringliteral">&quot;cpu&quot;</span>)</div>
+<div class="line"><span class="lineno">   19</span>    torch.save(sd, str(outp))</div>
+<div class="line"><span class="lineno">   20</span>    print(f<span class="stringliteral">&quot;[ok] wrote {outp} ({inp.name} -&gt; pytorch bin)&quot;</span>)</div>
 <div class="line"><span class="lineno">   21</span> </div>
-<div class="ttc" id="aie__device__cuda_8cu_html_a5e3d9fee84981707669f5c2398f0c4ab"><div class="ttname"><a href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">ie_gemv_rowwise_f32_kernel</a></div><div class="ttdeci">__global__ void ie_gemv_rowwise_f32_kernel(const float *W, const float *x, float *y, const float *bias, size_t rows, size_t cols)</div><div class="ttdoc">Row-wise GEMV kernel: each thread computes one output row.</div><div class="ttdef"><b>Definition</b> <a href="ie__device__cuda_8cu_source.html#l00092">ie_device_cuda.cu:92</a></div></div>
 <div class="ttc" id="atest__act__quant_8c_html_a840291bc02cba5474a4cb46a9b9566fe"><div class="ttname"><a href="test__act__quant_8c.html#a840291bc02cba5474a4cb46a9b9566fe">main</a></div><div class="ttdeci">int main(void)</div><div class="ttdef"><b>Definition</b> <a href="test__act__quant_8c_source.html#l00121">test_act_quant.c:121</a></div></div>
 </div><!-- fragment -->
-<p class="reference">References <a class="el" href="ie__device__cuda_8cu_source.html#l00092">ie_gemv_rowwise_f32_kernel()</a>, and <a class="el" href="convert__safetensors__to__pt__bin_8py_source.html#l00008">main()</a>.</p>
+<p class="reference">References <a class="el" href="convert__safetensors__to__pt__bin_8py_source.html#l00008">main()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="convert__safetensors__to__pt__bin_8py_source.html#l00008">main()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="namespaceconvert__safetensors__to__pt__bin_a4205849b67f5e2fd9d49be108bb5b5a1_cgraph.svg" width="380" height="75"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="namespaceconvert__safetensors__to__pt__bin_a4205849b67f5e2fd9d49be108bb5b5a1_cgraph.svg" width="166" height="75"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>

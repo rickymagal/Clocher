@@ -1,0 +1,591 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.8" xml:lang="en-US">
+  <compounddef id="ie__sampler_8h" kind="file" language="C++">
+    <compoundname>ie_sampler.h</compoundname>
+    <includes local="no">stddef.h</includes>
+    <includes local="no">stdint.h</includes>
+    <includedby refid="ie__sampler_8c" local="yes">engine/src/ie_sampler.c</includedby>
+    <incdepgraph>
+      <node id="1">
+        <label>engine/include/ie_sampler.h</label>
+        <link refid="ie__sampler_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="3" relation="include">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>stddef.h</label>
+      </node>
+      <node id="3">
+        <label>stdint.h</label>
+      </node>
+    </incdepgraph>
+    <invincdepgraph>
+      <node id="1">
+        <label>engine/include/ie_sampler.h</label>
+        <link refid="ie__sampler_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>engine/src/ie_sampler.c</label>
+        <link refid="ie__sampler_8c"/>
+      </node>
+    </invincdepgraph>
+    <innerclass refid="structie__sampler__cfg" prot="public">ie_sampler_cfg</innerclass>
+    <sectiondef kind="enum">
+      <memberdef kind="enum" id="ie__sampler_8h_1a8aaf8521f0528789db5a998a5bb76324" prot="public" static="no" strong="no">
+        <type></type>
+        <name>ie_sampler_status</name>
+        <enumvalue id="ie__sampler_8h_1a8aaf8521f0528789db5a998a5bb76324a5659a660ca8e7753c25db5c055db2286" prot="public">
+          <name>IE_SAMPLER_OK</name>
+          <initializer>= 0</initializer>
+          <briefdescription>
+<para>Success. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ie__sampler_8h_1a8aaf8521f0528789db5a998a5bb76324a4ce6136876ea7d720f49c11b93fad6c6" prot="public">
+          <name>IE_SAMPLER_EINVAL</name>
+          <initializer>= -1</initializer>
+          <briefdescription>
+<para>Invalid argument. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ie__sampler_8h_1a8aaf8521f0528789db5a998a5bb76324aec6f53192ea282aa48be9f44fa0c8e83" prot="public">
+          <name>IE_SAMPLER_ENOMEM</name>
+          <initializer>= -2</initializer>
+          <briefdescription>
+<para>Allocation failure. </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="ie__sampler_8h_1a8aaf8521f0528789db5a998a5bb76324afc10e916e97c41cca3a49f68ca67f8f4" prot="public">
+          <name>IE_SAMPLER_EINTERNAL</name>
+          <initializer>= -3</initializer>
+          <briefdescription>
+<para>Internal error (unexpected state). </para>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+<para>Sampler status codes. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/ie_sampler.h" line="44" column="1" bodyfile="engine/include/ie_sampler.h" bodystart="44" bodyend="53"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="ie__sampler_8h_1a4f1437d0ac100e556fa81874d894e138" prot="public" static="no">
+        <type>enum <ref refid="ie__sampler_8h_1a8aaf8521f0528789db5a998a5bb76324" kindref="member">ie_sampler_status</ref></type>
+        <definition>typedef enum ie_sampler_status ie_sampler_status_t</definition>
+        <argsstring></argsstring>
+        <name>ie_sampler_status_t</name>
+        <briefdescription>
+<para>Sampler status codes. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/ie_sampler.h" line="53" column="21"/>
+      </memberdef>
+      <memberdef kind="typedef" id="ie__sampler_8h_1a1facc6ea7b61846ca4090794c6930b8b" prot="public" static="no">
+        <type>struct <ref refid="structie__sampler__cfg" kindref="compound">ie_sampler_cfg</ref></type>
+        <definition>typedef struct ie_sampler_cfg ie_sampler_cfg_t</definition>
+        <argsstring></argsstring>
+        <name>ie_sampler_cfg_t</name>
+        <briefdescription>
+<para>Sampling configuration. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Interpretation:<itemizedlist>
+<listitem><para>If temperature &lt;= 0, sampling defaults to greedy argmax.</para>
+</listitem><listitem><para>top_k == 0 disables top-k filtering.</para>
+</listitem><listitem><para>top_p &gt;= 1 disables nucleus (top-p) filtering.</para>
+</listitem></itemizedlist>
+</para>
+<para>If both top_k and top_p are enabled, filtering applies as:<itemizedlist>
+<listitem><para>compute probabilities (softmax)</para>
+</listitem><listitem><para>sort descending by probability</para>
+</listitem><listitem><para>apply top_k truncation (keep first K)</para>
+</listitem><listitem><para>apply top_p truncation (keep smallest prefix with cumulative &gt;= top_p)</para>
+</listitem><listitem><para>renormalize and sample </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/ie_sampler.h" line="79" column="18"/>
+      </memberdef>
+      <memberdef kind="typedef" id="ie__sampler_8h_1a061b934445c6c6e955d48d6e36d9231a" prot="public" static="no">
+        <type>struct <ref refid="structie__sampler" kindref="compound">ie_sampler</ref></type>
+        <definition>typedef struct ie_sampler ie_sampler_t</definition>
+        <argsstring></argsstring>
+        <name>ie_sampler_t</name>
+        <briefdescription>
+<para>Opaque sampler handle. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>The sampler owns scratch buffers sized for the vocab size. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/ie_sampler.h" line="86" column="25" bodyfile="engine/include/ie_sampler.h" bodystart="86" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="ie__sampler_8h_1ae65ee73ae9813d46ce65e3b5e98d5f4c" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ie_sampler_cfg_default</definition>
+        <argsstring>(ie_sampler_cfg_t *cfg)</argsstring>
+        <name>ie_sampler_cfg_default</name>
+        <param>
+          <type><ref refid="ie__sampler_8h_1a1facc6ea7b61846ca4090794c6930b8b" kindref="member">ie_sampler_cfg_t</ref> *</type>
+          <declname>cfg</declname>
+        </param>
+        <briefdescription>
+<para>Fill a configuration struct with sane defaults. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Defaults:<itemizedlist>
+<listitem><para>temperature = 1.0</para>
+</listitem><listitem><para>top_p = 1.0 (disabled)</para>
+</listitem><listitem><para>top_k = 0 (disabled)</para>
+</listitem><listitem><para>allow_nan_logits = 0</para>
+</listitem></itemizedlist>
+</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="out">cfg</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Configuration to initialize. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/ie_sampler.h" line="99" column="6" bodyfile="engine/src/ie_sampler.c" bodystart="344" bodyend="350" declfile="engine/include/ie_sampler.h" declline="99" declcolumn="6"/>
+        <references refid="structie__sampler__cfg_1aad6934a6b6ad25a5bdff683d7808b5f5" compoundref="ie__sampler_8h" startline="78">ie_sampler_cfg::allow_nan_logits</references>
+        <references refid="structie__sampler__cfg_1ab8d30f20fd4954f558f161021f5893ec" compoundref="ie__sampler_8h" startline="72">ie_sampler_cfg::temperature</references>
+        <references refid="structie__sampler__cfg_1a8aa0087a9f086521d0c92dfe0083610c" compoundref="ie__sampler_8h" startline="76">ie_sampler_cfg::top_k</references>
+        <references refid="structie__sampler__cfg_1a415eb8cea1e2fa72e0beeb2ec45d85f3" compoundref="ie__sampler_8h" startline="74">ie_sampler_cfg::top_p</references>
+        <referencedby refid="ie__sampler_8h_1a199d467fcf3d0dc4622c97356b0c6567" compoundref="ie__sampler_8c" startline="352" endline="379">ie_sampler_create</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="ie__sampler_8h_1a199d467fcf3d0dc4622c97356b0c6567" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="ie__sampler_8h_1a4f1437d0ac100e556fa81874d894e138" kindref="member">ie_sampler_status_t</ref></type>
+        <definition>ie_sampler_status_t ie_sampler_create</definition>
+        <argsstring>(ie_sampler_t **out, size_t vocab_size, const ie_sampler_cfg_t *cfg, uint64_t seed)</argsstring>
+        <name>ie_sampler_create</name>
+        <param>
+          <type><ref refid="ie__sampler_8h_1a061b934445c6c6e955d48d6e36d9231a" kindref="member">ie_sampler_t</ref> **</type>
+          <declname>out</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>vocab_size</declname>
+        </param>
+        <param>
+          <type>const <ref refid="ie__sampler_8h_1a1facc6ea7b61846ca4090794c6930b8b" kindref="member">ie_sampler_cfg_t</ref> *</type>
+          <declname>cfg</declname>
+        </param>
+        <param>
+          <type>uint64_t</type>
+          <declname>seed</declname>
+        </param>
+        <briefdescription>
+<para>Create a sampler for a fixed vocabulary size. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="out">out</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Receives newly allocated sampler on success. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">vocab_size</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Vocabulary size (logits length). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">cfg</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Sampling configuration (may be NULL for defaults). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">seed</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Initial RNG seed (deterministic). </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>IE_SAMPLER_OK on success, negative on error. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/ie_sampler.h" line="110" column="21" bodyfile="engine/src/ie_sampler.c" bodystart="352" bodyend="379" declfile="engine/include/ie_sampler.h" declline="110" declcolumn="21"/>
+        <references refid="structie__sampler_1a34e2e54b6c55daa94df18d2a4a066f08" compoundref="ie__sampler_8c" startline="58">ie_sampler::cfg</references>
+        <references refid="ie__sampler_8c_1ae65ee73ae9813d46ce65e3b5e98d5f4c" compoundref="ie__sampler_8c" startline="344" endline="350">ie_sampler_cfg_default</references>
+        <references refid="ie__sampler_8h_1a8aaf8521f0528789db5a998a5bb76324a4ce6136876ea7d720f49c11b93fad6c6" compoundref="ie__sampler_8h" startline="48">IE_SAMPLER_EINVAL</references>
+        <references refid="ie__sampler_8h_1a8aaf8521f0528789db5a998a5bb76324aec6f53192ea282aa48be9f44fa0c8e83" compoundref="ie__sampler_8h" startline="50">IE_SAMPLER_ENOMEM</references>
+        <references refid="ie__sampler_8h_1a8aaf8521f0528789db5a998a5bb76324a5659a660ca8e7753c25db5c055db2286" compoundref="ie__sampler_8h" startline="46">IE_SAMPLER_OK</references>
+        <references refid="structie__sampler_1a61f6c74ae9916cd4d064c658987cacd4" compoundref="ie__sampler_8c" startline="62">ie_sampler::items</references>
+        <references refid="structie__sampler_1aeaffb8812eb235c1315a3e60ca0fdb62" compoundref="ie__sampler_8c" startline="61">ie_sampler::probs</references>
+        <references refid="structie__sampler_1aa5b9670e4b377f91066dbc8323b90c4e" compoundref="ie__sampler_8c" startline="59">ie_sampler::rng</references>
+        <references refid="structie__sampler_1a19a07c6a959ec067ed82af8f9fbb4d8c" compoundref="ie__sampler_8c" startline="57">ie_sampler::vocab_size</references>
+      </memberdef>
+      <memberdef kind="function" id="ie__sampler_8h_1a1a8638695582f8d4991da4f47781df70" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void ie_sampler_destroy</definition>
+        <argsstring>(ie_sampler_t **ps)</argsstring>
+        <name>ie_sampler_destroy</name>
+        <param>
+          <type><ref refid="ie__sampler_8h_1a061b934445c6c6e955d48d6e36d9231a" kindref="member">ie_sampler_t</ref> **</type>
+          <declname>ps</declname>
+        </param>
+        <briefdescription>
+<para>Destroy a sampler and release all resources. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Safe to call with NULL or *ps == NULL.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="inout">ps</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Address of sampler handle; set to NULL on return. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/ie_sampler.h" line="122" column="6" bodyfile="engine/src/ie_sampler.c" bodystart="381" bodyend="390" declfile="engine/include/ie_sampler.h" declline="122" declcolumn="6"/>
+        <references refid="structie__sampler_1a61f6c74ae9916cd4d064c658987cacd4" compoundref="ie__sampler_8c" startline="62">ie_sampler::items</references>
+        <references refid="structie__sampler_1aeaffb8812eb235c1315a3e60ca0fdb62" compoundref="ie__sampler_8c" startline="61">ie_sampler::probs</references>
+      </memberdef>
+      <memberdef kind="function" id="ie__sampler_8h_1aadb041c9c359bfdb9b412688a6717fa1" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="ie__sampler_8h_1a4f1437d0ac100e556fa81874d894e138" kindref="member">ie_sampler_status_t</ref></type>
+        <definition>ie_sampler_status_t ie_sampler_set_cfg</definition>
+        <argsstring>(ie_sampler_t *s, const ie_sampler_cfg_t *cfg)</argsstring>
+        <name>ie_sampler_set_cfg</name>
+        <param>
+          <type><ref refid="ie__sampler_8h_1a061b934445c6c6e955d48d6e36d9231a" kindref="member">ie_sampler_t</ref> *</type>
+          <declname>s</declname>
+        </param>
+        <param>
+          <type>const <ref refid="ie__sampler_8h_1a1facc6ea7b61846ca4090794c6930b8b" kindref="member">ie_sampler_cfg_t</ref> *</type>
+          <declname>cfg</declname>
+        </param>
+        <briefdescription>
+<para>Update sampler configuration. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="inout">s</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Sampler handle. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">cfg</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>New configuration (must be non-NULL). </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>IE_SAMPLER_OK on success, negative on error. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/ie_sampler.h" line="131" column="21" bodyfile="engine/src/ie_sampler.c" bodystart="392" bodyend="396" declfile="engine/include/ie_sampler.h" declline="131" declcolumn="21"/>
+        <references refid="structie__sampler_1a34e2e54b6c55daa94df18d2a4a066f08" compoundref="ie__sampler_8c" startline="58">ie_sampler::cfg</references>
+        <references refid="ie__sampler_8h_1a8aaf8521f0528789db5a998a5bb76324a4ce6136876ea7d720f49c11b93fad6c6" compoundref="ie__sampler_8h" startline="48">IE_SAMPLER_EINVAL</references>
+        <references refid="ie__sampler_8h_1a8aaf8521f0528789db5a998a5bb76324a5659a660ca8e7753c25db5c055db2286" compoundref="ie__sampler_8h" startline="46">IE_SAMPLER_OK</references>
+      </memberdef>
+      <memberdef kind="function" id="ie__sampler_8h_1a1dcd20a140321046a809f7bd925d2f9e" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="ie__sampler_8h_1a4f1437d0ac100e556fa81874d894e138" kindref="member">ie_sampler_status_t</ref></type>
+        <definition>ie_sampler_status_t ie_sampler_set_seed</definition>
+        <argsstring>(ie_sampler_t *s, uint64_t seed)</argsstring>
+        <name>ie_sampler_set_seed</name>
+        <param>
+          <type><ref refid="ie__sampler_8h_1a061b934445c6c6e955d48d6e36d9231a" kindref="member">ie_sampler_t</ref> *</type>
+          <declname>s</declname>
+        </param>
+        <param>
+          <type>uint64_t</type>
+          <declname>seed</declname>
+        </param>
+        <briefdescription>
+<para>Reset sampler RNG seed. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="inout">s</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Sampler handle. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">seed</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>New seed value. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>IE_SAMPLER_OK on success, negative on error. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/ie_sampler.h" line="140" column="21" bodyfile="engine/src/ie_sampler.c" bodystart="398" bodyend="402" declfile="engine/include/ie_sampler.h" declline="140" declcolumn="21"/>
+        <references refid="ie__sampler_8h_1a8aaf8521f0528789db5a998a5bb76324a4ce6136876ea7d720f49c11b93fad6c6" compoundref="ie__sampler_8h" startline="48">IE_SAMPLER_EINVAL</references>
+        <references refid="ie__sampler_8h_1a8aaf8521f0528789db5a998a5bb76324a5659a660ca8e7753c25db5c055db2286" compoundref="ie__sampler_8h" startline="46">IE_SAMPLER_OK</references>
+        <references refid="structie__sampler_1aa5b9670e4b377f91066dbc8323b90c4e" compoundref="ie__sampler_8c" startline="59">ie_sampler::rng</references>
+      </memberdef>
+      <memberdef kind="function" id="ie__sampler_8h_1a60cc4d87efcfb6b8aadd27e3f56e789d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="ie__sampler_8h_1a4f1437d0ac100e556fa81874d894e138" kindref="member">ie_sampler_status_t</ref></type>
+        <definition>ie_sampler_status_t ie_sampler_sample</definition>
+        <argsstring>(ie_sampler_t *s, const float *logits, size_t logits_len, uint32_t *out_id, float *out_prob)</argsstring>
+        <name>ie_sampler_sample</name>
+        <param>
+          <type><ref refid="ie__sampler_8h_1a061b934445c6c6e955d48d6e36d9231a" kindref="member">ie_sampler_t</ref> *</type>
+          <declname>s</declname>
+        </param>
+        <param>
+          <type>const float *</type>
+          <declname>logits</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>logits_len</declname>
+        </param>
+        <param>
+          <type>uint32_t *</type>
+          <declname>out_id</declname>
+        </param>
+        <param>
+          <type>float *</type>
+          <declname>out_prob</declname>
+        </param>
+        <briefdescription>
+<para>Sample a token id from logits. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>If sampling degenerates to greedy (temperature &lt;= 0, or all mass collapses), this returns argmax.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="inout">s</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Sampler handle. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">logits</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Pointer to logits array (length = logits_len). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="in">logits_len</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Length of logits array (should equal vocab_size). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">out_id</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Receives sampled token id. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername direction="out">out_prob</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Optional. Receives probability of selected token under the filtered distribution. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>IE_SAMPLER_OK on success, negative on error. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/ie_sampler.h" line="155" column="21" bodyfile="engine/src/ie_sampler.c" bodystart="404" bodyend="523" declfile="engine/include/ie_sampler.h" declline="155" declcolumn="21"/>
+        <references refid="structie__sampler__cfg_1aad6934a6b6ad25a5bdff683d7808b5f5" compoundref="ie__sampler_8h" startline="78">ie_sampler_cfg::allow_nan_logits</references>
+        <references refid="ie__sampler_8c_1a09ebf6bf5245c55a63cb996796da3cf3" compoundref="ie__sampler_8c" startline="267" endline="287">argmax_logits</references>
+        <references refid="structie__sampler_1a34e2e54b6c55daa94df18d2a4a066f08" compoundref="ie__sampler_8c" startline="58">ie_sampler::cfg</references>
+        <references refid="ie__sampler_8c_1a80512fa27903ef264dba3ae7443bcc0b" compoundref="ie__sampler_8c" startline="156" endline="217">debug_dump_topk_logits_</references>
+        <references refid="ie__sampler_8c_1a47cd2ba168244ca8b0c646059e180642" compoundref="ie__sampler_8c" startline="83" endline="91">debug_topk_k_</references>
+        <references refid="ie__sampler_8c_1ae396ca396816809dfb9184ea32455662" compoundref="ie__sampler_8c" startline="119" endline="133">debug_topk_should_dump_</references>
+        <references refid="ie__sampler_8c_1aba2243bcbf50400fcce307c470dee85e" compoundref="ie__sampler_8c" startline="135" endline="154">decode_preview_</references>
+        <references refid="structie__prob__item_1a0cda146346269c60459f2513ae05a888" compoundref="ie__sampler_8c" startline="52">ie_prob_item::id</references>
+        <references refid="ie__sampler_8h_1a8aaf8521f0528789db5a998a5bb76324a4ce6136876ea7d720f49c11b93fad6c6" compoundref="ie__sampler_8h" startline="48">IE_SAMPLER_EINVAL</references>
+        <references refid="ie__sampler_8h_1a8aaf8521f0528789db5a998a5bb76324a5659a660ca8e7753c25db5c055db2286" compoundref="ie__sampler_8h" startline="46">IE_SAMPLER_OK</references>
+        <references refid="structie__sampler_1a61f6c74ae9916cd4d064c658987cacd4" compoundref="ie__sampler_8c" startline="62">ie_sampler::items</references>
+        <references refid="structie__prob__item_1aaeb0be155a0feb423234a1b2e81d8065" compoundref="ie__sampler_8c" startline="53">ie_prob_item::p</references>
+        <references refid="ie__sampler_8c_1a0f49437bd493fd9354f0a7a355722043" compoundref="ie__sampler_8c" startline="254" endline="262">prob_item_cmp_desc</references>
+        <references refid="structie__sampler_1aeaffb8812eb235c1315a3e60ca0fdb62" compoundref="ie__sampler_8c" startline="61">ie_sampler::probs</references>
+        <references refid="structie__sampler_1aa5b9670e4b377f91066dbc8323b90c4e" compoundref="ie__sampler_8c" startline="59">ie_sampler::rng</references>
+        <references refid="ie__sampler_8c_1aa74353c6e8d0bfd4561ddd0adc8c5190" compoundref="ie__sampler_8c" startline="245" endline="249">rng_next_f01</references>
+        <references refid="ie__sampler_8c_1af5f864c248d511ca9d737ae30b857430" compoundref="ie__sampler_8c" startline="299" endline="342">softmax_probs</references>
+        <references refid="structie__sampler__cfg_1ab8d30f20fd4954f558f161021f5893ec" compoundref="ie__sampler_8h" startline="72">ie_sampler_cfg::temperature</references>
+        <references refid="structie__sampler__cfg_1a8aa0087a9f086521d0c92dfe0083610c" compoundref="ie__sampler_8h" startline="76">ie_sampler_cfg::top_k</references>
+        <references refid="structie__sampler__cfg_1a415eb8cea1e2fa72e0beeb2ec45d85f3" compoundref="ie__sampler_8h" startline="74">ie_sampler_cfg::top_p</references>
+        <references refid="structie__sampler_1a19a07c6a959ec067ed82af8f9fbb4d8c" compoundref="ie__sampler_8c" startline="57">ie_sampler::vocab_size</references>
+      </memberdef>
+      <memberdef kind="function" id="ie__sampler_8h_1a02c1c1c1c824cc114bccca38e4bf47d6" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>const char *</type>
+        <definition>const char * ie_sampler_status_str</definition>
+        <argsstring>(ie_sampler_status_t st)</argsstring>
+        <name>ie_sampler_status_str</name>
+        <param>
+          <type><ref refid="ie__sampler_8h_1a4f1437d0ac100e556fa81874d894e138" kindref="member">ie_sampler_status_t</ref></type>
+          <declname>st</declname>
+        </param>
+        <briefdescription>
+<para>Convert status to string. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername direction="in">st</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Status code. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Constant string describing the status. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/ie_sampler.h" line="167" column="12" bodyfile="engine/src/ie_sampler.c" bodystart="525" bodyend="533" declfile="engine/include/ie_sampler.h" declline="167" declcolumn="12"/>
+        <references refid="ie__sampler_8h_1a8aaf8521f0528789db5a998a5bb76324afc10e916e97c41cca3a49f68ca67f8f4" compoundref="ie__sampler_8h" startline="52">IE_SAMPLER_EINTERNAL</references>
+        <references refid="ie__sampler_8h_1a8aaf8521f0528789db5a998a5bb76324a4ce6136876ea7d720f49c11b93fad6c6" compoundref="ie__sampler_8h" startline="48">IE_SAMPLER_EINVAL</references>
+        <references refid="ie__sampler_8h_1a8aaf8521f0528789db5a998a5bb76324aec6f53192ea282aa48be9f44fa0c8e83" compoundref="ie__sampler_8h" startline="50">IE_SAMPLER_ENOMEM</references>
+        <references refid="ie__sampler_8h_1a8aaf8521f0528789db5a998a5bb76324a5659a660ca8e7753c25db5c055db2286" compoundref="ie__sampler_8h" startline="46">IE_SAMPLER_OK</references>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para>Logits sampling utilities (greedy, temperature, top-k, top-p). </para>
+    </briefdescription>
+    <detaileddescription>
+<para>This module converts a logits vector into a next-token id using common decoding strategies. It is designed to be:<itemizedlist>
+<listitem><para>deterministic given a seed and identical logits</para>
+</listitem><listitem><para>independent of tokenizer and model I/O</para>
+</listitem><listitem><para>safe under -Wall/-Wextra/-Werror/-pedantic</para>
+</listitem></itemizedlist>
+</para>
+<para>Typical usage: 1) Create a sampler for a fixed vocab size: ie_sampler_cfg_t cfg; ie_sampler_cfg_default(&amp;cfg); cfg.temperature = 0.8f; cfg.top_p = 0.95f;</para>
+<para>ie_sampler_t *s = NULL; ie_sampler_create(&amp;s, vocab_size, &amp;cfg, 1234);</para>
+<para>2) For each step: uint32_t next_id = 0; ie_sampler_sample(s, logits, vocab_size, &amp;next_id, NULL);</para>
+<para>3) Destroy when done: ie_sampler_destroy(&amp;s); </para>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="comment">/*<sp/>File:<sp/>engine/include/ie_sampler.h<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="2"><highlight class="normal"></highlight></codeline>
+<codeline lineno="31"><highlight class="normal"></highlight><highlight class="preprocessor">#ifndef<sp/>IE_SAMPLER_H</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="32"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>IE_SAMPLER_H</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="33"><highlight class="normal"></highlight></codeline>
+<codeline lineno="34"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stddef.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="35"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stdint.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="36"><highlight class="normal"></highlight></codeline>
+<codeline lineno="37"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="38"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/></highlight><highlight class="stringliteral">&quot;C&quot;</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="39"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="40"><highlight class="normal"></highlight></codeline>
+<codeline lineno="44" refid="ie__sampler_8h_1a8aaf8521f0528789db5a998a5bb76324" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">enum</highlight><highlight class="normal"><sp/><ref refid="ie__sampler_8h_1a8aaf8521f0528789db5a998a5bb76324" kindref="member">ie_sampler_status</ref><sp/>{</highlight></codeline>
+<codeline lineno="46" refid="ie__sampler_8h_1a8aaf8521f0528789db5a998a5bb76324a5659a660ca8e7753c25db5c055db2286" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="ie__sampler_8h_1a8aaf8521f0528789db5a998a5bb76324a5659a660ca8e7753c25db5c055db2286" kindref="member">IE_SAMPLER_OK</ref><sp/>=<sp/>0,</highlight></codeline>
+<codeline lineno="48" refid="ie__sampler_8h_1a8aaf8521f0528789db5a998a5bb76324a4ce6136876ea7d720f49c11b93fad6c6" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="ie__sampler_8h_1a8aaf8521f0528789db5a998a5bb76324a4ce6136876ea7d720f49c11b93fad6c6" kindref="member">IE_SAMPLER_EINVAL</ref><sp/>=<sp/>-1,</highlight></codeline>
+<codeline lineno="50" refid="ie__sampler_8h_1a8aaf8521f0528789db5a998a5bb76324aec6f53192ea282aa48be9f44fa0c8e83" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="ie__sampler_8h_1a8aaf8521f0528789db5a998a5bb76324aec6f53192ea282aa48be9f44fa0c8e83" kindref="member">IE_SAMPLER_ENOMEM</ref><sp/>=<sp/>-2,</highlight></codeline>
+<codeline lineno="52"><highlight class="normal"><sp/><sp/><ref refid="ie__sampler_8h_1a8aaf8521f0528789db5a998a5bb76324afc10e916e97c41cca3a49f68ca67f8f4" kindref="member">IE_SAMPLER_EINTERNAL</ref><sp/>=<sp/>-3</highlight></codeline>
+<codeline lineno="53" refid="ie__sampler_8h_1a8aaf8521f0528789db5a998a5bb76324afc10e916e97c41cca3a49f68ca67f8f4" refkind="member"><highlight class="normal">}<sp/><ref refid="ie__sampler_8h_1a4f1437d0ac100e556fa81874d894e138" kindref="member">ie_sampler_status_t</ref>;</highlight></codeline>
+<codeline lineno="54"><highlight class="normal"></highlight></codeline>
+<codeline lineno="70" refid="structie__sampler__cfg" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structie__sampler__cfg" kindref="compound">ie_sampler_cfg</ref><sp/>{</highlight></codeline>
+<codeline lineno="72" refid="structie__sampler__cfg_1ab8d30f20fd4954f558f161021f5893ec" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/><ref refid="structie__sampler__cfg_1ab8d30f20fd4954f558f161021f5893ec" kindref="member">temperature</ref>;</highlight></codeline>
+<codeline lineno="74" refid="structie__sampler__cfg_1a415eb8cea1e2fa72e0beeb2ec45d85f3" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/><ref refid="structie__sampler__cfg_1a415eb8cea1e2fa72e0beeb2ec45d85f3" kindref="member">top_p</ref>;</highlight></codeline>
+<codeline lineno="76" refid="structie__sampler__cfg_1a8aa0087a9f086521d0c92dfe0083610c" refkind="member"><highlight class="normal"><sp/><sp/>uint32_t<sp/><ref refid="structie__sampler__cfg_1a8aa0087a9f086521d0c92dfe0083610c" kindref="member">top_k</ref>;</highlight></codeline>
+<codeline lineno="78" refid="structie__sampler__cfg_1aad6934a6b6ad25a5bdff683d7808b5f5" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="structie__sampler__cfg_1aad6934a6b6ad25a5bdff683d7808b5f5" kindref="member">allow_nan_logits</ref>;</highlight></codeline>
+<codeline lineno="79" refid="ie__sampler_8h_1a1facc6ea7b61846ca4090794c6930b8b" refkind="member"><highlight class="normal">}<sp/><ref refid="ie__sampler_8h_1a1facc6ea7b61846ca4090794c6930b8b" kindref="member">ie_sampler_cfg_t</ref>;</highlight></codeline>
+<codeline lineno="80"><highlight class="normal"></highlight></codeline>
+<codeline lineno="86" refid="ie__sampler_8h_1a061b934445c6c6e955d48d6e36d9231a" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structie__sampler" kindref="compound">ie_sampler</ref><sp/><ref refid="structie__sampler" kindref="compound">ie_sampler_t</ref>;</highlight></codeline>
+<codeline lineno="87"><highlight class="normal"></highlight></codeline>
+<codeline lineno="99"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="ie__sampler_8h_1ae65ee73ae9813d46ce65e3b5e98d5f4c" kindref="member">ie_sampler_cfg_default</ref>(<ref refid="structie__sampler__cfg" kindref="compound">ie_sampler_cfg_t</ref><sp/>*<ref refid="structie__sampler_1a34e2e54b6c55daa94df18d2a4a066f08" kindref="member">cfg</ref>);</highlight></codeline>
+<codeline lineno="100"><highlight class="normal"></highlight></codeline>
+<codeline lineno="110"><highlight class="normal"><ref refid="ie__sampler_8h_1a4f1437d0ac100e556fa81874d894e138" kindref="member">ie_sampler_status_t</ref><sp/><ref refid="ie__sampler_8h_1a199d467fcf3d0dc4622c97356b0c6567" kindref="member">ie_sampler_create</ref>(<ref refid="structie__sampler" kindref="compound">ie_sampler_t</ref><sp/>**out,</highlight></codeline>
+<codeline lineno="111"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/><ref refid="structie__sampler_1a19a07c6a959ec067ed82af8f9fbb4d8c" kindref="member">vocab_size</ref>,</highlight></codeline>
+<codeline lineno="112"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="structie__sampler__cfg" kindref="compound">ie_sampler_cfg_t</ref><sp/>*<ref refid="structie__sampler_1a34e2e54b6c55daa94df18d2a4a066f08" kindref="member">cfg</ref>,</highlight></codeline>
+<codeline lineno="113"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>uint64_t<sp/>seed);</highlight></codeline>
+<codeline lineno="114"><highlight class="normal"></highlight></codeline>
+<codeline lineno="122"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="ie__sampler_8h_1a1a8638695582f8d4991da4f47781df70" kindref="member">ie_sampler_destroy</ref>(<ref refid="structie__sampler" kindref="compound">ie_sampler_t</ref><sp/>**ps);</highlight></codeline>
+<codeline lineno="123"><highlight class="normal"></highlight></codeline>
+<codeline lineno="131"><highlight class="normal"><ref refid="ie__sampler_8h_1a4f1437d0ac100e556fa81874d894e138" kindref="member">ie_sampler_status_t</ref><sp/><ref refid="ie__sampler_8h_1aadb041c9c359bfdb9b412688a6717fa1" kindref="member">ie_sampler_set_cfg</ref>(<ref refid="structie__sampler" kindref="compound">ie_sampler_t</ref><sp/>*s,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="structie__sampler__cfg" kindref="compound">ie_sampler_cfg_t</ref><sp/>*<ref refid="structie__sampler_1a34e2e54b6c55daa94df18d2a4a066f08" kindref="member">cfg</ref>);</highlight></codeline>
+<codeline lineno="132"><highlight class="normal"></highlight></codeline>
+<codeline lineno="140"><highlight class="normal"><ref refid="ie__sampler_8h_1a4f1437d0ac100e556fa81874d894e138" kindref="member">ie_sampler_status_t</ref><sp/><ref refid="ie__sampler_8h_1a1dcd20a140321046a809f7bd925d2f9e" kindref="member">ie_sampler_set_seed</ref>(<ref refid="structie__sampler" kindref="compound">ie_sampler_t</ref><sp/>*s,<sp/>uint64_t<sp/>seed);</highlight></codeline>
+<codeline lineno="141"><highlight class="normal"></highlight></codeline>
+<codeline lineno="155"><highlight class="normal"><ref refid="ie__sampler_8h_1a4f1437d0ac100e556fa81874d894e138" kindref="member">ie_sampler_status_t</ref><sp/><ref refid="ie__sampler_8h_1a60cc4d87efcfb6b8aadd27e3f56e789d" kindref="member">ie_sampler_sample</ref>(<ref refid="structie__sampler" kindref="compound">ie_sampler_t</ref><sp/>*s,</highlight></codeline>
+<codeline lineno="156"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*logits,</highlight></codeline>
+<codeline lineno="157"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>logits_len,</highlight></codeline>
+<codeline lineno="158"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>uint32_t<sp/>*out_id,</highlight></codeline>
+<codeline lineno="159"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*out_prob);</highlight></codeline>
+<codeline lineno="160"><highlight class="normal"></highlight></codeline>
+<codeline lineno="167"><highlight class="normal"></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*<ref refid="ie__sampler_8h_1a02c1c1c1c824cc114bccca38e4bf47d6" kindref="member">ie_sampler_status_str</ref>(<ref refid="ie__sampler_8h_1a4f1437d0ac100e556fa81874d894e138" kindref="member">ie_sampler_status_t</ref><sp/>st);</highlight></codeline>
+<codeline lineno="168"><highlight class="normal"></highlight></codeline>
+<codeline lineno="169"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="170"><highlight class="normal">}<sp/></highlight><highlight class="comment">/*<sp/>extern<sp/>&quot;C&quot;<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="171"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="172"><highlight class="normal"></highlight></codeline>
+<codeline lineno="173"><highlight class="normal"></highlight><highlight class="preprocessor">#endif<sp/></highlight><highlight class="comment">/*<sp/>IE_SAMPLER_H<sp/>*/</highlight><highlight class="preprocessor"></highlight></codeline>
+    </programlisting>
+    <location file="engine/include/ie_sampler.h"/>
+  </compounddef>
+</doxygen>

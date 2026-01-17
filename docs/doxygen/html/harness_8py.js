@@ -1,6 +1,6 @@
 var harness_8py =
 [
-    [ "main", "harness_8py.html#a4f0fe04dc9b9343f12a87b1ab57b071f", null ],
-    [ "make_summary", "harness_8py.html#ac9f1bde483441516bc8042ea477fe3c5", null ],
-    [ "parse_args", "harness_8py.html#abadd908805b591f82fae7f35b779f642", null ]
+    [ "_last_json_object_from_jsonl", "harness_8py.html#a0619d7e2e0072d280455f9b92522bd40", null ],
+    [ "_repo_root_from_here", "harness_8py.html#a4eb34beadb3e270fc7cb20a5ad96fee7", null ],
+    [ "main", "harness_8py.html#a28af262c64af5578f03e77dc72cd52b2", null ]
 ];

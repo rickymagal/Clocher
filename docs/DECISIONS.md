@@ -1,6 +1,6 @@
 # Architectural Decision Records
 
-**Last updated:** 2025-10-24 21:00:48 UTC
+**Last updated:** 2026-01-17 15:54:51 UTC
 
 - **ADR-0001 (2025-10-13)**: Core in C11, zero third-party runtime; Python stdlib harness.
 - **ADR-0002 (2025-10-13)**: IEBIN v1 weights: `model.ie.json` + `model.ie.bin` + `vocab.json` (mmap-friendly).
@@ -184,3 +184,45 @@ model outputs.
 
 **Status.** Accepted. Implemented (CPU path) and integrated in strict harness runs. CUDA path uses the same
 artifact layout and flags where supported.
+
+---
+
+## ADR-0021 (2026-01-16): Strict bench verification via HF ID checks
+
+**Context.** We need deterministic, token‑level validation of engine outputs to trust TPS, even when decoding/vocab alignment is still being tuned. The existing “expected tokens” path is expensive to regenerate and brittle for iterative debugging.
+
+**Decision.**
+- Add Hugging Face ID verification in strict runs:
+  - Prompt token IDs must match HF exactly.
+  - Next‑token IDs are compared step‑by‑step (greedy).
+  - Optional top‑k/logits checks use `HF_TOPK` and `HF_LOGITS_TOL`.
+- Control via `VERIFY_HF_IDS=1`, `HF_PY`, `HF_DIR`, `HF_DEVICE`, `HF_DTYPE`.
+- Add `WARMUP_TOKENS` to standardize warmup and avoid RNG drift between engine and reference runs.
+- Allow skipping post‑run verification with `VERIFY=0` when validation is not needed.
+
+**Consequences.**
+- Deterministic, step‑level verification is possible without full text decoding.
+- HF verification can be memory‑heavy for 20B models on CPU; recommended on GPU/large‑RAM hosts.
+- Bench output now carries `token_id_check_*` fields for transparency.
+
+**Status.** Accepted. Implemented in `scripts/true_tps_strict.sh` and `tools/verify_hf_generation_ids.py`.
+
+---
+
+## ADR-0022 (2026-01-16): Streaming Q4 packers for large HF checkpoints
+
+**Context.** Full‑model Q4 packing can exceed RAM limits when loading HF shards in one pass.
+
+**Decision.**
+- Add streaming packers that process weights in chunks and write Q4 bytes/scales incrementally:
+  - `scripts/gen_q4_bytes_stream.py`
+  - `scripts/gen_q4_bytes_stream_all.sh`
+  - `scripts/q4_pack_stream.py` + `scripts/gen_q4_bytes_worker.py`
+- Provide a compat‑JSON appender for Q4 attention projections:
+  - `scripts/append_q4_attn_from_hf.py`
+
+**Consequences.**
+- Large HF models can be converted to Q4 without full in‑memory load.
+- Conversion is slower but more reliable on limited‑RAM machines.
+
+**Status.** Accepted. Implemented and used for 20B‑class models.

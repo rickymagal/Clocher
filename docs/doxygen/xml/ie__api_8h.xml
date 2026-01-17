@@ -49,6 +49,7 @@
       </node>
     </invincdepgraph>
     <innerclass refid="structie__engine__params" prot="public">ie_engine_params</innerclass>
+    <innerclass refid="structie__generate__stats" prot="public">ie_generate_stats</innerclass>
     <sectiondef kind="enum">
       <memberdef kind="enum" id="ie__api_8h_1aad1f6716972d7c4560daae2edb134d6a" prot="public" static="no" strong="no">
         <type></type>
@@ -114,12 +115,12 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="engine/include/ie_api.h" line="24" column="1" bodyfile="engine/include/ie_api.h" bodystart="24" bodyend="37"/>
+        <location file="engine/include/ie_api.h" line="32" column="1" bodyfile="engine/include/ie_api.h" bodystart="32" bodyend="45"/>
       </memberdef>
     </sectiondef>
     <sectiondef kind="typedef">
       <memberdef kind="typedef" id="ie__api_8h_1a14516a42606ffcc6fafaf4eba282c808" prot="public" static="no">
-        <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">enum</ref> <ref refid="ie__api_8h_1aad1f6716972d7c4560daae2edb134d6a" kindref="member">ie_status</ref></type>
+        <type>enum <ref refid="ie__api_8h_1aad1f6716972d7c4560daae2edb134d6a" kindref="member">ie_status</ref></type>
         <definition>typedef enum ie_status ie_status_t</definition>
         <argsstring></argsstring>
         <name>ie_status_t</name>
@@ -130,7 +131,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="engine/include/ie_api.h" line="37" column="13"/>
+        <location file="engine/include/ie_api.h" line="45" column="13"/>
       </memberdef>
       <memberdef kind="typedef" id="ie__api_8h_1a73fd6e398965a847ec84c3d208bf9e1a" prot="public" static="no">
         <type>struct <ref refid="structie__engine__params" kindref="compound">ie_engine_params</ref></type>
@@ -145,7 +146,7 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="engine/include/ie_api.h" line="63" column="20"/>
+        <location file="engine/include/ie_api.h" line="96" column="20"/>
       </memberdef>
       <memberdef kind="typedef" id="ie__api_8h_1a2339b3d8d0ba3c2aff4d4ee7d912ab96" prot="public" static="no">
         <type>struct <ref refid="structie__engine" kindref="compound">ie_engine</ref></type>
@@ -159,7 +160,31 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="engine/include/ie_api.h" line="66" column="24" bodyfile="engine/include/ie_api.h" bodystart="66" bodyend="-1"/>
+        <location file="engine/include/ie_api.h" line="99" column="24" bodyfile="engine/include/ie_api.h" bodystart="99" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="typedef" id="ie__api_8h_1a94fdedcf06c88b8623452b12c10832f6" prot="public" static="no">
+        <type>struct <ref refid="structie__generate__stats" kindref="compound">ie_generate_stats</ref></type>
+        <definition>typedef struct ie_generate_stats ie_generate_stats_t</definition>
+        <argsstring></argsstring>
+        <name>ie_generate_stats_t</name>
+        <briefdescription>
+<para>Optional generation timing statistics. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Times are in seconds.</para>
+<para>Interpretation:<itemizedlist>
+<listitem><para>wall_time_s: total time inside generation call (includes encode, KV alloc, prefill, decode loop).</para>
+</listitem><listitem><para>prefill_time_s: time spent in prefill only.</para>
+</listitem><listitem><para>decode_time_s: time spent in the decode loop only.</para>
+</listitem><listitem><para>tps_decode: tokens per second computed from decode_time_s only.</para>
+</listitem><listitem><para>tps_total: tokens per second computed from wall_time_s (can be useful, but not for decode-only comparisons).</para>
+</listitem><listitem><para>ttft_s: best-effort time-to-first-token (prefill + first decode step). </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/ie_api.h" line="133" column="21"/>
       </memberdef>
     </sectiondef>
     <sectiondef kind="func">
@@ -169,15 +194,15 @@
         <argsstring>(const ie_engine_params_t *p, const char *device, const char *model_dir, ie_engine_t **out)</argsstring>
         <name>ie_engine_create</name>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">const</ref> <ref refid="ie__api_8h_1a73fd6e398965a847ec84c3d208bf9e1a" kindref="member">ie_engine_params_t</ref> *</type>
+          <type>const <ref refid="ie__api_8h_1a73fd6e398965a847ec84c3d208bf9e1a" kindref="member">ie_engine_params_t</ref> *</type>
           <declname>p</declname>
         </param>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">const</ref> <ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">char</ref> *</type>
+          <type>const char *</type>
           <declname>device</declname>
         </param>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">const</ref> <ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">char</ref> *</type>
+          <type>const char *</type>
           <declname>model_dir</declname>
         </param>
         <param>
@@ -227,20 +252,81 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="engine/include/ie_api.h" line="77" column="13" bodyfile="engine/src/ie_api.c" bodystart="77" bodyend="99" declfile="engine/include/ie_api.h" declline="77" declcolumn="13"/>
-        <references refid="structie__engine_1ac83d74f112e27cbc48851c66c2522505" compoundref="ie__api_8c" startline="43">ie_engine::device</references>
-        <references refid="structie__engine_1a6f1eb194b936bca93cf9ebc110eeee4f" compoundref="ie__api_8c" startline="45">ie_engine::gen_counter</references>
-        <references refid="ie__api_8h_1aad1f6716972d7c4560daae2edb134d6aa97661217f732aa27dceba667633bfabe" compoundref="ie__api_8h" startline="28">IE_ERR_BADARG</references>
-        <references refid="ie__api_8h_1aad1f6716972d7c4560daae2edb134d6aabd8c937c2e5ea463e2f13386d9dae193" compoundref="ie__api_8h" startline="30">IE_ERR_OOM</references>
-        <references refid="ie__api_8h_1aad1f6716972d7c4560daae2edb134d6aad0e6665e4f13d22e40740ef4ab91d56e" compoundref="ie__api_8h" startline="26">IE_OK</references>
-        <references refid="structie__engine_1ae163b3ee14659cf15e8a711de6fffa4a" compoundref="ie__api_8c" startline="44">ie_engine::model_dir</references>
-        <references refid="structie__engine_1a06bd9cc5d2f1b50aeb49f9160cf516df" compoundref="ie__api_8c" startline="42">ie_engine::params</references>
-        <references refid="ie__api_8c_1a210133797f21fcee710ec892841dce42" compoundref="ie__api_8c" startline="54" endline="58">safe_strcpy</references>
-        <referencedby refid="main__infer_8c_1a3c04138a5bfe5d72780bb7e82a18e627" compoundref="main__infer_8c" startline="938" endline="1170">main</referencedby>
+        <location file="engine/include/ie_api.h" line="144" column="13" bodyfile="engine/src/ie_api.c" bodystart="535" bodyend="786" declfile="engine/include/ie_api.h" declline="144" declcolumn="13"/>
+        <references refid="structie__engine__params_1a66599574f8a4b8ed7cd7132fc1c0e051" compoundref="ie__api_8h" startline="62">ie_engine_params::affinity</references>
+        <references refid="structie__weights__s_1a19f9137cca00113908b495a70769805e" compoundref="ie__io_8h" startline="101">ie_weights_s::bin_size_bytes</references>
+        <references refid="structie__engine_1aa9c55e7489bff10ce899d2134caacddf" compoundref="ie__api_8c" startline="93">ie_engine::dev</references>
+        <references refid="structie__sample__cfg__s_1a4dbc31cfcd9414be62086964bf31d0ec" compoundref="ie__sampling_8h" startline="57">ie_sample_cfg_s::disallow_token0</references>
+        <references refid="structie__weights__s_1aaedc444c52d256720c4b4099604206a4" compoundref="ie__io_8h" startline="96">ie_weights_s::dtype</references>
+        <references refid="ie__api_8c_1a895bdf26c5781b1b3d3507371984c130" compoundref="ie__api_8c" startline="152" endline="165">env_flag_</references>
+        <references refid="ie__api_8c_1abd138b3799d61e6bc9c05ae3bb97df55" compoundref="ie__api_8c" startline="179" endline="198">env_u64_</references>
+        <references refid="gptoss__hparams_8h_1a551745dee25fc47e05d76c79791885a0" compoundref="gptoss__hparams_8c" startline="789" endline="798">gptoss_hparams_load</references>
+        <references refid="gptoss__hparams_8h_1ab455fc052d5abd5ec9be138ebd71deaf" compoundref="gptoss__hparams_8c" startline="776" endline="787">gptoss_hparams_load_ex</references>
+        <references refid="structie__engine_1a52b913b860dc253740be05a31f966f19" compoundref="ie__api_8c" startline="98">ie_engine::hp</references>
+        <references refid="structie__engine_1a49301f1cee369fb4e2af71f7c0baf25a" compoundref="ie__api_8c" startline="99">ie_engine::hpx</references>
+        <references refid="ie__device_8h_1a3e42fcc4b9579a9bf14520cb1afe733b" compoundref="ie__device__common_8c" startline="554" endline="601">ie_device_create</references>
+        <references refid="ie__device_8h_1a8f8a88a7dd6a58749275d2f3dea9a0ab" compoundref="ie__device__common_8c" startline="606" endline="610">ie_device_destroy</references>
+        <references refid="ie__device_8h_1aab258e9f33c12fc1276783d70b8c75a7" compoundref="ie__device__common_8c" startline="679" endline="695">ie_device_kind_from_str</references>
+        <references refid="ie__api_8h_1aad1f6716972d7c4560daae2edb134d6aa97661217f732aa27dceba667633bfabe" compoundref="ie__api_8h" startline="36">IE_ERR_BADARG</references>
+        <references refid="ie__api_8h_1aad1f6716972d7c4560daae2edb134d6aae28c4b2f5bbc19786a7fae92476e20e6" compoundref="ie__api_8h" startline="44">IE_ERR_INTERNAL</references>
+        <references refid="ie__api_8h_1aad1f6716972d7c4560daae2edb134d6aa84ac59294416abed65324b43d7fd4406" compoundref="ie__api_8h" startline="40">IE_ERR_MODEL</references>
+        <references refid="ie__api_8h_1aad1f6716972d7c4560daae2edb134d6aabd8c937c2e5ea463e2f13386d9dae193" compoundref="ie__api_8h" startline="38">IE_ERR_OOM</references>
+        <references refid="ie__api_8h_1aad1f6716972d7c4560daae2edb134d6aa9b9f3972b5933df9b01dbb86a5c01da8" compoundref="ie__api_8h" startline="42">IE_ERR_UNSUPPORTED</references>
+        <references refid="ie__infer_8h_1a569ac499d7bce188c1e21fa9377b9bae" compoundref="infer__gptoss_8c" startline="1700" endline="2290">ie_gptoss_infer_create</references>
+        <references refid="ie__infer_8h_1a89e8a91978217f16a8c9ef4adae46048" compoundref="infer__gptoss_8c" startline="2292" endline="2335">ie_gptoss_infer_destroy</references>
+        <references refid="util__logging_8h_1aea21466075cc03977bc4fcde5130d6a4" compoundref="util__logging_8c" startline="41" endline="46">ie_log_error</references>
+        <references refid="util__logging_8h_1a7bff220c76442d1372d81e26f77c2921" compoundref="util__logging_8c" startline="27" endline="32">ie_log_info</references>
+        <references refid="util__logging_8h_1a760c448d737b236033d80eb69d83981f" compoundref="util__logging_8c" startline="34" endline="39">ie_log_warn</references>
+        <references refid="ie__api_8h_1aad1f6716972d7c4560daae2edb134d6aad0e6665e4f13d22e40740ef4ab91d56e" compoundref="ie__api_8h" startline="34">IE_OK</references>
+        <references refid="ie__api_8c_1af59b500a4172d473a75a7cacb005fe4c" compoundref="ie__api_8c" startline="79" endline="87">ie_q4_kernel_selected_name</references>
+        <references refid="ie__sampling_8h_1a2bab94d0c686c57c4437867f4c18583f" compoundref="sampling_8c" startline="136" endline="139">ie_rng_init</references>
+        <references refid="ie__sampling_8h_1abf8ae91c0890e964abdfa5b739eb0646abf8a031706d18e2e447fdf23fbcf56b1" compoundref="ie__sampling_8h" startline="37">IE_SAMPLE_GREEDY</references>
+        <references refid="ie__sampling_8h_1abf8ae91c0890e964abdfa5b739eb0646ab4e9a5e6b4a83a598f8c39f00066f03d" compoundref="ie__sampling_8h" startline="38">IE_SAMPLE_TOPK</references>
+        <references refid="ie__sampling_8h_1abf8ae91c0890e964abdfa5b739eb0646afadedf0e7e6e0143704a56c75be9a02b" compoundref="ie__sampling_8h" startline="39">IE_SAMPLE_TOPP</references>
+        <references refid="ie__tokenizer__gptoss_8h_1ad4b875bec514bb9c1de945944e1596de" compoundref="tokenizer__gptoss_8c" startline="1795" endline="1811">ie_tok_gptoss_close</references>
+        <references refid="ie__tokenizer__gptoss_8h_1ae5c55dc1502414c60d1a99fa9fbdf1bc" compoundref="tokenizer__gptoss_8c" startline="1761" endline="1793">ie_tok_gptoss_open</references>
+        <references refid="ie__tokenizer__gptoss_8h_1a0a4146017408baa0a07ffa747dfae870" compoundref="tokenizer__gptoss_8c" startline="1813" endline="1816">ie_tok_gptoss_vocab_size</references>
+        <references refid="ie__io_8h_1a06c2b7e35d1f82a11e4605e23a1976f5" compoundref="weights_8c" startline="1356" endline="1370">ie_weights_close</references>
+        <references refid="ie__io_8h_1a522dac028ee37aae1307ffdb6d65ec1d" compoundref="weights_8c" startline="988" endline="1171">ie_weights_open</references>
+        <references refid="structie__engine_1a332cda7a5edebf2e7d2ed6aae026d2e6" compoundref="ie__api_8c" startline="101">ie_engine::infer</references>
+        <references refid="structie__weights__s_1ab1e17ac4f44125571f2c63e603d967da" compoundref="ie__io_8h" startline="104">ie_weights_s::is_dedup</references>
+        <references refid="ie__api_8c_1aaebc5523f6b56ec96f2d6eb4b8c9d453" compoundref="ie__api_8c" startline="440" endline="447">is_precision_int4_</references>
+        <references refid="ie__api_8c_1ae6802cc5e527fb41e298498690d14618" compoundref="ie__api_8c" startline="133" endline="150">join_path_</references>
+        <references refid="structie__sample__cfg__s_1a2321436097d66e220ae325700ef29a2a" compoundref="ie__sampling_8h" startline="45">ie_sample_cfg_s::kind</references>
+        <references refid="ie__api_8c_1a199233701fc36a14c4dd9ca0b6ba3267" compoundref="ie__api_8c" startline="250" endline="262">log_hparams_</references>
+        <references refid="ie__api_8c_1a6043c93ff69b9a5560d3563173bbe413" compoundref="ie__api_8c" startline="264" endline="273">log_hparams_ex_</references>
+        <references refid="structie__engine_1a37cae65dbe87727ed4512cf3f43a44d6" compoundref="ie__api_8c" startline="103">ie_engine::logits</references>
+        <references refid="structie__engine_1a91d1378e647529c085a49b23d4572180" compoundref="ie__api_8c" startline="104">ie_engine::logits_len</references>
+        <references refid="ie__api_8c_1a037b105c112037bdbc1725c6c88fd1ff" compoundref="ie__api_8c" startline="275" endline="311">maybe_correct_head_dim_</references>
+        <references refid="ie__api_8c_1a2f69e96aa091fc7cb03b9fd665721f45" compoundref="ie__api_8c" startline="200" endline="205">path_exists_</references>
+        <references refid="main__infer_8c_1ae688d728e1acdfe5988c7db45d6f0166" compoundref="main__infer_8c" startline="81">PATH_MAX</references>
+        <references refid="structie__engine__params_1a92b02bad12cb4e8173728311c00960b7" compoundref="ie__api_8h" startline="56">ie_engine_params::precision</references>
+        <references refid="structie__engine__params_1a34f965300425f8c1115b2408a4adc04a" compoundref="ie__api_8h" startline="68">ie_engine_params::prefetch</references>
+        <references refid="structie__engine__params_1a992270ba61612b2acb319aed5cbfca13" compoundref="ie__api_8h" startline="65">ie_engine_params::pretranspose</references>
+        <references refid="structie__engine_1a98402752df2142d74c267786f397be60" compoundref="ie__api_8c" startline="111">ie_engine::rng</references>
+        <references refid="structie__engine_1aaa3e344d604e18a33031841f9596d715" compoundref="ie__api_8c" startline="110">ie_engine::sample_cfg</references>
+        <references refid="ie__api_8c_1a84a3f942f264a41531539dae58dc2588" compoundref="ie__api_8c" startline="219" endline="227">sample_kind_str_</references>
+        <references refid="structie__engine_1a89c0535c4b688544a42421f576f1127c" compoundref="ie__api_8c" startline="108">ie_engine::scratch_cap</references>
+        <references refid="structie__engine_1a09bd6582622e417505e8eb8b6d677661" compoundref="ie__api_8c" startline="106">ie_engine::scratch_idx</references>
+        <references refid="structie__engine_1a271d2757a4a4233b1b287d9eba6598ff" compoundref="ie__api_8c" startline="107">ie_engine::scratch_prob</references>
+        <references refid="structie__engine__params_1a1dff4c9644aa8bf7e389f84426c529e1" compoundref="ie__api_8h" startline="59">ie_engine_params::sparsity</references>
+        <references refid="ie__api_8c_1ac4fef36c8b393fe1521894c9ad98a87f" compoundref="ie__api_8c" startline="230" endline="248">streq_icase_</references>
+        <references refid="structie__sample__cfg__s_1aaf70bc926e9df01a892510cfaf614b45" compoundref="ie__sampling_8h" startline="48">ie_sample_cfg_s::temperature</references>
+        <references refid="structie__engine__params_1a0c0b5f7588c98d30e0d2535790f6f24c" compoundref="ie__api_8h" startline="71">ie_engine_params::threads</references>
+        <references refid="structie__engine_1a7935ef14e93926261d904598e630e0a6" compoundref="ie__api_8c" startline="95">ie_engine::tok</references>
+        <references refid="structie__engine__params_1a16a831d93768c1a6d392163596de8277" compoundref="ie__api_8h" startline="79">ie_engine_params::tokenizer_path</references>
+        <references refid="structie__sample__cfg__s_1a42a99f4e9a2514a58dd34aac41cc7ffd" compoundref="ie__sampling_8h" startline="51">ie_sample_cfg_s::top_k</references>
+        <references refid="structie__sample__cfg__s_1aef0de38cb7fe0c32693bb498134aa504" compoundref="ie__sampling_8h" startline="54">ie_sample_cfg_s::top_p</references>
+        <references refid="structie__gptoss__hparams_1a92d6a3ba26bf70874cd58b8aebfe688c" compoundref="ie__infer_8h" startline="48">ie_gptoss_hparams::vocab_size</references>
+        <references refid="structie__engine_1a8870e09c080a29237244220b1a454bac" compoundref="ie__api_8c" startline="94">ie_engine::w</references>
+        <references refid="structie__engine__params_1acfb35b9cd1d6ca63786793da5380b5f1" compoundref="ie__api_8h" startline="95">ie_engine_params::weights_bin_path</references>
+        <references refid="structie__engine__params_1a1266e9b614224d36975a586e6981969f" compoundref="ie__api_8h" startline="87">ie_engine_params::weights_json_path</references>
+        <references refid="structie__weights__s_1ab6a61099d0af4a47854d02dc4fef5b8f" compoundref="ie__io_8h" startline="99">ie_weights_s::weights_path</references>
+        <referencedby refid="main__infer_8c_1a3c04138a5bfe5d72780bb7e82a18e627" compoundref="main__infer_8c" startline="2362" endline="2740">main</referencedby>
         <referencedby refid="test__api_8c_1a840291bc02cba5474a4cb46a9b9566fe" compoundref="test__api_8c" startline="20" endline="44">main</referencedby>
       </memberdef>
       <memberdef kind="function" id="ie__api_8h_1a5a9a30f05ef6183f6a75811c616b3a0a" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
-        <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">void</ref></type>
+        <type>void</type>
         <definition>void ie_engine_destroy</definition>
         <argsstring>(ie_engine_t *e)</argsstring>
         <name>ie_engine_destroy</name>
@@ -265,8 +351,20 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="engine/include/ie_api.h" line="86" column="6" bodyfile="engine/src/ie_api.c" bodystart="101" bodyend="104" declfile="engine/include/ie_api.h" declline="86" declcolumn="6"/>
-        <referencedby refid="main__infer_8c_1a3c04138a5bfe5d72780bb7e82a18e627" compoundref="main__infer_8c" startline="938" endline="1170">main</referencedby>
+        <location file="engine/include/ie_api.h" line="154" column="6" bodyfile="engine/src/ie_api.c" bodystart="788" bodyend="816" declfile="engine/include/ie_api.h" declline="154" declcolumn="6"/>
+        <references refid="structie__engine_1aa9c55e7489bff10ce899d2134caacddf" compoundref="ie__api_8c" startline="93">ie_engine::dev</references>
+        <references refid="ie__device_8h_1a8f8a88a7dd6a58749275d2f3dea9a0ab" compoundref="ie__device__common_8c" startline="606" endline="610">ie_device_destroy</references>
+        <references refid="ie__infer_8h_1a89e8a91978217f16a8c9ef4adae46048" compoundref="infer__gptoss_8c" startline="2292" endline="2335">ie_gptoss_infer_destroy</references>
+        <references refid="util__logging_8h_1a7bff220c76442d1372d81e26f77c2921" compoundref="util__logging_8c" startline="27" endline="32">ie_log_info</references>
+        <references refid="ie__tokenizer__gptoss_8h_1ad4b875bec514bb9c1de945944e1596de" compoundref="tokenizer__gptoss_8c" startline="1795" endline="1811">ie_tok_gptoss_close</references>
+        <references refid="ie__io_8h_1a06c2b7e35d1f82a11e4605e23a1976f5" compoundref="weights_8c" startline="1356" endline="1370">ie_weights_close</references>
+        <references refid="structie__engine_1a332cda7a5edebf2e7d2ed6aae026d2e6" compoundref="ie__api_8c" startline="101">ie_engine::infer</references>
+        <references refid="structie__engine_1a37cae65dbe87727ed4512cf3f43a44d6" compoundref="ie__api_8c" startline="103">ie_engine::logits</references>
+        <references refid="structie__engine_1a09bd6582622e417505e8eb8b6d677661" compoundref="ie__api_8c" startline="106">ie_engine::scratch_idx</references>
+        <references refid="structie__engine_1a271d2757a4a4233b1b287d9eba6598ff" compoundref="ie__api_8c" startline="107">ie_engine::scratch_prob</references>
+        <references refid="structie__engine_1a7935ef14e93926261d904598e630e0a6" compoundref="ie__api_8c" startline="95">ie_engine::tok</references>
+        <references refid="structie__engine_1a8870e09c080a29237244220b1a454bac" compoundref="ie__api_8c" startline="94">ie_engine::w</references>
+        <referencedby refid="main__infer_8c_1a3c04138a5bfe5d72780bb7e82a18e627" compoundref="main__infer_8c" startline="2362" endline="2740">main</referencedby>
         <referencedby refid="test__api_8c_1a840291bc02cba5474a4cb46a9b9566fe" compoundref="test__api_8c" startline="20" endline="44">main</referencedby>
       </memberdef>
       <memberdef kind="function" id="ie__api_8h_1ad32cf2cd209832e4cd577a5a1e31970f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
@@ -275,29 +373,30 @@
         <argsstring>(const ie_engine_t *e, const char *prompt, size_t max_new, int *out_tokens, size_t *out_n_tokens)</argsstring>
         <name>ie_engine_generate</name>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">const</ref> <ref refid="ie__api_8h_1a2339b3d8d0ba3c2aff4d4ee7d912ab96" kindref="member">ie_engine_t</ref> *</type>
+          <type>const <ref refid="ie__api_8h_1a2339b3d8d0ba3c2aff4d4ee7d912ab96" kindref="member">ie_engine_t</ref> *</type>
           <declname>e</declname>
         </param>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">const</ref> <ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">char</ref> *</type>
+          <type>const char *</type>
           <declname>prompt</declname>
         </param>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">size_t</ref></type>
+          <type>size_t</type>
           <declname>max_new</declname>
         </param>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">int</ref> *</type>
+          <type>int *</type>
           <declname>out_tokens</declname>
         </param>
         <param>
-          <type><ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">size_t</ref> *</type>
+          <type>size_t *</type>
           <declname>out_n_tokens</declname>
         </param>
         <briefdescription>
 <para>Generate up to <computeroutput>max_new</computeroutput> tokens for the given prompt. </para>
         </briefdescription>
         <detaileddescription>
+<para>This is the stable entrypoint that only returns token ids. For timing breakdowns, use <ref refid="ie__api_8h_1a950ac9a0efe5a4fe068a288e57099c4a" kindref="member">ie_engine_generate_ex</ref>.</para>
 <para><parameterlist kind="param"><parameteritem>
 <parameternamelist>
 <parametername>e</parametername>
@@ -345,16 +444,151 @@
         </detaileddescription>
         <inbodydescription>
         </inbodydescription>
-        <location file="engine/include/ie_api.h" line="98" column="13" bodyfile="engine/src/ie_api.c" bodystart="106" bodyend="131" declfile="engine/include/ie_api.h" declline="98" declcolumn="13"/>
-        <references refid="structie__engine_1ac83d74f112e27cbc48851c66c2522505" compoundref="ie__api_8c" startline="43">ie_engine::device</references>
-        <references refid="ie__api_8c_1a90c00769b295e35729eb5981adb8b83f" compoundref="ie__api_8c" startline="65" endline="75">fnv1a64</references>
-        <references refid="structie__engine_1a6f1eb194b936bca93cf9ebc110eeee4f" compoundref="ie__api_8c" startline="45">ie_engine::gen_counter</references>
-        <references refid="ie__api_8h_1aad1f6716972d7c4560daae2edb134d6aa97661217f732aa27dceba667633bfabe" compoundref="ie__api_8h" startline="28">IE_ERR_BADARG</references>
-        <references refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" compoundref="ie__device__cuda_8cu" startline="92" endline="110">ie_gemv_rowwise_f32_kernel</references>
-        <references refid="ie__api_8h_1aad1f6716972d7c4560daae2edb134d6aad0e6665e4f13d22e40740ef4ab91d56e" compoundref="ie__api_8h" startline="26">IE_OK</references>
-        <references refid="structie__engine_1ae163b3ee14659cf15e8a711de6fffa4a" compoundref="ie__api_8c" startline="44">ie_engine::model_dir</references>
-        <referencedby refid="main__infer_8c_1a3c04138a5bfe5d72780bb7e82a18e627" compoundref="main__infer_8c" startline="938" endline="1170">main</referencedby>
+        <location file="engine/include/ie_api.h" line="170" column="13" bodyfile="engine/src/ie_api.c" bodystart="818" bodyend="824" declfile="engine/include/ie_api.h" declline="170" declcolumn="13"/>
+        <references refid="ie__api_8c_1a950ac9a0efe5a4fe068a288e57099c4a" compoundref="ie__api_8c" startline="826" endline="1109">ie_engine_generate_ex</references>
+        <referencedby refid="main__infer_8c_1a3c04138a5bfe5d72780bb7e82a18e627" compoundref="main__infer_8c" startline="2362" endline="2740">main</referencedby>
         <referencedby refid="test__api_8c_1a840291bc02cba5474a4cb46a9b9566fe" compoundref="test__api_8c" startline="20" endline="44">main</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="ie__api_8h_1a950ac9a0efe5a4fe068a288e57099c4a" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="ie__api_8h_1a14516a42606ffcc6fafaf4eba282c808" kindref="member">ie_status_t</ref></type>
+        <definition>ie_status_t ie_engine_generate_ex</definition>
+        <argsstring>(const ie_engine_t *e, const char *prompt, size_t max_new, int *out_tokens, size_t *out_n_tokens, ie_generate_stats_t *out_stats)</argsstring>
+        <name>ie_engine_generate_ex</name>
+        <param>
+          <type>const <ref refid="ie__api_8h_1a2339b3d8d0ba3c2aff4d4ee7d912ab96" kindref="member">ie_engine_t</ref> *</type>
+          <declname>e</declname>
+        </param>
+        <param>
+          <type>const char *</type>
+          <declname>prompt</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>max_new</declname>
+        </param>
+        <param>
+          <type>int *</type>
+          <declname>out_tokens</declname>
+        </param>
+        <param>
+          <type>size_t *</type>
+          <declname>out_n_tokens</declname>
+        </param>
+        <param>
+          <type><ref refid="ie__api_8h_1a94fdedcf06c88b8623452b12c10832f6" kindref="member">ie_generate_stats_t</ref> *</type>
+          <declname>out_stats</declname>
+        </param>
+        <briefdescription>
+<para>Generate tokens and optionally return timing statistics. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>e</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Engine pointer (required). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>prompt</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Prompt string (may be empty, must be non-NULL). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>max_new</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Maximum number of tokens to generate. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>out_tokens</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Output buffer (length at least max_new when max_new&gt;0). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>out_n_tokens</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Receives number of generated tokens. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>out_stats</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Optional timing breakdown (may be NULL). </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Status code. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/include/ie_api.h" line="187" column="13" bodyfile="engine/src/ie_api.c" bodystart="826" bodyend="1109" declfile="engine/include/ie_api.h" declline="187" declcolumn="13"/>
+        <references refid="structie__gptoss__hparams_1aa4bcfd3715e6fbd18bf3bbad86e017da" compoundref="ie__infer_8h" startline="46">ie_gptoss_hparams::d_head</references>
+        <references refid="ie__api_8c_1a215873dea479191195e8c959e211dd12" compoundref="ie__api_8c" startline="492" endline="529">debug_dump_topk_</references>
+        <references refid="structie__generate__stats_1a1b1460ddd99269f59229371ead131768" compoundref="ie__api_8h" startline="123">ie_generate_stats::decode_time_s</references>
+        <references refid="ie__api_8c_1a895bdf26c5781b1b3d3507371984c130" compoundref="ie__api_8c" startline="152" endline="165">env_flag_</references>
+        <references refid="ie__api_8c_1addfdaff25281aaed8e625985201655f5" compoundref="ie__api_8c" startline="167" endline="177">env_int_</references>
+        <references refid="structie__kv__opts_1a8b9255f78606b76462a20157c24c2bda" compoundref="ie__kv__cache_8h" startline="80">ie_kv_opts::head_dim</references>
+        <references refid="structie__kv__opts_1a60291f6cf5954a7d16fdaf981ddf9e7a" compoundref="ie__kv__cache_8h" startline="78">ie_kv_opts::heads</references>
+        <references refid="structie__engine_1a52b913b860dc253740be05a31f966f19" compoundref="ie__api_8c" startline="98">ie_engine::hp</references>
+        <references refid="ie__api_8h_1aad1f6716972d7c4560daae2edb134d6aa97661217f732aa27dceba667633bfabe" compoundref="ie__api_8h" startline="36">IE_ERR_BADARG</references>
+        <references refid="ie__api_8h_1aad1f6716972d7c4560daae2edb134d6aa84ac59294416abed65324b43d7fd4406" compoundref="ie__api_8h" startline="40">IE_ERR_MODEL</references>
+        <references refid="ie__api_8h_1aad1f6716972d7c4560daae2edb134d6aabd8c937c2e5ea463e2f13386d9dae193" compoundref="ie__api_8h" startline="38">IE_ERR_OOM</references>
+        <references refid="ie__infer_8h_1a39827a388a0b7dd6d161e99b111c5546" compoundref="infer__gptoss_8c" startline="2337" endline="2363">ie_gptoss_infer_prefill</references>
+        <references refid="ie__infer_8h_1a52a0e33daf64ca5524b6440cecc8d2f6" compoundref="infer__gptoss_8c" startline="2365" endline="2380">ie_gptoss_infer_step</references>
+        <references refid="ie__kv__cache_8h_1a555aaa1e797b4ef229ad911a7a6ee8b5" compoundref="kv__cache_8c" startline="483" endline="490">ie_kv_free_layers</references>
+        <references refid="ie__kv__cache_8h_1ab44456fc4842c15b2091f0a059e06584" compoundref="kv__cache_8c" startline="411" endline="453">ie_kv_init_layers</references>
+        <references refid="ie__kv__cache_8h_1a2bb962f9a31709cc159ccb5f8c8f2fe7a4fa6c4868332a5127755fdee56404f54" compoundref="ie__kv__cache_8h" startline="66">IE_KV_STORAGE_F32</references>
+        <references refid="util__logging_8h_1aea21466075cc03977bc4fcde5130d6a4" compoundref="util__logging_8c" startline="41" endline="46">ie_log_error</references>
+        <references refid="util__logging_8h_1a7bff220c76442d1372d81e26f77c2921" compoundref="util__logging_8c" startline="27" endline="32">ie_log_info</references>
+        <references refid="util__logging_8h_1a760c448d737b236033d80eb69d83981f" compoundref="util__logging_8c" startline="34" endline="39">ie_log_warn</references>
+        <references refid="ie__api_8h_1aad1f6716972d7c4560daae2edb134d6aad0e6665e4f13d22e40740ef4ab91d56e" compoundref="ie__api_8h" startline="34">IE_OK</references>
+        <references refid="ie__sampling_8h_1a8c38dab715a10a71aa4e5a049199f73c" compoundref="sampling_8c" startline="326" endline="500">ie_sample_next</references>
+        <references refid="ie__tokenizer__gptoss_8h_1ae372932b3912864351defd6ce553ed88" compoundref="tokenizer__gptoss_8c" startline="1818" endline="1889">ie_tok_gptoss_decode</references>
+        <references refid="ie__tokenizer__gptoss_8h_1a171cd54148a22d4fd7c1c8d1e9f010de" compoundref="tokenizer__gptoss_8c" startline="1891" endline="1946">ie_tok_gptoss_encode</references>
+        <references refid="structie__engine_1a332cda7a5edebf2e7d2ed6aae026d2e6" compoundref="ie__api_8c" startline="101">ie_engine::infer</references>
+        <references refid="ie__api_8c_1ae91baeed684675458103911630006d6b" compoundref="ie__api_8c" startline="319" endline="335">log_prompt_preview_</references>
+        <references refid="structie__engine_1a37cae65dbe87727ed4512cf3f43a44d6" compoundref="ie__api_8c" startline="103">ie_engine::logits</references>
+        <references refid="structie__engine_1a91d1378e647529c085a49b23d4572180" compoundref="ie__api_8c" startline="104">ie_engine::logits_len</references>
+        <references refid="structie__gptoss__hparams_1aab0c01be581031776f5fa61bbb10de24" compoundref="ie__infer_8h" startline="49">ie_gptoss_hparams::max_seq</references>
+        <references refid="structie__kv__opts_1ad9dcb92aedeedbeddfbde834d4395421" compoundref="ie__kv__cache_8h" startline="82">ie_kv_opts::max_seq</references>
+        <references refid="structie__gptoss__hparams_1a89acca54a15e45183b174270c137d5ca" compoundref="ie__infer_8h" startline="44">ie_gptoss_hparams::n_kv_heads</references>
+        <references refid="structie__gptoss__hparams_1a9f7592ff0ef97a90e4bf510d7323c1e2" compoundref="ie__infer_8h" startline="42">ie_gptoss_hparams::n_layers</references>
+        <references refid="ie__api_8c_1a75dd7c4c8fa19ce274702f7c1025188e" compoundref="ie__api_8c" startline="118" endline="127">now_s_</references>
+        <references refid="structie__generate__stats_1a25833e4ea02ba3a80027c68ef1b7df4e" compoundref="ie__api_8h" startline="120">ie_generate_stats::prefill_time_s</references>
+        <references refid="structie__engine_1a98402752df2142d74c267786f397be60" compoundref="ie__api_8c" startline="111">ie_engine::rng</references>
+        <references refid="structie__engine_1aaa3e344d604e18a33031841f9596d715" compoundref="ie__api_8c" startline="110">ie_engine::sample_cfg</references>
+        <references refid="structie__engine_1a89c0535c4b688544a42421f576f1127c" compoundref="ie__api_8c" startline="108">ie_engine::scratch_cap</references>
+        <references refid="structie__engine_1a09bd6582622e417505e8eb8b6d677661" compoundref="ie__api_8c" startline="106">ie_engine::scratch_idx</references>
+        <references refid="structie__engine_1a271d2757a4a4233b1b287d9eba6598ff" compoundref="ie__api_8c" startline="107">ie_engine::scratch_prob</references>
+        <references refid="ie__api_8c_1a241871b8d2c4bbc5d327d9c0a86a5752" compoundref="ie__api_8c" startline="313" endline="317">status_from_rc_</references>
+        <references refid="ie__api_8c_1aa493bc5b1e8ff42c90b7af4441f7b4a7" compoundref="ie__api_8c" startline="207" endline="217">status_str_</references>
+        <references refid="structie__kv__opts_1ac4e52133d322b3da023a242cab67fb7f" compoundref="ie__kv__cache_8h" startline="85">ie_kv_opts::storage</references>
+        <references refid="structie__engine_1a7935ef14e93926261d904598e630e0a6" compoundref="ie__api_8c" startline="95">ie_engine::tok</references>
+        <references refid="structie__generate__stats_1aac4b2d90444814e0e1eea572cbf9e739" compoundref="ie__api_8h" startline="129">ie_generate_stats::tps_decode</references>
+        <references refid="structie__generate__stats_1aaf33c52782c7b81cc0343a66b3c48381" compoundref="ie__api_8h" startline="132">ie_generate_stats::tps_total</references>
+        <references refid="ie__api_8c_1a1fd3cc0d78dca7e40a6220cb44cdf20a" compoundref="ie__api_8c" startline="406" endline="424">trace_ids_prompt_</references>
+        <references refid="ie__api_8c_1aca2e54f1433b521986edbd21340e3697" compoundref="ie__api_8c" startline="369" endline="378">trace_ids_prompt_index_</references>
+        <references refid="ie__api_8c_1a808989aec9aefb6687fb4034e1f66ee3" compoundref="ie__api_8c" startline="426" endline="437">trace_ids_step_</references>
+        <references refid="structie__generate__stats_1a1283280d620e0b8b93ed99968fc9fd0d" compoundref="ie__api_8h" startline="126">ie_generate_stats::ttft_s</references>
+        <references refid="structie__generate__stats_1a0245de0682de82e80c25cf7fe3fe5a70" compoundref="ie__api_8h" startline="117">ie_generate_stats::wall_time_s</references>
+        <referencedby refid="ie__api_8h_1ad32cf2cd209832e4cd577a5a1e31970f" compoundref="ie__api_8c" startline="818" endline="824">ie_engine_generate</referencedby>
+        <referencedby refid="main__infer_8c_1a3c04138a5bfe5d72780bb7e82a18e627" compoundref="main__infer_8c" startline="2362" endline="2740">main</referencedby>
       </memberdef>
     </sectiondef>
     <briefdescription>
@@ -366,59 +600,95 @@
 </listitem><listitem><para>Generation emits integer token ids into a caller-provided buffer.</para>
 </listitem></itemizedlist>
 </para>
-<para>This API does not require callers to know engine internals. </para>
+<para>The extended generation entrypoint can optionally return timing statistics:<itemizedlist>
+<listitem><para>Total wall time</para>
+</listitem><listitem><para>Prefill time</para>
+</listitem><listitem><para>Decode-loop time</para>
+</listitem><listitem><para>Decode-only TPS (cannot be inflated by prefill) </para>
+</listitem></itemizedlist>
+</para>
     </detaileddescription>
     <programlisting>
-<codeline lineno="1"><highlight class="normal"></highlight></codeline>
-<codeline lineno="13"><highlight class="normal"></highlight><highlight class="preprocessor">#pragma<sp/>once</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="14"><highlight class="normal"></highlight></codeline>
-<codeline lineno="15"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stddef.h&gt;</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="16"><highlight class="normal"></highlight></codeline>
-<codeline lineno="17"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="18"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/></highlight><highlight class="stringliteral">&quot;C&quot;</highlight><highlight class="normal"><sp/>{</highlight></codeline>
-<codeline lineno="19"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="20"><highlight class="normal"></highlight></codeline>
-<codeline lineno="24" refid="ie__api_8h_1aad1f6716972d7c4560daae2edb134d6a" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">enum</highlight><highlight class="normal"><sp/><ref refid="ie__api_8h_1aad1f6716972d7c4560daae2edb134d6a" kindref="member">ie_status</ref><sp/>{</highlight></codeline>
-<codeline lineno="26" refid="ie__api_8h_1aad1f6716972d7c4560daae2edb134d6aad0e6665e4f13d22e40740ef4ab91d56e" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="ie__api_8h_1aad1f6716972d7c4560daae2edb134d6aad0e6665e4f13d22e40740ef4ab91d56e" kindref="member">IE_OK</ref><sp/>=<sp/>0,</highlight></codeline>
-<codeline lineno="28" refid="ie__api_8h_1aad1f6716972d7c4560daae2edb134d6aa97661217f732aa27dceba667633bfabe" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="ie__api_8h_1aad1f6716972d7c4560daae2edb134d6aa97661217f732aa27dceba667633bfabe" kindref="member">IE_ERR_BADARG</ref><sp/>=<sp/>1,</highlight></codeline>
-<codeline lineno="30" refid="ie__api_8h_1aad1f6716972d7c4560daae2edb134d6aabd8c937c2e5ea463e2f13386d9dae193" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="ie__api_8h_1aad1f6716972d7c4560daae2edb134d6aabd8c937c2e5ea463e2f13386d9dae193" kindref="member">IE_ERR_OOM</ref><sp/>=<sp/>2,</highlight></codeline>
-<codeline lineno="32" refid="ie__api_8h_1aad1f6716972d7c4560daae2edb134d6aa84ac59294416abed65324b43d7fd4406" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="ie__api_8h_1aad1f6716972d7c4560daae2edb134d6aa84ac59294416abed65324b43d7fd4406" kindref="member">IE_ERR_MODEL</ref><sp/>=<sp/>3,</highlight></codeline>
-<codeline lineno="34" refid="ie__api_8h_1aad1f6716972d7c4560daae2edb134d6aa9b9f3972b5933df9b01dbb86a5c01da8" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="ie__api_8h_1aad1f6716972d7c4560daae2edb134d6aa9b9f3972b5933df9b01dbb86a5c01da8" kindref="member">IE_ERR_UNSUPPORTED</ref><sp/>=<sp/>4,</highlight></codeline>
-<codeline lineno="36"><highlight class="normal"><sp/><sp/><ref refid="ie__api_8h_1aad1f6716972d7c4560daae2edb134d6aae28c4b2f5bbc19786a7fae92476e20e6" kindref="member">IE_ERR_INTERNAL</ref><sp/>=<sp/>5</highlight></codeline>
-<codeline lineno="37" refid="ie__api_8h_1aad1f6716972d7c4560daae2edb134d6aae28c4b2f5bbc19786a7fae92476e20e6" refkind="member"><highlight class="normal">}<sp/><ref refid="ie__api_8h_1a14516a42606ffcc6fafaf4eba282c808" kindref="member">ie_status_t</ref>;</highlight></codeline>
-<codeline lineno="38"><highlight class="normal"></highlight></codeline>
-<codeline lineno="45" refid="structie__engine__params" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structie__engine__params" kindref="compound">ie_engine_params</ref><sp/>{</highlight></codeline>
-<codeline lineno="47" refid="structie__engine__params_1a92b02bad12cb4e8173728311c00960b7" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*<ref refid="structie__engine__params_1a92b02bad12cb4e8173728311c00960b7" kindref="member">precision</ref>;</highlight></codeline>
-<codeline lineno="48"><highlight class="normal"></highlight></codeline>
-<codeline lineno="50" refid="structie__engine__params_1a1dff4c9644aa8bf7e389f84426c529e1" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*<ref refid="structie__engine__params_1a1dff4c9644aa8bf7e389f84426c529e1" kindref="member">sparsity</ref>;</highlight></codeline>
-<codeline lineno="51"><highlight class="normal"></highlight></codeline>
-<codeline lineno="53" refid="structie__engine__params_1a66599574f8a4b8ed7cd7132fc1c0e051" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*<ref refid="structie__engine__params_1a66599574f8a4b8ed7cd7132fc1c0e051" kindref="member">affinity</ref>;</highlight></codeline>
-<codeline lineno="54"><highlight class="normal"></highlight></codeline>
-<codeline lineno="56" refid="structie__engine__params_1a992270ba61612b2acb319aed5cbfca13" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*<ref refid="structie__engine__params_1a992270ba61612b2acb319aed5cbfca13" kindref="member">pretranspose</ref>;</highlight></codeline>
+<codeline lineno="1"><highlight class="comment">/*<sp/>============================================================================</highlight></codeline>
+<codeline lineno="2"><highlight class="comment"><sp/>*<sp/>File:<sp/>engine/include/ie_api.h</highlight></codeline>
+<codeline lineno="3"><highlight class="comment"><sp/>*<sp/>============================================================================</highlight></codeline>
+<codeline lineno="4"><highlight class="comment"><sp/>*/</highlight></codeline>
+<codeline lineno="21"><highlight class="normal"></highlight><highlight class="preprocessor">#pragma<sp/>once</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="22"><highlight class="normal"></highlight></codeline>
+<codeline lineno="23"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stddef.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="24"><highlight class="normal"></highlight></codeline>
+<codeline lineno="25"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="26"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/></highlight><highlight class="stringliteral">&quot;C&quot;</highlight><highlight class="normal"><sp/>{</highlight></codeline>
+<codeline lineno="27"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="28"><highlight class="normal"></highlight></codeline>
+<codeline lineno="32" refid="ie__api_8h_1aad1f6716972d7c4560daae2edb134d6a" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">enum</highlight><highlight class="normal"><sp/><ref refid="ie__api_8h_1aad1f6716972d7c4560daae2edb134d6a" kindref="member">ie_status</ref><sp/>{</highlight></codeline>
+<codeline lineno="34" refid="ie__api_8h_1aad1f6716972d7c4560daae2edb134d6aad0e6665e4f13d22e40740ef4ab91d56e" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="ie__api_8h_1aad1f6716972d7c4560daae2edb134d6aad0e6665e4f13d22e40740ef4ab91d56e" kindref="member">IE_OK</ref><sp/>=<sp/>0,</highlight></codeline>
+<codeline lineno="36" refid="ie__api_8h_1aad1f6716972d7c4560daae2edb134d6aa97661217f732aa27dceba667633bfabe" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="ie__api_8h_1aad1f6716972d7c4560daae2edb134d6aa97661217f732aa27dceba667633bfabe" kindref="member">IE_ERR_BADARG</ref><sp/>=<sp/>1,</highlight></codeline>
+<codeline lineno="38" refid="ie__api_8h_1aad1f6716972d7c4560daae2edb134d6aabd8c937c2e5ea463e2f13386d9dae193" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="ie__api_8h_1aad1f6716972d7c4560daae2edb134d6aabd8c937c2e5ea463e2f13386d9dae193" kindref="member">IE_ERR_OOM</ref><sp/>=<sp/>2,</highlight></codeline>
+<codeline lineno="40" refid="ie__api_8h_1aad1f6716972d7c4560daae2edb134d6aa84ac59294416abed65324b43d7fd4406" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="ie__api_8h_1aad1f6716972d7c4560daae2edb134d6aa84ac59294416abed65324b43d7fd4406" kindref="member">IE_ERR_MODEL</ref><sp/>=<sp/>3,</highlight></codeline>
+<codeline lineno="42" refid="ie__api_8h_1aad1f6716972d7c4560daae2edb134d6aa9b9f3972b5933df9b01dbb86a5c01da8" refkind="member"><highlight class="normal"><sp/><sp/><ref refid="ie__api_8h_1aad1f6716972d7c4560daae2edb134d6aa9b9f3972b5933df9b01dbb86a5c01da8" kindref="member">IE_ERR_UNSUPPORTED</ref><sp/>=<sp/>4,</highlight></codeline>
+<codeline lineno="44"><highlight class="normal"><sp/><sp/><ref refid="ie__api_8h_1aad1f6716972d7c4560daae2edb134d6aae28c4b2f5bbc19786a7fae92476e20e6" kindref="member">IE_ERR_INTERNAL</ref><sp/>=<sp/>5</highlight></codeline>
+<codeline lineno="45" refid="ie__api_8h_1aad1f6716972d7c4560daae2edb134d6aae28c4b2f5bbc19786a7fae92476e20e6" refkind="member"><highlight class="normal">}<sp/><ref refid="ie__api_8h_1a14516a42606ffcc6fafaf4eba282c808" kindref="member">ie_status_t</ref>;</highlight></codeline>
+<codeline lineno="46"><highlight class="normal"></highlight></codeline>
+<codeline lineno="54" refid="structie__engine__params" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structie__engine__params" kindref="compound">ie_engine_params</ref><sp/>{</highlight></codeline>
+<codeline lineno="56" refid="structie__engine__params_1a92b02bad12cb4e8173728311c00960b7" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*<ref refid="structie__engine__params_1a92b02bad12cb4e8173728311c00960b7" kindref="member">precision</ref>;</highlight></codeline>
 <codeline lineno="57"><highlight class="normal"></highlight></codeline>
-<codeline lineno="59" refid="structie__engine__params_1a34f965300425f8c1115b2408a4adc04a" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*<ref refid="structie__engine__params_1a34f965300425f8c1115b2408a4adc04a" kindref="member">prefetch</ref>;</highlight></codeline>
+<codeline lineno="59" refid="structie__engine__params_1a1dff4c9644aa8bf7e389f84426c529e1" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*<ref refid="structie__engine__params_1a1dff4c9644aa8bf7e389f84426c529e1" kindref="member">sparsity</ref>;</highlight></codeline>
 <codeline lineno="60"><highlight class="normal"></highlight></codeline>
-<codeline lineno="62" refid="structie__engine__params_1a0c0b5f7588c98d30e0d2535790f6f24c" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="structie__engine__params_1a0c0b5f7588c98d30e0d2535790f6f24c" kindref="member">threads</ref>;</highlight></codeline>
-<codeline lineno="63" refid="ie__api_8h_1a73fd6e398965a847ec84c3d208bf9e1a" refkind="member"><highlight class="normal">}<sp/><ref refid="ie__api_8h_1a73fd6e398965a847ec84c3d208bf9e1a" kindref="member">ie_engine_params_t</ref>;</highlight></codeline>
-<codeline lineno="64"><highlight class="normal"></highlight></codeline>
-<codeline lineno="66" refid="ie__api_8h_1a2339b3d8d0ba3c2aff4d4ee7d912ab96" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structie__engine" kindref="compound">ie_engine</ref><sp/><ref refid="structie__engine" kindref="compound">ie_engine_t</ref>;</highlight></codeline>
-<codeline lineno="67"><highlight class="normal"></highlight></codeline>
-<codeline lineno="77"><highlight class="normal"><ref refid="ie__api_8h_1a14516a42606ffcc6fafaf4eba282c808" kindref="member">ie_status_t</ref><sp/><ref refid="ie__api_8h_1a84bd87043352946e9d53b0f8a5c4abe0" kindref="member">ie_engine_create</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="structie__engine__params" kindref="compound">ie_engine_params_t</ref><sp/>*<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">p</ref>,</highlight></codeline>
-<codeline lineno="78"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*<ref refid="structie__engine_1ac83d74f112e27cbc48851c66c2522505" kindref="member">device</ref>,</highlight></codeline>
-<codeline lineno="79"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*<ref refid="structie__engine_1ae163b3ee14659cf15e8a711de6fffa4a" kindref="member">model_dir</ref>,</highlight></codeline>
-<codeline lineno="80"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="structie__engine" kindref="compound">ie_engine_t</ref><sp/>**<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">out</ref>);</highlight></codeline>
-<codeline lineno="81"><highlight class="normal"></highlight></codeline>
-<codeline lineno="86"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="ie__api_8h_1a5a9a30f05ef6183f6a75811c616b3a0a" kindref="member">ie_engine_destroy</ref>(<ref refid="structie__engine" kindref="compound">ie_engine_t</ref><sp/>*<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">e</ref>);</highlight></codeline>
-<codeline lineno="87"><highlight class="normal"></highlight></codeline>
-<codeline lineno="98"><highlight class="normal"><ref refid="ie__api_8h_1a14516a42606ffcc6fafaf4eba282c808" kindref="member">ie_status_t</ref><sp/><ref refid="ie__api_8h_1ad32cf2cd209832e4cd577a5a1e31970f" kindref="member">ie_engine_generate</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="structie__engine" kindref="compound">ie_engine_t</ref><sp/>*<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">e</ref>,</highlight></codeline>
-<codeline lineno="99"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*prompt,</highlight></codeline>
-<codeline lineno="100"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>max_new,</highlight></codeline>
-<codeline lineno="101"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>*<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">out_tokens</ref>,</highlight></codeline>
-<codeline lineno="102"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>*<ref refid="ie__device__cuda_8cu_1a5e3d9fee84981707669f5c2398f0c4ab" kindref="member">out_n_tokens</ref>);</highlight></codeline>
-<codeline lineno="103"><highlight class="normal"></highlight></codeline>
-<codeline lineno="104"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="105"><highlight class="normal">}<sp/></highlight><highlight class="comment">/*<sp/>extern<sp/>&quot;C&quot;<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
-<codeline lineno="106"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight></codeline>
+<codeline lineno="62" refid="structie__engine__params_1a66599574f8a4b8ed7cd7132fc1c0e051" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*<ref refid="structie__engine__params_1a66599574f8a4b8ed7cd7132fc1c0e051" kindref="member">affinity</ref>;</highlight></codeline>
+<codeline lineno="63"><highlight class="normal"></highlight></codeline>
+<codeline lineno="65" refid="structie__engine__params_1a992270ba61612b2acb319aed5cbfca13" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*<ref refid="structie__engine__params_1a992270ba61612b2acb319aed5cbfca13" kindref="member">pretranspose</ref>;</highlight></codeline>
+<codeline lineno="66"><highlight class="normal"></highlight></codeline>
+<codeline lineno="68" refid="structie__engine__params_1a34f965300425f8c1115b2408a4adc04a" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*<ref refid="structie__engine__params_1a34f965300425f8c1115b2408a4adc04a" kindref="member">prefetch</ref>;</highlight></codeline>
+<codeline lineno="69"><highlight class="normal"></highlight></codeline>
+<codeline lineno="71" refid="structie__engine__params_1a0c0b5f7588c98d30e0d2535790f6f24c" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="structie__engine__params_1a0c0b5f7588c98d30e0d2535790f6f24c" kindref="member">threads</ref>;</highlight></codeline>
+<codeline lineno="72"><highlight class="normal"></highlight></codeline>
+<codeline lineno="79" refid="structie__engine__params_1a16a831d93768c1a6d392163596de8277" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*<ref refid="structie__engine__params_1a16a831d93768c1a6d392163596de8277" kindref="member">tokenizer_path</ref>;</highlight></codeline>
+<codeline lineno="80"><highlight class="normal"></highlight></codeline>
+<codeline lineno="87" refid="structie__engine__params_1a1266e9b614224d36975a586e6981969f" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*<ref refid="structie__engine__params_1a1266e9b614224d36975a586e6981969f" kindref="member">weights_json_path</ref>;</highlight></codeline>
+<codeline lineno="88"><highlight class="normal"></highlight></codeline>
+<codeline lineno="95" refid="structie__engine__params_1acfb35b9cd1d6ca63786793da5380b5f1" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*<ref refid="structie__engine__params_1acfb35b9cd1d6ca63786793da5380b5f1" kindref="member">weights_bin_path</ref>;</highlight></codeline>
+<codeline lineno="96" refid="ie__api_8h_1a73fd6e398965a847ec84c3d208bf9e1a" refkind="member"><highlight class="normal">}<sp/><ref refid="ie__api_8h_1a73fd6e398965a847ec84c3d208bf9e1a" kindref="member">ie_engine_params_t</ref>;</highlight></codeline>
+<codeline lineno="97"><highlight class="normal"></highlight></codeline>
+<codeline lineno="99" refid="ie__api_8h_1a2339b3d8d0ba3c2aff4d4ee7d912ab96" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structie__engine" kindref="compound">ie_engine</ref><sp/><ref refid="structie__engine" kindref="compound">ie_engine_t</ref>;</highlight></codeline>
+<codeline lineno="100"><highlight class="normal"></highlight></codeline>
+<codeline lineno="115" refid="structie__generate__stats" refkind="compound"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal"><ref refid="structie__generate__stats" kindref="compound">ie_generate_stats</ref><sp/>{</highlight></codeline>
+<codeline lineno="117" refid="structie__generate__stats_1a0245de0682de82e80c25cf7fe3fe5a70" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">double</highlight><highlight class="normal"><sp/><ref refid="structie__generate__stats_1a0245de0682de82e80c25cf7fe3fe5a70" kindref="member">wall_time_s</ref>;</highlight></codeline>
+<codeline lineno="118"><highlight class="normal"></highlight></codeline>
+<codeline lineno="120" refid="structie__generate__stats_1a25833e4ea02ba3a80027c68ef1b7df4e" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">double</highlight><highlight class="normal"><sp/><ref refid="structie__generate__stats_1a25833e4ea02ba3a80027c68ef1b7df4e" kindref="member">prefill_time_s</ref>;</highlight></codeline>
+<codeline lineno="121"><highlight class="normal"></highlight></codeline>
+<codeline lineno="123" refid="structie__generate__stats_1a1b1460ddd99269f59229371ead131768" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">double</highlight><highlight class="normal"><sp/><ref refid="structie__generate__stats_1a1b1460ddd99269f59229371ead131768" kindref="member">decode_time_s</ref>;</highlight></codeline>
+<codeline lineno="124"><highlight class="normal"></highlight></codeline>
+<codeline lineno="126" refid="structie__generate__stats_1a1283280d620e0b8b93ed99968fc9fd0d" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">double</highlight><highlight class="normal"><sp/><ref refid="structie__generate__stats_1a1283280d620e0b8b93ed99968fc9fd0d" kindref="member">ttft_s</ref>;</highlight></codeline>
+<codeline lineno="127"><highlight class="normal"></highlight></codeline>
+<codeline lineno="129" refid="structie__generate__stats_1aac4b2d90444814e0e1eea572cbf9e739" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">double</highlight><highlight class="normal"><sp/><ref refid="structie__generate__stats_1aac4b2d90444814e0e1eea572cbf9e739" kindref="member">tps_decode</ref>;</highlight></codeline>
+<codeline lineno="130"><highlight class="normal"></highlight></codeline>
+<codeline lineno="132" refid="structie__generate__stats_1aaf33c52782c7b81cc0343a66b3c48381" refkind="member"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">double</highlight><highlight class="normal"><sp/><ref refid="structie__generate__stats_1aaf33c52782c7b81cc0343a66b3c48381" kindref="member">tps_total</ref>;</highlight></codeline>
+<codeline lineno="133" refid="ie__api_8h_1a94fdedcf06c88b8623452b12c10832f6" refkind="member"><highlight class="normal">}<sp/><ref refid="ie__api_8h_1a94fdedcf06c88b8623452b12c10832f6" kindref="member">ie_generate_stats_t</ref>;</highlight></codeline>
+<codeline lineno="134"><highlight class="normal"></highlight></codeline>
+<codeline lineno="144"><highlight class="normal"><ref refid="ie__api_8h_1a14516a42606ffcc6fafaf4eba282c808" kindref="member">ie_status_t</ref><sp/><ref refid="ie__api_8h_1a84bd87043352946e9d53b0f8a5c4abe0" kindref="member">ie_engine_create</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="structie__engine__params" kindref="compound">ie_engine_params_t</ref><sp/>*p,</highlight></codeline>
+<codeline lineno="145"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*device,</highlight></codeline>
+<codeline lineno="146"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*model_dir,</highlight></codeline>
+<codeline lineno="147"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="structie__engine" kindref="compound">ie_engine_t</ref><sp/>**out);</highlight></codeline>
+<codeline lineno="148"><highlight class="normal"></highlight></codeline>
+<codeline lineno="154"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="ie__api_8h_1a5a9a30f05ef6183f6a75811c616b3a0a" kindref="member">ie_engine_destroy</ref>(<ref refid="structie__engine" kindref="compound">ie_engine_t</ref><sp/>*e);</highlight></codeline>
+<codeline lineno="155"><highlight class="normal"></highlight></codeline>
+<codeline lineno="170"><highlight class="normal"><ref refid="ie__api_8h_1a14516a42606ffcc6fafaf4eba282c808" kindref="member">ie_status_t</ref><sp/><ref refid="ie__api_8h_1ad32cf2cd209832e4cd577a5a1e31970f" kindref="member">ie_engine_generate</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="structie__engine" kindref="compound">ie_engine_t</ref><sp/>*e,</highlight></codeline>
+<codeline lineno="171"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*prompt,</highlight></codeline>
+<codeline lineno="172"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>max_new,</highlight></codeline>
+<codeline lineno="173"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>*out_tokens,</highlight></codeline>
+<codeline lineno="174"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>*out_n_tokens);</highlight></codeline>
+<codeline lineno="175"><highlight class="normal"></highlight></codeline>
+<codeline lineno="187"><highlight class="normal"><ref refid="ie__api_8h_1a14516a42606ffcc6fafaf4eba282c808" kindref="member">ie_status_t</ref><sp/><ref refid="ie__api_8h_1a950ac9a0efe5a4fe068a288e57099c4a" kindref="member">ie_engine_generate_ex</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/><ref refid="structie__engine" kindref="compound">ie_engine_t</ref><sp/>*e,</highlight></codeline>
+<codeline lineno="188"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*prompt,</highlight></codeline>
+<codeline lineno="189"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>max_new,</highlight></codeline>
+<codeline lineno="190"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>*out_tokens,</highlight></codeline>
+<codeline lineno="191"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>*out_n_tokens,</highlight></codeline>
+<codeline lineno="192"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><ref refid="structie__generate__stats" kindref="compound">ie_generate_stats_t</ref><sp/>*out_stats);</highlight></codeline>
+<codeline lineno="193"><highlight class="normal"></highlight></codeline>
+<codeline lineno="194"><highlight class="normal"></highlight><highlight class="preprocessor">#ifdef<sp/>__cplusplus</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="195"><highlight class="normal">}<sp/></highlight><highlight class="comment">/*<sp/>extern<sp/>&quot;C&quot;<sp/>*/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="196"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight></codeline>
     </programlisting>
     <location file="engine/include/ie_api.h"/>
   </compounddef>

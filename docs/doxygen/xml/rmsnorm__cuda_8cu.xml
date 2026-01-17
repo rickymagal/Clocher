@@ -1,0 +1,230 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.9.8" xml:lang="en-US">
+  <compounddef id="rmsnorm__cuda_8cu" kind="file" language="C++">
+    <compoundname>rmsnorm_cuda.cu</compoundname>
+    <includes local="no">cuda_runtime.h</includes>
+    <includes local="no">math.h</includes>
+    <includes local="no">stddef.h</includes>
+    <includes local="no">stdint.h</includes>
+    <incdepgraph>
+      <node id="1">
+        <label>engine/src/kernels/rmsnorm_cuda.cu</label>
+        <link refid="rmsnorm__cuda_8cu"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="3" relation="include">
+        </childnode>
+        <childnode refid="4" relation="include">
+        </childnode>
+        <childnode refid="5" relation="include">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>cuda_runtime.h</label>
+      </node>
+      <node id="3">
+        <label>math.h</label>
+      </node>
+      <node id="4">
+        <label>stddef.h</label>
+      </node>
+      <node id="5">
+        <label>stdint.h</label>
+      </node>
+    </incdepgraph>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="rmsnorm__cuda_8cu_1ade2f7a48733cc2c3c509249724e2010d" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>__device__ __forceinline__ float</type>
+        <definition>static __device__ __forceinline__ float warp_reduce_sum</definition>
+        <argsstring>(float v)</argsstring>
+        <name>warp_reduce_sum</name>
+        <param>
+          <type>float</type>
+          <declname>v</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/src/kernels/rmsnorm_cuda.cu" line="21" column="41" bodyfile="engine/src/kernels/rmsnorm_cuda.cu" bodystart="21" bodyend="24"/>
+        <referencedby refid="rmsnorm__cuda_8cu_1ad9a2bec6c9690ab4c03b5239b4c0b5e5" compoundref="rmsnorm__cuda_8cu" startline="26" endline="41">block_reduce_sum</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="rmsnorm__cuda_8cu_1ad9a2bec6c9690ab4c03b5239b4c0b5e5" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>__device__ __forceinline__ float</type>
+        <definition>static __device__ __forceinline__ float block_reduce_sum</definition>
+        <argsstring>(float v)</argsstring>
+        <name>block_reduce_sum</name>
+        <param>
+          <type>float</type>
+          <declname>v</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/src/kernels/rmsnorm_cuda.cu" line="26" column="41" bodyfile="engine/src/kernels/rmsnorm_cuda.cu" bodystart="26" bodyend="41"/>
+        <references refid="rmsnorm__cuda_8cu_1ade2f7a48733cc2c3c509249724e2010d" compoundref="rmsnorm__cuda_8cu" startline="21" endline="24">warp_reduce_sum</references>
+        <referencedby refid="rmsnorm__cuda_8cu_1aa72966220b832c9f4c328efedfd2d652" compoundref="rmsnorm__cuda_8cu" startline="43" endline="65">ie_rmsnorm_f32_kernel</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="rmsnorm__cuda_8cu_1aa72966220b832c9f4c328efedfd2d652" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>__global__ void</type>
+        <definition>__global__ void ie_rmsnorm_f32_kernel</definition>
+        <argsstring>(const float *x, const float *w, float *y, size_t rows, size_t cols, float eps)</argsstring>
+        <name>ie_rmsnorm_f32_kernel</name>
+        <param>
+          <type>const float *</type>
+          <declname>x</declname>
+        </param>
+        <param>
+          <type>const float *</type>
+          <declname>w</declname>
+        </param>
+        <param>
+          <type>float *</type>
+          <declname>y</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>rows</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>cols</declname>
+        </param>
+        <param>
+          <type>float</type>
+          <declname>eps</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/src/kernels/rmsnorm_cuda.cu" line="43" column="17" bodyfile="engine/src/kernels/rmsnorm_cuda.cu" bodystart="43" bodyend="65"/>
+        <references refid="rmsnorm__cuda_8cu_1ad9a2bec6c9690ab4c03b5239b4c0b5e5" compoundref="rmsnorm__cuda_8cu" startline="26" endline="41">block_reduce_sum</references>
+      </memberdef>
+      <memberdef kind="function" id="rmsnorm__cuda_8cu_1a72001359f57057d44bcfbbafce920fb1" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int ie_rmsnorm_cuda_f32</definition>
+        <argsstring>(const float *x, const float *w, float *y, size_t rows, size_t cols, float eps)</argsstring>
+        <name>ie_rmsnorm_cuda_f32</name>
+        <param>
+          <type>const float *</type>
+          <declname>x</declname>
+        </param>
+        <param>
+          <type>const float *</type>
+          <declname>w</declname>
+        </param>
+        <param>
+          <type>float *</type>
+          <declname>y</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>rows</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>cols</declname>
+        </param>
+        <param>
+          <type>float</type>
+          <declname>eps</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="engine/src/kernels/rmsnorm_cuda.cu" line="67" column="16" bodyfile="engine/src/kernels/rmsnorm_cuda.cu" bodystart="67" bodyend="81"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para>Reference CUDA RMSNorm (FP32). </para>
+    </briefdescription>
+    <detaileddescription>
+<para>For each row: rms = sqrt(mean(x^2) + eps) y = (x / rms) * w</para>
+<para>Layout: x and y are [rows, cols] row-major. w is [cols]. </para>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="comment">/*<sp/>============================================================================</highlight></codeline>
+<codeline lineno="2"><highlight class="comment"><sp/>*<sp/>File:<sp/>engine/src/kernels/rmsnorm_cuda.cu</highlight></codeline>
+<codeline lineno="3"><highlight class="comment"><sp/>*<sp/>============================================================================</highlight></codeline>
+<codeline lineno="4"><highlight class="comment"><sp/>*/</highlight></codeline>
+<codeline lineno="16"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;cuda_runtime.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="17"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;math.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="18"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stddef.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="19"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;stdint.h&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="20"><highlight class="normal"></highlight></codeline>
+<codeline lineno="21" refid="rmsnorm__cuda_8cu_1ade2f7a48733cc2c3c509249724e2010d" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/>__device__<sp/>__forceinline__<sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/><ref refid="rmsnorm__cuda_8cu_1ade2f7a48733cc2c3c509249724e2010d" kindref="member">warp_reduce_sum</ref>(</highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>v)<sp/>{</highlight></codeline>
+<codeline lineno="22"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(</highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>offset<sp/>=<sp/>16;<sp/>offset<sp/>&gt;<sp/>0;<sp/>offset<sp/>&gt;&gt;=<sp/>1)<sp/>v<sp/>+=<sp/>__shfl_down_sync(0xFFFFFFFFu,<sp/>v,<sp/>offset);</highlight></codeline>
+<codeline lineno="23"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>v;</highlight></codeline>
+<codeline lineno="24"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="25"><highlight class="normal"></highlight></codeline>
+<codeline lineno="26" refid="rmsnorm__cuda_8cu_1ad9a2bec6c9690ab4c03b5239b4c0b5e5" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">static</highlight><highlight class="normal"><sp/>__device__<sp/>__forceinline__<sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/><ref refid="rmsnorm__cuda_8cu_1ad9a2bec6c9690ab4c03b5239b4c0b5e5" kindref="member">block_reduce_sum</ref>(</highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>v)<sp/>{</highlight></codeline>
+<codeline lineno="27"><highlight class="normal"><sp/><sp/>__shared__<sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>smem[32];</highlight></codeline>
+<codeline lineno="28"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>lane<sp/>=<sp/>threadIdx.x<sp/>&amp;<sp/>31;</highlight></codeline>
+<codeline lineno="29"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>wid<sp/><sp/>=<sp/>threadIdx.x<sp/>&gt;&gt;<sp/>5;</highlight></codeline>
+<codeline lineno="30"><highlight class="normal"></highlight></codeline>
+<codeline lineno="31"><highlight class="normal"><sp/><sp/>v<sp/>=<sp/><ref refid="rmsnorm__cuda_8cu_1ade2f7a48733cc2c3c509249724e2010d" kindref="member">warp_reduce_sum</ref>(v);</highlight></codeline>
+<codeline lineno="32"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(lane<sp/>==<sp/>0)<sp/>smem[wid]<sp/>=<sp/>v;</highlight></codeline>
+<codeline lineno="33"><highlight class="normal"><sp/><sp/>__syncthreads();</highlight></codeline>
+<codeline lineno="34"><highlight class="normal"></highlight></codeline>
+<codeline lineno="35"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>out<sp/>=<sp/>0.0f;</highlight></codeline>
+<codeline lineno="36"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(wid<sp/>==<sp/>0)<sp/>{</highlight></codeline>
+<codeline lineno="37"><highlight class="normal"><sp/><sp/><sp/><sp/>out<sp/>=<sp/>(threadIdx.x<sp/>&lt;<sp/>(blockDim.x<sp/>+<sp/>31)<sp/>/<sp/>32)<sp/>?<sp/>smem[lane]<sp/>:<sp/>0.0f;</highlight></codeline>
+<codeline lineno="38"><highlight class="normal"><sp/><sp/><sp/><sp/>out<sp/>=<sp/><ref refid="rmsnorm__cuda_8cu_1ade2f7a48733cc2c3c509249724e2010d" kindref="member">warp_reduce_sum</ref>(out);</highlight></codeline>
+<codeline lineno="39"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="40"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>__shfl_sync(0xFFFFFFFFu,<sp/>out,<sp/>0);</highlight></codeline>
+<codeline lineno="41"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="42"><highlight class="normal"></highlight></codeline>
+<codeline lineno="43" refid="rmsnorm__cuda_8cu_1aa72966220b832c9f4c328efedfd2d652" refkind="member"><highlight class="normal">__global__<sp/></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/><ref refid="rmsnorm__cuda_8cu_1aa72966220b832c9f4c328efedfd2d652" kindref="member">ie_rmsnorm_f32_kernel</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*x,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*w,<sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*y,</highlight></codeline>
+<codeline lineno="44"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>rows,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>cols,<sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>eps)<sp/>{</highlight></codeline>
+<codeline lineno="45"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>r<sp/>=<sp/>(size_t)blockIdx.x;</highlight></codeline>
+<codeline lineno="46"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(r<sp/>&gt;=<sp/>rows)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal">;</highlight></codeline>
+<codeline lineno="47"><highlight class="normal"></highlight></codeline>
+<codeline lineno="48"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*xr<sp/>=<sp/>x<sp/>+<sp/>r<sp/>*<sp/>cols;</highlight></codeline>
+<codeline lineno="49"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*yr<sp/>=<sp/>y<sp/>+<sp/>r<sp/>*<sp/>cols;</highlight></codeline>
+<codeline lineno="50"><highlight class="normal"></highlight></codeline>
+<codeline lineno="51"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>local<sp/>=<sp/>0.0f;</highlight></codeline>
+<codeline lineno="52"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>c<sp/>=<sp/>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal">)threadIdx.x;<sp/>c<sp/>&lt;<sp/>cols;<sp/>c<sp/>+=<sp/>(size_t)blockDim.x)<sp/>{</highlight></codeline>
+<codeline lineno="53"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>v<sp/>=<sp/>xr[c];</highlight></codeline>
+<codeline lineno="54"><highlight class="normal"><sp/><sp/><sp/><sp/>local<sp/>+=<sp/>v<sp/>*<sp/>v;</highlight></codeline>
+<codeline lineno="55"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="56"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>sumsq<sp/>=<sp/><ref refid="rmsnorm__cuda_8cu_1ad9a2bec6c9690ab4c03b5239b4c0b5e5" kindref="member">block_reduce_sum</ref>(local);</highlight></codeline>
+<codeline lineno="57"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>mean<sp/>=<sp/>sumsq<sp/>/<sp/>(float)cols;</highlight></codeline>
+<codeline lineno="58"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>inv_rms<sp/>=<sp/>rsqrtf(mean<sp/>+<sp/>eps);</highlight></codeline>
+<codeline lineno="59"><highlight class="normal"></highlight></codeline>
+<codeline lineno="60"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>c<sp/>=<sp/>(</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal">)threadIdx.x;<sp/>c<sp/>&lt;<sp/>cols;<sp/>c<sp/>+=<sp/>(size_t)blockDim.x)<sp/>{</highlight></codeline>
+<codeline lineno="61"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>v<sp/>=<sp/>xr[c]<sp/>*<sp/>inv_rms;</highlight></codeline>
+<codeline lineno="62"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>ww<sp/>=<sp/>w<sp/>?<sp/>w[c]<sp/>:<sp/>1.0f;</highlight></codeline>
+<codeline lineno="63"><highlight class="normal"><sp/><sp/><sp/><sp/>yr[c]<sp/>=<sp/>v<sp/>*<sp/>ww;</highlight></codeline>
+<codeline lineno="64"><highlight class="normal"><sp/><sp/>}</highlight></codeline>
+<codeline lineno="65"><highlight class="normal">}</highlight></codeline>
+<codeline lineno="66"><highlight class="normal"></highlight></codeline>
+<codeline lineno="67" refid="rmsnorm__cuda_8cu_1a72001359f57057d44bcfbbafce920fb1" refkind="member"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/></highlight><highlight class="stringliteral">&quot;C&quot;</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/><ref refid="rmsnorm__cuda_8cu_1a72001359f57057d44bcfbbafce920fb1" kindref="member">ie_rmsnorm_cuda_f32</ref>(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*x,<sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*w,<sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>*y,</highlight></codeline>
+<codeline lineno="68"><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>rows,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>cols,<sp/></highlight><highlight class="keywordtype">float</highlight><highlight class="normal"><sp/>eps)<sp/>{</highlight></codeline>
+<codeline lineno="69"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(!x<sp/>||<sp/>!y)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>-1;</highlight></codeline>
+<codeline lineno="70"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(rows<sp/>==<sp/>0<sp/>||<sp/>cols<sp/>==<sp/>0)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>-1;</highlight></codeline>
+<codeline lineno="71"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(eps<sp/>&lt;=<sp/>0.0f)<sp/>eps<sp/>=<sp/>1e-6f;</highlight></codeline>
+<codeline lineno="72"><highlight class="normal"></highlight></codeline>
+<codeline lineno="73"><highlight class="normal"><sp/><sp/></highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>threads<sp/>=<sp/>256;</highlight></codeline>
+<codeline lineno="74"><highlight class="normal"><sp/><sp/>dim3<sp/>grid((</highlight><highlight class="keywordtype">unsigned</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal">)rows,<sp/>1u,<sp/>1u);</highlight></codeline>
+<codeline lineno="75"><highlight class="normal"><sp/><sp/>dim3<sp/>block((</highlight><highlight class="keywordtype">unsigned</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal">)threads,<sp/>1u,<sp/>1u);</highlight></codeline>
+<codeline lineno="76"><highlight class="normal"></highlight></codeline>
+<codeline lineno="77"><highlight class="normal"><sp/><sp/>ie_rmsnorm_f32_kernel&lt;&lt;&lt;grid,<sp/>block,<sp/>0,<sp/>0&gt;&gt;&gt;(x,<sp/>w,<sp/>y,<sp/>rows,<sp/>cols,<sp/>eps);</highlight></codeline>
+<codeline lineno="78"><highlight class="normal"><sp/><sp/>cudaError_t<sp/>e<sp/>=<sp/>cudaGetLastError();</highlight></codeline>
+<codeline lineno="79"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">if</highlight><highlight class="normal"><sp/>(e<sp/>!=<sp/>cudaSuccess)<sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>-2;</highlight></codeline>
+<codeline lineno="80"><highlight class="normal"><sp/><sp/></highlight><highlight class="keywordflow">return</highlight><highlight class="normal"><sp/>0;</highlight></codeline>
+<codeline lineno="81"><highlight class="normal">}</highlight></codeline>
+    </programlisting>
+    <location file="engine/src/kernels/rmsnorm_cuda.cu"/>
+  </compounddef>
+</doxygen>

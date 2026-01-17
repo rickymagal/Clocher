@@ -108,7 +108,7 @@ Collaboration diagram for test_harness_more.HarnessMoreTests:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a82dd1ca8ebf38899313300b92d5a6e54" id="r_a82dd1ca8ebf38899313300b92d5a6e54"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtest__harness__more_1_1HarnessMoreTests.html#a82dd1ca8ebf38899313300b92d5a6e54">test_custom_samples_and_promptlen</a> (<a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">self</a>)</td></tr>
+<tr class="memitem:a82dd1ca8ebf38899313300b92d5a6e54" id="r_a82dd1ca8ebf38899313300b92d5a6e54"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtest__harness__more_1_1HarnessMoreTests.html#a82dd1ca8ebf38899313300b92d5a6e54">test_custom_samples_and_promptlen</a> (self)</td></tr>
 <tr class="separator:a82dd1ca8ebf38899313300b92d5a6e54"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
@@ -133,22 +133,16 @@ Public Member Functions</h2></td></tr>
 
 <p class="definition">Definition at line <a class="el" href="test__harness__more_8py_source.html#l00009">9</a> of file <a class="el" href="test__harness__more_8py_source.html">test_harness_more.py</a>.</p>
 <div class="fragment"><div class="line"><span class="lineno">    9</span>    <span class="keyword">def </span>test_custom_samples_and_promptlen(self):</div>
-<div class="line"><span class="lineno">   10</span>        cp = <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">subprocess.run</a>([<span class="stringliteral">&quot;python3&quot;</span>, HARNESS, <span class="stringliteral">&quot;--samples&quot;</span>, <span class="stringliteral">&quot;4&quot;</span>, <span class="stringliteral">&quot;--prompt&quot;</span>, <span class="stringliteral">&quot;abcdefghij&quot;</span> * 3],</div>
+<div class="line"><span class="lineno">   10</span>        cp = subprocess.run([<span class="stringliteral">&quot;python3&quot;</span>, HARNESS, <span class="stringliteral">&quot;--samples&quot;</span>, <span class="stringliteral">&quot;4&quot;</span>, <span class="stringliteral">&quot;--prompt&quot;</span>, <span class="stringliteral">&quot;abcdefghij&quot;</span> * 3],</div>
 <div class="line"><span class="lineno">   11</span>                            text=<span class="keyword">True</span>, capture_output=<span class="keyword">True</span>, check=<span class="keyword">True</span>)</div>
-<div class="line"><span class="lineno">   12</span>        self.assertIn(<span class="stringliteral">&quot;wrote:&quot;</span>, <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">cp.stdout</a>)  <span class="comment"># script already prints writes</span></div>
+<div class="line"><span class="lineno">   12</span>        self.assertIn(<span class="stringliteral">&quot;wrote:&quot;</span>, cp.stdout)  <span class="comment"># script already prints writes</span></div>
 <div class="line"><span class="lineno">   13</span>        <span class="comment"># ensure summary exists</span></div>
 <div class="line"><span class="lineno">   14</span>        <span class="comment"># Quick parse of last line “wrote: .../summary.json”</span></div>
-<div class="line"><span class="lineno">   15</span>        lines = [ln <span class="keywordflow">for</span> ln <span class="keywordflow">in</span> <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">cp.stdout.splitlines</a>() <span class="keywordflow">if</span> <span class="stringliteral">&quot;summary.json&quot;</span> <span class="keywordflow">in</span> ln]</div>
+<div class="line"><span class="lineno">   15</span>        lines = [ln <span class="keywordflow">for</span> ln <span class="keywordflow">in</span> cp.stdout.splitlines() <span class="keywordflow">if</span> <span class="stringliteral">&quot;summary.json&quot;</span> <span class="keywordflow">in</span> ln]</div>
 <div class="line"><span class="lineno">   16</span>        self.assertTrue(lines)</div>
 <div class="line"><span class="lineno">   17</span> </div>
-<div class="ttc" id="aie__device__cuda_8cu_html_a5e3d9fee84981707669f5c2398f0c4ab"><div class="ttname"><a href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">ie_gemv_rowwise_f32_kernel</a></div><div class="ttdeci">__global__ void ie_gemv_rowwise_f32_kernel(const float *W, const float *x, float *y, const float *bias, size_t rows, size_t cols)</div><div class="ttdoc">Row-wise GEMV kernel: each thread computes one output row.</div><div class="ttdef"><b>Definition</b> <a href="ie__device__cuda_8cu_source.html#l00092">ie_device_cuda.cu:92</a></div></div>
 </div><!-- fragment -->
-<p class="reference">References <a class="el" href="ie__device__cuda_8cu_source.html#l00092">ie_gemv_rowwise_f32_kernel()</a>.</p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="classtest__harness__more_1_1HarnessMoreTests_a82dd1ca8ebf38899313300b92d5a6e54_cgraph.svg" width="460" height="66"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
+<p class="reference">References <a class="el" href="tensor__map_8c_source.html#l00676">tm_sort_ref_s.off</a>.</p>
 
 </div>
 </div>

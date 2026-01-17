@@ -96,37 +96,243 @@ $(document).ready(function(){initNavTree('cpu__features_8c.html',''); initResiza
 </div><!--header-->
 <div class="contents">
 
-<p>Best-effort CPU feature detection for AVX2 and FMA at runtime.  
+<p>Runtime CPU feature detection via CPUID/XGETBV (x86) with safe fallbacks.  
 <a href="#details">More...</a></p>
 <div class="textblock"><code>#include &quot;<a class="el" href="ie__cpu_8h_source.html">ie_cpu.h</a>&quot;</code><br />
+<code>#include &lt;stdbool.h&gt;</code><br />
+<code>#include &lt;stddef.h&gt;</code><br />
+<code>#include &lt;stdint.h&gt;</code><br />
+<code>#include &lt;stdio.h&gt;</code><br />
+<code>#include &lt;stdlib.h&gt;</code><br />
+<code>#include &lt;stdatomic.h&gt;</code><br />
+<code>#include &lt;strings.h&gt;</code><br />
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for cpu_features.c:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="cpu__features_8c__incl.svg" width="152" height="198"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="cpu__features_8c__incl.svg" width="100%" height="448"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
 </div>
 </div>
 <p><a href="cpu__features_8c_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:a6ab0f83647cb70ad0043407f15992363" id="r_a6ab0f83647cb70ad0043407f15992363"><td class="memItemLeft" align="right" valign="top"><a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">static</a> <a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="cpu__features_8c.html#a6ab0f83647cb70ad0043407f15992363">cpuid_ex</a> (<a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">unsigned</a> <a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">leaf</a>, <a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">unsigned</a> *<a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">eax</a>, <a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">unsigned</a> *<a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">ebx</a>, <a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">unsigned</a> *<a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">ecx</a>, <a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">unsigned</a> *<a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">edx</a>)</td></tr>
-<tr class="memdesc:a6ab0f83647cb70ad0043407f15992363"><td class="mdescLeft">&#160;</td><td class="mdescRight">Query CPUID with the given leaf.  <br /></td></tr>
-<tr class="separator:a6ab0f83647cb70ad0043407f15992363"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5ec481b22364387e65264e28e0f81bf7" id="r_a5ec481b22364387e65264e28e0f81bf7"><td class="memItemLeft" align="right" valign="top"><a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">static</a> <a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">unsigned</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="cpu__features_8c.html#a5ec481b22364387e65264e28e0f81bf7">xgetbv_xcr0</a> (<a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">void</a>)</td></tr>
-<tr class="memdesc:a5ec481b22364387e65264e28e0f81bf7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read XCR0 via XGETBV to validate OS support for YMM state.  <br /></td></tr>
-<tr class="separator:a5ec481b22364387e65264e28e0f81bf7"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af2e20a1ca28854df085dbe0d88ed91c3" id="r_af2e20a1ca28854df085dbe0d88ed91c3"><td class="memItemLeft" align="right" valign="top"><a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="cpu__features_8c.html#af2e20a1ca28854df085dbe0d88ed91c3">ie_cpu_detect</a> (<a class="el" href="structie__cpu__features__t.html">ie_cpu_features_t</a> *<a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">out</a>)</td></tr>
-<tr class="memdesc:af2e20a1ca28854df085dbe0d88ed91c3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Detect CPU features on the current machine.  <br /></td></tr>
-<tr class="separator:af2e20a1ca28854df085dbe0d88ed91c3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a87c4545ac0ad2b6ad2fd70a090b63146" id="r_a87c4545ac0ad2b6ad2fd70a090b63146"><td class="memItemLeft" align="right" valign="top">static int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="cpu__features_8c.html#a87c4545ac0ad2b6ad2fd70a090b63146">ie_env_flag</a> (const char *name)</td></tr>
+<tr class="memdesc:a87c4545ac0ad2b6ad2fd70a090b63146"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return 1 if the environment variable <code>name</code> is set to a truthy value.  <br /></td></tr>
+<tr class="separator:a87c4545ac0ad2b6ad2fd70a090b63146"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab2d914e201f157a55add02484039d91e" id="r_ab2d914e201f157a55add02484039d91e"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="cpu__features_8c.html#ab2d914e201f157a55add02484039d91e">ie_cpuid_ex</a> (unsigned leaf, unsigned subleaf, unsigned *eax, unsigned *ebx, unsigned *ecx, unsigned *edx)</td></tr>
+<tr class="memdesc:ab2d914e201f157a55add02484039d91e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Query CPUID with <code>leaf</code> and <code>subleaf</code>.  <br /></td></tr>
+<tr class="separator:ab2d914e201f157a55add02484039d91e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab6c2c4097b43f59eb931f7968096761b" id="r_ab6c2c4097b43f59eb931f7968096761b"><td class="memItemLeft" align="right" valign="top">static unsigned&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="cpu__features_8c.html#ab6c2c4097b43f59eb931f7968096761b">ie_xgetbv_xcr0</a> (void)</td></tr>
+<tr class="memdesc:ab6c2c4097b43f59eb931f7968096761b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read XCR0 via XGETBV to validate OS support for XMM/YMM state.  <br /></td></tr>
+<tr class="separator:ab6c2c4097b43f59eb931f7968096761b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a52efeab08d996ee1bef746c591684b9d" id="r_a52efeab08d996ee1bef746c591684b9d"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="cpu__features_8c.html#a52efeab08d996ee1bef746c591684b9d">ie_cpu_features_detect</a> (<a class="el" href="ie__cpu_8h.html#aea2fcb4d85c37bcfc8abdbb12adbdc2d">ie_cpu_features_t</a> *out)</td></tr>
+<tr class="memdesc:a52efeab08d996ee1bef746c591684b9d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Alias for <a class="el" href="ie__cpu_8h.html#af2e20a1ca28854df085dbe0d88ed91c3">ie_cpu_detect</a> for clearer call sites.  <br /></td></tr>
+<tr class="separator:a52efeab08d996ee1bef746c591684b9d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a57a31c8ca934dd8b9321a1b2d1b7f904" id="r_a57a31c8ca934dd8b9321a1b2d1b7f904"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="cpu__features_8c.html#a57a31c8ca934dd8b9321a1b2d1b7f904">ie_cpu_features_to_string</a> (const <a class="el" href="ie__cpu_8h.html#aea2fcb4d85c37bcfc8abdbb12adbdc2d">ie_cpu_features_t</a> *f, char *buf, size_t cap)</td></tr>
+<tr class="memdesc:a57a31c8ca934dd8b9321a1b2d1b7f904"><td class="mdescLeft">&#160;</td><td class="mdescRight">Serialize CPU features into a stable one-line string.  <br /></td></tr>
+<tr class="separator:a57a31c8ca934dd8b9321a1b2d1b7f904"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Best-effort CPU feature detection for AVX2 and FMA at runtime. </p>
-<p>This module avoids external dependencies and uses CPUID/XGETBV directly. On non-x86 platforms all feature flags are reported as false. </p>
+<div class="textblock"><p>Runtime CPU feature detection via CPUID/XGETBV (x86) with safe fallbacks. </p>
+<p>This module performs best-effort feature detection with no external deps:</p><ul>
+<li>AVX2 and FMA (CPUID leaf 1 + leaf 7 and XGETBV validation).</li>
+<li>Optional AVX-512 BF16 capability (CPUID leaf 7 subleaf 1) if present in the ABI.</li>
+</ul>
+<p>It is intended to drive runtime kernel selection and logging.</p>
+<p>Environment:</p><ul>
+<li>Set <code>IE_DEBUG_KERNELS=1</code> to print a one-line CPU feature summary. </li>
+</ul>
 
 <p class="definition">Definition in file <a class="el" href="cpu__features_8c_source.html">cpu_features.c</a>.</p>
 </div><h2 class="groupheader">Function Documentation</h2>
-<a id="a6ab0f83647cb70ad0043407f15992363" name="a6ab0f83647cb70ad0043407f15992363"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6ab0f83647cb70ad0043407f15992363">&#9670;&#160;</a></span>cpuid_ex()</h2>
+<a id="a52efeab08d996ee1bef746c591684b9d" name="a52efeab08d996ee1bef746c591684b9d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a52efeab08d996ee1bef746c591684b9d">&#9670;&#160;</a></span>ie_cpu_features_detect()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool ie_cpu_features_detect </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="ie__cpu_8h.html#aea2fcb4d85c37bcfc8abdbb12adbdc2d">ie_cpu_features_t</a> *&#160;</td>
+          <td class="paramname"><em>out</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Alias for <a class="el" href="ie__cpu_8h.html#af2e20a1ca28854df085dbe0d88ed91c3">ie_cpu_detect</a> for clearer call sites. </p>
+<p>Some call sites prefer "features_detect" naming (e.g., instrumentation).</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[out]</td><td class="paramname">out</td><td>Receives the detected capabilities. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>See <a class="el" href="ie__cpu_8h.html#af2e20a1ca28854df085dbe0d88ed91c3">ie_cpu_detect</a>. </dd></dl>
+
+<p class="definition">Definition at line <a class="el" href="cpu__features_8c_source.html#l00111">111</a> of file <a class="el" href="cpu__features_8c_source.html">cpu_features.c</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">  111</span>                                                    {</div>
+<div class="line"><span class="lineno">  112</span>  <span class="keywordflow">if</span> (!out) <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
+<div class="line"><span class="lineno">  113</span> </div>
+<div class="line"><span class="lineno">  114</span>  <a class="code hl_variable" href="namespaceconvert__dtypes__to__numeric.html#a0332296ea5bde95f8e72005df06144a8">out</a>-&gt;avx2 = <span class="keyword">false</span>;</div>
+<div class="line"><span class="lineno">  115</span>  <a class="code hl_variable" href="namespaceconvert__dtypes__to__numeric.html#a0332296ea5bde95f8e72005df06144a8">out</a>-&gt;fma  = <span class="keyword">false</span>;</div>
+<div class="line"><span class="lineno">  116</span> </div>
+<div class="line"><span class="lineno">  117</span>  <span class="comment">/* If your ie_cpu_features_t includes this field, we fill it. */</span></div>
+<div class="line"><span class="lineno">  118</span><span class="preprocessor">#if defined(__GNUC__) || defined(_MSC_VER)</span></div>
+<div class="line"><span class="lineno">  119</span>  <span class="comment">/* Some builds may not include avx512_bf16 in the struct; keep this guarded</span></div>
+<div class="line"><span class="lineno">  120</span><span class="comment">   * at the source level by only referencing the member name used in your ABI.</span></div>
+<div class="line"><span class="lineno">  121</span><span class="comment">   */</span></div>
+<div class="line"><span class="lineno">  122</span>  <a class="code hl_variable" href="namespaceconvert__dtypes__to__numeric.html#a0332296ea5bde95f8e72005df06144a8">out</a>-&gt;avx512_bf16 = <span class="keyword">false</span>;</div>
+<div class="line"><span class="lineno">  123</span><span class="preprocessor">#endif</span></div>
+<div class="line"><span class="lineno">  124</span> </div>
+<div class="line"><span class="lineno">  125</span><span class="preprocessor">#if defined(__x86_64__) || defined(__i386__) || defined(_M_X64) || defined(_M_IX86)</span></div>
+<div class="line"><span class="lineno">  126</span>  <span class="keywordtype">unsigned</span> a=0,b=0,c=0,d=0;</div>
+<div class="line"><span class="lineno">  127</span> </div>
+<div class="line"><span class="lineno">  128</span>  <span class="comment">/* Leaf 0: max leaf availability */</span></div>
+<div class="line"><span class="lineno">  129</span>  <a class="code hl_function" href="cpu__features_8c.html#ab2d914e201f157a55add02484039d91e">ie_cpuid_ex</a>(0, 0, &amp;a, &amp;b, &amp;c, &amp;d);</div>
+<div class="line"><span class="lineno">  130</span>  <span class="keywordflow">if</span> (a == 0) {</div>
+<div class="line"><span class="lineno">  131</span>    <span class="keywordflow">return</span> <span class="keyword">true</span>; <span class="comment">/* CPUID unsupported or unavailable */</span></div>
+<div class="line"><span class="lineno">  132</span>  }</div>
+<div class="line"><span class="lineno">  133</span> </div>
+<div class="line"><span class="lineno">  134</span>  <span class="comment">/* Leaf 1: baseline features (AVX, OSXSAVE, FMA) */</span></div>
+<div class="line"><span class="lineno">  135</span>  <a class="code hl_function" href="cpu__features_8c.html#ab2d914e201f157a55add02484039d91e">ie_cpuid_ex</a>(1, 0, &amp;a, &amp;b, &amp;c, &amp;d);</div>
+<div class="line"><span class="lineno">  136</span>  <span class="keyword">const</span> <span class="keywordtype">int</span> osxsave = (int)((c &gt;&gt; 27) &amp; 1u);</div>
+<div class="line"><span class="lineno">  137</span>  <span class="keyword">const</span> <span class="keywordtype">int</span> avx     = (int)((c &gt;&gt; 28) &amp; 1u);</div>
+<div class="line"><span class="lineno">  138</span>  <span class="keyword">const</span> <span class="keywordtype">int</span> fma     = (int)((c &gt;&gt; 12) &amp; 1u);</div>
+<div class="line"><span class="lineno">  139</span> </div>
+<div class="line"><span class="lineno">  140</span>  <span class="comment">/* Validate OS has enabled XMM/YMM via XGETBV */</span></div>
+<div class="line"><span class="lineno">  141</span>  <span class="keywordtype">unsigned</span> xcr0 = osxsave ? <a class="code hl_function" href="cpu__features_8c.html#ab6c2c4097b43f59eb931f7968096761b">ie_xgetbv_xcr0</a>() : 0u;</div>
+<div class="line"><span class="lineno">  142</span>  <span class="keyword">const</span> <span class="keywordtype">int</span> ymm_ok = ((xcr0 &amp; 0x6u) == 0x6u);</div>
+<div class="line"><span class="lineno">  143</span> </div>
+<div class="line"><span class="lineno">  144</span>  <span class="comment">/* Leaf 7 subleaf 0: extended features (AVX2) */</span></div>
+<div class="line"><span class="lineno">  145</span>  <a class="code hl_function" href="cpu__features_8c.html#ab2d914e201f157a55add02484039d91e">ie_cpuid_ex</a>(7, 0, &amp;a, &amp;b, &amp;c, &amp;d);</div>
+<div class="line"><span class="lineno">  146</span>  <span class="keyword">const</span> <span class="keywordtype">int</span> avx2 = (int)((b &gt;&gt; 5) &amp; 1u);</div>
+<div class="line"><span class="lineno">  147</span> </div>
+<div class="line"><span class="lineno">  148</span>  <a class="code hl_variable" href="namespaceconvert__dtypes__to__numeric.html#a0332296ea5bde95f8e72005df06144a8">out</a>-&gt;avx2 = (avx &amp;&amp; ymm_ok &amp;&amp; avx2);</div>
+<div class="line"><span class="lineno">  149</span>  <a class="code hl_variable" href="namespaceconvert__dtypes__to__numeric.html#a0332296ea5bde95f8e72005df06144a8">out</a>-&gt;fma  = (fma != 0);</div>
+<div class="line"><span class="lineno">  150</span> </div>
+<div class="line"><span class="lineno">  151</span>  <span class="comment">/* Leaf 7 subleaf 1: AVX512_BF16 is in EAX bit 5 on supporting CPUs.</span></div>
+<div class="line"><span class="lineno">  152</span><span class="comment">   * We still store it even if the OS might not enable ZMM state; this flag is</span></div>
+<div class="line"><span class="lineno">  153</span><span class="comment">   * primarily used as a capability indicator for &quot;do we even try BF16 kernels&quot;.</span></div>
+<div class="line"><span class="lineno">  154</span><span class="comment">   */</span></div>
+<div class="line"><span class="lineno">  155</span>  <a class="code hl_function" href="cpu__features_8c.html#ab2d914e201f157a55add02484039d91e">ie_cpuid_ex</a>(7, 1, &amp;a, &amp;b, &amp;c, &amp;d);</div>
+<div class="line"><span class="lineno">  156</span>  {</div>
+<div class="line"><span class="lineno">  157</span>    <span class="keyword">const</span> <span class="keywordtype">int</span> avx512bf16 = (int)((a &gt;&gt; 5) &amp; 1u);</div>
+<div class="line"><span class="lineno">  158</span>    <a class="code hl_variable" href="namespaceconvert__dtypes__to__numeric.html#a0332296ea5bde95f8e72005df06144a8">out</a>-&gt;avx512_bf16 = (avx512bf16 != 0);</div>
+<div class="line"><span class="lineno">  159</span>  }</div>
+<div class="line"><span class="lineno">  160</span><span class="preprocessor">#endif</span></div>
+<div class="line"><span class="lineno">  161</span> </div>
+<div class="line"><span class="lineno">  162</span>  <span class="keywordflow">if</span> (<a class="code hl_function" href="cpu__features_8c.html#a87c4545ac0ad2b6ad2fd70a090b63146">ie_env_flag</a>(<span class="stringliteral">&quot;IE_DEBUG_KERNELS&quot;</span>)) {</div>
+<div class="line"><span class="lineno">  163</span>    <span class="keywordtype">char</span> buf[256];</div>
+<div class="line"><span class="lineno">  164</span>    (void)<a class="code hl_function" href="cpu__features_8c.html#a57a31c8ca934dd8b9321a1b2d1b7f904">ie_cpu_features_to_string</a>(out, buf, <span class="keyword">sizeof</span> buf);</div>
+<div class="line"><span class="lineno">  165</span>    fprintf(stderr, <span class="stringliteral">&quot;[cpu] %s\n&quot;</span>, buf);</div>
+<div class="line"><span class="lineno">  166</span>  }</div>
+<div class="line"><span class="lineno">  167</span> </div>
+<div class="line"><span class="lineno">  168</span>  <span class="keywordflow">return</span> <span class="keyword">true</span>;</div>
+<div class="line"><span class="lineno">  169</span>}</div>
+<div class="ttc" id="acpu__features_8c_html_a57a31c8ca934dd8b9321a1b2d1b7f904"><div class="ttname"><a href="cpu__features_8c.html#a57a31c8ca934dd8b9321a1b2d1b7f904">ie_cpu_features_to_string</a></div><div class="ttdeci">size_t ie_cpu_features_to_string(const ie_cpu_features_t *f, char *buf, size_t cap)</div><div class="ttdoc">Serialize CPU features into a stable one-line string.</div><div class="ttdef"><b>Definition</b> <a href="cpu__features_8c_source.html#l00179">cpu_features.c:179</a></div></div>
+<div class="ttc" id="acpu__features_8c_html_a87c4545ac0ad2b6ad2fd70a090b63146"><div class="ttname"><a href="cpu__features_8c.html#a87c4545ac0ad2b6ad2fd70a090b63146">ie_env_flag</a></div><div class="ttdeci">static int ie_env_flag(const char *name)</div><div class="ttdoc">Return 1 if the environment variable name is set to a truthy value.</div><div class="ttdef"><b>Definition</b> <a href="cpu__features_8c_source.html#l00047">cpu_features.c:47</a></div></div>
+<div class="ttc" id="acpu__features_8c_html_ab2d914e201f157a55add02484039d91e"><div class="ttname"><a href="cpu__features_8c.html#ab2d914e201f157a55add02484039d91e">ie_cpuid_ex</a></div><div class="ttdeci">static void ie_cpuid_ex(unsigned leaf, unsigned subleaf, unsigned *eax, unsigned *ebx, unsigned *ecx, unsigned *edx)</div><div class="ttdoc">Query CPUID with leaf and subleaf.</div><div class="ttdef"><b>Definition</b> <a href="cpu__features_8c_source.html#l00066">cpu_features.c:66</a></div></div>
+<div class="ttc" id="acpu__features_8c_html_ab6c2c4097b43f59eb931f7968096761b"><div class="ttname"><a href="cpu__features_8c.html#ab6c2c4097b43f59eb931f7968096761b">ie_xgetbv_xcr0</a></div><div class="ttdeci">static unsigned ie_xgetbv_xcr0(void)</div><div class="ttdoc">Read XCR0 via XGETBV to validate OS support for XMM/YMM state.</div><div class="ttdef"><b>Definition</b> <a href="cpu__features_8c_source.html#l00095">cpu_features.c:95</a></div></div>
+<div class="ttc" id="anamespaceconvert__dtypes__to__numeric_html_a0332296ea5bde95f8e72005df06144a8"><div class="ttname"><a href="namespaceconvert__dtypes__to__numeric.html#a0332296ea5bde95f8e72005df06144a8">convert_dtypes_to_numeric.out</a></div><div class="ttdeci">dict out</div><div class="ttdef"><b>Definition</b> <a href="convert__dtypes__to__numeric_8py_source.html#l00029">convert_dtypes_to_numeric.py:29</a></div></div>
+</div><!-- fragment -->
+<p class="reference">References <a class="el" href="cpu__features_8c_source.html#l00179">ie_cpu_features_to_string()</a>, <a class="el" href="cpu__features_8c_source.html#l00066">ie_cpuid_ex()</a>, <a class="el" href="cpu__features_8c_source.html#l00047">ie_env_flag()</a>, and <a class="el" href="cpu__features_8c_source.html#l00095">ie_xgetbv_xcr0()</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="gemv__q4__generic_8c_source.html#l00228">ie_gemv_q4_0_f32()</a>, <a class="el" href="gemv__generic_8c_source.html#l00168">ie_kernels_install()</a>, and <a class="el" href="ie__api_8c_source.html#l00079">ie_q4_kernel_selected_name()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="cpu__features_8c_a52efeab08d996ee1bef746c591684b9d_cgraph.svg" width="378" height="200"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="cpu__features_8c_a52efeab08d996ee1bef746c591684b9d_icgraph.svg" width="100%" height="600"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
+</div>
+
+</div>
+</div>
+<a id="a57a31c8ca934dd8b9321a1b2d1b7f904" name="a57a31c8ca934dd8b9321a1b2d1b7f904"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a57a31c8ca934dd8b9321a1b2d1b7f904">&#9670;&#160;</a></span>ie_cpu_features_to_string()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">size_t ie_cpu_features_to_string </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="ie__cpu_8h.html#aea2fcb4d85c37bcfc8abdbb12adbdc2d">ie_cpu_features_t</a> *&#160;</td>
+          <td class="paramname"><em>f</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">char *&#160;</td>
+          <td class="paramname"><em>buf</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>cap</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Serialize CPU features into a stable one-line string. </p>
+<p>Format a feature set as a compact, stable string.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">f</td><td>Feature struct. </td></tr>
+    <tr><td class="paramname">buf</td><td>Output buffer. </td></tr>
+    <tr><td class="paramname">cap</td><td>Output capacity in bytes. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Number of bytes written (excluding NUL), clamped to <code>cap-1</code>. </dd></dl>
+
+<p class="definition">Definition at line <a class="el" href="cpu__features_8c_source.html#l00179">179</a> of file <a class="el" href="cpu__features_8c_source.html">cpu_features.c</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">  179</span>                                                                                    {</div>
+<div class="line"><span class="lineno">  180</span>  <span class="keywordflow">if</span> (!buf || cap == 0) <span class="keywordflow">return</span> 0;</div>
+<div class="line"><span class="lineno">  181</span>  <span class="keywordflow">if</span> (!f) {</div>
+<div class="line"><span class="lineno">  182</span>    buf[0] = 0;</div>
+<div class="line"><span class="lineno">  183</span>    <span class="keywordflow">return</span> 0;</div>
+<div class="line"><span class="lineno">  184</span>  }</div>
+<div class="line"><span class="lineno">  185</span> </div>
+<div class="line"><span class="lineno">  186</span>  <span class="keyword">const</span> <span class="keywordtype">int</span> n = snprintf(buf, cap,</div>
+<div class="line"><span class="lineno">  187</span>                         <span class="stringliteral">&quot;avx2=%d fma=%d avx512_bf16=%d&quot;</span>,</div>
+<div class="line"><span class="lineno">  188</span>                         f-&gt;<a class="code hl_variable" href="structie__cpu__features.html#a596807f0a67776f84750fc9ab34bfeb3">avx2</a> ? 1 : 0,</div>
+<div class="line"><span class="lineno">  189</span>                         f-&gt;fma ? 1 : 0,</div>
+<div class="line"><span class="lineno">  190</span>                         f-&gt;avx512_bf16 ? 1 : 0);</div>
+<div class="line"><span class="lineno">  191</span>  <span class="keywordflow">if</span> (n &lt; 0) {</div>
+<div class="line"><span class="lineno">  192</span>    buf[0] = 0;</div>
+<div class="line"><span class="lineno">  193</span>    <span class="keywordflow">return</span> 0;</div>
+<div class="line"><span class="lineno">  194</span>  }</div>
+<div class="line"><span class="lineno">  195</span> </div>
+<div class="line"><span class="lineno">  196</span>  <span class="comment">/* Clamp without signedness warnings under -Werror. */</span></div>
+<div class="line"><span class="lineno">  197</span>  <span class="keywordflow">return</span> ((<span class="keywordtype">size_t</span>)n &gt;= cap) ? (cap - 1) : (size_t)n;</div>
+<div class="line"><span class="lineno">  198</span>}</div>
+<div class="ttc" id="astructie__cpu__features_html_a596807f0a67776f84750fc9ab34bfeb3"><div class="ttname"><a href="structie__cpu__features.html#a596807f0a67776f84750fc9ab34bfeb3">ie_cpu_features::avx2</a></div><div class="ttdeci">bool avx2</div><div class="ttdoc">OS+HW support for AVX2 (requires AVX + CPUID leaf 7 AVX2).</div><div class="ttdef"><b>Definition</b> <a href="ie__cpu_8h_source.html#l00039">ie_cpu.h:39</a></div></div>
+</div><!-- fragment -->
+<p class="reference">References <a class="el" href="ie__cpu_8h_source.html#l00039">ie_cpu_features::avx2</a>, <a class="el" href="ie__cpu_8h_source.html#l00058">ie_cpu_features::avx512_bf16</a>, and <a class="el" href="ie__cpu_8h_source.html#l00041">ie_cpu_features::fma</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="cpu__features_8c_source.html#l00111">ie_cpu_features_detect()</a>.</p>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="cpu__features_8c_a57a31c8ca934dd8b9321a1b2d1b7f904_icgraph.svg" width="100%" height="600"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
+</div>
+
+</div>
+</div>
+<a id="ab2d914e201f157a55add02484039d91e" name="ab2d914e201f157a55add02484039d91e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab2d914e201f157a55add02484039d91e">&#9670;&#160;</a></span>ie_cpuid_ex()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -135,33 +341,39 @@ Functions</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">static</a> <a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">void</a> cpuid_ex </td>
+          <td class="memname">static void ie_cpuid_ex </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">unsigned</a>&#160;</td>
+          <td class="paramtype">unsigned&#160;</td>
           <td class="paramname"><em>leaf</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">unsigned</a> *&#160;</td>
+          <td class="paramtype">unsigned&#160;</td>
+          <td class="paramname"><em>subleaf</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">unsigned *&#160;</td>
           <td class="paramname"><em>eax</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">unsigned</a> *&#160;</td>
+          <td class="paramtype">unsigned *&#160;</td>
           <td class="paramname"><em>ebx</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">unsigned</a> *&#160;</td>
+          <td class="paramtype">unsigned *&#160;</td>
           <td class="paramname"><em>ecx</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">unsigned</a> *&#160;</td>
+          <td class="paramtype">unsigned *&#160;</td>
           <td class="paramname"><em>edx</em>&#160;</td>
         </tr>
         <tr>
@@ -177,137 +389,52 @@ Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>Query CPUID with the given leaf. </p>
-<p>On non-x86 builds, the outputs are set to zero.</p>
+<p>Query CPUID with <code>leaf</code> and <code>subleaf</code>. </p>
+<p>On non-x86 builds, outputs are zeroed.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">leaf</td><td>CPUID leaf to query. </td></tr>
-    <tr><td class="paramname">eax</td><td>Output EAX register value. </td></tr>
-    <tr><td class="paramname">ebx</td><td>Output EBX register value. </td></tr>
-    <tr><td class="paramname">ecx</td><td>Output ECX register value. </td></tr>
-    <tr><td class="paramname">edx</td><td>Output EDX register value. </td></tr>
+    <tr><td class="paramname">leaf</td><td>CPUID leaf. </td></tr>
+    <tr><td class="paramname">subleaf</td><td>CPUID subleaf (ECX input). </td></tr>
+    <tr><td class="paramname">eax</td><td>Output EAX. </td></tr>
+    <tr><td class="paramname">ebx</td><td>Output EBX. </td></tr>
+    <tr><td class="paramname">ecx</td><td>Output ECX. </td></tr>
+    <tr><td class="paramname">edx</td><td>Output EDX. </td></tr>
   </table>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="cpu__features_8c_source.html#l00030">30</a> of file <a class="el" href="cpu__features_8c_source.html">cpu_features.c</a>.</p>
-<div class="fragment"><div class="line"><span class="lineno">   32</span>                                                   {</div>
-<div class="line"><span class="lineno">   33</span><span class="preprocessor">#if defined(__x86_64__) || defined(__i386__) || defined(_M_X64) || defined(_M_IX86)</span></div>
-<div class="line"><span class="lineno">   34</span><span class="preprocessor">  #if defined(_MSC_VER)</span></div>
-<div class="line"><span class="lineno">   35</span>    <span class="keywordtype">int</span> <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">regs</a>[4];</div>
-<div class="line"><span class="lineno">   36</span>    <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">__cpuid</a>(<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">regs</a>, (<span class="keywordtype">int</span>)<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">leaf</a>);</div>
-<div class="line"><span class="lineno">   37</span>    *<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">eax</a> = (<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">unsigned</a>)<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">regs</a>[0];</div>
-<div class="line"><span class="lineno">   38</span>    *<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">ebx</a> = (<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">unsigned</a>)<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">regs</a>[1];</div>
-<div class="line"><span class="lineno">   39</span>    *<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">ecx</a> = (<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">unsigned</a>)<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">regs</a>[2];</div>
-<div class="line"><span class="lineno">   40</span>    *<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">edx</a> = (<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">unsigned</a>)<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">regs</a>[3];</div>
-<div class="line"><span class="lineno">   41</span><span class="preprocessor">  #else</span></div>
-<div class="line"><span class="lineno">   42</span>    <span class="keywordtype">unsigned</span> <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">a</a>, <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">b</a>, <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">c</a>, <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">d</a>;</div>
-<div class="line"><span class="lineno">   43</span>    <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">__cpuid</a>(<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">leaf</a>, <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">a</a>, <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">b</a>, <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">c</a>, <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">d</a>);</div>
-<div class="line"><span class="lineno">   44</span>    *<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">eax</a> = <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">a</a>; *<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">ebx</a> = <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">b</a>; *<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">ecx</a> = <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">c</a>; *<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">edx</a> = <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">d</a>;</div>
-<div class="line"><span class="lineno">   45</span><span class="preprocessor">  #endif</span></div>
-<div class="line"><span class="lineno">   46</span><span class="preprocessor">#else</span></div>
-<div class="line"><span class="lineno">   47</span>  (<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">void</a>)<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">leaf</a>; *<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">eax</a> = *<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">ebx</a> = *<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">ecx</a> = *<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">edx</a> = 0;</div>
-<div class="line"><span class="lineno">   48</span><span class="preprocessor">#endif</span></div>
-<div class="line"><span class="lineno">   49</span>}</div>
-<div class="ttc" id="aie__device__cuda_8cu_html_a5e3d9fee84981707669f5c2398f0c4ab"><div class="ttname"><a href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">ie_gemv_rowwise_f32_kernel</a></div><div class="ttdeci">__global__ void ie_gemv_rowwise_f32_kernel(const float *W, const float *x, float *y, const float *bias, size_t rows, size_t cols)</div><div class="ttdoc">Row-wise GEMV kernel: each thread computes one output row.</div><div class="ttdef"><b>Definition</b> <a href="ie__device__cuda_8cu_source.html#l00092">ie_device_cuda.cu:92</a></div></div>
+<p class="definition">Definition at line <a class="el" href="cpu__features_8c_source.html#l00066">66</a> of file <a class="el" href="cpu__features_8c_source.html">cpu_features.c</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">   68</span>                                                      {</div>
+<div class="line"><span class="lineno">   69</span><span class="preprocessor">#if defined(__x86_64__) || defined(__i386__) || defined(_M_X64) || defined(_M_IX86)</span></div>
+<div class="line"><span class="lineno">   70</span><span class="preprocessor">  #if defined(_MSC_VER)</span></div>
+<div class="line"><span class="lineno">   71</span>    <span class="keywordtype">int</span> regs[4];</div>
+<div class="line"><span class="lineno">   72</span>    __cpuidex(regs, (<span class="keywordtype">int</span>)leaf, (<span class="keywordtype">int</span>)subleaf);</div>
+<div class="line"><span class="lineno">   73</span>    *eax = (unsigned)regs[0];</div>
+<div class="line"><span class="lineno">   74</span>    *ebx = (unsigned)regs[1];</div>
+<div class="line"><span class="lineno">   75</span>    *ecx = (unsigned)regs[2];</div>
+<div class="line"><span class="lineno">   76</span>    *edx = (unsigned)regs[3];</div>
+<div class="line"><span class="lineno">   77</span><span class="preprocessor">  #else</span></div>
+<div class="line"><span class="lineno">   78</span>    <span class="keywordtype">unsigned</span> a, b, c, d;</div>
+<div class="line"><span class="lineno">   79</span>    __cpuid_count(leaf, subleaf, a, b, c, d);</div>
+<div class="line"><span class="lineno">   80</span>    *eax = a; *ebx = b; *ecx = c; *edx = d;</div>
+<div class="line"><span class="lineno">   81</span><span class="preprocessor">  #endif</span></div>
+<div class="line"><span class="lineno">   82</span><span class="preprocessor">#else</span></div>
+<div class="line"><span class="lineno">   83</span>  (void)leaf; (void)subleaf;</div>
+<div class="line"><span class="lineno">   84</span>  *eax = *ebx = *ecx = *edx = 0u;</div>
+<div class="line"><span class="lineno">   85</span><span class="preprocessor">#endif</span></div>
+<div class="line"><span class="lineno">   86</span>}</div>
 </div><!-- fragment -->
-<p class="reference">References <a class="el" href="ie__device__cuda_8cu_source.html#l00092">ie_gemv_rowwise_f32_kernel()</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="cpu__features_8c_source.html#l00070">ie_cpu_detect()</a>.</p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="cpu__features_8c_a6ab0f83647cb70ad0043407f15992363_cgraph.svg" width="306" height="51"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
+<p class="reference">Referenced by <a class="el" href="cpu__features_8c_source.html#l00111">ie_cpu_features_detect()</a>.</p>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="cpu__features_8c_a6ab0f83647cb70ad0043407f15992363_icgraph.svg" width="354" height="36"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="cpu__features_8c_ab2d914e201f157a55add02484039d91e_icgraph.svg" width="100%" height="600"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
 </div>
 
 </div>
 </div>
-<a id="af2e20a1ca28854df085dbe0d88ed91c3" name="af2e20a1ca28854df085dbe0d88ed91c3"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af2e20a1ca28854df085dbe0d88ed91c3">&#9670;&#160;</a></span>ie_cpu_detect()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">bool</a> ie_cpu_detect </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="structie__cpu__features__t.html">ie_cpu_features_t</a> *&#160;</td>
-          <td class="paramname"><em>out</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Detect CPU features on the current machine. </p>
-<p>The function is best-effort: it never crashes on unsupported platforms. On non-x86 builds it returns <code>true</code> and fills all flags as <code>false</code>.</p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramdir">[out]</td><td class="paramname">out</td><td>Pointer to a <a class="el" href="structie__cpu__features__t.html" title="CPU feature set used for kernel selection.">ie_cpu_features_t</a> structure to fill. </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd><code>true</code> if the function executed; <code>false</code> only if <code>out</code> is NULL. </dd></dl>
-
-<p class="definition">Definition at line <a class="el" href="cpu__features_8c_source.html#l00070">70</a> of file <a class="el" href="cpu__features_8c_source.html">cpu_features.c</a>.</p>
-<div class="fragment"><div class="line"><span class="lineno">   70</span>                                           {</div>
-<div class="line"><span class="lineno">   71</span>  <span class="keywordflow">if</span> (!<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">out</a>) <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
-<div class="line"><span class="lineno">   72</span>  <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">out</a>-&gt;avx2 = <span class="keyword">false</span>;</div>
-<div class="line"><span class="lineno">   73</span>  <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">out</a>-&gt;fma  = <span class="keyword">false</span>;</div>
-<div class="line"><span class="lineno">   74</span> </div>
-<div class="line"><span class="lineno">   75</span><span class="preprocessor">#if defined(__x86_64__) || defined(__i386__) || defined(_M_X64) || defined(_M_IX86)</span></div>
-<div class="line"><span class="lineno">   76</span>  <span class="keywordtype">unsigned</span> <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">a</a>=0,<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">b</a>=0,<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">c</a>=0,<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">d</a>=0;</div>
-<div class="line"><span class="lineno">   77</span> </div>
-<div class="line"><span class="lineno">   78</span>  <span class="comment">/* Leaf 0: availability */</span></div>
-<div class="line"><span class="lineno">   79</span>  <a class="code hl_function" href="cpu__features_8c.html#a6ab0f83647cb70ad0043407f15992363">cpuid_ex</a>(0, &amp;<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">a</a>, &amp;<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">b</a>, &amp;<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">c</a>, &amp;<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">d</a>);</div>
-<div class="line"><span class="lineno">   80</span>  <span class="keywordflow">if</span> (<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">a</a> == 0) <span class="keywordflow">return</span> <span class="keyword">true</span>; <span class="comment">/* CPUID unsupported or unavailable */</span></div>
-<div class="line"><span class="lineno">   81</span> </div>
-<div class="line"><span class="lineno">   82</span>  <span class="comment">/* Leaf 1: baseline features (AVX, OSXSAVE, FMA) */</span></div>
-<div class="line"><span class="lineno">   83</span>  <a class="code hl_function" href="cpu__features_8c.html#a6ab0f83647cb70ad0043407f15992363">cpuid_ex</a>(1, &amp;<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">a</a>, &amp;<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">b</a>, &amp;<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">c</a>, &amp;<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">d</a>);</div>
-<div class="line"><span class="lineno">   84</span>  <span class="keyword">const</span> <span class="keywordtype">int</span> <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">osxsave</a> = (<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">int</a>)((<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">c</a> &gt;&gt; 27) &amp; 1);</div>
-<div class="line"><span class="lineno">   85</span>  <span class="keyword">const</span> <span class="keywordtype">int</span> <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">avx</a>     = (<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">int</a>)((<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">c</a> &gt;&gt; 28) &amp; 1);</div>
-<div class="line"><span class="lineno">   86</span>  <span class="keyword">const</span> <span class="keywordtype">int</span> fma     = (<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">int</a>)((<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">c</a> &gt;&gt; 12) &amp; 1);</div>
-<div class="line"><span class="lineno">   87</span> </div>
-<div class="line"><span class="lineno">   88</span>  <span class="comment">/* Check OS has enabled XMM/YMM via XGETBV */</span></div>
-<div class="line"><span class="lineno">   89</span>  <span class="keywordtype">unsigned</span> <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">xcr0</a> = <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">osxsave</a> ? <a class="code hl_function" href="cpu__features_8c.html#a5ec481b22364387e65264e28e0f81bf7">xgetbv_xcr0</a>() : 0u;</div>
-<div class="line"><span class="lineno">   90</span>  <span class="keyword">const</span> <span class="keywordtype">int</span> <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">ymm_ok</a> = ((<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">xcr0</a> &amp; 0x6u) == 0x6u);</div>
-<div class="line"><span class="lineno">   91</span> </div>
-<div class="line"><span class="lineno">   92</span>  <span class="comment">/* Leaf 7: extended features (AVX2) */</span></div>
-<div class="line"><span class="lineno">   93</span>  <a class="code hl_function" href="cpu__features_8c.html#a6ab0f83647cb70ad0043407f15992363">cpuid_ex</a>(7, &amp;<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">a</a>, &amp;<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">b</a>, &amp;<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">c</a>, &amp;<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">d</a>);</div>
-<div class="line"><span class="lineno">   94</span>  <span class="keyword">const</span> <span class="keywordtype">int</span> avx2 = (<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">int</a>)((<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">b</a> &gt;&gt; 5) &amp; 1);</div>
-<div class="line"><span class="lineno">   95</span> </div>
-<div class="line"><span class="lineno">   96</span>  <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">out</a>-&gt;avx2 = (<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">avx</a> &amp;&amp; <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">ymm_ok</a> &amp;&amp; avx2);</div>
-<div class="line"><span class="lineno">   97</span>  <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">out</a>-&gt;fma  = (fma != 0);</div>
-<div class="line"><span class="lineno">   98</span><span class="preprocessor">#else</span></div>
-<div class="line"><span class="lineno">   99</span>  <span class="comment">/* Non-x86: keep safe defaults (false). */</span></div>
-<div class="line"><span class="lineno">  100</span><span class="preprocessor">#endif</span></div>
-<div class="line"><span class="lineno">  101</span>  <span class="keywordflow">return</span> <span class="keyword">true</span>;</div>
-<div class="line"><span class="lineno">  102</span>}</div>
-<div class="ttc" id="acpu__features_8c_html_a5ec481b22364387e65264e28e0f81bf7"><div class="ttname"><a href="cpu__features_8c.html#a5ec481b22364387e65264e28e0f81bf7">xgetbv_xcr0</a></div><div class="ttdeci">static unsigned xgetbv_xcr0(void)</div><div class="ttdoc">Read XCR0 via XGETBV to validate OS support for YMM state.</div><div class="ttdef"><b>Definition</b> <a href="cpu__features_8c_source.html#l00058">cpu_features.c:58</a></div></div>
-<div class="ttc" id="acpu__features_8c_html_a6ab0f83647cb70ad0043407f15992363"><div class="ttname"><a href="cpu__features_8c.html#a6ab0f83647cb70ad0043407f15992363">cpuid_ex</a></div><div class="ttdeci">static void cpuid_ex(unsigned leaf, unsigned *eax, unsigned *ebx, unsigned *ecx, unsigned *edx)</div><div class="ttdoc">Query CPUID with the given leaf.</div><div class="ttdef"><b>Definition</b> <a href="cpu__features_8c_source.html#l00030">cpu_features.c:30</a></div></div>
-</div><!-- fragment -->
-<p class="reference">References <a class="el" href="cpu__features_8c_source.html#l00030">cpuid_ex()</a>, <a class="el" href="ie__device__cuda_8cu_source.html#l00092">ie_gemv_rowwise_f32_kernel()</a>, and <a class="el" href="cpu__features_8c_source.html#l00058">xgetbv_xcr0()</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="test__cpu__features_8c_source.html#l00009">main()</a>.</p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="cpu__features_8c_af2e20a1ca28854df085dbe0d88ed91c3_cgraph.svg" width="488" height="138"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="cpu__features_8c_af2e20a1ca28854df085dbe0d88ed91c3_icgraph.svg" width="226" height="36"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
-
-</div>
-</div>
-<a id="a5ec481b22364387e65264e28e0f81bf7" name="a5ec481b22364387e65264e28e0f81bf7"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a5ec481b22364387e65264e28e0f81bf7">&#9670;&#160;</a></span>xgetbv_xcr0()</h2>
+<a id="a87c4545ac0ad2b6ad2fd70a090b63146" name="a87c4545ac0ad2b6ad2fd70a090b63146"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a87c4545ac0ad2b6ad2fd70a090b63146">&#9670;&#160;</a></span>ie_env_flag()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -316,9 +443,60 @@ Here is the caller graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">static</a> <a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">unsigned</a> xgetbv_xcr0 </td>
+          <td class="memname">static int ie_env_flag </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">void</a>&#160;</td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>name</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Return 1 if the environment variable <code>name</code> is set to a truthy value. </p>
+<p>Truthy values (case-insensitive): "1", "true", "yes", "on".</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">name</td><td>Environment variable name. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>1 if truthy, 0 otherwise. </dd></dl>
+
+<p class="definition">Definition at line <a class="el" href="cpu__features_8c_source.html#l00047">47</a> of file <a class="el" href="cpu__features_8c_source.html">cpu_features.c</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">   47</span>                                         {</div>
+<div class="line"><span class="lineno">   48</span>  <span class="keyword">const</span> <span class="keywordtype">char</span> *s = getenv(name);</div>
+<div class="line"><span class="lineno">   49</span>  <span class="keywordflow">if</span> (!s || !*s) <span class="keywordflow">return</span> 0;</div>
+<div class="line"><span class="lineno">   50</span>  <span class="keywordflow">return</span> (!strcasecmp(s, <span class="stringliteral">&quot;1&quot;</span>) || !strcasecmp(s, <span class="stringliteral">&quot;true&quot;</span>) ||</div>
+<div class="line"><span class="lineno">   51</span>          !strcasecmp(s, <span class="stringliteral">&quot;yes&quot;</span>) || !strcasecmp(s, <span class="stringliteral">&quot;on&quot;</span>));</div>
+<div class="line"><span class="lineno">   52</span>}</div>
+</div><!-- fragment -->
+<p class="reference">Referenced by <a class="el" href="cpu__features_8c_source.html#l00111">ie_cpu_features_detect()</a>.</p>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="cpu__features_8c_a87c4545ac0ad2b6ad2fd70a090b63146_icgraph.svg" width="100%" height="600"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
+</div>
+
+</div>
+</div>
+<a id="ab6c2c4097b43f59eb931f7968096761b" name="ab6c2c4097b43f59eb931f7968096761b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab6c2c4097b43f59eb931f7968096761b">&#9670;&#160;</a></span>ie_xgetbv_xcr0()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static unsigned ie_xgetbv_xcr0 </td>
+          <td>(</td>
+          <td class="paramtype">void&#160;</td>
           <td class="paramname"></td><td>)</td>
           <td></td>
         </tr>
@@ -330,35 +508,28 @@ Here is the caller graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p>Read XCR0 via XGETBV to validate OS support for YMM state. </p>
+<p>Read XCR0 via XGETBV to validate OS support for XMM/YMM state. </p>
 <p>On non-x86 builds, returns 0.</p>
 <dl class="section return"><dt>Returns</dt><dd>Lower 32 bits of XCR0. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="cpu__features_8c_source.html#l00058">58</a> of file <a class="el" href="cpu__features_8c_source.html">cpu_features.c</a>.</p>
-<div class="fragment"><div class="line"><span class="lineno">   58</span>                                  {</div>
-<div class="line"><span class="lineno">   59</span><span class="preprocessor">#if (defined(__x86_64__) || defined(__i386__)) &amp;&amp; defined(__GNUC__)</span></div>
-<div class="line"><span class="lineno">   60</span>  <span class="keywordtype">unsigned</span> <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">a</a>, <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">d</a>;</div>
-<div class="line"><span class="lineno">   61</span>  <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">__asm__</a> <span class="keyword">volatile</span> (<span class="stringliteral">&quot;.byte 0x0f, 0x01, 0xd0&quot;</span> : <span class="stringliteral">&quot;=a&quot;</span>(<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">a</a>), <span class="stringliteral">&quot;=d&quot;</span>(<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">d</a>) : <span class="stringliteral">&quot;c&quot;</span>(0));</div>
-<div class="line"><span class="lineno">   62</span>  <span class="keywordflow">return</span> <a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">a</a>;</div>
-<div class="line"><span class="lineno">   63</span><span class="preprocessor">#elif defined(_MSC_VER) &amp;&amp; (defined(_M_IX86) || defined(_M_X64))</span></div>
-<div class="line"><span class="lineno">   64</span>  <span class="keywordflow">return</span> (<span class="keywordtype">unsigned</span>)<a class="code hl_function" href="ie__device__cuda_8cu.html#a5e3d9fee84981707669f5c2398f0c4ab">_xgetbv</a>(0);</div>
-<div class="line"><span class="lineno">   65</span><span class="preprocessor">#else</span></div>
-<div class="line"><span class="lineno">   66</span>  <span class="keywordflow">return</span> 0u;</div>
-<div class="line"><span class="lineno">   67</span><span class="preprocessor">#endif</span></div>
-<div class="line"><span class="lineno">   68</span>}</div>
+<p class="definition">Definition at line <a class="el" href="cpu__features_8c_source.html#l00095">95</a> of file <a class="el" href="cpu__features_8c_source.html">cpu_features.c</a>.</p>
+<div class="fragment"><div class="line"><span class="lineno">   95</span>                                     {</div>
+<div class="line"><span class="lineno">   96</span><span class="preprocessor">#if (defined(__x86_64__) || defined(__i386__)) &amp;&amp; defined(__GNUC__)</span></div>
+<div class="line"><span class="lineno">   97</span>  <span class="keywordtype">unsigned</span> a, d;</div>
+<div class="line"><span class="lineno">   98</span>  __asm__ <span class="keyword">volatile</span> (<span class="stringliteral">&quot;.byte 0x0f, 0x01, 0xd0&quot;</span> : <span class="stringliteral">&quot;=a&quot;</span>(a), <span class="stringliteral">&quot;=d&quot;</span>(d) : <span class="stringliteral">&quot;c&quot;</span>(0));</div>
+<div class="line"><span class="lineno">   99</span>  <span class="keywordflow">return</span> a;</div>
+<div class="line"><span class="lineno">  100</span><span class="preprocessor">#elif defined(_MSC_VER) &amp;&amp; (defined(_M_IX86) || defined(_M_X64))</span></div>
+<div class="line"><span class="lineno">  101</span>  <span class="keywordflow">return</span> (<span class="keywordtype">unsigned</span>)_xgetbv(0);</div>
+<div class="line"><span class="lineno">  102</span><span class="preprocessor">#else</span></div>
+<div class="line"><span class="lineno">  103</span>  <span class="keywordflow">return</span> 0u;</div>
+<div class="line"><span class="lineno">  104</span><span class="preprocessor">#endif</span></div>
+<div class="line"><span class="lineno">  105</span>}</div>
 </div><!-- fragment -->
-<p class="reference">References <a class="el" href="ie__device__cuda_8cu_source.html#l00092">ie_gemv_rowwise_f32_kernel()</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="cpu__features_8c_source.html#l00070">ie_cpu_detect()</a>.</p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="cpu__features_8c_a5ec481b22364387e65264e28e0f81bf7_cgraph.svg" width="328" height="51"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
-</div>
+<p class="reference">Referenced by <a class="el" href="cpu__features_8c_source.html#l00111">ie_cpu_features_detect()</a>.</p>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="cpu__features_8c_a5ec481b22364387e65264e28e0f81bf7_icgraph.svg" width="376" height="36"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><div class="zoom"><iframe scrolling="no" frameborder="0" src="cpu__features_8c_ab6c2c4097b43f59eb931f7968096761b_icgraph.svg" width="100%" height="600"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
 </div>
 
 </div>

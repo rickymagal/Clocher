@@ -76,7 +76,7 @@ def _run_engine(args: argparse.Namespace, repo: pathlib.Path) -> Dict[str, Any]:
         "--rounds",
         str(args.rounds),
         "--warmup",
-        "0",
+        str(args.warmup),
     ]
 
     if args.tokenizer:
@@ -167,6 +167,7 @@ def _parse_args(argv: List[str]) -> argparse.Namespace:
     p.add_argument("--affinity", default=os.environ.get("AFFINITY", "auto"))
     p.add_argument("--max-new", type=int, default=int(os.environ.get("MAX_NEW", "128")))
     p.add_argument("--rounds", type=int, default=int(os.environ.get("ROUNDS", "1")))
+    p.add_argument("--warmup", type=int, default=int(os.environ.get("WARMUP_TOKENS", "0")))
     p.add_argument("--seed", type=int, default=None)
     p.add_argument("--greedy", action="store_true")
     p.add_argument("--ie-dedup-strict", action="store_true")

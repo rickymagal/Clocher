@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['split_5fq4_5fmanifest_5fto_5ffiles_0',['split_q4_manifest_to_files',['../namespacesplit__q4__manifest__to__files.html',1,'']]]
+  ['openai_5fcompat_5fserver_0',['openai_compat_server',['../namespaceopenai__compat__server.html',1,'']]]
 ];
