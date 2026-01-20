@@ -1,3 +1,15 @@
+"""tests/python/test_cli_error_paths.py
+
+Error-path tests for the CLI (stdlib-only).
+
+Some behaviors are model-independent (e.g. rejecting unknown flags).
+Other behaviors require a working model load. Those are treated as
+integration tests and are skipped unless enabled.
+
+Enable integration tests with:
+  IE_TEST_INTEGRATION=1 make test
+"""
+
 import json
 import os
 import subprocess
@@ -7,8 +19,13 @@ from pathlib import Path
 
 def _engine_bin() -> str:
     # Repo root is assumed to be the current working directory when running `make test`.
-    # Keep it simple and explicit.
     return str(Path("build") / "inference-engine")
+
+
+def _env_truthy(name: str) -> bool:
+    v = os.environ.get(name, "")
+    v = v.strip().lower()
+    return v in ("1", "true", "yes", "on")
 
 
 class CLIErrorPathsTests(unittest.TestCase):
@@ -22,12 +39,15 @@ class CLIErrorPathsTests(unittest.TestCase):
             capture_output=True,
             text=True,
             check=False,
+            timeout=60,
         )
         self.assertNotEqual(cp.returncode, 0)
-        # Message text may vary; just ensure it didn't silently succeed.
         self.assertTrue(cp.stderr.strip() or cp.stdout.strip())
 
     def test_zero_tokens_graceful(self) -> None:
+        if not _env_truthy("IE_TEST_INTEGRATION"):
+            self.skipTest("integration tests disabled (set IE_TEST_INTEGRATION=1 to enable)")
+
         bin_path = _engine_bin()
         if not os.path.exists(bin_path):
             self.skipTest(f"engine binary not found: {bin_path}")
@@ -37,10 +57,10 @@ class CLIErrorPathsTests(unittest.TestCase):
             capture_output=True,
             text=True,
             check=False,
+            timeout=120,
         )
-        self.assertEqual(cp.returncode, 0)
+        self.assertEqual(cp.returncode, 0, msg=cp.stderr.strip() or cp.stdout.strip())
 
-        # Parse JSON instead of string-matching spacing.
         out = cp.stdout.strip()
         self.assertTrue(out, "expected JSON on stdout")
         obj = json.loads(out)
@@ -50,4 +70,4 @@ class CLIErrorPathsTests(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    unittest.main()
+    unittest.main(verbosity=2)

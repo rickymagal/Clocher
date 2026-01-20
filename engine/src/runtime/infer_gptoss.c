@@ -1371,7 +1371,7 @@ static int ie_forward_one_token(struct ie_gptoss_infer_impl *impl, ie_kv_cache *
   const uint32_t vocab = hp->vocab_size;
   const uint32_t n_layers = hp->n_layers;
 
-  if (!impl->w_embed_bf16 || !impl->w_norm_bf16 || !impl->w_lm_bf16) return -3;
+  if (!impl->w_embed_bf16 || (!impl->w_norm_bf16 && !impl->w_norm_f32) || !impl->w_lm_bf16) return -3;
   if (token_id >= vocab) return -4;
   if (pos >= hp->max_seq) return -5;
   if ((d_head & 1u) != 0u) return -6;
@@ -1859,27 +1859,59 @@ int ie_gptoss_infer_create(const ie_device_t *dev_const, const ie_weights_t *w,
     ie_tensor_view_t v;
     const char *const norm_candidates[] = {
       "model.norm.weight",
+      "model.norm.scale",
+      "norm.weight",
+      "norm.scale",
+      "transformer.norm_f.weight",
+      "transformer.norm_f.scale",
       "transformer.ln_f.weight",
-      "norm.weight"
+      "transformer.ln_f.scale",
+      "final_norm.weight",
+      "final_norm.scale",
+      "ln_f.weight",
+      "ln_f.scale"
     };
-    if (ie_w_get_first_view(impl, norm_candidates, 3, &v) != 0) {
+    if (ie_w_get_first_view(impl, norm_candidates, 12, &v) != 0 || !v.desc) {
       IE_LOGE("create: missing final norm tensor (tried common candidates)");
       ie_gptoss_infer_destroy((ie_gptoss_infer_t *)impl);
       return -9;
     }
-    if (!v.desc || ie_require_size_eq(v.desc, (uint64_t)d_model * 2u) != 0) {
-      IE_LOGE("create: final norm size check failed: want=%llu",
-              (unsigned long long)((uint64_t)d_model * 2u));
-      ie_gptoss_infer_destroy((ie_gptoss_infer_t *)impl);
-      return -10;
-    }
-    impl->w_norm_bf16 = (const uint16_t *)v.ptr;
-    if (impl->use_f32_rmsnorm) {
-      if (ie_alloc_f32_from_bf16(impl->w_norm_bf16, (size_t)d_model, &impl->w_norm_f32) != 0) {
-        IE_LOGE("create: failed to allocate final norm f32");
+
+    const uint64_t want_bf16 = (uint64_t)d_model * 2u;
+    const uint64_t want_f32 = (uint64_t)d_model * 4u;
+
+    if (v.desc->size_bytes == want_bf16) {
+      impl->w_norm_bf16 = (const uint16_t *)v.ptr;
+      if (impl->use_f32_rmsnorm) {
+        if (ie_alloc_f32_from_bf16(impl->w_norm_bf16, (size_t)d_model, &impl->w_norm_f32) != 0) {
+          IE_LOGE("create: failed to allocate final norm f32");
+          ie_gptoss_infer_destroy((ie_gptoss_infer_t *)impl);
+          return -10;
+        }
+      }
+    } else if (v.desc->size_bytes == want_f32) {
+      impl->w_norm_bf16 = NULL;
+      impl->w_norm_f32 = (float *)malloc((size_t)want_f32);
+      if (!impl->w_norm_f32) {
+        IE_LOGE("create: failed to allocate final norm f32 (bytes=%llu)",
+                (unsigned long long)want_f32);
         ie_gptoss_infer_destroy((ie_gptoss_infer_t *)impl);
         return -10;
       }
+      memcpy(impl->w_norm_f32, v.ptr, (size_t)want_f32);
+      IE_LOGW("create: final norm stored as f32 in weights; using f32 path");
+    } else {
+      char td_buf[256];
+      if (tensor_desc_to_string(v.desc, td_buf, sizeof(td_buf)) >= 0) {
+        IE_LOGE("create: final norm size mismatch: %s", td_buf);
+      } else {
+        IE_LOGE("create: final norm size mismatch: got_bytes=%llu want_bf16=%llu want_f32=%llu",
+                (unsigned long long)v.desc->size_bytes,
+                (unsigned long long)want_bf16,
+                (unsigned long long)want_f32);
+      }
+      ie_gptoss_infer_destroy((ie_gptoss_infer_t *)impl);
+      return -10;
     }
   }
 
