@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['set_5fnuma_2esh_0',['set_numa.sh',['../set__numa_8sh.html',1,'']]]
+  ['openai_5fcompat_5fserver_2epy_0',['openai_compat_server.py',['../openai__compat__server_8py.html',1,'']]]
 ];

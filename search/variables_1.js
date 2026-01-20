@@ -1,9 +1,24 @@
 var searchData=
 [
-  ['batch_0',['batch',['../structie__cli__extras.html#a6d65ced667b70b4eaac6543425c6949c',1,'ie_cli_extras::batch'],['../structcli__extras.html#a4af612c719a80234b4e753bc559f358c',1,'cli_extras::batch']]],
-  ['bin_1',['BIN',['../namespacetest__cli__error__paths.html#a9e965922d2fbb4003a0524232d17f8c6',1,'test_cli_error_paths.BIN'],['../namespacetest__cli__flags.html#a79fa2e0d5e94f1508875d643dcfa6430',1,'test_cli_flags.BIN'],['../namespacetest__determinism.html#affcb5fa9fb60dcc0bc9a1898f1a646b2',1,'test_determinism.BIN'],['../namespacetest__metrics__ring.html#a8363ca5e02a8a38b989e9b1959d99148',1,'test_metrics_ring.BIN']]],
-  ['bin_5fpath_2',['bin_path',['../classtest__cli_1_1CLITests.html#a2f5fec3618a03998cf9023e80784845b',1,'test_cli.CLITests.bin_path'],['../classtest__harness_1_1HarnessTests.html#a9f8c8174f3487e8fa0d6b79cff5fb4a1',1,'test_harness.HarnessTests.bin_path']]],
-  ['bin_5fsize_5fbytes_3',['bin_size_bytes',['../structie__weights__s.html#a19f9137cca00113908b495a70769805e',1,'ie_weights_s']]],
-  ['blk_5fk_4',['blk_k',['../structie__wblocked__desc.html#aecbe9b5f97e69baf611e6b01a0b6b699',1,'ie_wblocked_desc']]],
-  ['body_5',['body',['../structie__task__arg__t.html#a1d5b2ad9724bb08fba602b3cb4ad28e8',1,'ie_task_arg_t']]]
+  ['active_0',['active',['../structie__threadpool.html#a712849f398fef311e0d4ac143626f752',1,'ie_threadpool']]],
+  ['actual_5fat_1',['actual_at',['../structprompt__round__record.html#a24eceb958921c2ab6ecf6fe0cdc5da49',1,'prompt_round_record']]],
+  ['affinity_2',['affinity',['../structie__engine__params.html#a66599574f8a4b8ed7cd7132fc1c0e051',1,'ie_engine_params::affinity'],['../structcli__extras.html#a313d0562dfb63a6350db5c84128fc074',1,'cli_extras::affinity'],['../structie__threadpool.html#ab30ff46e0f8992c0c9fceea8c336a4a0',1,'ie_threadpool::affinity']]],
+  ['agg_3',['Agg',['../namespaceupdate__performance__md.html#a7de744a4f0142578863ae5f41e090f92',1,'update_performance_md']]],
+  ['aggregate_4',['aggregate',['../structie__cli__extras.html#a8bd3fac705dc83f16f106e970afbf227',1,'ie_cli_extras::aggregate'],['../structcli__extras.html#a4e233e0c7d76b4fb4338d7460a552707',1,'cli_extras::aggregate']]],
+  ['align_5',['align',['../namespacepack__moe__q4__from__hf.html#a8dfadf32b0e309c4300173fa43a17be2',1,'pack_moe_q4_from_hf.ALIGN'],['../namespacehf__to__iebin__stream__pt.html#a737c2dc9f4105244202228f892bfccf8',1,'hf_to_iebin_stream_pt.ALIGN'],['../namespacehf__to__iebin__stream.html#a7f097357e34a92fb429965ca466619db',1,'hf_to_iebin_stream.ALIGN'],['../namespacehf__to__iebin__raw.html#a1d310294c1b8992834306569eeb3f025',1,'hf_to_iebin_raw.ALIGN'],['../namespacehf__to__iebin.html#a1877e8c7bdb0adc25adf03ada179253a',1,'hf_to_iebin.ALIGN'],['../namespacehf__single__to__iebin__v1.html#a21b2a81a9e74a1190b0424396f37aa16',1,'hf_single_to_iebin_v1.ALIGN'],['../namespacehf__packed__single__to__iebin__raw.html#ac08ea50fa7ff9a42ded86f9af0ecb2c9',1,'hf_packed_single_to_iebin_raw.ALIGN'],['../namespaceappend__q4__attn__from__hf.html#a836df40b91acf9201caca77535f3e447',1,'append_q4_attn_from_hf.ALIGN']]],
+  ['allow_5fnan_5flogits_6',['allow_nan_logits',['../structie__sampler__cfg.html#aad6934a6b6ad25a5bdff683d7808b5f5',1,'ie_sampler_cfg']]],
+  ['arch_7',['arch',['../structgptoss__model__weights__t.html#a0910de0f0483a72b9b9bc695e7e0b4c1',1,'gptoss_model_weights_t']]],
+  ['arena_8',['arena',['../structintern__s.html#aa10231c9ecb86b149dc948afdc811fa9',1,'intern_s']]],
+  ['arena_5fsz_9',['arena_sz',['../structintern__s.html#a95b29e7227da9455fdda515193c0e4bd',1,'intern_s']]],
+  ['arena_5fused_10',['arena_used',['../structintern__s.html#aad00748399fd7074aa910c96593d1519',1,'intern_s']]],
+  ['attn_5ffused_5fqkv_11',['attn_fused_qkv',['../structgptoss__model__weights__t.html#afd22f6a9c85257b0f97de33767c4ce9a',1,'gptoss_model_weights_t']]],
+  ['attn_5fnorm_5fw_12',['attn_norm_w',['../structgptoss__layer__weights__t.html#afabd6df0d4dcbd24d86d7e794a0252b4',1,'gptoss_layer_weights_t']]],
+  ['attn_5fout_13',['attn_out',['../structie__gptoss__infer__impl.html#a4101a831368541ae19b63ec4f7c26ae9',1,'ie_gptoss_infer_impl']]],
+  ['avx_14',['avx',['../structie__cpu__features.html#ad34b8ad4eaa2419dcf85da2bbec779b8',1,'ie_cpu_features']]],
+  ['avx2_15',['avx2',['../structie__cpu__features.html#a596807f0a67776f84750fc9ab34bfeb3',1,'ie_cpu_features']]],
+  ['avx512_5fbf16_16',['avx512_bf16',['../structie__cpu__features.html#a3895a19999349001a93ad4a39f4cf14f',1,'ie_cpu_features']]],
+  ['avx512bw_17',['avx512bw',['../structie__cpu__features.html#a69a525c4135b0f5e811aaeae63eca775',1,'ie_cpu_features']]],
+  ['avx512dq_18',['avx512dq',['../structie__cpu__features.html#a4f742c6d25de62fb92066c21abb90046',1,'ie_cpu_features']]],
+  ['avx512f_19',['avx512f',['../structie__cpu__features.html#a2953875922a3838549523f00c3b1a735',1,'ie_cpu_features']]],
+  ['avx512vl_20',['avx512vl',['../structie__cpu__features.html#a25202bcf1087ba974289b6314b1a957e',1,'ie_cpu_features']]]
 ];

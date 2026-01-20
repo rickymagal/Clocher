@@ -1,5 +1,4 @@
 var searchData=
 [
-  ['export_5ftensors_5fonnx_0',['export_tensors_onnx',['../namespaceexport__tensors__onnx.html',1,'']]],
-  ['export_5ftensors_5ftorch_1',['export_tensors_torch',['../namespaceexport__tensors__torch.html',1,'']]]
+  ['append_5fq4_5fattn_5ffrom_5fhf_0',['append_q4_attn_from_hf',['../namespaceappend__q4__attn__from__hf.html',1,'']]]
 ];

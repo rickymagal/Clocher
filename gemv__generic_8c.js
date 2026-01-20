@@ -1,7 +1,30 @@
 var gemv__generic_8c =
 [
-    [ "gemv_generic_impl", "gemv__generic_8c.html#a51096a373f5e5010d39cbf44e34b730d", null ],
-    [ "ie_gemv_f32", "gemv__generic_8c.html#a4e112b3396ed21919f404631c1d4d7fb", null ],
+    [ "ie_gemv_bf16_job_t", "structie__gemv__bf16__job__t.html", "structie__gemv__bf16__job__t" ],
+    [ "ie_gemv_bf16_impl_fn", "gemv__generic_8c.html#a0e8240b728d42daeec06209f7f90a328", null ],
+    [ "ie_gemv_f32_impl_fn", "gemv__generic_8c.html#ab95793c948cfab1083504bb87973e28c", null ],
+    [ "ie_gemv_qi8_impl_fn", "gemv__generic_8c.html#acaf77e7b0b166f39b00f1398ae8b5ff6", null ],
+    [ "ie_vec_bf16_to_f32_impl_fn", "gemv__generic_8c.html#a55b9a0fca63d70972cb1a4114055dd44", null ],
+    [ "ie_bf16_bits_to_f32", "gemv__generic_8c.html#a25aaeba2e146d0f4cfd8f968a6cb8689", null ],
+    [ "ie_bf16_threads_env", "gemv__generic_8c.html#a6d5a8fa1873b2a46dd1d027fba8d823e", null ],
+    [ "ie_bf16_tp_init", "gemv__generic_8c.html#a4305e41e37933fb79862884be39b7951", null ],
+    [ "ie_gemv_bf16_f32", "gemv__generic_8c.html#a9af71dd562560ec249ffd6cf70013282", null ],
+    [ "ie_gemv_bf16_generic_impl", "gemv__generic_8c.html#a07fc9251edf42c12732cce490f6dbec0", null ],
+    [ "ie_gemv_bf16_job_run", "gemv__generic_8c.html#ad7d21f2b326ed2749d91ed74f5b4ab27", null ],
+    [ "ie_gemv_f32", "gemv__generic_8c.html#a0416d116aabe509598e8a1aaf31a0f55", null ],
+    [ "ie_gemv_f32_generic_impl", "gemv__generic_8c.html#a2458b36cdf25be06d49e73da98c27a66", null ],
+    [ "ie_gemv_qi8", "gemv__generic_8c.html#aae594bb0a2442c97c665ac2f42b9993c", null ],
+    [ "ie_gemv_qi8_stub_impl", "gemv__generic_8c.html#a3e532847f3b6cd6a2ed3be0786ee18ce", null ],
     [ "ie_kernels_install", "gemv__generic_8c.html#a1b919f71b86ec1791fe53bc68d5c240d", null ],
-    [ "s_gemv_f32", "gemv__generic_8c.html#aa80eb69d355054f1f8213721e72bec9a", null ]
+    [ "ie_kernels_lazy_init", "gemv__generic_8c.html#afcee3c04ff97cb24bf4d3d84cbe1b9e7", null ],
+    [ "ie_log_kernel_once", "gemv__generic_8c.html#abdc04113c83880ea48ee1599cf3db331", null ],
+    [ "ie_vec_bf16_to_f32", "gemv__generic_8c.html#a782b7a53732be7ae0a2f0eb663e36321", null ],
+    [ "ie_vec_bf16_to_f32_generic_impl", "gemv__generic_8c.html#a9d75736f9f9d37cbc2bb7fe37c06cc55", null ],
+    [ "g_bf16_threads", "gemv__generic_8c.html#af77c5ba10ee3be746b9a762cb88eba5c", null ],
+    [ "g_bf16_tp", "gemv__generic_8c.html#af0183479d666aabf13f15a65e4303f11", null ],
+    [ "g_gemv_bf16", "gemv__generic_8c.html#a99b3b10b4668e12f4de83a83d8fae43a", null ],
+    [ "g_gemv_f32", "gemv__generic_8c.html#a0c99d34eff9213d48f521b2cbffa7980", null ],
+    [ "g_gemv_qi8", "gemv__generic_8c.html#ab98063423e25c0652c7f83809a5a7904", null ],
+    [ "g_logged_once", "gemv__generic_8c.html#a131a7ec348d6293e478841ce7f77410d", null ],
+    [ "g_vec_bf16_to_f32", "gemv__generic_8c.html#a9c34d49b2d4e036ba9618ee89eb8dc73", null ]
 ];

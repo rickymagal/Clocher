@@ -1,12 +1,22 @@
 var searchData=
 [
-  ['marks_0',['marks',['../structtp__ctx__t.html#a0f6de00d688ab9a6955ef59986a6f3d3',1,'tp_ctx_t']]],
-  ['max_5fnew_1',['max_new',['../structcli__extras.html#a5eb0317aa09b90f400b657245b41e92c',1,'cli_extras']]],
-  ['memcpy_2',['memcpy',['../structie__device__vtbl.html#ad1dd16848b3443345765eba0a865a1b1',1,'ie_device_vtbl']]],
-  ['microbatch_3',['microbatch',['../structie__batcher.html#a6634ddc5b22f958c4a965030d33ea01d',1,'ie_batcher']]],
-  ['misses_4',['misses',['../structie__kv__state__t.html#a1fa1e42d45d8cc9ac8305769f5afc259',1,'ie_kv_state_t']]],
-  ['model_5fbin_5',['model_bin',['../structcli__extras.html#ae2401ceced12a603aabefd22f57584bd',1,'cli_extras']]],
-  ['model_5fdir_6',['model_dir',['../structcli__extras.html#aa52e671b92aa5a9099153b609a0c5792',1,'cli_extras']]],
-  ['model_5fjson_7',['model_json',['../structcli__extras.html#a96d26a6a2f436fb0b232d383f321c3e6',1,'cli_extras']]],
-  ['mu_8',['mu',['../structie__batcher.html#af9832623e01b36b40b66f1807c150053',1,'ie_batcher']]]
+  ['l1_5fbytes_0',['l1_bytes',['../structie__stream__policy.html#ae6809aac957bc384749db8d23fd160ce',1,'ie_stream_policy']]],
+  ['l2_5fbytes_1',['l2_bytes',['../structie__stream__policy.html#a75f0a7fb9e8ba9febd2f961d1915ff07',1,'ie_stream_policy']]],
+  ['l3_5fbytes_2',['l3_bytes',['../structie__stream__policy.html#a93b26b01c6c413aad99cb8dbe3e546a8',1,'ie_stream_policy']]],
+  ['layer_5frx_3',['LAYER_RX',['../namespacesync__config__from__iejson.html#a65348b48d04d445e1e8de23b26d0abea',1,'sync_config_from_iejson']]],
+  ['layers_4',['layers',['../structgptoss__model__weights__t.html#a92dc55178f42d7a22a5a6db56e2d1b58',1,'gptoss_model_weights_t::layers'],['../structie__gptoss__infer__impl.html#a5e81f560ecc09f33ecf12b4bc424d53b',1,'ie_gptoss_infer_impl::layers']]],
+  ['len_5',['len',['../structie__f32__vec__t.html#ad2393d51e0d947e540deffc6ecc2cd36',1,'ie_f32_vec_t']]],
+  ['lineno_6',['lineno',['../classverify__report__tokens_1_1Failure.html#a5fba823c0c22ec9e1a830e7befe7239a',1,'verify_report_tokens::Failure']]],
+  ['lm_5fhead_5fw_7',['lm_head_w',['../structgptoss__model__weights__t.html#ad51b654dfc32d105f7f9a16f25958228',1,'gptoss_model_weights_t']]],
+  ['ln1_5fw_8',['ln1_w',['../structie__gptoss__layer__w.html#a4b74b8af64e225448e79c57ae58f87b8',1,'ie_gptoss_layer_w']]],
+  ['ln1_5fw_5ff32_9',['ln1_w_f32',['../structie__gptoss__layer__w.html#aa2df1bd36f9b2fcb4838479b0a81fe88',1,'ie_gptoss_layer_w']]],
+  ['ln2_5fw_10',['ln2_w',['../structie__gptoss__layer__w.html#af185073982bda0e6a266c83d23a39710',1,'ie_gptoss_layer_w']]],
+  ['ln2_5fw_5ff32_11',['ln2_w_f32',['../structie__gptoss__layer__w.html#a6a2f0cfd0cd1b652bc5c28ae6efb910d',1,'ie_gptoss_layer_w']]],
+  ['loaded_12',['loaded',['../structtensor__map__s.html#acb71d934b0da86d92eb41c1992756bfd',1,'tensor_map_s::loaded'],['../structtokenizer__hf__s.html#a9dd42472c2e0669be9e9d4c893e63453',1,'tokenizer_hf_s::loaded'],['../structie__weights__s.html#a0e365369fa9f9920eda71bd9be50c5bb',1,'ie_weights_s::loaded']]],
+  ['local_5fdir_13',['local_dir',['../namespacedownload__gpt__oss__20b.html#aecd562067554e1acea55bc9e8f001abe',1,'download_gpt_oss_20b']]],
+  ['log_5fevery_14',['log_every',['../structcli__extras.html#af40082e05bf7e8eabeabec31f850da27',1,'cli_extras']]],
+  ['log_5ftokens_15',['log_tokens',['../structcli__extras.html#a9f8297928fead9608d99d8f612797a86',1,'cli_extras']]],
+  ['logical_16',['logical',['../structie__dedup__file__t.html#aba685e7bdb888d0de3b4e9245a291879',1,'ie_dedup_file_t::logical'],['../structie__file__ref.html#a188fc244bdc2b8fde0a54239de79075d',1,'ie_file_ref::logical']]],
+  ['logits_17',['logits',['../structie__engine.html#a37cae65dbe87727ed4512cf3f43a44d6',1,'ie_engine']]],
+  ['logits_5flen_18',['logits_len',['../structie__engine.html#a91d1378e647529c085a49b23d4572180',1,'ie_engine']]]
 ];

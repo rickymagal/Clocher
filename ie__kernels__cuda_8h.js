@@ -11,6 +11,8 @@ var ie__kernels__cuda_8h =
     [ "ie_cuda_last_error_string", "group__IE__GPU.html#ga6656c0ddd9df382048e7cd162e0c1d64", null ],
     [ "ie_cuda_launch_gemv_bias_act_f32", "group__IE__GPU.html#gaa2441c827e95b20c0413b0372ffc262b", null ],
     [ "ie_cuda_launch_gemv_rowwise_f32", "group__IE__GPU.html#ga92e383308a681db6bb757c3add5906f0", null ],
+    [ "ie_cuda_launch_gemv_rowwise_qfp8_f32", "group__IE__GPU.html#ga78cbe5a89ec13c5a9edca717f79caab8", null ],
+    [ "ie_cuda_launch_gemv_rowwise_qi8_f32", "group__IE__GPU.html#ga525e3ca0d9d0030847aef26b70fa0cb9", null ],
     [ "ie_cuda_launch_pack_w_blockedk_f32", "group__IE__GPU.html#ga72b6dfd858bd993a18d9c5dfb3112389", null ],
     [ "ie_cuda_launch_vec_tanh_f32", "group__IE__GPU.html#ga4e8445935545f1b5bbb671826543ffab", null ]
 ];

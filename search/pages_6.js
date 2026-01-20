@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['for_20int4_0',['ADR-00060 — Optimization Path Selection (updated for INT4)',['../md_docs_2adr-00060-optimization-path.html',1,'']]]
+  ['notes_0',['Performance Notes',['../md_docs_2PERFORMANCE.html',1,'']]]
 ];

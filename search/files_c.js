@@ -1,5 +1,6 @@
 var searchData=
 [
-  ['readme_2emd_0',['README.md',['../README_8md.html',1,'']]],
-  ['run_5fbenchmark_2esh_1',['run_benchmark.sh',['../run__benchmark_8sh.html',1,'']]]
+  ['numa_5fpolicy_2ec_0',['numa_policy.c',['../numa__policy_8c.html',1,'']]],
+  ['numa_5fpolicy_2eh_1',['numa_policy.h',['../numa__policy_8h.html',1,'']]],
+  ['numa_5fprobe_2ec_2',['numa_probe.c',['../numa__probe_8c.html',1,'']]]
 ];

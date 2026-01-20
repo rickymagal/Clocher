@@ -1,9 +1,9 @@
 var structie__int4__quant__meta =
 [
-    [ "pack", "structie__int4__quant__meta.html#adeb7b1901e92a823af56d42dae1147b0", null ],
-    [ "per_row", "structie__int4__quant__meta.html#a6918c5b7cb00dd889721e7a1aacc6b08", null ],
-    [ "present", "structie__int4__quant__meta.html#a2839df315edfb65fcad27e1974695650", null ],
-    [ "scale_bin", "structie__int4__quant__meta.html#a8e5938a2d01110bbf72153838467e52d", null ],
-    [ "symmetric", "structie__int4__quant__meta.html#aa2a921c71c764707779cdd81f1f4af23", null ],
-    [ "zero_point", "structie__int4__quant__meta.html#a23f6a4c7d61a82f01525e0af1648949f", null ]
+    [ "pack", "structie__int4__quant__meta.html#a9d23834e0981f2a33f3abda8cb03740b", null ],
+    [ "per_row", "structie__int4__quant__meta.html#af2eabba20f874aaa1a8721ef0109c61d", null ],
+    [ "present", "structie__int4__quant__meta.html#afdbdb2603142f1f64704233a8e9f44a7", null ],
+    [ "scale_bin", "structie__int4__quant__meta.html#a7685222641784f8562f647be74dfad7d", null ],
+    [ "symmetric", "structie__int4__quant__meta.html#ac0a12c225ef1adae6b663c83bc8b62e9", null ],
+    [ "zero_point", "structie__int4__quant__meta.html#a716c9b79c567faec5ff4f308c81f1ee6", null ]
 ];
