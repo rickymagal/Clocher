@@ -9,20 +9,10 @@ This tool is intentionally tolerant of older tensor-map JSON formats that do not
 include a top-level "weights_bin" field. In that case, it defaults to
 "model.ie.bin" inside --model-dir (or --in-bin if provided).
 
-Typical usage (matches your invocation):
-
-  MODEL_DIR=".../models/gpt-oss-20b"
-  python3 tools/build_hybrid_moe_int4.py \
-    --model-dir "$MODEL_DIR" \
-    --out-bin "$MODEL_DIR/model.q4.bin" \
-    --out-map "$MODEL_DIR/model.ie.compat.json" \
-    --align 256
-
-Notes:
-- This script does not perform quantization. It repacks whatever tensors already
-  exist in the input weights bin (BF16 weights, INT4 blocks/scales, etc.).
-- The engine selects the INT4 artifact pair via --precision int4, which maps to
-  model.ie.compat.json + model.q4.bin.
+IMPORTANT:
+- This script does NOT quantize or filter tensors.
+- It copies ALL tensors from the input map into the output bin, preserving names.
+- This guarantees required tensors (e.g., q_proj/k_proj/v_proj/o_proj) remain present.
 """
 
 from __future__ import annotations
@@ -32,7 +22,7 @@ import json
 import os
 import sys
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 
 
 @dataclass
@@ -75,7 +65,7 @@ def _infer_in_bin(model_dir: str, m: Dict[str, Any], in_bin_override: Optional[s
         if not os.path.isabs(p):
             p = os.path.join(model_dir, p)
         if not os.path.exists(p):
-            _die(f"--in-bin {p} does not exist")
+            _die(f"--in-bin does not exist: {p}")
         return p
 
     wb = m.get("weights_bin")
@@ -86,12 +76,10 @@ def _infer_in_bin(model_dir: str, m: Dict[str, Any], in_bin_override: Optional[s
         if os.path.exists(p):
             return p
 
-    # Back-compat default.
     p = os.path.join(model_dir, "model.ie.bin")
     if os.path.exists(p):
         return p
 
-    # Last resort: find the largest *.bin file in model_dir.
     best = None
     best_sz = -1
     try:
@@ -125,11 +113,13 @@ def _parse_tensors(m: Dict[str, Any]) -> List[TensorRec]:
     for t in ts:
         if not isinstance(t, dict):
             _die("tensor map tensors[] contains non-object")
+
         name = t.get("name")
         dtype = t.get("dtype")
         shape = t.get("shape")
         offset = t.get("offset")
         nbytes = t.get("nbytes")
+
         if not isinstance(name, str) or not name:
             _die("tensor missing/invalid name")
         if not isinstance(dtype, str) or not dtype:
@@ -150,7 +140,6 @@ def _parse_tensors(m: Dict[str, Any]) -> List[TensorRec]:
             raw=t,
         ))
 
-    # Sort by file offset so we can stream copies.
     out.sort(key=lambda r: r.offset)
     return out
 
@@ -168,8 +157,7 @@ def _copy_range(fin, fout, src_off: int, nbytes: int) -> None:
         remaining -= take
 
 
-def _repack(model_dir: str,
-            in_map_path: str,
+def _repack(in_map_path: str,
             in_bin_path: str,
             out_bin_path: str,
             out_map_path: str,
@@ -179,7 +167,6 @@ def _repack(model_dir: str,
 
     os.makedirs(os.path.dirname(out_bin_path) or ".", exist_ok=True)
 
-    # Stream-copy each tensor into the new bin with alignment.
     new_tensors: List[Dict[str, Any]] = []
     cur = 0
 
@@ -187,12 +174,8 @@ def _repack(model_dir: str,
         for r in tensors:
             cur = _align_up(cur, align)
             dst_off = cur
-
-            # Ensure output file is positioned correctly.
             fout.seek(dst_off, os.SEEK_SET)
-
             _copy_range(fin, fout, r.offset, r.nbytes)
-
             cur = dst_off + r.nbytes
 
             t2 = dict(r.raw)
@@ -211,6 +194,7 @@ def _repack(model_dir: str,
     print(f"[int4-artifacts] in_bin={in_bin_path}", file=sys.stderr)
     print(f"[int4-artifacts] out_bin={out_bin_path} ({out_sz} bytes)", file=sys.stderr)
     print(f"[int4-artifacts] out_map={out_map_path}", file=sys.stderr)
+    print(f"[int4-artifacts] tensor_count={len(new_tensors)}", file=sys.stderr)
 
 
 def main() -> int:
@@ -220,7 +204,7 @@ def main() -> int:
     ap.add_argument("--out-map", required=True, help="Output map path (e.g., model.ie.compat.json).")
     ap.add_argument("--align", type=int, default=256, help="Byte alignment for each tensor start.")
     ap.add_argument("--in-map", default=None, help="Override input map path (default: model.ie.json in model-dir).")
-    ap.add_argument("--in-bin", default=None, help="Override input weights bin (default: infer).")
+    ap.add_argument("--in-bin", default=None, help="Override input weights bin (default: inferred).")
     args = ap.parse_args()
 
     model_dir = os.path.abspath(args.model_dir)
@@ -249,7 +233,6 @@ def main() -> int:
         _die("--align must be a positive power of two (e.g., 256)")
 
     _repack(
-        model_dir=model_dir,
         in_map_path=in_map_path,
         in_bin_path=in_bin_path,
         out_bin_path=out_bin_path,

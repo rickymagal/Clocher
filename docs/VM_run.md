@@ -29,6 +29,32 @@ python -m pip install --upgrade pip
 python -m pip install numpy torch safetensors huggingface_hub
 ```
 
+HF verification deps (only needed for token checks against HF):
+```bash
+python -m pip install transformers tokenizers accelerate
+```
+
+If your system Python is externally managed (PEP 668), use the venv above. Do not install system-wide.
+
+If pip fails with `No space left on device`, retry with no cache (or set a cache dir on a larger filesystem):
+```bash
+PIP_CACHE_DIR=/tmp/pip-cache \
+python -m pip install --no-cache-dir numpy torch safetensors huggingface_hub transformers tokenizers
+```
+
+To avoid downloading large CUDA wheels on CPU-only VMs, install the CPU-only PyTorch build:
+```bash
+python -m pip install --upgrade pip
+python -m pip install --no-cache-dir numpy safetensors huggingface_hub transformers tokenizers
+python -m pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cpu
+```
+
+On GPU VMs, install the CUDA-enabled PyTorch build (do not use the CPU-only index):
+```bash
+python -m pip uninstall -y torch
+python -m pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cu121
+```
+
 ---
 
 ## 1) Clone the repository
@@ -105,10 +131,44 @@ python scripts/gen_q4_bytes_stream.py \
   --manifest quant/q4_manifest.expanded.json
 ```
 
+If you hit `ModuleNotFoundError: No module named 'torch'` (or `safetensors`), install the deps above and re-run 3.2.
+
+If you see `No shards in /hf/original`, the `MODEL_DIR` env var did not expand. Re-run with absolute paths:
+```bash
+IE_Q4_INCLUDE_LM_HEAD=1 CHUNK_ROWS=128 \
+python scripts/gen_q4_bytes_stream.py \
+  --hf-dir "/home/$USER/path/to/Clocher/models/gpt-oss-20b/hf/original" \
+  --q4-bytes "/home/$USER/path/to/Clocher/models/gpt-oss-20b/model.q4.bin" \
+  --scales "/home/$USER/path/to/Clocher/models/gpt-oss-20b/model.q4.scales.fp16.bin" \
+  --manifest "/home/$USER/path/to/Clocher/quant/q4_manifest.expanded.json"
+```
+
 Batch driver:
 ```bash
 CHUNK_ROWS=128 \
 bash scripts/gen_q4_bytes_stream_all.sh "$MODEL_DIR/hf/original" "$MODEL_DIR"
+```
+
+### 3.2b) Pack Q4 into model.q4.bin + model.ie.compat.json (INT4 real)
+This consumes the expanded Q4 manifest and emits a hybrid weights bin that includes:
+- Q4 blocks/scales for supported attention weights.
+- Original tensors (embeddings, norms, MoE blocks already present in HF).
+```bash
+python scripts/hf_to_iebin.py \
+  --hf-dir models/gpt-oss-20b/hf/original \
+  --out-dir models/gpt-oss-20b \
+  --q4-map quant/q4_manifest.expanded.json
+```
+
+### 3.2c) INT4 runtime path (q4_0 blocks; recommended)
+If the runtime reports `cannot infer scale_bytes`, your Q4 scales are not in q4_0 block format.
+Use this path to build a compat bin and append q4_0 attention blocks/scales:
+```bash
+bash scripts/rebuild_dedup_and_quant.sh --model-dir models/gpt-oss-20b
+python scripts/append_q4_attn_from_hf.py \
+  --hf-dir models/gpt-oss-20b/hf/original \
+  --compat-json models/gpt-oss-20b/model.ie.compat.json \
+  --q4-bin models/gpt-oss-20b/model.q4.bin
 ```
 
 ### 3.3) Q4 attention compat (optional)
@@ -130,6 +190,12 @@ models/gpt-oss-20b/model.dedup.defaults.bin
 models/gpt-oss-20b/model.dedup.masks.bin
 models/gpt-oss-20b/model.dedup.exceptions.bin
 models/gpt-oss-20b/model.dedup.json
+```
+
+### 3.5) Tensor map (required by runtime for int4 + dedup)
+If you see `failed to load tensor_map.json`, generate it from `model.ie.json`:
+```bash
+python scripts/make_tensor_map_from_iejson.py --model-dir models/gpt-oss-20b
 ```
 
 ---
@@ -199,6 +265,11 @@ make bench
 
 Enables HF ID checks (prompt IDs + next-token IDs). This can be memory-heavy on CPU for 20B; recommended on GPU/large-RAM hosts.
 
+What full HF verification does:
+- Re-runs the HF model in greedy mode from the exact prompt token IDs traced by the engine.
+- Compares the HF next-token ID at every step against the engine’s generated IDs.
+- Optionally checks prompt tokenization parity and top-k/logit deltas when enabled.
+
 ```bash
 HF_PY="$PWD/.venv/bin/python" \
 HF_DIR="$PWD/models/gpt-oss-20b/hf/original" \
@@ -214,6 +285,16 @@ make bench
 For GPU:
 ```bash
 HF_DEVICE=cuda HF_DTYPE=bf16
+```
+
+Tokenizer-only fallback (no model load; verifies prompt tokenization only):
+```bash
+python3 tools/verify_hf_generation_ids.py \
+  --trace-jsonl /tmp/trace_ids.jsonl \
+  --hf-dir models/gpt-oss-20b/hf/original \
+  --tokenizer-only \
+  --check-prompt \
+  --out /tmp/hf_verify.json
 ```
 
 ---
@@ -302,7 +383,7 @@ These are accepted by `build/inference-engine*`:
 
 ## 9) Direct execution (no Makefile)
 
-CPU:
+CPU (int4):
 ```bash
 ./build/inference-engine \
   --model-dir models/gpt-oss-20b \
@@ -314,7 +395,20 @@ CPU:
   --max-new 1
 ```
 
-CUDA:
+CPU (bf16 sanity check):
+```bash
+./build/inference-engine \
+  --model-dir models/gpt-oss-20b \
+  --model-bin models/gpt-oss-20b/model.ie.bin \
+  --precision bf16 \
+  --threads 12 \
+  --rounds 1 \
+  --warmup 0 \
+  --prompts-file benchmarks/prompts_10.txt \
+  --max-new 1
+```
+
+CUDA (int4):
 ```bash
 ./build/inference-engine.cuda \
   --model-dir models/gpt-oss-20b \
@@ -330,6 +424,10 @@ CUDA:
 
 ## 10) Debug tips
 - If `make bench` complains about dedup: ensure `model.dedup.json` and blobs exist in `MODEL_DIR`.
+- If you see `missing embedding tensor`, your weights bin does not include embeddings. For a quick CPU check, run with `--precision bf16` (and `--model-bin models/gpt-oss-20b/model.ie.bin`) and keep `model.ie.json` + `model.ie.bin` together.
+- If HF verification is killed on CPU, it ran out of RAM. Run HF verification on a GPU VM (`--device cuda`) or skip HF checks on CPU.
+- If HF verification OOMs on GPU, the GPU has insufficient VRAM. Use a larger GPU or run HF verification on a high-RAM CPU host.
+- If HF verification reports MXFP4/Triton warnings, install `triton` (CUDA) or proceed with dequantization; it may increase memory use.
 - If `REPORT_ROOT` is empty or wrong, set an absolute path.
 - To reduce runtime, use `VERIFY=0 REPORT=0`.
 - To avoid HF OOM on CPU for 20B, use `HF_DEVICE=cuda` on a GPU VM or disable `VERIFY_HF_IDS`.

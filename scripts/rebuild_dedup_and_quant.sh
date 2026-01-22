@@ -1,122 +1,99 @@
 #!/usr/bin/env bash
-set -euo pipefail
+set -eu
 
-MODEL_DIR="${MODEL_DIR:-models/gpt-oss-20b}"
-HF_DIR="${HF_DIR:-$MODEL_DIR/hf}"
-OUT_DIR="${OUT_DIR:-$MODEL_DIR}"
+usage() {
+  cat >&2 <<'EOF'
+Usage:
+  bash scripts/rebuild_dedup_and_quant.sh --model-dir <path> [--align 256]
 
-need() { command -v "$1" >/dev/null 2>&1 || { echo "ERROR: missing '$1'"; exit 2; }; }
+This script:
+  1) Rebuilds model.ie.compat.json + model.q4.bin by repacking ALL tensors
+     from model.ie.json + model.ie.bin into an aligned binary.
+  2) Symlinks those artifacts into the model directory root.
+  3) Packs a padded tokenizer (optional but recommended).
+  4) Regenerates tensor_map.json for runtime lookup.
 
-need python3
-need rg
-need find
+Notes:
+- This script does not set pipefail.
+- This script does not perform quantization.
+EOF
+}
 
-IE_JSON="$OUT_DIR/model.ie.json"
-IE_BIN="$OUT_DIR/model.ie.bin"
+MODEL_DIR=""
+ALIGN="256"
 
-if [[ ! -f "$IE_JSON" || ! -f "$IE_BIN" ]]; then
-  echo "ERROR: missing $IE_JSON / $IE_BIN (run hf_to_iebin_raw.py first)"
-  exit 2
-fi
-
-echo "[ok] IEBIN present:"
-ls -lh "$IE_JSON" "$IE_BIN"
-
-# ---- locate manifest.dedup.json (Downloads -> model dir) ---------------------
-MANIFEST_CANDIDATES=(
-  "$OUT_DIR/manifest.dedup.json"
-  "$OUT_DIR/dedup_manifest.json"
-  "$HOME/Downloads/manifest.dedup.json"
-  "$HOME/Downloads/dedup_manifest.json"
-)
-
-MANIFEST=""
-for p in "${MANIFEST_CANDIDATES[@]}"; do
-  if [[ -f "$p" ]]; then MANIFEST="$p"; break; fi
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --model-dir)
+      MODEL_DIR="$2"
+      shift 2
+      ;;
+    --align)
+      ALIGN="$2"
+      shift 2
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    *)
+      echo "error: unknown argument: $1" >&2
+      usage
+      exit 2
+      ;;
+  esac
 done
 
-if [[ -z "$MANIFEST" ]]; then
-  echo "ERROR: could not find manifest.dedup.json. Put it in:"
-  echo "  $OUT_DIR/manifest.dedup.json"
+if [ -z "$MODEL_DIR" ]; then
+  echo "error: --model-dir is required" >&2
+  usage
   exit 2
 fi
 
-if [[ "$MANIFEST" != "$OUT_DIR/manifest.dedup.json" ]]; then
-  echo "[copy] manifest -> $OUT_DIR/manifest.dedup.json"
-  cp -f "$MANIFEST" "$OUT_DIR/manifest.dedup.json"
-  MANIFEST="$OUT_DIR/manifest.dedup.json"
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+MODEL_DIR_ABS="$(cd "$MODEL_DIR" && pwd)"
+
+OUT_DIR="$MODEL_DIR_ABS/dedup_quant_out"
+mkdir -p "$OUT_DIR"
+
+OUT_BIN="$OUT_DIR/model.q4.bin"
+OUT_MAP="$OUT_DIR/model.ie.compat.json"
+
+echo "[quant] tool: $ROOT/tools/build_hybrid_moe_int4.py" >&2
+echo "[quant] model_dir: $MODEL_DIR_ABS" >&2
+echo "[quant] out_bin:   $OUT_BIN" >&2
+echo "[quant] out_map:   $OUT_MAP" >&2
+echo "[quant] align:     $ALIGN" >&2
+
+python3 "$ROOT/tools/build_hybrid_moe_int4.py" \
+  --model-dir "$MODEL_DIR_ABS" \
+  --out-bin "$OUT_BIN" \
+  --out-map "$OUT_MAP" \
+  --align "$ALIGN"
+
+ln -sf "$OUT_BIN" "$MODEL_DIR_ABS/model.q4.bin"
+ln -sf "$OUT_MAP" "$MODEL_DIR_ABS/model.ie.compat.json"
+
+HF_TOK="$MODEL_DIR_ABS/hf/original/tokenizer.json"
+
+if [ -f "$HF_TOK" ]; then
+  echo "[tokenizer] pack: $HF_TOK -> $MODEL_DIR_ABS/tokenizer.ie.bin" >&2
+  cp -f "$HF_TOK" "$MODEL_DIR_ABS/tokenizer.json"
+  python3 "$ROOT/scripts/pack_tokenizer.py" --model-dir "$MODEL_DIR_ABS"
+else
+  echo "[tokenizer] skipped: missing $HF_TOK" >&2
 fi
 
-echo "[ok] manifest: $MANIFEST"
-ls -lh "$MANIFEST"
+echo "[tensor_map] build from: $MODEL_DIR_ABS/model.ie.json" >&2
+python3 "$ROOT/scripts/make_tensor_map_from_iejson.py" \
+  --model-dir "$MODEL_DIR_ABS" \
+  --out "$MODEL_DIR_ABS/tensor_map.json"
 
-# ---- find and run dedup artifact generator ----------------------------------
-echo "[dedup] searching for generator..."
-DEDUP_SCRIPT="$(find scripts -maxdepth 2 -type f -name '*.py' -print | rg -n '(dedup).*\.py$' | head -n 1 | cut -d: -f1 || true)"
-
-if [[ -z "$DEDUP_SCRIPT" ]]; then
-  echo "ERROR: no obvious dedup python script found under scripts/."
-  echo "Try: ls scripts | rg -n 'dedup'"
-  exit 2
-fi
-
-echo "[dedup] candidate: $DEDUP_SCRIPT"
-echo "[dedup] attempting common invocations..."
-
-set +e
-python3 "$DEDUP_SCRIPT" --model-dir "$OUT_DIR" --manifest "$MANIFEST"
-STATUS=$?
-if [[ $STATUS -ne 0 ]]; then
-  python3 "$DEDUP_SCRIPT" --model "$OUT_DIR" --manifest "$MANIFEST"
-  STATUS=$?
-fi
-if [[ $STATUS -ne 0 ]]; then
-  python3 "$DEDUP_SCRIPT" --model-dir "$OUT_DIR"
-  STATUS=$?
-fi
-set -e
-
-if [[ $STATUS -ne 0 ]]; then
-  echo "ERROR: dedup generator failed. Show its usage:"
-  python3 "$DEDUP_SCRIPT" --help || true
-  exit 2
-fi
-
-echo "[dedup] done."
-
-# ---- find and run offline INT4 artifact generator ---------------------------
-echo "[int4] searching for PTQ/export script..."
-PTQ_SCRIPT="$(find scripts -maxdepth 2 -type f -name '*.py' -print | rg -n '(ptq|int4|quant).*\.py$' | head -n 1 | cut -d: -f1 || true)"
-
-if [[ -z "$PTQ_SCRIPT" ]]; then
-  echo "ERROR: no obvious quant/PTQ script found under scripts/."
-  echo "Try: ls scripts | rg -n '(ptq|int4|quant)'"
-  exit 2
-fi
-
-echo "[int4] candidate: $PTQ_SCRIPT"
-echo "[int4] attempting common invocations..."
-
-set +e
-python3 "$PTQ_SCRIPT" --model-dir "$OUT_DIR" --precision int4
-STATUS=$?
-if [[ $STATUS -ne 0 ]]; then
-  python3 "$PTQ_SCRIPT" --model "$OUT_DIR" --precision int4
-  STATUS=$?
-fi
-if [[ $STATUS -ne 0 ]]; then
-  python3 "$PTQ_SCRIPT" --model-dir "$OUT_DIR" --int4
-  STATUS=$?
-fi
-set -e
-
-if [[ $STATUS -ne 0 ]]; then
-  echo "ERROR: PTQ/int4 generator failed. Show its usage:"
-  python3 "$PTQ_SCRIPT" --help || true
-  exit 2
-fi
-
-echo "[int4] done."
-
-echo "[ok] listing likely artifacts:"
-ls -lah "$OUT_DIR" | rg -n '(dedup|int4|quant|ptq|mask|exceptions|default|replicate|hot|cache|patch|recon)' || true
+echo "[ok] artifacts:" >&2
+ls -lh \
+  "$MODEL_DIR_ABS/model.ie.json" \
+  "$MODEL_DIR_ABS/model.ie.bin" \
+  "$MODEL_DIR_ABS/model.ie.compat.json" \
+  "$MODEL_DIR_ABS/model.q4.bin" \
+  "$MODEL_DIR_ABS/tensor_map.json" \
+  2>/dev/null || true

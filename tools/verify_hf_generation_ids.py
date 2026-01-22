@@ -260,6 +260,8 @@ def _parse() -> argparse.Namespace:
     p.add_argument("--topk", type=int, default=0, help="If >0, compare top-k IDs/logits when present in trace.")
     p.add_argument("--logits-tol", type=float, default=None, help="If set, max abs diff allowed for top-k logits.")
     p.add_argument("--check-prompt", action="store_true", help="Verify prompt tokenization against HF tokenizer.")
+    p.add_argument("--tokenizer-only", action="store_true",
+                   help="Only verify prompt tokenization; skip HF model generation.")
     p.add_argument("--out", required=True, help="Output JSON path.")
     return p.parse_args()
 
@@ -277,19 +279,21 @@ def main() -> int:
     # the HF folder is complete and config is readable.
     tok = AutoTokenizer.from_pretrained(args.hf_dir, use_fast=True)
 
-    # Load model
-    # - On CUDA, default to half precision to reduce VRAM unless the user requests otherwise.
-    # - On CPU, float32 is safest (bf16 may also work on some CPUs).
-    load_kwargs: Dict[str, Any] = {"torch_dtype": dtype}
-    if device.type == "cuda":
-        # Let transformers place layers automatically across GPUs if available.
-        load_kwargs["device_map"] = "auto"
-    model = AutoModelForCausalLM.from_pretrained(args.hf_dir, **load_kwargs)
-    model.eval()
+    model = None
+    if not args.tokenizer_only:
+        # Load model
+        # - On CUDA, default to half precision to reduce VRAM unless the user requests otherwise.
+        # - On CPU, float32 is safest (bf16 may also work on some CPUs).
+        load_kwargs: Dict[str, Any] = {"torch_dtype": dtype}
+        if device.type == "cuda":
+            # Let transformers place layers automatically across GPUs if available.
+            load_kwargs["device_map"] = "auto"
+        model = AutoModelForCausalLM.from_pretrained(args.hf_dir, **load_kwargs)
+        model.eval()
 
-    # If we are on CPU without device_map, explicitly move.
-    if device.type == "cpu":
-        model.to(device)
+        # If we are on CPU without device_map, explicitly move.
+        if device.type == "cpu":
+            model.to(device)
 
     results: List[Dict[str, Any]] = []
     overall_ok = True
@@ -305,14 +309,22 @@ def main() -> int:
             else:
                 prompt_ok, prompt_mismatch = _check_prompt_tokens(tok, pt.prompt_text, pt.prompt_token_ids)
 
-        r = _verify_prompt(
-            model=model,
-            prompt_ids=pt.prompt_token_ids,
-            steps=pt.steps,
-            topk=int(args.topk),
-            tol=args.logits_tol,
-            device=device,
-        )
+        if args.tokenizer_only:
+            r = {
+                "ok": True,
+                "steps_checked": 0,
+                "first_mismatch": None,
+                "skipped_generation_check": True,
+            }
+        else:
+            r = _verify_prompt(
+                model=model,
+                prompt_ids=pt.prompt_token_ids,
+                steps=pt.steps,
+                topk=int(args.topk),
+                tol=args.logits_tol,
+                device=device,
+            )
         rec = {
             "prompt_index": pt.prompt_index,
             "prompt_len": len(pt.prompt_token_ids),
