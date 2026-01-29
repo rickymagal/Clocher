@@ -71,3 +71,12 @@ int ie_cuda_gemv_q4_0_f32(const uint8_t *dW_q4,
 const char *ie_cuda_last_error_string(void) {
   return "CUDA unavailable (stub)";
 }
+
+void ie_cuda_clear_last_error(void) {
+}
+
+int ie_cuda_mem_get_info(size_t *out_free, size_t *out_total) {
+  if (out_free) *out_free = 0;
+  if (out_total) *out_total = 0;
+  return -1;
+}
