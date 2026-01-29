@@ -61,7 +61,8 @@ LDFLAGS_CPU  ?= -lpthread -lm
 LDFLAGS_CUDA ?= -lpthread -lm -lcudart -ldl
 
 CUDA_ARCH ?= sm_80
-NVCCFLAGS += -gencode arch=compute_80,code=$(CUDA_ARCH)
+CUDA_COMPUTE ?= $(patsubst sm_%,compute_%,$(CUDA_ARCH))
+NVCCFLAGS += -gencode arch=$(CUDA_COMPUTE),code=$(CUDA_ARCH)
 
 # =============================================================================
 # Paths / binaries

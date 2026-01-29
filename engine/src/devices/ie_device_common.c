@@ -629,6 +629,8 @@ static int cuda_try_create(void **out_impl, ie_device_vtbl_t *out_vt) {
   if (ie_cuda_init(ci->device_ordinal,
                    ci->name, sizeof(ci->name),
                    ci->driver, sizeof(ci->driver)) != 0) {
+    const char *err = ie_cuda_last_error_string();
+    ie_log_error("cuda: init failed: %s", err ? err : "(null)");
     free(ci);
     return -4;
   }

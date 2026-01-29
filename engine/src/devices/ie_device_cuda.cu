@@ -18,6 +18,7 @@
 #include <cuda_runtime.h>
 
 #include <cstdio>
+#include <cstdlib>
 #include <cstdint>
 #include <cstring>
 
@@ -155,22 +156,22 @@ __device__ __forceinline__ int8_t ie_s4_from_u4_dev(uint8_t u) {
 }
 
 /**
- * @brief Row-wise GEMV kernel for Q4_0 weights and FP32 activations.
+ * @brief Row-per-block GEMV kernel for Q4_0 weights and FP32 activations.
+ *
+ * Each block computes one output row. Threads within the block split the
+ * block-level work across Q4 blocks and then reduce.
  */
-__global__ void ie_gemv_q4_0_f32_kernel(const uint8_t *W_blocks,
-                                       const uint8_t *W_scales,
-                                       size_t scale_bytes,
-                                       const float *x,
-                                       float *y,
-                                       size_t rows,
-                                       size_t cols,
-                                       const uint16_t *bias_bf16) {
-  const size_t r = (size_t)blockIdx.x * (size_t)blockDim.x + (size_t)threadIdx.x;
+__global__ void ie_gemv_q4_0_f32_kernel_rowblock(const uint8_t *W_blocks,
+                                                const uint8_t *W_scales,
+                                                size_t scale_bytes,
+                                                const float *x,
+                                                float *y,
+                                                size_t rows,
+                                                size_t cols,
+                                                const uint16_t *bias_bf16) {
+  const size_t r = (size_t)blockIdx.x;
   if (r >= rows) return;
-
-  if (scale_bytes != 1u && scale_bytes != 2u) {
-    return;
-  }
+  if (scale_bytes != 1u && scale_bytes != 2u) return;
 
   const size_t blocks_per_row = (cols + 31u) / 32u;
   const size_t row_w_bytes = blocks_per_row * 16u;
@@ -180,17 +181,14 @@ __global__ void ie_gemv_q4_0_f32_kernel(const uint8_t *W_blocks,
   const uint8_t *srow = W_scales + r * row_s_bytes;
 
   float acc = 0.0f;
-
-  for (size_t b = 0; b < blocks_per_row; ++b) {
+  for (size_t b = (size_t)threadIdx.x; b < blocks_per_row; b += (size_t)blockDim.x) {
     float s = 0.0f;
     if (scale_bytes == 2u) {
-      uint16_t s16 = 0;
       const uint8_t *sp = srow + b * 2u;
-      s16 = (uint16_t)sp[0] | ((uint16_t)sp[1] << 8);
+      const uint16_t s16 = (uint16_t)sp[0] | ((uint16_t)sp[1] << 8);
       s = ie_bf16_to_f32_u16_dev(s16);
     } else {
-      const uint8_t s8 = srow[b];
-      s = ie_log2_u8_q3_to_f32_dev(s8);
+      s = ie_log2_u8_q3_to_f32_dev(srow[b]);
     }
 
     const uint8_t *blk = wrow + b * 16u;
@@ -200,22 +198,32 @@ __global__ void ie_gemv_q4_0_f32_kernel(const uint8_t *W_blocks,
     size_t c = base_c;
     for (size_t i = 0; i < 16u && c < limit_c; ++i) {
       const uint8_t byte = blk[i];
-
       const int8_t w0 = ie_s4_from_u4_dev((uint8_t)(byte & 0x0F));
       acc += (float)w0 * s * x[c];
       ++c;
       if (c >= limit_c) break;
-
       const int8_t w1 = ie_s4_from_u4_dev((uint8_t)(byte >> 4));
       acc += (float)w1 * s * x[c];
       ++c;
     }
   }
 
-  if (bias_bf16) {
-    acc += ie_bf16_to_f32_u16_dev(bias_bf16[r]);
+  __shared__ float ssum[128];
+  ssum[threadIdx.x] = acc;
+  __syncthreads();
+
+  for (unsigned int stride = blockDim.x / 2; stride > 0; stride >>= 1) {
+    if (threadIdx.x < stride) {
+      ssum[threadIdx.x] += ssum[threadIdx.x + stride];
+    }
+    __syncthreads();
   }
-  y[r] = acc;
+
+  if (threadIdx.x == 0) {
+    float out = ssum[0];
+    if (bias_bf16) out += ie_bf16_to_f32_u16_dev(bias_bf16[r]);
+    y[r] = out;
+  }
 }
 
 /* =============================================================================
@@ -404,16 +412,28 @@ extern "C" int ie_cuda_gemv_q4_0_f32(const uint8_t *dW_q4,
                                     size_t rows,
                                     size_t cols,
                                     const uint16_t *dbias_bf16) {
+  static int logged = 0;
   if (!dW_q4 || !dW_scales || !dx || !dy || rows == 0 || cols == 0) {
     std::snprintf(g_last_err, sizeof(g_last_err), "%s", "ie_cuda_gemv_q4_0_f32: invalid args");
     return -1;
   }
 
-  const int block = 256;
-  const int grid = (int)((rows + (size_t)block - 1) / (size_t)block);
+  const int block = 128;
+  const int grid = (int)rows;
 
-  ie_gemv_q4_0_f32_kernel<<<grid, block>>>(dW_q4, dW_scales, scale_bytes,
-                                          dx, dy, rows, cols, dbias_bf16);
+  if (!logged) {
+    const char *log = std::getenv("IE_CUDA_LOG_KERNEL");
+    if (log && log[0] != '\0' && log[0] != '0') {
+      std::fprintf(stderr,
+                   "info: cuda: q4 gemv kernel launch (rows=%zu cols=%zu scale_bytes=%zu)\n",
+                   rows, cols, scale_bytes);
+      std::fflush(stderr);
+    }
+    logged = 1;
+  }
+
+  ie_gemv_q4_0_f32_kernel_rowblock<<<grid, block>>>(dW_q4, dW_scales, scale_bytes,
+                                                   dx, dy, rows, cols, dbias_bf16);
 
   cudaError_t st = cudaGetLastError();
   if (st != cudaSuccess) {
