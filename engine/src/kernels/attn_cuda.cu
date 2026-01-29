@@ -152,3 +152,87 @@ extern "C" int ie_attn_cuda_causal_f32(const float *Q,
   if (e != cudaSuccess) return -2;
   return 0;
 }
+
+/**
+ * GQA variant: K/V are stored with n_kv_heads, while Q/out use n_heads.
+ * Each query head maps to a KV head by group index.
+ */
+__global__ void ie_attn_causal_gqa_f32_kernel(const float *Q,
+                                              const float *K,
+                                              const float *V,
+                                              size_t seq_len,
+                                              size_t n_heads,
+                                              size_t n_kv_heads,
+                                              size_t head_dim,
+                                              float inv_sqrt_d,
+                                              float *out) {
+  const size_t h = (size_t)blockIdx.x;
+  if (h >= n_heads) return;
+
+  if (n_kv_heads == 0) return;
+  const size_t group = (n_kv_heads > 0) ? (n_heads / n_kv_heads) : 0;
+  if (group == 0) return;
+  const size_t kv_h = h / group;
+  if (kv_h >= n_kv_heads) return;
+
+  const float *Qh = Q + h * head_dim;
+
+  float local_max = -INFINITY;
+  for (size_t t = (size_t)threadIdx.x; t < seq_len; t += (size_t)blockDim.x) {
+    const float *Kh = K + kv_index(t, kv_h, 0, n_kv_heads, head_dim);
+    float acc = 0.0f;
+    for (size_t d = 0; d < head_dim; ++d) acc += Qh[d] * Kh[d];
+    acc *= inv_sqrt_d;
+    local_max = fmaxf(local_max, acc);
+  }
+  const float mx = block_reduce_max(local_max);
+
+  float local_sum = 0.0f;
+  for (size_t t = (size_t)threadIdx.x; t < seq_len; t += (size_t)blockDim.x) {
+    const float *Kh = K + kv_index(t, kv_h, 0, n_kv_heads, head_dim);
+    float acc = 0.0f;
+    for (size_t d = 0; d < head_dim; ++d) acc += Qh[d] * Kh[d];
+    acc *= inv_sqrt_d;
+    local_sum += expf(acc - mx);
+  }
+  const float denom = block_reduce_sum(local_sum);
+
+  for (size_t d = (size_t)threadIdx.x; d < head_dim; d += (size_t)blockDim.x) {
+    float acc_out = 0.0f;
+    for (size_t t = 0; t < seq_len; ++t) {
+      const float *Kh = K + kv_index(t, kv_h, 0, n_kv_heads, head_dim);
+      float s = 0.0f;
+      for (size_t j = 0; j < head_dim; ++j) s += Qh[j] * Kh[j];
+      s *= inv_sqrt_d;
+      const float w = (denom > 0.0f) ? (expf(s - mx) / denom) : (1.0f / (float)seq_len);
+      const float *Vh = V + kv_index(t, kv_h, 0, n_kv_heads, head_dim);
+      acc_out += w * Vh[d];
+    }
+    out[h * head_dim + d] = acc_out;
+  }
+}
+
+extern "C" int ie_attn_cuda_causal_gqa_f32(const float *Q,
+                                          const float *K,
+                                          const float *V,
+                                          size_t seq_len,
+                                          size_t n_heads,
+                                          size_t n_kv_heads,
+                                          size_t head_dim,
+                                          float inv_sqrt_d,
+                                          float *out) {
+  if (!Q || !K || !V || !out) return -1;
+  if (seq_len == 0 || n_heads == 0 || n_kv_heads == 0 || head_dim == 0) return -1;
+  if ((n_heads % n_kv_heads) != 0) return -1;
+  if (inv_sqrt_d == 0.0f) inv_sqrt_d = 1.0f;
+
+  const int threads = 256;
+  dim3 grid((unsigned int)n_heads, 1u, 1u);
+  dim3 block((unsigned int)threads, 1u, 1u);
+
+  ie_attn_causal_gqa_f32_kernel<<<grid, block, 0, 0>>>(Q, K, V, seq_len, n_heads, n_kv_heads,
+                                                      head_dim, inv_sqrt_d, out);
+  cudaError_t e = cudaGetLastError();
+  if (e != cudaSuccess) return -2;
+  return 0;
+}

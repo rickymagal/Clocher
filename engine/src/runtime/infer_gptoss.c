@@ -47,6 +47,10 @@
 #include <unistd.h>
 
 #include "ie_device.h"
+#if defined(IE_CUDA_AVAILABLE)
+#include "ie_attn_cuda.h"
+#include "ie_device_cuda.h"
+#endif
 #include "ie_infer.h"
 #include "ie_kernels.h"
 #include "ie_kv_cache.h"
@@ -444,6 +448,21 @@ struct ie_gptoss_infer_impl {
 
   /** @brief Router logits scratch (FP32), shape [max_experts]. */
   float *router_logits;
+
+  /** @brief Enable CUDA attention path (device + env controlled). */
+  int use_cuda_attn;
+
+  /** @brief Device Q buffer for CUDA attention. */
+  float *d_q;
+
+  /** @brief Device attention output buffer. */
+  float *d_attn_out;
+
+  /** @brief Per-layer device KV cache (K). */
+  float **d_kv_K;
+
+  /** @brief Per-layer device KV cache (V). */
+  float **d_kv_V;
 
   /** @brief RMSNorm epsilon. */
   float rms_eps;
@@ -1527,16 +1546,56 @@ static int ie_forward_one_token(struct ie_gptoss_infer_impl *impl, ie_kv_cache *
       const float *Kbase = (const float *)kv->K;
       const float *Vbase = (const float *)kv->V;
 
-      if (n_kv_heads == n_heads) {
-        if (ie_attn_cpu_causal_f32(impl->q, Kbase, Vbase, (size_t)(pos + 1u),
-                                   (size_t)n_heads, (size_t)d_head, inv_sqrt_d,
-                                   impl->attn_out, impl->scores) != 0) {
-          IE_LOGE("attn kernel failed: layer=%u pos=%u", (unsigned)l, (unsigned)pos);
-          return -18;
+      int used_cuda_attn = 0;
+#if defined(IE_CUDA_AVAILABLE)
+      if (impl->use_cuda_attn && impl->d_q && impl->d_attn_out &&
+          impl->d_kv_K && impl->d_kv_V && impl->d_kv_K[l] && impl->d_kv_V[l]) {
+        const size_t kv_dim = (size_t)n_kv_heads * (size_t)d_head;
+        const size_t q_dim = (size_t)n_heads * (size_t)d_head;
+        const size_t kv_bytes = kv_dim * sizeof(float);
+        const size_t q_bytes = q_dim * sizeof(float);
+        const size_t off = (size_t)pos * kv_dim;
+
+        int rc = 0;
+        rc |= ie_cuda_memcpy(impl->d_kv_K[l] + off, impl->k, kv_bytes, IE_CUDA_COPY_H2D);
+        rc |= ie_cuda_memcpy(impl->d_kv_V[l] + off, impl->v, kv_bytes, IE_CUDA_COPY_H2D);
+        rc |= ie_cuda_memcpy(impl->d_q, impl->q, q_bytes, IE_CUDA_COPY_H2D);
+        if (rc == 0) {
+          int rc_attn = 0;
+          if (n_kv_heads == n_heads) {
+            rc_attn = ie_attn_cuda_causal_f32(impl->d_q, impl->d_kv_K[l], impl->d_kv_V[l],
+                                              (size_t)(pos + 1u), (size_t)n_heads, (size_t)d_head,
+                                              inv_sqrt_d, impl->d_attn_out);
+          } else {
+            rc_attn = ie_attn_cuda_causal_gqa_f32(impl->d_q, impl->d_kv_K[l], impl->d_kv_V[l],
+                                                  (size_t)(pos + 1u), (size_t)n_heads,
+                                                  (size_t)n_kv_heads, (size_t)d_head,
+                                                  inv_sqrt_d, impl->d_attn_out);
+          }
+          if (rc_attn == 0 &&
+              ie_cuda_memcpy(impl->attn_out, impl->d_attn_out, q_bytes, IE_CUDA_COPY_D2H) == 0) {
+            used_cuda_attn = 1;
+          }
         }
-      } else {
-        ie_attn_causal_gqa_f32(impl->q, Kbase, Vbase, pos + 1u, n_heads, n_kv_heads, d_head,
-                               inv_sqrt_d, impl->attn_out, impl->scores);
+        if (!used_cuda_attn) {
+          IE_LOGW("cuda attn failed: layer=%u pos=%u err=%s",
+                  (unsigned)l, (unsigned)pos, ie_cuda_last_error_string());
+          impl->use_cuda_attn = 0;
+        }
+      }
+#endif
+      if (!used_cuda_attn) {
+        if (n_kv_heads == n_heads) {
+          if (ie_attn_cpu_causal_f32(impl->q, Kbase, Vbase, (size_t)(pos + 1u),
+                                     (size_t)n_heads, (size_t)d_head, inv_sqrt_d,
+                                     impl->attn_out, impl->scores) != 0) {
+            IE_LOGE("attn kernel failed: layer=%u pos=%u", (unsigned)l, (unsigned)pos);
+            return -18;
+          }
+        } else {
+          ie_attn_causal_gqa_f32(impl->q, Kbase, Vbase, pos + 1u, n_heads, n_kv_heads, d_head,
+                                 inv_sqrt_d, impl->attn_out, impl->scores);
+        }
       }
     }
 
@@ -1765,6 +1824,13 @@ int ie_gptoss_infer_create(const ie_device_t *dev_const, const ie_weights_t *w,
   IE_LOGI("create: f32_cache attn=%d router=%d lm_head=%d rmsnorm=%d",
           impl->use_f32_attn, impl->use_f32_router,
           impl->use_f32_lm_head, impl->use_f32_rmsnorm);
+
+#if defined(IE_CUDA_AVAILABLE)
+  if (impl->dev && ie_device_kind(impl->dev) == IE_DEV_CUDA && ie_env_flag("IE_CUDA_ATTN")) {
+    impl->use_cuda_attn = 1;
+  }
+#endif
+  IE_LOGI("create: cuda_attn=%d", impl->use_cuda_attn);
 
   /* Initialize Q4 LUTs up front to avoid pthread_once in hot path. */
   ie_q4_log2_u8_q3_init_generic();
@@ -2352,6 +2418,63 @@ int ie_gptoss_infer_create(const ie_device_t *dev_const, const ie_weights_t *w,
     return -31;
   }
 
+#if defined(IE_CUDA_AVAILABLE)
+  if (impl->use_cuda_attn) {
+    const size_t q_dim = (size_t)hp->n_heads * (size_t)hp->d_head;
+    const size_t kv_dim = (size_t)hp->n_kv_heads * (size_t)hp->d_head;
+    const size_t max_seq = (size_t)hp->max_seq;
+    const uint32_t n_layers = (uint32_t)hp->n_layers;
+
+    if (q_dim == 0 || kv_dim == 0 || max_seq == 0 || n_layers == 0 ||
+        kv_dim > (SIZE_MAX / max_seq / sizeof(float))) {
+      IE_LOGW("create: cuda_attn disabled (invalid dims)");
+      impl->use_cuda_attn = 0;
+    } else {
+      const size_t kv_bytes = kv_dim * max_seq * sizeof(float);
+      impl->d_q = (float *)ie_cuda_malloc(q_dim * sizeof(float));
+      impl->d_attn_out = (float *)ie_cuda_malloc(q_dim * sizeof(float));
+      impl->d_kv_K = (float **)calloc((size_t)n_layers, sizeof(float *));
+      impl->d_kv_V = (float **)calloc((size_t)n_layers, sizeof(float *));
+
+      if (!impl->d_q || !impl->d_attn_out || !impl->d_kv_K || !impl->d_kv_V) {
+        IE_LOGW("create: cuda_attn alloc failed (q/out arrays)");
+        impl->use_cuda_attn = 0;
+      } else {
+        for (uint32_t l = 0; l < n_layers; ++l) {
+          impl->d_kv_K[l] = (float *)ie_cuda_malloc(kv_bytes);
+          impl->d_kv_V[l] = (float *)ie_cuda_malloc(kv_bytes);
+          if (!impl->d_kv_K[l] || !impl->d_kv_V[l]) {
+            IE_LOGW("create: cuda_attn alloc failed (kv layer=%u)", (unsigned)l);
+            impl->use_cuda_attn = 0;
+            break;
+          }
+        }
+      }
+    }
+
+    if (!impl->use_cuda_attn) {
+      if (impl->d_q) ie_cuda_free(impl->d_q);
+      if (impl->d_attn_out) ie_cuda_free(impl->d_attn_out);
+      if (impl->d_kv_K) {
+        for (uint32_t l = 0; l < (uint32_t)hp->n_layers; ++l) {
+          if (impl->d_kv_K[l]) ie_cuda_free(impl->d_kv_K[l]);
+        }
+      }
+      if (impl->d_kv_V) {
+        for (uint32_t l = 0; l < (uint32_t)hp->n_layers; ++l) {
+          if (impl->d_kv_V[l]) ie_cuda_free(impl->d_kv_V[l]);
+        }
+      }
+      free(impl->d_kv_K);
+      free(impl->d_kv_V);
+      impl->d_q = NULL;
+      impl->d_attn_out = NULL;
+      impl->d_kv_K = NULL;
+      impl->d_kv_V = NULL;
+    }
+  }
+#endif
+
   IE_LOGI("create: success");
   *out_ctx = (ie_gptoss_infer_t *)impl;
   return 0;
@@ -2398,6 +2521,23 @@ void ie_gptoss_infer_destroy(ie_gptoss_infer_t *ctx) {
   free(impl->mlp_up);
   free(impl->scores);
   free(impl->router_logits);
+
+#if defined(IE_CUDA_AVAILABLE)
+  if (impl->d_q) ie_cuda_free(impl->d_q);
+  if (impl->d_attn_out) ie_cuda_free(impl->d_attn_out);
+  if (impl->d_kv_K) {
+    for (uint32_t l = 0; l < impl->hp->n_layers; ++l) {
+      if (impl->d_kv_K[l]) ie_cuda_free(impl->d_kv_K[l]);
+    }
+  }
+  if (impl->d_kv_V) {
+    for (uint32_t l = 0; l < impl->hp->n_layers; ++l) {
+      if (impl->d_kv_V[l]) ie_cuda_free(impl->d_kv_V[l]);
+    }
+  }
+  free(impl->d_kv_K);
+  free(impl->d_kv_V);
+#endif
 
   free(impl);
 }

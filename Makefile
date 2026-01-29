@@ -242,6 +242,7 @@ build-release: build
 # =============================================================================
 # CUDA build
 # =============================================================================
+build-cuda: CFLAGS += -DIE_CUDA_AVAILABLE=1
 build-cuda: $(BIN_CUDA)
 
 $(BIN_CUDA): $(OBJ_MAIN_C) $(OBJ_CORE_CUDA) $(OBJ_CUDA)
