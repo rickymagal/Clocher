@@ -170,7 +170,7 @@ CONVERT_BIN := $(BUILD)/tools/convert_to_block_sparse
 	bench-report bench-report-cuda bench-verify bench-verify-cuda \
 	chat chat-file chat-cuda chat-file-cuda \
 	profile perf-report baseline-report \
-	fmt lint docs docs-doxygen clean microbench microbench-stream microbench-block-sparse \
+	fmt lint docs docs-doxygen clean microbench microbench-q4 microbench-stream microbench-block-sparse \
 	monitoring-up monitoring-down metrics-exporter \
 	ptq-calibrate ptq-from-hf ptq-from-torch ptq-from-bin \
 	show-tools iebin model-pack pack-hf refresh-model repack-hf \
@@ -840,6 +840,20 @@ microbench: build
 > $(CC) $(CFLAGS) $(INC) benchmarks/src/microbench_gemv.c -o $(BUILD)/microbench_gemv $(LDFLAGS_CPU)
 > @echo "[run] microbench (H=256 V=1024 iters=200)"
 > @$(BUILD)/microbench_gemv 256 1024 200
+
+microbench-q4: build
+> @mkdir -p $(BUILD)
+> $(CC) $(CFLAGS) $(INC) benchmarks/src/microbench_q4_gemv.c \
+> 	engine/src/kernels/gemv_q4_generic.c \
+> 	engine/src/kernels/gemv_q4_avx2.c \
+> 	engine/src/kernels/gemv_avx2.c \
+> 	engine/src/kernels/gemv_generic.c \
+> 	engine/src/opt/thread_pool.c \
+> 	engine/src/opt/cpu_features.c \
+> 	engine/src/util_logging.c \
+> 	-o $(BUILD)/microbench_q4_gemv $(LDFLAGS_CPU)
+> @echo "[run] microbench_q4 (rows=2048 cols=2880 iters=50 threads=12 scale_bytes=1)"
+> @$(BUILD)/microbench_q4_gemv 2048 2880 50 12 1
 
 microbench-stream: build
 > @mkdir -p $(BUILD)

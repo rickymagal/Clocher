@@ -30,6 +30,51 @@
 extern "C" {
 #endif
 
+/* -------------------------------------------------------------------------- */
+/* Threading control                                                          */
+/* -------------------------------------------------------------------------- */
+
+/** @brief Opaque thread pool type used by CPU kernels. */
+typedef struct ie_threadpool ie_threadpool_t;
+
+/**
+ * @brief Provide a thread pool for CPU kernels to use for internal parallelism.
+ *
+ * @details
+ * This call does not transfer ownership. The caller must ensure that the pool
+ * outlives all kernel calls that may use it. Passing NULL disables internal
+ * kernel parallelism (kernels run single-threaded unless they have their own
+ * internal threading).
+ *
+ * The `nth` argument is advisory and is used only for chunk sizing heuristics.
+ *
+ * @param tp  Thread pool handle, or NULL to disable kernel parallelism.
+ * @param nth Number of participating threads (>= 1). Values < 1 are clamped to 1.
+ */
+void ie_kernels_set_threadpool(ie_threadpool_t *tp, unsigned nth);
+
+/**
+ * @brief Get the currently active thread pool used by CPU kernels.
+ *
+ * @details
+ * If no explicit pool was provided via @ref ie_kernels_set_threadpool, the
+ * kernels may lazily create an internal pool based on environment variables.
+ *
+ * @return Thread pool handle, or NULL when kernels are running single-threaded.
+ */
+ie_threadpool_t* ie_kernels_get_threadpool(void);
+
+/**
+ * @brief Get the thread count hint associated with @ref ie_kernels_get_threadpool.
+ *
+ * @return Thread count hint (>= 1).
+ */
+unsigned ie_kernels_get_threadpool_nth(void);
+
+/* -------------------------------------------------------------------------- */
+/* Installation                                                               */
+/* -------------------------------------------------------------------------- */
+
 /**
  * @brief Install the best available CPU kernels for this process.
  *
@@ -41,28 +86,30 @@ extern "C" {
  */
 void ie_kernels_install(int use_avx2);
 
+/* -------------------------------------------------------------------------- */
+/* GEMV and vector ops                                                        */
+/* -------------------------------------------------------------------------- */
+
 /**
- * @brief GEMV (fp32): y[r] = dot(W[r,:], x) + (bias ? bias[r] : 0).
+ * @brief GEMV (fp32): y[r] = dot(W[r,:], x) + (bias ? bias[r * bias_stride] : 0).
  *
  * @details
  * Computes a matrix-vector product using the best installed implementation.
  *
  * Layout:
  * - Default is row-major: W is rows*cols floats, each row contiguous.
- * - Some kernels also accept a "blocked-K contiguous" interpretation per row;
- *   pass blk_k to describe the block size. Passing 0 disables blocking.
  *
- * @param W     Pointer to weights (row-major or compatible packed layout).
- * @param x     Input vector (length cols).
- * @param y     Output vector (length rows).
- * @param rows  Number of rows.
- * @param cols  Number of columns.
- * @param bias  Optional bias vector (length rows) or NULL.
- * @param blk_k Column block size for blocked-K layout; 0 for plain row-major.
+ * @param W           Pointer to weights (row-major).
+ * @param x           Input vector (length cols).
+ * @param y           Output vector (length rows).
+ * @param rows        Number of rows.
+ * @param cols        Number of columns.
+ * @param bias        Optional bias vector (length rows * bias_stride) or NULL.
+ * @param bias_stride Bias stride in elements (typically 1).
  */
 void ie_gemv_f32(const float *W, const float *x, float *y,
                  size_t rows, size_t cols,
-                 const float *bias, size_t blk_k);
+                 const float *bias, size_t bias_stride);
 
 /**
  * @brief Convert BF16 vector to FP32.
@@ -76,11 +123,11 @@ void ie_vec_bf16_to_f32(const uint16_t *in, float *out, size_t n);
 /**
  * @brief GEMV with BF16 weights and FP32 activations.
  *
- * @param W_bf16   BF16 weights (row-major).
- * @param x        FP32 input vector.
- * @param y        FP32 output vector.
- * @param rows     Rows.
- * @param cols     Cols.
+ * @param W_bf16    BF16 weights (row-major).
+ * @param x         FP32 input vector.
+ * @param y         FP32 output vector.
+ * @param rows      Rows.
+ * @param cols      Cols.
  * @param bias_bf16 Optional BF16 bias or NULL.
  * @return 0 on success, non-zero on invalid args.
  */
@@ -91,14 +138,14 @@ int ie_gemv_bf16_f32(const uint16_t *W_bf16, const float *x, float *y,
 /**
  * @brief GEMV with Q4_0 weights and FP32 activations.
  *
- * @param W_q4       Q4 blocks (row-major).
- * @param W_scales   Q4 scales (row-major, BF16 or FP8).
+ * @param W_q4        Q4 blocks (row-major).
+ * @param W_scales    Q4 scales (row-major, BF16 or FP8).
  * @param scale_bytes Bytes per scale element (1 or 2).
- * @param x          FP32 input vector.
- * @param y          FP32 output vector.
- * @param rows       Rows.
- * @param cols       Cols.
- * @param bias_bf16  Optional BF16 bias or NULL.
+ * @param x           FP32 input vector.
+ * @param y           FP32 output vector.
+ * @param rows        Rows.
+ * @param cols        Cols.
+ * @param bias_bf16   Optional BF16 bias or NULL.
  * @return 0 on success, non-zero on invalid args.
  */
 int ie_gemv_q4_0_f32(const uint8_t *W_q4, const uint8_t *W_scales, size_t scale_bytes,
@@ -139,16 +186,14 @@ int ie_gemv_q4_0_f32_fscale(const uint8_t *W_q4, const float *W_scales,
  * @details
  * Interprets activations with the affine model:
  *   real = scale * (q - zero_point)
- * Implementations may fuse dequantization into the dot product or dequantize
- * into a temporary float buffer depending on ISA.
  *
  * @param W         Weights (float).
  * @param x_q       INT8 activations (length cols).
  * @param y         Output (float, length rows).
  * @param rows      Number of rows.
  * @param cols      Number of columns.
- * @param bias      Optional bias (length rows) or NULL.
- * @param blk_k     Column block size; 0 disables blocking.
+ * @param bias      Optional bias (length rows * bias_stride) or NULL.
+ * @param blk_k     Column block size; 0 disables blocking (reserved for future use).
  * @param params    Per-tensor quantization parameters.
  * @param symmetric Informational flag (unused by some paths).
  */
@@ -171,7 +216,7 @@ void ie_gemv_qi8_f32(const float *W, const int8_t *x_q, float *y,
  * @param rows        Rows.
  * @param cols        Cols.
  * @param bias        Optional bias or NULL.
- * @param blk_k       Column block size; 0 disables blocking.
+ * @param blk_k       Column block size; 0 disables blocking (reserved for future use).
  * @param group_size  Activation group size (>= 1).
  * @param scales      Scales array (ceil(cols/group_size)).
  * @param zeros       Zero-points array (ceil(cols/group_size)).
@@ -195,13 +240,17 @@ void ie_gemv_qi8pg_f32(const float *W, const int8_t *x_q, float *y,
  * @param rows   Rows.
  * @param cols   Cols.
  * @param bias   Optional bias or NULL.
- * @param blk_k  Column block size; 0 disables blocking.
+ * @param blk_k  Column block size; 0 disables blocking (reserved for future use).
  * @param fmt    FP8 format selector.
  */
 void ie_gemv_qfp8_f32(const float *W, const uint8_t *x_fp8, float *y,
                       size_t rows, size_t cols,
                       const float *bias, size_t blk_k,
                       ie_fp8_format fmt);
+
+/* -------------------------------------------------------------------------- */
+/* Reference CPU building blocks                                              */
+/* -------------------------------------------------------------------------- */
 
 /**
  * @brief Causal self-attention (FP32 reference).
@@ -248,10 +297,6 @@ int ie_mlp_cpu_swiglu_f32(const float *W_gate, const float *W_up, const float *W
  * Computes:
  *   y[i] = x[i] * w[i] / sqrt(mean(x^2) + eps)
  *
- * This is the reference CPU implementation used by the GPT-OSS orchestration.
- * Implementations may be swapped by the build in the future, but the signature
- * is stable for the runtime.
- *
  * @param x   Input vector (length n).
  * @param w   Weight vector (length n).
  * @param n   Number of elements.
@@ -265,11 +310,8 @@ int ie_rmsnorm_cpu_f32(const float *x, const float *w, size_t n, float eps, floa
  * @brief Apply Rotary Positional Embedding (RoPE) to Q and K for a single position.
  *
  * @details
- * This function applies RoPE on the first head_dim elements, interpreted as
- * interleaved pairs (even, odd):
+ * Applies RoPE on interleaved pairs (even, odd):
  *   (x0, x1) -> (x0*cos - x1*sin, x0*sin + x1*cos)
- *
- * The caller passes Q and K shaped as [heads, head_dim] flattened.
  *
  * @param q        Q buffer, [heads * head_dim].
  * @param k        K buffer, [heads * head_dim].

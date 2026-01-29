@@ -2351,6 +2351,59 @@ static int device_is_cuda(const char *dev) { return ascii_ieq(dev, "cuda") ? 1 :
  */
 static int device_is_cpu(const char *dev) { return ascii_ieq(dev, "cpu") ? 1 : 0; }
 
+static int detect_physical_cores(void) {
+  FILE *f = fopen("/proc/cpuinfo", "r");
+  if (!f) return -1;
+
+  struct { int phys; int core; } pairs[256];
+  int pair_count = 0;
+  int phys = -1;
+  int core = -1;
+  int cpu_cores = -1;
+
+  char line[256];
+  while (fgets(line, sizeof(line), f)) {
+    if (line[0] == '\n') {
+      if (core >= 0) {
+        if (phys < 0) phys = 0;
+        int seen = 0;
+        for (int i = 0; i < pair_count; ++i) {
+          if (pairs[i].phys == phys && pairs[i].core == core) { seen = 1; break; }
+        }
+        if (!seen && pair_count < (int)(sizeof(pairs) / sizeof(pairs[0]))) {
+          pairs[pair_count].phys = phys;
+          pairs[pair_count].core = core;
+          pair_count++;
+        }
+      }
+      phys = -1;
+      core = -1;
+      continue;
+    }
+
+    if (strncmp(line, "physical id", 11) == 0) {
+      const char *p = strchr(line, ':');
+      if (p) phys = (int)strtol(p + 1, NULL, 10);
+      continue;
+    }
+    if (strncmp(line, "core id", 7) == 0) {
+      const char *p = strchr(line, ':');
+      if (p) core = (int)strtol(p + 1, NULL, 10);
+      continue;
+    }
+    if (cpu_cores < 0 && strncmp(line, "cpu cores", 9) == 0) {
+      const char *p = strchr(line, ':');
+      if (p) cpu_cores = (int)strtol(p + 1, NULL, 10);
+      continue;
+    }
+  }
+  fclose(f);
+
+  if (pair_count > 0) return pair_count;
+  if (cpu_cores > 0) return cpu_cores;
+  return -1;
+}
+
 /**
  * @brief main.
  *
@@ -2362,6 +2415,23 @@ static int device_is_cpu(const char *dev) { return ascii_ieq(dev, "cpu") ? 1 : 0
 int main(int argc, char **argv) {
   cli_extras_t opt;
   if (parse_flags(argc, argv, &opt) != 0) return 2;
+
+  {
+    const char *s = getenv("IE_THREADS_PHYS");
+    if (s && s[0] && strcmp(s, "0") != 0 && opt.threads > 0) {
+      int phys = detect_physical_cores();
+      if (phys > 0 && opt.threads > phys) opt.threads = phys;
+    }
+  }
+
+  /* Export thread count for kernels that consult IE_THREADS/IE_BF16_THREADS lazily. */
+  if (opt.threads > 0) {
+    char buf[64];
+    snprintf(buf, sizeof(buf), "%d", opt.threads);
+    (void)setenv("IE_THREADS", buf, 1);
+    (void)setenv("IE_BF16_THREADS", buf, 1);
+  }
+
 
   /* Apply deterministic/debug knobs early (before engine creation). */
   apply_cli_debug_env(&opt);

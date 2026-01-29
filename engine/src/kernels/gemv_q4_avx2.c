@@ -86,6 +86,19 @@ static inline float ie_log2_u8_q3_to_f32(uint8_t v) {
   return ie_log2_u8_q3_lut_[v];
 }
 
+static inline float ie_log2_u8_q3_to_f32_fast(uint8_t v) {
+  /* Assumes ie_log2_u8_q3_init_avx2() already ran. */
+  return ie_log2_u8_q3_lut_[v];
+}
+
+static int ie_q4_use_aligned_loads(void) {
+  static int cached = -1;
+  if (cached >= 0) return cached;
+  const char *s = getenv("IE_Q4_ALIGNED_LOADS");
+  cached = (s && s[0] && strcmp(s, "0") != 0) ? 1 : 0;
+  return cached;
+}
+
 /**
  * @brief Load a per-block scale value (BF16 or FP8 E4M3) as float.
  *
@@ -109,9 +122,13 @@ static inline float ie_q4_load_scale_f32(const uint8_t *scales, size_t scale_byt
  * @return Sum of all 8 lanes.
  */
 static IE_TARGET_AVX2_FMA inline float ie_hsum256_ps(__m256 v) {
-  float tmp[8];
-  _mm256_storeu_ps(tmp, v);
-  return tmp[0] + tmp[1] + tmp[2] + tmp[3] + tmp[4] + tmp[5] + tmp[6] + tmp[7];
+  /* Horizontal sum without spilling to memory. */
+  const __m128 lo = _mm256_castps256_ps128(v);
+  const __m128 hi = _mm256_extractf128_ps(v, 1);
+  __m128 sum = _mm_add_ps(lo, hi);
+  sum = _mm_hadd_ps(sum, sum);
+  sum = _mm_hadd_ps(sum, sum);
+  return _mm_cvtss_f32(sum);
 }
 
 /**
@@ -149,8 +166,6 @@ static IE_TARGET_AVX2_FMA float ie_q4_0_block_dot_f32_avx2(const uint8_t *q,
   const __m128i w0_15 = _mm_unpacklo_epi8(w_even, w_odd);
   const __m128i w16_31 = _mm_unpackhi_epi8(w_even, w_odd);
 
-  const __m256 scale_v = _mm256_set1_ps(scale);
-
   __m256 acc = _mm256_setzero_ps();
 
   /* 0..7 */
@@ -159,7 +174,7 @@ static IE_TARGET_AVX2_FMA float ie_q4_0_block_dot_f32_avx2(const uint8_t *q,
     const __m256i wi32 = _mm256_cvtepi16_epi32(w8);
     const __m256 wf = _mm256_cvtepi32_ps(wi32);
     const __m256 xs = _mm256_loadu_ps(x + 0);
-    acc = _mm256_fmadd_ps(_mm256_mul_ps(wf, scale_v), xs, acc);
+    acc = _mm256_fmadd_ps(wf, xs, acc);
   }
 
   /* 8..15 */
@@ -168,7 +183,7 @@ static IE_TARGET_AVX2_FMA float ie_q4_0_block_dot_f32_avx2(const uint8_t *q,
     const __m256i wi32 = _mm256_cvtepi16_epi32(w8);
     const __m256 wf = _mm256_cvtepi32_ps(wi32);
     const __m256 xs = _mm256_loadu_ps(x + 8);
-    acc = _mm256_fmadd_ps(_mm256_mul_ps(wf, scale_v), xs, acc);
+    acc = _mm256_fmadd_ps(wf, xs, acc);
   }
 
   /* 16..23 */
@@ -177,7 +192,7 @@ static IE_TARGET_AVX2_FMA float ie_q4_0_block_dot_f32_avx2(const uint8_t *q,
     const __m256i wi32 = _mm256_cvtepi16_epi32(w8);
     const __m256 wf = _mm256_cvtepi32_ps(wi32);
     const __m256 xs = _mm256_loadu_ps(x + 16);
-    acc = _mm256_fmadd_ps(_mm256_mul_ps(wf, scale_v), xs, acc);
+    acc = _mm256_fmadd_ps(wf, xs, acc);
   }
 
   /* 24..31 */
@@ -186,10 +201,66 @@ static IE_TARGET_AVX2_FMA float ie_q4_0_block_dot_f32_avx2(const uint8_t *q,
     const __m256i wi32 = _mm256_cvtepi16_epi32(w8);
     const __m256 wf = _mm256_cvtepi32_ps(wi32);
     const __m256 xs = _mm256_loadu_ps(x + 24);
-    acc = _mm256_fmadd_ps(_mm256_mul_ps(wf, scale_v), xs, acc);
+    acc = _mm256_fmadd_ps(wf, xs, acc);
   }
 
-  return ie_hsum256_ps(acc);
+  return scale * ie_hsum256_ps(acc);
+}
+
+static IE_TARGET_AVX2_FMA float ie_q4_0_block_dot_f32_avx2_aligned(const uint8_t *q,
+                                                                   const float *x,
+                                                                   float scale) {
+  const __m128i v = _mm_loadu_si128((const __m128i *)q);
+
+  const __m128i mask = _mm_set1_epi8(0x0F);
+  const __m128i lo = _mm_and_si128(v, mask);
+  const __m128i hi = _mm_and_si128(_mm_srli_epi16(v, 4), mask);
+
+  const __m128i lut =
+      _mm_setr_epi8((char)0, (char)1, (char)2, (char)3, (char)4, (char)5, (char)6, (char)7,
+                    (char)-8, (char)-7, (char)-6, (char)-5, (char)-4, (char)-3, (char)-2, (char)-1);
+
+  const __m128i w_even = _mm_shuffle_epi8(lut, lo);
+  const __m128i w_odd = _mm_shuffle_epi8(lut, hi);
+
+  const __m128i w0_15 = _mm_unpacklo_epi8(w_even, w_odd);
+  const __m128i w16_31 = _mm_unpackhi_epi8(w_even, w_odd);
+
+  __m256 acc = _mm256_setzero_ps();
+
+  {
+    const __m128i w8 = _mm_cvtepi8_epi16(w0_15);
+    const __m256i wi32 = _mm256_cvtepi16_epi32(w8);
+    const __m256 wf = _mm256_cvtepi32_ps(wi32);
+    const __m256 xs = _mm256_load_ps(x + 0);
+    acc = _mm256_fmadd_ps(wf, xs, acc);
+  }
+
+  {
+    const __m128i w8 = _mm_cvtepi8_epi16(_mm_srli_si128(w0_15, 8));
+    const __m256i wi32 = _mm256_cvtepi16_epi32(w8);
+    const __m256 wf = _mm256_cvtepi32_ps(wi32);
+    const __m256 xs = _mm256_load_ps(x + 8);
+    acc = _mm256_fmadd_ps(wf, xs, acc);
+  }
+
+  {
+    const __m128i w8 = _mm_cvtepi8_epi16(w16_31);
+    const __m256i wi32 = _mm256_cvtepi16_epi32(w8);
+    const __m256 wf = _mm256_cvtepi32_ps(wi32);
+    const __m256 xs = _mm256_load_ps(x + 16);
+    acc = _mm256_fmadd_ps(wf, xs, acc);
+  }
+
+  {
+    const __m128i w8 = _mm_cvtepi8_epi16(_mm_srli_si128(w16_31, 8));
+    const __m256i wi32 = _mm256_cvtepi16_epi32(w8);
+    const __m256 wf = _mm256_cvtepi32_ps(wi32);
+    const __m256 xs = _mm256_load_ps(x + 24);
+    acc = _mm256_fmadd_ps(wf, xs, acc);
+  }
+
+  return scale * ie_hsum256_ps(acc);
 }
 
 /**
@@ -227,20 +298,142 @@ IE_TARGET_AVX2_FMA int ie_gemv_q4_0_f32_avx2_impl(const uint8_t *W_blocks,
   const size_t row_block_bytes = n_blocks * 16;
   const size_t row_scale_bytes = n_blocks * scale_bytes;
 
-  for (size_t r = 0; r < rows; ++r) {
-    const uint8_t *row_blocks = W_blocks + r * row_block_bytes;
-    const uint8_t *row_scales = W_scales + r * row_scale_bytes;
+  const int x_aligned = ((((uintptr_t)x) & 31u) == 0u) && ie_q4_use_aligned_loads();
 
-    float acc = 0.0f;
-    for (size_t b = 0; b < n_blocks; ++b) {
-      const float d = ie_q4_load_scale_f32(row_scales + b * scale_bytes, scale_bytes);
-      acc += ie_q4_0_block_dot_f32_avx2(row_blocks + b * 16, x + b * 32, d);
-    }
+  if (scale_bytes == 1) {
+    ie_q4_log2_u8_q3_init_avx2();
+    for (size_t r = 0; r < rows; ++r) {
+      const uint8_t *row_blocks = W_blocks + r * row_block_bytes;
+      const uint8_t *row_scales = W_scales + r * row_scale_bytes;
+      const float *x_ptr = x;
 
-    if (bias_bf16) {
-      acc += ie_bf16_to_f32_scalar(bias_bf16[r]);
+      float acc = 0.0f;
+      size_t b = 0;
+      for (; b + 3 < n_blocks; b += 4) {
+        if ((b & 3u) == 0u) {
+          __builtin_prefetch(row_blocks + 128u, 0, 1);
+          __builtin_prefetch(row_scales + 16u, 0, 1);
+        }
+        const float d0 = ie_log2_u8_q3_to_f32_fast(row_scales[0]);
+        const float d1 = ie_log2_u8_q3_to_f32_fast(row_scales[1]);
+        const float d2 = ie_log2_u8_q3_to_f32_fast(row_scales[2]);
+        const float d3 = ie_log2_u8_q3_to_f32_fast(row_scales[3]);
+        if (x_aligned) {
+          acc += ie_q4_0_block_dot_f32_avx2_aligned(row_blocks, x_ptr, d0);
+          acc += ie_q4_0_block_dot_f32_avx2_aligned(row_blocks + 16, x_ptr + 32, d1);
+          acc += ie_q4_0_block_dot_f32_avx2_aligned(row_blocks + 32, x_ptr + 64, d2);
+          acc += ie_q4_0_block_dot_f32_avx2_aligned(row_blocks + 48, x_ptr + 96, d3);
+        } else {
+          acc += ie_q4_0_block_dot_f32_avx2(row_blocks, x_ptr, d0);
+          acc += ie_q4_0_block_dot_f32_avx2(row_blocks + 16, x_ptr + 32, d1);
+          acc += ie_q4_0_block_dot_f32_avx2(row_blocks + 32, x_ptr + 64, d2);
+          acc += ie_q4_0_block_dot_f32_avx2(row_blocks + 48, x_ptr + 96, d3);
+        }
+        row_blocks += 64;
+        row_scales += 4;
+        x_ptr += 128;
+      }
+      for (; b + 1 < n_blocks; b += 2) {
+        if ((b & 3u) == 0u) {
+          __builtin_prefetch(row_blocks + 64u, 0, 1);
+          __builtin_prefetch(row_scales + 8u, 0, 1);
+        }
+        const float d0 = ie_log2_u8_q3_to_f32_fast(row_scales[0]);
+        const float d1 = ie_log2_u8_q3_to_f32_fast(row_scales[1]);
+        if (x_aligned) {
+          acc += ie_q4_0_block_dot_f32_avx2_aligned(row_blocks, x_ptr, d0);
+          acc += ie_q4_0_block_dot_f32_avx2_aligned(row_blocks + 16, x_ptr + 32, d1);
+        } else {
+          acc += ie_q4_0_block_dot_f32_avx2(row_blocks, x_ptr, d0);
+          acc += ie_q4_0_block_dot_f32_avx2(row_blocks + 16, x_ptr + 32, d1);
+        }
+        row_blocks += 32;
+        row_scales += 2;
+        x_ptr += 64;
+      }
+      if (b < n_blocks) {
+        const float d0 = ie_log2_u8_q3_to_f32_fast(row_scales[0]);
+        acc += x_aligned ? ie_q4_0_block_dot_f32_avx2_aligned(row_blocks, x_ptr, d0)
+                          : ie_q4_0_block_dot_f32_avx2(row_blocks, x_ptr, d0);
+      }
+
+      if (bias_bf16) {
+        acc += ie_bf16_to_f32_scalar(bias_bf16[r]);
+      }
+      y[r] = acc;
     }
-    y[r] = acc;
+  } else {
+    for (size_t r = 0; r < rows; ++r) {
+      const uint8_t *row_blocks = W_blocks + r * row_block_bytes;
+      const uint8_t *row_scales = W_scales + r * row_scale_bytes;
+      const float *x_ptr = x;
+
+      float acc = 0.0f;
+      size_t b = 0;
+      for (; b + 3 < n_blocks; b += 4) {
+        if ((b & 3u) == 0u) {
+          __builtin_prefetch(row_blocks + 128u, 0, 1);
+          __builtin_prefetch(row_scales + 32u, 0, 1);
+        }
+        uint16_t s0, s1, s2, s3;
+        memcpy(&s0, row_scales, sizeof(uint16_t));
+        memcpy(&s1, row_scales + 2, sizeof(uint16_t));
+        memcpy(&s2, row_scales + 4, sizeof(uint16_t));
+        memcpy(&s3, row_scales + 6, sizeof(uint16_t));
+        const float d0 = ie_bf16_to_f32_scalar(s0);
+        const float d1 = ie_bf16_to_f32_scalar(s1);
+        const float d2 = ie_bf16_to_f32_scalar(s2);
+        const float d3 = ie_bf16_to_f32_scalar(s3);
+        if (x_aligned) {
+          acc += ie_q4_0_block_dot_f32_avx2_aligned(row_blocks, x_ptr, d0);
+          acc += ie_q4_0_block_dot_f32_avx2_aligned(row_blocks + 16, x_ptr + 32, d1);
+          acc += ie_q4_0_block_dot_f32_avx2_aligned(row_blocks + 32, x_ptr + 64, d2);
+          acc += ie_q4_0_block_dot_f32_avx2_aligned(row_blocks + 48, x_ptr + 96, d3);
+        } else {
+          acc += ie_q4_0_block_dot_f32_avx2(row_blocks, x_ptr, d0);
+          acc += ie_q4_0_block_dot_f32_avx2(row_blocks + 16, x_ptr + 32, d1);
+          acc += ie_q4_0_block_dot_f32_avx2(row_blocks + 32, x_ptr + 64, d2);
+          acc += ie_q4_0_block_dot_f32_avx2(row_blocks + 48, x_ptr + 96, d3);
+        }
+        row_blocks += 64;
+        row_scales += 8;
+        x_ptr += 128;
+      }
+      for (; b + 1 < n_blocks; b += 2) {
+        if ((b & 3u) == 0u) {
+          __builtin_prefetch(row_blocks + 64u, 0, 1);
+          __builtin_prefetch(row_scales + 16u, 0, 1);
+        }
+        uint16_t s0;
+        uint16_t s1;
+        memcpy(&s0, row_scales, sizeof(uint16_t));
+        memcpy(&s1, row_scales + 2, sizeof(uint16_t));
+        const float d0 = ie_bf16_to_f32_scalar(s0);
+        const float d1 = ie_bf16_to_f32_scalar(s1);
+        if (x_aligned) {
+          acc += ie_q4_0_block_dot_f32_avx2_aligned(row_blocks, x_ptr, d0);
+          acc += ie_q4_0_block_dot_f32_avx2_aligned(row_blocks + 16, x_ptr + 32, d1);
+        } else {
+          acc += ie_q4_0_block_dot_f32_avx2(row_blocks, x_ptr, d0);
+          acc += ie_q4_0_block_dot_f32_avx2(row_blocks + 16, x_ptr + 32, d1);
+        }
+        row_blocks += 32;
+        row_scales += 4;
+        x_ptr += 64;
+      }
+      if (b < n_blocks) {
+        uint16_t s0;
+        memcpy(&s0, row_scales, sizeof(uint16_t));
+        const float d0 = ie_bf16_to_f32_scalar(s0);
+        acc += x_aligned ? ie_q4_0_block_dot_f32_avx2_aligned(row_blocks, x_ptr, d0)
+                          : ie_q4_0_block_dot_f32_avx2(row_blocks, x_ptr, d0);
+      }
+
+      if (bias_bf16) {
+        acc += ie_bf16_to_f32_scalar(bias_bf16[r]);
+      }
+      y[r] = acc;
+    }
   }
 
   return 0;

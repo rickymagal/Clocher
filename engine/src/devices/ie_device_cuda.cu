@@ -73,6 +73,24 @@ extern "C" const char *ie_cuda_last_error_string(void) {
   return g_last_err;
 }
 
+/**
+ * @brief Query free/total device memory.
+ */
+extern "C" int ie_cuda_mem_get_info(size_t *out_free, size_t *out_total) {
+  if (!out_free || !out_total) return -1;
+  size_t free_b = 0;
+  size_t total_b = 0;
+  const cudaError_t st = cudaMemGetInfo(&free_b, &total_b);
+  if (st != cudaSuccess) {
+    ie_cuda_set_last_error_cuda("cudaMemGetInfo", st);
+    return -2;
+  }
+  *out_free = free_b;
+  *out_total = total_b;
+  ie_cuda_clear_last_error();
+  return 0;
+}
+
 /* =============================================================================
  * Minimal kernels
  * ========================================================================== */

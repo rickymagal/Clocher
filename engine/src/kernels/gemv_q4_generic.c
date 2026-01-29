@@ -1,24 +1,24 @@
-/* ============================================================================
- * File: engine/src/kernels/gemv_q4_generic.c
- * ============================================================================
- */
-/**
+/* File: engine/src/kernels/gemv_q4_generic.c
+ * -----------------------------------------------------------------------------
  * @file gemv_q4_generic.c
- * @brief Portable Q4_0 GEMV (matrix-vector) kernel with runtime dispatch.
+ * @brief Portable Q4_0 GEMV (matrix-vector) kernel with runtime dispatch and optional row-parallelism.
  *
  * @details
- * This module implements a Q4_0 matrix-vector multiply used by the GPT-OSS INT4
- * path. The exported symbol is @ref ie_gemv_q4_0_f32.
+ * This module implements a Q4_0 matrix-vector multiply used by the GPT-OSS INT4 path.
  *
  * The implementation provides:
  *  - A portable scalar fallback (always available).
  *  - An AVX2+FMA optimized implementation (compiled in a separate TU) selected
  *    at runtime when supported by the current CPU.
  *
+ * Optional parallelism:
+ *  - If a thread pool is available via `ie_kernels_get_threadpool()`, this GEMV
+ *    may split work by contiguous row ranges and execute in parallel.
+ *
  * The Q4_0 layout matches the engine's weight packing:
  *  - Each block covers 32 columns.
  *  - Blocks store 16 bytes of packed nibbles per 32 weights.
- *  - Each block has one scale (BF16, 2 bytes, or FP8 E4M3, 1 byte).
+ *  - Each block has one scale (BF16, 2 bytes, or log2(u8,q3), 1 byte).
  *
  * The matrix is represented as two parallel streams:
  *  - W_blocks: rows * (cols/32) * 16 bytes
@@ -30,6 +30,7 @@
  */
 
 #include "ie_kernels.h"
+#include "ie_threadpool.h"
 
 #include <stddef.h>
 #include <stdint.h>
@@ -37,6 +38,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <stdio.h>
+#include <pthread.h>
 
 #include "ie_cpu.h"
 
@@ -50,12 +52,10 @@ int ie_gemv_q4_0_f32_avx2_impl(const uint8_t *W_blocks,
                               size_t cols,
                               const uint16_t *bias_bf16);
 
-/**
- * @brief Convert a BF16 value stored as a uint16_t to float.
- *
- * @param b BF16 bits.
- * @return The corresponding float value.
- */
+/* -------------------------------------------------------------------------- */
+/* BF16 and scale decoding helpers                                            */
+/* -------------------------------------------------------------------------- */
+
 static inline float ie_bf16_to_f32_scalar(uint16_t b) {
   union {
     uint32_t u;
@@ -65,17 +65,6 @@ static inline float ie_bf16_to_f32_scalar(uint16_t b) {
   return v.f;
 }
 
-/**
- * @brief Decode log2(u8, q3) scale encoding to float.
- *
- * @details
- * Scale bytes for Q4_0 weights use a log2(u8, q3) encoding:
- *   exp = (v - 128) * 2^-3
- *   scale = 2^exp
- *
- * @param v Encoded scale byte.
- * @return Decoded scale value.
- */
 static float ie_log2_u8_q3_lut_[256];
 static int ie_log2_u8_q3_ready_ = 0;
 
@@ -100,13 +89,6 @@ static inline float ie_log2_u8_q3_to_f32(uint8_t v) {
   return ie_log2_u8_q3_lut_[v];
 }
 
-/**
- * @brief Load a per-block scale value (BF16 or FP8 E4M3) as float.
- *
- * @param scales Pointer to scale storage for the block.
- * @param scale_bytes Bytes per scale (1 or 2).
- * @return Scale as float.
- */
 static inline float ie_q4_load_scale_f32(const uint8_t *scales, size_t scale_bytes) {
   if (scale_bytes == 2) {
     uint16_t b;
@@ -128,16 +110,10 @@ static int ie_q4_debug_nan_enabled_(void) {
   return cached;
 }
 
-/**
- * @brief Compute one row dot product for Q4_0 weights.
- *
- * @param blocks Pointer to packed blocks for the row.
- * @param scales Pointer to per-block scales for the row.
- * @param scale_bytes Bytes per scale (1 or 2).
- * @param x Input vector, length cols.
- * @param cols Number of columns (multiple of 32).
- * @return Dot product result.
- */
+/* -------------------------------------------------------------------------- */
+/* Scalar dot and generic GEMV                                                */
+/* -------------------------------------------------------------------------- */
+
 static float ie_q4_0_row_dot_f32(const uint8_t *blocks,
                                 const uint8_t *scales,
                                 size_t scale_bytes,
@@ -168,19 +144,6 @@ static float ie_q4_0_row_dot_f32(const uint8_t *blocks,
   return acc;
 }
 
-/**
- * @brief Portable scalar Q4_0 GEMV.
- *
- * @param W_blocks Packed blocks pointer.
- * @param W_scales Scales pointer.
- * @param scale_bytes Bytes per scale.
- * @param x Input vector.
- * @param y Output vector.
- * @param rows Number of rows.
- * @param cols Number of columns.
- * @param bias_bf16 Optional BF16 bias.
- * @return 0 on success, non-zero on invalid arguments.
- */
 static int ie_gemv_q4_0_f32_generic_impl(const uint8_t *W_blocks,
                                         const uint8_t *W_scales,
                                         size_t scale_bytes,
@@ -217,14 +180,97 @@ static int ie_gemv_q4_0_f32_generic_impl(const uint8_t *W_blocks,
   return 0;
 }
 
-/**
- * @brief Public Q4_0 GEMV entrypoint with one-time runtime dispatch.
- *
- * @details
- * The dispatch decision is cached after the first call. This avoids the need to
- * modify global kernel initialization routines and ensures the symbol always
- * resolves at link time.
- */
+/* -------------------------------------------------------------------------- */
+/* Dispatch (thread-safe one-time init)                                       */
+/* -------------------------------------------------------------------------- */
+
+typedef int (*ie_q4_gemv_fn_t)(const uint8_t *, const uint8_t *, size_t,
+                              const float *, float *, size_t, size_t, const uint16_t *);
+
+static ie_q4_gemv_fn_t g_q4_fn_ = NULL;
+static pthread_once_t g_q4_once_ = PTHREAD_ONCE_INIT;
+
+static void ie_q4_dispatch_init_(void) {
+  ie_cpu_features_t feat;
+  ie_cpu_features_detect(&feat);
+
+  const char *force_generic = getenv("IE_Q4_FORCE_GENERIC");
+  if (force_generic && force_generic[0] && strcmp(force_generic, "0") != 0) {
+    g_q4_fn_ = ie_gemv_q4_0_f32_generic_impl;
+    return;
+  }
+
+  if (feat.avx2 && feat.fma) {
+    g_q4_fn_ = ie_gemv_q4_0_f32_avx2_impl;
+  } else {
+    g_q4_fn_ = ie_gemv_q4_0_f32_generic_impl;
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/* Optional row-parallel wrapper                                              */
+/* -------------------------------------------------------------------------- */
+
+typedef struct {
+  ie_q4_gemv_fn_t fn;
+  const uint8_t *W_blocks;
+  const uint8_t *W_scales;
+  size_t scale_bytes;
+  const float *x;
+  float *y;
+  size_t cols;
+  const uint16_t *bias_bf16;
+  size_t row_block_bytes;
+  size_t row_scale_bytes;
+} ie_q4_job_t;
+
+static void ie_q4_job_run(void *ctx, unsigned start, unsigned end) {
+  ie_q4_job_t *job = (ie_q4_job_t *)ctx;
+  if (!job || start >= end) return;
+
+  const size_t s = (size_t)start;
+  const size_t n = (size_t)(end - start);
+
+  const uint8_t *wb = job->W_blocks + s * job->row_block_bytes;
+  const uint8_t *ws = job->W_scales + s * job->row_scale_bytes;
+  float *y0 = job->y + s;
+  const uint16_t *b0 = job->bias_bf16 ? (job->bias_bf16 + s) : NULL;
+
+  (void)job->fn(wb, ws, job->scale_bytes, job->x, y0, n, job->cols, b0);
+}
+
+static int ie_should_parallel_rows(size_t rows, unsigned nth) {
+  if (nth <= 1u) return 0;
+  if (rows < 256u) return 0;
+  if (rows < (size_t)nth * 64u) return 0;
+  return 1;
+}
+
+static unsigned ie_q4_env_grainsize(unsigned rows, unsigned nth) {
+  const char *s = getenv("IE_Q4_GRAINSIZE");
+  if (!s || !*s) return 0;
+  char *end = NULL;
+  long v = strtol(s, &end, 10);
+  if (end == s || v <= 0) return 0;
+  if ((unsigned)v > rows) return rows ? rows : 1u;
+  (void)nth;
+  return (unsigned)v;
+}
+
+static unsigned ie_q4_env_denom(unsigned nth) {
+  const char *s = getenv("IE_Q4_PARALLEL_DENOM");
+  if (!s || !*s) return 0;
+  char *end = NULL;
+  long v = strtol(s, &end, 10);
+  if (end == s || v <= 0) return 0;
+  if ((unsigned)v < nth) return nth;
+  return (unsigned)v;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Public entry point                                                         */
+/* -------------------------------------------------------------------------- */
+
 int ie_gemv_q4_0_f32(const uint8_t *W_blocks,
                     const uint8_t *W_scales,
                     size_t scale_bytes,
@@ -233,23 +279,57 @@ int ie_gemv_q4_0_f32(const uint8_t *W_blocks,
                     size_t rows,
                     size_t cols,
                     const uint16_t *bias_bf16) {
-  typedef int (*gemv_fn_t)(const uint8_t *, const uint8_t *, size_t, const float *, float *,
-                          size_t, size_t, const uint16_t *);
-
-  static gemv_fn_t fn = NULL;
-
-  if (!fn) {
-    ie_cpu_features_t feat;
-    ie_cpu_features_detect(&feat);
-    const char *force_generic = getenv("IE_Q4_FORCE_GENERIC");
-    if (force_generic && force_generic[0] && strcmp(force_generic, "0") != 0) {
-      fn = ie_gemv_q4_0_f32_generic_impl;
-    } else if (feat.avx2 && feat.fma) {
-      fn = ie_gemv_q4_0_f32_avx2_impl;
-    } else {
-      fn = ie_gemv_q4_0_f32_generic_impl;
-    }
+  if (!W_blocks || !W_scales || !x || !y) {
+    return 1;
+  }
+  if (cols == 0 || (cols % 32) != 0) {
+    return 2;
+  }
+  if (!(scale_bytes == 1 || scale_bytes == 2)) {
+    return 3;
   }
 
-  return fn(W_blocks, W_scales, scale_bytes, x, y, rows, cols, bias_bf16);
+  (void)pthread_once(&g_q4_once_, ie_q4_dispatch_init_);
+  if (!g_q4_fn_) {
+    g_q4_fn_ = ie_gemv_q4_0_f32_generic_impl;
+  }
+
+  ie_threadpool_t *tp = ie_kernels_get_threadpool();
+  unsigned nth = ie_kernels_get_threadpool_nth();
+
+  if (tp && rows <= 0xFFFFFFFFu && ie_should_parallel_rows(rows, nth)) {
+    const size_t n_blocks = cols / 32;
+    ie_q4_job_t job = {
+      .fn = g_q4_fn_,
+      .W_blocks = W_blocks,
+      .W_scales = W_scales,
+      .scale_bytes = scale_bytes,
+      .x = x,
+      .y = y,
+      .cols = cols,
+      .bias_bf16 = bias_bf16,
+      .row_block_bytes = n_blocks * 16,
+      .row_scale_bytes = n_blocks * scale_bytes,
+    };
+
+    unsigned rows_u = (unsigned)rows;
+    unsigned denom = (nth * 4u);
+    {
+      unsigned env_d = ie_q4_env_denom(nth);
+      if (env_d) denom = env_d;
+    }
+    if (denom < 1u) denom = 1u;
+    unsigned grainsize = (unsigned)((rows + (size_t)denom - 1u) / (size_t)denom);
+    if (grainsize < 16u) grainsize = 16u;
+    if (rows_u >= 512u && grainsize > 32u) grainsize = 32u;
+    {
+      unsigned env_gs = ie_q4_env_grainsize(rows_u, nth);
+      if (env_gs) grainsize = env_gs;
+    }
+
+    ie_tp_parallel_for(tp, rows_u, grainsize, ie_q4_job_run, &job);
+    return 0;
+  }
+
+  return g_q4_fn_(W_blocks, W_scales, scale_bytes, x, y, rows, cols, bias_bf16);
 }

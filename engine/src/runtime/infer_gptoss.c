@@ -680,6 +680,21 @@ static int ie_alloc_f32_from_bf16(const uint16_t *src, size_t n, float **out) {
   return 0;
 }
 
+static void *ie_aligned_alloc_bytes(size_t align, size_t nbytes) {
+  void *p = NULL;
+  if (align < sizeof(void *)) align = sizeof(void *);
+  if (posix_memalign(&p, align, nbytes) != 0) {
+    return NULL;
+  }
+  return p;
+}
+
+static void *ie_aligned_or_malloc(size_t align, size_t nbytes) {
+  void *p = ie_aligned_alloc_bytes(align, nbytes);
+  if (p) return p;
+  return malloc(nbytes);
+}
+
 /* ------------------------------------------------------------------------- */
 /* BF16 helpers                                                               */
 /* ------------------------------------------------------------------------- */
@@ -896,6 +911,17 @@ static int ie_w_get_layer_fmt_view(const struct ie_gptoss_infer_impl *impl, uint
     IE_LOGE("  candidate fmt[%zu]=%s", i, fmts[i]);
   }
   return -2;
+}
+
+static int ie_gemv_q4_0_f32_dispatch(struct ie_gptoss_infer_impl *impl,
+                                     const uint8_t *w_q4, const uint8_t *w_scales,
+                                     size_t scale_bytes, const float *x, float *y,
+                                     size_t rows, size_t cols, const uint16_t *bias_bf16) {
+  if (impl && impl->dev) {
+    return ie_device_gemv_q4_0_f32(impl->dev, w_q4, w_scales, scale_bytes,
+                                   x, y, rows, cols, bias_bf16);
+  }
+  return ie_gemv_q4_0_f32(w_q4, w_scales, scale_bytes, x, y, rows, cols, bias_bf16);
 }
 
 /**
@@ -1444,8 +1470,8 @@ static int ie_forward_one_token(struct ie_gptoss_infer_impl *impl, ie_kv_cache *
               (unsigned)l, q_dim, (size_t)d_model);
     }
     if (W->q_q4_blocks && W->q_q4_scales) {
-      if (ie_gemv_q4_0_f32(W->q_q4_blocks, W->q_q4_scales, W->q_q4_scale_bytes,
-                           impl->x1, impl->q, q_dim, (size_t)d_model, W->q_b) != 0) {
+      if (ie_gemv_q4_0_f32_dispatch(impl, W->q_q4_blocks, W->q_q4_scales, W->q_q4_scale_bytes,
+                                    impl->x1, impl->q, q_dim, (size_t)d_model, W->q_b) != 0) {
         return -12;
       }
       if (!W->q_b && W->q_b_f32) ie_add_bias_f32(impl->q, W->q_b_f32, q_dim);
@@ -1459,8 +1485,8 @@ static int ie_forward_one_token(struct ie_gptoss_infer_impl *impl, ie_kv_cache *
               (unsigned)l, kv_dim, (size_t)d_model);
     }
     if (W->k_q4_blocks && W->k_q4_scales) {
-      if (ie_gemv_q4_0_f32(W->k_q4_blocks, W->k_q4_scales, W->k_q4_scale_bytes,
-                           impl->x1, impl->k, kv_dim, (size_t)d_model, W->k_b) != 0) {
+      if (ie_gemv_q4_0_f32_dispatch(impl, W->k_q4_blocks, W->k_q4_scales, W->k_q4_scale_bytes,
+                                    impl->x1, impl->k, kv_dim, (size_t)d_model, W->k_b) != 0) {
         return -13;
       }
       if (!W->k_b && W->k_b_f32) ie_add_bias_f32(impl->k, W->k_b_f32, kv_dim);
@@ -1474,8 +1500,8 @@ static int ie_forward_one_token(struct ie_gptoss_infer_impl *impl, ie_kv_cache *
               (unsigned)l, kv_dim, (size_t)d_model);
     }
     if (W->v_q4_blocks && W->v_q4_scales) {
-      if (ie_gemv_q4_0_f32(W->v_q4_blocks, W->v_q4_scales, W->v_q4_scale_bytes,
-                           impl->x1, impl->v, kv_dim, (size_t)d_model, W->v_b) != 0) {
+      if (ie_gemv_q4_0_f32_dispatch(impl, W->v_q4_blocks, W->v_q4_scales, W->v_q4_scale_bytes,
+                                    impl->x1, impl->v, kv_dim, (size_t)d_model, W->v_b) != 0) {
         return -14;
       }
       if (!W->v_b && W->v_b_f32) ie_add_bias_f32(impl->v, W->v_b_f32, kv_dim);
@@ -1519,8 +1545,8 @@ static int ie_forward_one_token(struct ie_gptoss_infer_impl *impl, ie_kv_cache *
               (unsigned)l, (size_t)d_model, q_dim);
     }
     if (W->o_q4_blocks && W->o_q4_scales) {
-      if (ie_gemv_q4_0_f32(W->o_q4_blocks, W->o_q4_scales, W->o_q4_scale_bytes,
-                           impl->attn_out, impl->x2, (size_t)d_model, q_dim, W->o_b) != 0) {
+      if (ie_gemv_q4_0_f32_dispatch(impl, W->o_q4_blocks, W->o_q4_scales, W->o_q4_scale_bytes,
+                                    impl->attn_out, impl->x2, (size_t)d_model, q_dim, W->o_b) != 0) {
         return -19;
       }
       if (!W->o_b && W->o_b_f32) ie_add_bias_f32(impl->x2, W->o_b_f32, (size_t)d_model);
@@ -1605,9 +1631,9 @@ static int ie_forward_one_token(struct ie_gptoss_infer_impl *impl, ie_kv_cache *
         const uint16_t *dn_bias =
             M->down_bias ? (const uint16_t *)((const uint8_t *)M->down_bias + ex * M->down_bias_stride) : NULL;
 
-        if (ie_gemv_q4_0_f32(gu_b, gu_s, M->gate_up_scale_bytes,
-                             impl->x1, impl->mlp_up,
-                             2u * d_ff, (size_t)d_model, gu_bias) != 0) {
+        if (ie_gemv_q4_0_f32_dispatch(impl, gu_b, gu_s, M->gate_up_scale_bytes,
+                                      impl->x1, impl->mlp_up,
+                                      2u * d_ff, (size_t)d_model, gu_bias) != 0) {
           IE_LOGE("moe gate_up gemv failed: layer=%u pos=%u ex=%u",
                   (unsigned)l, (unsigned)pos, (unsigned)ex);
           return -24;
@@ -1627,9 +1653,9 @@ static int ie_forward_one_token(struct ie_gptoss_infer_impl *impl, ie_kv_cache *
           return -90;
         }
 
-        if (ie_gemv_q4_0_f32(dn_b, dn_s, M->down_scale_bytes,
-                             impl->mlp_gate, impl->attn_out,
-                             (size_t)d_model, d_ff, dn_bias) != 0) {
+        if (ie_gemv_q4_0_f32_dispatch(impl, dn_b, dn_s, M->down_scale_bytes,
+                                      impl->mlp_gate, impl->attn_out,
+                                      (size_t)d_model, d_ff, dn_bias) != 0) {
           IE_LOGE("moe down gemv failed: layer=%u pos=%u ex=%u",
                   (unsigned)l, (unsigned)pos, (unsigned)ex);
           return -25;
@@ -1662,9 +1688,9 @@ static int ie_forward_one_token(struct ie_gptoss_infer_impl *impl, ie_kv_cache *
     }
   }
   if (impl->w_lm_q4_blocks && impl->w_lm_q4_scales) {
-    if (ie_gemv_q4_0_f32(impl->w_lm_q4_blocks, impl->w_lm_q4_scales,
-                         impl->w_lm_q4_scale_bytes, impl->x1, out_logits,
-                         (size_t)vocab, (size_t)d_model, NULL) != 0)
+    if (ie_gemv_q4_0_f32_dispatch(impl, impl->w_lm_q4_blocks, impl->w_lm_q4_scales,
+                                  impl->w_lm_q4_scale_bytes, impl->x1, out_logits,
+                                  (size_t)vocab, (size_t)d_model, NULL) != 0)
       return -27;
   } else if (impl->w_lm_f32) {
     ie_gemv_f32(impl->w_lm_f32, impl->x1, out_logits, (size_t)vocab, (size_t)d_model, NULL, 0);
@@ -1814,6 +1840,13 @@ int ie_gptoss_infer_create(const ie_device_t *dev_const, const ie_weights_t *w,
     }
     IE_LOGI("create: mapped model.ie.bin size_bytes=%llu",
             (unsigned long long)impl->bin_size);
+    if (impl->dev && ie_env_flag("IE_CUDA_MIRROR_WEIGHTS")) {
+      const int rc_blob = ie_device_register_blob(impl->dev, impl->bin_base, impl->bin_size);
+      if (rc_blob != 0) {
+        IE_LOGW("create: cuda mirror failed rc=%d (set IE_CUDA_MIRROR_WEIGHTS=0 to skip)",
+                rc_blob);
+      }
+    }
   }
 
   free(model_dir);
@@ -2297,17 +2330,20 @@ int ie_gptoss_infer_create(const ie_device_t *dev_const, const ie_weights_t *w,
   const size_t kv_dim_sz = (size_t)n_kv_heads * (size_t)d_head;
   const size_t d_ff_sz = (size_t)d_ff;
 
-  impl->x = (float *)malloc(d_model_sz * sizeof(float));
-  impl->x1 = (float *)malloc(d_model_sz * sizeof(float));
-  impl->x2 = (float *)malloc(d_model_sz * sizeof(float));
-  impl->q = (float *)malloc(q_dim_sz * sizeof(float));
-  impl->k = (float *)malloc(kv_dim_sz * sizeof(float));
-  impl->v = (float *)malloc(kv_dim_sz * sizeof(float));
-  impl->attn_out = (float *)malloc(q_dim_sz * sizeof(float));
-  impl->mlp_gate = (float *)malloc(d_ff_sz * sizeof(float));
-  impl->mlp_up = (float *)malloc((2u * d_ff_sz) * sizeof(float));
-  impl->scores = (float *)malloc((size_t)hp->max_seq * sizeof(float));
-  impl->router_logits = (impl->max_experts > 0u) ? (float *)malloc((size_t)impl->max_experts * sizeof(float)) : NULL;
+  const size_t align = 64u;
+  impl->x = (float *)ie_aligned_or_malloc(align, d_model_sz * sizeof(float));
+  impl->x1 = (float *)ie_aligned_or_malloc(align, d_model_sz * sizeof(float));
+  impl->x2 = (float *)ie_aligned_or_malloc(align, d_model_sz * sizeof(float));
+  impl->q = (float *)ie_aligned_or_malloc(align, q_dim_sz * sizeof(float));
+  impl->k = (float *)ie_aligned_or_malloc(align, kv_dim_sz * sizeof(float));
+  impl->v = (float *)ie_aligned_or_malloc(align, kv_dim_sz * sizeof(float));
+  impl->attn_out = (float *)ie_aligned_or_malloc(align, q_dim_sz * sizeof(float));
+  impl->mlp_gate = (float *)ie_aligned_or_malloc(align, d_ff_sz * sizeof(float));
+  impl->mlp_up = (float *)ie_aligned_or_malloc(align, (2u * d_ff_sz) * sizeof(float));
+  impl->scores = (float *)ie_aligned_or_malloc(align, (size_t)hp->max_seq * sizeof(float));
+  impl->router_logits = (impl->max_experts > 0u)
+                            ? (float *)ie_aligned_or_malloc(align, (size_t)impl->max_experts * sizeof(float))
+                            : NULL;
 
   if (!impl->x || !impl->x1 || !impl->x2 || !impl->q || !impl->k || !impl->v || !impl->attn_out ||
       !impl->mlp_gate || !impl->mlp_up || !impl->scores || (impl->max_experts > 0u && !impl->router_logits)) {

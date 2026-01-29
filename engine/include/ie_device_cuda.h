@@ -137,6 +137,20 @@ int ie_cuda_gemv_q4_0_f32(const uint8_t *dW_q4,
  */
 const char *ie_cuda_last_error_string(void);
 
+/**
+ * @brief Clear the last CUDA error string to "OK".
+ */
+void ie_cuda_clear_last_error(void);
+
+/**
+ * @brief Query current CUDA device memory usage.
+ *
+ * @param out_free Output free bytes.
+ * @param out_total Output total bytes.
+ * @return 0 on success, negative on failure.
+ */
+int ie_cuda_mem_get_info(size_t *out_free, size_t *out_total);
+
 #ifdef __cplusplus
 } /* extern "C" */
 #endif

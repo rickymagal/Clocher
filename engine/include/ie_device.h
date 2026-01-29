@@ -165,6 +165,20 @@ int ie_device_gemv_block_sparse_f32(ie_device_t *dev,
 int ie_device_memcpy(ie_device_t *dev, void *dst, const void *src, size_t nbytes);
 
 /**
+ * @brief Optionally register a host blob for device-resident access (CUDA only).
+ *
+ * For CUDA, this can allocate a device mirror of a large, immutable weights
+ * blob (e.g., a mapped model.bin) to avoid per-op H2D copies.
+ * Other devices treat this as a no-op and return 0.
+ *
+ * @param dev Device handle.
+ * @param host_ptr Base pointer of the host blob.
+ * @param nbytes Size of the blob in bytes.
+ * @return 0 on success or no-op, negative on error.
+ */
+int ie_device_register_blob(ie_device_t *dev, const void *host_ptr, size_t nbytes);
+
+/**
  * @brief Parse a device kind from a string.
  *
  * Accepts "cpu", "cuda", "ze" (case-insensitive). Unknown strings return CPU.

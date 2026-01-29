@@ -55,6 +55,8 @@
 #include <time.h>
 #include <sys/stat.h>
 
+#include <unistd.h>
+
 #include "gptoss_hparams.h"
 #include "ie_device.h"
 #include "ie_infer.h"
@@ -85,6 +87,100 @@ static const char *ie_q4_kernel_selected_name(void) {
     }
     return "q4_generic";
 }
+
+/* ============================================================================
+ * Threading helpers
+ * ========================================================================== */
+
+/**
+ * @brief Check whether an environment variable is set to a non-empty value.
+ *
+ * @param key Environment variable name.
+ * @return 1 if set and non-empty, 0 otherwise.
+ */
+static int ie_api_env_is_set_(const char *key) {
+  const char *v = getenv(key);
+  return (v && v[0] != '\0') ? 1 : 0;
+}
+
+/**
+ * @brief Set a process environment variable to an integer value.
+ *
+ * @details
+ * This helper exists because some kernel modules use environment variables
+ * (e.g. IE_THREADS / IE_BF16_THREADS) to pick a thread count lazily on first use.
+ *
+ * @param key Environment variable name.
+ * @param value Integer value to store.
+ * @param overwrite Non-zero to overwrite existing values.
+ * @return 0 on success, non-zero on failure.
+ */
+static int ie_api_setenv_int_(const char *key, int value, int overwrite) {
+  char buf[64];
+  snprintf(buf, sizeof(buf), "%d", value);
+#if defined(_WIN32)
+  (void)overwrite;
+  return _putenv_s(key, buf);
+#else
+  return setenv(key, buf, overwrite ? 1 : 0);
+#endif
+}
+
+/**
+ * @brief Choose a default thread count for "auto" behavior.
+ *
+ * @details
+ * The default is derived from the number of online CPUs. It is clamped to a
+ * conservative maximum to prevent accidental oversubscription on large hosts.
+ *
+ * @return A thread count in [1, 256].
+ */
+static int ie_api_default_threads_(void) {
+  long n = 0;
+#if defined(_SC_NPROCESSORS_ONLN)
+  n = sysconf(_SC_NPROCESSORS_ONLN);
+#endif
+  if (n < 1) n = 1;
+  if (n > 256) n = 256;
+  return (int)n;
+}
+
+/**
+ * @brief Apply thread-count parameters to the environment for kernel selection.
+ *
+ * @details
+ * Some kernels (notably BF16 GEMV) currently read IE_BF16_THREADS and/or
+ * IE_THREADS once on first invocation to decide whether to use the internal
+ * thread pool. This function bridges the public API thread parameter to those
+ * kernels without requiring call sites to set environment variables manually.
+ *
+ * Semantics:
+ *  - If p->threads > 0, IE_THREADS and IE_BF16_THREADS are set/overwritten.
+ *  - If p->threads == 0 (auto) and neither variable is set, defaults are set.
+ *  - If p is NULL and neither variable is set, defaults are set.
+ *
+ * @param p Optional engine parameters.
+ */
+static void ie_api_apply_thread_env_(const ie_engine_params_t *p) {
+  const int req = p ? p->threads : 0;
+  if (req > 0) {
+    int t = req;
+    if (t < 1) t = 1;
+    if (t > 256) t = 256;
+    (void)ie_api_setenv_int_("IE_THREADS", t, 1);
+    (void)ie_api_setenv_int_("IE_BF16_THREADS", t, 1);
+    return;
+  }
+
+  if (ie_api_env_is_set_("IE_BF16_THREADS") || ie_api_env_is_set_("IE_THREADS")) {
+    return;
+  }
+
+  const int t = ie_api_default_threads_();
+  (void)ie_api_setenv_int_("IE_THREADS", t, 0);
+  (void)ie_api_setenv_int_("IE_BF16_THREADS", t, 0);
+}
+
 /* ============================================================================
  * Internal engine object
  * ========================================================================== */
@@ -553,9 +649,23 @@ ie_status_t ie_engine_create(const ie_engine_params_t *p,
                 (p->pretranspose ? p->pretranspose : "(null)"),
                 (p->prefetch ? p->prefetch : "(null)"),
                 p->threads);
-  if (is_precision_int4_(p)) {
-    ie_log_info("ie_engine_create: q4 kernel=%s (runtime-dispatched)", ie_q4_kernel_selected_name());
+
+    if (is_precision_int4_(p)) {
+      ie_log_info("ie_engine_create: q4 kernel=%s (runtime-dispatched)", ie_q4_kernel_selected_name());
+    }
   }
+
+  /* Ensure kernel thread settings are applied before any lazy kernel init. */
+  ie_api_apply_thread_env_(p);
+
+  {
+    const char *t0 = getenv("IE_THREADS");
+    const char *t1 = getenv("IE_BF16_THREADS");
+    if ((t0 && *t0) || (t1 && *t1)) {
+      ie_log_info("ie_engine_create: threads env IE_THREADS=%s IE_BF16_THREADS=%s",
+                  (t0 && *t0) ? t0 : "(unset)",
+                  (t1 && *t1) ? t1 : "(unset)");
+    }
   }
 
   ie_engine_t *e = (ie_engine_t *)calloc(1, sizeof(*e));
