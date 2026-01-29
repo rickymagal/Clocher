@@ -89,7 +89,7 @@ static int ie_rope_env_pos_float(const char *name, float *out) {
  *
  * @return Position multiplier to apply to @p pos.
  */
-static float ie_rope_pos_mul(void) {
+float ie_rope_pos_mul(void) {
   if (ie_rope_pos_mul_cached > 0.0f) return ie_rope_pos_mul_cached;
 
   float m = 1.0f;

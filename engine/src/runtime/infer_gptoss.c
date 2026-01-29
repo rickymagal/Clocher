@@ -49,12 +49,15 @@
 #include "ie_device.h"
 #if defined(IE_CUDA_AVAILABLE)
 #include "ie_attn_cuda.h"
+#include "ie_elem_cuda.h"
 #include "ie_device_cuda.h"
+#include "ie_rmsnorm_cuda.h"
 #endif
 #include "ie_infer.h"
 #include "ie_kernels.h"
 #include "ie_kv_cache.h"
 #include "ie_kv_instrumentation.h"
+#include "ie_rope.h"
 #include "tensor_map.h"
 
 /* ------------------------------------------------------------------------- */
@@ -452,17 +455,51 @@ struct ie_gptoss_infer_impl {
   /** @brief Enable CUDA attention path (device + env controlled). */
   int use_cuda_attn;
 
+  /** @brief Enable full CUDA path (device activations). */
+  int use_cuda_full;
+
   /** @brief Device Q buffer for CUDA attention. */
   float *d_q;
 
+  /** @brief Device K buffer for current token. */
+  float *d_k;
+
+  /** @brief Device V buffer for current token. */
+  float *d_v;
+
   /** @brief Device attention output buffer. */
   float *d_attn_out;
+
+  /** @brief Device activations. */
+  float *d_x;
+  float *d_x1;
+  float *d_x2;
+
+  /** @brief Device MLP buffers. */
+  float *d_mlp_gate;
+  float *d_mlp_up;
+
+  /** @brief Device RMSNorm weights (per-layer). */
+  float **d_ln1_w;
+  float **d_ln2_w;
+
+  /** @brief Device final RMSNorm weight. */
+  float *d_norm_w;
+
+  /** @brief Device logits buffer. */
+  float *d_logits;
 
   /** @brief Per-layer device KV cache (K). */
   float **d_kv_K;
 
   /** @brief Per-layer device KV cache (V). */
   float **d_kv_V;
+
+  /** @brief CUDA attention calls (successful). */
+  uint64_t cuda_attn_calls;
+
+  /** @brief CUDA attention fallbacks (errors). */
+  uint64_t cuda_attn_fallbacks;
 
   /** @brief RMSNorm epsilon. */
   float rms_eps;
@@ -942,6 +979,75 @@ static int ie_gemv_q4_0_f32_dispatch(struct ie_gptoss_infer_impl *impl,
   }
   return ie_gemv_q4_0_f32(w_q4, w_scales, scale_bytes, x, y, rows, cols, bias_bf16);
 }
+
+#if defined(IE_CUDA_AVAILABLE)
+static int ie_gemv_q4_0_f32_device(struct ie_gptoss_infer_impl *impl,
+                                  const uint8_t *w_q4, const uint8_t *w_scales,
+                                  size_t scale_bytes, const float *dx, float *dy,
+                                  size_t rows, size_t cols, const uint16_t *bias_bf16) {
+  if (!impl || !impl->dev || !w_q4 || !w_scales || !dx || !dy || rows == 0 || cols == 0) return -1;
+  if (scale_bytes != 1u && scale_bytes != 2u) return -2;
+
+  const size_t blocks_per_row = (cols + 31u) / 32u;
+  const size_t row_w_bytes = blocks_per_row * 16u;
+  const size_t row_s_bytes = blocks_per_row * (size_t)scale_bytes;
+  const size_t W_bytes = rows * row_w_bytes;
+  const size_t S_bytes = rows * row_s_bytes;
+
+  const uint8_t *dW = NULL;
+  const uint8_t *dS = NULL;
+  if (ie_device_q4_map(impl->dev, w_q4, W_bytes, w_scales, S_bytes, &dW, &dS) != 0) {
+    /* Fallback: allocate temp device buffers and copy weights/scales. */
+    uint8_t *tmpW = (uint8_t *)ie_cuda_malloc(W_bytes);
+    uint8_t *tmpS = (uint8_t *)ie_cuda_malloc(S_bytes);
+    if (!tmpW || !tmpS) {
+      if (tmpW) ie_cuda_free(tmpW);
+      if (tmpS) ie_cuda_free(tmpS);
+      return -3;
+    }
+    if (ie_cuda_memcpy(tmpW, w_q4, W_bytes, IE_CUDA_COPY_H2D) != 0 ||
+        ie_cuda_memcpy(tmpS, w_scales, S_bytes, IE_CUDA_COPY_H2D) != 0) {
+      ie_cuda_free(tmpW);
+      ie_cuda_free(tmpS);
+      return -4;
+    }
+    const uint16_t *dbias = NULL;
+    uint16_t *tmpB = NULL;
+    if (bias_bf16) {
+      const size_t b_bytes = rows * sizeof(uint16_t);
+      tmpB = (uint16_t *)ie_cuda_malloc(b_bytes);
+      if (!tmpB || ie_cuda_memcpy(tmpB, bias_bf16, b_bytes, IE_CUDA_COPY_H2D) != 0) {
+        if (tmpB) ie_cuda_free(tmpB);
+        ie_cuda_free(tmpW);
+        ie_cuda_free(tmpS);
+        return -5;
+      }
+      dbias = (const uint16_t *)tmpB;
+    }
+    const int rc = ie_cuda_gemv_q4_0_f32(tmpW, tmpS, scale_bytes, dx, dy, rows, cols, dbias);
+    if (tmpB) ie_cuda_free(tmpB);
+    ie_cuda_free(tmpW);
+    ie_cuda_free(tmpS);
+    return rc == 0 ? 0 : -6;
+  }
+
+  const uint16_t *dbias = NULL;
+  uint16_t *tmpB = NULL;
+  if (bias_bf16) {
+    const size_t b_bytes = rows * sizeof(uint16_t);
+    tmpB = (uint16_t *)ie_cuda_malloc(b_bytes);
+    if (!tmpB || ie_cuda_memcpy(tmpB, bias_bf16, b_bytes, IE_CUDA_COPY_H2D) != 0) {
+      if (tmpB) ie_cuda_free(tmpB);
+      return -7;
+    }
+    dbias = (const uint16_t *)tmpB;
+  }
+
+  const int rc = ie_cuda_gemv_q4_0_f32(dW, dS, scale_bytes, dx, dy, rows, cols, dbias);
+  if (tmpB) ie_cuda_free(tmpB);
+  return rc == 0 ? 0 : -8;
+}
+#endif
 
 /**
  * @brief Require exact byte size for a tensor.
@@ -1433,6 +1539,213 @@ static int ie_forward_one_token(struct ie_gptoss_infer_impl *impl, ie_kv_cache *
 
   const float rope_theta_eff = impl->rope_theta * impl->rope_scale;
 
+#if defined(IE_CUDA_AVAILABLE)
+  if (impl->use_cuda_full) {
+    if (!impl->d_x || !impl->d_x1 || !impl->d_x2 || !impl->d_k || !impl->d_v ||
+        !impl->d_q || !impl->d_attn_out || !impl->d_mlp_gate || !impl->d_mlp_up ||
+        !impl->d_logits || !impl->d_ln1_w || !impl->d_ln2_w || !impl->d_norm_w ||
+        !impl->d_kv_K || !impl->d_kv_V) {
+      IE_LOGE("cuda_full: missing device buffers");
+      return -11;
+    }
+    if (ie_cuda_memcpy(impl->d_x, impl->x, (size_t)d_model * sizeof(float), IE_CUDA_COPY_H2D) != 0) {
+      IE_LOGE("cuda_full: H2D x failed");
+      return -11;
+    }
+
+    for (uint32_t l = 0; l < n_layers; ++l) {
+      const ie_gptoss_layer_w_t *W = &impl->layers[l];
+      ie_kv_cache *kv = &kv_layers[l];
+
+      if (kv->storage != IE_KV_STORAGE_F32) return -7;
+      if ((uint32_t)kv->heads != n_kv_heads) return -8;
+      if ((uint32_t)kv->head_dim != d_head) return -9;
+      if ((uint32_t)kv->max_seq == 0u || pos >= (uint32_t)kv->max_seq) return -10;
+
+      if (!W->q_q4_blocks || !W->q_q4_scales ||
+          !W->k_q4_blocks || !W->k_q4_scales ||
+          !W->v_q4_blocks || !W->v_q4_scales ||
+          !W->o_q4_blocks || !W->o_q4_scales) {
+        IE_LOGE("cuda_full: missing q4 attn weights layer=%u", (unsigned)l);
+        return -12;
+      }
+
+      if (ie_rmsnorm_cuda_f32(impl->d_x, impl->d_ln1_w[l], impl->d_x1, 1u, (size_t)d_model,
+                              impl->rms_eps) != 0) {
+        IE_LOGE("cuda_full: rmsnorm1 failed layer=%u pos=%u", (unsigned)l, (unsigned)pos);
+        return -11;
+      }
+
+      if (ie_gemv_q4_0_f32_device(impl, W->q_q4_blocks, W->q_q4_scales, W->q_q4_scale_bytes,
+                                  impl->d_x1, impl->d_q, q_dim, (size_t)d_model, W->q_b) != 0 ||
+          ie_gemv_q4_0_f32_device(impl, W->k_q4_blocks, W->k_q4_scales, W->k_q4_scale_bytes,
+                                  impl->d_x1, impl->d_k, kv_dim, (size_t)d_model, W->k_b) != 0 ||
+          ie_gemv_q4_0_f32_device(impl, W->v_q4_blocks, W->v_q4_scales, W->v_q4_scale_bytes,
+                                  impl->d_x1, impl->d_v, kv_dim, (size_t)d_model, W->v_b) != 0) {
+        IE_LOGE("cuda_full: qkv gemv failed layer=%u pos=%u", (unsigned)l, (unsigned)pos);
+        return -12;
+      }
+
+      if (ie_cuda_rope_f32(impl->d_q, NULL, (size_t)n_heads, (size_t)d_head, pos,
+                           rope_theta_eff, ie_rope_pos_mul()) != 0 ||
+          ie_cuda_rope_f32(NULL, impl->d_k, (size_t)n_kv_heads, (size_t)d_head, pos,
+                           rope_theta_eff, ie_rope_pos_mul()) != 0) {
+        IE_LOGE("cuda_full: rope failed layer=%u pos=%u", (unsigned)l, (unsigned)pos);
+        return -15;
+      }
+
+      {
+        const size_t off = (size_t)pos * kv_dim;
+        const size_t kv_bytes = kv_dim * sizeof(float);
+        if (ie_cuda_memcpy(impl->d_kv_K[l] + off, impl->d_k, kv_bytes, IE_CUDA_COPY_D2D) != 0 ||
+            ie_cuda_memcpy(impl->d_kv_V[l] + off, impl->d_v, kv_bytes, IE_CUDA_COPY_D2D) != 0) {
+          IE_LOGE("cuda_full: kv store failed layer=%u pos=%u", (unsigned)l, (unsigned)pos);
+          return -17;
+        }
+      }
+
+      {
+        int rc_attn = 0;
+        if (n_kv_heads == n_heads) {
+          rc_attn = ie_attn_cuda_causal_f32(impl->d_q, impl->d_kv_K[l], impl->d_kv_V[l],
+                                            (size_t)(pos + 1u), (size_t)n_heads, (size_t)d_head,
+                                            inv_sqrt_d, impl->d_attn_out);
+        } else {
+          rc_attn = ie_attn_cuda_causal_gqa_f32(impl->d_q, impl->d_kv_K[l], impl->d_kv_V[l],
+                                                (size_t)(pos + 1u), (size_t)n_heads,
+                                                (size_t)n_kv_heads, (size_t)d_head,
+                                                inv_sqrt_d, impl->d_attn_out);
+        }
+        if (rc_attn != 0) {
+          IE_LOGE("cuda_full: attn failed layer=%u pos=%u", (unsigned)l, (unsigned)pos);
+          return -18;
+        }
+      }
+
+      if (ie_gemv_q4_0_f32_device(impl, W->o_q4_blocks, W->o_q4_scales, W->o_q4_scale_bytes,
+                                  impl->d_attn_out, impl->d_x2, (size_t)d_model, q_dim, W->o_b) != 0) {
+        IE_LOGE("cuda_full: o gemv failed layer=%u pos=%u", (unsigned)l, (unsigned)pos);
+        return -19;
+      }
+      if (ie_cuda_add_inplace_f32(impl->d_x, impl->d_x2, (size_t)d_model) != 0) return -19;
+
+      if (ie_rmsnorm_cuda_f32(impl->d_x, impl->d_ln2_w[l], impl->d_x1, 1u, (size_t)d_model,
+                              impl->rms_eps) != 0) {
+        IE_LOGE("cuda_full: rmsnorm2 failed layer=%u pos=%u", (unsigned)l, (unsigned)pos);
+        return -20;
+      }
+
+      {
+        const ie_moe_w_t *M = &W->moe;
+        const uint32_t n_exp = M->n_experts;
+        if (n_exp == 0u || !impl->router_logits) return -21;
+
+        if (ie_cuda_memcpy(impl->x1, impl->d_x1, (size_t)d_model * sizeof(float), IE_CUDA_COPY_D2H) != 0) {
+          IE_LOGE("cuda_full: D2H x1 failed layer=%u pos=%u", (unsigned)l, (unsigned)pos);
+          return -21;
+        }
+
+        if (M->router_w_f32) {
+          ie_gemv_f32(M->router_w_f32, impl->x1, impl->router_logits,
+                      (size_t)n_exp, (size_t)d_model, M->router_b_f32, 1);
+        } else if (ie_gemv_bf16_f32(M->router_w, impl->x1, impl->router_logits,
+                                    (size_t)n_exp, (size_t)d_model, M->router_b) != 0) {
+          IE_LOGE("cuda_full: router gemv failed layer=%u pos=%u", (unsigned)l, (unsigned)pos);
+          return -22;
+        }
+
+        const uint32_t topk = ie_u32_min(impl->moe_topk, n_exp);
+        if (topk == 0u) return -23;
+
+        uint32_t idx[IE_GPTOSS_MOE_TOPK_DEFAULT] = {0, 0, 0, 0};
+        float val[IE_GPTOSS_MOE_TOPK_DEFAULT] = {-INFINITY, -INFINITY, -INFINITY, -INFINITY};
+
+        for (uint32_t e = 0; e < n_exp; ++e) {
+          const float v = impl->router_logits[e];
+          for (uint32_t k = 0; k < topk; ++k) {
+            if (v > val[k]) {
+              for (uint32_t j = topk - 1u; j > k; --j) {
+                val[j] = val[j - 1u];
+                idx[j] = idx[j - 1u];
+              }
+              val[k] = v;
+              idx[k] = e;
+              break;
+            }
+          }
+        }
+        ie_softmax_inplace_f32(val, (size_t)topk);
+
+        if (ie_cuda_zero_f32(impl->d_x2, (size_t)d_model) != 0) return -24;
+
+        for (uint32_t sel = 0; sel < topk; ++sel) {
+          const uint32_t ex = idx[sel];
+          const float p = val[sel];
+          if (!(p > 0.0f)) continue;
+
+          const uint8_t *gu_b = M->gate_up_blocks + ex * M->gate_up_blocks_stride;
+          const uint8_t *gu_s = M->gate_up_scales + ex * M->gate_up_scales_stride;
+          const uint16_t *gu_bias =
+              M->gate_up_bias ? (const uint16_t *)((const uint8_t *)M->gate_up_bias + ex * M->gate_up_bias_stride)
+                              : NULL;
+
+          const uint8_t *dn_b = M->down_blocks + ex * M->down_blocks_stride;
+          const uint8_t *dn_s = M->down_scales + ex * M->down_scales_stride;
+          const uint16_t *dn_bias =
+              M->down_bias ? (const uint16_t *)((const uint8_t *)M->down_bias + ex * M->down_bias_stride) : NULL;
+
+          if (ie_gemv_q4_0_f32_device(impl, gu_b, gu_s, M->gate_up_scale_bytes,
+                                      impl->d_x1, impl->d_mlp_up,
+                                      2u * d_ff, (size_t)d_model, gu_bias) != 0) {
+            IE_LOGE("cuda_full: moe gate_up failed layer=%u pos=%u ex=%u",
+                    (unsigned)l, (unsigned)pos, (unsigned)ex);
+            return -24;
+          }
+
+          if (ie_cuda_silu_mul_f32(impl->d_mlp_up, impl->d_mlp_up + d_ff,
+                                   impl->d_mlp_gate, d_ff) != 0) {
+            IE_LOGE("cuda_full: silu_mul failed layer=%u pos=%u ex=%u",
+                    (unsigned)l, (unsigned)pos, (unsigned)ex);
+            return -24;
+          }
+
+          if (ie_gemv_q4_0_f32_device(impl, dn_b, dn_s, M->down_scale_bytes,
+                                      impl->d_mlp_gate, impl->d_attn_out,
+                                      (size_t)d_model, d_ff, dn_bias) != 0) {
+            IE_LOGE("cuda_full: moe down failed layer=%u pos=%u ex=%u",
+                    (unsigned)l, (unsigned)pos, (unsigned)ex);
+            return -25;
+          }
+
+          if (ie_cuda_add_scaled_inplace_f32(impl->d_x2, impl->d_attn_out, p, (size_t)d_model) != 0) {
+            IE_LOGE("cuda_full: moe add scaled failed layer=%u pos=%u ex=%u",
+                    (unsigned)l, (unsigned)pos, (unsigned)ex);
+            return -25;
+          }
+        }
+      }
+
+      if (ie_cuda_add_inplace_f32(impl->d_x, impl->d_x2, (size_t)d_model) != 0) return -25;
+    }
+
+    if (ie_rmsnorm_cuda_f32(impl->d_x, impl->d_norm_w, impl->d_x1, 1u, (size_t)d_model, impl->rms_eps) != 0)
+      return -26;
+
+    if (!impl->w_lm_q4_blocks || !impl->w_lm_q4_scales) {
+      IE_LOGE("cuda_full: missing lm_head q4 weights");
+      return -27;
+    }
+    if (ie_gemv_q4_0_f32_device(impl, impl->w_lm_q4_blocks, impl->w_lm_q4_scales,
+                                impl->w_lm_q4_scale_bytes, impl->d_x1, impl->d_logits,
+                                (size_t)vocab, (size_t)d_model, NULL) != 0) {
+      return -27;
+    }
+    if (ie_cuda_memcpy(out_logits, impl->d_logits, (size_t)vocab * sizeof(float), IE_CUDA_COPY_D2H) != 0)
+      return -27;
+    return 0;
+  }
+#endif
+
   for (uint32_t l = 0; l < n_layers; ++l) {
     const ie_gptoss_layer_w_t *W = &impl->layers[l];
     ie_kv_cache *kv = &kv_layers[l];
@@ -1829,8 +2142,13 @@ int ie_gptoss_infer_create(const ie_device_t *dev_const, const ie_weights_t *w,
   if (impl->dev && ie_device_kind(impl->dev) == IE_DEV_CUDA && ie_env_flag("IE_CUDA_ATTN")) {
     impl->use_cuda_attn = 1;
   }
+  if (impl->dev && ie_device_kind(impl->dev) == IE_DEV_CUDA && ie_env_flag("IE_CUDA_FULL")) {
+    impl->use_cuda_full = 1;
+    impl->use_cuda_attn = 1;
+    impl->use_f32_rmsnorm = 1;
+  }
 #endif
-  IE_LOGI("create: cuda_attn=%d", impl->use_cuda_attn);
+  IE_LOGI("create: cuda_attn=%d cuda_full=%d", impl->use_cuda_attn, impl->use_cuda_full);
 
   /* Initialize Q4 LUTs up front to avoid pthread_once in hot path. */
   ie_q4_log2_u8_q3_init_generic();
@@ -2391,6 +2709,65 @@ int ie_gptoss_infer_create(const ie_device_t *dev_const, const ie_weights_t *w,
     }
   }
 
+#if defined(IE_CUDA_AVAILABLE)
+  if (impl->use_cuda_full) {
+    impl->d_ln1_w = (float **)calloc((size_t)n_layers, sizeof(float *));
+    impl->d_ln2_w = (float **)calloc((size_t)n_layers, sizeof(float *));
+    if (!impl->d_ln1_w || !impl->d_ln2_w) {
+      IE_LOGW("create: cuda_full ln weight table alloc failed");
+      impl->use_cuda_full = 0;
+    } else if (!impl->w_norm_f32) {
+      IE_LOGW("create: cuda_full requires f32 rmsnorm weights");
+      impl->use_cuda_full = 0;
+    } else {
+      const size_t w_bytes = (size_t)d_model * sizeof(float);
+      for (uint32_t l = 0; l < n_layers; ++l) {
+        if (!impl->layers[l].ln1_w_f32 || !impl->layers[l].ln2_w_f32) {
+          IE_LOGW("create: cuda_full missing ln f32 layer=%u", (unsigned)l);
+          impl->use_cuda_full = 0;
+          break;
+        }
+        impl->d_ln1_w[l] = (float *)ie_cuda_malloc(w_bytes);
+        impl->d_ln2_w[l] = (float *)ie_cuda_malloc(w_bytes);
+        if (!impl->d_ln1_w[l] || !impl->d_ln2_w[l]) {
+          IE_LOGW("create: cuda_full ln weight alloc failed layer=%u", (unsigned)l);
+          impl->use_cuda_full = 0;
+          break;
+        }
+        if (ie_cuda_memcpy(impl->d_ln1_w[l], impl->layers[l].ln1_w_f32, w_bytes, IE_CUDA_COPY_H2D) != 0 ||
+            ie_cuda_memcpy(impl->d_ln2_w[l], impl->layers[l].ln2_w_f32, w_bytes, IE_CUDA_COPY_H2D) != 0) {
+          IE_LOGW("create: cuda_full ln weight copy failed layer=%u", (unsigned)l);
+          impl->use_cuda_full = 0;
+          break;
+        }
+      }
+      if (impl->use_cuda_full) {
+        impl->d_norm_w = (float *)ie_cuda_malloc((size_t)d_model * sizeof(float));
+        if (!impl->d_norm_w ||
+            ie_cuda_memcpy(impl->d_norm_w, impl->w_norm_f32, (size_t)d_model * sizeof(float),
+                           IE_CUDA_COPY_H2D) != 0) {
+          IE_LOGW("create: cuda_full norm weight copy failed");
+          impl->use_cuda_full = 0;
+        }
+      }
+    }
+
+    if (!impl->use_cuda_full) {
+      if (impl->d_ln1_w) {
+        for (uint32_t l = 0; l < n_layers; ++l) if (impl->d_ln1_w[l]) ie_cuda_free(impl->d_ln1_w[l]);
+      }
+      if (impl->d_ln2_w) {
+        for (uint32_t l = 0; l < n_layers; ++l) if (impl->d_ln2_w[l]) ie_cuda_free(impl->d_ln2_w[l]);
+      }
+      if (impl->d_norm_w) ie_cuda_free(impl->d_norm_w);
+      free(impl->d_ln1_w);
+      free(impl->d_ln2_w);
+      impl->d_ln1_w = impl->d_ln2_w = NULL;
+      impl->d_norm_w = NULL;
+    }
+  }
+#endif
+
   const size_t d_model_sz = (size_t)d_model;
   const size_t q_dim_sz = (size_t)n_heads * (size_t)d_head;
   const size_t kv_dim_sz = (size_t)n_kv_heads * (size_t)d_head;
@@ -2473,6 +2850,53 @@ int ie_gptoss_infer_create(const ie_device_t *dev_const, const ie_weights_t *w,
       impl->d_kv_V = NULL;
     }
   }
+
+  if (impl->use_cuda_full) {
+    const size_t d_model_sz = (size_t)hp->d_model;
+    const size_t kv_dim = (size_t)hp->n_kv_heads * (size_t)hp->d_head;
+    const size_t d_ff = (size_t)hp->d_ff;
+
+    impl->d_x = (float *)ie_cuda_malloc(d_model_sz * sizeof(float));
+    impl->d_x1 = (float *)ie_cuda_malloc(d_model_sz * sizeof(float));
+    impl->d_x2 = (float *)ie_cuda_malloc(d_model_sz * sizeof(float));
+    impl->d_k = (float *)ie_cuda_malloc(kv_dim * sizeof(float));
+    impl->d_v = (float *)ie_cuda_malloc(kv_dim * sizeof(float));
+    impl->d_mlp_gate = (float *)ie_cuda_malloc(d_ff * sizeof(float));
+    impl->d_mlp_up = (float *)ie_cuda_malloc((2u * d_ff) * sizeof(float));
+    impl->d_logits = (float *)ie_cuda_malloc((size_t)hp->vocab_size * sizeof(float));
+
+    if (!impl->d_x || !impl->d_x1 || !impl->d_x2 || !impl->d_k || !impl->d_v ||
+        !impl->d_mlp_gate || !impl->d_mlp_up || !impl->d_logits) {
+      IE_LOGW("create: cuda_full alloc failed (activations)");
+      impl->use_cuda_full = 0;
+    } else if (!impl->d_kv_K || !impl->d_kv_V) {
+      IE_LOGW("create: cuda_full requires cuda_attn kv buffers");
+      impl->use_cuda_full = 0;
+    } else {
+      for (uint32_t l = 0; l < (uint32_t)hp->n_layers; ++l) {
+        if (!impl->d_kv_K[l] || !impl->d_kv_V[l]) {
+          IE_LOGW("create: cuda_full missing kv layer=%u", (unsigned)l);
+          impl->use_cuda_full = 0;
+          break;
+        }
+      }
+    }
+
+    if (!impl->use_cuda_full) {
+      if (impl->d_x) ie_cuda_free(impl->d_x);
+      if (impl->d_x1) ie_cuda_free(impl->d_x1);
+      if (impl->d_x2) ie_cuda_free(impl->d_x2);
+      if (impl->d_k) ie_cuda_free(impl->d_k);
+      if (impl->d_v) ie_cuda_free(impl->d_v);
+      if (impl->d_mlp_gate) ie_cuda_free(impl->d_mlp_gate);
+      if (impl->d_mlp_up) ie_cuda_free(impl->d_mlp_up);
+      if (impl->d_logits) ie_cuda_free(impl->d_logits);
+      impl->d_x = impl->d_x1 = impl->d_x2 = NULL;
+      impl->d_k = impl->d_v = NULL;
+      impl->d_mlp_gate = impl->d_mlp_up = NULL;
+      impl->d_logits = NULL;
+    }
+  }
 #endif
 
   IE_LOGI("create: success");
@@ -2522,7 +2946,20 @@ void ie_gptoss_infer_destroy(ie_gptoss_infer_t *ctx) {
   free(impl->scores);
   free(impl->router_logits);
 
-#if defined(IE_CUDA_AVAILABLE)
+  if (impl->d_ln1_w) {
+    for (uint32_t l = 0; l < impl->hp->n_layers; ++l) {
+      if (impl->d_ln1_w[l]) ie_cuda_free(impl->d_ln1_w[l]);
+    }
+  }
+  if (impl->d_ln2_w) {
+    for (uint32_t l = 0; l < impl->hp->n_layers; ++l) {
+      if (impl->d_ln2_w[l]) ie_cuda_free(impl->d_ln2_w[l]);
+    }
+  }
+  if (impl->d_norm_w) ie_cuda_free(impl->d_norm_w);
+  free(impl->d_ln1_w);
+  free(impl->d_ln2_w);
+
   if (impl->d_q) ie_cuda_free(impl->d_q);
   if (impl->d_attn_out) ie_cuda_free(impl->d_attn_out);
   if (impl->d_kv_K) {
@@ -2537,7 +2974,14 @@ void ie_gptoss_infer_destroy(ie_gptoss_infer_t *ctx) {
   }
   free(impl->d_kv_K);
   free(impl->d_kv_V);
-#endif
+  if (impl->d_x) ie_cuda_free(impl->d_x);
+  if (impl->d_x1) ie_cuda_free(impl->d_x1);
+  if (impl->d_x2) ie_cuda_free(impl->d_x2);
+  if (impl->d_k) ie_cuda_free(impl->d_k);
+  if (impl->d_v) ie_cuda_free(impl->d_v);
+  if (impl->d_mlp_gate) ie_cuda_free(impl->d_mlp_gate);
+  if (impl->d_mlp_up) ie_cuda_free(impl->d_mlp_up);
+  if (impl->d_logits) ie_cuda_free(impl->d_logits);
 
   free(impl);
 }

@@ -300,6 +300,39 @@ static void *cuda_cache_get(cuda_impl_t *ci, const void *host_ptr, size_t nbytes
   return d;
 }
 
+static int cuda_q4_map(cuda_impl_t *ci,
+                       const uint8_t *w_q4, size_t W_bytes,
+                       const uint8_t *w_scales, size_t S_bytes,
+                       const uint8_t **dW, const uint8_t **dS) {
+  if (!ci || !w_q4 || !w_scales || !dW || !dS) return -1;
+  *dW = NULL;
+  *dS = NULL;
+
+  if (ci->blob_dev && ci->blob_host && ci->blob_bytes > 0) {
+    const uint8_t *base = ci->blob_host;
+    const uint8_t *end = base + ci->blob_bytes;
+    if (w_q4 >= base && (w_q4 + W_bytes) <= end &&
+        w_scales >= base && (w_scales + S_bytes) <= end) {
+      const size_t w_off = (size_t)(w_q4 - base);
+      const size_t s_off = (size_t)(w_scales - base);
+      *dW = (const uint8_t *)ci->blob_dev + w_off;
+      *dS = (const uint8_t *)ci->blob_dev + s_off;
+      return 0;
+    }
+  }
+
+  if (ci->cache_cap_bytes > 0) {
+    const size_t want = W_bytes + S_bytes;
+    if (want <= ci->cache_cap_bytes) {
+      *dW = (const uint8_t *)cuda_cache_get(ci, w_q4, W_bytes);
+      *dS = (const uint8_t *)cuda_cache_get(ci, w_scales, S_bytes);
+      if (*dW && *dS) return 0;
+    }
+  }
+
+  return -2;
+}
+
 /**
  * @brief Ensure a device buffer has at least nbytes capacity.
  *
@@ -859,6 +892,35 @@ int ie_device_gemv_q4_0_f32(ie_device_t *dev,
   if (!dev || !dev->vt.gemv_q4_0_f32) return -1;
   return dev->vt.gemv_q4_0_f32(dev->impl, w_q4, w_scales, scale_bytes,
                               x, y, rows, cols, bias_bf16);
+}
+
+int ie_device_q4_map(ie_device_t *dev,
+                     const uint8_t *w_q4, size_t W_bytes,
+                     const uint8_t *w_scales, size_t S_bytes,
+                     const uint8_t **dW, const uint8_t **dS) {
+  if (!dev || !w_q4 || !w_scales || !dW || !dS) return -1;
+  if (dev->kind != IE_DEV_CUDA) return -2;
+  cuda_impl_t *ci = (cuda_impl_t*)dev->impl;
+  if (!ci) return -3;
+  return cuda_q4_map(ci, w_q4, W_bytes, w_scales, S_bytes, dW, dS);
+}
+
+int ie_device_blob_ptr(ie_device_t *dev,
+                        const void *host_ptr, size_t nbytes,
+                        const void **out_dev_ptr) {
+  if (!dev || !host_ptr || nbytes == 0 || !out_dev_ptr) return -1;
+  if (dev->kind != IE_DEV_CUDA) return -2;
+  cuda_impl_t *ci = (cuda_impl_t*)dev->impl;
+  if (!ci || !ci->blob_dev || !ci->blob_host || ci->blob_bytes == 0) return -3;
+
+  const uint8_t *base = (const uint8_t *)ci->blob_host;
+  const uint8_t *end = base + ci->blob_bytes;
+  const uint8_t *p = (const uint8_t *)host_ptr;
+  if (p < base || (p + nbytes) > end) return -4;
+
+  const size_t off = (size_t)(p - base);
+  *out_dev_ptr = (const uint8_t *)ci->blob_dev + off;
+  return 0;
 }
 
 int ie_device_register_blob(ie_device_t *dev, const void *host_ptr, size_t nbytes) {

@@ -143,6 +143,7 @@ SRC_CUDA_CU := \
   engine/src/devices/ie_device_cuda.cu \
   engine/src/kernels/ie_kernels_cuda.cu \
   engine/src/kernels/attn_cuda.cu \
+  engine/src/kernels/elem_cuda.cu \
   engine/src/kernels/mlp_cuda.cu \
   engine/src/kernels/rmsnorm_cuda.cu
 

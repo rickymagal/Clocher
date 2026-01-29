@@ -65,6 +65,15 @@ int ie_rope_apply_one_f32(float *x, size_t head_dim, uint32_t pos, float theta);
 int ie_rope_apply_f32(float *q, float *k, size_t heads, size_t head_dim, uint32_t pos,
                       float theta);
 
+/**
+ * @brief Return the effective RoPE position multiplier.
+ *
+ * @details
+ * This matches the scaling behavior in rope.c and is intended for CUDA callers
+ * that need to mirror the same position scaling.
+ */
+float ie_rope_pos_mul(void);
+
 #ifdef __cplusplus
 } /* extern "C" */
 #endif

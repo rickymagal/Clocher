@@ -130,6 +130,42 @@ int ie_device_gemv_q4_0_f32(ie_device_t *dev,
                             const uint16_t *bias_bf16);
 
 /**
+ * @brief Resolve device pointers for Q4 weights/scales (CUDA only).
+ *
+ * @details
+ * This attempts to map host pointers into a mirrored device blob or cache.
+ * If mapping succeeds, dW/dS are valid device pointers.
+ *
+ * @param dev Device handle.
+ * @param w_q4 Host pointer to packed Q4 weights.
+ * @param W_bytes Size of packed Q4 weights in bytes.
+ * @param w_scales Host pointer to scales.
+ * @param S_bytes Size of scales in bytes.
+ * @param dW Output device pointer for weights.
+ * @param dS Output device pointer for scales.
+ * @return 0 on success, negative on error or unsupported backend.
+ */
+int ie_device_q4_map(ie_device_t *dev,
+                     const uint8_t *w_q4, size_t W_bytes,
+                     const uint8_t *w_scales, size_t S_bytes,
+                     const uint8_t **dW, const uint8_t **dS);
+
+/**
+ * @brief Map a host pointer into the CUDA mirrored weights blob.
+ *
+ * This requires IE_CUDA_MIRROR_WEIGHTS=1 during create (blob registered).
+ *
+ * @param dev Device handle (CUDA).
+ * @param host_ptr Pointer within the mapped weights blob.
+ * @param nbytes Size in bytes to validate range.
+ * @param out_dev_ptr Receives device pointer on success.
+ * @return 0 on success, negative on failure.
+ */
+int ie_device_blob_ptr(ie_device_t *dev,
+                       const void *host_ptr, size_t nbytes,
+                       const void **out_dev_ptr);
+
+/**
  * @brief Block-sparse GEMV (FP32): y = W * x (+ optional bias).
  *
  * This entry point operates on matrices stored in block-row CSR (BSR) layout
