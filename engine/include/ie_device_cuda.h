@@ -177,6 +177,20 @@ int ie_cuda_gemv_bf16_f32(const uint16_t *dW_bf16,
                           const uint16_t *dbias_bf16);
 
 /**
+ * @brief Compute per-block argmax of a device FP32 array.
+ *
+ * @param d_x         Device input array.
+ * @param n           Number of elements.
+ * @param d_out_vals  Device output array for block max values.
+ * @param d_out_idx   Device output array for block max indices (uint32).
+ * @return 0 on success, negative on failure.
+ */
+int ie_cuda_argmax_f32_reduce(const float *d_x,
+                              size_t n,
+                              float *d_out_vals,
+                              uint32_t *d_out_idx);
+
+/**
  * @brief Return a human-readable description of the last CUDA error seen by this wrapper.
  *
  * @return Pointer to an internal static string (valid until next CUDA wrapper call).

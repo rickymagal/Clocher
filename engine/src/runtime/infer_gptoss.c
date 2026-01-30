@@ -489,6 +489,24 @@ struct ie_gptoss_infer_impl {
   /** @brief Device logits buffer. */
   float *d_logits;
 
+  /** @brief Enable device-side greedy argmax (CUDA full path). */
+  int use_cuda_greedy_device;
+
+  /** @brief Device argmax scratch: per-block max values. */
+  float *d_argmax_vals;
+
+  /** @brief Device argmax scratch: per-block max indices. */
+  uint32_t *d_argmax_idx;
+
+  /** @brief Host argmax scratch: per-block max values. */
+  float *h_argmax_vals;
+
+  /** @brief Host argmax scratch: per-block max indices. */
+  uint32_t *h_argmax_idx;
+
+  /** @brief Number of blocks used for device argmax reduction. */
+  size_t argmax_blocks;
+
   /** @brief Device router logits buffer (FP32), shape [max_experts]. */
   float *d_router_logits;
 
@@ -2055,8 +2073,10 @@ static int ie_forward_one_token(struct ie_gptoss_infer_impl *impl, ie_kv_cache *
     }
     if (dbg_stats && pos == 0u)
       ie_cuda_debug_stats(impl, impl->d_logits, (size_t)vocab, "logits", 0u, pos);
-    if (ie_cuda_memcpy(out_logits, impl->d_logits, (size_t)vocab * sizeof(float), IE_CUDA_COPY_D2H) != 0)
-      return -27;
+    if (!impl->use_cuda_greedy_device) {
+      if (ie_cuda_memcpy(out_logits, impl->d_logits, (size_t)vocab * sizeof(float), IE_CUDA_COPY_D2H) != 0)
+        return -27;
+    }
     if (ie_cuda_debug_check_finite(impl, impl->d_logits, (size_t)vocab, "logits", 0u, pos) != 0) return -27;
     return 0;
   }
@@ -2460,6 +2480,7 @@ int ie_gptoss_infer_create(const ie_device_t *dev_const, const ie_weights_t *w,
 #if defined(IE_CUDA_AVAILABLE)
   const int cuda_full_req = ie_env_flag("IE_CUDA_FULL");
   const int cuda_full_force = ie_env_flag("IE_CUDA_FULL_FORCE");
+  const int cuda_greedy_req = ie_env_flag("IE_CUDA_GREEDY_DEVICE");
   const char *cuda_full_disable_reason = NULL;
   if (impl->dev && ie_device_kind(impl->dev) == IE_DEV_CUDA && ie_env_flag("IE_CUDA_ATTN")) {
     impl->use_cuda_attn = 1;
@@ -2469,8 +2490,13 @@ int ie_gptoss_infer_create(const ie_device_t *dev_const, const ie_weights_t *w,
     impl->use_cuda_attn = 1;
     impl->use_f32_rmsnorm = 1;
   }
+  impl->use_cuda_greedy_device = (impl->use_cuda_full && cuda_greedy_req) ? 1 : 0;
 #endif
-  IE_LOGI("create: cuda_attn=%d cuda_full=%d", impl->use_cuda_attn, impl->use_cuda_full);
+#if !defined(IE_CUDA_AVAILABLE)
+  impl->use_cuda_greedy_device = 0;
+#endif
+  IE_LOGI("create: cuda_attn=%d cuda_full=%d cuda_greedy_device=%d",
+          impl->use_cuda_attn, impl->use_cuda_full, impl->use_cuda_greedy_device);
 
   /* Initialize Q4 LUTs up front to avoid pthread_once in hot path. */
   ie_q4_log2_u8_q3_init_generic();
@@ -3213,6 +3239,40 @@ int ie_gptoss_infer_create(const ie_device_t *dev_const, const ie_weights_t *w,
       }
     }
 
+    if (impl->use_cuda_full && impl->use_cuda_greedy_device) {
+      const size_t n = (size_t)hp->vocab_size;
+      const size_t block = 256u;
+      const size_t blocks = (n + block - 1u) / block;
+      size_t vals_bytes = 0;
+      size_t idx_bytes = 0;
+
+      if (blocks == 0u || blocks > (SIZE_MAX / sizeof(float))) {
+        IE_LOGW("create: cuda_greedy_device disabled (invalid blocks)");
+        impl->use_cuda_greedy_device = 0;
+      } else {
+        vals_bytes = blocks * sizeof(float);
+        idx_bytes = blocks * sizeof(uint32_t);
+        impl->d_argmax_vals = (float *)ie_cuda_malloc(vals_bytes);
+        impl->d_argmax_idx = (uint32_t *)ie_cuda_malloc(idx_bytes);
+        impl->h_argmax_vals = (float *)malloc(vals_bytes);
+        impl->h_argmax_idx = (uint32_t *)malloc(idx_bytes);
+        if (!impl->d_argmax_vals || !impl->d_argmax_idx || !impl->h_argmax_vals || !impl->h_argmax_idx) {
+          IE_LOGW("create: cuda_greedy_device alloc failed");
+          if (impl->d_argmax_vals) ie_cuda_free(impl->d_argmax_vals);
+          if (impl->d_argmax_idx) ie_cuda_free(impl->d_argmax_idx);
+          free(impl->h_argmax_vals);
+          free(impl->h_argmax_idx);
+          impl->d_argmax_vals = NULL;
+          impl->d_argmax_idx = NULL;
+          impl->h_argmax_vals = NULL;
+          impl->h_argmax_idx = NULL;
+          impl->use_cuda_greedy_device = 0;
+        } else {
+          impl->argmax_blocks = blocks;
+        }
+      }
+    }
+
     if (!impl->use_cuda_full) {
       if (impl->d_x) ie_cuda_free(impl->d_x);
       if (impl->d_x1) ie_cuda_free(impl->d_x1);
@@ -3222,10 +3282,20 @@ int ie_gptoss_infer_create(const ie_device_t *dev_const, const ie_weights_t *w,
       if (impl->d_mlp_gate) ie_cuda_free(impl->d_mlp_gate);
       if (impl->d_mlp_up) ie_cuda_free(impl->d_mlp_up);
       if (impl->d_logits) ie_cuda_free(impl->d_logits);
+      if (impl->d_argmax_vals) ie_cuda_free(impl->d_argmax_vals);
+      if (impl->d_argmax_idx) ie_cuda_free(impl->d_argmax_idx);
+      free(impl->h_argmax_vals);
+      free(impl->h_argmax_idx);
       impl->d_x = impl->d_x1 = impl->d_x2 = NULL;
       impl->d_k = impl->d_v = NULL;
       impl->d_mlp_gate = impl->d_mlp_up = NULL;
       impl->d_logits = NULL;
+      impl->d_argmax_vals = NULL;
+      impl->d_argmax_idx = NULL;
+      impl->h_argmax_vals = NULL;
+      impl->h_argmax_idx = NULL;
+      impl->argmax_blocks = 0u;
+      impl->use_cuda_greedy_device = 0;
     }
 
     if (impl->use_cuda_full && impl->max_experts > 0u) {
@@ -3398,6 +3468,10 @@ void ie_gptoss_infer_destroy(ie_gptoss_infer_t *ctx) {
   if (impl->d_mlp_gate) ie_cuda_free(impl->d_mlp_gate);
   if (impl->d_mlp_up) ie_cuda_free(impl->d_mlp_up);
   if (impl->d_logits) ie_cuda_free(impl->d_logits);
+  if (impl->d_argmax_vals) ie_cuda_free(impl->d_argmax_vals);
+  if (impl->d_argmax_idx) ie_cuda_free(impl->d_argmax_idx);
+  free(impl->h_argmax_vals);
+  free(impl->h_argmax_idx);
   if (impl->d_router_logits) ie_cuda_free(impl->d_router_logits);
 
   if (impl->d_router_w_f32) {
@@ -3473,6 +3547,47 @@ int ie_gptoss_infer_step(ie_gptoss_infer_t *ctx, ie_kv_cache *kv, uint32_t token
 
   impl->pos = pos + 1u;
   return 0;
+}
+
+int ie_gptoss_infer_argmax_device(ie_gptoss_infer_t *ctx, uint32_t *out_id) {
+  if (!ctx || !out_id) return -1;
+#if defined(IE_CUDA_AVAILABLE)
+  struct ie_gptoss_infer_impl *impl = (struct ie_gptoss_infer_impl *)ctx;
+  if (!impl->use_cuda_greedy_device || !impl->d_logits) return -2;
+  if (impl->argmax_blocks == 0u ||
+      !impl->d_argmax_vals || !impl->d_argmax_idx || !impl->h_argmax_vals || !impl->h_argmax_idx)
+    return -3;
+
+  const size_t n = (size_t)impl->hp->vocab_size;
+  if (ie_cuda_argmax_f32_reduce(impl->d_logits, n, impl->d_argmax_vals, impl->d_argmax_idx) != 0) {
+    IE_LOGE("argmax_device: cuda argmax reduce failed");
+    return -4;
+  }
+  const size_t vals_bytes = impl->argmax_blocks * sizeof(float);
+  const size_t idx_bytes = impl->argmax_blocks * sizeof(uint32_t);
+  if (ie_cuda_memcpy(impl->h_argmax_vals, impl->d_argmax_vals, vals_bytes, IE_CUDA_COPY_D2H) != 0 ||
+      ie_cuda_memcpy(impl->h_argmax_idx, impl->d_argmax_idx, idx_bytes, IE_CUDA_COPY_D2H) != 0) {
+    IE_LOGE("argmax_device: cuda D2H copy failed");
+    return -5;
+  }
+
+  float maxv = -INFINITY;
+  uint32_t maxi = 0;
+  for (size_t i = 0; i < impl->argmax_blocks; ++i) {
+    const float v = impl->h_argmax_vals[i];
+    if (isnan(v)) continue;
+    if (v > maxv) {
+      maxv = v;
+      maxi = impl->h_argmax_idx[i];
+    }
+  }
+  *out_id = maxi;
+  return 0;
+#else
+  (void)ctx;
+  (void)out_id;
+  return -2;
+#endif
 }
 
 /* ------------------------------------------------------------------------- */

@@ -21,6 +21,7 @@
 #include <cstdlib>
 #include <cstdint>
 #include <cstring>
+#include <cmath>
 
 /* =============================================================================
  * Error handling (single TU ownership)
@@ -306,6 +307,47 @@ __global__ void ie_gemv_bf16_f32_kernel_rowblock(const uint16_t *W_bf16,
   }
 }
 
+__global__ void ie_argmax_f32_block_kernel(const float *x,
+                                          size_t n,
+                                          float *out_vals,
+                                          uint32_t *out_idx) {
+  const unsigned tid = (unsigned)threadIdx.x;
+  const size_t idx = (size_t)blockIdx.x * (size_t)blockDim.x + (size_t)tid;
+
+  __shared__ float s_val[256];
+  __shared__ uint32_t s_idx[256];
+
+  float v = -INFINITY;
+  uint32_t i = 0u;
+  if (idx < n) {
+    v = x[idx];
+    i = (uint32_t)idx;
+  }
+
+  s_val[tid] = v;
+  s_idx[tid] = i;
+  __syncthreads();
+
+  for (unsigned stride = blockDim.x / 2; stride > 0; stride >>= 1) {
+    if (tid < stride) {
+      const float v2 = s_val[tid + stride];
+      const uint32_t i2 = s_idx[tid + stride];
+      const float v1 = s_val[tid];
+      const uint32_t i1 = s_idx[tid];
+      if (v2 > v1 || (v2 == v1 && i2 < i1)) {
+        s_val[tid] = v2;
+        s_idx[tid] = i2;
+      }
+    }
+    __syncthreads();
+  }
+
+  if (tid == 0) {
+    out_vals[blockIdx.x] = s_val[0];
+    out_idx[blockIdx.x] = s_idx[0];
+  }
+}
+
 /* =============================================================================
  * Public C ABI
  * ========================================================================== */
@@ -550,6 +592,27 @@ extern "C" int ie_cuda_gemv_bf16_f32(const uint16_t *dW_bf16,
   const cudaError_t st = cudaGetLastError();
   if (st != cudaSuccess) {
     ie_cuda_set_last_error_cuda("ie_gemv_bf16_f32_kernel_rowblock", st);
+    return -2;
+  }
+  return 0;
+}
+
+extern "C" int ie_cuda_argmax_f32_reduce(const float *d_x,
+                                         size_t n,
+                                         float *d_out_vals,
+                                         uint32_t *d_out_idx) {
+  if (!d_x || !d_out_vals || !d_out_idx || n == 0) {
+    std::snprintf(g_last_err, sizeof(g_last_err), "%s", "ie_cuda_argmax_f32_reduce: invalid args");
+    return -1;
+  }
+
+  const unsigned block = 256;
+  const unsigned grid = (unsigned)((n + (size_t)block - 1) / (size_t)block);
+  ie_argmax_f32_block_kernel<<<grid, block>>>(d_x, n, d_out_vals, d_out_idx);
+
+  const cudaError_t st = cudaGetLastError();
+  if (st != cudaSuccess) {
+    ie_cuda_set_last_error_cuda("ie_argmax_f32_block_kernel", st);
     return -2;
   }
   return 0;

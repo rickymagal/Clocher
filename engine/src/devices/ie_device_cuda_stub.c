@@ -108,6 +108,17 @@ int ie_cuda_gemv_bf16_f32(const uint16_t *dW_bf16,
   return -1;
 }
 
+int ie_cuda_argmax_f32_reduce(const float *d_x,
+                              size_t n,
+                              float *d_out_vals,
+                              uint32_t *d_out_idx) {
+  (void)d_x;
+  (void)n;
+  (void)d_out_vals;
+  (void)d_out_idx;
+  return -1;
+}
+
 int ie_rmsnorm_cuda_f32(const float *x, const float *w, float *y,
                         size_t rows, size_t cols, float eps) {
   (void)x;

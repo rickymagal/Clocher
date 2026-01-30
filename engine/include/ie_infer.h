@@ -107,6 +107,16 @@ int ie_gptoss_infer_step(ie_gptoss_infer_t *ctx,
                          float *out_logits);
 
 /**
+ * @brief Compute greedy argmax directly on the device (CUDA full path only).
+ *
+ * @param ctx     Inference context.
+ * @param out_id  Receives the argmax token id on success.
+ *
+ * @return 0 on success; non-zero on failure or if unavailable.
+ */
+int ie_gptoss_infer_argmax_device(ie_gptoss_infer_t *ctx, uint32_t *out_id);
+
+/**
  * @brief Get the current position (number of tokens already consumed).
  *
  * @details

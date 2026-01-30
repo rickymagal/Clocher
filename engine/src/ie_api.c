@@ -1110,21 +1110,34 @@ ie_status_t ie_engine_generate_ex(const ie_engine_t *e,
 
   size_t produced = 0;
   double ttft_s = 0.0;
+  const int use_cuda_greedy_device =
+      (e->sample_cfg.kind == IE_SAMPLE_GREEDY) && (getenv("IE_CUDA_GREEDY_DEVICE") != NULL);
 
   for (; produced < max_new; ++produced) {
     uint32_t next = 0;
 
-    rc = ie_sample_next(e->logits,
-                        e->logits_len,
-                        &e->sample_cfg,
-                        (ie_rng_t *)&e->rng,
-                        e->scratch_idx,
-                        e->scratch_prob,
-                        e->scratch_cap,
-                        &next);
-    if (rc != 0) {
-      ie_log_error("ie_engine_generate_ex: sample_next failed at step=%zu (rc=%d). Stopping early.", produced, rc);
-      break;
+    if (use_cuda_greedy_device) {
+      rc = ie_gptoss_infer_argmax_device(e->infer, &next);
+      if (rc != 0) {
+        ie_log_error("ie_engine_generate_ex: argmax_device failed at step=%zu (rc=%d).", produced, rc);
+        ie_kv_free_layers(kv_layers, (int)e->hp.n_layers);
+        free(kv_layers);
+        free(prompt_ids);
+        return IE_ERR_INTERNAL;
+      }
+    } else {
+      rc = ie_sample_next(e->logits,
+                          e->logits_len,
+                          &e->sample_cfg,
+                          (ie_rng_t *)&e->rng,
+                          e->scratch_idx,
+                          e->scratch_prob,
+                          e->scratch_cap,
+                          &next);
+      if (rc != 0) {
+        ie_log_error("ie_engine_generate_ex: sample_next failed at step=%zu (rc=%d). Stopping early.", produced, rc);
+        break;
+      }
     }
 
     out_tokens[produced] = (int)next;
