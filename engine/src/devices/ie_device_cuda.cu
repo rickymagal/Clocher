@@ -42,6 +42,27 @@ static void ie_cuda_set_last_error_cuda(const char *what, cudaError_t st) {
                 msg ? msg : "Unknown");
 }
 
+static int ie_cuda_sync_enabled(void) {
+  static int inited = 0;
+  static int enabled = 0;
+  if (!inited) {
+    const char *s = std::getenv("IE_CUDA_SYNC");
+    enabled = (s && s[0] && s[0] != '0') ? 1 : 0;
+    inited = 1;
+  }
+  return enabled;
+}
+
+static int ie_cuda_sync_if_needed(const char *what) {
+  if (!ie_cuda_sync_enabled()) return 0;
+  const cudaError_t st = cudaDeviceSynchronize();
+  if (st != cudaSuccess) {
+    ie_cuda_set_last_error_cuda(what ? what : "cudaDeviceSynchronize", st);
+    return -1;
+  }
+  return 0;
+}
+
 /**
  * @brief Set the last error string directly (C ABI).
  *
@@ -450,11 +471,7 @@ extern "C" int ie_cuda_gemv_f32(const float *dW,
     return -2;
   }
 
-  st = cudaDeviceSynchronize();
-  if (st != cudaSuccess) {
-    ie_cuda_set_last_error_cuda("cudaDeviceSynchronize", st);
-    return -3;
-  }
+  if (ie_cuda_sync_if_needed("cudaDeviceSynchronize") != 0) return -3;
 
   ie_cuda_clear_last_error();
   return 0;
@@ -501,11 +518,7 @@ extern "C" int ie_cuda_gemv_q4_0_f32_ex(const uint8_t *dW_q4,
     return -2;
   }
 
-  st = cudaDeviceSynchronize();
-  if (st != cudaSuccess) {
-    ie_cuda_set_last_error_cuda("cudaDeviceSynchronize", st);
-    return -3;
-  }
+  if (ie_cuda_sync_if_needed("cudaDeviceSynchronize") != 0) return -3;
 
   ie_cuda_clear_last_error();
   return 0;
