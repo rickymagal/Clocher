@@ -794,6 +794,21 @@ static int ie_trace_bf16_enabled_(void) {
   return cached;
 }
 
+static int ie_q4_u8_scale_fmt_(void) {
+  static int cached = -1;
+  if (cached < 0) {
+    const char *s = getenv("IE_Q4_U8_SCALE_FMT");
+    if (!s || !*s) {
+      cached = 0; /* default: log2-u8-q3 */
+    } else if (s[0] == '1' || s[0] == 'f' || s[0] == 'F') {
+      cached = 1; /* fp8-e4m3 */
+    } else {
+      cached = 0;
+    }
+  }
+  return cached;
+}
+
 static int ie_check_finite_f32_(const float *v, size_t n, const char *tag,
                                 uint32_t layer, uint32_t pos) {
   if (!v || !tag || n == 0) return 0;
@@ -1884,8 +1899,9 @@ static int ie_forward_one_token(struct ie_gptoss_infer_impl *impl, ie_kv_cache *
 
         uint32_t idx[IE_GPTOSS_MOE_TOPK_DEFAULT] = {0, 0, 0, 0};
         float val[IE_GPTOSS_MOE_TOPK_DEFAULT] = {-INFINITY, -INFINITY, -INFINITY, -INFINITY};
-        const int gu_scale_fmt = (M->gate_up_scale_bytes == 1u) ? 1 : 0;
-        const int dn_scale_fmt = (M->down_scale_bytes == 1u) ? 1 : 0;
+        const int u8_fmt = ie_q4_u8_scale_fmt_();
+        const int gu_scale_fmt = (M->gate_up_scale_bytes == 1u) ? u8_fmt : 0;
+        const int dn_scale_fmt = (M->down_scale_bytes == 1u) ? u8_fmt : 0;
 
         for (uint32_t e = 0; e < n_exp; ++e) {
           const float v = impl->router_logits[e];
@@ -2226,8 +2242,9 @@ static int ie_forward_one_token(struct ie_gptoss_infer_impl *impl, ie_kv_cache *
 
       uint32_t idx[IE_GPTOSS_MOE_TOPK_DEFAULT] = {0, 0, 0, 0};
       float val[IE_GPTOSS_MOE_TOPK_DEFAULT] = {-INFINITY, -INFINITY, -INFINITY, -INFINITY};
-      const int gu_scale_fmt = (M->gate_up_scale_bytes == 1u) ? 1 : 0;
-      const int dn_scale_fmt = (M->down_scale_bytes == 1u) ? 1 : 0;
+      const int u8_fmt = ie_q4_u8_scale_fmt_();
+      const int gu_scale_fmt = (M->gate_up_scale_bytes == 1u) ? u8_fmt : 0;
+      const int dn_scale_fmt = (M->down_scale_bytes == 1u) ? u8_fmt : 0;
 
       for (uint32_t e = 0; e < n_exp; ++e) {
         const float v = impl->router_logits[e];
