@@ -54,9 +54,46 @@ static int ie_cuda_sync_enabled(void) {
   return enabled;
 }
 
+static int ie_cuda_stream_enabled(void) {
+  static int inited = 0;
+  static int enabled = 0;
+  if (!inited) {
+    const char *s = std::getenv("IE_CUDA_STREAM");
+    enabled = (s && s[0] && s[0] != '0') ? 1 : 0;
+    inited = 1;
+  }
+  return enabled;
+}
+
+static cudaStream_t ie_cuda_get_stream_internal(void) {
+  static int inited = 0;
+  static cudaStream_t stream = nullptr;
+  if (!inited) {
+    if (ie_cuda_stream_enabled()) {
+      const cudaError_t st = cudaStreamCreateWithFlags(&stream, cudaStreamNonBlocking);
+      if (st != cudaSuccess) {
+        ie_cuda_set_last_error_cuda("cudaStreamCreateWithFlags", st);
+        stream = nullptr;
+      }
+    }
+    inited = 1;
+  }
+  return stream;
+}
+
 static int ie_cuda_sync_if_needed(const char *what) {
   if (!ie_cuda_sync_enabled()) return 0;
-  const cudaError_t st = cudaDeviceSynchronize();
+  cudaError_t st = cudaSuccess;
+  if (ie_cuda_stream_enabled()) {
+    cudaStream_t s = ie_cuda_get_stream_internal();
+    if (s) {
+      st = cudaStreamSynchronize(s);
+    } else {
+      st = cudaDeviceSynchronize();
+    }
+  } else {
+    st = cudaDeviceSynchronize();
+  }
   if (st != cudaSuccess) {
     ie_cuda_set_last_error_cuda(what ? what : "cudaDeviceSynchronize", st);
     return -1;
@@ -94,6 +131,22 @@ extern "C" void ie_cuda_clear_last_error(void) {
  */
 extern "C" const char *ie_cuda_last_error_string(void) {
   return g_last_err;
+}
+
+extern "C" void *ie_cuda_get_stream(void) {
+  return (void *)ie_cuda_get_stream_internal();
+}
+
+extern "C" int ie_cuda_stream_sync(void) {
+  cudaStream_t s = ie_cuda_get_stream_internal();
+  if (!s) return 0;
+  const cudaError_t st = cudaStreamSynchronize(s);
+  if (st != cudaSuccess) {
+    ie_cuda_set_last_error_cuda("cudaStreamSynchronize", st);
+    return -1;
+  }
+  ie_cuda_clear_last_error();
+  return 0;
 }
 
 /**
@@ -470,7 +523,16 @@ extern "C" int ie_cuda_memcpy(void *dst, const void *src, size_t nbytes, ie_cuda
     case IE_CUDA_COPY_DEFAULT: default: ck = cudaMemcpyDefault; break;
   }
 
-  const cudaError_t st = cudaMemcpy(dst, src, nbytes, ck);
+  cudaError_t st = cudaSuccess;
+  if (ie_cuda_stream_enabled()) {
+    cudaStream_t s = ie_cuda_get_stream_internal();
+    st = cudaMemcpyAsync(dst, src, nbytes, ck, s);
+    if (st == cudaSuccess && kind == IE_CUDA_COPY_D2H) {
+      st = cudaStreamSynchronize(s);
+    }
+  } else {
+    st = cudaMemcpy(dst, src, nbytes, ck);
+  }
   if (st != cudaSuccess) {
     ie_cuda_set_last_error_cuda("cudaMemcpy", st);
     return -1;

@@ -7,6 +7,8 @@
  * @brief Simple CUDA elementwise kernels (FP32).
  */
 
+#include "ie_device_cuda.h"
+
 #include <cuda_runtime.h>
 #include <math.h>
 #include <stddef.h>
@@ -85,7 +87,8 @@ extern "C" int ie_cuda_zero_f32(float *y, size_t n) {
   const int threads = 256;
   const dim3 block((unsigned int)threads, 1u, 1u);
   const dim3 grid((unsigned int)((n + (size_t)threads - 1u) / (size_t)threads), 1u, 1u);
-  ie_zero_f32_kernel<<<grid, block, 0, 0>>>(y, n);
+  cudaStream_t s = (cudaStream_t)ie_cuda_get_stream();
+  ie_zero_f32_kernel<<<grid, block, 0, s ? s : 0>>>(y, n);
   cudaError_t e = cudaGetLastError();
   return (e == cudaSuccess) ? 0 : -2;
 }
@@ -95,7 +98,8 @@ extern "C" int ie_cuda_add_inplace_f32(float *y, const float *x, size_t n) {
   const int threads = 256;
   const dim3 block((unsigned int)threads, 1u, 1u);
   const dim3 grid((unsigned int)((n + (size_t)threads - 1u) / (size_t)threads), 1u, 1u);
-  ie_add_inplace_f32_kernel<<<grid, block, 0, 0>>>(y, x, n);
+  cudaStream_t s = (cudaStream_t)ie_cuda_get_stream();
+  ie_add_inplace_f32_kernel<<<grid, block, 0, s ? s : 0>>>(y, x, n);
   cudaError_t e = cudaGetLastError();
   return (e == cudaSuccess) ? 0 : -2;
 }
@@ -105,7 +109,8 @@ extern "C" int ie_cuda_add_scaled_inplace_f32(float *y, const float *x, float sc
   const int threads = 256;
   const dim3 block((unsigned int)threads, 1u, 1u);
   const dim3 grid((unsigned int)((n + (size_t)threads - 1u) / (size_t)threads), 1u, 1u);
-  ie_add_scaled_inplace_f32_kernel<<<grid, block, 0, 0>>>(y, x, scale, n);
+  cudaStream_t s = (cudaStream_t)ie_cuda_get_stream();
+  ie_add_scaled_inplace_f32_kernel<<<grid, block, 0, s ? s : 0>>>(y, x, scale, n);
   cudaError_t e = cudaGetLastError();
   return (e == cudaSuccess) ? 0 : -2;
 }
@@ -115,7 +120,8 @@ extern "C" int ie_cuda_silu_mul_f32(const float *gate, const float *up, float *o
   const int threads = 256;
   const dim3 block((unsigned int)threads, 1u, 1u);
   const dim3 grid((unsigned int)((n + (size_t)threads - 1u) / (size_t)threads), 1u, 1u);
-  ie_silu_mul_f32_kernel<<<grid, block, 0, 0>>>(gate, up, out, n);
+  cudaStream_t s = (cudaStream_t)ie_cuda_get_stream();
+  ie_silu_mul_f32_kernel<<<grid, block, 0, s ? s : 0>>>(gate, up, out, n);
   cudaError_t e = cudaGetLastError();
   return (e == cudaSuccess) ? 0 : -2;
 }
@@ -125,7 +131,8 @@ extern "C" int ie_cuda_fix_nonfinite_f32(float *y, size_t n) {
   const int threads = 256;
   const dim3 block((unsigned int)threads, 1u, 1u);
   const dim3 grid((unsigned int)((n + (size_t)threads - 1u) / (size_t)threads), 1u, 1u);
-  ie_fix_nonfinite_f32_kernel<<<grid, block, 0, 0>>>(y, n);
+  cudaStream_t s = (cudaStream_t)ie_cuda_get_stream();
+  ie_fix_nonfinite_f32_kernel<<<grid, block, 0, s ? s : 0>>>(y, n);
   cudaError_t e = cudaGetLastError();
   return (e == cudaSuccess) ? 0 : -2;
 }
@@ -142,7 +149,8 @@ extern "C" int ie_cuda_rope_f32(float *q, float *k,
   const int threads = 256;
   const dim3 block((unsigned int)threads, 1u, 1u);
   const dim3 grid((unsigned int)((total + (size_t)threads - 1u) / (size_t)threads), 1u, 1u);
-  ie_rope_f32_kernel<<<grid, block, 0, 0>>>(q, k, heads, head_dim, pos_f, theta);
+  cudaStream_t s = (cudaStream_t)ie_cuda_get_stream();
+  ie_rope_f32_kernel<<<grid, block, 0, s ? s : 0>>>(q, k, heads, head_dim, pos_f, theta);
   cudaError_t e = cudaGetLastError();
   return (e == cudaSuccess) ? 0 : -4;
 }

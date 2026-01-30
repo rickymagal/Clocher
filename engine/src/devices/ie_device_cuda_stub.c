@@ -38,6 +38,14 @@ int ie_cuda_memcpy(void *dst, const void *src, size_t nbytes, ie_cuda_copy_kind_
   return -1;
 }
 
+void *ie_cuda_get_stream(void) {
+  return NULL;
+}
+
+int ie_cuda_stream_sync(void) {
+  return -1;
+}
+
 int ie_cuda_gemv_f32(const float *dW,
                      const float *dx,
                      float *dy,

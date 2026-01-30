@@ -1,4 +1,5 @@
 #include "ie_kernels_cuda.h"
+#include "ie_device_cuda.h"
 
 #include <cuda_runtime.h>
 
@@ -94,7 +95,8 @@ int ie_cuda_launch_gemv_rowwise_f32(
   const int threads = 256;
   const int blocks = (rows + threads - 1) / threads;
 
-  gemv_rowwise_f32_kernel<float><<<blocks, threads>>>(y, w, x, rows, cols);
+  cudaStream_t s = (cudaStream_t)ie_cuda_get_stream();
+  gemv_rowwise_f32_kernel<float><<<blocks, threads, 0, s ? s : 0>>>(y, w, x, rows, cols);
   CUDA_GUARD(cudaGetLastError());
 
   ie_cuda_clear_last_error();
@@ -160,7 +162,8 @@ int ie_cuda_launch_gemv_rowwise_int8(
   const int threads = 256;
   const int blocks = (rows + threads - 1) / threads;
 
-  gemv_rowwise_int8_kernel<<<blocks, threads>>>(y, w, x, rows, cols, w_scale, x_scale);
+  cudaStream_t s = (cudaStream_t)ie_cuda_get_stream();
+  gemv_rowwise_int8_kernel<<<blocks, threads, 0, s ? s : 0>>>(y, w, x, rows, cols, w_scale, x_scale);
   CUDA_GUARD(cudaGetLastError());
 
   ie_cuda_clear_last_error();
@@ -246,7 +249,8 @@ int ie_cuda_launch_gemv_rowwise_int4(
   const int threads = 256;
   const int blocks = (rows + threads - 1) / threads;
 
-  gemv_rowwise_int4_kernel<<<blocks, threads>>>(y, w, x, rows, cols, w_scale, x_scale);
+  cudaStream_t s = (cudaStream_t)ie_cuda_get_stream();
+  gemv_rowwise_int4_kernel<<<blocks, threads, 0, s ? s : 0>>>(y, w, x, rows, cols, w_scale, x_scale);
   CUDA_GUARD(cudaGetLastError());
 
   ie_cuda_clear_last_error();
@@ -312,7 +316,8 @@ int ie_cuda_pack_w_blockedk_f32(
   const int total = rows * cols;
   const int blocks = (total + threads - 1) / threads;
 
-  pack_w_blockedk_f32_kernel<<<blocks, threads>>>(out, w, rows, cols, block_k);
+  cudaStream_t s = (cudaStream_t)ie_cuda_get_stream();
+  pack_w_blockedk_f32_kernel<<<blocks, threads, 0, s ? s : 0>>>(out, w, rows, cols, block_k);
   CUDA_GUARD(cudaGetLastError());
 
   ie_cuda_clear_last_error();
@@ -435,7 +440,8 @@ int ie_cuda_touch_bytes(
 
   const int grid = blocks_per_sm * sm_count;
 
-  ie_cuda_touch_kernel<<<grid, threads>>>(g_touch_buf, g_touch_buf_cap, stride_bytes, tokens, g_touch_acc);
+  cudaStream_t s = (cudaStream_t)ie_cuda_get_stream();
+  ie_cuda_touch_kernel<<<grid, threads, 0, s ? s : 0>>>(g_touch_buf, g_touch_buf_cap, stride_bytes, tokens, g_touch_acc);
   CUDA_GUARD(cudaGetLastError());
   CUDA_GUARD(cudaDeviceSynchronize());
 

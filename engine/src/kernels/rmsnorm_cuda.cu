@@ -13,6 +13,8 @@
  * Layout: x and y are [rows, cols] row-major. w is [cols].
  */
 
+#include "ie_device_cuda.h"
+
 #include <cuda_runtime.h>
 #include <math.h>
 #include <stddef.h>
@@ -77,7 +79,8 @@ extern "C" int ie_rmsnorm_cuda_f32(const float *x, const float *w, float *y,
   dim3 grid((unsigned int)rows, 1u, 1u);
   dim3 block((unsigned int)threads, 1u, 1u);
 
-  ie_rmsnorm_f32_kernel<<<grid, block, 0, 0>>>(x, w, y, rows, cols, eps);
+  cudaStream_t s = (cudaStream_t)ie_cuda_get_stream();
+  ie_rmsnorm_f32_kernel<<<grid, block, 0, s ? s : 0>>>(x, w, y, rows, cols, eps);
   cudaError_t e = cudaGetLastError();
   if (e != cudaSuccess) return -2;
   return 0;

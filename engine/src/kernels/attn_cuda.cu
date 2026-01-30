@@ -17,6 +17,8 @@
  * This is a correctness-first implementation for a single-step decode attention.
  */
 
+#include "ie_device_cuda.h"
+
 #include <cuda_runtime.h>
 #include <math.h>
 #include <stddef.h>
@@ -147,7 +149,8 @@ extern "C" int ie_attn_cuda_causal_f32(const float *Q,
   dim3 grid((unsigned int)heads, 1u, 1u);
   dim3 block((unsigned int)threads, 1u, 1u);
 
-  ie_attn_causal_f32_kernel<<<grid, block, 0, 0>>>(Q, K, V, seq_len, heads, head_dim, inv_sqrt_d, out);
+  cudaStream_t s = (cudaStream_t)ie_cuda_get_stream();
+  ie_attn_causal_f32_kernel<<<grid, block, 0, s ? s : 0>>>(Q, K, V, seq_len, heads, head_dim, inv_sqrt_d, out);
   cudaError_t e = cudaGetLastError();
   if (e != cudaSuccess) return -2;
   return 0;
@@ -230,8 +233,9 @@ extern "C" int ie_attn_cuda_causal_gqa_f32(const float *Q,
   dim3 grid((unsigned int)n_heads, 1u, 1u);
   dim3 block((unsigned int)threads, 1u, 1u);
 
-  ie_attn_causal_gqa_f32_kernel<<<grid, block, 0, 0>>>(Q, K, V, seq_len, n_heads, n_kv_heads,
-                                                      head_dim, inv_sqrt_d, out);
+  cudaStream_t s = (cudaStream_t)ie_cuda_get_stream();
+  ie_attn_causal_gqa_f32_kernel<<<grid, block, 0, s ? s : 0>>>(Q, K, V, seq_len, n_heads, n_kv_heads,
+                                                              head_dim, inv_sqrt_d, out);
   cudaError_t e = cudaGetLastError();
   if (e != cudaSuccess) return -2;
   return 0;

@@ -18,6 +18,8 @@
  * This is correctness-first; caller supplies device buffers tmp_gate/tmp_up.
  */
 
+#include "ie_device_cuda.h"
+
 #include <cuda_runtime.h>
 #include <math.h>
 #include <stddef.h>
@@ -55,11 +57,12 @@ extern "C" int ie_mlp_cuda_swiglu_f32(const float *W_gate, const float *W_up, co
   if (in_dim == 0 || hidden_dim == 0 || out_dim == 0) return -1;
 
   const int threads = 256;
+  cudaStream_t s = (cudaStream_t)ie_cuda_get_stream();
 
   {
     dim3 grid((unsigned int)((hidden_dim + (size_t)threads - 1u) / (size_t)threads), 1u, 1u);
     dim3 block((unsigned int)threads, 1u, 1u);
-    ie_matvec_f32_kernel<<<grid, block, 0, 0>>>(W_gate, x, b_gate, tmp_gate, hidden_dim, in_dim);
+    ie_matvec_f32_kernel<<<grid, block, 0, s ? s : 0>>>(W_gate, x, b_gate, tmp_gate, hidden_dim, in_dim);
     cudaError_t e = cudaGetLastError();
     if (e != cudaSuccess) return -2;
   }
@@ -67,7 +70,7 @@ extern "C" int ie_mlp_cuda_swiglu_f32(const float *W_gate, const float *W_up, co
   {
     dim3 grid((unsigned int)((hidden_dim + (size_t)threads - 1u) / (size_t)threads), 1u, 1u);
     dim3 block((unsigned int)threads, 1u, 1u);
-    ie_matvec_f32_kernel<<<grid, block, 0, 0>>>(W_up, x, b_up, tmp_up, hidden_dim, in_dim);
+    ie_matvec_f32_kernel<<<grid, block, 0, s ? s : 0>>>(W_up, x, b_up, tmp_up, hidden_dim, in_dim);
     cudaError_t e = cudaGetLastError();
     if (e != cudaSuccess) return -3;
   }
@@ -75,7 +78,7 @@ extern "C" int ie_mlp_cuda_swiglu_f32(const float *W_gate, const float *W_up, co
   {
     dim3 grid((unsigned int)((hidden_dim + (size_t)threads - 1u) / (size_t)threads), 1u, 1u);
     dim3 block((unsigned int)threads, 1u, 1u);
-    ie_swiglu_fuse_kernel<<<grid, block, 0, 0>>>(tmp_gate, tmp_up, tmp_gate, hidden_dim);
+    ie_swiglu_fuse_kernel<<<grid, block, 0, s ? s : 0>>>(tmp_gate, tmp_up, tmp_gate, hidden_dim);
     cudaError_t e = cudaGetLastError();
     if (e != cudaSuccess) return -4;
   }
@@ -83,7 +86,7 @@ extern "C" int ie_mlp_cuda_swiglu_f32(const float *W_gate, const float *W_up, co
   {
     dim3 grid((unsigned int)((out_dim + (size_t)threads - 1u) / (size_t)threads), 1u, 1u);
     dim3 block((unsigned int)threads, 1u, 1u);
-    ie_matvec_f32_kernel<<<grid, block, 0, 0>>>(W_down, tmp_gate, b_down, out, out_dim, hidden_dim);
+    ie_matvec_f32_kernel<<<grid, block, 0, s ? s : 0>>>(W_down, tmp_gate, b_down, out, out_dim, hidden_dim);
     cudaError_t e = cudaGetLastError();
     if (e != cudaSuccess) return -5;
   }

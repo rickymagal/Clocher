@@ -87,6 +87,20 @@ void ie_cuda_free(void *p);
 int ie_cuda_memcpy(void *dst, const void *src, size_t nbytes, ie_cuda_copy_kind_t kind);
 
 /**
+ * @brief Return the CUDA stream used by the wrapper (or NULL for default stream).
+ *
+ * @return Opaque stream handle (cudaStream_t) cast to void*.
+ */
+void *ie_cuda_get_stream(void);
+
+/**
+ * @brief Synchronize the CUDA stream if enabled.
+ *
+ * @return 0 on success, negative on failure.
+ */
+int ie_cuda_stream_sync(void);
+
+/**
  * @brief Launch a GEMV FP32 kernel: y = W*x + bias (bias optional).
  *
  * All pointers must be device pointers. bias may be NULL.
