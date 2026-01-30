@@ -1860,6 +1860,9 @@ static int ie_forward_one_token(struct ie_gptoss_infer_impl *impl, ie_kv_cache *
           IE_LOGE("cuda_full: kv store failed layer=%u pos=%u", (unsigned)l, (unsigned)pos);
           return -17;
         }
+        /* KV reuse instrumentation: match CPU path for kv_hits/kv_misses. */
+        ie_kv_add_hits((uint64_t)pos);
+        ie_kv_add_misses(1u);
       }
 
       {
