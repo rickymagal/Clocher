@@ -185,6 +185,7 @@ __device__ __forceinline__ int8_t ie_s4_from_u4_dev(uint8_t u) {
 __global__ void ie_gemv_q4_0_f32_kernel_rowblock(const uint8_t *W_blocks,
                                                 const uint8_t *W_scales,
                                                 size_t scale_bytes,
+                                                int scale_fmt,
                                                 const float *x,
                                                 float *y,
                                                 size_t rows,
@@ -193,6 +194,7 @@ __global__ void ie_gemv_q4_0_f32_kernel_rowblock(const uint8_t *W_blocks,
   const size_t r = (size_t)blockIdx.x;
   if (r >= rows) return;
   if (scale_bytes != 1u && scale_bytes != 2u) return;
+  if (scale_fmt != 0 && scale_fmt != 1) return;
 
   const size_t blocks_per_row = (cols + 31u) / 32u;
   const size_t row_w_bytes = blocks_per_row * 16u;
@@ -209,7 +211,8 @@ __global__ void ie_gemv_q4_0_f32_kernel_rowblock(const uint8_t *W_blocks,
       const uint16_t s16 = (uint16_t)sp[0] | ((uint16_t)sp[1] << 8);
       s = ie_bf16_to_f32_u16_dev(s16);
     } else {
-      s = ie_fp8_e4m3_to_f32_dev(srow[b]);
+      s = (scale_fmt == 1) ? ie_fp8_e4m3_to_f32_dev(srow[b])
+                            : ie_log2_u8_q3_to_f32_dev(srow[b]);
     }
 
     const uint8_t *blk = wrow + b * 16u;
@@ -460,14 +463,15 @@ extern "C" int ie_cuda_gemv_f32(const float *dW,
 /**
  * @brief Launch a Q4_0 GEMV kernel and synchronize.
  */
-extern "C" int ie_cuda_gemv_q4_0_f32(const uint8_t *dW_q4,
-                                    const uint8_t *dW_scales,
-                                    size_t scale_bytes,
-                                    const float *dx,
-                                    float *dy,
-                                    size_t rows,
-                                    size_t cols,
-                                    const uint16_t *dbias_bf16) {
+extern "C" int ie_cuda_gemv_q4_0_f32_ex(const uint8_t *dW_q4,
+                                       const uint8_t *dW_scales,
+                                       size_t scale_bytes,
+                                       int scale_fmt,
+                                       const float *dx,
+                                       float *dy,
+                                       size_t rows,
+                                       size_t cols,
+                                       const uint16_t *dbias_bf16) {
   static int logged = 0;
   if (!dW_q4 || !dW_scales || !dx || !dy || rows == 0 || cols == 0) {
     std::snprintf(g_last_err, sizeof(g_last_err), "%s", "ie_cuda_gemv_q4_0_f32: invalid args");
@@ -481,14 +485,14 @@ extern "C" int ie_cuda_gemv_q4_0_f32(const uint8_t *dW_q4,
     const char *log = std::getenv("IE_CUDA_LOG_KERNEL");
     if (log && log[0] != '\0' && log[0] != '0') {
       std::fprintf(stderr,
-                   "info: cuda: q4 gemv kernel launch (rows=%zu cols=%zu scale_bytes=%zu)\n",
-                   rows, cols, scale_bytes);
+                   "info: cuda: q4 gemv kernel launch (rows=%zu cols=%zu scale_bytes=%zu scale_fmt=%d)\n",
+                   rows, cols, scale_bytes, scale_fmt);
       std::fflush(stderr);
     }
     logged = 1;
   }
 
-  ie_gemv_q4_0_f32_kernel_rowblock<<<grid, block>>>(dW_q4, dW_scales, scale_bytes,
+  ie_gemv_q4_0_f32_kernel_rowblock<<<grid, block>>>(dW_q4, dW_scales, scale_bytes, scale_fmt,
                                                    dx, dy, rows, cols, dbias_bf16);
 
   cudaError_t st = cudaGetLastError();
@@ -505,6 +509,17 @@ extern "C" int ie_cuda_gemv_q4_0_f32(const uint8_t *dW_q4,
 
   ie_cuda_clear_last_error();
   return 0;
+}
+
+extern "C" int ie_cuda_gemv_q4_0_f32(const uint8_t *dW_q4,
+                                    const uint8_t *dW_scales,
+                                    size_t scale_bytes,
+                                    const float *dx,
+                                    float *dy,
+                                    size_t rows,
+                                    size_t cols,
+                                    const uint16_t *dbias_bf16) {
+  return ie_cuda_gemv_q4_0_f32_ex(dW_q4, dW_scales, scale_bytes, 0, dx, dy, rows, cols, dbias_bf16);
 }
 
 extern "C" int ie_cuda_gemv_bf16_f32(const uint16_t *dW_bf16,

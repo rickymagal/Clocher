@@ -114,6 +114,32 @@ int ie_cuda_gemv_f32(const float *dW,
  * @param dW_q4 Device pointer to packed Q4_0 weights.
  * @param dW_scales Device pointer to per-block scales.
  * @param scale_bytes Bytes per scale (1 or 2).
+ * @param scale_fmt Scale encoding when scale_bytes==1 (0=log2(u8,q3), 1=fp8 e4m3).
+ * @param dx Device pointer to input vector (FP32).
+ * @param dy Device pointer to output vector (FP32).
+ * @param rows Rows.
+ * @param cols Cols (multiple of 32).
+ * @param dbias_bf16 Optional device pointer to BF16 bias (rows) or NULL.
+ * @return 0 on success, negative on failure.
+ */
+int ie_cuda_gemv_q4_0_f32_ex(const uint8_t *dW_q4,
+                             const uint8_t *dW_scales,
+                             size_t scale_bytes,
+                             int scale_fmt,
+                             const float *dx,
+                             float *dy,
+                             size_t rows,
+                             size_t cols,
+                             const uint16_t *dbias_bf16);
+
+/**
+ * @brief Launch a GEMV Q4_0 kernel: y = dequant(Wq4) * x (+ optional BF16 bias).
+ *
+ * All pointers must be device pointers. bias may be NULL.
+ *
+ * @param dW_q4 Device pointer to packed Q4_0 weights.
+ * @param dW_scales Device pointer to per-block scales.
+ * @param scale_bytes Bytes per scale (1 or 2).
  * @param dx Device pointer to input vector (FP32).
  * @param dy Device pointer to output vector (FP32).
  * @param rows Rows.

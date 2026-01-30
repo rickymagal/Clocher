@@ -141,6 +141,26 @@ int ie_gemv_bf16_f32(const uint16_t *W_bf16, const float *x, float *y,
  * @param W_q4        Q4 blocks (row-major).
  * @param W_scales    Q4 scales (row-major, BF16 or FP8).
  * @param scale_bytes Bytes per scale element (1 or 2).
+ * @param scale_fmt   Scale encoding when scale_bytes==1 (0=log2(u8,q3), 1=fp8 e4m3).
+ * @param x           FP32 input vector.
+ * @param y           FP32 output vector.
+ * @param rows        Rows.
+ * @param cols        Cols.
+ * @param bias_bf16   Optional BF16 bias or NULL.
+ * @return 0 on success, non-zero on invalid args.
+ */
+int ie_gemv_q4_0_f32_ex(const uint8_t *W_q4, const uint8_t *W_scales,
+                        size_t scale_bytes, int scale_fmt,
+                        const float *x, float *y,
+                        size_t rows, size_t cols,
+                        const uint16_t *bias_bf16);
+
+/**
+ * @brief GEMV with Q4_0 weights and FP32 activations.
+ *
+ * @param W_q4        Q4 blocks (row-major).
+ * @param W_scales    Q4 scales (row-major, BF16 or FP8).
+ * @param scale_bytes Bytes per scale element (1 or 2).
  * @param x           FP32 input vector.
  * @param y           FP32 output vector.
  * @param rows        Rows.

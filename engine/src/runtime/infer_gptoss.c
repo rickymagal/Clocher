@@ -980,13 +980,27 @@ static int ie_gemv_q4_0_f32_dispatch(struct ie_gptoss_infer_impl *impl,
   return ie_gemv_q4_0_f32(w_q4, w_scales, scale_bytes, x, y, rows, cols, bias_bf16);
 }
 
+static int ie_gemv_q4_0_f32_dispatch_ex(struct ie_gptoss_infer_impl *impl,
+                                       const uint8_t *w_q4, const uint8_t *w_scales,
+                                       size_t scale_bytes, int scale_fmt,
+                                       const float *x, float *y,
+                                       size_t rows, size_t cols, const uint16_t *bias_bf16) {
+  if (impl && impl->dev) {
+    return ie_device_gemv_q4_0_f32(impl->dev, w_q4, w_scales, scale_bytes,
+                                   x, y, rows, cols, bias_bf16);
+  }
+  return ie_gemv_q4_0_f32_ex(w_q4, w_scales, scale_bytes, scale_fmt, x, y, rows, cols, bias_bf16);
+}
+
 #if defined(IE_CUDA_AVAILABLE)
-static int ie_gemv_q4_0_f32_device(struct ie_gptoss_infer_impl *impl,
-                                  const uint8_t *w_q4, const uint8_t *w_scales,
-                                  size_t scale_bytes, const float *dx, float *dy,
-                                  size_t rows, size_t cols, const uint16_t *bias_bf16) {
+static int ie_gemv_q4_0_f32_device_ex(struct ie_gptoss_infer_impl *impl,
+                                     const uint8_t *w_q4, const uint8_t *w_scales,
+                                     size_t scale_bytes, int scale_fmt,
+                                     const float *dx, float *dy,
+                                     size_t rows, size_t cols, const uint16_t *bias_bf16) {
   if (!impl || !impl->dev || !w_q4 || !w_scales || !dx || !dy || rows == 0 || cols == 0) return -1;
   if (scale_bytes != 1u && scale_bytes != 2u) return -2;
+  if (scale_fmt != 0 && scale_fmt != 1) return -2;
 
   const size_t blocks_per_row = (cols + 31u) / 32u;
   const size_t row_w_bytes = blocks_per_row * 16u;
@@ -1024,7 +1038,7 @@ static int ie_gemv_q4_0_f32_device(struct ie_gptoss_infer_impl *impl,
       }
       dbias = (const uint16_t *)tmpB;
     }
-    const int rc = ie_cuda_gemv_q4_0_f32(tmpW, tmpS, scale_bytes, dx, dy, rows, cols, dbias);
+    const int rc = ie_cuda_gemv_q4_0_f32_ex(tmpW, tmpS, scale_bytes, scale_fmt, dx, dy, rows, cols, dbias);
     if (tmpB) ie_cuda_free(tmpB);
     ie_cuda_free(tmpW);
     ie_cuda_free(tmpS);
@@ -1043,9 +1057,16 @@ static int ie_gemv_q4_0_f32_device(struct ie_gptoss_infer_impl *impl,
     dbias = (const uint16_t *)tmpB;
   }
 
-  const int rc = ie_cuda_gemv_q4_0_f32(dW, dS, scale_bytes, dx, dy, rows, cols, dbias);
+  const int rc = ie_cuda_gemv_q4_0_f32_ex(dW, dS, scale_bytes, scale_fmt, dx, dy, rows, cols, dbias);
   if (tmpB) ie_cuda_free(tmpB);
   return rc == 0 ? 0 : -8;
+}
+
+static int ie_gemv_q4_0_f32_device(struct ie_gptoss_infer_impl *impl,
+                                  const uint8_t *w_q4, const uint8_t *w_scales,
+                                  size_t scale_bytes, const float *dx, float *dy,
+                                  size_t rows, size_t cols, const uint16_t *bias_bf16) {
+  return ie_gemv_q4_0_f32_device_ex(impl, w_q4, w_scales, scale_bytes, 0, dx, dy, rows, cols, bias_bf16);
 }
 
 static int ie_gemv_bf16_f32_device(struct ie_gptoss_infer_impl *impl,
@@ -1767,6 +1788,8 @@ static int ie_forward_one_token(struct ie_gptoss_infer_impl *impl, ie_kv_cache *
 
         uint32_t idx[IE_GPTOSS_MOE_TOPK_DEFAULT] = {0, 0, 0, 0};
         float val[IE_GPTOSS_MOE_TOPK_DEFAULT] = {-INFINITY, -INFINITY, -INFINITY, -INFINITY};
+        const int gu_scale_fmt = (M->gate_up_scale_bytes == 1u) ? 1 : 0;
+        const int dn_scale_fmt = (M->down_scale_bytes == 1u) ? 1 : 0;
 
         for (uint32_t e = 0; e < n_exp; ++e) {
           const float v = impl->router_logits[e];
@@ -1802,9 +1825,9 @@ static int ie_forward_one_token(struct ie_gptoss_infer_impl *impl, ie_kv_cache *
           const uint16_t *dn_bias =
               M->down_bias ? (const uint16_t *)((const uint8_t *)M->down_bias + ex * M->down_bias_stride) : NULL;
 
-          if (ie_gemv_q4_0_f32_device(impl, gu_b, gu_s, M->gate_up_scale_bytes,
-                                      impl->d_x1, impl->d_mlp_up,
-                                      2u * d_ff, (size_t)d_model, gu_bias) != 0) {
+          if (ie_gemv_q4_0_f32_device_ex(impl, gu_b, gu_s, M->gate_up_scale_bytes, gu_scale_fmt,
+                                         impl->d_x1, impl->d_mlp_up,
+                                         2u * d_ff, (size_t)d_model, gu_bias) != 0) {
             IE_LOGE("cuda_full: moe gate_up failed layer=%u pos=%u ex=%u",
                     (unsigned)l, (unsigned)pos, (unsigned)ex);
             return -24;
@@ -1827,9 +1850,9 @@ static int ie_forward_one_token(struct ie_gptoss_infer_impl *impl, ie_kv_cache *
             return -24;
           }
 
-          if (ie_gemv_q4_0_f32_device(impl, dn_b, dn_s, M->down_scale_bytes,
-                                      impl->d_mlp_gate, impl->d_attn_out,
-                                      (size_t)d_model, d_ff, dn_bias) != 0) {
+          if (ie_gemv_q4_0_f32_device_ex(impl, dn_b, dn_s, M->down_scale_bytes, dn_scale_fmt,
+                                         impl->d_mlp_gate, impl->d_attn_out,
+                                         (size_t)d_model, d_ff, dn_bias) != 0) {
             IE_LOGE("cuda_full: moe down failed layer=%u pos=%u ex=%u",
                     (unsigned)l, (unsigned)pos, (unsigned)ex);
             return -25;
@@ -2096,6 +2119,8 @@ static int ie_forward_one_token(struct ie_gptoss_infer_impl *impl, ie_kv_cache *
 
       uint32_t idx[IE_GPTOSS_MOE_TOPK_DEFAULT] = {0, 0, 0, 0};
       float val[IE_GPTOSS_MOE_TOPK_DEFAULT] = {-INFINITY, -INFINITY, -INFINITY, -INFINITY};
+      const int gu_scale_fmt = (M->gate_up_scale_bytes == 1u) ? 1 : 0;
+      const int dn_scale_fmt = (M->down_scale_bytes == 1u) ? 1 : 0;
 
       for (uint32_t e = 0; e < n_exp; ++e) {
         const float v = impl->router_logits[e];
@@ -2132,9 +2157,9 @@ static int ie_forward_one_token(struct ie_gptoss_infer_impl *impl, ie_kv_cache *
         const uint16_t *dn_bias =
             M->down_bias ? (const uint16_t *)((const uint8_t *)M->down_bias + ex * M->down_bias_stride) : NULL;
 
-        if (ie_gemv_q4_0_f32_dispatch(impl, gu_b, gu_s, M->gate_up_scale_bytes,
-                                      impl->x1, impl->mlp_up,
-                                      2u * d_ff, (size_t)d_model, gu_bias) != 0) {
+        if (ie_gemv_q4_0_f32_dispatch_ex(impl, gu_b, gu_s, M->gate_up_scale_bytes, gu_scale_fmt,
+                                         impl->x1, impl->mlp_up,
+                                         2u * d_ff, (size_t)d_model, gu_bias) != 0) {
           IE_LOGE("moe gate_up gemv failed: layer=%u pos=%u ex=%u",
                   (unsigned)l, (unsigned)pos, (unsigned)ex);
           return -24;
@@ -2154,9 +2179,9 @@ static int ie_forward_one_token(struct ie_gptoss_infer_impl *impl, ie_kv_cache *
           return -90;
         }
 
-        if (ie_gemv_q4_0_f32_dispatch(impl, dn_b, dn_s, M->down_scale_bytes,
-                                      impl->mlp_gate, impl->attn_out,
-                                      (size_t)d_model, d_ff, dn_bias) != 0) {
+        if (ie_gemv_q4_0_f32_dispatch_ex(impl, dn_b, dn_s, M->down_scale_bytes, dn_scale_fmt,
+                                         impl->mlp_gate, impl->attn_out,
+                                         (size_t)d_model, d_ff, dn_bias) != 0) {
           IE_LOGE("moe down gemv failed: layer=%u pos=%u ex=%u",
                   (unsigned)l, (unsigned)pos, (unsigned)ex);
           return -25;

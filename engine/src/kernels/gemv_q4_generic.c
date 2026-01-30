@@ -91,9 +91,9 @@ static inline float ie_log2_u8_q3_to_f32(uint8_t v) {
 
 static inline float ie_fp8_e4m3_to_f32(uint8_t v) {
   if (v == 0u) return 0.0f;
-  const uint8_t sign = (uint8_t)((v >> 7) & 0x1);
-  const uint8_t exp  = (uint8_t)((v >> 3) & 0xF);
-  const uint8_t man  = (uint8_t)(v & 0x7);
+  const uint8_t sign = (v >> 7) & 0x1;
+  const uint8_t exp = (v >> 3) & 0xF;
+  const uint8_t man = (v & 0x7);
 
   if (exp == 0) {
     return sign ? -0.0f : 0.0f;
@@ -105,14 +105,17 @@ static inline float ie_fp8_e4m3_to_f32(uint8_t v) {
   return sign ? -val : val;
 }
 
-static inline float ie_q4_load_scale_f32(const uint8_t *scales, size_t scale_bytes) {
+static inline float ie_q4_load_scale_f32_ex(const uint8_t *scales,
+                                            size_t scale_bytes,
+                                            int scale_fmt) {
   if (scale_bytes == 2) {
     uint16_t b;
     memcpy(&b, scales, sizeof(uint16_t));
     return ie_bf16_to_f32_scalar(b);
   }
   if (scale_bytes == 1) {
-    return ie_fp8_e4m3_to_f32(scales[0]);
+    return (scale_fmt == 1) ? ie_fp8_e4m3_to_f32(scales[0])
+                            : ie_log2_u8_q3_to_f32(scales[0]);
   }
   return 0.0f;
 }
@@ -133,6 +136,7 @@ static int ie_q4_debug_nan_enabled_(void) {
 static float ie_q4_0_row_dot_f32(const uint8_t *blocks,
                                 const uint8_t *scales,
                                 size_t scale_bytes,
+                                int scale_fmt,
                                 const float *x,
                                 size_t cols) {
   const size_t n_blocks = cols / 32;
@@ -141,7 +145,7 @@ static float ie_q4_0_row_dot_f32(const uint8_t *blocks,
 
   for (size_t b = 0; b < n_blocks; ++b) {
     const uint8_t *q = blocks + b * 16;
-    const float d = ie_q4_load_scale_f32(scales + b * scale_bytes, scale_bytes);
+    const float d = ie_q4_load_scale_f32_ex(scales + b * scale_bytes, scale_bytes, scale_fmt);
 
     for (size_t j = 0; j < 32; ++j) {
       const uint8_t byte = q[j >> 1];
@@ -160,14 +164,15 @@ static float ie_q4_0_row_dot_f32(const uint8_t *blocks,
   return acc;
 }
 
-static int ie_gemv_q4_0_f32_generic_impl(const uint8_t *W_blocks,
-                                        const uint8_t *W_scales,
-                                        size_t scale_bytes,
-                                        const float *x,
-                                        float *y,
-                                        size_t rows,
-                                        size_t cols,
-                                        const uint16_t *bias_bf16) {
+static int ie_gemv_q4_0_f32_generic_impl_ex(const uint8_t *W_blocks,
+                                           const uint8_t *W_scales,
+                                           size_t scale_bytes,
+                                           int scale_fmt,
+                                           const float *x,
+                                           float *y,
+                                           size_t rows,
+                                           size_t cols,
+                                           const uint16_t *bias_bf16) {
   if (!W_blocks || !W_scales || !x || !y) {
     return 1;
   }
@@ -186,7 +191,7 @@ static int ie_gemv_q4_0_f32_generic_impl(const uint8_t *W_blocks,
     const uint8_t *row_blocks = W_blocks + r * row_block_bytes;
     const uint8_t *row_scales = W_scales + r * row_scale_bytes;
 
-    float v = ie_q4_0_row_dot_f32(row_blocks, row_scales, scale_bytes, x, cols);
+    float v = ie_q4_0_row_dot_f32(row_blocks, row_scales, scale_bytes, scale_fmt, x, cols);
     if (bias_bf16) {
       v += ie_bf16_to_f32_scalar(bias_bf16[r]);
     }
@@ -194,6 +199,17 @@ static int ie_gemv_q4_0_f32_generic_impl(const uint8_t *W_blocks,
   }
 
   return 0;
+}
+
+static int ie_gemv_q4_0_f32_generic_impl(const uint8_t *W_blocks,
+                                        const uint8_t *W_scales,
+                                        size_t scale_bytes,
+                                        const float *x,
+                                        float *y,
+                                        size_t rows,
+                                        size_t cols,
+                                        const uint16_t *bias_bf16) {
+  return ie_gemv_q4_0_f32_generic_impl_ex(W_blocks, W_scales, scale_bytes, 0, x, y, rows, cols, bias_bf16);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -295,6 +311,18 @@ int ie_gemv_q4_0_f32(const uint8_t *W_blocks,
                     size_t rows,
                     size_t cols,
                     const uint16_t *bias_bf16) {
+  return ie_gemv_q4_0_f32_ex(W_blocks, W_scales, scale_bytes, 0, x, y, rows, cols, bias_bf16);
+}
+
+int ie_gemv_q4_0_f32_ex(const uint8_t *W_blocks,
+                        const uint8_t *W_scales,
+                        size_t scale_bytes,
+                        int scale_fmt,
+                        const float *x,
+                        float *y,
+                        size_t rows,
+                        size_t cols,
+                        const uint16_t *bias_bf16) {
   if (!W_blocks || !W_scales || !x || !y) {
     return 1;
   }
@@ -303,6 +331,13 @@ int ie_gemv_q4_0_f32(const uint8_t *W_blocks,
   }
   if (!(scale_bytes == 1 || scale_bytes == 2)) {
     return 3;
+  }
+  if (scale_fmt != 0 && scale_fmt != 1) {
+    return 4;
+  }
+
+  if (scale_fmt == 1) {
+    return ie_gemv_q4_0_f32_generic_impl_ex(W_blocks, W_scales, scale_bytes, 1, x, y, rows, cols, bias_bf16);
   }
 
   (void)pthread_once(&g_q4_once_, ie_q4_dispatch_init_);

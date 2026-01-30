@@ -68,6 +68,27 @@ int ie_cuda_gemv_q4_0_f32(const uint8_t *dW_q4,
   return -1;
 }
 
+int ie_cuda_gemv_q4_0_f32_ex(const uint8_t *dW_q4,
+                             const uint8_t *dW_scales,
+                             size_t scale_bytes,
+                             int scale_fmt,
+                             const float *dx,
+                             float *dy,
+                             size_t rows,
+                             size_t cols,
+                             const uint16_t *dbias_bf16) {
+  (void)dW_q4;
+  (void)dW_scales;
+  (void)scale_bytes;
+  (void)scale_fmt;
+  (void)dx;
+  (void)dy;
+  (void)rows;
+  (void)cols;
+  (void)dbias_bf16;
+  return -1;
+}
+
 int ie_cuda_gemv_bf16_f32(const uint16_t *dW_bf16,
                           const float *dx,
                           float *dy,
