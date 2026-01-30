@@ -1259,6 +1259,7 @@ IE_WEAK int ie_rmsnorm_cpu_f32(const float *x, const float *w, size_t n, float e
   return 0;
 }
 
+#if defined(IE_CUDA_AVAILABLE)
 static void ie_cuda_debug_stats(struct ie_gptoss_infer_impl *impl,
                                 const float *dptr, size_t n,
                                 const char *tag, uint32_t layer, uint32_t pos) {
@@ -1290,6 +1291,7 @@ static void ie_cuda_debug_stats(struct ie_gptoss_infer_impl *impl,
           (unsigned)layer, (unsigned)pos);
   free(tmp);
 }
+#endif
 
 static int ie_rmsnorm_cpu_f32_bf16w(const float *x, const uint16_t *w_bf16, size_t n, float eps,
                                    float *y) {
@@ -3359,6 +3361,7 @@ void ie_gptoss_infer_destroy(ie_gptoss_infer_t *ctx) {
   free(impl->scores);
   free(impl->router_logits);
 
+#if defined(IE_CUDA_AVAILABLE)
   if (impl->d_ln1_w) {
     for (uint32_t l = 0; l < impl->hp->n_layers; ++l) {
       if (impl->d_ln1_w[l]) ie_cuda_free(impl->d_ln1_w[l]);
@@ -3413,6 +3416,16 @@ void ie_gptoss_infer_destroy(ie_gptoss_infer_t *ctx) {
   free(impl->d_router_b_f32);
   free(impl->d_router_w_bf16);
   free(impl->d_router_b_bf16);
+#else
+  free(impl->d_ln1_w);
+  free(impl->d_ln2_w);
+  free(impl->d_kv_K);
+  free(impl->d_kv_V);
+  free(impl->d_router_w_f32);
+  free(impl->d_router_b_f32);
+  free(impl->d_router_w_bf16);
+  free(impl->d_router_b_bf16);
+#endif
 
   free(impl);
 }
