@@ -226,6 +226,41 @@ __global__ void ie_gemv_q4_0_f32_kernel_rowblock(const uint8_t *W_blocks,
   }
 }
 
+__global__ void ie_gemv_bf16_f32_kernel_rowblock(const uint16_t *W_bf16,
+                                                 const float *x,
+                                                 float *y,
+                                                 size_t rows,
+                                                 size_t cols,
+                                                 const uint16_t *bias_bf16) {
+  const size_t r = (size_t)blockIdx.x;
+  if (r >= rows) return;
+
+  const uint16_t *wrow = W_bf16 + r * cols;
+
+  float acc = 0.0f;
+  for (size_t c = (size_t)threadIdx.x; c < cols; c += (size_t)blockDim.x) {
+    const float w = ie_bf16_to_f32_u16_dev(wrow[c]);
+    acc += w * x[c];
+  }
+
+  __shared__ float ssum[128];
+  ssum[threadIdx.x] = acc;
+  __syncthreads();
+
+  for (unsigned int stride = blockDim.x / 2; stride > 0; stride >>= 1) {
+    if (threadIdx.x < stride) {
+      ssum[threadIdx.x] += ssum[threadIdx.x + stride];
+    }
+    __syncthreads();
+  }
+
+  if (threadIdx.x == 0) {
+    float out = ssum[0];
+    if (bias_bf16) out += ie_bf16_to_f32_u16_dev(bias_bf16[r]);
+    y[r] = out;
+  }
+}
+
 /* =============================================================================
  * Public C ABI
  * ========================================================================== */
@@ -448,5 +483,25 @@ extern "C" int ie_cuda_gemv_q4_0_f32(const uint8_t *dW_q4,
   }
 
   ie_cuda_clear_last_error();
+  return 0;
+}
+
+extern "C" int ie_cuda_gemv_bf16_f32(const uint16_t *dW_bf16,
+                                     const float *dx,
+                                     float *dy,
+                                     size_t rows,
+                                     size_t cols,
+                                     const uint16_t *dbias_bf16) {
+  if (!dW_bf16 || !dx || !dy || rows == 0 || cols == 0) return -1;
+
+  const dim3 grid((unsigned)rows);
+  const dim3 block(128);
+  ie_gemv_bf16_f32_kernel_rowblock<<<grid, block>>>(dW_bf16, dx, dy, rows, cols, dbias_bf16);
+
+  const cudaError_t st = cudaGetLastError();
+  if (st != cudaSuccess) {
+    ie_cuda_set_last_error_cuda("ie_gemv_bf16_f32_kernel_rowblock", st);
+    return -2;
+  }
   return 0;
 }

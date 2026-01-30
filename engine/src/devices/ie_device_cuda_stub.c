@@ -68,6 +68,21 @@ int ie_cuda_gemv_q4_0_f32(const uint8_t *dW_q4,
   return -1;
 }
 
+int ie_cuda_gemv_bf16_f32(const uint16_t *dW_bf16,
+                          const float *dx,
+                          float *dy,
+                          size_t rows,
+                          size_t cols,
+                          const uint16_t *dbias_bf16) {
+  (void)dW_bf16;
+  (void)dx;
+  (void)dy;
+  (void)rows;
+  (void)cols;
+  (void)dbias_bf16;
+  return -1;
+}
+
 const char *ie_cuda_last_error_string(void) {
   return "CUDA unavailable (stub)";
 }

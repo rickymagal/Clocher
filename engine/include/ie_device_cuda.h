@@ -131,6 +131,26 @@ int ie_cuda_gemv_q4_0_f32(const uint8_t *dW_q4,
                           const uint16_t *dbias_bf16);
 
 /**
+ * @brief Launch a GEMV BF16 kernel: y = bf16(W) * x (+ optional BF16 bias).
+ *
+ * All pointers must be device pointers. bias may be NULL.
+ *
+ * @param dW_bf16 Device pointer to BF16 weights.
+ * @param dx Device pointer to input vector (FP32).
+ * @param dy Device pointer to output vector (FP32).
+ * @param rows Rows.
+ * @param cols Cols.
+ * @param dbias_bf16 Optional device pointer to BF16 bias (rows) or NULL.
+ * @return 0 on success, negative on failure.
+ */
+int ie_cuda_gemv_bf16_f32(const uint16_t *dW_bf16,
+                          const float *dx,
+                          float *dy,
+                          size_t rows,
+                          size_t cols,
+                          const uint16_t *dbias_bf16);
+
+/**
  * @brief Return a human-readable description of the last CUDA error seen by this wrapper.
  *
  * @return Pointer to an internal static string (valid until next CUDA wrapper call).
