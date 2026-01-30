@@ -148,6 +148,27 @@ __device__ __forceinline__ float ie_log2_u8_q3_to_f32_dev(uint8_t v) {
 }
 
 /**
+ * @brief Decode FP8 E4M3 -> FP32 (device).
+ *
+ * Matches ie_unpack_fp8_e4m3() in engine/src/quant/act_fp8.c.
+ */
+__device__ __forceinline__ float ie_fp8_e4m3_to_f32_dev(uint8_t v) {
+  if (v == 0u) return 0.0f;
+  const uint8_t sign = (v >> 7) & 0x1;
+  const uint8_t exp = (v >> 3) & 0xF;
+  const uint8_t man = (v & 0x7);
+
+  if (exp == 0) {
+    return sign ? -0.0f : 0.0f;
+  }
+  const int bias = 7;
+  const int e = ((int)exp) - bias;
+  const float frac = (float)man / 8.0f;
+  const float val = (1.0f + frac) * ldexpf(1.0f, e);
+  return sign ? -val : val;
+}
+
+/**
  * @brief Decode a signed 4-bit integer stored in a nibble (device).
  */
 __device__ __forceinline__ int8_t ie_s4_from_u4_dev(uint8_t u) {
@@ -188,7 +209,7 @@ __global__ void ie_gemv_q4_0_f32_kernel_rowblock(const uint8_t *W_blocks,
       const uint16_t s16 = (uint16_t)sp[0] | ((uint16_t)sp[1] << 8);
       s = ie_bf16_to_f32_u16_dev(s16);
     } else {
-      s = ie_log2_u8_q3_to_f32_dev(srow[b]);
+      s = ie_fp8_e4m3_to_f32_dev(srow[b]);
     }
 
     const uint8_t *blk = wrow + b * 16u;

@@ -89,6 +89,22 @@ static inline float ie_log2_u8_q3_to_f32(uint8_t v) {
   return ie_log2_u8_q3_lut_[v];
 }
 
+static inline float ie_fp8_e4m3_to_f32(uint8_t v) {
+  if (v == 0u) return 0.0f;
+  const uint8_t sign = (uint8_t)((v >> 7) & 0x1);
+  const uint8_t exp  = (uint8_t)((v >> 3) & 0xF);
+  const uint8_t man  = (uint8_t)(v & 0x7);
+
+  if (exp == 0) {
+    return sign ? -0.0f : 0.0f;
+  }
+  const int bias = 7;
+  const int e = ((int)exp) - bias;
+  const float frac = (float)man / 8.0f;
+  const float val = (1.0f + frac) * ldexpf(1.0f, e);
+  return sign ? -val : val;
+}
+
 static inline float ie_q4_load_scale_f32(const uint8_t *scales, size_t scale_bytes) {
   if (scale_bytes == 2) {
     uint16_t b;
@@ -96,7 +112,7 @@ static inline float ie_q4_load_scale_f32(const uint8_t *scales, size_t scale_byt
     return ie_bf16_to_f32_scalar(b);
   }
   if (scale_bytes == 1) {
-    return ie_log2_u8_q3_to_f32(scales[0]);
+    return ie_fp8_e4m3_to_f32(scales[0]);
   }
   return 0.0f;
 }
