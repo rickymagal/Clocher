@@ -25,6 +25,7 @@ static __device__ __forceinline__ float warp_reduce_sum(float v) {
 
 static __device__ __forceinline__ float block_reduce_sum(float v) {
   __shared__ float smem[32];
+  __shared__ float block_sum;
   int lane = threadIdx.x & 31;
   int wid  = threadIdx.x >> 5;
 
@@ -36,8 +37,10 @@ static __device__ __forceinline__ float block_reduce_sum(float v) {
   if (wid == 0) {
     out = (threadIdx.x < (blockDim.x + 31) / 32) ? smem[lane] : 0.0f;
     out = warp_reduce_sum(out);
+    if (lane == 0) block_sum = out;
   }
-  return __shfl_sync(0xFFFFFFFFu, out, 0);
+  __syncthreads();
+  return block_sum;
 }
 
 __global__ void ie_rmsnorm_f32_kernel(const float *x, const float *w, float *y,
