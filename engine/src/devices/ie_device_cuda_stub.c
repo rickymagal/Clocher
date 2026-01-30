@@ -1,5 +1,9 @@
 // File: engine/src/devices/ie_device_cuda_stub.c
 #include "ie_device_cuda.h"
+#include "ie_attn_cuda.h"
+#include "ie_elem_cuda.h"
+#include "ie_rmsnorm_cuda.h"
+#include "ie_rope.h"
 
 #include <stddef.h>
 #include <stdint.h>
@@ -101,6 +105,93 @@ int ie_cuda_gemv_bf16_f32(const uint16_t *dW_bf16,
   (void)rows;
   (void)cols;
   (void)dbias_bf16;
+  return -1;
+}
+
+int ie_rmsnorm_cuda_f32(const float *x, const float *w, float *y,
+                        size_t rows, size_t cols, float eps) {
+  (void)x;
+  (void)w;
+  (void)y;
+  (void)rows;
+  (void)cols;
+  (void)eps;
+  return -1;
+}
+
+int ie_cuda_rope_f32(float *q, float *k, size_t heads, size_t head_dim,
+                     uint32_t pos, float theta, float pos_mul) {
+  (void)q;
+  (void)k;
+  (void)heads;
+  (void)head_dim;
+  (void)pos;
+  (void)theta;
+  (void)pos_mul;
+  return -1;
+}
+
+int ie_attn_cuda_causal_f32(const float *q, const float *K, const float *V,
+                            size_t seq_len, size_t n_heads, size_t d_head,
+                            float inv_sqrt_d, float *out) {
+  (void)q;
+  (void)K;
+  (void)V;
+  (void)seq_len;
+  (void)n_heads;
+  (void)d_head;
+  (void)inv_sqrt_d;
+  (void)out;
+  return -1;
+}
+
+int ie_attn_cuda_causal_gqa_f32(const float *q, const float *K, const float *V,
+                                size_t seq_len, size_t n_heads, size_t n_kv_heads,
+                                size_t d_head, float inv_sqrt_d, float *out) {
+  (void)q;
+  (void)K;
+  (void)V;
+  (void)seq_len;
+  (void)n_heads;
+  (void)n_kv_heads;
+  (void)d_head;
+  (void)inv_sqrt_d;
+  (void)out;
+  return -1;
+}
+
+int ie_cuda_add_inplace_f32(float *dst, const float *src, size_t n) {
+  (void)dst;
+  (void)src;
+  (void)n;
+  return -1;
+}
+
+int ie_cuda_add_scaled_inplace_f32(float *dst, const float *src, float a, size_t n) {
+  (void)dst;
+  (void)src;
+  (void)a;
+  (void)n;
+  return -1;
+}
+
+int ie_cuda_zero_f32(float *dst, size_t n) {
+  (void)dst;
+  (void)n;
+  return -1;
+}
+
+int ie_cuda_fix_nonfinite_f32(float *dst, size_t n) {
+  (void)dst;
+  (void)n;
+  return -1;
+}
+
+int ie_cuda_silu_mul_f32(const float *gate_up, const float *up, float *out, size_t n) {
+  (void)gate_up;
+  (void)up;
+  (void)out;
+  (void)n;
   return -1;
 }
 
