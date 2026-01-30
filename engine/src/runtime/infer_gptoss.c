@@ -1096,6 +1096,28 @@ static int ie_gemv_bf16_f32_device(struct ie_gptoss_infer_impl *impl,
   if (tmpB) ie_cuda_free(tmpB);
   return rc == 0 ? 0 : -7;
 }
+
+static int ie_cuda_debug_check_finite(struct ie_gptoss_infer_impl *impl,
+                                      const float *dptr, size_t n,
+                                      const char *tag, uint32_t layer, uint32_t pos) {
+  if (!impl || !dptr || n == 0 || !tag) return 0;
+  if (!ie_env_flag("IE_CUDA_DEBUG_NAN")) return 0;
+
+  const size_t k = (n < 16u) ? n : 16u;
+  float tmp[16];
+  if (ie_cuda_memcpy(tmp, dptr, k * sizeof(float), IE_CUDA_COPY_D2H) != 0) {
+    IE_LOGE("cuda_full: debug memcpy failed tag=%s layer=%u pos=%u", tag, (unsigned)layer, (unsigned)pos);
+    return -1;
+  }
+  for (size_t i = 0; i < k; ++i) {
+    if (!isfinite(tmp[i])) {
+      IE_LOGE("cuda_full: non-finite %s[%zu]=%g layer=%u pos=%u", tag, i, (double)tmp[i],
+              (unsigned)layer, (unsigned)pos);
+      return -1;
+    }
+  }
+  return 0;
+}
 #endif
 
 /**
@@ -1616,6 +1638,7 @@ static int ie_forward_one_token(struct ie_gptoss_infer_impl *impl, ie_kv_cache *
         IE_LOGE("cuda_full: rmsnorm1 failed layer=%u pos=%u", (unsigned)l, (unsigned)pos);
         return -11;
       }
+      if (ie_cuda_debug_check_finite(impl, impl->d_x1, (size_t)d_model, "x1_ln1", l, pos) != 0) return -11;
 
       if (W->q_q4_blocks && W->q_q4_scales) {
         if (ie_gemv_q4_0_f32_device(impl, W->q_q4_blocks, W->q_q4_scales, W->q_q4_scale_bytes,
@@ -1630,6 +1653,7 @@ static int ie_forward_one_token(struct ie_gptoss_infer_impl *impl, ie_kv_cache *
           return -12;
         }
       }
+      if (ie_cuda_debug_check_finite(impl, impl->d_q, q_dim, "q", l, pos) != 0) return -12;
       if (W->k_q4_blocks && W->k_q4_scales) {
         if (ie_gemv_q4_0_f32_device(impl, W->k_q4_blocks, W->k_q4_scales, W->k_q4_scale_bytes,
                                     impl->d_x1, impl->d_k, kv_dim, (size_t)d_model, W->k_b) != 0) {
@@ -1643,6 +1667,7 @@ static int ie_forward_one_token(struct ie_gptoss_infer_impl *impl, ie_kv_cache *
           return -12;
         }
       }
+      if (ie_cuda_debug_check_finite(impl, impl->d_k, kv_dim, "k", l, pos) != 0) return -12;
       if (W->v_q4_blocks && W->v_q4_scales) {
         if (ie_gemv_q4_0_f32_device(impl, W->v_q4_blocks, W->v_q4_scales, W->v_q4_scale_bytes,
                                     impl->d_x1, impl->d_v, kv_dim, (size_t)d_model, W->v_b) != 0) {
@@ -1656,6 +1681,7 @@ static int ie_forward_one_token(struct ie_gptoss_infer_impl *impl, ie_kv_cache *
           return -12;
         }
       }
+      if (ie_cuda_debug_check_finite(impl, impl->d_v, kv_dim, "v", l, pos) != 0) return -12;
 
       if (ie_cuda_rope_f32(impl->d_q, NULL, (size_t)n_heads, (size_t)d_head, pos,
                            rope_theta_eff, ie_rope_pos_mul()) != 0 ||
@@ -1692,6 +1718,7 @@ static int ie_forward_one_token(struct ie_gptoss_infer_impl *impl, ie_kv_cache *
           return -18;
         }
       }
+      if (ie_cuda_debug_check_finite(impl, impl->d_attn_out, q_dim, "attn_out", l, pos) != 0) return -18;
 
       if (W->o_q4_blocks && W->o_q4_scales) {
         if (ie_gemv_q4_0_f32_device(impl, W->o_q4_blocks, W->o_q4_scales, W->o_q4_scale_bytes,
@@ -1707,12 +1734,14 @@ static int ie_forward_one_token(struct ie_gptoss_infer_impl *impl, ie_kv_cache *
         }
       }
       if (ie_cuda_add_inplace_f32(impl->d_x, impl->d_x2, (size_t)d_model) != 0) return -19;
+      if (ie_cuda_debug_check_finite(impl, impl->d_x, (size_t)d_model, "x_post_attn", l, pos) != 0) return -19;
 
       if (ie_rmsnorm_cuda_f32(impl->d_x, impl->d_ln2_w[l], impl->d_x1, 1u, (size_t)d_model,
                               impl->rms_eps) != 0) {
         IE_LOGE("cuda_full: rmsnorm2 failed layer=%u pos=%u", (unsigned)l, (unsigned)pos);
         return -20;
       }
+      if (ie_cuda_debug_check_finite(impl, impl->d_x1, (size_t)d_model, "x1_ln2", l, pos) != 0) return -20;
 
       {
         const ie_moe_w_t *M = &W->moe;
@@ -1805,10 +1834,12 @@ static int ie_forward_one_token(struct ie_gptoss_infer_impl *impl, ie_kv_cache *
       }
 
       if (ie_cuda_add_inplace_f32(impl->d_x, impl->d_x2, (size_t)d_model) != 0) return -25;
+      if (ie_cuda_debug_check_finite(impl, impl->d_x, (size_t)d_model, "x_post_mlp", l, pos) != 0) return -25;
     }
 
     if (ie_rmsnorm_cuda_f32(impl->d_x, impl->d_norm_w, impl->d_x1, 1u, (size_t)d_model, impl->rms_eps) != 0)
       return -26;
+    if (ie_cuda_debug_check_finite(impl, impl->d_x1, (size_t)d_model, "x1_norm", 0u, pos) != 0) return -26;
 
     if (impl->w_lm_q4_blocks && impl->w_lm_q4_scales) {
       if (ie_gemv_q4_0_f32_device(impl, impl->w_lm_q4_blocks, impl->w_lm_q4_scales,
@@ -1824,6 +1855,7 @@ static int ie_forward_one_token(struct ie_gptoss_infer_impl *impl, ie_kv_cache *
     }
     if (ie_cuda_memcpy(out_logits, impl->d_logits, (size_t)vocab * sizeof(float), IE_CUDA_COPY_D2H) != 0)
       return -27;
+    if (ie_cuda_debug_check_finite(impl, impl->d_logits, (size_t)vocab, "logits", 0u, pos) != 0) return -27;
     return 0;
   }
 #endif
