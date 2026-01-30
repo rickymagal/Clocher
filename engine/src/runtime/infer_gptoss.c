@@ -1118,6 +1118,55 @@ static int ie_gemv_bf16_f32_device(struct ie_gptoss_infer_impl *impl,
   return rc == 0 ? 0 : -7;
 }
 
+static int ie_gemv_f32_device(struct ie_gptoss_infer_impl *impl,
+                              const float *w_f32, const float *dx, float *dy,
+                              size_t rows, size_t cols, const float *bias_f32) {
+  if (!impl || !impl->dev || !w_f32 || !dx || !dy || rows == 0 || cols == 0) return -1;
+
+  const size_t W_bytes = rows * cols * sizeof(float);
+  const void *dW = NULL;
+  if (ie_device_blob_ptr(impl->dev, w_f32, W_bytes, &dW) != 0) {
+    float *tmpW = (float *)ie_cuda_malloc(W_bytes);
+    if (!tmpW) return -2;
+    if (ie_cuda_memcpy(tmpW, w_f32, W_bytes, IE_CUDA_COPY_H2D) != 0) {
+      ie_cuda_free(tmpW);
+      return -3;
+    }
+    const float *dbias = NULL;
+    float *tmpB = NULL;
+    if (bias_f32) {
+      const size_t b_bytes = rows * sizeof(float);
+      tmpB = (float *)ie_cuda_malloc(b_bytes);
+      if (!tmpB || ie_cuda_memcpy(tmpB, bias_f32, b_bytes, IE_CUDA_COPY_H2D) != 0) {
+        if (tmpB) ie_cuda_free(tmpB);
+        ie_cuda_free(tmpW);
+        return -4;
+      }
+      dbias = (const float *)tmpB;
+    }
+    const int rc = ie_cuda_gemv_f32(tmpW, dx, dy, rows, cols, dbias);
+    if (tmpB) ie_cuda_free(tmpB);
+    ie_cuda_free(tmpW);
+    return rc == 0 ? 0 : -5;
+  }
+
+  const float *dbias = NULL;
+  float *tmpB = NULL;
+  if (bias_f32) {
+    const size_t b_bytes = rows * sizeof(float);
+    tmpB = (float *)ie_cuda_malloc(b_bytes);
+    if (!tmpB || ie_cuda_memcpy(tmpB, bias_f32, b_bytes, IE_CUDA_COPY_H2D) != 0) {
+      if (tmpB) ie_cuda_free(tmpB);
+      return -6;
+    }
+    dbias = (const float *)tmpB;
+  }
+
+  const int rc = ie_cuda_gemv_f32((const float *)dW, dx, dy, rows, cols, dbias);
+  if (tmpB) ie_cuda_free(tmpB);
+  return rc == 0 ? 0 : -7;
+}
+
 static int ie_cuda_debug_check_finite(struct ie_gptoss_infer_impl *impl,
                                       const float *dptr, size_t n,
                                       const char *tag, uint32_t layer, uint32_t pos) {
@@ -1883,6 +1932,11 @@ static int ie_forward_one_token(struct ie_gptoss_infer_impl *impl, ie_kv_cache *
       if (ie_gemv_q4_0_f32_device(impl, impl->w_lm_q4_blocks, impl->w_lm_q4_scales,
                                   impl->w_lm_q4_scale_bytes, impl->d_x1, impl->d_logits,
                                   (size_t)vocab, (size_t)d_model, NULL) != 0) {
+        return -27;
+      }
+    } else if (impl->use_f32_lm_head && impl->w_lm_f32) {
+      if (ie_gemv_f32_device(impl, impl->w_lm_f32, impl->d_x1, impl->d_logits,
+                             (size_t)vocab, (size_t)d_model, NULL) != 0) {
         return -27;
       }
     } else {
