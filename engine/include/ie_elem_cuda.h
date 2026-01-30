@@ -32,6 +32,11 @@ int ie_cuda_add_scaled_inplace_f32(float *y, const float *x, float scale, size_t
 int ie_cuda_silu_mul_f32(const float *gate, const float *up, float *out, size_t n);
 
 /**
+ * @brief Replace non-finite values in-place with 0.
+ */
+int ie_cuda_fix_nonfinite_f32(float *y, size_t n);
+
+/**
  * @brief Apply RoPE to q/k on device (in-place).
  *
  * @param q        Device pointer to Q (may be NULL).

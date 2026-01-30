@@ -36,6 +36,14 @@ __global__ void ie_silu_mul_f32_kernel(const float *gate, const float *up, float
   if (i < n) out[i] = silu_f32(gate[i]) * up[i];
 }
 
+__global__ void ie_fix_nonfinite_f32_kernel(float *y, size_t n) {
+  size_t i = (size_t)blockIdx.x * (size_t)blockDim.x + (size_t)threadIdx.x;
+  if (i < n) {
+    const float v = y[i];
+    if (!isfinite(v)) y[i] = 0.0f;
+  }
+}
+
 __global__ void ie_rope_f32_kernel(float *q, float *k,
                                   size_t heads, size_t head_dim,
                                   float pos_f, float theta) {
@@ -108,6 +116,16 @@ extern "C" int ie_cuda_silu_mul_f32(const float *gate, const float *up, float *o
   const dim3 block((unsigned int)threads, 1u, 1u);
   const dim3 grid((unsigned int)((n + (size_t)threads - 1u) / (size_t)threads), 1u, 1u);
   ie_silu_mul_f32_kernel<<<grid, block, 0, 0>>>(gate, up, out, n);
+  cudaError_t e = cudaGetLastError();
+  return (e == cudaSuccess) ? 0 : -2;
+}
+
+extern "C" int ie_cuda_fix_nonfinite_f32(float *y, size_t n) {
+  if (!y || n == 0u) return -1;
+  const int threads = 256;
+  const dim3 block((unsigned int)threads, 1u, 1u);
+  const dim3 grid((unsigned int)((n + (size_t)threads - 1u) / (size_t)threads), 1u, 1u);
+  ie_fix_nonfinite_f32_kernel<<<grid, block, 0, 0>>>(y, n);
   cudaError_t e = cudaGetLastError();
   return (e == cudaSuccess) ? 0 : -2;
 }

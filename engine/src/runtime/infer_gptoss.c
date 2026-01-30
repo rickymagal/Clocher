@@ -1809,10 +1809,20 @@ static int ie_forward_one_token(struct ie_gptoss_infer_impl *impl, ie_kv_cache *
                     (unsigned)l, (unsigned)pos, (unsigned)ex);
             return -24;
           }
+          if (ie_cuda_fix_nonfinite_f32(impl->d_mlp_up, 2u * d_ff) != 0) {
+            IE_LOGE("cuda_full: fix nonfinite gate_up failed layer=%u pos=%u ex=%u",
+                    (unsigned)l, (unsigned)pos, (unsigned)ex);
+            return -24;
+          }
 
           if (ie_cuda_silu_mul_f32(impl->d_mlp_up, impl->d_mlp_up + d_ff,
                                    impl->d_mlp_gate, d_ff) != 0) {
             IE_LOGE("cuda_full: silu_mul failed layer=%u pos=%u ex=%u",
+                    (unsigned)l, (unsigned)pos, (unsigned)ex);
+            return -24;
+          }
+          if (ie_cuda_fix_nonfinite_f32(impl->d_mlp_gate, d_ff) != 0) {
+            IE_LOGE("cuda_full: fix nonfinite mlp_gate failed layer=%u pos=%u ex=%u",
                     (unsigned)l, (unsigned)pos, (unsigned)ex);
             return -24;
           }
@@ -1821,6 +1831,11 @@ static int ie_forward_one_token(struct ie_gptoss_infer_impl *impl, ie_kv_cache *
                                       impl->d_mlp_gate, impl->d_attn_out,
                                       (size_t)d_model, d_ff, dn_bias) != 0) {
             IE_LOGE("cuda_full: moe down failed layer=%u pos=%u ex=%u",
+                    (unsigned)l, (unsigned)pos, (unsigned)ex);
+            return -25;
+          }
+          if (ie_cuda_fix_nonfinite_f32(impl->d_attn_out, (size_t)d_model) != 0) {
+            IE_LOGE("cuda_full: fix nonfinite mlp_down failed layer=%u pos=%u ex=%u",
                     (unsigned)l, (unsigned)pos, (unsigned)ex);
             return -25;
           }
