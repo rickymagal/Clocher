@@ -1255,7 +1255,7 @@ static void ie_cuda_debug_stats(struct ie_gptoss_infer_impl *impl,
     sum += (double)v;
   }
   const double mean = sum / (double)n_sample;
-  IE_LOGI("cuda_full: stats %s sample=%zu min=%.6g max=%.6g mean=%.6g layer=%u pos=%u",
+  IE_LOGW("cuda_full: stats %s sample=%zu min=%.6g max=%.6g mean=%.6g layer=%u pos=%u",
           tag, (unsigned long)n_sample, (double)vmin, (double)vmax, mean,
           (unsigned)layer, (unsigned)pos);
   free(tmp);
