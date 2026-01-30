@@ -2400,10 +2400,13 @@ int ie_gptoss_infer_create(const ie_device_t *dev_const, const ie_weights_t *w,
           impl->use_f32_lm_head, impl->use_f32_rmsnorm);
 
 #if defined(IE_CUDA_AVAILABLE)
+  const int cuda_full_req = ie_env_flag("IE_CUDA_FULL");
+  const int cuda_full_force = ie_env_flag("IE_CUDA_FULL_FORCE");
+  const char *cuda_full_disable_reason = NULL;
   if (impl->dev && ie_device_kind(impl->dev) == IE_DEV_CUDA && ie_env_flag("IE_CUDA_ATTN")) {
     impl->use_cuda_attn = 1;
   }
-  if (impl->dev && ie_device_kind(impl->dev) == IE_DEV_CUDA && ie_env_flag("IE_CUDA_FULL")) {
+  if (impl->dev && ie_device_kind(impl->dev) == IE_DEV_CUDA && cuda_full_req) {
     impl->use_cuda_full = 1;
     impl->use_cuda_attn = 1;
     impl->use_f32_rmsnorm = 1;
@@ -2976,15 +2979,18 @@ int ie_gptoss_infer_create(const ie_device_t *dev_const, const ie_weights_t *w,
     impl->d_ln2_w = (float **)calloc((size_t)n_layers, sizeof(float *));
     if (!impl->d_ln1_w || !impl->d_ln2_w) {
       IE_LOGW("create: cuda_full ln weight table alloc failed");
+      if (!cuda_full_disable_reason) cuda_full_disable_reason = "ln weight table alloc failed";
       impl->use_cuda_full = 0;
     } else if (!impl->w_norm_f32) {
       IE_LOGW("create: cuda_full requires f32 rmsnorm weights");
+      if (!cuda_full_disable_reason) cuda_full_disable_reason = "missing f32 rmsnorm weights";
       impl->use_cuda_full = 0;
     } else {
       const size_t w_bytes = (size_t)d_model * sizeof(float);
       for (uint32_t l = 0; l < n_layers; ++l) {
         if (!impl->layers[l].ln1_w_f32 || !impl->layers[l].ln2_w_f32) {
           IE_LOGW("create: cuda_full missing ln f32 layer=%u", (unsigned)l);
+          if (!cuda_full_disable_reason) cuda_full_disable_reason = "missing ln f32 weights";
           impl->use_cuda_full = 0;
           break;
         }
@@ -2992,12 +2998,14 @@ int ie_gptoss_infer_create(const ie_device_t *dev_const, const ie_weights_t *w,
         impl->d_ln2_w[l] = (float *)ie_cuda_malloc(w_bytes);
         if (!impl->d_ln1_w[l] || !impl->d_ln2_w[l]) {
           IE_LOGW("create: cuda_full ln weight alloc failed layer=%u", (unsigned)l);
+          if (!cuda_full_disable_reason) cuda_full_disable_reason = "ln weight device alloc failed";
           impl->use_cuda_full = 0;
           break;
         }
         if (ie_cuda_memcpy(impl->d_ln1_w[l], impl->layers[l].ln1_w_f32, w_bytes, IE_CUDA_COPY_H2D) != 0 ||
             ie_cuda_memcpy(impl->d_ln2_w[l], impl->layers[l].ln2_w_f32, w_bytes, IE_CUDA_COPY_H2D) != 0) {
           IE_LOGW("create: cuda_full ln weight copy failed layer=%u", (unsigned)l);
+          if (!cuda_full_disable_reason) cuda_full_disable_reason = "ln weight copy failed";
           impl->use_cuda_full = 0;
           break;
         }
@@ -3008,6 +3016,7 @@ int ie_gptoss_infer_create(const ie_device_t *dev_const, const ie_weights_t *w,
             ie_cuda_memcpy(impl->d_norm_w, impl->w_norm_f32, (size_t)d_model * sizeof(float),
                            IE_CUDA_COPY_H2D) != 0) {
           IE_LOGW("create: cuda_full norm weight copy failed");
+          if (!cuda_full_disable_reason) cuda_full_disable_reason = "norm weight copy failed";
           impl->use_cuda_full = 0;
         }
       }
@@ -3129,14 +3138,17 @@ int ie_gptoss_infer_create(const ie_device_t *dev_const, const ie_weights_t *w,
     if (!impl->d_x || !impl->d_x1 || !impl->d_x2 || !impl->d_k || !impl->d_v ||
         !impl->d_mlp_gate || !impl->d_mlp_up || !impl->d_logits) {
       IE_LOGW("create: cuda_full alloc failed (activations)");
+      if (!cuda_full_disable_reason) cuda_full_disable_reason = "cuda_full activation alloc failed";
       impl->use_cuda_full = 0;
     } else if (!impl->d_kv_K || !impl->d_kv_V) {
       IE_LOGW("create: cuda_full requires cuda_attn kv buffers");
+      if (!cuda_full_disable_reason) cuda_full_disable_reason = "missing cuda_attn kv buffers";
       impl->use_cuda_full = 0;
     } else {
       for (uint32_t l = 0; l < (uint32_t)hp->n_layers; ++l) {
         if (!impl->d_kv_K[l] || !impl->d_kv_V[l]) {
           IE_LOGW("create: cuda_full missing kv layer=%u", (unsigned)l);
+          if (!cuda_full_disable_reason) cuda_full_disable_reason = "missing kv layer buffers";
           impl->use_cuda_full = 0;
           break;
         }
@@ -3156,6 +3168,18 @@ int ie_gptoss_infer_create(const ie_device_t *dev_const, const ie_weights_t *w,
       impl->d_k = impl->d_v = NULL;
       impl->d_mlp_gate = impl->d_mlp_up = NULL;
       impl->d_logits = NULL;
+    }
+  }
+#endif
+
+#if defined(IE_CUDA_AVAILABLE)
+  if (cuda_full_req && !impl->use_cuda_full) {
+    IE_LOGE("create: cuda_full disabled (%s)",
+            cuda_full_disable_reason ? cuda_full_disable_reason : "unknown");
+    if (cuda_full_force) {
+      IE_LOGE("create: IE_CUDA_FULL_FORCE=1 set; aborting");
+      ie_gptoss_infer_destroy((ie_gptoss_infer_t *)impl);
+      return -32;
     }
   }
 #endif
