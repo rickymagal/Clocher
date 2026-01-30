@@ -489,6 +489,21 @@ struct ie_gptoss_infer_impl {
   /** @brief Device logits buffer. */
   float *d_logits;
 
+  /** @brief Device router logits buffer (FP32), shape [max_experts]. */
+  float *d_router_logits;
+
+  /** @brief Per-layer device router weights (FP32), optional. */
+  float **d_router_w_f32;
+
+  /** @brief Per-layer device router bias (FP32), optional. */
+  float **d_router_b_f32;
+
+  /** @brief Per-layer device router weights (BF16), optional. */
+  uint16_t **d_router_w_bf16;
+
+  /** @brief Per-layer device router bias (BF16), optional. */
+  uint16_t **d_router_b_bf16;
+
   /** @brief Per-layer device KV cache (K). */
   float **d_kv_K;
 
@@ -1879,19 +1894,43 @@ static int ie_forward_one_token(struct ie_gptoss_infer_impl *impl, ie_kv_cache *
         const ie_moe_w_t *M = &W->moe;
         const uint32_t n_exp = M->n_experts;
         if (n_exp == 0u || !impl->router_logits) return -21;
-
-        if (ie_cuda_memcpy(impl->x1, impl->d_x1, (size_t)d_model * sizeof(float), IE_CUDA_COPY_D2H) != 0) {
-          IE_LOGE("cuda_full: D2H x1 failed layer=%u pos=%u", (unsigned)l, (unsigned)pos);
-          return -21;
-        }
-
-        if (M->router_w_f32) {
-          ie_gemv_f32(M->router_w_f32, impl->x1, impl->router_logits,
-                      (size_t)n_exp, (size_t)d_model, M->router_b_f32, 1);
-        } else if (ie_gemv_bf16_f32(M->router_w, impl->x1, impl->router_logits,
-                                    (size_t)n_exp, (size_t)d_model, M->router_b) != 0) {
-          IE_LOGE("cuda_full: router gemv failed layer=%u pos=%u", (unsigned)l, (unsigned)pos);
-          return -22;
+        if (impl->d_router_logits &&
+            ((impl->d_router_w_f32 && impl->d_router_w_f32[l]) ||
+             (impl->d_router_w_bf16 && impl->d_router_w_bf16[l]))) {
+          int rc_router = 0;
+          if (impl->d_router_w_f32 && impl->d_router_w_f32[l]) {
+            rc_router = ie_cuda_gemv_f32(impl->d_router_w_f32[l], impl->d_x1, impl->d_router_logits,
+                                         (size_t)n_exp, (size_t)d_model,
+                                         (impl->d_router_b_f32 ? impl->d_router_b_f32[l] : NULL));
+          } else {
+            rc_router = ie_cuda_gemv_bf16_f32(impl->d_router_w_bf16[l], impl->d_x1, impl->d_router_logits,
+                                              (size_t)n_exp, (size_t)d_model,
+                                              (impl->d_router_b_bf16 ? impl->d_router_b_bf16[l] : NULL));
+          }
+          if (rc_router != 0) {
+            IE_LOGE("cuda_full: router gemv (device) failed layer=%u pos=%u",
+                    (unsigned)l, (unsigned)pos);
+            return -22;
+          }
+          if (ie_cuda_memcpy(impl->router_logits, impl->d_router_logits,
+                             (size_t)n_exp * sizeof(float), IE_CUDA_COPY_D2H) != 0) {
+            IE_LOGE("cuda_full: D2H router_logits failed layer=%u pos=%u",
+                    (unsigned)l, (unsigned)pos);
+            return -22;
+          }
+        } else {
+          if (ie_cuda_memcpy(impl->x1, impl->d_x1, (size_t)d_model * sizeof(float), IE_CUDA_COPY_D2H) != 0) {
+            IE_LOGE("cuda_full: D2H x1 failed layer=%u pos=%u", (unsigned)l, (unsigned)pos);
+            return -21;
+          }
+          if (M->router_w_f32) {
+            ie_gemv_f32(M->router_w_f32, impl->x1, impl->router_logits,
+                        (size_t)n_exp, (size_t)d_model, M->router_b_f32, 1);
+          } else if (ie_gemv_bf16_f32(M->router_w, impl->x1, impl->router_logits,
+                                      (size_t)n_exp, (size_t)d_model, M->router_b) != 0) {
+            IE_LOGE("cuda_full: router gemv failed layer=%u pos=%u", (unsigned)l, (unsigned)pos);
+            return -22;
+          }
         }
 
         const uint32_t topk = ie_u32_min(impl->moe_topk, n_exp);
@@ -3186,6 +3225,78 @@ int ie_gptoss_infer_create(const ie_device_t *dev_const, const ie_weights_t *w,
       impl->d_mlp_gate = impl->d_mlp_up = NULL;
       impl->d_logits = NULL;
     }
+
+    if (impl->use_cuda_full && impl->max_experts > 0u) {
+      const size_t n_layers_sz = (size_t)hp->n_layers;
+      const size_t d_model = (size_t)hp->d_model;
+
+      impl->d_router_logits = (float *)ie_cuda_malloc((size_t)impl->max_experts * sizeof(float));
+      impl->d_router_w_f32 = (float **)calloc(n_layers_sz, sizeof(float *));
+      impl->d_router_b_f32 = (float **)calloc(n_layers_sz, sizeof(float *));
+      impl->d_router_w_bf16 = (uint16_t **)calloc(n_layers_sz, sizeof(uint16_t *));
+      impl->d_router_b_bf16 = (uint16_t **)calloc(n_layers_sz, sizeof(uint16_t *));
+
+      if (!impl->d_router_logits || !impl->d_router_w_f32 || !impl->d_router_b_f32 ||
+          !impl->d_router_w_bf16 || !impl->d_router_b_bf16) {
+        IE_LOGW("create: cuda_full router device alloc failed (max_experts=%u)", (unsigned)impl->max_experts);
+        if (impl->d_router_logits) ie_cuda_free(impl->d_router_logits);
+        free(impl->d_router_w_f32);
+        free(impl->d_router_b_f32);
+        free(impl->d_router_w_bf16);
+        free(impl->d_router_b_bf16);
+        impl->d_router_logits = NULL;
+        impl->d_router_w_f32 = impl->d_router_b_f32 = NULL;
+        impl->d_router_w_bf16 = impl->d_router_b_bf16 = NULL;
+      } else {
+        for (uint32_t l = 0; l < hp->n_layers; ++l) {
+          const ie_moe_w_t *M = &impl->layers[l].moe;
+          if (M->n_experts == 0u || !M->router_w) continue;
+
+          const size_t n_exp = (size_t)M->n_experts;
+          const size_t w_bf16_bytes = n_exp * d_model * sizeof(uint16_t);
+          const size_t b_bf16_bytes = n_exp * sizeof(uint16_t);
+
+          if (M->router_w_f32) {
+            const size_t w_f32_bytes = n_exp * d_model * sizeof(float);
+            impl->d_router_w_f32[l] = (float *)ie_cuda_malloc(w_f32_bytes);
+            if (!impl->d_router_w_f32[l] ||
+                ie_cuda_memcpy(impl->d_router_w_f32[l], M->router_w_f32, w_f32_bytes, IE_CUDA_COPY_H2D) != 0) {
+              if (impl->d_router_w_f32[l]) ie_cuda_free(impl->d_router_w_f32[l]);
+              impl->d_router_w_f32[l] = NULL;
+              IE_LOGW("create: cuda_full router W f32 copy failed layer=%u", (unsigned)l);
+            }
+
+            if (M->router_b_f32) {
+              impl->d_router_b_f32[l] = (float *)ie_cuda_malloc(n_exp * sizeof(float));
+              if (!impl->d_router_b_f32[l] ||
+                  ie_cuda_memcpy(impl->d_router_b_f32[l], M->router_b_f32,
+                                 n_exp * sizeof(float), IE_CUDA_COPY_H2D) != 0) {
+                if (impl->d_router_b_f32[l]) ie_cuda_free(impl->d_router_b_f32[l]);
+                impl->d_router_b_f32[l] = NULL;
+                IE_LOGW("create: cuda_full router b f32 copy failed layer=%u", (unsigned)l);
+              }
+            }
+          } else {
+            impl->d_router_w_bf16[l] = (uint16_t *)ie_cuda_malloc(w_bf16_bytes);
+            if (!impl->d_router_w_bf16[l] ||
+                ie_cuda_memcpy(impl->d_router_w_bf16[l], M->router_w, w_bf16_bytes, IE_CUDA_COPY_H2D) != 0) {
+              if (impl->d_router_w_bf16[l]) ie_cuda_free(impl->d_router_w_bf16[l]);
+              impl->d_router_w_bf16[l] = NULL;
+              IE_LOGW("create: cuda_full router W bf16 copy failed layer=%u", (unsigned)l);
+            }
+            if (M->router_b) {
+              impl->d_router_b_bf16[l] = (uint16_t *)ie_cuda_malloc(b_bf16_bytes);
+              if (!impl->d_router_b_bf16[l] ||
+                  ie_cuda_memcpy(impl->d_router_b_bf16[l], M->router_b, b_bf16_bytes, IE_CUDA_COPY_H2D) != 0) {
+                if (impl->d_router_b_bf16[l]) ie_cuda_free(impl->d_router_b_bf16[l]);
+                impl->d_router_b_bf16[l] = NULL;
+                IE_LOGW("create: cuda_full router b bf16 copy failed layer=%u", (unsigned)l);
+              }
+            }
+          }
+        }
+      }
+    }
   }
 #endif
 
@@ -3284,6 +3395,24 @@ void ie_gptoss_infer_destroy(ie_gptoss_infer_t *ctx) {
   if (impl->d_mlp_gate) ie_cuda_free(impl->d_mlp_gate);
   if (impl->d_mlp_up) ie_cuda_free(impl->d_mlp_up);
   if (impl->d_logits) ie_cuda_free(impl->d_logits);
+  if (impl->d_router_logits) ie_cuda_free(impl->d_router_logits);
+
+  if (impl->d_router_w_f32) {
+    for (uint32_t l = 0; l < impl->hp->n_layers; ++l) {
+      if (impl->d_router_w_f32[l]) ie_cuda_free(impl->d_router_w_f32[l]);
+      if (impl->d_router_b_f32[l]) ie_cuda_free(impl->d_router_b_f32[l]);
+    }
+  }
+  if (impl->d_router_w_bf16) {
+    for (uint32_t l = 0; l < impl->hp->n_layers; ++l) {
+      if (impl->d_router_w_bf16[l]) ie_cuda_free(impl->d_router_w_bf16[l]);
+      if (impl->d_router_b_bf16[l]) ie_cuda_free(impl->d_router_b_bf16[l]);
+    }
+  }
+  free(impl->d_router_w_f32);
+  free(impl->d_router_b_f32);
+  free(impl->d_router_w_bf16);
+  free(impl->d_router_b_bf16);
 
   free(impl);
 }
